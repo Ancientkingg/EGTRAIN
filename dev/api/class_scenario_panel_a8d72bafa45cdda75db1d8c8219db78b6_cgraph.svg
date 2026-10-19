@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Lists the scenarios again and shows the selected one.">
 <polygon fill="#999999" stroke="#666666" points="125,-62 0,-62 0,-43 125,-43 125,-62"/>
 <text text-anchor="middle" x="62.5" y="-50" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::refresh</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" target="_top" xlink:title="Shows the fields of the selected scenario again.">
 <polygon fill="white" stroke="#666666" points="331,-25 177,-25 177,-6 331,-6 331,-25"/>
 <text text-anchor="middle" x="254" y="-13" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::updateDetail</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" target="_top" xlink:title="Writes the label of each scenario in the list again.">
 <polygon fill="white" stroke="#666666" points="347,-62 161,-62 161,-43 347,-43 347,-62"/>
 <text text-anchor="middle" x="254" y="-50" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::updatePresentation</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" target="_top" xlink:title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea...">
 <polygon fill="white" stroke="#666666" points="528,-67.5 383,-67.5 383,-37.5 528,-37.5 528,-67.5"/>
 <text text-anchor="start" x="391" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::headerText</text>
 <text text-anchor="middle" x="455.5" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">Changed</text>

@@ -1,7 +1,7 @@
 <map id="TrainUnitPanel::commitSources" name="TrainUnitPanel::commitSources">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,229,60"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="298,5,495,31"/>
+<area shape="rect" id="Node000001" title="Takes the parameter and traction source references from their fields." alt="" coords="5,35,229,60"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="298,5,495,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,33,284,27,284,32,230,38"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" title=" " alt="" coords="277,55,516,95"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" title="The references to the source files of the shown unit have changed." alt="" coords="277,55,516,95"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,56,264,59,263,65,229,61"/>
 </map>

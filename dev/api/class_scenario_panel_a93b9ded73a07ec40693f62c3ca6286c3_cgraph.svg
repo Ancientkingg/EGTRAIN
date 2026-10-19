@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Writes the label of each scenario in the list again.">
 <polygon fill="#999999" stroke="#666666" points="186,-45.5 0,-45.5 0,-26.5 186,-26.5 186,-45.5"/>
 <text text-anchor="middle" x="93" y="-33.5" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::updatePresentation</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" target="_top" xlink:title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea...">
 <polygon fill="white" stroke="#666666" points="367,-30 222,-30 222,0 367,0 367,-30"/>
 <text text-anchor="start" x="230" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::headerText</text>
 <text text-anchor="middle" x="294.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Changed</text>

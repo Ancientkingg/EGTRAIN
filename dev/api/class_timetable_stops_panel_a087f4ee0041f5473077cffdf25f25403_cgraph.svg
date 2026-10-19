@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Moves the selected stop one place earlier.">
 <polygon fill="#999999" stroke="#666666" points="119,-204 0,-204 0,-174 119,-174 119,-204"/>
 <text text-anchor="start" x="8" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">TimetableStopsPanel</text>
 <text text-anchor="middle" x="59.5" y="-181" font-family="Helvetica,sans-Serif" font-size="10.00">::moveStopUp</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="303,-220.5 155,-220.5 155,-201.5 303,-201.5 303,-220.5"/>
 <text text-anchor="middle" x="229" y="-208.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" target="_top" xlink:title="Lists the stops of the service again.">
 <polygon fill="white" stroke="#666666" points="288.5,-183 169.5,-183 169.5,-153 288.5,-153 288.5,-183"/>
 <text text-anchor="start" x="177.5" y="-171" font-family="Helvetica,sans-Serif" font-size="10.00">TimetableStopsPanel</text>
 <text text-anchor="middle" x="229" y="-160" font-family="Helvetica,sans-Serif" font-size="10.00">::refresh</text>
@@ -166,7 +166,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" target="_top" xlink:title="The table shows the stops again, so what depends on the timetable of the services is out of date.">
 <polygon fill="white" stroke="#666666" points="471,-30 352,-30 352,0 471,0 471,-30"/>
 <text text-anchor="start" x="360" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TimetableStopsPanel</text>
 <text text-anchor="middle" x="411.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::timetableRefreshed</text>

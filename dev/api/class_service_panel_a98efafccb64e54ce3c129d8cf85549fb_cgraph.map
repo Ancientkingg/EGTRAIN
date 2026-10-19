@@ -1,10 +1,10 @@
 <map id="ServicePanel::ServicePanel" name="ServicePanel::ServicePanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,870,201,895"/>
-<area shape="rect" id="Node000002" href="$class_service_panel.html#a17feafc030f7ea0e4f86b46fac99a04e" title=" " alt="" coords="287,999,472,1025"/>
+<area shape="rect" id="Node000001" title="Makes the widgets, empty until a loaded document is set." alt="" coords="5,870,201,895"/>
+<area shape="rect" id="Node000002" href="$class_service_panel.html#a17feafc030f7ea0e4f86b46fac99a04e" title="Appends a service with a new unique id and default values, and selects it." alt="" coords="287,999,472,1025"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,893,176,935,212,958,250,978,296,993,294,998,248,982,210,962,173,939,118,898"/>
-<area shape="rect" id="Node000004" href="$class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" title=" " alt="" coords="603,1070,761,1095"/>
+<area shape="rect" id="Node000004" href="$class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" title="Lists the services again and shows the selected one." alt="" coords="603,1070,761,1095"/>
 <area shape="poly" id="edge104_Node000001_Node000004" title=" " alt="" coords="110,895,124,941,151,1005,170,1038,193,1070,219,1098,251,1120,286,1137,317,1146,346,1148,374,1146,434,1134,509,1120,618,1096,619,1101,510,1125,435,1139,374,1152,346,1154,316,1151,284,1142,248,1125,216,1102,188,1073,165,1041,146,1007,119,943,105,897"/>
-<area shape="rect" id="Node000015" href="$class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" title=" " alt="" coords="872,1222,1069,1247"/>
+<area shape="rect" id="Node000015" href="$class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" title="Shows the fields of the selected service again." alt="" coords="872,1222,1069,1247"/>
 <area shape="poly" id="edge111_Node000001_Node000015" title=" " alt="" coords="108,895,115,963,136,1068,154,1126,179,1184,211,1238,251,1285,296,1316,361,1346,439,1371,524,1391,609,1404,689,1407,756,1400,783,1392,805,1380,819,1368,826,1354,829,1322,832,1289,839,1272,853,1257,859,1252,862,1256,856,1261,844,1275,838,1290,835,1323,831,1355,823,1371,808,1385,785,1397,757,1405,689,1413,608,1409,523,1397,437,1377,359,1351,294,1321,248,1289,207,1241,174,1186,149,1128,131,1069,110,964,103,896"/>
 <area shape="rect" id="Node000024" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="249,1498,509,1523"/>
 <area shape="poly" id="edge23_Node000001_Node000024" title=" " alt="" coords="109,895,122,1007,151,1183,171,1276,194,1361,221,1431,236,1457,251,1477,268,1490,265,1494,247,1481,231,1460,216,1433,189,1363,165,1277,146,1184,117,1008,103,896"/>
@@ -12,60 +12,60 @@
 <area shape="poly" id="edge26_Node000001_Node000026" title=" " alt="" coords="108,895,116,1029,139,1244,158,1357,182,1461,213,1544,231,1576,251,1598,283,1611,343,1620,515,1631,713,1633,881,1631,881,1637,713,1638,515,1636,342,1625,282,1616,248,1602,227,1579,208,1547,177,1462,153,1358,134,1245,111,1030,103,896"/>
 <area shape="rect" id="Node000027" href="$class_color_choice_button.html#a8ecd39a74d3c19860fd473df07f276b8" title=" " alt="" coords="304,1663,455,1703"/>
 <area shape="poly" id="edge27_Node000001_Node000027" title=" " alt="" coords="108,895,118,1034,142,1259,161,1379,186,1490,216,1581,233,1616,251,1642,270,1658,292,1668,290,1673,267,1662,247,1646,228,1619,211,1583,180,1491,156,1380,137,1260,112,1034,103,896"/>
-<area shape="rect" id="Node000031" href="$class_service_panel.html#ac20ff0ada36687685f670887d83e9607" title=" " alt="" coords="268,427,491,453"/>
+<area shape="rect" id="Node000031" href="$class_service_panel.html#ac20ff0ada36687685f670887d83e9607" title="Takes the category at index of its combo; the empty category is none." alt="" coords="268,427,491,453"/>
 <area shape="poly" id="edge35_Node000001_Node000031" title=" " alt="" coords="102,870,107,798,114,746,126,687,144,626,169,566,204,510,248,462,254,457,257,461,251,466,208,513,174,568,149,628,131,688,119,746,112,798,107,870"/>
-<area shape="rect" id="Node000032" href="$class_service_panel.html#a28b81e211b80b2011e49ac2deb2f317e" title=" " alt="" coords="257,477,502,502"/>
+<area shape="rect" id="Node000032" href="$class_service_panel.html#a28b81e211b80b2011e49ac2deb2f317e" title="Takes the composition id." alt="" coords="257,477,502,502"/>
 <area shape="poly" id="edge37_Node000001_Node000032" title=" " alt="" coords="103,869,111,805,133,708,151,655,176,602,208,554,248,513,255,507,258,511,251,517,212,557,180,605,156,657,138,709,116,806,108,870"/>
-<area shape="rect" id="Node000033" href="$class_service_panel.html#a785a7896dc8890e24e5319873bad4335" title=" " alt="" coords="281,5,478,45"/>
+<area shape="rect" id="Node000033" href="$class_service_panel.html#a785a7896dc8890e24e5319873bad4335" title="Takes the entry time from its field, in whole seconds from the base time; text that is no number coun..." alt="" coords="281,5,478,45"/>
 <area shape="poly" id="edge39_Node000001_Node000033" title=" " alt="" coords="102,869,110,719,132,474,151,343,175,223,207,123,226,85,247,55,267,40,270,45,251,59,231,87,212,125,181,224,156,344,137,475,115,720,108,870"/>
-<area shape="rect" id="Node000034" href="$class_service_panel.html#a5ecb8f09c12dafff2c02ec82db882598" title=" " alt="" coords="252,70,507,95"/>
+<area shape="rect" id="Node000034" href="$class_service_panel.html#a5ecb8f09c12dafff2c02ec82db882598" title="Sets whether the service has an entry time." alt="" coords="252,70,507,95"/>
 <area shape="poly" id="edge42_Node000001_Node000034" title=" " alt="" coords="103,869,111,727,134,497,153,374,177,261,208,169,227,133,247,106,253,101,256,105,251,110,231,136,213,171,182,263,158,375,139,497,116,728,108,870"/>
-<area shape="rect" id="Node000035" href="$class_service_panel.html#adc2ecaaac7b74cda1a5797cae2db777f" title=" " alt="" coords="252,120,507,160"/>
+<area shape="rect" id="Node000035" href="$class_service_panel.html#adc2ecaaac7b74cda1a5797cae2db777f" title="Sets whether the service has a maximum speed; one that has none gets 100 km/h." alt="" coords="252,120,507,160"/>
 <area shape="poly" id="edge45_Node000001_Node000035" title=" " alt="" coords="103,869,113,738,139,527,158,416,182,313,212,228,229,195,247,170,251,167,255,171,251,174,233,198,217,230,187,314,163,417,144,528,119,739,108,870"/>
-<area shape="rect" id="Node000036" href="$class_service_panel.html#a5f31261334a1922b4c7353fa4ce44544" title=" " alt="" coords="253,184,505,224"/>
+<area shape="rect" id="Node000036" href="$class_service_panel.html#a5f31261334a1922b4c7353fa4ce44544" title="Sets whether the service code grows by a step with each occurrence; a step of 0 becomes 1." alt="" coords="253,184,505,224"/>
 <area shape="poly" id="edge48_Node000001_Node000036" title=" " alt="" coords="103,869,115,749,143,557,162,456,186,363,214,286,230,257,247,234,251,230,255,234,251,238,235,259,219,288,191,365,167,457,148,558,121,750,108,870"/>
-<area shape="rect" id="Node000037" href="$class_service_panel.html#af9781db5f458e0440f10a6fd3a0ea647" title=" " alt="" coords="262,249,497,274"/>
+<area shape="rect" id="Node000037" href="$class_service_panel.html#af9781db5f458e0440f10a6fd3a0ea647" title="Sets whether the service repeats. A service that stops repeating loses its repeat count and code step..." alt="" coords="262,249,497,274"/>
 <area shape="poly" id="edge51_Node000001_Node000037" title=" " alt="" coords="103,869,117,757,145,580,164,487,188,402,216,332,231,305,247,285,254,279,257,283,251,289,235,308,220,334,193,403,170,488,150,581,122,757,109,870"/>
-<area shape="rect" id="Node000038" href="$class_service_panel.html#ae62a32c64f7c7416d7efbe8ec65afb76" title=" " alt="" coords="262,299,497,339"/>
+<area shape="rect" id="Node000038" href="$class_service_panel.html#ae62a32c64f7c7416d7efbe8ec65afb76" title="Sets whether the number of occurrences is given; it is at least 1." alt="" coords="262,299,497,339"/>
 <area shape="poly" id="edge54_Node000001_Node000038" title=" " alt="" coords="104,869,119,768,150,611,170,529,193,453,219,391,233,367,247,349,252,345,255,349,251,352,237,370,223,393,198,455,175,530,155,612,125,769,109,870"/>
-<area shape="rect" id="Node000039" href="$class_service_panel.html#ab1f00e35aa9b739296f66e66fc877d33" title=" " alt="" coords="267,363,491,403"/>
+<area shape="rect" id="Node000039" href="$class_service_panel.html#ab1f00e35aa9b739296f66e66fc877d33" title="Takes the headway between occurrences from its field, in whole seconds; text that is no number counts..." alt="" coords="267,363,491,403"/>
 <area shape="poly" id="edge57_Node000001_Node000039" title=" " alt="" coords="102,870,105,792,111,734,122,668,140,600,165,532,201,468,223,439,247,413,254,407,257,411,251,417,227,443,205,471,170,534,145,601,127,669,116,734,110,792,107,870"/>
-<area shape="rect" id="Node000040" href="$class_service_panel.html#aaf5de4ccfa7af1694719ae9a556e80b9" title=" " alt="" coords="279,1250,479,1275"/>
+<area shape="rect" id="Node000040" href="$class_service_panel.html#aaf5de4ccfa7af1694719ae9a556e80b9" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="279,1250,479,1275"/>
 <area shape="poly" id="edge60_Node000001_Node000040" title=" " alt="" coords="108,895,117,957,139,1050,158,1101,182,1150,213,1196,251,1235,268,1246,265,1251,248,1239,209,1200,177,1153,153,1103,134,1052,112,958,103,896"/>
-<area shape="rect" id="Node000043" href="$class_service_panel.html#a0761e558153379882120fe741760f45a" title=" " alt="" coords="265,591,494,631"/>
+<area shape="rect" id="Node000043" href="$class_service_panel.html#a0761e558153379882120fe741760f45a" title="Takes the maximum speed in km/h from its field." alt="" coords="265,591,494,631"/>
 <area shape="poly" id="edge68_Node000001_Node000043" title=" " alt="" coords="106,869,122,825,150,763,192,697,218,667,248,641,256,635,259,640,251,645,222,670,196,700,155,765,127,827,111,871"/>
-<area shape="rect" id="Node000044" href="$class_service_panel.html#a5927be489e40c621d79f382842ffaaa1" title=" " alt="" coords="249,655,509,681"/>
+<area shape="rect" id="Node000044" href="$class_service_panel.html#a5927be489e40c621d79f382842ffaaa1" title="Takes the service code (the operating code) from its field, trimmed." alt="" coords="249,655,509,681"/>
 <area shape="poly" id="edge71_Node000001_Node000044" title=" " alt="" coords="108,869,126,833,156,784,197,733,221,711,248,691,262,683,265,688,251,696,225,715,201,737,161,787,131,835,113,871"/>
-<area shape="rect" id="Node000045" href="$class_service_panel.html#ac75d7eeafcb94d6cb01bd6f79a30f275" title=" " alt="" coords="266,705,493,745"/>
+<area shape="rect" id="Node000045" href="$class_service_panel.html#ac75d7eeafcb94d6cb01bd6f79a30f275" title="Takes the step of the service code from its field; text that is no number, and 0, become 1." alt="" coords="266,705,493,745"/>
 <area shape="poly" id="edge74_Node000001_Node000045" title=" " alt="" coords="114,868,167,813,206,782,248,755,264,748,266,753,251,760,209,786,171,817,117,872"/>
-<area shape="rect" id="Node000046" href="$class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38" title=" " alt="" coords="256,769,503,809"/>
+<area shape="rect" id="Node000046" href="$class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38" title="Takes the running performance in percent, held between 1 and 100." alt="" coords="256,769,503,809"/>
 <area shape="poly" id="edge77_Node000001_Node000046" title=" " alt="" coords="130,867,184,843,248,819,275,811,277,816,250,824,186,848,132,872"/>
-<area shape="rect" id="Node000047" href="$class_service_panel.html#ae3c8883d6ef76b0c4f71ddbb705b8dcc" title=" " alt="" coords="275,833,484,873"/>
+<area shape="rect" id="Node000047" href="$class_service_panel.html#ae3c8883d6ef76b0c4f71ddbb705b8dcc" title="Takes the number of occurrences, including the first, from its field; text that is no number counts a..." alt="" coords="275,833,484,873"/>
 <area shape="poly" id="edge80_Node000001_Node000047" title=" " alt="" coords="201,870,261,863,261,869,202,875"/>
-<area shape="rect" id="Node000048" href="$class_service_panel.html#af95206d6b08f3ffca4b8f4f4dcc4456e" title=" " alt="" coords="279,898,480,923"/>
+<area shape="rect" id="Node000048" href="$class_service_panel.html#af95206d6b08f3ffca4b8f4f4dcc4456e" title="Takes the route at index of the route combo." alt="" coords="279,898,480,923"/>
 <area shape="poly" id="edge83_Node000001_Node000048" title=" " alt="" coords="202,890,265,896,265,902,201,895"/>
-<area shape="rect" id="Node000049" href="$class_service_panel.html#a3ce72403e5525acc9ddba510773617d7" title=" " alt="" coords="256,527,503,567"/>
+<area shape="rect" id="Node000049" href="$class_service_panel.html#a3ce72403e5525acc9ddba510773617d7" title="Takes the display colour, &quot;#rrggbb&quot; or empty for the default." alt="" coords="256,527,503,567"/>
 <area shape="poly" id="edge87_Node000001_Node000049" title=" " alt="" coords="104,869,116,815,142,736,161,693,184,650,213,611,248,577,254,572,257,576,251,581,217,614,189,653,165,695,147,738,121,817,109,870"/>
 <area shape="rect" id="Node000050" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title=" " alt="" coords="286,1548,473,1588"/>
 <area shape="poly" id="edge89_Node000001_Node000050" title=" " alt="" coords="108,895,121,1017,148,1210,167,1311,191,1405,219,1482,235,1511,251,1533,275,1550,272,1554,247,1537,230,1514,214,1484,186,1406,162,1312,142,1211,115,1017,103,896"/>
-<area shape="rect" id="Node000051" href="$class_service_panel.html#a8bdbff0bbf3dd4d8c17349885263b254" title=" " alt="" coords="278,1201,481,1226"/>
+<area shape="rect" id="Node000051" href="$class_service_panel.html#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service after the user has confirmed it; refused while something refers to it." alt="" coords="278,1201,481,1226"/>
 <area shape="poly" id="edge91_Node000001_Node000051" title=" " alt="" coords="110,895,122,948,148,1026,166,1068,190,1109,218,1147,251,1179,274,1193,271,1198,248,1183,214,1150,185,1112,162,1070,143,1028,117,950,104,896"/>
-<area shape="rect" id="Node000057" href="$class_service_panel.html#a3c94766eeee29aa92581d5f646f520c9" title=" " alt="" coords="269,1049,490,1074"/>
+<area shape="rect" id="Node000057" href="$class_service_panel.html#a3c94766eeee29aa92581d5f646f520c9" title="Inserts a copy of the selected service, with a new unique id, after it." alt="" coords="269,1049,490,1074"/>
 <area shape="poly" id="edge97_Node000001_Node000057" title=" " alt="" coords="115,894,135,923,166,962,205,1001,251,1034,268,1042,266,1047,248,1038,202,1005,162,965,131,927,110,897"/>
 <area shape="rect" id="Node000058" href="$namespace_editor_layout.html#a769ed47df9b55c4bc2b8f3d98eecbf32" title=" " alt="" coords="877,1404,1065,1444"/>
 <area shape="poly" id="edge101_Node000001_Node000058" title=" " alt="" coords="109,895,124,994,153,1147,173,1227,196,1299,222,1357,236,1378,251,1394,271,1406,295,1417,359,1433,437,1442,524,1446,705,1443,863,1432,863,1437,705,1448,524,1452,437,1448,358,1438,294,1422,268,1411,248,1398,232,1382,217,1360,191,1301,168,1228,148,1148,118,995,104,896"/>
-<area shape="rect" id="Node000059" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title=" " alt="" coords="270,1727,489,1767"/>
+<area shape="rect" id="Node000059" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="270,1727,489,1767"/>
 <area shape="poly" id="edge105_Node000001_Node000059" title=" " alt="" coords="108,895,115,1046,137,1293,155,1424,180,1546,195,1599,212,1646,231,1684,251,1713,260,1721,257,1725,247,1716,226,1687,207,1648,190,1601,175,1547,150,1425,132,1294,110,1046,102,896"/>
-<area shape="rect" id="Node000060" href="$class_service_panel.html#a2eb6b32f3916a21d5b88001e4b8fd36c" title=" " alt="" coords="557,882,807,907"/>
+<area shape="rect" id="Node000060" href="$class_service_panel.html#a2eb6b32f3916a21d5b88001e4b8fd36c" title="Includes every occurrence in the next run." alt="" coords="557,882,807,907"/>
 <area shape="poly" id="edge106_Node000001_Node000060" title=" " alt="" coords="133,893,186,915,250,932,322,943,379,946,436,943,509,932,533,925,557,916,593,908,594,913,558,921,534,930,510,937,437,948,379,952,322,948,249,937,184,920,131,898"/>
-<area shape="rect" id="Node000061" href="$class_service_panel.html#a1676d8e741844b1aca79e0317588fda5" title=" " alt="" coords="589,1005,775,1045"/>
+<area shape="rect" id="Node000061" href="$class_service_panel.html#a1676d8e741844b1aca79e0317588fda5" title="Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the..." alt="" coords="589,1005,775,1045"/>
 <area shape="poly" id="edge108_Node000001_Node000061" title=" " alt="" coords="111,894,128,934,156,987,197,1042,222,1065,251,1083,286,1099,318,1109,348,1114,376,1114,436,1103,508,1083,522,1077,532,1070,556,1055,577,1047,579,1052,559,1060,535,1075,525,1082,510,1088,437,1108,376,1119,347,1119,317,1114,284,1104,248,1088,219,1069,193,1045,152,990,123,936,107,896"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="583,477,781,502"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="583,477,781,502"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="413,997,462,971,486,954,507,933,546,880,578,823,605,762,627,703,658,593,674,515,679,516,664,595,633,704,610,764,583,825,550,883,511,936,490,958,465,976,416,1001"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="465,1022,510,1033,534,1044,558,1055,593,1064,592,1070,556,1060,532,1049,508,1039,464,1027"/>
 <area shape="rect" id="Node000023" href="$_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" title="A free service id." alt="" coords="599,955,765,981"/>
 <area shape="poly" id="edge21_Node000002_Node000023" title=" " alt="" coords="467,997,584,979,585,985,467,1002"/>
-<area shape="rect" id="Node000005" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="855,596,1087,636"/>
+<area shape="rect" id="Node000005" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="855,596,1087,636"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="761,1076,784,1068,805,1055,848,1010,882,958,909,901,930,843,945,786,955,733,965,649,970,650,960,733,950,787,935,845,914,903,887,961,852,1014,808,1059,787,1073,763,1081"/>
 <area shape="rect" id="Node000014" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="923,1070,1018,1095"/>
 <area shape="poly" id="edge13_Node000004_Node000014" title=" " alt="" coords="761,1080,910,1080,910,1085,761,1085"/>

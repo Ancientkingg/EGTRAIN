@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the reduced speed in km/h from its field and marks that the incident has one.">
 <polygon fill="#999999" stroke="#666666" points="167,-61.5 0,-61.5 0,-31.5 167,-31.5 167,-61.5"/>
 <text text-anchor="start" x="8" y="-49.5" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::commitReduced</text>
 <text text-anchor="middle" x="83.5" y="-38.5" font-family="Helvetica,sans-Serif" font-size="10.00">Speed</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="361,-93 213,-93 213,-74 361,-74 361,-93"/>
 <text text-anchor="middle" x="287" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" target="_top" xlink:title="Lists the incidents of the selected scenario again and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="348,-56 226,-56 226,-37 348,-37 348,-56"/>
 <text text-anchor="middle" x="287" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refresh</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title="Shows the fields of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="558,-56 407,-56 407,-37 558,-37 558,-56"/>
 <text text-anchor="middle" x="482.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::updateDetail</text>
 </a>
@@ -93,7 +93,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title="Lists the choices of targets of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="752,-87 594,-87 594,-68 752,-68 752,-87"/>
 <text text-anchor="middle" x="673" y="-75" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refreshTargets</text>
 </a>

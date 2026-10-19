@@ -1,14 +1,14 @@
 <map id="ValidationPanel::refresh" name="ValidationPanel::refresh">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,169,181,195"/>
-<area shape="rect" id="Node000002" href="$class_validation_panel.html#a0276d0961cd849d8dbae4fda9b247df1" title=" " alt="" coords="241,5,433,31"/>
+<area shape="rect" id="Node000002" href="$class_validation_panel.html#a0276d0961cd849d8dbae4fda9b247df1" title="refresh() has written the table, the status and the tree. What depends on the diagnostics follows." alt="" coords="241,5,433,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,167,150,106,186,71,228,41,245,33,247,38,231,46,190,75,154,110,105,171"/>
-<area shape="rect" id="Node000003" href="$class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2" title=" " alt="" coords="249,55,425,95"/>
+<area shape="rect" id="Node000003" href="$class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2" title="Writes the tree again." alt="" coords="249,55,425,95"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="113,167,164,137,228,105,248,97,250,102,230,110,167,141,116,172"/>
 <area shape="rect" id="Node000009" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="282,144,393,169"/>
 <area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="181,170,268,161,269,166,182,176"/>
-<area shape="rect" id="Node000010" href="$class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" title=" " alt="" coords="493,240,720,265"/>
+<area shape="rect" id="Node000010" href="$class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" title="The status was written or cleared. What shows the diagnostics follows." alt="" coords="493,240,720,265"/>
 <area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="123,192,172,212,230,229,293,239,358,246,480,252,480,257,358,252,292,245,229,234,171,217,121,197"/>
-<area shape="rect" id="Node000011" href="$class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e" title=" " alt="" coords="229,193,445,219"/>
+<area shape="rect" id="Node000011" href="$class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e" title="Writes the status from the diagnostics again." alt="" coords="229,193,445,219"/>
 <area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="182,188,216,191,215,197,181,193"/>
 <area shape="rect" id="Node000012" href="$_scene_validator_8cpp.html#a50b98f3db178a5c612ae70c047ec72a5" title=" " alt="" coords="250,319,425,344"/>
 <area shape="poly" id="edge20_Node000001_Node000012" title=" " alt="" coords="113,193,165,230,231,273,299,310,296,315,228,278,162,234,110,197"/>

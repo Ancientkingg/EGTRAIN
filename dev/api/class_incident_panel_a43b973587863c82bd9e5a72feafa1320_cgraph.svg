@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="342,-128.5 194,-128.5 194,-109.5 342,-109.5 342,-128.5"/>
 <text text-anchor="middle" x="268" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title="Shows the fields of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="343.5,-54.5 192.5,-54.5 192.5,-35.5 343.5,-35.5 343.5,-54.5"/>
 <text text-anchor="middle" x="268" y="-42.5" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::updateDetail</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title="Lists the choices of targets of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="546,-85.5 388,-85.5 388,-66.5 546,-66.5 546,-85.5"/>
 <text text-anchor="middle" x="467" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refreshTargets</text>
 </a>

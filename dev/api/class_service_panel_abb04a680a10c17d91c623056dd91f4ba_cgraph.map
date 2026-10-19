@@ -1,5 +1,5 @@
 <map id="ServicePanel::refreshOccurrencePreview" name="ServicePanel::refreshOccurrencePreview">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,189,237,229"/>
+<area shape="rect" id="Node000001" title="Lists the occurrences again." alt="" coords="5,189,237,229"/>
 <area shape="rect" id="Node000002" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="285,74,512,114"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,186,284,130,321,116,323,121,286,135,164,191"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="560,29,839,55"/>

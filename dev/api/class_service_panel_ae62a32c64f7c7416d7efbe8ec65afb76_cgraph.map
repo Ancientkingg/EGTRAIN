@@ -1,8 +1,8 @@
 <map id="ServicePanel::commitHasRepeatCount" name="ServicePanel::commitHasRepeatCount">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,161,240,201"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="305,139,503,164"/>
+<area shape="rect" id="Node000001" title="Sets whether the number of occurrences is given; it is at least 1." alt="" coords="5,161,240,201"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="305,139,503,164"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,166,292,160,292,166,240,171"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="288,189,520,229"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="288,189,520,229"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,190,275,193,274,198,240,195"/>
 <area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="568,74,795,114"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="489,186,519,173,533,163,542,152,552,142,567,130,594,117,596,122,569,135,555,145,546,156,536,167,521,178,491,191"/>

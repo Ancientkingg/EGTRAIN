@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the files that changed. Nothing happens while a run uses the model.">
 <polygon fill="#999999" stroke="#666666" points="122,-247 0,-247 0,-217 122,-217 122,-247"/>
 <text text-anchor="start" x="8" y="-235" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="61" y="-224" font-family="Helvetica,sans-Serif" font-size="10.00">::processChanges</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" target="_top" xlink:title="Takes the values of this file into the units that are linked to it.">
 <polygon fill="white" stroke="#666666" points="280,-247 158,-247 158,-217 280,-217 280,-247"/>
 <text text-anchor="start" x="166" y="-235" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="219" y="-224" font-family="Helvetica,sans-Serif" font-size="10.00">::processFile</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" target="_top" xlink:title="Pending edits have to be taken into the model before the linker compares the model with a file.">
 <polygon fill="white" stroke="#666666" points="491,-485 316,-485 316,-455 491,-455 491,-485"/>
 <text text-anchor="start" x="324" y="-473" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="403.5" y="-462" font-family="Helvetica,sans-Serif" font-size="10.00">::commitPendingEditsRequested</text>
@@ -95,7 +95,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title="Watches exactly the linked files and the folders that hold them.">
 <polygon fill="white" stroke="#666666" points="464.5,-326 342.5,-326 342.5,-296 464.5,-296 464.5,-326"/>
 <text text-anchor="start" x="350.5" y="-314" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="403.5" y="-303" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshWatches</text>
@@ -151,7 +151,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title="The status of a link, or a link itself, has changed.">
 <polygon fill="white" stroke="#666666" points="464.5,-174 342.5,-174 342.5,-144 464.5,-144 464.5,-174"/>
 <text text-anchor="start" x="350.5" y="-162" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="403.5" y="-151" font-family="Helvetica,sans-Serif" font-size="10.00">::statusChanged</text>
@@ -170,7 +170,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" target="_top" xlink:title="A message for the status line, shown for milliseconds.">
 <polygon fill="white" stroke="#666666" points="464.5,-126 342.5,-126 342.5,-96 464.5,-96 464.5,-126"/>
 <text text-anchor="start" x="350.5" y="-114" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="403.5" y="-103" font-family="Helvetica,sans-Serif" font-size="10.00">::statusMessage</text>

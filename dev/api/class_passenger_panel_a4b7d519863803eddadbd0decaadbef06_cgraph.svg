@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#999999" stroke="#666666" points="148,-128.5 0,-128.5 0,-98.5 148,-98.5 148,-128.5"/>
 <text text-anchor="start" x="8" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerPanel::Passenger</text>
 <text text-anchor="middle" x="74" y="-105.5" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -58,7 +58,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_passenger_panel.html#a4765b3745b9ecd6448d36c2d849255d1" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_passenger_panel.html#a4765b3745b9ecd6448d36c2d849255d1" target="_top" xlink:title="Shows the passengers of the document and keeps the selected rows where they still exist.">
 <polygon fill="white" stroke="#666666" points="348,-123 215,-123 215,-104 348,-104 348,-123"/>
 <text text-anchor="middle" x="281.5" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerPanel::refresh</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title="A panel without a document.">
 <polygon fill="white" stroke="#666666" points="363.5,-85.5 199.5,-85.5 199.5,-55.5 363.5,-55.5 363.5,-85.5"/>
 <text text-anchor="start" x="207.5" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::SceneEditor</text>
 <text text-anchor="middle" x="281.5" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -149,7 +149,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_passenger_panel.html#add7b16e614d373cce568b2e072a0ddd8" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_passenger_panel.html#add7b16e614d373cce568b2e072a0ddd8" target="_top" xlink:title="Empties the table with the result of the latest import.">
 <polygon fill="white" stroke="#666666" points="570,-155.5 415,-155.5 415,-125.5 570,-125.5 570,-155.5"/>
 <text text-anchor="start" x="423" y="-143.5" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerPanel::clearImport</text>
 <text text-anchor="middle" x="492.5" y="-132.5" font-family="Helvetica,sans-Serif" font-size="10.00">Result</text>

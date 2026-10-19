@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Removes the selected section of the route.">
 <polygon fill="#999999" stroke="#666666" points="109,-30 0,-30 0,0 109,0 109,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="54.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::removeSection</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" target="_top" xlink:title="False while no scene is loaded or a run uses it.">
 <polygon fill="white" stroke="#666666" points="254,-30 145,-30 145,0 254,0 254,-30"/>
 <text text-anchor="start" x="153" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="199.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::canEdit</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" target="_top" xlink:title="True when a scene is loaded.">
 <polygon fill="white" stroke="#666666" points="399,-30 290,-30 290,0 399,0 399,-30"/>
 <text text-anchor="start" x="298" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="344.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::hasScene</text>

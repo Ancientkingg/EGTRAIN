@@ -6,7 +6,7 @@
 <area shape="poly" id="edge65_Node000001_Node000026" title=" " alt="" coords="126,797,491,986,489,991,123,802"/>
 <area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="738,405,893,431"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="307,529,352,482,383,458,418,440,496,416,578,405,656,402,725,405,724,410,656,407,578,410,497,421,420,444,386,463,356,486,310,533"/>
-<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="429,481,627,507"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="429,481,627,507"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="370,529,418,517,458,507,459,512,419,522,371,534"/>
 <area shape="rect" id="Node000005" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="685,29,945,55"/>
 <area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="289,531,290,453,295,399,305,340,320,279,343,219,375,163,417,115,444,93,474,76,538,51,606,37,671,31,671,37,606,42,540,56,476,81,447,98,421,119,379,166,348,221,325,281,310,341,301,400,296,453,294,531"/>
@@ -26,7 +26,7 @@
 <area shape="poly" id="edge28_Node000002_Node000017" title=" " alt="" coords="291,531,297,465,315,372,331,322,353,273,381,227,417,188,436,176,439,180,420,192,385,231,357,275,336,324,320,373,302,466,296,532"/>
 <area shape="rect" id="Node000020" href="$_time_format_8cpp.html#ae1662d81537044da696a82c320779e42" title=" " alt="" coords="457,671,599,696"/>
 <area shape="poly" id="edge36_Node000002_Node000020" title=" " alt="" coords="326,569,420,625,490,662,488,667,417,630,324,574"/>
-<area shape="rect" id="Node000021" href="$class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" title=" " alt="" coords="449,531,607,571"/>
+<area shape="rect" id="Node000021" href="$class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" title="Lists the stops of the service again." alt="" coords="449,531,607,571"/>
 <area shape="poly" id="edge39_Node000002_Node000021" title=" " alt="" coords="371,549,435,549,435,554,371,554"/>
 <area shape="rect" id="Node000022" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="732,279,899,304"/>
 <area shape="poly" id="edge61_Node000002_Node000022" title=" " alt="" coords="294,530,307,485,331,427,367,369,390,343,417,321,455,301,495,286,537,276,579,271,661,268,733,274,733,280,661,274,580,276,538,282,496,291,457,306,420,326,394,346,371,372,336,430,313,487,300,532"/>
@@ -76,7 +76,7 @@
 <area shape="poly" id="edge43_Node000021_Node000012" title=" " alt="" coords="568,569,606,597,640,634,654,662,660,689,660,738,659,761,662,784,670,808,687,832,708,850,733,862,730,867,705,854,683,836,666,810,657,786,654,762,655,738,654,689,649,664,635,637,603,601,565,574"/>
 <area shape="poly" id="edge44_Node000021_Node000013" title=" " alt="" coords="559,569,639,633,727,715,795,784,791,788,723,719,636,637,555,574"/>
 <area shape="poly" id="edge45_Node000021_Node000022" title=" " alt="" coords="606,536,636,517,650,500,657,482,661,447,664,409,671,389,683,368,701,349,722,333,766,308,769,312,725,337,705,353,687,372,675,391,669,410,667,447,662,484,654,503,639,521,609,540"/>
-<area shape="rect" id="Node000024" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title=" " alt="" coords="736,531,895,571"/>
+<area shape="rect" id="Node000024" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title="The table shows the stops again, so what depends on the timetable of the services is out of date." alt="" coords="736,531,895,571"/>
 <area shape="poly" id="edge50_Node000021_Node000024" title=" " alt="" coords="607,549,722,549,722,554,607,554"/>
 <area shape="poly" id="edge46_Node000022_Node000022" title=" " alt="" coords="772,280,762,270,767,260,785,254,815,252,854,256,865,261,869,267,864,270,861,265,853,261,815,257,786,259,770,264,767,270,775,277"/>
 <area shape="rect" id="Node000023" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="1012,246,1165,286"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#999999" stroke="#666666" points="172,-346.5 0,-346.5 0,-316.5 172,-316.5 172,-346.5"/>
 <text text-anchor="start" x="8" y="-334.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::Composition</text>
 <text text-anchor="middle" x="86" y="-323.5" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_composition_panel.html#ae92a1cc7bb3f44699ded4605fc97aaf5" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_composition_panel.html#ae92a1cc7bb3f44699ded4605fc97aaf5" target="_top" xlink:title="Appends a composition without units, with a new unique id, and selects it.">
 <polygon fill="white" stroke="#666666" points="398,-568 208,-568 208,-549 398,-549 398,-568"/>
 <text text-anchor="middle" x="303" y="-556" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::addComposition</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" target="_top" xlink:title="Shows the current state of the document.">
 <polygon fill="white" stroke="#666666" points="606,-397 461,-397 461,-378 606,-378 606,-397"/>
 <text text-anchor="middle" x="533.5" y="-385" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::refresh</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_composition_panel.html#a1b479f3821fea6491c372ef700491e09" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_composition_panel.html#a1b479f3821fea6491c372ef700491e09" target="_top" xlink:title="Asks for a rolling stock unit of the scene and appends it to the units of the selected composition.">
 <polygon fill="white" stroke="#666666" points="377.5,-434 228.5,-434 228.5,-415 377.5,-415 377.5,-434"/>
 <text text-anchor="middle" x="303" y="-422" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::addUnit</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_composition_panel.html#afa6ece843725100b4a04402a748b43ff" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_composition_panel.html#afa6ece843725100b4a04402a748b43ff" target="_top" xlink:title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again.">
 <polygon fill="white" stroke="#666666" points="377,-616.5 229,-616.5 229,-586.5 377,-586.5 377,-616.5"/>
 <text text-anchor="start" x="237" y="-604.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::commit</text>
 <text text-anchor="middle" x="303" y="-593.5" font-family="Helvetica,sans-Serif" font-size="10.00">IdEdit</text>
@@ -94,7 +94,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_composition_panel.html#ab1e12b259116cc85cf32a312ff2539af" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_composition_panel.html#ab1e12b259116cc85cf32a312ff2539af" target="_top" xlink:title="Deletes the selected composition after the user has confirmed it; refused while a service uses it.">
 <polygon fill="white" stroke="#666666" points="373.5,-482.5 232.5,-482.5 232.5,-452.5 373.5,-452.5 373.5,-482.5"/>
 <text text-anchor="start" x="240.5" y="-470.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::delete</text>
 <text text-anchor="middle" x="303" y="-459.5" font-family="Helvetica,sans-Serif" font-size="10.00">Composition</text>
@@ -113,7 +113,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_composition_panel.html#a4587ee8f166485b36c9c52093638ff7d" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_composition_panel.html#a4587ee8f166485b36c9c52093638ff7d" target="_top" xlink:title="Inserts a copy of the selected composition, with a new unique id, after it.">
 <polygon fill="white" stroke="#666666" points="380.5,-530.5 225.5,-530.5 225.5,-500.5 380.5,-500.5 380.5,-530.5"/>
 <text text-anchor="start" x="233.5" y="-518.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::duplicate</text>
 <text text-anchor="middle" x="303" y="-507.5" font-family="Helvetica,sans-Serif" font-size="10.00">Composition</text>
@@ -151,7 +151,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="class_composition_panel.html#ab28258935fa9e59a90af0412c971dae4" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="class_composition_panel.html#ab28258935fa9e59a90af0412c971dae4" target="_top" xlink:title="Moves the selected unit one place towards the back of the composition.">
 <polygon fill="white" stroke="#666666" points="396,-323 210,-323 210,-304 396,-304 396,-323"/>
 <text text-anchor="middle" x="303" y="-311" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::moveUnitDown</text>
 </a>
@@ -169,7 +169,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="class_composition_panel.html#afb0634402936f82d4a0714491a07fcbe" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="class_composition_panel.html#afb0634402936f82d4a0714491a07fcbe" target="_top" xlink:title="Moves the selected unit one place towards the front of the composition.">
 <polygon fill="white" stroke="#666666" points="389,-397 217,-397 217,-378 389,-378 389,-397"/>
 <text text-anchor="middle" x="303" y="-385" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::moveUnitUp</text>
 </a>
@@ -187,7 +187,7 @@
 <!-- Node27 -->
 <g id="Node000027" class="node">
 <title>Node27</title>
-<g id="a_Node000027"><a xlink:href="class_composition_panel.html#a7fc526b9dc446945b7a0deaecedd0dcf" target="_top" xlink:title=" ">
+<g id="a_Node000027"><a xlink:href="class_composition_panel.html#a7fc526b9dc446945b7a0deaecedd0dcf" target="_top" xlink:title="Asks for the plot of the selected unit, which has to have a traction curve.">
 <polygon fill="white" stroke="#666666" points="388.5,-133.5 217.5,-133.5 217.5,-103.5 388.5,-103.5 388.5,-133.5"/>
 <text text-anchor="start" x="225.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::plotSelected</text>
 <text text-anchor="middle" x="303" y="-110.5" font-family="Helvetica,sans-Serif" font-size="10.00">UnitTraction</text>
@@ -206,7 +206,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="class_composition_panel.html#a8e0679d192ea17fff12dae25b309518d" target="_top" xlink:title=" ">
+<g id="a_Node000030"><a xlink:href="class_composition_panel.html#a8e0679d192ea17fff12dae25b309518d" target="_top" xlink:title="Shows the sources and the warning of the selected unit again, for example after its sources have chan...">
 <polygon fill="white" stroke="#666666" points="375.5,-181.5 230.5,-181.5 230.5,-151.5 375.5,-151.5 375.5,-181.5"/>
 <text text-anchor="start" x="238.5" y="-169.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::refresh</text>
 <text text-anchor="middle" x="303" y="-158.5" font-family="Helvetica,sans-Serif" font-size="10.00">UnitDetails</text>
@@ -225,7 +225,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="class_composition_panel.html#af1db8d10e8438da8c3099df41c87b4c9" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="class_composition_panel.html#af1db8d10e8438da8c3099df41c87b4c9" target="_top" xlink:title="Removes the selected unit from the selected composition.">
 <polygon fill="white" stroke="#666666" points="387,-360 219,-360 219,-341 387,-341 387,-360"/>
 <text text-anchor="middle" x="303" y="-348" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::removeUnit</text>
 </a>
@@ -243,7 +243,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title="A panel without a document.">
 <polygon fill="white" stroke="#666666" points="385,-85.5 221,-85.5 221,-55.5 385,-55.5 385,-85.5"/>
 <text text-anchor="start" x="229" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::SceneEditor</text>
 <text text-anchor="middle" x="303" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -280,7 +280,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="607.5,-435 459.5,-435 459.5,-416 607.5,-416 607.5,-435"/>
 <text text-anchor="middle" x="533.5" y="-423" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -854,7 +854,7 @@
 <!-- Node29 -->
 <g id="Node000029" class="node">
 <title>Node29</title>
-<g id="a_Node000029"><a xlink:href="class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8" target="_top" xlink:title=" ">
+<g id="a_Node000029"><a xlink:href="class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8" target="_top" xlink:title="The plot of the traction curve of this train unit is wanted.">
 <polygon fill="white" stroke="#666666" points="607.5,-87.5 459.5,-87.5 459.5,-57.5 607.5,-57.5 607.5,-87.5"/>
 <text text-anchor="start" x="467.5" y="-75.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::traction</text>
 <text text-anchor="middle" x="533.5" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">PlotRequested</text>

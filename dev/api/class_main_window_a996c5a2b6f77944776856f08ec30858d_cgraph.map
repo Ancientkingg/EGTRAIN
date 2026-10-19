@@ -3,7 +3,7 @@
 <area shape="poly" id="edge24_Node000001_Node000001" title=" " alt="" coords="60,716,50,706,55,696,73,690,104,688,143,692,154,697,158,703,153,706,151,701,142,697,104,693,74,695,59,700,55,706,64,713"/>
 <area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508" title=" " alt="" coords="275,53,486,79"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,714,119,600,148,420,168,325,192,237,219,164,233,135,249,114,271,94,297,81,300,86,274,99,253,117,238,138,223,166,197,239,174,326,154,421,124,601,109,715"/>
-<area shape="rect" id="Node000004" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="285,128,476,153"/>
+<area shape="rect" id="Node000004" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated." alt="" coords="285,128,476,153"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="104,714,118,607,148,440,167,353,191,273,218,207,233,182,249,163,271,148,274,153,252,167,237,185,223,209,196,274,173,354,153,441,124,608,109,715"/>
 <area shape="rect" id="Node000005" href="$class_follow_camera.html#a9030ce6e08973b6c398a131c6928fc24" title=" " alt="" coords="273,177,489,203"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="102,714,105,632,110,571,121,502,139,430,165,357,201,288,223,257,249,228,265,215,283,205,285,210,268,220,253,232,228,260,206,291,170,359,144,431,127,504,116,572,110,633,108,714"/>
@@ -33,7 +33,7 @@
 <area shape="poly" id="edge33_Node000001_Node000030" title=" " alt="" coords="116,739,136,769,167,807,206,847,252,880,275,890,273,895,249,884,203,851,163,811,132,772,111,742"/>
 <area shape="rect" id="Node000114" href="$class_main_window.html#a647da5369ac34e0cc68a7e6d9e7a410f" title=" " alt="" coords="251,944,511,969"/>
 <area shape="poly" id="edge54_Node000001_Node000114" title=" " alt="" coords="113,739,130,778,160,830,201,884,225,908,252,929,265,936,262,941,249,934,222,913,197,888,155,833,126,780,108,742"/>
-<area shape="rect" id="Node000115" href="$class_scene_document.html#a7b376a313d121770604a481647759cee" title=" " alt="" coords="259,993,502,1019"/>
+<area shape="rect" id="Node000115" href="$class_scene_document.html#a7b376a313d121770604a481647759cee" title="An empty document: not loaded, not dirty and editable." alt="" coords="259,993,502,1019"/>
 <area shape="poly" id="edge55_Node000001_Node000115" title=" " alt="" coords="111,740,126,786,153,852,172,887,195,921,222,952,252,979,263,985,260,990,249,983,218,956,191,924,168,889,149,854,121,788,106,741"/>
 <area shape="rect" id="Node000116" href="$class_scene_session.html#a82824bf98da67392e83337e6a10ef32d" title=" " alt="" coords="277,1043,485,1068"/>
 <area shape="poly" id="edge56_Node000001_Node000116" title=" " alt="" coords="110,740,122,794,147,873,166,915,189,957,218,995,252,1028,266,1036,263,1041,249,1032,214,999,185,960,161,918,142,875,116,795,105,741"/>

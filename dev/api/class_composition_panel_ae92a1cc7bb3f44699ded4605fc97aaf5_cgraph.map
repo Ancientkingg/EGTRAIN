@@ -1,10 +1,10 @@
 <map id="CompositionPanel::addComposition" name="CompositionPanel::addComposition">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,259,117"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="321,5,519,31"/>
+<area shape="rect" id="Node000001" title="Appends a composition without units, with a new unique id, and selects it." alt="" coords="5,92,259,117"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="321,5,519,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,89,306,41,342,31,344,36,307,46,166,95"/>
 <area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="307,55,533,95"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,89,293,86,293,91,257,95"/>
-<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title=" " alt="" coords="323,120,517,145"/>
+<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="323,120,517,145"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="259,114,310,119,309,125,259,120"/>
 <area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="320,193,520,219"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="170,115,371,186,369,191,169,120"/>

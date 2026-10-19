@@ -128,15 +128,22 @@ Collaboration diagram for SceneEditorPanel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 <tr class="memitem:a8512aeeb40be039d5a4da46e71b26268" id="r_a8512aeeb40be039d5a4da46e71b26268"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a8512aeeb40be039d5a4da46e71b26268">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)=0</td></tr>
+<tr class="memdesc:a8512aeeb40be039d5a4da46e71b26268"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel works on this document from now on; null detaches it.  <br /></td></tr>
 <tr class="memitem:afdd8ab3fbb9c8886df696fb56cf832c8" id="r_afdd8ab3fbb9c8886df696fb56cf832c8"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#afdd8ab3fbb9c8886df696fb56cf832c8">refresh</a> ()=0</td></tr>
+<tr class="memdesc:afdd8ab3fbb9c8886df696fb56cf832c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current state of the document.  <br /></td></tr>
 <tr class="memitem:a2fbf713650fa347aef6fc025fa1b3e34" id="r_a2fbf713650fa347aef6fc025fa1b3e34"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a2fbf713650fa347aef6fc025fa1b3e34">commitPendingEditors</a> ()=0</td></tr>
+<tr class="memdesc:a2fbf713650fa347aef6fc025fa1b3e34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the text of a field that is being edited into the document, as if the user had left the field.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The widget of one scene editor dock. A panel shows the model of its <a class="el" href="class_scene_document.html">SceneDocument</a>, edits it there in place, calls <a class="el" href="class_scene_document.html#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">SceneDocument::markChanged</a> and then emits <a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed().">changed()</a>. The window creates the dock and puts the panel in it. The panel does not own the document. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa11edba490c33cf21b24cc32f333ad88" name="aa11edba490c33cf21b24cc32f333ad88"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa11edba490c33cf21b24cc32f333ad88">&#9670;&#160;</a></span>SceneEditorPanel()</h2>
 
@@ -159,6 +166,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A panel without a document. </p>
 
 </div>
 </div>
@@ -186,6 +195,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>. </p>
+
 </div>
 </div>
 <a id="a2fbf713650fa347aef6fc025fa1b3e34" name="a2fbf713650fa347aef6fc025fa1b3e34"></a>
@@ -210,6 +221,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the text of a field that is being edited into the document, as if the user had left the field. </p>
 
 <p>Implemented in <a class="el" href="class_case_settings_panel.html#a50a48c015c7022a049f7f5d636841d4d">CaseSettingsPanel</a>, <a class="el" href="class_composition_panel.html#a785ce1339193e0c0b6a35933e2e09f54">CompositionPanel</a>, <a class="el" href="class_entrance_delay_panel.html#a64fb882abea20002d08c55790b0cf36d">EntranceDelayPanel</a>, <a class="el" href="class_incident_panel.html#ad04e02013680fb1df3787e861e812eb3">IncidentPanel</a>, <a class="el" href="class_infrastructure_panel.html#a97abf3cc2e21bd76b6cd282d75da1176">InfrastructurePanel</a>, <a class="el" href="class_passenger_panel.html#a661073869d3c9f9f3e96c2b2f83c9e4b">PassengerPanel</a>, <a class="el" href="class_scenario_panel.html#a22b2732001e960ff583b44bb9e59ce26">ScenarioPanel</a>, <a class="el" href="class_service_panel.html#aeeffa55bfd36911b4c668c2bf8cb768c">ServicePanel</a>, <a class="el" href="class_timetable_stops_panel.html#ac261948f5a701b1785af6e8fe152a8c1">TimetableStopsPanel</a>, and <a class="el" href="class_train_unit_panel.html#a68a9825ad30e3359da648cdadf3cbefc">TrainUnitPanel</a>.</p>
 
@@ -238,6 +251,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Shows the current state of the document. </p>
+
 <p>Implemented in <a class="el" href="class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9">CaseSettingsPanel</a>, <a class="el" href="class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1">CompositionPanel</a>, <a class="el" href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a">EntranceDelayPanel</a>, <a class="el" href="class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19">IncidentPanel</a>, <a class="el" href="class_infrastructure_panel.html#a893cdf9d2324e3abdc6e465a8c3fd7e5">InfrastructurePanel</a>, <a class="el" href="class_passenger_panel.html#a4765b3745b9ecd6448d36c2d849255d1">PassengerPanel</a>, <a class="el" href="class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6">ScenarioPanel</a>, <a class="el" href="class_service_panel.html#ad6eca861c006bbbbb05317549b14f618">ServicePanel</a>, <a class="el" href="class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f">TimetableStopsPanel</a>, and <a class="el" href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4">TrainUnitPanel</a>.</p>
 
 </div>
@@ -264,6 +279,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The panel works on this document from now on; null detaches it. </p>
 
 <p>Implemented in <a class="el" href="class_case_settings_panel.html#af2581c6046d3e6ebea0acee871cf5e13">CaseSettingsPanel</a>, <a class="el" href="class_composition_panel.html#aac00236b7a1120226a46cb697b28202b">CompositionPanel</a>, <a class="el" href="class_entrance_delay_panel.html#a93e4730688974ecdbcdc21148feddee4">EntranceDelayPanel</a>, <a class="el" href="class_incident_panel.html#a3d56a4c04062132a7ec33a17a1167453">IncidentPanel</a>, <a class="el" href="class_infrastructure_panel.html#a0b1cbbdb0c5c14c9c7f3f73907cf9cea">InfrastructurePanel</a>, <a class="el" href="class_passenger_panel.html#ad61cdc408e8f6c227695a95bd8918db9">PassengerPanel</a>, <a class="el" href="class_scenario_panel.html#aa20347077c0648b1fe9c71bfffa6bb82">ScenarioPanel</a>, <a class="el" href="class_service_panel.html#ad5f5db4c176efeee1f9f6d85ca199bdd">ServicePanel</a>, <a class="el" href="class_timetable_stops_panel.html#a9282f4307dbca9d8104829d06d838d40">TimetableStopsPanel</a>, and <a class="el" href="class_train_unit_panel.html#a99687cc055496394ebd693a0c262c762">TrainUnitPanel</a>.</p>
 

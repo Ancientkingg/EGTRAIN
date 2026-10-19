@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Records that an editor has changed kinds of the model, and what the change was called.">
 <polygon fill="#999999" stroke="#666666" points="170,-37 0,-37 0,-18 170,-18 170,-37"/>
 <text text-anchor="middle" x="85" y="-25" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::markChanged</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">
 <polygon fill="white" stroke="#666666" points="349,-56 206,-56 206,-37 349,-37 349,-56"/>
 <text text-anchor="middle" x="277.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" target="_top" xlink:title="Sets the dirty state, and emits dirtyChanged() when it changes.">
 <polygon fill="white" stroke="#666666" points="348,-19 207,-19 207,0 348,0 348,-19"/>
 <text text-anchor="middle" x="277.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::setDirty</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" target="_top" xlink:title="The dirty state has changed to dirty.">
 <polygon fill="white" stroke="#666666" points="552,-19 385,-19 385,0 552,0 552,-19"/>
 <text text-anchor="middle" x="468.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::dirtyChanged</text>
 </a>

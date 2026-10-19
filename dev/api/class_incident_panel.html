@@ -128,50 +128,79 @@ Collaboration diagram for IncidentPanel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa7d1f51043cdf8360b017cdf025af07e" id="r_aa7d1f51043cdf8360b017cdf025af07e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa7d1f51043cdf8360b017cdf025af07e">IncidentPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa7d1f51043cdf8360b017cdf025af07e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:a3d56a4c04062132a7ec33a17a1167453" id="r_a3d56a4c04062132a7ec33a17a1167453"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3d56a4c04062132a7ec33a17a1167453">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
 <tr class="memitem:a9fa6aabce65e071c4045ed0120e49b37" id="r_a9fa6aabce65e071c4045ed0120e49b37"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9fa6aabce65e071c4045ed0120e49b37">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a2c957d5e721f35f94e3781f6ced13a05" id="r_a2c957d5e721f35f94e3781f6ced13a05"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2c957d5e721f35f94e3781f6ced13a05">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
 <tr class="memitem:a4ce0e22a38c79a9eebf69c7b4c1b2947" id="r_a4ce0e22a38c79a9eebf69c7b4c1b2947"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4ce0e22a38c79a9eebf69c7b4c1b2947">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:a7d2279576ce8ac1a108dfe82c00cef19" id="r_a7d2279576ce8ac1a108dfe82c00cef19"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7d2279576ce8ac1a108dfe82c00cef19">refresh</a> () override</td></tr>
+<tr class="memdesc:a7d2279576ce8ac1a108dfe82c00cef19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the incidents of the selected scenario again and keeps the selected row where it still exists.  <br /></td></tr>
 <tr class="memitem:ad04e02013680fb1df3787e861e812eb3" id="r_ad04e02013680fb1df3787e861e812eb3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad04e02013680fb1df3787e861e812eb3">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:ad04e02013680fb1df3787e861e812eb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the fields that are being edited into the document.  <br /></td></tr>
 <tr class="memitem:a27864144425ae1421eed85bf89b78b99" id="r_a27864144425ae1421eed85bf89b78b99"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a27864144425ae1421eed85bf89b78b99">updateDetail</a> ()</td></tr>
+<tr class="memdesc:a27864144425ae1421eed85bf89b78b99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the fields of the selected incident again.  <br /></td></tr>
 <tr class="memitem:a860d558ebb39a1e5ec74067f697786ec" id="r_a860d558ebb39a1e5ec74067f697786ec"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a860d558ebb39a1e5ec74067f697786ec">refreshTargets</a> ()</td></tr>
+<tr class="memdesc:a860d558ebb39a1e5ec74067f697786ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the choices of targets of the selected incident again.  <br /></td></tr>
 <tr class="memitem:ad708b037b2f86f3a7531006321b1e9a8" id="r_ad708b037b2f86f3a7531006321b1e9a8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad708b037b2f86f3a7531006321b1e9a8">addIncident</a> ()</td></tr>
 <tr class="memitem:af82ac9717826363be48b353e3a0a04c4" id="r_af82ac9717826363be48b353e3a0a04c4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af82ac9717826363be48b353e3a0a04c4">duplicateIncident</a> ()</td></tr>
+<tr class="memdesc:af82ac9717826363be48b353e3a0a04c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected incident, with a new unique id, after it.  <br /></td></tr>
 <tr class="memitem:a1917aff18f1a9554c46c66e2315b2d82" id="r_a1917aff18f1a9554c46c66e2315b2d82"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1917aff18f1a9554c46c66e2315b2d82">deleteIncident</a> ()</td></tr>
+<tr class="memdesc:a1917aff18f1a9554c46c66e2315b2d82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected incident after the user has confirmed it.  <br /></td></tr>
 <tr class="memitem:a755c81817b7e3f31d17a533f0204056d" id="r_a755c81817b7e3f31d17a533f0204056d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a755c81817b7e3f31d17a533f0204056d">commitIdEdit</a> ()</td></tr>
+<tr class="memdesc:a755c81817b7e3f31d17a533f0204056d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id from the field. An empty or used id is dropped and the field shows the old id again.  <br /></td></tr>
 <tr class="memitem:a43b973587863c82bd9e5a72feafa1320" id="r_a43b973587863c82bd9e5a72feafa1320"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a43b973587863c82bd9e5a72feafa1320">commitType</a> (const QString &amp;type)</td></tr>
 <tr class="memitem:abf21a483bda509af60c29ae04fc2963a" id="r_abf21a483bda509af60c29ae04fc2963a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abf21a483bda509af60c29ae04fc2963a">commitTarget</a> ()</td></tr>
 <tr class="memitem:aa36bc27a4871c658e195a7aa977c84ac" id="r_aa36bc27a4871c658e195a7aa977c84ac"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa36bc27a4871c658e195a7aa977c84ac">commitStartSeconds</a> ()</td></tr>
+<tr class="memdesc:aa36bc27a4871c658e195a7aa977c84ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the start from its field, in whole seconds; text that is no number counts as 0.  <br /></td></tr>
 <tr class="memitem:a2df1e4fda22d62d9d2be2f4e8e4c73b6" id="r_a2df1e4fda22d62d9d2be2f4e8e4c73b6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2df1e4fda22d62d9d2be2f4e8e4c73b6">commitEndSeconds</a> ()</td></tr>
 <tr class="memitem:a3dc457b716d17fd8a5b7913715121ed9" id="r_a3dc457b716d17fd8a5b7913715121ed9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3dc457b716d17fd8a5b7913715121ed9">commitReducedSpeed</a> ()</td></tr>
+<tr class="memdesc:a3dc457b716d17fd8a5b7913715121ed9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the reduced speed in km/h from its field and marks that the incident has one.  <br /></td></tr>
 <tr class="memitem:a869c0aa3824109fce99cbffa2bd462c4" id="r_a869c0aa3824109fce99cbffa2bd462c4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a869c0aa3824109fce99cbffa2bd462c4">commitHasReducedSpeed</a> (bool checked)</td></tr>
+<tr class="memdesc:a869c0aa3824109fce99cbffa2bd462c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gives the incident the reduced speed of the field, or none (0 km/h) when <span class="tt">checked</span> is false.  <br /></td></tr>
 <tr class="memitem:a3d91cb4fc9226ec4427c46c8a432fb15" id="r_a3d91cb4fc9226ec4427c46c8a432fb15"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3d91cb4fc9226ec4427c46c8a432fb15">commitHasEndSeconds</a> (bool checked)</td></tr>
+<tr class="memdesc:a3d91cb4fc9226ec4427c46c8a432fb15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gives the incident an end, or none (0 seconds) when <span class="tt">checked</span> is false.  <br /></td></tr>
 <tr class="memitem:a4ac59902f4ca451cff5a015be8461d11" id="r_a4ac59902f4ca451cff5a015be8461d11"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4ac59902f4ca451cff5a015be8461d11">commitTerminateAtDestination</a> (bool checked)</td></tr>
+<tr class="memdesc:a4ac59902f4ca451cff5a015be8461d11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the terminate-at-destination request of a breakdown (see the scene schema).  <br /></td></tr>
 <tr class="memitem:a375e4980dce11bb5cbe65638f67b98d8" id="r_a375e4980dce11bb5cbe65638f67b98d8"><td class="memItemLeft"><a class="el" href="struct_scene_incident.html">SceneIncident</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a375e4980dce11bb5cbe65638f67b98d8">selectedIncident</a> ()</td></tr>
 <tr class="memitem:aaf0b59b3e33f75b49853a86b0cf7ac20" id="r_aaf0b59b3e33f75b49853a86b0cf7ac20"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#aaf0b59b3e33f75b49853a86b0cf7ac20">listWidget</a> () const</td></tr>
+<tr class="memdesc:aaf0b59b3e33f75b49853a86b0cf7ac20"><td class="mdescLeft">&#160;</td><td class="mdescRight">The incidents of the selected scenario, one row each.  <br /></td></tr>
 <tr class="memitem:a7858a95beb33e065c8ba4e699ef28876" id="r_a7858a95beb33e065c8ba4e699ef28876"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a7858a95beb33e065c8ba4e699ef28876">idEdit</a> () const</td></tr>
+<tr class="memdesc:a7858a95beb33e065c8ba4e699ef28876"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected incident.  <br /></td></tr>
 <tr class="memitem:a71dafdaeb8bc89c96eee497e02f14374" id="r_a71dafdaeb8bc89c96eee497e02f14374"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a71dafdaeb8bc89c96eee497e02f14374">typeCombo</a> () const</td></tr>
+<tr class="memdesc:a71dafdaeb8bc89c96eee497e02f14374"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type: "signal_failure" or "train_breakdown".  <br /></td></tr>
 <tr class="memitem:ab3445b8930481b443aec196e8bbbb442" id="r_ab3445b8930481b443aec196e8bbbb442"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#ab3445b8930481b443aec196e8bbbb442">targetCombo</a> () const</td></tr>
 <tr class="memitem:a39246626cd12fed462970ed94b36c520" id="r_a39246626cd12fed462970ed94b36c520"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a39246626cd12fed462970ed94b36c520">startSecondsEdit</a> () const</td></tr>
+<tr class="memdesc:a39246626cd12fed462970ed94b36c520"><td class="mdescLeft">&#160;</td><td class="mdescRight">The start in whole seconds from the start of the run.  <br /></td></tr>
 <tr class="memitem:a7a61173790e141212bfd7665939daeaf" id="r_a7a61173790e141212bfd7665939daeaf"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a7a61173790e141212bfd7665939daeaf">endSecondsEdit</a> () const</td></tr>
+<tr class="memdesc:a7a61173790e141212bfd7665939daeaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The end (the recovery) in whole seconds from the start of the run.  <br /></td></tr>
 <tr class="memitem:a49980b6ad232df0b6bc70c788a2f2bbc" id="r_a49980b6ad232df0b6bc70c788a2f2bbc"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a49980b6ad232df0b6bc70c788a2f2bbc">hasEndSecondsCheck</a> () const</td></tr>
 <tr class="memitem:a0d10ca0322412992b5acee134064c789" id="r_a0d10ca0322412992b5acee134064c789"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a0d10ca0322412992b5acee134064c789">hasReducedSpeedCheck</a> () const</td></tr>
+<tr class="memdesc:a0d10ca0322412992b5acee134064c789"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a breakdown caps the speed of the train instead of stopping it.  <br /></td></tr>
 <tr class="memitem:acc689d6d5ae03be762622ad47da3663d" id="r_acc689d6d5ae03be762622ad47da3663d"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#acc689d6d5ae03be762622ad47da3663d">reducedSpeedKmhEdit</a> () const</td></tr>
+<tr class="memdesc:acc689d6d5ae03be762622ad47da3663d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The speed cap of a breakdown in km/h.  <br /></td></tr>
 <tr class="memitem:a3cbc4644d85aa597dbb68fcbc689948d" id="r_a3cbc4644d85aa597dbb68fcbc689948d"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a3cbc4644d85aa597dbb68fcbc689948d">terminateAtDestinationCheck</a> () const</td></tr>
+<tr class="memdesc:a3cbc4644d85aa597dbb68fcbc689948d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The terminate-at-destination request of a breakdown.  <br /></td></tr>
 <tr class="memitem:a665eed9405627ef55f8561786e6d60ff" id="r_a665eed9405627ef55f8561786e6d60ff"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a665eed9405627ef55f8561786e6d60ff">emptyStateLabel</a> () const</td></tr>
+<tr class="memdesc:a665eed9405627ef55f8561786e6d60ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message above the fields while no incident is selected; hidden otherwise.  <br /></td></tr>
 <tr class="memitem:a686bf6d1cd8048e65495ff1e53789fb2" id="r_a686bf6d1cd8048e65495ff1e53789fb2"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a686bf6d1cd8048e65495ff1e53789fb2">addButton</a> () const</td></tr>
+<tr class="memdesc:a686bf6d1cd8048e65495ff1e53789fb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ad708b037b2f86f3a7531006321b1e9a8">addIncident()</a>.  <br /></td></tr>
 <tr class="memitem:a6a7ded565dbbe5c3116a3db10b7592bb" id="r_a6a7ded565dbbe5c3116a3db10b7592bb"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a6a7ded565dbbe5c3116a3db10b7592bb">duplicateButton</a> () const</td></tr>
+<tr class="memdesc:a6a7ded565dbbe5c3116a3db10b7592bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#af82ac9717826363be48b353e3a0a04c4" title="Inserts a copy of the selected incident, with a new unique id, after it.">duplicateIncident()</a>.  <br /></td></tr>
 <tr class="memitem:ac39d1497ce3ff5b5b41022b149bd1706" id="r_ac39d1497ce3ff5b5b41022b149bd1706"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ac39d1497ce3ff5b5b41022b149bd1706">deleteButton</a> () const</td></tr>
+<tr class="memdesc:ac39d1497ce3ff5b5b41022b149bd1706"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a1917aff18f1a9554c46c66e2315b2d82" title="Deletes the selected incident after the user has confirmed it.">deleteIncident()</a>.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The incidents of the selected scenario: a list to pick one, and the fields of the selected incident. An incident is a signal failure or a train breakdown, and the targets it can have depend on that type: a signal or a block, or one occurrence of a service. The choices of targets follow the infrastructure and the services of the document. The scenario whose incidents are shown is the one that the run selection names. Start and end are whole seconds from the start of the run, and the reduced speed is in km/h. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa7d1f51043cdf8360b017cdf025af07e" name="aa7d1f51043cdf8360b017cdf025af07e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa7d1f51043cdf8360b017cdf025af07e">&#9670;&#160;</a></span>IncidentPanel()</h2>
 
@@ -194,6 +223,8 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the widgets, empty until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -226,6 +257,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#ad708b037b2f86f3a7531006321b1e9a8">addIncident()</a>. </p>
+
 </div>
 </div>
 <a id="ad708b037b2f86f3a7531006321b1e9a8" name="ad708b037b2f86f3a7531006321b1e9a8"></a>
@@ -242,6 +275,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Appends a signal failure with a new unique id, no target and start and end at 0 seconds, and selects it. A scene without a scenario gets the baseline scenario first. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -264,6 +298,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes the end from its field, in whole seconds, and marks that the incident has one; text that is no number counts as 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -286,6 +321,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Gives the incident an end, or none (0 seconds) when <span class="tt">checked</span> is false. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -308,6 +345,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Gives the incident the reduced speed of the field, or none (0 km/h) when <span class="tt">checked</span> is false. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -330,6 +369,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the id from the field. An empty or used id is dropped and the field shows the old id again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -361,6 +402,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Takes the fields that are being edited into the document. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -384,6 +427,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the reduced speed in km/h from its field and marks that the incident has one. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -406,6 +451,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the start from its field, in whole seconds; text that is no number counts as 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -428,6 +475,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes the target from its combo: a signal or block, or a service with one occurrence or, for an older incident, all of them. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -450,6 +498,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the terminate-at-destination request of a breakdown (see the scene schema). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -472,6 +522,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the type, "signal_failure" or "train_breakdown". Another type keeps only the target that is valid for it, and a signal failure loses what only a breakdown has. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -503,6 +554,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a1917aff18f1a9554c46c66e2315b2d82" title="Deletes the selected incident after the user has confirmed it.">deleteIncident()</a>. </p>
+
 </div>
 </div>
 <a id="a1917aff18f1a9554c46c66e2315b2d82" name="a1917aff18f1a9554c46c66e2315b2d82"></a>
@@ -519,6 +572,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Deletes the selected incident after the user has confirmed it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -550,6 +605,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#af82ac9717826363be48b353e3a0a04c4" title="Inserts a copy of the selected incident, with a new unique id, after it.">duplicateIncident()</a>. </p>
+
 </div>
 </div>
 <a id="af82ac9717826363be48b353e3a0a04c4" name="af82ac9717826363be48b353e3a0a04c4"></a>
@@ -566,6 +623,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Inserts a copy of the selected incident, with a new unique id, after it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -597,6 +656,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The message above the fields while no incident is selected; hidden otherwise. </p>
+
 </div>
 </div>
 <a id="a7a61173790e141212bfd7665939daeaf" name="a7a61173790e141212bfd7665939daeaf"></a>
@@ -622,6 +683,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The end (the recovery) in whole seconds from the start of the run. </p>
+
 </div>
 </div>
 <a id="a49980b6ad232df0b6bc70c788a2f2bbc" name="a49980b6ad232df0b6bc70c788a2f2bbc"></a>
@@ -646,6 +709,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Whether the incident has an end. A reduced-speed breakdown without one lasts until the train reaches its destination. </p>
 
 </div>
 </div>
@@ -672,6 +736,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Whether a breakdown caps the speed of the train instead of stopping it. </p>
+
 </div>
 </div>
 <a id="a7858a95beb33e065c8ba4e699ef28876" name="a7858a95beb33e065c8ba4e699ef28876"></a>
@@ -696,6 +762,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The field of the id of the selected incident. </p>
 
 </div>
 </div>
@@ -722,6 +790,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The incidents of the selected scenario, one row each. </p>
+
 </div>
 </div>
 <a id="acc689d6d5ae03be762622ad47da3663d" name="acc689d6d5ae03be762622ad47da3663d"></a>
@@ -746,6 +816,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The speed cap of a breakdown in km/h. </p>
 
 </div>
 </div>
@@ -772,6 +844,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Lists the incidents of the selected scenario again and keeps the selected row where it still exists. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -795,6 +869,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Lists the choices of targets of the selected incident again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -817,6 +893,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The selected incident for an edit, or null when none is selected or the scene cannot be edited. A scene without a scenario gets the baseline scenario first. </p>
 
 </div>
 </div>
@@ -842,6 +919,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Refreshes when the document is replaced, and shows the choices of targets again when the case settings, the infrastructure or the services change. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">
@@ -866,6 +944,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the scene settings is used. </p>
 
 </div>
 </div>
@@ -883,6 +962,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The messages and questions go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
 
 </div>
 </div>
@@ -900,6 +980,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The scenario that is shown and the scenarios that are edited are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
 
 </div>
 </div>
@@ -926,6 +1007,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The start in whole seconds from the start of the run. </p>
+
 </div>
 </div>
 <a id="ab3445b8930481b443aec196e8bbbb442" name="ab3445b8930481b443aec196e8bbbb442"></a>
@@ -950,6 +1033,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The targets for the type. The data of an item is the target id, and its data in role Qt::UserRole + 1 the occurrence, 0 for all occurrences of a service. </p>
 
 </div>
 </div>
@@ -976,6 +1060,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The terminate-at-destination request of a breakdown. </p>
+
 </div>
 </div>
 <a id="a71dafdaeb8bc89c96eee497e02f14374" name="a71dafdaeb8bc89c96eee497e02f14374"></a>
@@ -1001,6 +1087,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The type: "signal_failure" or "train_breakdown". </p>
+
 </div>
 </div>
 <a id="a27864144425ae1421eed85bf89b78b99" name="a27864144425ae1421eed85bf89b78b99"></a>
@@ -1017,6 +1105,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Shows the fields of the selected incident again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

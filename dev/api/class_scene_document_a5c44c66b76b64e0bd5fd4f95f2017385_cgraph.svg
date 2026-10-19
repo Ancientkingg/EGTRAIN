@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" target="_top" xlink:title="Sets the dirty state, and emits dirtyChanged() when it changes.">
 <polygon fill="white" stroke="#666666" points="314,-19 173,-19 173,0 314,0 314,-19"/>
 <text text-anchor="middle" x="243.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::setDirty</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" target="_top" xlink:title="The dirty state has changed to dirty.">
 <polygon fill="white" stroke="#666666" points="517,-19 350,-19 350,0 517,0 517,-19"/>
 <text text-anchor="middle" x="433.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::dirtyChanged</text>
 </a>

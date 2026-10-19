@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="329,-111 181,-111 181,-92 329,-92 329,-111"/>
 <text text-anchor="middle" x="255" y="-99" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" target="_top" xlink:title="Lists the incidents of the selected scenario again and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="316,-74 194,-74 194,-55 316,-55 316,-74"/>
 <text text-anchor="middle" x="255" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refresh</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title="Shows the fields of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="516,-74 365,-74 365,-55 516,-55 516,-74"/>
 <text text-anchor="middle" x="440.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::updateDetail</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title="Lists the choices of targets of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="710,-105 552,-105 552,-86 710,-86 710,-105"/>
 <text text-anchor="middle" x="631" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refreshTargets</text>
 </a>

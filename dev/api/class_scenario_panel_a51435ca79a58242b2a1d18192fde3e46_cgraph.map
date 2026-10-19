@@ -1,5 +1,5 @@
 <map id="ScenarioPanel::commitNameEdit" name="ScenarioPanel::commitNameEdit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,240,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="288,5,485,31"/>
+<area shape="rect" id="Node000001" title="Takes the name from its field." alt="" coords="5,5,240,31"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="288,5,485,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,15,274,15,274,21,240,21"/>
 </map>

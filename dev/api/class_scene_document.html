@@ -139,36 +139,57 @@ Public Types</h2></td></tr>
 , <a class="el" href="#a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3">AllChanges</a> = CaseSettings | Infrastructure | TrainUnits | Compositions | Services | Scenarios | Passengers
 <br />
  }</td></tr>
+<tr class="memdesc:a91f74e5143e65d144b7e484152ee01d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The parts of the model that an edit can touch. <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> and <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">changed()</a> carry a combination of them.  <a href="#a91f74e5143e65d144b7e484152ee01d0">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a66de48a8dd0dc3d1036d1ad5ccce450f" id="r_a66de48a8dd0dc3d1036d1ad5ccce450f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f">changed</a> (SceneDocument::ChangeKinds kinds)</td></tr>
+<tr class="memdesc:a66de48a8dd0dc3d1036d1ad5ccce450f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emitted once for each <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, after the revision and the dirty state are updated.  <br /></td></tr>
 <tr class="memitem:a6b22d47eaed3e5ca1c78c8092ee8bac2" id="r_a6b22d47eaed3e5ca1c78c8092ee8bac2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6b22d47eaed3e5ca1c78c8092ee8bac2">replaced</a> ()</td></tr>
+<tr class="memdesc:a6b22d47eaed3e5ca1c78c8092ee8bac2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emitted by <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, after the whole state is set.  <br /></td></tr>
 <tr class="memitem:aa264b685cb49af4df36f5c11bc53e71d" id="r_aa264b685cb49af4df36f5c11bc53e71d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa264b685cb49af4df36f5c11bc53e71d">dirtyChanged</a> (bool dirty)</td></tr>
+<tr class="memdesc:aa264b685cb49af4df36f5c11bc53e71d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The dirty state has changed to <span class="tt">dirty</span>.  <br /></td></tr>
 <tr class="memitem:a757efc9c4eac4817ef7c7fadbfbaa994" id="r_a757efc9c4eac4817ef7c7fadbfbaa994"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a757efc9c4eac4817ef7c7fadbfbaa994">editableChanged</a> (bool editable)</td></tr>
+<tr class="memdesc:a757efc9c4eac4817ef7c7fadbfbaa994"><td class="mdescLeft">&#160;</td><td class="mdescRight">The model has been opened (<span class="tt">editable</span> true) or closed for edits.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a7b376a313d121770604a481647759cee" id="r_a7b376a313d121770604a481647759cee"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a7b376a313d121770604a481647759cee">SceneDocument</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a7b376a313d121770604a481647759cee"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty document: not loaded, not dirty and editable.  <br /></td></tr>
 <tr class="memitem:afb8e17c314a99ffcbcd850b5eaa65b64" id="r_afb8e17c314a99ffcbcd850b5eaa65b64"><td class="memItemLeft">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#afb8e17c314a99ffcbcd850b5eaa65b64">model</a> () const</td></tr>
+<tr class="memdesc:afb8e17c314a99ffcbcd850b5eaa65b64"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene. It is an empty model until the first <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>.  <br /></td></tr>
 <tr class="memitem:a6b9805cf3a1c8f692acbf4aa6b4650ae" id="r_a6b9805cf3a1c8f692acbf4aa6b4650ae"><td class="memItemLeft"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a6b9805cf3a1c8f692acbf4aa6b4650ae">mutableModel</a> ()</td></tr>
+<tr class="memdesc:a6b9805cf3a1c8f692acbf4aa6b4650ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene for an edit. The caller calls <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> after it has changed the model.  <br /></td></tr>
 <tr class="memitem:ac933b7b48a82fce9d282df580e4a8c0b" id="r_ac933b7b48a82fce9d282df580e4a8c0b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac933b7b48a82fce9d282df580e4a8c0b">isLoaded</a> () const</td></tr>
+<tr class="memdesc:ac933b7b48a82fce9d282df580e4a8c0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">False until the first <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>.  <br /></td></tr>
 <tr class="memitem:a259a637519be2dd1fecad1a73690dc25" id="r_a259a637519be2dd1fecad1a73690dc25"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a259a637519be2dd1fecad1a73690dc25">isDirty</a> () const</td></tr>
+<tr class="memdesc:a259a637519be2dd1fecad1a73690dc25"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the model has changed since it was opened or saved.  <br /></td></tr>
 <tr class="memitem:ae81e4460eb27933960887d597c5cd54c" id="r_ae81e4460eb27933960887d597c5cd54c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae81e4460eb27933960887d597c5cd54c">isEditable</a> () const</td></tr>
+<tr class="memdesc:ae81e4460eb27933960887d597c5cd54c"><td class="mdescLeft">&#160;</td><td class="mdescRight">False while a run uses the model.  <br /></td></tr>
 <tr class="memitem:a5f258ce51748d9eab4961ef605f4ad74" id="r_a5f258ce51748d9eab4961ef605f4ad74"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#a5f258ce51748d9eab4961ef605f4ad74">revision</a> () const</td></tr>
+<tr class="memdesc:a5f258ce51748d9eab4961ef605f4ad74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Grows by one with every <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, <a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore()</a> and <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, never otherwise.  <br /></td></tr>
 <tr class="memitem:a277eb15f126e421527334bc3de106810" id="r_a277eb15f126e421527334bc3de106810"><td class="memItemLeft">const QString &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a277eb15f126e421527334bc3de106810">lastChangeLabel</a> () const</td></tr>
+<tr class="memdesc:a277eb15f126e421527334bc3de106810"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of the latest <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, such as "Edit case settings"; empty before the first one.  <br /></td></tr>
 <tr class="memitem:aa29cf748032512bdadf3efa930a589b4" id="r_aa29cf748032512bdadf3efa930a589b4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa29cf748032512bdadf3efa930a589b4">replace</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> newModel, bool dirty)</td></tr>
+<tr class="memdesc:aa29cf748032512bdadf3efa930a589b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes another model: a scene that is opened or created. <span class="tt">dirty</span> tells whether it differs from what is saved.  <br /></td></tr>
 <tr class="memitem:a5c44c66b76b64e0bd5fd4f95f2017385" id="r_a5c44c66b76b64e0bd5fd4f95f2017385"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;snapshot, bool dirty)</td></tr>
 <tr class="memitem:aad2a9b2a6152f239fd50148f7bd6da57" id="r_aad2a9b2a6152f239fd50148f7bd6da57"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57">markChanged</a> (ChangeKinds kinds, const QString &amp;label={})</td></tr>
+<tr class="memdesc:aad2a9b2a6152f239fd50148f7bd6da57"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records that an editor has changed <span class="tt">kinds</span> of the model, and what the change was called.  <br /></td></tr>
 <tr class="memitem:ab6ec69f4fb6838a63b144f306e2bd164" id="r_ab6ec69f4fb6838a63b144f306e2bd164"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab6ec69f4fb6838a63b144f306e2bd164">markSaved</a> ()</td></tr>
+<tr class="memdesc:ab6ec69f4fb6838a63b144f306e2bd164"><td class="mdescLeft">&#160;</td><td class="mdescRight">The model is what is saved now: clears the dirty state.  <br /></td></tr>
 <tr class="memitem:a01d765c1bc087b8ba050fd566730929b" id="r_a01d765c1bc087b8ba050fd566730929b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a01d765c1bc087b8ba050fd566730929b">setDirty</a> (bool dirty)</td></tr>
+<tr class="memdesc:a01d765c1bc087b8ba050fd566730929b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the dirty state, and emits <a class="el" href="#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty.">dirtyChanged()</a> when it changes.  <br /></td></tr>
 <tr class="memitem:a947412d2f41326ed904b30d8998df4b2" id="r_a947412d2f41326ed904b30d8998df4b2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a947412d2f41326ed904b30d8998df4b2">setEditable</a> (bool editable)</td></tr>
+<tr class="memdesc:a947412d2f41326ed904b30d8998df4b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens or closes the model for edits, and emits <a class="el" href="#a757efc9c4eac4817ef7c7fadbfbaa994" title="The model has been opened (editable true) or closed for edits.">editableChanged()</a> when that changes.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a07d58747d59f49d1ff6b222687ecbf39" id="r_a07d58747d59f49d1ff6b222687ecbf39"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a07d58747d59f49d1ff6b222687ecbf39">MainWindowTestAccess</a></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The scene that the editors work on: the model, whether it is loaded, edited since it was saved and open for edits, and how often it has been changed. The document owns the model by value; the window creates the document as its child.</p>
+<p>An editor changes the model in place through <a class="el" href="#a6b9805cf3a1c8f692acbf4aa6b4650ae" title="The scene for an edit. The caller calls markChanged() after it has changed the model.">mutableModel()</a> and then calls <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, which counts the revision, marks the document dirty and emits <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">changed()</a>. The window keeps the undo history: it records a copy of the model on every <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">changed()</a>, and Undo and Redo put a recorded copy back with <a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore()</a>, which emits no <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">changed()</a>. Opening or creating a scene goes through <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, which emits <a class="el" href="#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set.">replaced()</a>. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a91f74e5143e65d144b7e484152ee01d0" name="a91f74e5143e65d144b7e484152ee01d0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a91f74e5143e65d144b7e484152ee01d0">&#9670;&#160;</a></span>Change</h2>
 
@@ -180,15 +201,25 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The parts of the model that an edit can touch. <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> and <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">changed()</a> carry a combination of them. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a5e70f5dedfbaf10e23475cc4f2cea867" name="a91f74e5143e65d144b7e484152ee01d0a5e70f5dedfbaf10e23475cc4f2cea867"></a>CaseSettings&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0af8277de1f70e1cdb7c3df402ee45d9d4" name="a91f74e5143e65d144b7e484152ee01d0af8277de1f70e1cdb7c3df402ee45d9d4"></a>Infrastructure&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a627a1fbaf48d8fe8c04f974fa6e609aa" name="a91f74e5143e65d144b7e484152ee01d0a627a1fbaf48d8fe8c04f974fa6e609aa"></a>TrainUnits&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de" name="a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de"></a>Compositions&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0ac2e42be467e1b6127929a0a2b5db888a" name="a91f74e5143e65d144b7e484152ee01d0ac2e42be467e1b6127929a0a2b5db888a"></a>Services&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a59831ef80f0e7d032b2820ea8c6b1fed" name="a91f74e5143e65d144b7e484152ee01d0a59831ef80f0e7d032b2820ea8c6b1fed"></a>Scenarios&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a115850ac59aa4feb0664ab25db188933" name="a91f74e5143e65d144b7e484152ee01d0a115850ac59aa4feb0664ab25db188933"></a>Passengers&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3" name="a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3"></a>AllChanges&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a5e70f5dedfbaf10e23475cc4f2cea867" name="a91f74e5143e65d144b7e484152ee01d0a5e70f5dedfbaf10e23475cc4f2cea867"></a>CaseSettings&#160;</td><td class="fielddoc"><p>Name, description, base time, duration, buffer time and recovery time. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0af8277de1f70e1cdb7c3df402ee45d9d4" name="a91f74e5143e65d144b7e484152ee01d0af8277de1f70e1cdb7c3df402ee45d9d4"></a>Infrastructure&#160;</td><td class="fielddoc"><p>The infrastructure. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a627a1fbaf48d8fe8c04f974fa6e609aa" name="a91f74e5143e65d144b7e484152ee01d0a627a1fbaf48d8fe8c04f974fa6e609aa"></a>TrainUnits&#160;</td><td class="fielddoc"><p>The rolling stock units. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de" name="a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de"></a>Compositions&#160;</td><td class="fielddoc"><p>The compositions. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0ac2e42be467e1b6127929a0a2b5db888a" name="a91f74e5143e65d144b7e484152ee01d0ac2e42be467e1b6127929a0a2b5db888a"></a>Services&#160;</td><td class="fielddoc"><p>The services and their timetables. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a59831ef80f0e7d032b2820ea8c6b1fed" name="a91f74e5143e65d144b7e484152ee01d0a59831ef80f0e7d032b2820ea8c6b1fed"></a>Scenarios&#160;</td><td class="fielddoc"><p>The scenarios with their incidents and entrance delays. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a115850ac59aa4feb0664ab25db188933" name="a91f74e5143e65d144b7e484152ee01d0a115850ac59aa4feb0664ab25db188933"></a>Passengers&#160;</td><td class="fielddoc"><p>The passengers with their journeys and legs. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3" name="a91f74e5143e65d144b7e484152ee01d0a65cf14ddce60f0ccce313a79bbf813a3"></a>AllChanges&#160;</td><td class="fielddoc"><p>Every part. </p>
+</td></tr>
 </table>
 
 </div>
@@ -217,6 +248,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>An empty document: not loaded, not dirty and editable. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -243,6 +276,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Emitted once for each <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, after the revision and the dirty state are updated. </p>
+
 </div>
 </div>
 <a id="aa264b685cb49af4df36f5c11bc53e71d" name="aa264b685cb49af4df36f5c11bc53e71d"></a>
@@ -267,6 +302,8 @@ Friends</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The dirty state has changed to <span class="tt">dirty</span>. </p>
 
 </div>
 </div>
@@ -293,6 +330,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The model has been opened (<span class="tt">editable</span> true) or closed for edits. </p>
+
 </div>
 </div>
 <a id="a259a637519be2dd1fecad1a73690dc25" name="a259a637519be2dd1fecad1a73690dc25"></a>
@@ -317,6 +356,8 @@ Friends</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when the model has changed since it was opened or saved. </p>
 
 </div>
 </div>
@@ -343,6 +384,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>False while a run uses the model. </p>
+
 </div>
 </div>
 <a id="ac933b7b48a82fce9d282df580e4a8c0b" name="ac933b7b48a82fce9d282df580e4a8c0b"></a>
@@ -367,6 +410,8 @@ Friends</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>False until the first <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>. </p>
 
 </div>
 </div>
@@ -393,6 +438,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The label of the latest <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, such as "Edit case settings"; empty before the first one. </p>
+
 </div>
 </div>
 <a id="aad2a9b2a6152f239fd50148f7bd6da57" name="aad2a9b2a6152f239fd50148f7bd6da57"></a>
@@ -413,6 +460,8 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Records that an editor has changed <span class="tt">kinds</span> of the model, and what the change was called. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -443,6 +492,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The model is what is saved now: clears the dirty state. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -474,6 +525,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The scene. It is an empty model until the first <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>. </p>
+
 </div>
 </div>
 <a id="a6b9805cf3a1c8f692acbf4aa6b4650ae" name="a6b9805cf3a1c8f692acbf4aa6b4650ae"></a>
@@ -499,6 +552,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The scene for an edit. The caller calls <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> after it has changed the model. </p>
+
 </div>
 </div>
 <a id="aa29cf748032512bdadf3efa930a589b4" name="aa29cf748032512bdadf3efa930a589b4"></a>
@@ -519,6 +574,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes another model: a scene that is opened or created. <span class="tt">dirty</span> tells whether it differs from what is saved. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -550,6 +607,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Emitted by <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, after the whole state is set. </p>
+
 </div>
 </div>
 <a id="a5c44c66b76b64e0bd5fd4f95f2017385" name="a5c44c66b76b64e0bd5fd4f95f2017385"></a>
@@ -570,6 +629,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Puts back an earlier state of the scene, as Undo and Redo do. The authored parts of the model become those of <span class="tt">snapshot</span> (see assignAuthoredScene), and <span class="tt">dirty</span> tells whether that state differs from what is saved. It is not an edit: <a class="el" href="#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">changed()</a> is not emitted, so the editors have to be refreshed by the caller. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -601,6 +661,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Grows by one with every <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, <a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore()</a> and <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, never otherwise. </p>
+
 </div>
 </div>
 <a id="a01d765c1bc087b8ba050fd566730929b" name="a01d765c1bc087b8ba050fd566730929b"></a>
@@ -617,6 +679,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the dirty state, and emits <a class="el" href="#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty.">dirtyChanged()</a> when it changes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -639,6 +703,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Opens or closes the model for edits, and emits <a class="el" href="#a757efc9c4eac4817ef7c7fadbfbaa994" title="The model has been opened (editable true) or closed for edits.">editableChanged()</a> when that changes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

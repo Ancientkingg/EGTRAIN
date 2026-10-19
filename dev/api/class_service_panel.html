@@ -132,76 +132,136 @@ Signals</h2></td></tr>
 <tr class="memitem:a8a400164f094d35a68eff39d27d55480" id="r_a8a400164f094d35a68eff39d27d55480"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8a400164f094d35a68eff39d27d55480">selectedServiceChanged</a> (const QString &amp;serviceId)</td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a98efafccb64e54ce3c129d8cf85549fb" id="r_a98efafccb64e54ce3c129d8cf85549fb"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a98efafccb64e54ce3c129d8cf85549fb">ServicePanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a98efafccb64e54ce3c129d8cf85549fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:ad5f5db4c176efeee1f9f6d85ca199bdd" id="r_ad5f5db4c176efeee1f9f6d85ca199bdd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad5f5db4c176efeee1f9f6d85ca199bdd">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
+<tr class="memdesc:ad5f5db4c176efeee1f9f6d85ca199bdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced.  <br /></td></tr>
 <tr class="memitem:ad1d4ff78c0afdcd70151662c1821ea77" id="r_ad1d4ff78c0afdcd70151662c1821ea77"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad1d4ff78c0afdcd70151662c1821ea77">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a7ec0f61c5272a367fd326edaec083802" id="r_a7ec0f61c5272a367fd326edaec083802"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7ec0f61c5272a367fd326edaec083802">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
 <tr class="memitem:a99c6859f6b61b07c5681b5e45ddfd25b" id="r_a99c6859f6b61b07c5681b5e45ddfd25b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a99c6859f6b61b07c5681b5e45ddfd25b">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:ae34eb49457b47037c9a101e151deb820" id="r_ae34eb49457b47037c9a101e151deb820"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae34eb49457b47037c9a101e151deb820">setTimetableWidget</a> (QWidget *widget)</td></tr>
+<tr class="memdesc:ae34eb49457b47037c9a101e151deb820"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts the timetable of the selected service on the Timetable tab. The widget becomes a child of the panel.  <br /></td></tr>
 <tr class="memitem:ad6eca861c006bbbbb05317549b14f618" id="r_ad6eca861c006bbbbb05317549b14f618"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad6eca861c006bbbbb05317549b14f618">refresh</a> () override</td></tr>
+<tr class="memdesc:ad6eca861c006bbbbb05317549b14f618"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the services again and shows the selected one.  <br /></td></tr>
 <tr class="memitem:aeeffa55bfd36911b4c668c2bf8cb768c" id="r_aeeffa55bfd36911b4c668c2bf8cb768c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aeeffa55bfd36911b4c668c2bf8cb768c">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:aeeffa55bfd36911b4c668c2bf8cb768c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id and the fields that are being edited into the document.  <br /></td></tr>
 <tr class="memitem:a6d80c86200fe6fc36908a0cd4026c539" id="r_a6d80c86200fe6fc36908a0cd4026c539"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d80c86200fe6fc36908a0cd4026c539">updateDetail</a> ()</td></tr>
+<tr class="memdesc:a6d80c86200fe6fc36908a0cd4026c539"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the fields of the selected service again.  <br /></td></tr>
 <tr class="memitem:abb04a680a10c17d91c623056dd91f4ba" id="r_abb04a680a10c17d91c623056dd91f4ba"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abb04a680a10c17d91c623056dd91f4ba">refreshOccurrencePreview</a> ()</td></tr>
+<tr class="memdesc:abb04a680a10c17d91c623056dd91f4ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the occurrences again.  <br /></td></tr>
 <tr class="memitem:a17feafc030f7ea0e4f86b46fac99a04e" id="r_a17feafc030f7ea0e4f86b46fac99a04e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a17feafc030f7ea0e4f86b46fac99a04e">addService</a> ()</td></tr>
+<tr class="memdesc:a17feafc030f7ea0e4f86b46fac99a04e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends a service with a new unique id and default values, and selects it.  <br /></td></tr>
 <tr class="memitem:a3c94766eeee29aa92581d5f646f520c9" id="r_a3c94766eeee29aa92581d5f646f520c9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3c94766eeee29aa92581d5f646f520c9">duplicateService</a> ()</td></tr>
+<tr class="memdesc:a3c94766eeee29aa92581d5f646f520c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected service, with a new unique id, after it.  <br /></td></tr>
 <tr class="memitem:a8bdbff0bbf3dd4d8c17349885263b254" id="r_a8bdbff0bbf3dd4d8c17349885263b254"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254">deleteService</a> ()</td></tr>
+<tr class="memdesc:a8bdbff0bbf3dd4d8c17349885263b254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected service after the user has confirmed it; refused while something refers to it.  <br /></td></tr>
 <tr class="memitem:aaf5de4ccfa7af1694719ae9a556e80b9" id="r_aaf5de4ccfa7af1694719ae9a556e80b9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aaf5de4ccfa7af1694719ae9a556e80b9">commitIdEdit</a> ()</td></tr>
+<tr class="memdesc:aaf5de4ccfa7af1694719ae9a556e80b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id from the field. An empty or used id is dropped and the field shows the old id again.  <br /></td></tr>
 <tr class="memitem:a5927be489e40c621d79f382842ffaaa1" id="r_a5927be489e40c621d79f382842ffaaa1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5927be489e40c621d79f382842ffaaa1">commitOperatingCode</a> ()</td></tr>
+<tr class="memdesc:a5927be489e40c621d79f382842ffaaa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the service code (the operating code) from its field, trimmed.  <br /></td></tr>
 <tr class="memitem:ac20ff0ada36687685f670887d83e9607" id="r_ac20ff0ada36687685f670887d83e9607"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac20ff0ada36687685f670887d83e9607">commitCategory</a> (int index)</td></tr>
+<tr class="memdesc:ac20ff0ada36687685f670887d83e9607"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the category at <span class="tt">index</span> of its combo; the empty category is none.  <br /></td></tr>
 <tr class="memitem:a3ce72403e5525acc9ddba510773617d7" id="r_a3ce72403e5525acc9ddba510773617d7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3ce72403e5525acc9ddba510773617d7">commitVisualizationColor</a> (const QString &amp;text)</td></tr>
+<tr class="memdesc:a3ce72403e5525acc9ddba510773617d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the display colour, "#rrggbb" or empty for the default.  <br /></td></tr>
 <tr class="memitem:a28b81e211b80b2011e49ac2deb2f317e" id="r_a28b81e211b80b2011e49ac2deb2f317e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a28b81e211b80b2011e49ac2deb2f317e">commitComposition</a> (const QString &amp;text)</td></tr>
+<tr class="memdesc:a28b81e211b80b2011e49ac2deb2f317e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the composition id.  <br /></td></tr>
 <tr class="memitem:af95206d6b08f3ffca4b8f4f4dcc4456e" id="r_af95206d6b08f3ffca4b8f4f4dcc4456e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af95206d6b08f3ffca4b8f4f4dcc4456e">commitRoute</a> (int index)</td></tr>
+<tr class="memdesc:af95206d6b08f3ffca4b8f4f4dcc4456e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the route at <span class="tt">index</span> of the route combo.  <br /></td></tr>
 <tr class="memitem:a5ecb8f09c12dafff2c02ec82db882598" id="r_a5ecb8f09c12dafff2c02ec82db882598"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5ecb8f09c12dafff2c02ec82db882598">commitHasEntryTime</a> (bool checked)</td></tr>
+<tr class="memdesc:a5ecb8f09c12dafff2c02ec82db882598"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether the service has an entry time.  <br /></td></tr>
 <tr class="memitem:a785a7896dc8890e24e5319873bad4335" id="r_a785a7896dc8890e24e5319873bad4335"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a785a7896dc8890e24e5319873bad4335">commitEntryTimeSeconds</a> ()</td></tr>
+<tr class="memdesc:a785a7896dc8890e24e5319873bad4335"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the entry time from its field, in whole seconds from the base time; text that is no number counts as 0.  <br /></td></tr>
 <tr class="memitem:af9781db5f458e0440f10a6fd3a0ea647" id="r_af9781db5f458e0440f10a6fd3a0ea647"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af9781db5f458e0440f10a6fd3a0ea647">commitHasRepeat</a> (bool checked)</td></tr>
+<tr class="memdesc:af9781db5f458e0440f10a6fd3a0ea647"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether the service repeats. A service that stops repeating loses its repeat count and code step.  <br /></td></tr>
 <tr class="memitem:ab1f00e35aa9b739296f66e66fc877d33" id="r_ab1f00e35aa9b739296f66e66fc877d33"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab1f00e35aa9b739296f66e66fc877d33">commitHeadwaySeconds</a> ()</td></tr>
+<tr class="memdesc:ab1f00e35aa9b739296f66e66fc877d33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the headway between occurrences from its field, in whole seconds; text that is no number counts as 0.  <br /></td></tr>
 <tr class="memitem:ae62a32c64f7c7416d7efbe8ec65afb76" id="r_ae62a32c64f7c7416d7efbe8ec65afb76"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae62a32c64f7c7416d7efbe8ec65afb76">commitHasRepeatCount</a> (bool checked)</td></tr>
+<tr class="memdesc:ae62a32c64f7c7416d7efbe8ec65afb76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether the number of occurrences is given; it is at least 1.  <br /></td></tr>
 <tr class="memitem:ae3c8883d6ef76b0c4f71ddbb705b8dcc" id="r_ae3c8883d6ef76b0c4f71ddbb705b8dcc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae3c8883d6ef76b0c4f71ddbb705b8dcc">commitRepeatCount</a> ()</td></tr>
+<tr class="memdesc:ae3c8883d6ef76b0c4f71ddbb705b8dcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the number of occurrences, including the first, from its field; text that is no number counts as 1.  <br /></td></tr>
 <tr class="memitem:afedb2b0383252f1538dc5d4c7ff2be38" id="r_afedb2b0383252f1538dc5d4c7ff2be38"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afedb2b0383252f1538dc5d4c7ff2be38">commitPerformancePercent</a> (double value)</td></tr>
+<tr class="memdesc:afedb2b0383252f1538dc5d4c7ff2be38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the running performance in percent, held between 1 and 100.  <br /></td></tr>
 <tr class="memitem:adc2ecaaac7b74cda1a5797cae2db777f" id="r_adc2ecaaac7b74cda1a5797cae2db777f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adc2ecaaac7b74cda1a5797cae2db777f">commitHasMaximumSpeed</a> (bool checked)</td></tr>
+<tr class="memdesc:adc2ecaaac7b74cda1a5797cae2db777f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether the service has a maximum speed; one that has none gets 100 km/h.  <br /></td></tr>
 <tr class="memitem:a0761e558153379882120fe741760f45a" id="r_a0761e558153379882120fe741760f45a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0761e558153379882120fe741760f45a">commitMaximumSpeed</a> ()</td></tr>
+<tr class="memdesc:a0761e558153379882120fe741760f45a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the maximum speed in km/h from its field.  <br /></td></tr>
 <tr class="memitem:a5f31261334a1922b4c7353fa4ce44544" id="r_a5f31261334a1922b4c7353fa4ce44544"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5f31261334a1922b4c7353fa4ce44544">commitHasOperatingCodeStep</a> (bool checked)</td></tr>
+<tr class="memdesc:a5f31261334a1922b4c7353fa4ce44544"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether the service code grows by a step with each occurrence; a step of 0 becomes 1.  <br /></td></tr>
 <tr class="memitem:ac75d7eeafcb94d6cb01bd6f79a30f275" id="r_ac75d7eeafcb94d6cb01bd6f79a30f275"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac75d7eeafcb94d6cb01bd6f79a30f275">commitOperatingCodeStep</a> ()</td></tr>
+<tr class="memdesc:ac75d7eeafcb94d6cb01bd6f79a30f275"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the step of the service code from its field; text that is no number, and 0, become 1.  <br /></td></tr>
 <tr class="memitem:a2eb6b32f3916a21d5b88001e4b8fd36c" id="r_a2eb6b32f3916a21d5b88001e4b8fd36c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2eb6b32f3916a21d5b88001e4b8fd36c">selectAllOccurrences</a> ()</td></tr>
+<tr class="memdesc:a2eb6b32f3916a21d5b88001e4b8fd36c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Includes every occurrence in the next run.  <br /></td></tr>
 <tr class="memitem:a1676d8e741844b1aca79e0317588fda5" id="r_a1676d8e741844b1aca79e0317588fda5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1676d8e741844b1aca79e0317588fda5">selectNoneOccurrences</a> ()</td></tr>
+<tr class="memdesc:a1676d8e741844b1aca79e0317588fda5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the table lists.  <br /></td></tr>
 <tr class="memitem:a00d8d69fb9e7417c0287b12949c8f07b" id="r_a00d8d69fb9e7417c0287b12949c8f07b"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a00d8d69fb9e7417c0287b12949c8f07b">listWidget</a> () const</td></tr>
+<tr class="memdesc:a00d8d69fb9e7417c0287b12949c8f07b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The services, by id.  <br /></td></tr>
 <tr class="memitem:a5490415e8741640b175f0df4cff61464" id="r_a5490415e8741640b175f0df4cff61464"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a5490415e8741640b175f0df4cff61464">idEdit</a> () const</td></tr>
+<tr class="memdesc:a5490415e8741640b175f0df4cff61464"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected service.  <br /></td></tr>
 <tr class="memitem:aa6d1c548a7085e8438dd3e02db14fdab" id="r_aa6d1c548a7085e8438dd3e02db14fdab"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#aa6d1c548a7085e8438dd3e02db14fdab">operatingCodeEdit</a> () const</td></tr>
+<tr class="memdesc:aa6d1c548a7085e8438dd3e02db14fdab"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the service code (the operating code).  <br /></td></tr>
 <tr class="memitem:aad7d978828e26debcf27751110e9b619" id="r_aad7d978828e26debcf27751110e9b619"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#aad7d978828e26debcf27751110e9b619">categoryCombo</a> () const</td></tr>
+<tr class="memdesc:aad7d978828e26debcf27751110e9b619"><td class="mdescLeft">&#160;</td><td class="mdescRight">The categories, with the category text as the data and "No category" for none.  <br /></td></tr>
 <tr class="memitem:a6b85bb106c10de8c3e54b42c0c5f1869" id="r_a6b85bb106c10de8c3e54b42c0c5f1869"><td class="memItemLeft"><a class="el" href="class_color_choice_button.html">ColorChoiceButton</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a6b85bb106c10de8c3e54b42c0c5f1869">colorButton</a> () const</td></tr>
+<tr class="memdesc:a6b85bb106c10de8c3e54b42c0c5f1869"><td class="mdescLeft">&#160;</td><td class="mdescRight">The display colour of the service.  <br /></td></tr>
 <tr class="memitem:aec0dc24d96c6c2748346770a3a9cf6e2" id="r_aec0dc24d96c6c2748346770a3a9cf6e2"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#aec0dc24d96c6c2748346770a3a9cf6e2">compositionCombo</a> () const</td></tr>
+<tr class="memdesc:aec0dc24d96c6c2748346770a3a9cf6e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The compositions of the scene, by id. A composition that the scene lacks is still shown.  <br /></td></tr>
 <tr class="memitem:a44d0e43191b64b10cd6e39571ff0c55b" id="r_a44d0e43191b64b10cd6e39571ff0c55b"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a44d0e43191b64b10cd6e39571ff0c55b">routeCombo</a> () const</td></tr>
+<tr class="memdesc:a44d0e43191b64b10cd6e39571ff0c55b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes of the scene, with the route id as the data.  <br /></td></tr>
 <tr class="memitem:af870aff608e87286c3353a2415ce19a2" id="r_af870aff608e87286c3353a2415ce19a2"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#af870aff608e87286c3353a2415ce19a2">hasEntryTimeCheck</a> () const</td></tr>
+<tr class="memdesc:af870aff608e87286c3353a2415ce19a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the service has an entry time.  <br /></td></tr>
 <tr class="memitem:a3a543514778bb183ef77fda3a620a318" id="r_a3a543514778bb183ef77fda3a620a318"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a3a543514778bb183ef77fda3a620a318">entryTimeSecondsEdit</a> () const</td></tr>
+<tr class="memdesc:a3a543514778bb183ef77fda3a620a318"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entry time in whole seconds from the base time.  <br /></td></tr>
 <tr class="memitem:a15a084dd4323ee8325e0a2d08b3cc18c" id="r_a15a084dd4323ee8325e0a2d08b3cc18c"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a15a084dd4323ee8325e0a2d08b3cc18c">hasRepeatCheck</a> () const</td></tr>
+<tr class="memdesc:a15a084dd4323ee8325e0a2d08b3cc18c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the service repeats.  <br /></td></tr>
 <tr class="memitem:ad9928e46d769b391ded78ef6bd5a3814" id="r_ad9928e46d769b391ded78ef6bd5a3814"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#ad9928e46d769b391ded78ef6bd5a3814">headwaySecondsEdit</a> () const</td></tr>
+<tr class="memdesc:ad9928e46d769b391ded78ef6bd5a3814"><td class="mdescLeft">&#160;</td><td class="mdescRight">The headway between occurrences in whole seconds.  <br /></td></tr>
 <tr class="memitem:a1db617b35f22bd9457b63a8ec6402242" id="r_a1db617b35f22bd9457b63a8ec6402242"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a1db617b35f22bd9457b63a8ec6402242">hasRepeatCountCheck</a> () const</td></tr>
+<tr class="memdesc:a1db617b35f22bd9457b63a8ec6402242"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the number of occurrences is given.  <br /></td></tr>
 <tr class="memitem:a8d62cb389acd02b636a18abec8633f4e" id="r_a8d62cb389acd02b636a18abec8633f4e"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a8d62cb389acd02b636a18abec8633f4e">repeatCountEdit</a> () const</td></tr>
+<tr class="memdesc:a8d62cb389acd02b636a18abec8633f4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of occurrences, including the first.  <br /></td></tr>
 <tr class="memitem:a7f530b4bb130585be485a9180b69ec52" id="r_a7f530b4bb130585be485a9180b69ec52"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a7f530b4bb130585be485a9180b69ec52">performancePercentEdit</a> () const</td></tr>
+<tr class="memdesc:a7f530b4bb130585be485a9180b69ec52"><td class="mdescLeft">&#160;</td><td class="mdescRight">The running performance in percent, 1 to 100.  <br /></td></tr>
 <tr class="memitem:a11f0b47b499831b3c1a24652f4c66a29" id="r_a11f0b47b499831b3c1a24652f4c66a29"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a11f0b47b499831b3c1a24652f4c66a29">hasMaximumSpeedCheck</a> () const</td></tr>
+<tr class="memdesc:a11f0b47b499831b3c1a24652f4c66a29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the service has a maximum speed.  <br /></td></tr>
 <tr class="memitem:ac2b6e8bddf2719c612453e0d7f079089" id="r_ac2b6e8bddf2719c612453e0d7f079089"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#ac2b6e8bddf2719c612453e0d7f079089">maximumSpeedKmhEdit</a> () const</td></tr>
+<tr class="memdesc:ac2b6e8bddf2719c612453e0d7f079089"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum speed of the service in km/h, 0.1 to 1000.  <br /></td></tr>
 <tr class="memitem:a24192a4f3cdccba23cf5d088efff94d6" id="r_a24192a4f3cdccba23cf5d088efff94d6"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a24192a4f3cdccba23cf5d088efff94d6">hasOperatingCodeStepCheck</a> () const</td></tr>
+<tr class="memdesc:a24192a4f3cdccba23cf5d088efff94d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the service code grows by a step with each occurrence.  <br /></td></tr>
 <tr class="memitem:a295546154c49799959e09f1c68467aff" id="r_a295546154c49799959e09f1c68467aff"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a295546154c49799959e09f1c68467aff">operatingCodeStepEdit</a> () const</td></tr>
+<tr class="memdesc:a295546154c49799959e09f1c68467aff"><td class="mdescLeft">&#160;</td><td class="mdescRight">The step of the service code, a whole number other than 0.  <br /></td></tr>
 <tr class="memitem:af353644c6cf9975cec598a771ea6a198" id="r_af353644c6cf9975cec598a771ea6a198"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#af353644c6cf9975cec598a771ea6a198">addButton</a> () const</td></tr>
+<tr class="memdesc:af353644c6cf9975cec598a771ea6a198"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a17feafc030f7ea0e4f86b46fac99a04e" title="Appends a service with a new unique id and default values, and selects it.">addService()</a>.  <br /></td></tr>
 <tr class="memitem:ae4e33448f57dde18e7d7026f15a4198e" id="r_ae4e33448f57dde18e7d7026f15a4198e"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ae4e33448f57dde18e7d7026f15a4198e">duplicateButton</a> () const</td></tr>
+<tr class="memdesc:ae4e33448f57dde18e7d7026f15a4198e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a3c94766eeee29aa92581d5f646f520c9" title="Inserts a copy of the selected service, with a new unique id, after it.">duplicateService()</a>.  <br /></td></tr>
 <tr class="memitem:ac7aadfe4592df0327bdaa1151bdf3dfb" id="r_ac7aadfe4592df0327bdaa1151bdf3dfb"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ac7aadfe4592df0327bdaa1151bdf3dfb">deleteButton</a> () const</td></tr>
+<tr class="memdesc:ac7aadfe4592df0327bdaa1151bdf3dfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service after the user has confirmed it; refused while something refers to it.">deleteService()</a>.  <br /></td></tr>
 <tr class="memitem:a0ec1463afa8706c83471b5808518964b" id="r_a0ec1463afa8706c83471b5808518964b"><td class="memItemLeft">QTabWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a0ec1463afa8706c83471b5808518964b">pages</a> () const</td></tr>
+<tr class="memdesc:a0ec1463afa8706c83471b5808518964b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Service, Timetable and Run occurrences tabs.  <br /></td></tr>
 <tr class="memitem:a0a9505cf6202e55c6851cf65f9f1e838" id="r_a0a9505cf6202e55c6851cf65f9f1e838"><td class="memItemLeft">QTableWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a0a9505cf6202e55c6851cf65f9f1e838">occurrenceTable</a> () const</td></tr>
+<tr class="memdesc:a0a9505cf6202e55c6851cf65f9f1e838"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrences of all services, one row each, with a check box that includes the occurrence in the next run.  <br /></td></tr>
 <tr class="memitem:a51515d1253b1d4ccc5f65991c959b450" id="r_a51515d1253b1d4ccc5f65991c959b450"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a51515d1253b1d4ccc5f65991c959b450">selectAllButton</a> () const</td></tr>
+<tr class="memdesc:a51515d1253b1d4ccc5f65991c959b450"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a2eb6b32f3916a21d5b88001e4b8fd36c" title="Includes every occurrence in the next run.">selectAllOccurrences()</a>.  <br /></td></tr>
 <tr class="memitem:a985ef15a691f8bf2ff7faf6948c774db" id="r_a985ef15a691f8bf2ff7faf6948c774db"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a985ef15a691f8bf2ff7faf6948c774db">selectNoneButton</a> () const</td></tr>
+<tr class="memdesc:a985ef15a691f8bf2ff7faf6948c774db"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a1676d8e741844b1aca79e0317588fda5" title="Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the...">selectNoneOccurrences()</a>.  <br /></td></tr>
 <tr class="memitem:a589efeaa3e8d0a6123fd63a73460d776" id="r_a589efeaa3e8d0a6123fd63a73460d776"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a589efeaa3e8d0a6123fd63a73460d776">occurrenceSelectionLabel</a> () const</td></tr>
+<tr class="memdesc:a589efeaa3e8d0a6123fd63a73460d776"><td class="mdescLeft">&#160;</td><td class="mdescRight">The counts of the occurrences and of those that the next run includes.  <br /></td></tr>
 <tr class="memitem:a0cd98db81f333e7dcd693440e1af9058" id="r_a0cd98db81f333e7dcd693440e1af9058"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a0cd98db81f333e7dcd693440e1af9058">emptyStateLabel</a> () const</td></tr>
+<tr class="memdesc:a0cd98db81f333e7dcd693440e1af9058"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message above the fields when no service can be shown, hidden otherwise.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a66b1c3c067b02d797d3989cc5225626a" id="r_a66b1c3c067b02d797d3989cc5225626a"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a66b1c3c067b02d797d3989cc5225626a">generatedServiceLabel</a> (const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;service, int occurrence)</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The services of the scene: a list to pick one and three tabs. The first holds the fields of the selected service, the second the place for its timetable, and the third lists the occurrences the services generate and lets the user leave some out of the next run. Renaming a service rewrites the entities that refer to it, and deleting one that is referred to is refused. The entry time and the headway are whole seconds, the entry time counted from the base time; the performance is in percent and the maximum speed in km/h. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a98efafccb64e54ce3c129d8cf85549fb" name="a98efafccb64e54ce3c129d8cf85549fb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a98efafccb64e54ce3c129d8cf85549fb">&#9670;&#160;</a></span>ServicePanel()</h2>
 
@@ -224,6 +284,8 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the widgets, empty until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -256,6 +318,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a17feafc030f7ea0e4f86b46fac99a04e" title="Appends a service with a new unique id and default values, and selects it.">addService()</a>. </p>
+
 </div>
 </div>
 <a id="a17feafc030f7ea0e4f86b46fac99a04e" name="a17feafc030f7ea0e4f86b46fac99a04e"></a>
@@ -272,6 +336,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Appends a service with a new unique id and default values, and selects it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -303,6 +369,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The categories, with the category text as the data and "No category" for none. </p>
+
 </div>
 </div>
 <a id="a6b85bb106c10de8c3e54b42c0c5f1869" name="a6b85bb106c10de8c3e54b42c0c5f1869"></a>
@@ -328,6 +396,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The display colour of the service. </p>
+
 </div>
 </div>
 <a id="ac20ff0ada36687685f670887d83e9607" name="ac20ff0ada36687685f670887d83e9607"></a>
@@ -344,6 +414,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the category at <span class="tt">index</span> of its combo; the empty category is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -366,6 +438,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the composition id. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -388,6 +462,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the entry time from its field, in whole seconds from the base time; text that is no number counts as 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -410,6 +486,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets whether the service has an entry time. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -432,6 +510,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets whether the service has a maximum speed; one that has none gets 100 km/h. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -454,6 +534,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets whether the service code grows by a step with each occurrence; a step of 0 becomes 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -476,6 +558,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets whether the service repeats. A service that stops repeating loses its repeat count and code step. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -498,6 +582,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets whether the number of occurrences is given; it is at least 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -520,6 +606,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the headway between occurrences from its field, in whole seconds; text that is no number counts as 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -542,6 +630,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the id from the field. An empty or used id is dropped and the field shows the old id again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -564,6 +654,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the maximum speed in km/h from its field. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -586,6 +678,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the service code (the operating code) from its field, trimmed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -608,6 +702,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the step of the service code from its field; text that is no number, and 0, become 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -639,6 +735,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Takes the id and the fields that are being edited into the document. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -662,6 +760,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the running performance in percent, held between 1 and 100. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -684,6 +784,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the number of occurrences, including the first, from its field; text that is no number counts as 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -706,6 +808,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the route at <span class="tt">index</span> of the route combo. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -728,6 +832,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the display colour, "#rrggbb" or empty for the default. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -759,6 +865,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The compositions of the scene, by id. A composition that the scene lacks is still shown. </p>
+
 </div>
 </div>
 <a id="ac7aadfe4592df0327bdaa1151bdf3dfb" name="ac7aadfe4592df0327bdaa1151bdf3dfb"></a>
@@ -784,6 +892,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a8bdbff0bbf3dd4d8c17349885263b254" title="Deletes the selected service after the user has confirmed it; refused while something refers to it.">deleteService()</a>. </p>
+
 </div>
 </div>
 <a id="a8bdbff0bbf3dd4d8c17349885263b254" name="a8bdbff0bbf3dd4d8c17349885263b254"></a>
@@ -800,6 +910,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Deletes the selected service after the user has confirmed it; refused while something refers to it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -831,6 +943,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a3c94766eeee29aa92581d5f646f520c9" title="Inserts a copy of the selected service, with a new unique id, after it.">duplicateService()</a>. </p>
+
 </div>
 </div>
 <a id="a3c94766eeee29aa92581d5f646f520c9" name="a3c94766eeee29aa92581d5f646f520c9"></a>
@@ -847,6 +961,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Inserts a copy of the selected service, with a new unique id, after it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -878,6 +994,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The message above the fields when no service can be shown, hidden otherwise. </p>
+
 </div>
 </div>
 <a id="a3a543514778bb183ef77fda3a620a318" name="a3a543514778bb183ef77fda3a620a318"></a>
@@ -902,6 +1020,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The entry time in whole seconds from the base time. </p>
 
 </div>
 </div>
@@ -931,6 +1051,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>What a generated service is called in lists: its service code, its route and its scheduled entry in seconds from the base time, such as "1723 | route r1 | entry +600 s". <span class="tt">occurrence</span> counts from 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -962,6 +1083,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Whether the service has an entry time. </p>
+
 </div>
 </div>
 <a id="a11f0b47b499831b3c1a24652f4c66a29" name="a11f0b47b499831b3c1a24652f4c66a29"></a>
@@ -986,6 +1109,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether the service has a maximum speed. </p>
 
 </div>
 </div>
@@ -1012,6 +1137,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Whether the service code grows by a step with each occurrence. </p>
+
 </div>
 </div>
 <a id="a15a084dd4323ee8325e0a2d08b3cc18c" name="a15a084dd4323ee8325e0a2d08b3cc18c"></a>
@@ -1036,6 +1163,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether the service repeats. </p>
 
 </div>
 </div>
@@ -1062,6 +1191,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Whether the number of occurrences is given. </p>
+
 </div>
 </div>
 <a id="ad9928e46d769b391ded78ef6bd5a3814" name="ad9928e46d769b391ded78ef6bd5a3814"></a>
@@ -1086,6 +1217,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The headway between occurrences in whole seconds. </p>
 
 </div>
 </div>
@@ -1112,6 +1245,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the id of the selected service. </p>
+
 </div>
 </div>
 <a id="a00d8d69fb9e7417c0287b12949c8f07b" name="a00d8d69fb9e7417c0287b12949c8f07b"></a>
@@ -1136,6 +1271,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The services, by id. </p>
 
 </div>
 </div>
@@ -1162,6 +1299,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The maximum speed of the service in km/h, 0.1 to 1000. </p>
+
 </div>
 </div>
 <a id="a64b1a37963513e4a8dbe3cbe289b1085" name="a64b1a37963513e4a8dbe3cbe289b1085"></a>
@@ -1186,6 +1325,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The occurrences are listed again, so what is built from them, the entrance delays and the targets of the incidents, is out of date. </p>
 
 </div>
 </div>
@@ -1212,6 +1352,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The counts of the occurrences and of those that the next run includes. </p>
+
 </div>
 </div>
 <a id="a0a9505cf6202e55c6851cf65f9f1e838" name="a0a9505cf6202e55c6851cf65f9f1e838"></a>
@@ -1236,6 +1378,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The occurrences of all services, one row each, with a check box that includes the occurrence in the next run. </p>
 
 </div>
 </div>
@@ -1262,6 +1406,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the service code (the operating code). </p>
+
 </div>
 </div>
 <a id="a295546154c49799959e09f1c68467aff" name="a295546154c49799959e09f1c68467aff"></a>
@@ -1286,6 +1432,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The step of the service code, a whole number other than 0. </p>
 
 </div>
 </div>
@@ -1312,6 +1460,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The Service, Timetable and Run occurrences tabs. </p>
+
 </div>
 </div>
 <a id="a7f530b4bb130585be485a9180b69ec52" name="a7f530b4bb130585be485a9180b69ec52"></a>
@@ -1336,6 +1486,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The running performance in percent, 1 to 100. </p>
 
 </div>
 </div>
@@ -1362,6 +1514,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Lists the services again and shows the selected one. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -1385,6 +1539,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Lists the occurrences again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1416,6 +1572,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The number of occurrences, including the first. </p>
+
 </div>
 </div>
 <a id="a44d0e43191b64b10cd6e39571ff0c55b" name="a44d0e43191b64b10cd6e39571ff0c55b"></a>
@@ -1440,6 +1598,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The routes of the scene, with the route id as the data. </p>
 
 </div>
 </div>
@@ -1466,6 +1626,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a2eb6b32f3916a21d5b88001e4b8fd36c" title="Includes every occurrence in the next run.">selectAllOccurrences()</a>. </p>
+
 </div>
 </div>
 <a id="a2eb6b32f3916a21d5b88001e4b8fd36c" name="a2eb6b32f3916a21d5b88001e4b8fd36c"></a>
@@ -1482,6 +1644,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Includes every occurrence in the next run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1512,6 +1676,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The timetable of this service, or of none when the id is empty, has to be shown again: another service is selected, or the id or the route of the selected one has changed. </p>
 
 </div>
 </div>
@@ -1538,6 +1703,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a1676d8e741844b1aca79e0317588fda5" title="Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the...">selectNoneOccurrences()</a>. </p>
+
 </div>
 </div>
 <a id="a1676d8e741844b1aca79e0317588fda5" name="a1676d8e741844b1aca79e0317588fda5"></a>
@@ -1554,6 +1721,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the table lists. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1588,6 +1757,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The service has got another id and the entities that referred to it have followed. Emitted after the document is marked changed. </p>
 
 </div>
 </div>
@@ -1614,6 +1784,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Refreshes when the document is replaced. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -1637,6 +1809,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the scene settings is used. </p>
 
 </div>
 </div>
@@ -1654,6 +1827,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The messages and questions go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
 
 </div>
 </div>
@@ -1671,6 +1845,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The occurrences that the next run leaves out are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
 
 </div>
 </div>
@@ -1689,6 +1864,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Puts the timetable of the selected service on the Timetable tab. The widget becomes a child of the panel. </p>
+
 </div>
 </div>
 <a id="a6d80c86200fe6fc36908a0cd4026c539" name="a6d80c86200fe6fc36908a0cd4026c539"></a>
@@ -1705,6 +1882,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Shows the fields of the selected service again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

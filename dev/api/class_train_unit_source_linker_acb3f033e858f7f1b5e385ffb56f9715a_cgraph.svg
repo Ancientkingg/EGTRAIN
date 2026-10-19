@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Links this file, which takes the current values of the unit as the ones that came from it.">
 <polygon fill="#999999" stroke="#666666" points="122,-73 0,-73 0,-43 122,-43 122,-73"/>
 <text text-anchor="start" x="8" y="-61" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="61" y="-50" font-family="Helvetica,sans-Serif" font-size="10.00">::linkFile</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title="Watches exactly the linked files and the folders that hold them.">
 <polygon fill="white" stroke="#666666" points="280,-134 158,-134 158,-104 280,-104 280,-134"/>
 <text text-anchor="start" x="166" y="-122" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="219" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshWatches</text>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title="The status of a link, or a link itself, has changed.">
 <polygon fill="white" stroke="#666666" points="280,-30 158,-30 158,0 280,0 280,-30"/>
 <text text-anchor="start" x="166" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="219" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::statusChanged</text>

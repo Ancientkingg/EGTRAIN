@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a4953dd5bbfeb02808559e99e0f5b6e47" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a4953dd5bbfeb02808559e99e0f5b6e47" target="_top" xlink:title="A facet has changed the entities of its kind and listed them again. facet is its key.">
 <polygon fill="white" stroke="#666666" points="254,-435 145,-435 145,-405 254,-405 254,-435"/>
 <text text-anchor="start" x="153" y="-423" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="199.5" y="-412" font-family="Helvetica,sans-Serif" font-size="10.00">::entitiesChanged</text>
@@ -59,7 +59,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" target="_top" xlink:title="The key of the chosen facet, one of facetKeys().">
 <polygon fill="white" stroke="#666666" points="584.5,-120 475.5,-120 475.5,-90 584.5,-90 584.5,-120"/>
 <text text-anchor="start" x="483.5" y="-108" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="530" y="-97" font-family="Helvetica,sans-Serif" font-size="10.00">::facetKey</text>
@@ -78,7 +78,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_infrastructure_panel.html#a0c87b611dfdbee714133398d548be696" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_infrastructure_panel.html#a0c87b611dfdbee714133398d548be696" target="_top" xlink:title="The same as refresh(bool) without the state of the combo and the add button. The facets call it after...">
 <polygon fill="white" stroke="#666666" points="254,-273 145,-273 145,-243 254,-243 254,-273"/>
 <text text-anchor="start" x="153" y="-261" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="199.5" y="-250" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshTable</text>
@@ -97,7 +97,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title="The facet with this key, or null. The panel keeps it.">
 <polygon fill="white" stroke="#666666" points="730,-503 621,-503 621,-473 730,-473 730,-503"/>
 <text text-anchor="start" x="629" y="-491" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="675.5" y="-480" font-family="Helvetica,sans-Serif" font-size="10.00">::facet</text>
@@ -116,7 +116,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="438.5,-24.5 290.5,-24.5 290.5,-5.5 438.5,-5.5 438.5,-24.5"/>
 <text text-anchor="middle" x="364.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -143,7 +143,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" target="_top" xlink:title="False while no scene is loaded or a run uses it.">
 <polygon fill="white" stroke="#666666" points="584.5,-287 475.5,-287 475.5,-257 584.5,-257 584.5,-287"/>
 <text text-anchor="start" x="483.5" y="-275" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="530" y="-264" font-family="Helvetica,sans-Serif" font-size="10.00">::canEdit</text>
@@ -162,7 +162,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" target="_top" xlink:title="True when a scene is loaded.">
 <polygon fill="white" stroke="#666666" points="730,-377 621,-377 621,-347 730,-347 730,-377"/>
 <text text-anchor="start" x="629" y="-365" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="675.5" y="-354" font-family="Helvetica,sans-Serif" font-size="10.00">::hasScene</text>
@@ -181,7 +181,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_infrastructure_facet.html#a1bcf515fa43eaf66f879c75970f36875" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_infrastructure_facet.html#a1bcf515fa43eaf66f879c75970f36875" target="_top" xlink:title="The headers of the table.">
 <polygon fill="white" stroke="#666666" points="418.5,-468 310.5,-468 310.5,-438 418.5,-438 418.5,-468"/>
 <text text-anchor="start" x="318.5" y="-456" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructureFacet</text>
 <text text-anchor="middle" x="364.5" y="-445" font-family="Helvetica,sans-Serif" font-size="10.00">::columns</text>
@@ -237,7 +237,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" target="_top" xlink:title="The model of the document; an empty scene without one.">
 <polygon fill="white" stroke="#666666" points="584.5,-184 475.5,-184 475.5,-154 584.5,-154 584.5,-184"/>
 <text text-anchor="start" x="483.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="530" y="-161" font-family="Helvetica,sans-Serif" font-size="10.00">::model</text>
@@ -256,7 +256,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_infrastructure_panel.html#a372635fb6d8c1c16b14aa9489d21c5f8" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_infrastructure_panel.html#a372635fb6d8c1c16b14aa9489d21c5f8" target="_top" xlink:title="Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exist...">
 <polygon fill="white" stroke="#666666" points="431.5,-192 297.5,-192 297.5,-162 431.5,-162 431.5,-192"/>
 <text text-anchor="start" x="305.5" y="-180" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="364.5" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshBlockTrackFilter</text>
@@ -294,7 +294,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400" target="_top" xlink:title="Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend o...">
 <polygon fill="white" stroke="#666666" points="419,-420 310,-420 310,-390 419,-390 419,-420"/>
 <text text-anchor="start" x="318" y="-408" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="364.5" y="-397" font-family="Helvetica,sans-Serif" font-size="10.00">::updateSelection</text>

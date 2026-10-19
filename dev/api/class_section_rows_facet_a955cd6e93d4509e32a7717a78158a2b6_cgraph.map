@@ -2,17 +2,17 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,101,224,141"/>
 <area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a2cd2534ecea99e2648aac3ae04d78542" title=" " alt="" coords="290,5,435,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,99,271,55,290,48,292,53,273,60,164,104"/>
-<area shape="rect" id="Node000004" href="$class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" title=" " alt="" coords="290,69,435,109"/>
+<area shape="rect" id="Node000004" href="$class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" title="The model of the document for an edit by a facet. The panel must have a document." alt="" coords="290,69,435,109"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,105,276,98,277,103,225,110"/>
 <area shape="rect" id="Node000005" href="$class_infrastructure_panel.html#ab21a6bad4cd2c5e18daf1b4d3b17d2e8" title=" " alt="" coords="272,133,453,173"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="225,133,259,137,258,143,224,138"/>
-<area shape="rect" id="Node000010" href="$class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" title=" " alt="" coords="290,197,435,237"/>
+<area shape="rect" id="Node000010" href="$class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" title="The table that the facets fill; the panel owns it." alt="" coords="290,197,435,237"/>
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="164,139,273,183,292,190,290,195,271,188,162,144"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="501,13,699,38"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="501,13,699,38"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="436,23,488,23,488,28,436,28"/>
 <area shape="rect" id="Node000006" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="515,101,685,141"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="453,139,501,132,501,137,454,144"/>
-<area shape="rect" id="Node000009" href="$class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" title=" " alt="" coords="527,165,673,205"/>
+<area shape="rect" id="Node000009" href="$class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" title="The text that names a section in a list of sections." alt="" coords="527,165,673,205"/>
 <area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="454,163,514,171,513,176,453,168"/>
 <area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="747,69,917,109"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="685,107,733,100,734,106,686,112"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Refreshes when the document is replaced.">
 <polygon fill="#999999" stroke="#666666" points="158,-37 0,-37 0,-18 158,-18 158,-37"/>
 <text text-anchor="middle" x="79" y="-25" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::setDocument</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title="Lists the units again and shows the selected one.">
 <polygon fill="white" stroke="#666666" points="329.5,-56 202.5,-56 202.5,-37 329.5,-37 329.5,-56"/>
 <text text-anchor="middle" x="266" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::refresh</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title="Emitted by replace(), after the whole state is set.">
 <polygon fill="white" stroke="#666666" points="338,-19 194,-19 194,0 338,0 338,-19"/>
 <text text-anchor="middle" x="266" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::replaced</text>
 </a>

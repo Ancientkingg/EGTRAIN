@@ -1,14 +1,14 @@
 <map id="EntranceDelayPanel::setDocument" name="EntranceDelayPanel::setDocument">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,157,110"/>
-<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="206,20,397,45"/>
+<area shape="rect" id="Node000001" title="Refreshes when the document is replaced, and when the case settings, the infrastructure or the servic..." alt="" coords="5,70,157,110"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated." alt="" coords="206,20,397,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,68,238,46,239,51,158,73"/>
-<area shape="rect" id="Node000003" href="$class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" title=" " alt="" coords="225,70,377,110"/>
+<area shape="rect" id="Node000003" href="$class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" title="Lists the delays of the selected scenario again and keeps the selected row where it still exists." alt="" coords="225,70,377,110"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,87,212,87,212,93,157,93"/>
-<area shape="rect" id="Node000013" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title=" " alt="" coords="205,135,397,160"/>
+<area shape="rect" id="Node000013" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="205,135,397,160"/>
 <area shape="poly" id="edge20_Node000001_Node000013" title=" " alt="" coords="158,107,239,129,238,134,157,112"/>
 <area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="920,29,1199,55"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="377,82,645,65,906,48,907,54,646,70,378,88"/>
-<area shape="rect" id="Node000005" href="$class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" title=" " alt="" coords="445,119,597,159"/>
+<area shape="rect" id="Node000005" href="$class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" title="Shows the fields of the selected delay again." alt="" coords="445,119,597,159"/>
 <area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="378,104,433,117,431,122,377,110"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="1015,31,1005,21,1010,11,1028,5,1059,3,1100,7,1110,12,1114,18,1109,21,1107,16,1098,12,1059,8,1029,10,1013,15,1010,20,1018,27"/>
 <area shape="rect" id="Node000006" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="645,79,872,119"/>

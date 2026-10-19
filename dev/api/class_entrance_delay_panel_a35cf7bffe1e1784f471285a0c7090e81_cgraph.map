@@ -1,5 +1,5 @@
 <map id="EntranceDelayPanel::updateDetail" name="EntranceDelayPanel::updateDetail">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,139,157,179"/>
+<area shape="rect" id="Node000001" title="Shows the fields of the selected delay again." alt="" coords="5,139,157,179"/>
 <area shape="rect" id="Node000002" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="205,58,432,98"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,137,204,107,229,100,231,105,206,113,130,142"/>
 <area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="209,147,428,172"/>

@@ -1,8 +1,8 @@
 <map id="TimetableStopsPanel::setDocument" name="TimetableStopsPanel::setDocument">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,271,164,311"/>
-<area shape="rect" id="Node000002" href="$class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" title=" " alt="" coords="229,242,387,282"/>
+<area shape="rect" id="Node000001" title="Refreshes when the document is replaced." alt="" coords="5,271,164,311"/>
+<area shape="rect" id="Node000002" href="$class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" title="Lists the stops of the service again." alt="" coords="229,242,387,282"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,278,215,272,215,277,165,284"/>
-<area shape="rect" id="Node000016" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title=" " alt="" coords="212,307,404,332"/>
+<area shape="rect" id="Node000016" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="212,307,404,332"/>
 <area shape="poly" id="edge27_Node000001_Node000016" title=" " alt="" coords="165,299,199,303,198,308,164,304"/>
 <area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="471,29,626,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="316,241,335,203,364,155,403,105,450,64,461,58,463,62,454,68,407,109,369,158,340,205,321,243"/>
@@ -16,7 +16,7 @@
 <area shape="poly" id="edge10_Node000002_Node000007" title=" " alt="" coords="375,279,494,316,492,321,374,285"/>
 <area shape="rect" id="Node000011" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="465,396,632,421"/>
 <area shape="poly" id="edge18_Node000002_Node000011" title=" " alt="" coords="385,280,406,292,422,309,431,325,439,342,454,359,476,375,501,388,498,393,474,379,450,363,435,345,426,328,418,312,402,296,383,284"/>
-<area shape="rect" id="Node000015" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title=" " alt="" coords="469,446,628,486"/>
+<area shape="rect" id="Node000015" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title="The table shows the stops again, so what depends on the timetable of the services is out of date." alt="" coords="469,446,628,486"/>
 <area shape="poly" id="edge26_Node000002_Node000015" title=" " alt="" coords="389,280,406,292,420,310,427,328,431,364,434,398,441,415,454,432,460,437,456,441,450,436,436,418,429,400,425,364,422,330,415,313,402,296,386,284"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="510,31,501,21,506,11,522,5,549,3,582,7,595,16,592,20,580,11,549,8,523,10,509,15,507,20,514,27"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="510,104,501,94,506,84,522,78,549,76,582,80,595,89,592,94,580,85,549,81,523,83,509,88,507,94,514,101"/>

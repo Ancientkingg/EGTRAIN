@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it.">
 <polygon fill="#999999" stroke="#666666" points="143,-105 0,-105 0,-86 143,-86 143,-105"/>
 <text text-anchor="middle" x="71.5" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::deleteUnit</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="333.5,-197 185.5,-197 185.5,-178 333.5,-178 333.5,-197"/>
 <text text-anchor="middle" x="259.5" y="-185" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title="Lists the units again and shows the selected one.">
 <polygon fill="white" stroke="#666666" points="323,-160 196,-160 196,-141 323,-141 323,-160"/>
 <text text-anchor="middle" x="259.5" y="-148" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::refresh</text>
 </a>
@@ -93,7 +93,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" target="_top" xlink:title="The unit is gone from the model. Emitted after the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="334,-19 185,-19 185,0 334,0 334,-19"/>
 <text text-anchor="middle" x="259.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitDeleted</text>
 </a>

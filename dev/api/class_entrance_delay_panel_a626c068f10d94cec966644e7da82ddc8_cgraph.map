@@ -1,12 +1,12 @@
 <map id="EntranceDelayPanel::duplicateEntranceDelay" name="EntranceDelayPanel::duplicateEntranceDelay">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,191,103"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="239,41,436,67"/>
+<area shape="rect" id="Node000001" title="Inserts a copy of the selected delay after it." alt="" coords="5,63,191,103"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="239,41,436,67"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,69,225,65,225,70,191,75"/>
-<area shape="rect" id="Node000003" href="$class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" title=" " alt="" coords="261,91,413,131"/>
+<area shape="rect" id="Node000003" href="$class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" title="Lists the delays of the selected scenario again and keeps the selected row where it still exists." alt="" coords="261,91,413,131"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,92,248,98,248,104,191,97"/>
 <area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="959,29,1237,55"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="413,98,684,65,945,46,945,52,684,70,414,103"/>
-<area shape="rect" id="Node000005" href="$class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" title=" " alt="" coords="484,119,636,159"/>
+<area shape="rect" id="Node000005" href="$class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" title="Shows the fields of the selected delay again." alt="" coords="484,119,636,159"/>
 <area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="414,118,471,125,470,131,413,124"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="1053,31,1044,21,1049,11,1067,5,1098,3,1138,7,1149,12,1152,18,1148,21,1145,16,1137,12,1098,8,1068,10,1052,15,1049,20,1057,27"/>
 <area shape="rect" id="Node000006" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="684,79,911,119"/>

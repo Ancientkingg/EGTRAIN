@@ -1,7 +1,7 @@
 <map id="ScenarioPanel::updatePresentation" name="ScenarioPanel::updatePresentation">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,253,60"/>
+<area shape="rect" id="Node000001" title="Writes the label of each scenario in the list again." alt="" coords="5,35,253,60"/>
 <area shape="rect" id="Node000002" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="301,5,495,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,32,287,27,288,33,246,37"/>
-<area shape="rect" id="Node000003" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title=" " alt="" coords="301,55,495,95"/>
+<area shape="rect" id="Node000003" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="301,55,495,95"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="251,57,288,61,287,67,251,63"/>
 </map>

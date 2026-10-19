@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Refreshes when the document is replaced.">
 <polygon fill="#999999" stroke="#666666" points="164,-37 0,-37 0,-18 164,-18 164,-37"/>
 <text text-anchor="middle" x="82" y="-25" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerPanel::setDocument</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_passenger_panel.html#a4765b3745b9ecd6448d36c2d849255d1" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_passenger_panel.html#a4765b3745b9ecd6448d36c2d849255d1" target="_top" xlink:title="Shows the passengers of the document and keeps the selected rows where they still exist.">
 <polygon fill="white" stroke="#666666" points="338.5,-56 205.5,-56 205.5,-37 338.5,-37 338.5,-56"/>
 <text text-anchor="middle" x="272" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerPanel::refresh</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title="Emitted by replace(), after the whole state is set.">
 <polygon fill="white" stroke="#666666" points="344,-19 200,-19 200,0 344,0 344,-19"/>
 <text text-anchor="middle" x="272" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::replaced</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_passenger_panel.html#add7b16e614d373cce568b2e072a0ddd8" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_passenger_panel.html#add7b16e614d373cce568b2e072a0ddd8" target="_top" xlink:title="Empties the table with the result of the latest import.">
 <polygon fill="white" stroke="#666666" points="535,-92.5 380,-92.5 380,-62.5 535,-62.5 535,-92.5"/>
 <text text-anchor="start" x="388" y="-80.5" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerPanel::clearImport</text>
 <text text-anchor="middle" x="457.5" y="-69.5" font-family="Helvetica,sans-Serif" font-size="10.00">Result</text>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the text of a field that is being edited into the document, as if the user had left the field.">
 <polygon fill="#999999" stroke="#666666" points="127,-45.5 0,-45.5 0,-15.5 127,-15.5 127,-45.5"/>
 <text text-anchor="start" x="8" y="-33.5" font-family="Helvetica,sans-Serif" font-size="10.00">CaseSettingsPanel::</text>
 <text text-anchor="middle" x="63.5" y="-22.5" font-family="Helvetica,sans-Serif" font-size="10.00">commitPendingEditors</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" target="_top" xlink:title="The base time of the model has been set to this text. Emitted before the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="442.5,-67.5 329.5,-67.5 329.5,-37.5 442.5,-37.5 442.5,-67.5"/>
 <text text-anchor="start" x="337.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">CaseSettingsPanel::</text>
 <text text-anchor="middle" x="386" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">baseTimeChanged</text>
@@ -59,7 +59,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="460,-19 312,-19 312,0 460,0 460,-19"/>
 <text text-anchor="middle" x="386" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>

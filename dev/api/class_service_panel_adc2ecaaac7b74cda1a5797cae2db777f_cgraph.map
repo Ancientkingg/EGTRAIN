@@ -1,8 +1,8 @@
 <map id="ServicePanel::commitHasMaximumSpeed" name="ServicePanel::commitHasMaximumSpeed">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,161,260,201"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="325,139,523,164"/>
+<area shape="rect" id="Node000001" title="Sets whether the service has a maximum speed; one that has none gets 100 km/h." alt="" coords="5,161,260,201"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="325,139,523,164"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,165,311,160,312,165,260,170"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="308,189,540,229"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="308,189,540,229"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,190,294,194,294,199,260,196"/>
 <area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="588,74,815,114"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="509,186,539,173,553,163,562,152,572,142,587,130,614,117,616,122,589,135,575,145,566,156,556,167,541,178,511,191"/>

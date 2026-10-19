@@ -1,8 +1,8 @@
 <map id="TrainUnitPanel::duplicateUnit" name="TrainUnitPanel::duplicateUnit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,216,117"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="264,5,461,31"/>
+<area shape="rect" id="Node000001" title="Inserts a copy of the selected unit, with a new unique id, after it." alt="" coords="5,92,216,117"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="264,5,461,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,89,195,65,263,39,290,32,291,37,265,45,197,70,141,94"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title=" " alt="" coords="278,55,447,80"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title="Lists the units again and shows the selected one." alt="" coords="278,55,447,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,89,264,79,264,85,197,95"/>
 <area shape="rect" id="Node000005" href="$_scene_ids_8cpp.html#af917b70dc5917f8e912eb1c3dfd3563b" title="A free train unit id." alt="" coords="275,128,451,153"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="200,115,262,124,261,129,200,120"/>

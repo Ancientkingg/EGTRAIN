@@ -1,18 +1,18 @@
 <map id="CaseSettingsPanel::CaseSettingsPanel" name="CaseSettingsPanel::CaseSettingsPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,195,156,235"/>
+<area shape="rect" id="Node000001" title="Makes the fields, disabled until a loaded document is set." alt="" coords="5,195,156,235"/>
 <area shape="rect" id="Node000002" href="$class_case_settings_panel.html#a98fc2e3ca7e313d5fd05fe3cfd172d09" title=" " alt="" coords="238,63,389,103"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,192,146,154,203,116,226,105,229,110,205,121,149,159,105,197"/>
 <area shape="rect" id="Node000005" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title=" " alt="" coords="220,131,407,171"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="153,192,226,172,228,177,155,197"/>
-<area shape="rect" id="Node000007" href="$class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9" title=" " alt="" coords="238,195,389,235"/>
+<area shape="rect" id="Node000007" href="$class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9" title="Shows the current state of the document." alt="" coords="238,195,389,235"/>
 <area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="156,212,224,212,224,217,156,217"/>
-<area shape="rect" id="Node000008" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title=" " alt="" coords="204,259,423,299"/>
+<area shape="rect" id="Node000008" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="204,259,423,299"/>
 <area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="155,232,228,252,226,258,153,237"/>
 <area shape="rect" id="Node000009" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="230,347,397,373"/>
 <area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="106,233,151,270,205,308,268,340,265,344,203,313,147,274,102,237"/>
-<area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title=" " alt="" coords="494,5,645,45"/>
+<area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title="The base time of the model has been set to this text. Emitted before the document is marked changed." alt="" coords="494,5,645,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,63,480,42,481,48,390,68"/>
-<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="471,70,668,95"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="471,70,668,95"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,80,457,80,457,85,389,85"/>
 <area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="497,143,642,169"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="407,150,483,152,483,157,407,155"/>

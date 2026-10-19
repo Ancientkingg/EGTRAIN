@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_validation_panel.html#a0276d0961cd849d8dbae4fda9b247df1" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_validation_panel.html#a0276d0961cd849d8dbae4fda9b247df1" target="_top" xlink:title="refresh() has written the table, the status and the tree. What depends on the diagnostics follows.">
 <polygon fill="white" stroke="#666666" points="321,-254 177,-254 177,-235 321,-235 321,-254"/>
 <text text-anchor="middle" x="249" y="-242" font-family="Helvetica,sans-Serif" font-size="10.00">ValidationPanel::refreshed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2" target="_top" xlink:title="Writes the tree again.">
 <polygon fill="white" stroke="#666666" points="315,-216.5 183,-216.5 183,-186.5 315,-186.5 315,-216.5"/>
 <text text-anchor="start" x="191" y="-204.5" font-family="Helvetica,sans-Serif" font-size="10.00">ValidationPanel::refresh</text>
 <text text-anchor="middle" x="249" y="-193.5" font-family="Helvetica,sans-Serif" font-size="10.00">LoadedData</text>
@@ -75,7 +75,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" target="_top" xlink:title="The status was written or cleared. What shows the diagnostics follows.">
 <polygon fill="white" stroke="#666666" points="536,-78 366,-78 366,-59 536,-59 536,-78"/>
 <text text-anchor="middle" x="451" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">ValidationPanel::statusChanged</text>
 </a>
@@ -93,7 +93,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e" target="_top" xlink:title="Writes the status from the diagnostics again.">
 <polygon fill="white" stroke="#666666" points="330,-113 168,-113 168,-94 330,-94 330,-113"/>
 <text text-anchor="middle" x="249" y="-101" font-family="Helvetica,sans-Serif" font-size="10.00">ValidationPanel::updateStatus</text>
 </a>

@@ -1,8 +1,8 @@
 <map id="ServicePanel::commitOperatingCode" name="ServicePanel::commitOperatingCode">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,168,265,193"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="331,139,528,164"/>
+<area shape="rect" id="Node000001" title="Takes the service code (the operating code) from its field, trimmed." alt="" coords="5,168,265,193"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="331,139,528,164"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="262,165,317,160,317,165,263,171"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="313,189,545,229"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="313,189,545,229"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,190,300,194,299,199,265,196"/>
 <area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="593,74,820,114"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="515,186,544,173,558,163,567,152,577,142,592,130,619,117,622,122,595,135,581,145,571,156,562,167,547,178,517,191"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A linker without a document and without links.">
 <polygon fill="#999999" stroke="#666666" points="128,-127 0,-127 0,-97 128,-97 128,-127"/>
 <text text-anchor="start" x="8" y="-115" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="64" y="-104" font-family="Helvetica,sans-Serif" font-size="10.00">::TrainUnitSourceLinker</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#afb25c4d7890af7afca1f014b38c2d3ff" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#afb25c4d7890af7afca1f014b38c2d3ff" target="_top" xlink:title="Takes the files that changed. Nothing happens while a run uses the model.">
 <polygon fill="white" stroke="#666666" points="286,-150 164,-150 164,-120 286,-120 286,-150"/>
 <text text-anchor="start" x="172" y="-138" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="225" y="-127" font-family="Helvetica,sans-Serif" font-size="10.00">::processChanges</text>
@@ -40,7 +40,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="class_train_unit_source_linker.html#a8ba1c11aba1ff4f4a64efb43329f88c1" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="class_train_unit_source_linker.html#a8ba1c11aba1ff4f4a64efb43329f88c1" target="_top" xlink:title="A watched path has changed: a linked file or the folder that holds it.">
 <polygon fill="white" stroke="#666666" points="444,-104 322,-104 322,-74 444,-74 444,-104"/>
 <text text-anchor="start" x="330" y="-92" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="383" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">::scheduleChange</text>
@@ -59,7 +59,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" target="_top" xlink:title="Takes the values of this file into the units that are linked to it.">
 <polygon fill="white" stroke="#666666" points="444,-225 322,-225 322,-195 444,-195 444,-225"/>
 <text text-anchor="start" x="330" y="-213" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="383" y="-202" font-family="Helvetica,sans-Serif" font-size="10.00">::processFile</text>
@@ -78,7 +78,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" target="_top" xlink:title="Pending edits have to be taken into the model before the linker compares the model with a file.">
 <polygon fill="white" stroke="#666666" points="655,-341 480,-341 480,-311 655,-311 655,-341"/>
 <text text-anchor="start" x="488" y="-329" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="567.5" y="-318" font-family="Helvetica,sans-Serif" font-size="10.00">::commitPendingEditsRequested</text>
@@ -133,7 +133,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title="Watches exactly the linked files and the folders that hold them.">
 <polygon fill="white" stroke="#666666" points="628.5,-182 506.5,-182 506.5,-152 628.5,-152 628.5,-182"/>
 <text text-anchor="start" x="514.5" y="-170" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="567.5" y="-159" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshWatches</text>
@@ -189,7 +189,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title="The status of a link, or a link itself, has changed.">
 <polygon fill="white" stroke="#666666" points="628.5,-30 506.5,-30 506.5,0 628.5,0 628.5,-30"/>
 <text text-anchor="start" x="514.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="567.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::statusChanged</text>
@@ -208,7 +208,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" target="_top" xlink:title="A message for the status line, shown for milliseconds.">
 <polygon fill="white" stroke="#666666" points="628.5,-485 506.5,-485 506.5,-455 628.5,-455 628.5,-485"/>
 <text text-anchor="start" x="514.5" y="-473" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="567.5" y="-462" font-family="Helvetica,sans-Serif" font-size="10.00">::statusMessage</text>

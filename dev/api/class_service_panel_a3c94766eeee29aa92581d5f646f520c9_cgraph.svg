@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Inserts a copy of the selected service, with a new unique id, after it.">
 <polygon fill="#999999" stroke="#666666" points="166,-210.5 0,-210.5 0,-191.5 166,-191.5 166,-210.5"/>
 <text text-anchor="middle" x="83" y="-198.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::duplicateService</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="350,-247.5 202,-247.5 202,-228.5 350,-228.5 350,-247.5"/>
 <text text-anchor="middle" x="276" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" target="_top" xlink:title="Lists the services again and shows the selected one.">
 <polygon fill="white" stroke="#666666" points="335.5,-210.5 216.5,-210.5 216.5,-191.5 335.5,-191.5 335.5,-210.5"/>
 <text text-anchor="middle" x="276" y="-198.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::refresh</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title="Lists the occurrences again.">
 <polygon fill="white" stroke="#666666" points="560,-313 386,-313 386,-283 560,-283 560,-313"/>
 <text text-anchor="start" x="394" y="-301" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::refreshOccurrence</text>
 <text text-anchor="middle" x="473" y="-290" font-family="Helvetica,sans-Serif" font-size="10.00">Preview</text>
@@ -111,7 +111,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" target="_top" xlink:title="Shows the fields of the selected service again.">
 <polygon fill="white" stroke="#666666" points="547,-107.5 399,-107.5 399,-88.5 547,-88.5 547,-107.5"/>
 <text text-anchor="middle" x="473" y="-95.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::updateDetail</text>
 </a>

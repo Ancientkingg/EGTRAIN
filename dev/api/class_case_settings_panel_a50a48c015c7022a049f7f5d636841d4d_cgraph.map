@@ -1,9 +1,9 @@
 <map id="CaseSettingsPanel::commitPendingEditors" name="CaseSettingsPanel::commitPendingEditors">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,175,75"/>
+<area shape="rect" id="Node000001" title="Takes the text of a field that is being edited into the document, as if the user had left the field." alt="" coords="5,35,175,75"/>
 <area shape="rect" id="Node000002" href="$class_case_settings_panel.html#a98fc2e3ca7e313d5fd05fe3cfd172d09" title=" " alt="" coords="223,35,373,75"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,52,209,52,209,57,175,57"/>
-<area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title=" " alt="" coords="445,5,595,45"/>
+<area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title="The base time of the model has been set to this text. Emitted before the document is marked changed." alt="" coords="445,5,595,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="373,42,431,34,431,40,374,47"/>
-<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="421,70,619,95"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="421,70,619,95"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="374,62,408,66,407,71,373,67"/>
 </map>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A facet has changed the entities of its kind and listed them again. facet is its key.">
 <polygon fill="#999999" stroke="#666666" points="109,-30 0,-30 0,0 109,0 109,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="54.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::entitiesChanged</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title="The facet with this key, or null. The panel keeps it.">
 <polygon fill="white" stroke="#666666" points="254,-30 145,-30 145,0 254,0 254,-30"/>
 <text text-anchor="start" x="153" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="199.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::facet</text>

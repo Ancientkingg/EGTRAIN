@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_facet.html#a1a84433cbd92f00c37061e96cdd6b65d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_facet.html#a1a84433cbd92f00c37061e96cdd6b65d" target="_top" xlink:title="Moves the selected entity down by offset rows, up when it is negative.">
 <polygon fill="white" stroke="#666666" points="252,-30 144,-30 144,0 252,0 252,-30"/>
 <text text-anchor="start" x="152" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructureFacet</text>
 <text text-anchor="middle" x="198" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::move</text>

@@ -1,8 +1,8 @@
 <map id="ServicePanel::commitRoute" name="ServicePanel::commitRoute">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,196,207,221"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="272,139,469,164"/>
+<area shape="rect" id="Node000001" title="Takes the route at index of the route combo." alt="" coords="5,196,207,221"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="272,139,469,164"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,193,298,164,299,169,166,199"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="255,189,487,229"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="255,189,487,229"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="207,206,241,206,241,211,207,211"/>
 <area shape="rect" id="Node000012" href="$class_service_panel.html#a8a400164f094d35a68eff39d27d55480" title=" " alt="" coords="263,253,479,293"/>
 <area shape="poly" id="edge21_Node000001_Node000012" title=" " alt="" coords="160,219,274,247,273,252,159,224"/>

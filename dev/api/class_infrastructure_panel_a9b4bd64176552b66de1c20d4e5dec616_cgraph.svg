@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title="The facet with this key, or null. The panel keeps it.">
 <polygon fill="white" stroke="#666666" points="255,-30 146,-30 146,0 255,0 255,-30"/>
 <text text-anchor="start" x="154" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="200.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::facet</text>

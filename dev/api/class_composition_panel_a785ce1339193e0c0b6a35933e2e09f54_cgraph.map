@@ -1,8 +1,8 @@
 <map id="CompositionPanel::commitPendingEditors" name="CompositionPanel::commitPendingEditors">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,97,203,137"/>
-<area shape="rect" id="Node000002" href="$class_composition_panel.html#afa6ece843725100b4a04402a748b43ff" title=" " alt="" coords="251,97,448,137"/>
+<area shape="rect" id="Node000001" title="Takes the id that is being edited into the document." alt="" coords="5,97,203,137"/>
+<area shape="rect" id="Node000002" href="$class_composition_panel.html#afa6ece843725100b4a04402a748b43ff" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="251,97,448,137"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,114,237,114,237,119,203,119"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="530,5,727,31"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="530,5,727,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,94,435,66,495,41,529,31,531,36,497,46,437,71,385,99"/>
 <area shape="rect" id="Node000004" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="515,55,742,95"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="448,99,501,91,502,97,449,105"/>

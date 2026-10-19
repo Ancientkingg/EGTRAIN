@@ -1,14 +1,14 @@
 <map id="TrainUnitPanel::deleteUnit" name="TrainUnitPanel::deleteUnit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,132,196,157"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="253,9,450,35"/>
+<area shape="rect" id="Node000001" title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it." alt="" coords="5,132,196,157"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="253,9,450,35"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,130,168,87,204,64,243,44,263,36,264,41,245,48,207,68,172,92,118,134"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title=" " alt="" coords="267,59,436,84"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title="Lists the units again and shows the selected one." alt="" coords="267,59,436,84"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,129,243,93,275,85,276,90,245,98,136,134"/>
 <area shape="rect" id="Node000005" href="$_scene_references_8cpp.html#a08f3f60ca755346a82a46d9013729e12" title=" " alt="" coords="244,132,459,157"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="196,142,230,142,230,147,196,147"/>
 <area shape="rect" id="Node000012" href="$class_train_unit_panel.html#ad92b14ab276828fc66c1b0806a4d3520" title=" " alt="" coords="258,182,445,222"/>
 <area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="158,155,251,176,250,182,156,160"/>
-<area shape="rect" id="Node000013" href="$class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" title=" " alt="" coords="252,247,451,272"/>
+<area shape="rect" id="Node000013" href="$class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" title="The unit is gone from the model. Emitted after the document is marked changed." alt="" coords="252,247,451,272"/>
 <area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="120,155,174,193,245,232,270,240,268,245,243,236,171,198,117,160"/>
 <area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="581,29,676,55"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="436,60,567,46,568,51,436,65"/>

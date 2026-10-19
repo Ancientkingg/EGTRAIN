@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the route at index of the route combo.">
 <polygon fill="#999999" stroke="#666666" points="151,-174 0,-174 0,-155 151,-155 151,-174"/>
 <text text-anchor="middle" x="75.5" y="-162" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitRoute</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="348,-217 200,-217 200,-198 348,-198 348,-217"/>
 <text text-anchor="middle" x="274" y="-205" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title="Lists the occurrences again.">
 <polygon fill="white" stroke="#666666" points="361,-179.5 187,-179.5 187,-149.5 361,-149.5 361,-179.5"/>
 <text text-anchor="start" x="195" y="-167.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::refreshOccurrence</text>
 <text text-anchor="middle" x="274" y="-156.5" font-family="Helvetica,sans-Serif" font-size="10.00">Preview</text>

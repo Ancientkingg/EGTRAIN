@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#acb3f033e858f7f1b5e385ffb56f9715a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train_unit_source_linker.html#acb3f033e858f7f1b5e385ffb56f9715a" target="_top" xlink:title="Links this file, which takes the current values of the unit as the ones that came from it.">
 <polygon fill="white" stroke="#666666" points="280,-80.5 158,-80.5 158,-50.5 280,-50.5 280,-80.5"/>
 <text text-anchor="start" x="166" y="-68.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="219" y="-57.5" font-family="Helvetica,sans-Serif" font-size="10.00">::linkFile</text>
@@ -58,7 +58,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" target="_top" xlink:title="Watches exactly the linked files and the folders that hold them.">
 <polygon fill="white" stroke="#666666" points="438,-133.5 316,-133.5 316,-103.5 438,-103.5 438,-133.5"/>
 <text text-anchor="start" x="324" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="377" y="-110.5" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshWatches</text>
@@ -86,7 +86,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" target="_top" xlink:title="The status of a link, or a link itself, has changed.">
 <polygon fill="white" stroke="#666666" points="438,-85.5 316,-85.5 316,-55.5 438,-55.5 438,-85.5"/>
 <text text-anchor="start" x="324" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitSourceLinker</text>
 <text text-anchor="middle" x="377" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">::statusChanged</text>

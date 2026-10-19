@@ -1,16 +1,16 @@
 <map id="ServicePanel::deleteService" name="ServicePanel::deleteService">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,472,208,497"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="265,423,462,448"/>
+<area shape="rect" id="Node000001" title="Deletes the selected service after the user has confirmed it; refused while something refers to it." alt="" coords="5,472,208,497"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="265,423,462,448"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,469,283,448,284,453,174,474"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" title=" " alt="" coords="284,472,443,497"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" title="Lists the services again and shows the selected one." alt="" coords="284,472,443,497"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,482,270,482,270,487,208,487"/>
 <area shape="rect" id="Node000022" href="$_scene_references_8cpp.html#a08f3f60ca755346a82a46d9013729e12" title=" " alt="" coords="256,571,471,596"/>
 <area shape="poly" id="edge38_Node000001_Node000022" title=" " alt="" coords="142,495,317,563,315,568,140,500"/>
-<area shape="rect" id="Node000004" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="525,245,757,285"/>
+<area shape="rect" id="Node000004" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="525,245,757,285"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="442,470,469,457,485,444,495,430,517,396,609,293,613,297,521,399,499,433,489,447,472,461,444,475"/>
 <area shape="rect" id="Node000013" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="593,435,688,460"/>
 <area shape="poly" id="edge22_Node000003_Node000013" title=" " alt="" coords="443,471,579,453,580,458,443,477"/>
-<area shape="rect" id="Node000014" href="$class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" title=" " alt="" coords="542,484,739,509"/>
+<area shape="rect" id="Node000014" href="$class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" title="Shows the fields of the selected service again." alt="" coords="542,484,739,509"/>
 <area shape="poly" id="edge24_Node000003_Node000014" title=" " alt="" coords="443,485,528,489,528,494,443,491"/>
 <area shape="rect" id="Node000005" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="811,327,1037,367"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="711,282,842,321,840,326,709,287"/>

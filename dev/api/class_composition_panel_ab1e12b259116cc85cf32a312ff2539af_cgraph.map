@@ -1,10 +1,10 @@
 <map id="CompositionPanel::deleteComposition" name="CompositionPanel::deleteComposition">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,85,193,125"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="256,5,453,31"/>
+<area shape="rect" id="Node000001" title="Deletes the selected composition after the user has confirmed it; refused while a service uses it." alt="" coords="5,85,193,125"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="256,5,453,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,82,188,61,240,41,274,31,275,36,242,46,190,66,142,87"/>
 <area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="241,55,468,95"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,91,227,87,228,93,194,97"/>
-<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title=" " alt="" coords="258,120,451,145"/>
+<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="258,120,451,145"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="194,112,245,118,244,123,193,118"/>
 <area shape="rect" id="Node000006" href="$_scene_references_8cpp.html#a08f3f60ca755346a82a46d9013729e12" title=" " alt="" coords="247,208,462,233"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="146,122,314,200,312,205,144,127"/>

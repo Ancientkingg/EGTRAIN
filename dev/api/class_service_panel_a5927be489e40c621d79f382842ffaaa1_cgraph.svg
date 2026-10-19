@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the service code (the operating code) from its field, trimmed.">
 <polygon fill="#999999" stroke="#666666" points="195,-195 0,-195 0,-176 195,-176 195,-195"/>
 <text text-anchor="middle" x="97.5" y="-183" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitOperatingCode</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="392,-217 244,-217 244,-198 392,-198 392,-217"/>
 <text text-anchor="middle" x="318" y="-205" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title="Lists the occurrences again.">
 <polygon fill="white" stroke="#666666" points="405,-179.5 231,-179.5 231,-149.5 405,-149.5 405,-179.5"/>
 <text text-anchor="start" x="239" y="-167.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::refreshOccurrence</text>
 <text text-anchor="middle" x="318" y="-156.5" font-family="Helvetica,sans-Serif" font-size="10.00">Preview</text>

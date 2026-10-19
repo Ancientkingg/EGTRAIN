@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the parameter and traction source references from their fields.">
 <polygon fill="#999999" stroke="#666666" points="168,-45.5 0,-45.5 0,-26.5 168,-26.5 168,-45.5"/>
 <text text-anchor="middle" x="84" y="-33.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::commitSources</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="367.5,-67.5 219.5,-67.5 219.5,-48.5 367.5,-48.5 367.5,-67.5"/>
 <text text-anchor="middle" x="293.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" target="_top" xlink:title="The references to the source files of the shown unit have changed.">
 <polygon fill="white" stroke="#666666" points="383,-30 204,-30 204,0 383,0 383,-30"/>
 <text text-anchor="start" x="212" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceReferences</text>
 <text text-anchor="middle" x="293.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Changed</text>

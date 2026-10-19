@@ -1,10 +1,10 @@
 <map id="ScenarioPanel::exportScenario" name="ScenarioPanel::exportScenario">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,237,224,263"/>
+<area shape="rect" id="Node000001" title="Writes the selected scenario to a scenario JSON file." alt="" coords="5,237,224,263"/>
 <area shape="rect" id="Node000002" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="294,115,469,140"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,235,190,193,229,169,271,149,292,141,294,146,273,154,232,174,193,197,134,239"/>
 <area shape="rect" id="Node000003" href="$_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" title="Writes one scenario as a standalone scenario file, replacing the file at filePath." alt="" coords="313,188,449,213"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="183,235,299,213,300,218,184,240"/>
-<area shape="rect" id="Node000011" href="$class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" title=" " alt="" coords="272,237,491,263"/>
+<area shape="rect" id="Node000011" href="$class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" title="A message for the status bar, shown for timeoutMs milliseconds." alt="" coords="272,237,491,263"/>
 <area shape="poly" id="edge21_Node000001_Node000011" title=" " alt="" coords="224,247,258,247,258,253,224,253"/>
 <area shape="rect" id="Node000012" href="$struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" title="True when wroteAll is set and no diagnostic is an error." alt="" coords="285,287,478,312"/>
 <area shape="poly" id="edge22_Node000001_Node000012" title=" " alt="" coords="184,260,299,281,298,287,183,265"/>

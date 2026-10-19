@@ -128,41 +128,65 @@ Collaboration diagram for TrainUnitSourceLinker:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:Link" id="r_Link"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_unit_source_linker_1_1_link.html">Link</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the links of one unit. <span class="tt">data</span> is the parameter file and <span class="tt">traction</span> the traction file.  <a href="struct_train_unit_source_linker_1_1_link.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:afff27b427b5d6a1c116a8b362b85fdf6" id="r_afff27b427b5d6a1c116a8b362b85fdf6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afff27b427b5d6a1c116a8b362b85fdf6">statusChanged</a> ()</td></tr>
+<tr class="memdesc:afff27b427b5d6a1c116a8b362b85fdf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The status of a link, or a link itself, has changed.  <br /></td></tr>
 <tr class="memitem:ae03fc8e1d489ae031230808457f2677e" id="r_ae03fc8e1d489ae031230808457f2677e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae03fc8e1d489ae031230808457f2677e">linksCleared</a> ()</td></tr>
+<tr class="memdesc:ae03fc8e1d489ae031230808457f2677e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The links have been dropped.  <br /></td></tr>
 <tr class="memitem:a7f8c7b0786c8a294cfa526e7ad9b407b" id="r_a7f8c7b0786c8a294cfa526e7ad9b407b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7f8c7b0786c8a294cfa526e7ad9b407b">reloaded</a> (const QStringList &amp;tractionUnitIds)</td></tr>
 <tr class="memitem:a54184a53c6a3a3ecd45c007f1ff75873" id="r_a54184a53c6a3a3ecd45c007f1ff75873"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a54184a53c6a3a3ecd45c007f1ff75873">commitPendingEditsRequested</a> ()</td></tr>
+<tr class="memdesc:a54184a53c6a3a3ecd45c007f1ff75873"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pending edits have to be taken into the model before the linker compares the model with a file.  <br /></td></tr>
 <tr class="memitem:ac19717cc1626f87ada89b940e2a61dd4" id="r_ac19717cc1626f87ada89b940e2a61dd4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac19717cc1626f87ada89b940e2a61dd4">statusMessage</a> (const QString &amp;message, int milliseconds)</td></tr>
+<tr class="memdesc:ac19717cc1626f87ada89b940e2a61dd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status line, shown for <span class="tt">milliseconds</span>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4a956874976fc131a31095e03150a088" id="r_a4a956874976fc131a31095e03150a088"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4a956874976fc131a31095e03150a088">TrainUnitSourceLinker</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a4a956874976fc131a31095e03150a088"><td class="mdescLeft">&#160;</td><td class="mdescRight">A linker without a document and without links.  <br /></td></tr>
 <tr class="memitem:ad7adbeb2b93d7a7b575fb8056f38f1e7" id="r_ad7adbeb2b93d7a7b575fb8056f38f1e7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad7adbeb2b93d7a7b575fb8056f38f1e7">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)</td></tr>
+<tr class="memdesc:ad7adbeb2b93d7a7b575fb8056f38f1e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The linker works on the model of this document and drops its links when the document is replaced.  <br /></td></tr>
 <tr class="memitem:a72e6ff502031c2dee5f7f81e771d375e" id="r_a72e6ff502031c2dee5f7f81e771d375e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a72e6ff502031c2dee5f7f81e771d375e">setDialogParent</a> (QWidget *parent)</td></tr>
+<tr class="memdesc:a72e6ff502031c2dee5f7f81e771d375e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The questions of the linker are put in front of this window.  <br /></td></tr>
 <tr class="memitem:a60ac49edaa0700895d414683ed36f587" id="r_a60ac49edaa0700895d414683ed36f587"><td class="memItemLeft">const <a class="el" href="struct_train_unit_source_linker_1_1_link.html">Link</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a60ac49edaa0700895d414683ed36f587">linkOf</a> (const std::string &amp;unitId) const</td></tr>
+<tr class="memdesc:a60ac49edaa0700895d414683ed36f587"><td class="mdescLeft">&#160;</td><td class="mdescRight">The links of a unit, or null. The pointer is valid until the links change.  <br /></td></tr>
 <tr class="memitem:a479439f4f4395755453cfa6eabfd0d6d" id="r_a479439f4f4395755453cfa6eabfd0d6d"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a479439f4f4395755453cfa6eabfd0d6d">watchedFiles</a> () const</td></tr>
+<tr class="memdesc:a479439f4f4395755453cfa6eabfd0d6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The linked files that are watched.  <br /></td></tr>
 <tr class="memitem:a5b2df4f4a6eeb98648f4bd685dd8891f" id="r_a5b2df4f4a6eeb98648f4bd685dd8891f"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a5b2df4f4a6eeb98648f4bd685dd8891f">watchedDirectories</a> () const</td></tr>
+<tr class="memdesc:a5b2df4f4a6eeb98648f4bd685dd8891f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folders of the linked files, which are watched as well.  <br /></td></tr>
 <tr class="memitem:a3eef3d22841d2a77efce3df0459cddd8" id="r_a3eef3d22841d2a77efce3df0459cddd8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3eef3d22841d2a77efce3df0459cddd8">hasPendingChanges</a> () const</td></tr>
+<tr class="memdesc:a3eef3d22841d2a77efce3df0459cddd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while a change waits to be taken.  <br /></td></tr>
 <tr class="memitem:a0544f5a2d483f734412981ad90a8eae0" id="r_a0544f5a2d483f734412981ad90a8eae0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0544f5a2d483f734412981ad90a8eae0">link</a> (std::string unitId, bool traction)</td></tr>
 <tr class="memitem:acb3f033e858f7f1b5e385ffb56f9715a" id="r_acb3f033e858f7f1b5e385ffb56f9715a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb3f033e858f7f1b5e385ffb56f9715a">linkFile</a> (const std::string &amp;unitId, bool traction, const QString &amp;path)</td></tr>
+<tr class="memdesc:acb3f033e858f7f1b5e385ffb56f9715a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Links this file, which takes the current values of the unit as the ones that came from it.  <br /></td></tr>
 <tr class="memitem:aef0091e88c9f4604be8245b216d56607" id="r_aef0091e88c9f4604be8245b216d56607"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aef0091e88c9f4604be8245b216d56607">unlink</a> (const std::string &amp;unitId, bool traction)</td></tr>
+<tr class="memdesc:aef0091e88c9f4604be8245b216d56607"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the link of the parameter file (<span class="tt">traction</span> false) or the traction file of the unit.  <br /></td></tr>
 <tr class="memitem:a2305b36d041398190e7dc4911eb9dea6" id="r_a2305b36d041398190e7dc4911eb9dea6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2305b36d041398190e7dc4911eb9dea6">retry</a> (const std::string &amp;unitId, bool traction)</td></tr>
+<tr class="memdesc:a2305b36d041398190e7dc4911eb9dea6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the linked file again, whether or not it has changed.  <br /></td></tr>
 <tr class="memitem:addfb2f4b9d08a4d900241cd26f40dc3b" id="r_addfb2f4b9d08a4d900241cd26f40dc3b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#addfb2f4b9d08a4d900241cd26f40dc3b">renameUnit</a> (const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:addfb2f4b9d08a4d900241cd26f40dc3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unit has another id. Its links go with it.  <br /></td></tr>
 <tr class="memitem:a3b9ea4f872d5ec25776cab95b481c358" id="r_a3b9ea4f872d5ec25776cab95b481c358"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3b9ea4f872d5ec25776cab95b481c358">forgetUnit</a> (const std::string &amp;unitId)</td></tr>
+<tr class="memdesc:a3b9ea4f872d5ec25776cab95b481c358"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unit is gone.  <br /></td></tr>
 <tr class="memitem:aab03a4717247b3434574c6905b628367" id="r_aab03a4717247b3434574c6905b628367"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab03a4717247b3434574c6905b628367">clear</a> ()</td></tr>
+<tr class="memdesc:aab03a4717247b3434574c6905b628367"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drops all links and stops watching.  <br /></td></tr>
 <tr class="memitem:a8ba1c11aba1ff4f4a64efb43329f88c1" id="r_a8ba1c11aba1ff4f4a64efb43329f88c1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8ba1c11aba1ff4f4a64efb43329f88c1">scheduleChange</a> (const QString &amp;changedPath)</td></tr>
+<tr class="memdesc:a8ba1c11aba1ff4f4a64efb43329f88c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">A watched path has changed: a linked file or the folder that holds it.  <br /></td></tr>
 <tr class="memitem:afb25c4d7890af7afca1f014b38c2d3ff" id="r_afb25c4d7890af7afca1f014b38c2d3ff"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afb25c4d7890af7afca1f014b38c2d3ff">processChanges</a> ()</td></tr>
+<tr class="memdesc:afb25c4d7890af7afca1f014b38c2d3ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the files that changed. Nothing happens while a run uses the model.  <br /></td></tr>
 <tr class="memitem:ae3fda9df595e4ee120f40884d798dfd8" id="r_ae3fda9df595e4ee120f40884d798dfd8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae3fda9df595e4ee120f40884d798dfd8">processFile</a> (const QString &amp;path, bool traction)</td></tr>
+<tr class="memdesc:ae3fda9df595e4ee120f40884d798dfd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the values of this file into the units that are linked to it.  <br /></td></tr>
 <tr class="memitem:a446b8b9f4a5e30776ff5e4e6cb0e5cf4" id="r_a446b8b9f4a5e30776ff5e4e6cb0e5cf4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a446b8b9f4a5e30776ff5e4e6cb0e5cf4">refreshWatches</a> ()</td></tr>
+<tr class="memdesc:a446b8b9f4a5e30776ff5e4e6cb0e5cf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Watches exactly the linked files and the folders that hold them.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a07d58747d59f49d1ff6b222687ecbf39" id="r_a07d58747d59f49d1ff6b222687ecbf39"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a07d58747d59f49d1ff6b222687ecbf39">MainWindowTestAccess</a></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Links the parameter file and the traction file of a rolling stock unit to the files they came from, and takes a changed file into the unit. The files are watched. A change waits until the file has been quiet for 150 ms, and until no run uses the model. A value that was edited by hand and differs from the file is only replaced when the user agrees. The links belong to the session, not to the scene: they are cleared when the document is replaced. Units are named by their id. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4a956874976fc131a31095e03150a088" name="a4a956874976fc131a31095e03150a088"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4a956874976fc131a31095e03150a088">&#9670;&#160;</a></span>TrainUnitSourceLinker()</h2>
 
@@ -185,6 +209,8 @@ Friends</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A linker without a document and without links. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -208,6 +234,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Drops all links and stops watching. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -239,6 +267,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Pending edits have to be taken into the model before the linker compares the model with a file. </p>
+
 </div>
 </div>
 <a id="a3b9ea4f872d5ec25776cab95b481c358" name="a3b9ea4f872d5ec25776cab95b481c358"></a>
@@ -255,6 +285,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The unit is gone. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -286,6 +318,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True while a change waits to be taken. </p>
+
 </div>
 </div>
 <a id="a0544f5a2d483f734412981ad90a8eae0" name="a0544f5a2d483f734412981ad90a8eae0"></a>
@@ -306,6 +340,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Asks for a file for the parameters (<span class="tt">traction</span> false) or the traction of a unit and links it. The caller commits pending edits first, so that the unit is in the model as it is shown. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -337,6 +372,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Links this file, which takes the current values of the unit as the ones that came from it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -359,6 +396,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The links of a unit, or null. The pointer is valid until the links change. </p>
 
 </div>
 </div>
@@ -385,6 +424,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The links have been dropped. </p>
+
 </div>
 </div>
 <a id="afb25c4d7890af7afca1f014b38c2d3ff" name="afb25c4d7890af7afca1f014b38c2d3ff"></a>
@@ -401,6 +442,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the files that changed. Nothing happens while a run uses the model. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -427,6 +470,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the values of this file into the units that are linked to it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -449,6 +494,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Watches exactly the linked files and the folders that hold them. </p>
 
 </div>
 </div>
@@ -474,6 +521,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A file has been handled. The traction curves of the units in <span class="tt">tractionUnitIds</span> have changed. Emitted after the document is marked changed. </p>
 
 </div>
 </div>
@@ -495,6 +543,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The unit has another id. Its links go with it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -521,6 +571,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the linked file again, whether or not it has changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -543,6 +595,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A watched path has changed: a linked file or the folder that holds it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -574,6 +628,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The questions of the linker are put in front of this window. </p>
+
 </div>
 </div>
 <a id="ad7adbeb2b93d7a7b575fb8056f38f1e7" name="ad7adbeb2b93d7a7b575fb8056f38f1e7"></a>
@@ -590,6 +646,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The linker works on the model of this document and drops its links when the document is replaced. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -621,6 +679,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The status of a link, or a link itself, has changed. </p>
+
 </div>
 </div>
 <a id="ac19717cc1626f87ada89b940e2a61dd4" name="ac19717cc1626f87ada89b940e2a61dd4"></a>
@@ -650,6 +710,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>A message for the status line, shown for <span class="tt">milliseconds</span>. </p>
+
 </div>
 </div>
 <a id="aef0091e88c9f4604be8245b216d56607" name="aef0091e88c9f4604be8245b216d56607"></a>
@@ -670,6 +732,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Removes the link of the parameter file (<span class="tt">traction</span> false) or the traction file of the unit. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -701,6 +765,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The folders of the linked files, which are watched as well. </p>
+
 </div>
 </div>
 <a id="a479439f4f4395755453cfa6eabfd0d6d" name="a479439f4f4395755453cfa6eabfd0d6d"></a>
@@ -725,6 +791,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The linked files that are watched. </p>
 
 </div>
 </div>

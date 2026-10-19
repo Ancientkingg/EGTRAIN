@@ -1,16 +1,16 @@
 <map id="ScenarioPanel::setDocument" name="ScenarioPanel::setDocument">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,103,213,128"/>
-<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="262,28,453,53"/>
+<area shape="rect" id="Node000001" title="Refreshes when the document is replaced, and writes the labels of the list again when scenarios are e..." alt="" coords="5,103,213,128"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated." alt="" coords="262,28,453,53"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,100,261,62,289,54,291,59,262,67,147,105"/>
-<area shape="rect" id="Node000003" href="$class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6" title=" " alt="" coords="274,77,441,103"/>
+<area shape="rect" id="Node000003" href="$class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6" title="Lists the scenarios again and shows the selected one." alt="" coords="274,77,441,103"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,102,260,97,261,103,214,107"/>
-<area shape="rect" id="Node000009" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title=" " alt="" coords="501,128,749,153"/>
+<area shape="rect" id="Node000009" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title="Writes the label of each scenario in the list again." alt="" coords="501,128,749,153"/>
 <area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="214,118,488,131,487,137,214,123"/>
-<area shape="rect" id="Node000010" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title=" " alt="" coords="261,179,453,204"/>
+<area shape="rect" id="Node000010" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="261,179,453,204"/>
 <area shape="poly" id="edge13_Node000001_Node000010" title=" " alt="" coords="153,126,303,172,301,177,151,131"/>
 <area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="563,29,687,55"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="428,75,549,53,550,58,429,80"/>
-<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title=" " alt="" coords="523,79,728,104"/>
+<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title="Shows the fields of the selected scenario again." alt="" coords="523,79,728,104"/>
 <area shape="poly" id="edge7_Node000003_Node000006" title=" " alt="" coords="441,88,509,88,509,93,441,93"/>
 <area shape="poly" id="edge10_Node000003_Node000009" title=" " alt="" coords="426,100,545,123,544,128,425,105"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="582,31,573,21,578,11,596,5,625,3,664,7,674,12,678,18,673,20,670,16,662,12,625,8,597,10,581,15,578,20,586,27"/>
@@ -19,7 +19,7 @@
 <area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="851,31,842,21,846,11,864,5,894,3,932,7,943,12,946,18,942,20,939,16,931,12,894,8,865,10,850,15,847,20,855,27"/>
 <area shape="rect" id="Node000007" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="797,79,991,104"/>
 <area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="728,89,783,89,783,94,728,94"/>
-<area shape="rect" id="Node000008" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title=" " alt="" coords="797,129,991,169"/>
+<area shape="rect" id="Node000008" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="797,129,991,169"/>
 <area shape="poly" id="edge9_Node000006_Node000008" title=" " alt="" coords="690,101,750,114,791,123,790,128,749,119,689,107"/>
 <area shape="poly" id="edge11_Node000009_Node000007" title=" " alt="" coords="695,125,810,104,811,109,696,131"/>
 <area shape="poly" id="edge12_Node000009_Node000008" title=" " alt="" coords="750,142,784,143,783,148,749,147"/>

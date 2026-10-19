@@ -1,8 +1,8 @@
 <map id="ServicePanel::commitMaximumSpeed" name="ServicePanel::commitMaximumSpeed">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,161,235,201"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="300,139,497,164"/>
+<area shape="rect" id="Node000001" title="Takes the maximum speed in km/h from its field." alt="" coords="5,161,235,201"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="300,139,497,164"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,166,286,160,287,166,235,171"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="283,189,515,229"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="283,189,515,229"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="235,190,269,193,269,198,235,195"/>
 <area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="563,74,789,114"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="484,186,513,173,527,163,537,152,546,142,561,130,589,117,591,122,564,135,550,145,541,156,531,167,516,178,486,191"/>

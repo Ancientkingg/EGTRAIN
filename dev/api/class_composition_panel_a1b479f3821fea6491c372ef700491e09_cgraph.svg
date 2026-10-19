@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Asks for a rolling stock unit of the scene and appends it to the units of the selected composition.">
 <polygon fill="#999999" stroke="#666666" points="149,-37 0,-37 0,-18 149,-18 149,-37"/>
 <text text-anchor="middle" x="74.5" y="-25" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::addUnit</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="333,-56 185,-56 185,-37 333,-37 333,-56"/>
 <text text-anchor="middle" x="259" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" target="_top" xlink:title="Shows the current state of the document.">
 <polygon fill="white" stroke="#666666" points="331.5,-19 186.5,-19 186.5,0 331.5,0 331.5,-19"/>
 <text text-anchor="middle" x="259" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::refresh</text>
 </a>

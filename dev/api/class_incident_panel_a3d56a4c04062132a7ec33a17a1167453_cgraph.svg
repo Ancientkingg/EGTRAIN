@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">
 <polygon fill="white" stroke="#666666" points="332.5,-155 189.5,-155 189.5,-136 332.5,-136 332.5,-155"/>
 <text text-anchor="middle" x="261" y="-143" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" target="_top" xlink:title="Lists the incidents of the selected scenario again and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="322,-118 200,-118 200,-99 322,-99 322,-118"/>
 <text text-anchor="middle" x="261" y="-106" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refresh</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" target="_top" xlink:title="Lists the choices of targets of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="714,-80 556,-80 556,-61 714,-61 714,-80"/>
 <text text-anchor="middle" x="635" y="-68" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refreshTargets</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title="Emitted by replace(), after the whole state is set.">
 <polygon fill="white" stroke="#666666" points="333,-42 189,-42 189,-23 333,-23 333,-42"/>
 <text text-anchor="middle" x="261" y="-30" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::replaced</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" target="_top" xlink:title="Shows the fields of the selected incident again.">
 <polygon fill="white" stroke="#666666" points="520,-118 369,-118 369,-99 520,-99 520,-118"/>
 <text text-anchor="middle" x="444.5" y="-106" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::updateDetail</text>
 </a>

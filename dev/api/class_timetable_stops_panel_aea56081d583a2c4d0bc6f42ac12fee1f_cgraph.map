@@ -1,5 +1,5 @@
 <map id="TimetableStopsPanel::refresh" name="TimetableStopsPanel::refresh">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,242,164,282"/>
+<area shape="rect" id="Node000001" title="Lists the stops of the service again." alt="" coords="5,242,164,282"/>
 <area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="231,29,386,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,241,107,203,132,155,166,106,187,83,210,64,219,58,222,63,214,68,191,87,171,109,137,157,112,205,96,243"/>
 <area shape="rect" id="Node000003" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="238,103,379,128"/>
@@ -12,7 +12,7 @@
 <area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="147,280,256,316,255,321,146,285"/>
 <area shape="rect" id="Node000010" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="225,396,392,421"/>
 <area shape="poly" id="edge17_Node000001_Node000010" title=" " alt="" coords="111,280,157,318,213,358,267,388,264,392,211,363,154,322,107,284"/>
-<area shape="rect" id="Node000014" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title=" " alt="" coords="229,446,388,486"/>
+<area shape="rect" id="Node000014" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title="The table shows the stops again, so what depends on the timetable of the services is out of date." alt="" coords="229,446,388,486"/>
 <area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="98,281,141,354,174,396,214,432,221,437,218,441,210,436,170,400,137,357,93,283"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="272,31,264,21,268,11,284,5,309,3,340,7,352,16,349,20,338,11,309,8,285,10,272,15,269,20,276,27"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="272,104,264,94,268,84,284,78,309,76,340,80,352,89,349,93,338,85,309,81,285,83,272,88,269,94,276,101"/>

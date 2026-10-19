@@ -1,8 +1,8 @@
 <map id="IncidentPanel::refresh" name="IncidentPanel::refresh">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,188,168,213"/>
-<area shape="rect" id="Node000002" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title=" " alt="" coords="216,188,417,213"/>
+<area shape="rect" id="Node000001" title="Lists the incidents of the selected scenario again and keeps the selected row where it still exists." alt="" coords="5,188,168,213"/>
+<area shape="rect" id="Node000002" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again." alt="" coords="216,188,417,213"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,198,202,198,202,203,168,203"/>
-<area shape="rect" id="Node000003" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title=" " alt="" coords="465,147,676,172"/>
+<area shape="rect" id="Node000003" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title="Lists the choices of targets of the selected incident again." alt="" coords="465,147,676,172"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="395,185,478,172,479,177,396,191"/>
 <area shape="rect" id="Node000008" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="487,224,654,249"/>
 <area shape="poly" id="edge10_Node000002_Node000008" title=" " alt="" coords="407,211,474,220,473,226,406,216"/>

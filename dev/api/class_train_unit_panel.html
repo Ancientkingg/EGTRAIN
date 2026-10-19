@@ -129,61 +129,105 @@ Collaboration diagram for TrainUnitPanel:</div>
 Signals</h2></td></tr>
 <tr class="memitem:ad92b14ab276828fc66c1b0806a4d3520" id="r_ad92b14ab276828fc66c1b0806a4d3520"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad92b14ab276828fc66c1b0806a4d3520">trainUnitsChanged</a> ()</td></tr>
 <tr class="memitem:a81b8d3b868fda0a3cdfd526e4d25da86" id="r_a81b8d3b868fda0a3cdfd526e4d25da86"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a81b8d3b868fda0a3cdfd526e4d25da86">sourceReferencesChanged</a> ()</td></tr>
+<tr class="memdesc:a81b8d3b868fda0a3cdfd526e4d25da86"><td class="mdescLeft">&#160;</td><td class="mdescRight">The references to the source files of the shown unit have changed.  <br /></td></tr>
 <tr class="memitem:a6f2dcc415fba70e4380cb8998f04734e" id="r_a6f2dcc415fba70e4380cb8998f04734e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6f2dcc415fba70e4380cb8998f04734e">unitRenamed</a> (const QString &amp;oldId, const QString &amp;newId)</td></tr>
+<tr class="memdesc:a6f2dcc415fba70e4380cb8998f04734e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unit has got another id. Emitted after the document is marked changed.  <br /></td></tr>
 <tr class="memitem:aada88fec49c7c65ff35650ce409594ba" id="r_aada88fec49c7c65ff35650ce409594ba"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aada88fec49c7c65ff35650ce409594ba">unitDeleted</a> (const QString &amp;id)</td></tr>
+<tr class="memdesc:aada88fec49c7c65ff35650ce409594ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">The unit is gone from the model. Emitted after the document is marked changed.  <br /></td></tr>
 <tr class="memitem:ab16520eb63d0ff6c3858fd8c8ecab368" id="r_ab16520eb63d0ff6c3858fd8c8ecab368"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab16520eb63d0ff6c3858fd8c8ecab368">detailsShown</a> ()</td></tr>
+<tr class="memdesc:ab16520eb63d0ff6c3858fd8c8ecab368"><td class="mdescLeft">&#160;</td><td class="mdescRight">The details of the shown unit are shown again, so the state of its source links has to be shown again too.  <br /></td></tr>
 <tr class="memitem:ab91dedec627e1e09bf8405f47c6ee3c1" id="r_ab91dedec627e1e09bf8405f47c6ee3c1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab91dedec627e1e09bf8405f47c6ee3c1">tractionPlotRequested</a> (const QString &amp;unitId)</td></tr>
+<tr class="memdesc:ab91dedec627e1e09bf8405f47c6ee3c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The plot of the traction curve of this unit is wanted.  <br /></td></tr>
 <tr class="memitem:adf0ef5738595e9fc20e9e0255cef59c2" id="r_adf0ef5738595e9fc20e9e0255cef59c2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adf0ef5738595e9fc20e9e0255cef59c2">sourceLinkRequested</a> (bool traction)</td></tr>
 <tr class="memitem:a003f8f0aa7aa9b5b70bb422ebc7de768" id="r_a003f8f0aa7aa9b5b70bb422ebc7de768"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a003f8f0aa7aa9b5b70bb422ebc7de768">sourceUnlinkRequested</a> (bool traction)</td></tr>
+<tr class="memdesc:a003f8f0aa7aa9b5b70bb422ebc7de768"><td class="mdescLeft">&#160;</td><td class="mdescRight">The user asks to unlink the traction file (<span class="tt">traction</span> true) or the parameter file of the shown unit.  <br /></td></tr>
 <tr class="memitem:ad4b2eb10354f6fd9c3a023406d8eb36b" id="r_ad4b2eb10354f6fd9c3a023406d8eb36b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad4b2eb10354f6fd9c3a023406d8eb36b">sourceRetryRequested</a> (bool traction)</td></tr>
+<tr class="memdesc:ad4b2eb10354f6fd9c3a023406d8eb36b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The user asks to take the linked traction file (<span class="tt">traction</span> true) or parameter file of the shown unit again.  <br /></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa715d9ed13fefeb02e2968259bd32c56" id="r_aa715d9ed13fefeb02e2968259bd32c56"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa715d9ed13fefeb02e2968259bd32c56">TrainUnitPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa715d9ed13fefeb02e2968259bd32c56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:a99687cc055496394ebd693a0c262c762" id="r_a99687cc055496394ebd693a0c262c762"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a99687cc055496394ebd693a0c262c762">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
+<tr class="memdesc:a99687cc055496394ebd693a0c262c762"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced.  <br /></td></tr>
 <tr class="memitem:aef95b528272e20fa162eb30fa1bd3be2" id="r_aef95b528272e20fa162eb30fa1bd3be2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aef95b528272e20fa162eb30fa1bd3be2">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a530ffa6566d39357f7e5155f2a491ad4" id="r_a530ffa6566d39357f7e5155f2a491ad4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a530ffa6566d39357f7e5155f2a491ad4">refresh</a> () override</td></tr>
+<tr class="memdesc:a530ffa6566d39357f7e5155f2a491ad4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the units again and shows the selected one.  <br /></td></tr>
 <tr class="memitem:a68a9825ad30e3359da648cdadf3cbefc" id="r_a68a9825ad30e3359da648cdadf3cbefc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a68a9825ad30e3359da648cdadf3cbefc">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:a68a9825ad30e3359da648cdadf3cbefc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id, the source references and the number fields that have focus into the document.  <br /></td></tr>
 <tr class="memitem:a24c77d62bbfdbe5bff7c307b14fb07a6" id="r_a24c77d62bbfdbe5bff7c307b14fb07a6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a24c77d62bbfdbe5bff7c307b14fb07a6">addUnit</a> ()</td></tr>
+<tr class="memdesc:a24c77d62bbfdbe5bff7c307b14fb07a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends a unit with a new unique id and selects it.  <br /></td></tr>
 <tr class="memitem:a85f63f7e107fb87d41832ee72f112da6" id="r_a85f63f7e107fb87d41832ee72f112da6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a85f63f7e107fb87d41832ee72f112da6">duplicateUnit</a> ()</td></tr>
+<tr class="memdesc:a85f63f7e107fb87d41832ee72f112da6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected unit, with a new unique id, after it.  <br /></td></tr>
 <tr class="memitem:a39c33b0ee0eb7fd73494e957b77a752a" id="r_a39c33b0ee0eb7fd73494e957b77a752a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a39c33b0ee0eb7fd73494e957b77a752a">deleteUnit</a> ()</td></tr>
+<tr class="memdesc:a39c33b0ee0eb7fd73494e957b77a752a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected unit after the user has confirmed it; refused while a composition uses it.  <br /></td></tr>
 <tr class="memitem:abaeb9f53a0036ab1c856a439e64cc4d5" id="r_abaeb9f53a0036ab1c856a439e64cc4d5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abaeb9f53a0036ab1c856a439e64cc4d5">commitIdEdit</a> ()</td></tr>
+<tr class="memdesc:abaeb9f53a0036ab1c856a439e64cc4d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id from the field. An empty or used id is dropped and the field shows the old id again.  <br /></td></tr>
 <tr class="memitem:adccbd5933efd9680fed732f1ac2f4f24" id="r_adccbd5933efd9680fed732f1ac2f4f24"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adccbd5933efd9680fed732f1ac2f4f24">commitSources</a> ()</td></tr>
+<tr class="memdesc:adccbd5933efd9680fed732f1ac2f4f24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the parameter and traction source references from their fields.  <br /></td></tr>
 <tr class="memitem:a882a356aa1d9d93d9489e4f1e9c716bf" id="r_a882a356aa1d9d93d9489e4f1e9c716bf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a882a356aa1d9d93d9489e4f1e9c716bf">commitPhysical</a> (int fieldIndex)</td></tr>
 <tr class="memitem:a952596f47c0ddb56e339b03db9eb7944" id="r_a952596f47c0ddb56e339b03db9eb7944"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a952596f47c0ddb56e339b03db9eb7944">addTractionRow</a> ()</td></tr>
 <tr class="memitem:a79506385069633fb6e79d87db52897a4" id="r_a79506385069633fb6e79d87db52897a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a79506385069633fb6e79d87db52897a4">removeTractionRow</a> ()</td></tr>
+<tr class="memdesc:a79506385069633fb6e79d87db52897a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the selected traction curve row.  <br /></td></tr>
 <tr class="memitem:ac674d4e2b476c628f5da33a0c3ae806f" id="r_ac674d4e2b476c628f5da33a0c3ae806f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac674d4e2b476c628f5da33a0c3ae806f">commitTractionCell</a> (int row, int column, double value)</td></tr>
+<tr class="memdesc:ac674d4e2b476c628f5da33a0c3ae806f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores <span class="tt">value</span> in <span class="tt">column</span> (0 to 4) of traction curve row <span class="tt">row</span>: a speed in m/s, or a coefficient of the force in N with the speed in m/s.  <br /></td></tr>
 <tr class="memitem:a700ca756d12fca071d83909bfdc708cc" id="r_a700ca756d12fca071d83909bfdc708cc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a700ca756d12fca071d83909bfdc708cc">selectUnit</a> (const QString &amp;id)</td></tr>
+<tr class="memdesc:a700ca756d12fca071d83909bfdc708cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects the unit with this id. False when there is none.  <br /></td></tr>
 <tr class="memitem:af2652ae180796207e2e8ea6ca0310d8c" id="r_af2652ae180796207e2e8ea6ca0310d8c"><td class="memItemLeft">const <a class="el" href="struct_scene_train_unit.html">SceneTrainUnit</a> *&#160;</td><td class="memItemRight"><a class="el" href="#af2652ae180796207e2e8ea6ca0310d8c">selectedUnit</a> () const</td></tr>
+<tr class="memdesc:af2652ae180796207e2e8ea6ca0310d8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The shown unit, or null.  <br /></td></tr>
 <tr class="memitem:a080752c2055848c0e5aba9bb98fe2b35" id="r_a080752c2055848c0e5aba9bb98fe2b35"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a080752c2055848c0e5aba9bb98fe2b35">setSourceState</a> (bool traction, const QString &amp;linkedPath, const QString &amp;status)</td></tr>
 <tr class="memitem:aa8c982fa3178053a755384f4084f1237" id="r_aa8c982fa3178053a755384f4084f1237"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#aa8c982fa3178053a755384f4084f1237">listWidget</a> () const</td></tr>
+<tr class="memdesc:aa8c982fa3178053a755384f4084f1237"><td class="mdescLeft">&#160;</td><td class="mdescRight">The units, by id.  <br /></td></tr>
 <tr class="memitem:a5f3e5029cba2bd7c9b20f78bc57b0b25" id="r_a5f3e5029cba2bd7c9b20f78bc57b0b25"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a5f3e5029cba2bd7c9b20f78bc57b0b25">idEdit</a> () const</td></tr>
+<tr class="memdesc:a5f3e5029cba2bd7c9b20f78bc57b0b25"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the shown unit.  <br /></td></tr>
 <tr class="memitem:a081f73adac22120953da06172a5775e6" id="r_a081f73adac22120953da06172a5775e6"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a081f73adac22120953da06172a5775e6">emptyStateLabel</a> () const</td></tr>
+<tr class="memdesc:a081f73adac22120953da06172a5775e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message shown while a scene is loaded and no unit is selected; empty otherwise.  <br /></td></tr>
 <tr class="memitem:ae7baaf565f9016ae91df5441cb62950b" id="r_ae7baaf565f9016ae91df5441cb62950b"><td class="memItemLeft">QTabWidget *&#160;</td><td class="memItemRight"><a class="el" href="#ae7baaf565f9016ae91df5441cb62950b">tabs</a> () const</td></tr>
+<tr class="memdesc:ae7baaf565f9016ae91df5441cb62950b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The "Traction" and "Physical" pages of the shown unit.  <br /></td></tr>
 <tr class="memitem:a4c454a77b1084ced2f7172dfff18bc0c" id="r_a4c454a77b1084ced2f7172dfff18bc0c"><td class="memItemLeft">const std::array&lt; QDoubleSpinBox *, <a class="el" href="#a431d0687903fc9bb7046f3bb609272f4">PhysicalFieldCount</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a4c454a77b1084ced2f7172dfff18bc0c">physicalEdits</a> () const</td></tr>
+<tr class="memdesc:a4c454a77b1084ced2f7172dfff18bc0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The editors of the physical values, in the order and units of the class description.  <br /></td></tr>
 <tr class="memitem:ad96a96db63e9722469e93ebaecd19f5b" id="r_ad96a96db63e9722469e93ebaecd19f5b"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#ad96a96db63e9722469e93ebaecd19f5b">sourceDataEdit</a> () const</td></tr>
+<tr class="memdesc:ad96a96db63e9722469e93ebaecd19f5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The reference to the parameter file of the unit; it may be empty.  <br /></td></tr>
 <tr class="memitem:ae1ea8c0456637b3a783d67067069c2e3" id="r_ae1ea8c0456637b3a783d67067069c2e3"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#ae1ea8c0456637b3a783d67067069c2e3">sourceTractionEdit</a> () const</td></tr>
+<tr class="memdesc:ae1ea8c0456637b3a783d67067069c2e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The reference to the traction file of the unit; it may be empty.  <br /></td></tr>
 <tr class="memitem:af803843bfd1642279b39cea0b53fea91" id="r_af803843bfd1642279b39cea0b53fea91"><td class="memItemLeft">QTableWidget *&#160;</td><td class="memItemRight"><a class="el" href="#af803843bfd1642279b39cea0b53fea91">tractionTable</a> () const</td></tr>
+<tr class="memdesc:af803843bfd1642279b39cea0b53fea91"><td class="mdescLeft">&#160;</td><td class="mdescRight">The traction curve, one row per speed band: lower and upper speed in m/s, then c0, c1 and c2.  <br /></td></tr>
 <tr class="memitem:afbdbb3f1da51d062b47b8bea457aca0b" id="r_afbdbb3f1da51d062b47b8bea457aca0b"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#afbdbb3f1da51d062b47b8bea457aca0b">addButton</a> () const</td></tr>
+<tr class="memdesc:afbdbb3f1da51d062b47b8bea457aca0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a24c77d62bbfdbe5bff7c307b14fb07a6" title="Appends a unit with a new unique id and selects it.">addUnit()</a>.  <br /></td></tr>
 <tr class="memitem:a388229a8d349d74f6f4fdeef831516ae" id="r_a388229a8d349d74f6f4fdeef831516ae"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a388229a8d349d74f6f4fdeef831516ae">duplicateButton</a> () const</td></tr>
+<tr class="memdesc:a388229a8d349d74f6f4fdeef831516ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a85f63f7e107fb87d41832ee72f112da6" title="Inserts a copy of the selected unit, with a new unique id, after it.">duplicateUnit()</a>.  <br /></td></tr>
 <tr class="memitem:aefd255479a3f3113473f1be601158615" id="r_aefd255479a3f3113473f1be601158615"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aefd255479a3f3113473f1be601158615">deleteButton</a> () const</td></tr>
+<tr class="memdesc:aefd255479a3f3113473f1be601158615"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a39c33b0ee0eb7fd73494e957b77a752a" title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it.">deleteUnit()</a>.  <br /></td></tr>
 <tr class="memitem:a66c07b74795e010511a7f75ecd0c0e87" id="r_a66c07b74795e010511a7f75ecd0c0e87"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a66c07b74795e010511a7f75ecd0c0e87">addTractionRowButton</a> () const</td></tr>
+<tr class="memdesc:a66c07b74795e010511a7f75ecd0c0e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a952596f47c0ddb56e339b03db9eb7944">addTractionRow()</a>.  <br /></td></tr>
 <tr class="memitem:a7125096be4a4714128f16dab18222233" id="r_a7125096be4a4714128f16dab18222233"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a7125096be4a4714128f16dab18222233">removeTractionRowButton</a> () const</td></tr>
+<tr class="memdesc:a7125096be4a4714128f16dab18222233"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a79506385069633fb6e79d87db52897a4" title="Removes the selected traction curve row.">removeTractionRow()</a>.  <br /></td></tr>
 <tr class="memitem:a025776523c12b01ba231e49eb7d9f127" id="r_a025776523c12b01ba231e49eb7d9f127"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a025776523c12b01ba231e49eb7d9f127">plotButton</a> () const</td></tr>
+<tr class="memdesc:a025776523c12b01ba231e49eb7d9f127"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that asks for the plot of the traction curve of the shown unit.  <br /></td></tr>
 <tr class="memitem:a5cd7e623087d526e823baa6607af67cf" id="r_a5cd7e623087d526e823baa6607af67cf"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a5cd7e623087d526e823baa6607af67cf">linkButton</a> (bool traction) const</td></tr>
+<tr class="memdesc:a5cd7e623087d526e823baa6607af67cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that links the traction file (<span class="tt">traction</span> true) or the parameter file.  <br /></td></tr>
 <tr class="memitem:a09f9aed0cdb0a883a8041e9e83c41f6d" id="r_a09f9aed0cdb0a883a8041e9e83c41f6d"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a09f9aed0cdb0a883a8041e9e83c41f6d">unlinkButton</a> (bool traction) const</td></tr>
+<tr class="memdesc:a09f9aed0cdb0a883a8041e9e83c41f6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that unlinks the traction file (<span class="tt">traction</span> true) or the parameter file.  <br /></td></tr>
 <tr class="memitem:aa47fec1cc64dd1f967bd23e1d939e174" id="r_aa47fec1cc64dd1f967bd23e1d939e174"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aa47fec1cc64dd1f967bd23e1d939e174">retryButton</a> (bool traction) const</td></tr>
+<tr class="memdesc:aa47fec1cc64dd1f967bd23e1d939e174"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that takes the linked traction file (<span class="tt">traction</span> true) or parameter file again.  <br /></td></tr>
 <tr class="memitem:abd40b89b99fd5cf1a4c401eb8d288dc3" id="r_abd40b89b99fd5cf1a4c401eb8d288dc3"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#abd40b89b99fd5cf1a4c401eb8d288dc3">sourceStatusLabel</a> (bool traction) const</td></tr>
+<tr class="memdesc:abd40b89b99fd5cf1a4c401eb8d288dc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the link of the traction file (<span class="tt">traction</span> true) or the parameter file.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a431d0687903fc9bb7046f3bb609272f4" id="r_a431d0687903fc9bb7046f3bb609272f4"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a431d0687903fc9bb7046f3bb609272f4">PhysicalFieldCount</a> = 9</td></tr>
+<tr class="memdesc:a431d0687903fc9bb7046f3bb609272f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of physical values of a unit.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The rolling stock units of the scene: a list to pick one, its id, its traction curve, its nine physical values and the references to the files it came from. The number fields keep text that is not a number out of the model.</p>
+<p>The physical values, in the order of <a class="el" href="#a4c454a77b1084ced2f7172dfff18bc0c" title="The editors of the physical values, in the order and units of the class description.">physicalEdits()</a>: traction unit mass (kg), wagon mass (kg), wagon count, maximum speed (m/s), maximum deceleration (m/s²), frontal area (m²), resistance coefficient (the factor of the speed term of the wagon resistance; no unit is stated), jerk (m/s³) and length (m). A traction curve row holds the lower and upper speed of its band in m/s and the coefficients c0, c1 and c2 of the tractive effort c0 + c1 v + c2 v² in N, with v in m/s. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa715d9ed13fefeb02e2968259bd32c56" name="aa715d9ed13fefeb02e2968259bd32c56"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa715d9ed13fefeb02e2968259bd32c56">&#9670;&#160;</a></span>TrainUnitPanel()</h2>
 
@@ -206,6 +250,8 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the widgets, empty until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -238,6 +284,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a24c77d62bbfdbe5bff7c307b14fb07a6" title="Appends a unit with a new unique id and selects it.">addUnit()</a>. </p>
+
 </div>
 </div>
 <a id="a952596f47c0ddb56e339b03db9eb7944" name="a952596f47c0ddb56e339b03db9eb7944"></a>
@@ -254,6 +302,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Appends a traction curve row whose speed band starts at the upper speed of the last row, or at 0 m/s when the curve is empty, and is 1 m/s wide, with zero coefficients. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -285,6 +334,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a952596f47c0ddb56e339b03db9eb7944">addTractionRow()</a>. </p>
+
 </div>
 </div>
 <a id="a24c77d62bbfdbe5bff7c307b14fb07a6" name="a24c77d62bbfdbe5bff7c307b14fb07a6"></a>
@@ -301,6 +352,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Appends a unit with a new unique id and selects it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -323,6 +376,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the id from the field. An empty or used id is dropped and the field shows the old id again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -354,6 +409,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Takes the id, the source references and the number fields that have focus into the document. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -377,6 +434,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes the value of the physical field with this index, 0 to PhysicalFieldCount - 1, from its editor. The unit then has physical values. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -399,6 +457,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the parameter and traction source references from their fields. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -430,6 +490,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stores <span class="tt">value</span> in <span class="tt">column</span> (0 to 4) of traction curve row <span class="tt">row</span>: a speed in m/s, or a coefficient of the force in N with the speed in m/s. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -461,6 +523,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a39c33b0ee0eb7fd73494e957b77a752a" title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it.">deleteUnit()</a>. </p>
+
 </div>
 </div>
 <a id="a39c33b0ee0eb7fd73494e957b77a752a" name="a39c33b0ee0eb7fd73494e957b77a752a"></a>
@@ -477,6 +541,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Deletes the selected unit after the user has confirmed it; refused while a composition uses it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -508,6 +574,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The details of the shown unit are shown again, so the state of its source links has to be shown again too. </p>
+
 </div>
 </div>
 <a id="a388229a8d349d74f6f4fdeef831516ae" name="a388229a8d349d74f6f4fdeef831516ae"></a>
@@ -533,6 +601,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a85f63f7e107fb87d41832ee72f112da6" title="Inserts a copy of the selected unit, with a new unique id, after it.">duplicateUnit()</a>. </p>
+
 </div>
 </div>
 <a id="a85f63f7e107fb87d41832ee72f112da6" name="a85f63f7e107fb87d41832ee72f112da6"></a>
@@ -549,6 +619,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Inserts a copy of the selected unit, with a new unique id, after it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -580,6 +652,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The message shown while a scene is loaded and no unit is selected; empty otherwise. </p>
+
 </div>
 </div>
 <a id="a5f3e5029cba2bd7c9b20f78bc57b0b25" name="a5f3e5029cba2bd7c9b20f78bc57b0b25"></a>
@@ -604,6 +678,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The field of the id of the shown unit. </p>
 
 </div>
 </div>
@@ -630,6 +706,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that links the traction file (<span class="tt">traction</span> true) or the parameter file. </p>
+
 </div>
 </div>
 <a id="aa8c982fa3178053a755384f4084f1237" name="aa8c982fa3178053a755384f4084f1237"></a>
@@ -654,6 +732,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The units, by id. </p>
 
 </div>
 </div>
@@ -680,6 +760,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The editors of the physical values, in the order and units of the class description. </p>
+
 </div>
 </div>
 <a id="a025776523c12b01ba231e49eb7d9f127" name="a025776523c12b01ba231e49eb7d9f127"></a>
@@ -704,6 +786,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The button that asks for the plot of the traction curve of the shown unit. </p>
 
 </div>
 </div>
@@ -730,6 +814,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Lists the units again and shows the selected one. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -753,6 +839,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Removes the selected traction curve row. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -784,6 +872,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a79506385069633fb6e79d87db52897a4" title="Removes the selected traction curve row.">removeTractionRow()</a>. </p>
+
 </div>
 </div>
 <a id="aa47fec1cc64dd1f967bd23e1d939e174" name="aa47fec1cc64dd1f967bd23e1d939e174"></a>
@@ -809,6 +899,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that takes the linked traction file (<span class="tt">traction</span> true) or parameter file again. </p>
+
 </div>
 </div>
 <a id="af2652ae180796207e2e8ea6ca0310d8c" name="af2652ae180796207e2e8ea6ca0310d8c"></a>
@@ -826,6 +918,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The shown unit, or null. </p>
+
 </div>
 </div>
 <a id="a700ca756d12fca071d83909bfdc708cc" name="a700ca756d12fca071d83909bfdc708cc"></a>
@@ -842,6 +936,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Selects the unit with this id. False when there is none. </p>
 
 </div>
 </div>
@@ -868,6 +964,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Refreshes when the document is replaced. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -891,6 +989,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The messages and questions go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
 
 </div>
 </div>
@@ -917,6 +1016,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Shows the state of the source link of the shown unit. <span class="tt">traction</span> chooses the traction file over the parameter file. <span class="tt">linkedPath</span> is empty when the source is not linked, and <span class="tt">status</span> is empty when the link has no status of its own. A linked file that does not exist is shown as missing, with its path, whatever the status says. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -948,6 +1048,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The reference to the parameter file of the unit; it may be empty. </p>
+
 </div>
 </div>
 <a id="adf0ef5738595e9fc20e9e0255cef59c2" name="adf0ef5738595e9fc20e9e0255cef59c2"></a>
@@ -972,6 +1074,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The user asks to link the source of the shown unit. <span class="tt">traction</span> tells whether it is the traction file or the parameter file. </p>
 
 </div>
 </div>
@@ -998,6 +1101,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The references to the source files of the shown unit have changed. </p>
+
 </div>
 </div>
 <a id="ad4b2eb10354f6fd9c3a023406d8eb36b" name="ad4b2eb10354f6fd9c3a023406d8eb36b"></a>
@@ -1022,6 +1127,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The user asks to take the linked traction file (<span class="tt">traction</span> true) or parameter file of the shown unit again. </p>
 
 </div>
 </div>
@@ -1048,6 +1155,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The state of the link of the traction file (<span class="tt">traction</span> true) or the parameter file. </p>
+
 </div>
 </div>
 <a id="ae1ea8c0456637b3a783d67067069c2e3" name="ae1ea8c0456637b3a783d67067069c2e3"></a>
@@ -1072,6 +1181,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The reference to the traction file of the unit; it may be empty. </p>
 
 </div>
 </div>
@@ -1098,6 +1209,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The user asks to unlink the traction file (<span class="tt">traction</span> true) or the parameter file of the shown unit. </p>
+
 </div>
 </div>
 <a id="ae7baaf565f9016ae91df5441cb62950b" name="ae7baaf565f9016ae91df5441cb62950b"></a>
@@ -1122,6 +1235,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The "Traction" and "Physical" pages of the shown unit. </p>
 
 </div>
 </div>
@@ -1148,6 +1263,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The plot of the traction curve of this unit is wanted. </p>
+
 </div>
 </div>
 <a id="af803843bfd1642279b39cea0b53fea91" name="af803843bfd1642279b39cea0b53fea91"></a>
@@ -1173,6 +1290,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The traction curve, one row per speed band: lower and upper speed in m/s, then c0, c1 and c2. </p>
+
 </div>
 </div>
 <a id="ad92b14ab276828fc66c1b0806a4d3520" name="ad92b14ab276828fc66c1b0806a4d3520"></a>
@@ -1197,6 +1316,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A unit has been added, duplicated, deleted or renamed. The compositions list units by id. Emitted after the document is marked changed and before <a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed().">changed()</a>. </p>
 
 </div>
 </div>
@@ -1222,6 +1342,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The unit is gone from the model. Emitted after the document is marked changed. </p>
 
 </div>
 </div>
@@ -1252,6 +1374,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The unit has got another id. Emitted after the document is marked changed. </p>
+
 </div>
 </div>
 <a id="a09f9aed0cdb0a883a8041e9e83c41f6d" name="a09f9aed0cdb0a883a8041e9e83c41f6d"></a>
@@ -1277,6 +1401,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that unlinks the traction file (<span class="tt">traction</span> true) or the parameter file. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -1299,6 +1425,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The number of physical values of a unit. </p>
 
 </div>
 </div>

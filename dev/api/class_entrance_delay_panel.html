@@ -128,40 +128,64 @@ Collaboration diagram for EntranceDelayPanel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad69251e58aecb776bccfb14fd4cd7a92" id="r_ad69251e58aecb776bccfb14fd4cd7a92"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad69251e58aecb776bccfb14fd4cd7a92">EntranceDelayPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:ad69251e58aecb776bccfb14fd4cd7a92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:a93e4730688974ecdbcdc21148feddee4" id="r_a93e4730688974ecdbcdc21148feddee4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a93e4730688974ecdbcdc21148feddee4">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
+<tr class="memdesc:a93e4730688974ecdbcdc21148feddee4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced, and when the case settings, the infrastructure or the services change.  <br /></td></tr>
 <tr class="memitem:a3cf41d225174fc7ac72485ed1272a7cb" id="r_a3cf41d225174fc7ac72485ed1272a7cb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3cf41d225174fc7ac72485ed1272a7cb">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a0fd51de3a9b5ecd15142b2d7f71c4251" id="r_a0fd51de3a9b5ecd15142b2d7f71c4251"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0fd51de3a9b5ecd15142b2d7f71c4251">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
 <tr class="memitem:a7ff764011414efdf9918b1396570c70c" id="r_a7ff764011414efdf9918b1396570c70c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7ff764011414efdf9918b1396570c70c">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:ab4f97bfcfa207e578bf6559732c0d06a" id="r_ab4f97bfcfa207e578bf6559732c0d06a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab4f97bfcfa207e578bf6559732c0d06a">refresh</a> () override</td></tr>
+<tr class="memdesc:ab4f97bfcfa207e578bf6559732c0d06a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the delays of the selected scenario again and keeps the selected row where it still exists.  <br /></td></tr>
 <tr class="memitem:a64fb882abea20002d08c55790b0cf36d" id="r_a64fb882abea20002d08c55790b0cf36d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a64fb882abea20002d08c55790b0cf36d">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:a64fb882abea20002d08c55790b0cf36d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the occurrence and the delay that are being edited into the document.  <br /></td></tr>
 <tr class="memitem:a35cf7bffe1e1784f471285a0c7090e81" id="r_a35cf7bffe1e1784f471285a0c7090e81"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a35cf7bffe1e1784f471285a0c7090e81">updateDetail</a> ()</td></tr>
+<tr class="memdesc:a35cf7bffe1e1784f471285a0c7090e81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the fields of the selected delay again.  <br /></td></tr>
 <tr class="memitem:a27df63699c7d44ab41f4d5f85febbda5" id="r_a27df63699c7d44ab41f4d5f85febbda5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a27df63699c7d44ab41f4d5f85febbda5">addEntranceDelay</a> ()</td></tr>
 <tr class="memitem:a626c068f10d94cec966644e7da82ddc8" id="r_a626c068f10d94cec966644e7da82ddc8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a626c068f10d94cec966644e7da82ddc8">duplicateEntranceDelay</a> ()</td></tr>
+<tr class="memdesc:a626c068f10d94cec966644e7da82ddc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected delay after it.  <br /></td></tr>
 <tr class="memitem:aaa5c655c6b6cdd6194780b1000538022" id="r_aaa5c655c6b6cdd6194780b1000538022"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aaa5c655c6b6cdd6194780b1000538022">deleteEntranceDelay</a> ()</td></tr>
+<tr class="memdesc:aaa5c655c6b6cdd6194780b1000538022"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected delay after the user has confirmed it.  <br /></td></tr>
 <tr class="memitem:a2333d4143fd53a87fde507aa6326336d" id="r_a2333d4143fd53a87fde507aa6326336d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2333d4143fd53a87fde507aa6326336d">commitService</a> (int index)</td></tr>
 <tr class="memitem:a08697c3bb62f317c1a172a1ab12ea242" id="r_a08697c3bb62f317c1a172a1ab12ea242"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a08697c3bb62f317c1a172a1ab12ea242">commitOccurrence</a> ()</td></tr>
+<tr class="memdesc:a08697c3bb62f317c1a172a1ab12ea242"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the occurrence from its field.  <br /></td></tr>
 <tr class="memitem:a380e44076e412c89da9227f5f659bb98" id="r_a380e44076e412c89da9227f5f659bb98"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a380e44076e412c89da9227f5f659bb98">commitStation</a> (int index)</td></tr>
+<tr class="memdesc:a380e44076e412c89da9227f5f659bb98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the station at <span class="tt">index</span> of the station combo.  <br /></td></tr>
 <tr class="memitem:acd386ab2684633c40d040000b8f615fa" id="r_acd386ab2684633c40d040000b8f615fa"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd386ab2684633c40d040000b8f615fa">commitSeconds</a> ()</td></tr>
+<tr class="memdesc:acd386ab2684633c40d040000b8f615fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the delay in seconds from its field.  <br /></td></tr>
 <tr class="memitem:afd5ac27382e7e98fc7fcaf27358120fb" id="r_afd5ac27382e7e98fc7fcaf27358120fb"><td class="memItemLeft"><a class="el" href="struct_scene_entrance_delay.html">SceneEntranceDelay</a> *&#160;</td><td class="memItemRight"><a class="el" href="#afd5ac27382e7e98fc7fcaf27358120fb">selectedEntranceDelay</a> ()</td></tr>
 <tr class="memitem:ae0b84da365cd871666ea6850514c86be" id="r_ae0b84da365cd871666ea6850514c86be"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#ae0b84da365cd871666ea6850514c86be">listWidget</a> () const</td></tr>
+<tr class="memdesc:ae0b84da365cd871666ea6850514c86be"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delays of the selected scenario, one row each.  <br /></td></tr>
 <tr class="memitem:ad2721b9ff3daa7064c4787e4325a407a" id="r_ad2721b9ff3daa7064c4787e4325a407a"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#ad2721b9ff3daa7064c4787e4325a407a">serviceCombo</a> () const</td></tr>
+<tr class="memdesc:ad2721b9ff3daa7064c4787e4325a407a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The services of the scene, each with its id as the data. A service that the scene lacks is shown as invalid.  <br /></td></tr>
 <tr class="memitem:a88cb07f6c953475af8ec23c2e2f33b2e" id="r_a88cb07f6c953475af8ec23c2e2f33b2e"><td class="memItemLeft">QSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a88cb07f6c953475af8ec23c2e2f33b2e">occurrenceEdit</a> () const</td></tr>
+<tr class="memdesc:a88cb07f6c953475af8ec23c2e2f33b2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrence of the service, counted from 1, up to the number of occurrences in the counted time.  <br /></td></tr>
 <tr class="memitem:a99ea31d7433c523a6709eb3728772cd7" id="r_a99ea31d7433c523a6709eb3728772cd7"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a99ea31d7433c523a6709eb3728772cd7">occurrenceContextLabel</a> () const</td></tr>
+<tr class="memdesc:a99ea31d7433c523a6709eb3728772cd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The valid range of occurrences and the label of the chosen occurrence.  <br /></td></tr>
 <tr class="memitem:a1a61d54815ec7c8da265ca8f5db8b55f" id="r_a1a61d54815ec7c8da265ca8f5db8b55f"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a1a61d54815ec7c8da265ca8f5db8b55f">emptyStateLabel</a> () const</td></tr>
+<tr class="memdesc:a1a61d54815ec7c8da265ca8f5db8b55f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message above the fields while no entrance delay is selected; hidden otherwise.  <br /></td></tr>
 <tr class="memitem:a9a6535f2f650eb77490c69daff5f1540" id="r_a9a6535f2f650eb77490c69daff5f1540"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a9a6535f2f650eb77490c69daff5f1540">stationCombo</a> () const</td></tr>
+<tr class="memdesc:a9a6535f2f650eb77490c69daff5f1540"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stations whose first stop of the service has a planned departure, each with its id as the data.  <br /></td></tr>
 <tr class="memitem:a63ecf2769231f0b42a859e09026f550a" id="r_a63ecf2769231f0b42a859e09026f550a"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a63ecf2769231f0b42a859e09026f550a">secondsEdit</a> () const</td></tr>
+<tr class="memdesc:a63ecf2769231f0b42a859e09026f550a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delay in seconds.  <br /></td></tr>
 <tr class="memitem:ad33dbbfcaed295c94fdc82c8c9c4c17f" id="r_ad33dbbfcaed295c94fdc82c8c9c4c17f"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ad33dbbfcaed295c94fdc82c8c9c4c17f">addButton</a> () const</td></tr>
+<tr class="memdesc:ad33dbbfcaed295c94fdc82c8c9c4c17f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a27df63699c7d44ab41f4d5f85febbda5">addEntranceDelay()</a>.  <br /></td></tr>
 <tr class="memitem:a2964022d05c54cc1af9938611f731dd8" id="r_a2964022d05c54cc1af9938611f731dd8"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a2964022d05c54cc1af9938611f731dd8">duplicateButton</a> () const</td></tr>
+<tr class="memdesc:a2964022d05c54cc1af9938611f731dd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a626c068f10d94cec966644e7da82ddc8" title="Inserts a copy of the selected delay after it.">duplicateEntranceDelay()</a>.  <br /></td></tr>
 <tr class="memitem:a26e235e4304019eb14f2641f009cac88" id="r_a26e235e4304019eb14f2641f009cac88"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a26e235e4304019eb14f2641f009cac88">deleteButton</a> () const</td></tr>
+<tr class="memdesc:a26e235e4304019eb14f2641f009cac88"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#aaa5c655c6b6cdd6194780b1000538022" title="Deletes the selected delay after the user has confirmed it.">deleteEntranceDelay()</a>.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The entrance delays of the selected scenario: a list to pick one, and the fields of the selected delay, which holds a train back before it enters the network. A delay names one occurrence of a service (counted from 1), the station at which the train is held and the delay in seconds. The choices of occurrences and stations follow the services of the document: a station is offered when the first stop of the service there has a planned departure. The scenario whose delays are shown is the one that the run selection names. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad69251e58aecb776bccfb14fd4cd7a92" name="ad69251e58aecb776bccfb14fd4cd7a92"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad69251e58aecb776bccfb14fd4cd7a92">&#9670;&#160;</a></span>EntranceDelayPanel()</h2>
 
@@ -184,6 +208,8 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the widgets, empty until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -216,6 +242,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a27df63699c7d44ab41f4d5f85febbda5">addEntranceDelay()</a>. </p>
+
 </div>
 </div>
 <a id="a27df63699c7d44ab41f4d5f85febbda5" name="a27df63699c7d44ab41f4d5f85febbda5"></a>
@@ -232,6 +260,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Appends a delay of 0 seconds to the selected scenario and selects it. It names the first service with a planned departure and that station, or else the first service and no station. A scene without a scenario gets the baseline scenario first. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -254,6 +283,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the occurrence from its field. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -285,6 +316,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Takes the occurrence and the delay that are being edited into the document. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -308,6 +341,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the delay in seconds from its field. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -330,6 +365,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes the service at <span class="tt">index</span> of the service combo. Another service starts at its first occurrence, with the first station at which it can be held. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -352,6 +388,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the station at <span class="tt">index</span> of the station combo. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -383,6 +421,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#aaa5c655c6b6cdd6194780b1000538022" title="Deletes the selected delay after the user has confirmed it.">deleteEntranceDelay()</a>. </p>
+
 </div>
 </div>
 <a id="aaa5c655c6b6cdd6194780b1000538022" name="aaa5c655c6b6cdd6194780b1000538022"></a>
@@ -399,6 +439,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Deletes the selected delay after the user has confirmed it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -430,6 +472,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a626c068f10d94cec966644e7da82ddc8" title="Inserts a copy of the selected delay after it.">duplicateEntranceDelay()</a>. </p>
+
 </div>
 </div>
 <a id="a626c068f10d94cec966644e7da82ddc8" name="a626c068f10d94cec966644e7da82ddc8"></a>
@@ -446,6 +490,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Inserts a copy of the selected delay after it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -477,6 +523,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The message above the fields while no entrance delay is selected; hidden otherwise. </p>
+
 </div>
 </div>
 <a id="ae0b84da365cd871666ea6850514c86be" name="ae0b84da365cd871666ea6850514c86be"></a>
@@ -501,6 +549,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The delays of the selected scenario, one row each. </p>
 
 </div>
 </div>
@@ -527,6 +577,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The valid range of occurrences and the label of the chosen occurrence. </p>
+
 </div>
 </div>
 <a id="a88cb07f6c953475af8ec23c2e2f33b2e" name="a88cb07f6c953475af8ec23c2e2f33b2e"></a>
@@ -552,6 +604,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The occurrence of the service, counted from 1, up to the number of occurrences in the counted time. </p>
+
 </div>
 </div>
 <a id="ab4f97bfcfa207e578bf6559732c0d06a" name="ab4f97bfcfa207e578bf6559732c0d06a"></a>
@@ -576,6 +630,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Lists the delays of the selected scenario again and keeps the selected row where it still exists. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 <div class="dynheader">
@@ -609,6 +665,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The delay in seconds. </p>
+
 </div>
 </div>
 <a id="afd5ac27382e7e98fc7fcaf27358120fb" name="afd5ac27382e7e98fc7fcaf27358120fb"></a>
@@ -625,6 +683,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The selected delay for an edit, or null when none is selected or the scene cannot be edited. A scene without a scenario gets the baseline scenario first. </p>
 
 </div>
 </div>
@@ -651,6 +710,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The services of the scene, each with its id as the data. A service that the scene lacks is shown as invalid. </p>
+
 </div>
 </div>
 <a id="a93e4730688974ecdbcdc21148feddee4" name="a93e4730688974ecdbcdc21148feddee4"></a>
@@ -676,6 +737,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Refreshes when the document is replaced, and when the case settings, the infrastructure or the services change. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -699,6 +762,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the scene settings is used. </p>
 
 </div>
 </div>
@@ -716,6 +780,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The messages and questions go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
 
 </div>
 </div>
@@ -733,6 +798,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The scenario that is shown and the scenarios that are edited are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
 
 </div>
 </div>
@@ -759,6 +825,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The stations whose first stop of the service has a planned departure, each with its id as the data. </p>
+
 </div>
 </div>
 <a id="a35cf7bffe1e1784f471285a0c7090e81" name="a35cf7bffe1e1784f471285a0c7090e81"></a>
@@ -775,6 +843,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Shows the fields of the selected delay again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

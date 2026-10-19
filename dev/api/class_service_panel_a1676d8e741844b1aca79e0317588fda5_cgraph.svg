@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the...">
 <polygon fill="#999999" stroke="#666666" points="140,-101.5 0,-101.5 0,-71.5 140,-71.5 140,-101.5"/>
 <text text-anchor="start" x="8" y="-89.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::selectNone</text>
 <text text-anchor="middle" x="70" y="-78.5" font-family="Helvetica,sans-Serif" font-size="10.00">Occurrences</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title="Lists the occurrences again.">
 <polygon fill="white" stroke="#666666" points="350,-148.5 176,-148.5 176,-118.5 350,-118.5 350,-148.5"/>
 <text text-anchor="start" x="184" y="-136.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::refreshOccurrence</text>
 <text text-anchor="middle" x="263" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">Preview</text>

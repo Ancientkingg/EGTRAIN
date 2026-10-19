@@ -1,14 +1,14 @@
 <map id="IncidentPanel::setDocument" name="IncidentPanel::setDocument">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,93,209,118"/>
-<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="258,18,449,43"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated." alt="" coords="258,18,449,43"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,90,257,52,285,44,287,49,258,57,144,95"/>
-<area shape="rect" id="Node000003" href="$class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" title=" " alt="" coords="272,67,435,93"/>
+<area shape="rect" id="Node000003" href="$class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" title="Lists the incidents of the selected scenario again and keeps the selected row where it still exists." alt="" coords="272,67,435,93"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,92,258,87,259,92,210,97"/>
-<area shape="rect" id="Node000005" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title=" " alt="" coords="747,118,957,143"/>
+<area shape="rect" id="Node000005" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title="Lists the choices of targets of the selected incident again." alt="" coords="747,118,957,143"/>
 <area shape="poly" id="edge20_Node000001_Node000005" title=" " alt="" coords="210,106,733,124,733,129,209,111"/>
-<area shape="rect" id="Node000014" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title=" " alt="" coords="257,169,449,194"/>
+<area shape="rect" id="Node000014" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="257,169,449,194"/>
 <area shape="poly" id="edge21_Node000001_Node000014" title=" " alt="" coords="150,116,299,162,298,167,149,121"/>
-<area shape="rect" id="Node000004" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title=" " alt="" coords="497,67,699,93"/>
+<area shape="rect" id="Node000004" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again." alt="" coords="497,67,699,93"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="435,77,484,77,484,83,435,83"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="663,90,775,113,774,118,662,95"/>
 <area shape="rect" id="Node000010" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="769,57,935,82"/>

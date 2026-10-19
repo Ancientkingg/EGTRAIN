@@ -47,7 +47,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">
 <polygon fill="white" stroke="#666666" points="353,-937.5 210,-937.5 210,-918.5 353,-918.5 353,-937.5"/>
 <text text-anchor="middle" x="281.5" y="-925.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::changed</text>
 </a>
@@ -320,7 +320,7 @@
 <!-- Node115 -->
 <g id="Node000115" class="node">
 <title>Node115</title>
-<g id="a_Node000115"><a xlink:href="class_scene_document.html#a7b376a313d121770604a481647759cee" target="_top" xlink:title=" ">
+<g id="a_Node000115"><a xlink:href="class_scene_document.html#a7b376a313d121770604a481647759cee" target="_top" xlink:title="An empty document: not loaded, not dirty and editable.">
 <polygon fill="white" stroke="#666666" points="372.5,-288.5 190.5,-288.5 190.5,-269.5 372.5,-269.5 372.5,-288.5"/>
 <text text-anchor="middle" x="281.5" y="-276.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::SceneDocument</text>
 </a>

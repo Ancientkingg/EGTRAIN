@@ -1,8 +1,8 @@
 <map id="ServicePanel::commitIdEdit" name="ServicePanel::commitIdEdit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,315,205,340"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="271,139,468,164"/>
+<area shape="rect" id="Node000001" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="5,315,205,340"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="271,139,468,164"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,313,166,246,206,207,252,174,269,166,271,171,255,179,209,211,170,250,117,316"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="253,189,485,229"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="253,189,485,229"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="123,312,179,276,252,238,272,231,274,236,254,243,182,281,126,317"/>
 <area shape="rect" id="Node000012" href="$_scene_references_8cpp.html#a87333c70e4338a37d53f1958b925864f" title="Rewrites the service id in entrance delays, train&#45;breakdown incident targets and passenger legs." alt="" coords="254,277,485,303"/>
 <area shape="poly" id="edge21_Node000001_Node000012" title=" " alt="" coords="195,312,265,302,266,307,196,317"/>

@@ -1,10 +1,10 @@
 <map id="ServicePanel::refresh" name="ServicePanel::refresh">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,407,164,432"/>
-<area shape="rect" id="Node000002" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="212,230,444,270"/>
+<area shape="rect" id="Node000001" title="Lists the services again and shows the selected one." alt="" coords="5,407,164,432"/>
+<area shape="rect" id="Node000002" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="212,230,444,270"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,404,285,276,288,280,106,409"/>
 <area shape="rect" id="Node000011" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="281,407,375,432"/>
 <area shape="poly" id="edge20_Node000001_Node000011" title=" " alt="" coords="164,417,267,417,267,422,164,422"/>
-<area shape="rect" id="Node000012" href="$class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" title=" " alt="" coords="229,504,427,529"/>
+<area shape="rect" id="Node000012" href="$class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" title="Shows the fields of the selected service again." alt="" coords="229,504,427,529"/>
 <area shape="poly" id="edge22_Node000001_Node000012" title=" " alt="" coords="118,430,283,496,281,501,116,435"/>
 <area shape="rect" id="Node000003" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="492,74,719,114"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,228,412,180,491,130,521,117,524,121,493,135,415,184,354,232"/>

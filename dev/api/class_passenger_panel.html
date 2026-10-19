@@ -128,55 +128,93 @@ Collaboration diagram for PassengerPanel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a48fb2f88337cfa2a3a4f5f1bcb7e7c0a" id="r_a48fb2f88337cfa2a3a4f5f1bcb7e7c0a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a48fb2f88337cfa2a3a4f5f1bcb7e7c0a">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
+<tr class="memdesc:a48fb2f88337cfa2a3a4f5f1bcb7e7c0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status bar, which it shows for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4b7d519863803eddadbd0decaadbef06" id="r_a4b7d519863803eddadbd0decaadbef06"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4b7d519863803eddadbd0decaadbef06">PassengerPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a4b7d519863803eddadbd0decaadbef06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:ad61cdc408e8f6c227695a95bd8918db9" id="r_ad61cdc408e8f6c227695a95bd8918db9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad61cdc408e8f6c227695a95bd8918db9">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
+<tr class="memdesc:ad61cdc408e8f6c227695a95bd8918db9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced.  <br /></td></tr>
 <tr class="memitem:a4765b3745b9ecd6448d36c2d849255d1" id="r_a4765b3745b9ecd6448d36c2d849255d1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4765b3745b9ecd6448d36c2d849255d1">refresh</a> () override</td></tr>
+<tr class="memdesc:a4765b3745b9ecd6448d36c2d849255d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the passengers of the document and keeps the selected rows where they still exist.  <br /></td></tr>
 <tr class="memitem:a661073869d3c9f9f3e96c2b2f83c9e4b" id="r_a661073869d3c9f9f3e96c2b2f83c9e4b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a661073869d3c9f9f3e96c2b2f83c9e4b">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:a661073869d3c9f9f3e96c2b2f83c9e4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the ids, the activity and the numbers that are being edited into the document.  <br /></td></tr>
 <tr class="memitem:af97c9075a371801d61dbdf27b6edce1b" id="r_af97c9075a371801d61dbdf27b6edce1b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af97c9075a371801d61dbdf27b6edce1b">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:af076d21ad511203bd6759ad5cfde5be7" id="r_af076d21ad511203bd6759ad5cfde5be7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af076d21ad511203bd6759ad5cfde5be7">setDiagnostics</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; *diagnostics)</td></tr>
 <tr class="memitem:af2799b130c076860d37ec9c35e1ccae9" id="r_af2799b130c076860d37ec9c35e1ccae9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af2799b130c076860d37ec9c35e1ccae9">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:a701d6620bf8a34e816329590e96b3250" id="r_a701d6620bf8a34e816329590e96b3250"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a701d6620bf8a34e816329590e96b3250">setImportFolderChooser</a> (std::function&lt; QString()&gt; chooser)</td></tr>
 <tr class="memitem:add7b16e614d373cce568b2e072a0ddd8" id="r_add7b16e614d373cce568b2e072a0ddd8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#add7b16e614d373cce568b2e072a0ddd8">clearImportResult</a> ()</td></tr>
+<tr class="memdesc:add7b16e614d373cce568b2e072a0ddd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empties the table with the result of the latest import.  <br /></td></tr>
 <tr class="memitem:affedef6aabaa8a3cd44de42f68427bb8" id="r_affedef6aabaa8a3cd44de42f68427bb8"><td class="memItemLeft"><a class="el" href="struct_scene_passenger.html">ScenePassenger</a> *&#160;</td><td class="memItemRight"><a class="el" href="#affedef6aabaa8a3cd44de42f68427bb8">selectedPassenger</a> ()</td></tr>
+<tr class="memdesc:affedef6aabaa8a3cd44de42f68427bb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected passenger, or null when none is selected or no scene is loaded.  <br /></td></tr>
 <tr class="memitem:abcaeea92722a59a7e7a4c34d6366a78a" id="r_abcaeea92722a59a7e7a4c34d6366a78a"><td class="memItemLeft"><a class="el" href="struct_scene_passenger_journey.html">ScenePassengerJourney</a> *&#160;</td><td class="memItemRight"><a class="el" href="#abcaeea92722a59a7e7a4c34d6366a78a">selectedPassengerJourney</a> ()</td></tr>
+<tr class="memdesc:abcaeea92722a59a7e7a4c34d6366a78a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected journey of the selected passenger, or null.  <br /></td></tr>
 <tr class="memitem:a664bb36199596c8633adc2ac2c180e63" id="r_a664bb36199596c8633adc2ac2c180e63"><td class="memItemLeft"><a class="el" href="struct_scene_passenger_leg.html">ScenePassengerLeg</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a664bb36199596c8633adc2ac2c180e63">selectedPassengerLeg</a> ()</td></tr>
+<tr class="memdesc:a664bb36199596c8633adc2ac2c180e63"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected leg of the selected journey, or null.  <br /></td></tr>
 <tr class="memitem:a1a4a2d1d68dc169f565826abf46dc187" id="r_a1a4a2d1d68dc169f565826abf46dc187"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a1a4a2d1d68dc169f565826abf46dc187">passengerList</a> () const</td></tr>
+<tr class="memdesc:a1a4a2d1d68dc169f565826abf46dc187"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers, by id.  <br /></td></tr>
 <tr class="memitem:a977fadb4c3b0b200e698036d4ccf7687" id="r_a977fadb4c3b0b200e698036d4ccf7687"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a977fadb4c3b0b200e698036d4ccf7687">passengerIdEdit</a> () const</td></tr>
+<tr class="memdesc:a977fadb4c3b0b200e698036d4ccf7687"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected passenger. An empty or used id is refused.  <br /></td></tr>
 <tr class="memitem:a48fbf2d203d00c6387b896d6be96fd0c" id="r_a48fbf2d203d00c6387b896d6be96fd0c"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a48fbf2d203d00c6387b896d6be96fd0c">addPassengerButton</a> () const</td></tr>
+<tr class="memdesc:a48fbf2d203d00c6387b896d6be96fd0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that adds a passenger without journeys.  <br /></td></tr>
 <tr class="memitem:aca82540dcc6f575c0a798f6fb0cdfd86" id="r_aca82540dcc6f575c0a798f6fb0cdfd86"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aca82540dcc6f575c0a798f6fb0cdfd86">deletePassengerButton</a> () const</td></tr>
+<tr class="memdesc:aca82540dcc6f575c0a798f6fb0cdfd86"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected passenger and its journeys after the user has confirmed it.  <br /></td></tr>
 <tr class="memitem:aacc30d21ea760354f6485324bf5d1505" id="r_aacc30d21ea760354f6485324bf5d1505"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aacc30d21ea760354f6485324bf5d1505">importButton</a> () const</td></tr>
 <tr class="memitem:ac780f774c3fd69334a9fb56b27ff1c4c" id="r_ac780f774c3fd69334a9fb56b27ff1c4c"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#ac780f774c3fd69334a9fb56b27ff1c4c">importResultHeading</a> () const</td></tr>
+<tr class="memdesc:ac780f774c3fd69334a9fb56b27ff1c4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The heading of the import result table.  <br /></td></tr>
 <tr class="memitem:a0b15180103483038becf6a1ae6703539" id="r_a0b15180103483038becf6a1ae6703539"><td class="memItemLeft">QTableWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a0b15180103483038becf6a1ae6703539">importResultTable</a> () const</td></tr>
+<tr class="memdesc:a0b15180103483038becf6a1ae6703539"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rows of the latest import: source, row, passenger, status and detail.  <br /></td></tr>
 <tr class="memitem:ae5b1f8de88c0142027637bc392107587" id="r_ae5b1f8de88c0142027637bc392107587"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#ae5b1f8de88c0142027637bc392107587">diagnosticLabel</a> () const</td></tr>
+<tr class="memdesc:ae5b1f8de88c0142027637bc392107587"><td class="mdescLeft">&#160;</td><td class="mdescRight">The errors for the selection, or the help text when there is nothing to report.  <br /></td></tr>
 <tr class="memitem:a5e3aea6d960b7f6310405730ade58348" id="r_a5e3aea6d960b7f6310405730ade58348"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a5e3aea6d960b7f6310405730ade58348">warningLabel</a> () const</td></tr>
+<tr class="memdesc:a5e3aea6d960b7f6310405730ade58348"><td class="mdescLeft">&#160;</td><td class="mdescRight">The warnings and notes for the selection.  <br /></td></tr>
 <tr class="memitem:a53360d94aed37802c3038e12dd71d369" id="r_a53360d94aed37802c3038e12dd71d369"><td class="memItemLeft">QTabWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a53360d94aed37802c3038e12dd71d369">tabs</a> () const</td></tr>
+<tr class="memdesc:a53360d94aed37802c3038e12dd71d369"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Journeys and Legs pages of the selected passenger, hidden while none is selected.  <br /></td></tr>
 <tr class="memitem:aa7ce1860dc1f1a153aa1987da8329c57" id="r_aa7ce1860dc1f1a153aa1987da8329c57"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#aa7ce1860dc1f1a153aa1987da8329c57">journeyList</a> () const</td></tr>
+<tr class="memdesc:aa7ce1860dc1f1a153aa1987da8329c57"><td class="mdescLeft">&#160;</td><td class="mdescRight">The journeys of the selected passenger, by id and activity.  <br /></td></tr>
 <tr class="memitem:a80764b88a8a828b3d180cb0f26343e10" id="r_a80764b88a8a828b3d180cb0f26343e10"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a80764b88a8a828b3d180cb0f26343e10">addJourneyButton</a> () const</td></tr>
+<tr class="memdesc:a80764b88a8a828b3d180cb0f26343e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that adds a journey to the selected passenger.  <br /></td></tr>
 <tr class="memitem:ab071f2cf957ab06e025b13476bb86db7" id="r_ab071f2cf957ab06e025b13476bb86db7"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ab071f2cf957ab06e025b13476bb86db7">deleteJourneyButton</a> () const</td></tr>
+<tr class="memdesc:ab071f2cf957ab06e025b13476bb86db7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected journey and its legs after the user has confirmed it.  <br /></td></tr>
 <tr class="memitem:ad47fddbb6f9eced110fcf88f85c98470" id="r_ad47fddbb6f9eced110fcf88f85c98470"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#ad47fddbb6f9eced110fcf88f85c98470">journeyIdEdit</a> () const</td></tr>
+<tr class="memdesc:ad47fddbb6f9eced110fcf88f85c98470"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected journey, unique in the scene.  <br /></td></tr>
 <tr class="memitem:a6d747c33740f14c80c442f3e81326a3f" id="r_a6d747c33740f14c80c442f3e81326a3f"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a6d747c33740f14c80c442f3e81326a3f">journeyActivityEdit</a> () const</td></tr>
+<tr class="memdesc:a6d747c33740f14c80c442f3e81326a3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the activity of the selected journey; it may be empty.  <br /></td></tr>
 <tr class="memitem:a733916b764a266542cd73294f3b7370d" id="r_a733916b764a266542cd73294f3b7370d"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a733916b764a266542cd73294f3b7370d">journeyOriginCombo</a> () const</td></tr>
+<tr class="memdesc:a733916b764a266542cd73294f3b7370d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The origin station of the selected journey, with the station id as the data.  <br /></td></tr>
 <tr class="memitem:a22f80c8aac9992c31c6966ce38b700c5" id="r_a22f80c8aac9992c31c6966ce38b700c5"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a22f80c8aac9992c31c6966ce38b700c5">journeyDestinationCombo</a> () const</td></tr>
+<tr class="memdesc:a22f80c8aac9992c31c6966ce38b700c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The destination station of the selected journey, with the station id as the data.  <br /></td></tr>
 <tr class="memitem:a741498019ad59a4da4fa9a5d3e388c31" id="r_a741498019ad59a4da4fa9a5d3e388c31"><td class="memItemLeft">const std::array&lt; QDoubleSpinBox *, 4 &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a741498019ad59a4da4fa9a5d3e388c31">journeyWindowEdits</a> () const</td></tr>
 <tr class="memitem:a21d93c9b3d3998a3534dff2214c33278" id="r_a21d93c9b3d3998a3534dff2214c33278"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a21d93c9b3d3998a3534dff2214c33278">legList</a> () const</td></tr>
+<tr class="memdesc:a21d93c9b3d3998a3534dff2214c33278"><td class="mdescLeft">&#160;</td><td class="mdescRight">The legs of the selected journey in order, by id.  <br /></td></tr>
 <tr class="memitem:ae0000d24565e301c231ffd45c7f271c9" id="r_ae0000d24565e301c231ffd45c7f271c9"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ae0000d24565e301c231ffd45c7f271c9">addLegButton</a> () const</td></tr>
+<tr class="memdesc:ae0000d24565e301c231ffd45c7f271c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that appends a leg to the selected journey.  <br /></td></tr>
 <tr class="memitem:a38758abd3c0e6822100b5f2bfb5d8faf" id="r_a38758abd3c0e6822100b5f2bfb5d8faf"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a38758abd3c0e6822100b5f2bfb5d8faf">deleteLegButton</a> () const</td></tr>
+<tr class="memdesc:a38758abd3c0e6822100b5f2bfb5d8faf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that deletes the selected leg after the user has confirmed it.  <br /></td></tr>
 <tr class="memitem:ad5349cecfb942c9786aca2b893eb01f9" id="r_ad5349cecfb942c9786aca2b893eb01f9"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#ad5349cecfb942c9786aca2b893eb01f9">moveLegUpButton</a> () const</td></tr>
+<tr class="memdesc:ad5349cecfb942c9786aca2b893eb01f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that moves the selected leg one place earlier.  <br /></td></tr>
 <tr class="memitem:a3e13312f9f1d062bf6882442fa01df82" id="r_a3e13312f9f1d062bf6882442fa01df82"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a3e13312f9f1d062bf6882442fa01df82">moveLegDownButton</a> () const</td></tr>
+<tr class="memdesc:a3e13312f9f1d062bf6882442fa01df82"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that moves the selected leg one place later.  <br /></td></tr>
 <tr class="memitem:acb4e328391dc5e720b010482ccaf1e59" id="r_acb4e328391dc5e720b010482ccaf1e59"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#acb4e328391dc5e720b010482ccaf1e59">legIdEdit</a> () const</td></tr>
+<tr class="memdesc:acb4e328391dc5e720b010482ccaf1e59"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected leg, unique in the scene.  <br /></td></tr>
 <tr class="memitem:ad366239e69d2ad8675dc66dcd09b842f" id="r_ad366239e69d2ad8675dc66dcd09b842f"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#ad366239e69d2ad8675dc66dcd09b842f">legOriginCombo</a> () const</td></tr>
+<tr class="memdesc:ad366239e69d2ad8675dc66dcd09b842f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station where the selected leg boards, with the station id as the data.  <br /></td></tr>
 <tr class="memitem:af4751224989701d59d197fc5fde1bdda" id="r_af4751224989701d59d197fc5fde1bdda"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#af4751224989701d59d197fc5fde1bdda">legDestinationCombo</a> () const</td></tr>
+<tr class="memdesc:af4751224989701d59d197fc5fde1bdda"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station where the selected leg alights, with the station id as the data.  <br /></td></tr>
 <tr class="memitem:a6ce3a8210c2b642175a3d90146523ec3" id="r_a6ce3a8210c2b642175a3d90146523ec3"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a6ce3a8210c2b642175a3d90146523ec3">legServiceCombo</a> () const</td></tr>
+<tr class="memdesc:a6ce3a8210c2b642175a3d90146523ec3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The service of the selected leg, with the service id as the data.  <br /></td></tr>
 <tr class="memitem:a537ab450d0c98f9d0d20b83ac135c05c" id="r_a537ab450d0c98f9d0d20b83ac135c05c"><td class="memItemLeft">QSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a537ab450d0c98f9d0d20b83ac135c05c">legOccurrenceEdit</a> () const</td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The passengers of the scene, the journeys of the selected passenger and the ordered legs of the selected journey, and the import of the legacy passenger files. A passenger list, a journey list and a leg list edit the model of the document in place; nothing is copied. The planned departure and arrival windows of a journey are in seconds since midnight, not from the base time. A leg names one occurrence of a service, counted from 1. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4b7d519863803eddadbd0decaadbef06" name="a4b7d519863803eddadbd0decaadbef06"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b7d519863803eddadbd0decaadbef06">&#9670;&#160;</a></span>PassengerPanel()</h2>
 
@@ -199,6 +237,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the widgets, empty until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -231,6 +271,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that adds a journey to the selected passenger. </p>
+
 </div>
 </div>
 <a id="ae0000d24565e301c231ffd45c7f271c9" name="ae0000d24565e301c231ffd45c7f271c9"></a>
@@ -255,6 +297,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The button that appends a leg to the selected journey. </p>
 
 </div>
 </div>
@@ -281,6 +325,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that adds a passenger without journeys. </p>
+
 </div>
 </div>
 <a id="add7b16e614d373cce568b2e072a0ddd8" name="add7b16e614d373cce568b2e072a0ddd8"></a>
@@ -297,6 +343,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Empties the table with the result of the latest import. </p>
 
 </div>
 </div>
@@ -322,6 +370,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the ids, the activity and the numbers that are being edited into the document. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 
@@ -350,6 +400,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that deletes the selected journey and its legs after the user has confirmed it. </p>
+
 </div>
 </div>
 <a id="a38758abd3c0e6822100b5f2bfb5d8faf" name="a38758abd3c0e6822100b5f2bfb5d8faf"></a>
@@ -374,6 +426,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The button that deletes the selected leg after the user has confirmed it. </p>
 
 </div>
 </div>
@@ -400,6 +454,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that deletes the selected passenger and its journeys after the user has confirmed it. </p>
+
 </div>
 </div>
 <a id="ae5b1f8de88c0142027637bc392107587" name="ae5b1f8de88c0142027637bc392107587"></a>
@@ -425,6 +481,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The errors for the selection, or the help text when there is nothing to report. </p>
+
 </div>
 </div>
 <a id="aacc30d21ea760354f6485324bf5d1505" name="aacc30d21ea760354f6485324bf5d1505"></a>
@@ -449,6 +507,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The button that appends the passengers of a legacy passenger folder. A passenger whose id, or the id of one of its journeys or legs, is already used is left out. </p>
 
 </div>
 </div>
@@ -475,6 +534,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The heading of the import result table. </p>
+
 </div>
 </div>
 <a id="a0b15180103483038becf6a1ae6703539" name="a0b15180103483038becf6a1ae6703539"></a>
@@ -499,6 +560,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The rows of the latest import: source, row, passenger, status and detail. </p>
 
 </div>
 </div>
@@ -525,6 +588,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the activity of the selected journey; it may be empty. </p>
+
 </div>
 </div>
 <a id="a22f80c8aac9992c31c6966ce38b700c5" name="a22f80c8aac9992c31c6966ce38b700c5"></a>
@@ -549,6 +614,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The destination station of the selected journey, with the station id as the data. </p>
 
 </div>
 </div>
@@ -575,6 +642,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the id of the selected journey, unique in the scene. </p>
+
 </div>
 </div>
 <a id="aa7ce1860dc1f1a153aa1987da8329c57" name="aa7ce1860dc1f1a153aa1987da8329c57"></a>
@@ -599,6 +668,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The journeys of the selected passenger, by id and activity. </p>
 
 </div>
 </div>
@@ -625,6 +696,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The origin station of the selected journey, with the station id as the data. </p>
+
 </div>
 </div>
 <a id="a741498019ad59a4da4fa9a5d3e388c31" name="a741498019ad59a4da4fa9a5d3e388c31"></a>
@@ -649,6 +722,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The planned departure start and end and arrival start and end of the selected journey, in this order, in seconds since midnight. </p>
 
 </div>
 </div>
@@ -675,6 +749,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The station where the selected leg alights, with the station id as the data. </p>
+
 </div>
 </div>
 <a id="acb4e328391dc5e720b010482ccaf1e59" name="acb4e328391dc5e720b010482ccaf1e59"></a>
@@ -699,6 +775,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The field of the id of the selected leg, unique in the scene. </p>
 
 </div>
 </div>
@@ -725,6 +803,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The legs of the selected journey in order, by id. </p>
+
 </div>
 </div>
 <a id="a537ab450d0c98f9d0d20b83ac135c05c" name="a537ab450d0c98f9d0d20b83ac135c05c"></a>
@@ -749,6 +829,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The occurrence of the service of the selected leg, counted from 1. The field also takes 0, which validation reports as an error. </p>
 
 </div>
 </div>
@@ -775,6 +856,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The station where the selected leg boards, with the station id as the data. </p>
+
 </div>
 </div>
 <a id="a6ce3a8210c2b642175a3d90146523ec3" name="a6ce3a8210c2b642175a3d90146523ec3"></a>
@@ -799,6 +882,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The service of the selected leg, with the service id as the data. </p>
 
 </div>
 </div>
@@ -825,6 +910,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button that moves the selected leg one place later. </p>
+
 </div>
 </div>
 <a id="ad5349cecfb942c9786aca2b893eb01f9" name="ad5349cecfb942c9786aca2b893eb01f9"></a>
@@ -849,6 +936,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The button that moves the selected leg one place earlier. </p>
 
 </div>
 </div>
@@ -875,6 +964,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the id of the selected passenger. An empty or used id is refused. </p>
+
 </div>
 </div>
 <a id="a1a4a2d1d68dc169f565826abf46dc187" name="a1a4a2d1d68dc169f565826abf46dc187"></a>
@@ -899,6 +990,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The passengers, by id. </p>
 
 </div>
 </div>
@@ -925,6 +1018,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Shows the passengers of the document and keeps the selected rows where they still exist. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -949,6 +1044,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The selected passenger, or null when none is selected or no scene is loaded. </p>
+
 </div>
 </div>
 <a id="abcaeea92722a59a7e7a4c34d6366a78a" name="abcaeea92722a59a7e7a4c34d6366a78a"></a>
@@ -965,6 +1062,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The selected journey of the selected passenger, or null. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -987,6 +1086,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The selected leg of the selected journey, or null. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1009,6 +1110,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The validation messages that the selection shows. The vector must outlive the panel or be replaced first; null shows none. Call <a class="el" href="#a4765b3745b9ecd6448d36c2d849255d1" title="Shows the passengers of the document and keeps the selected rows where they still exist.">refresh()</a> after the diagnostics have changed. </p>
 
 </div>
 </div>
@@ -1035,6 +1137,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Refreshes when the document is replaced. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -1058,6 +1162,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the folder with the legacy passenger files to Import; an empty path cancels. Without one Import asks with a folder dialog. </p>
 
 </div>
 </div>
@@ -1075,6 +1180,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the scene settings is used. </p>
 
 </div>
 </div>
@@ -1092,6 +1198,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The questions and errors of the panel go through these prompts, which the caller keeps alive. The panel uses its own until it is given others; null brings its own back. </p>
 
 </div>
 </div>
@@ -1122,6 +1229,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>A message for the status bar, which it shows for <span class="tt">timeoutMs</span> milliseconds. </p>
+
 </div>
 </div>
 <a id="a53360d94aed37802c3038e12dd71d369" name="a53360d94aed37802c3038e12dd71d369"></a>
@@ -1147,6 +1256,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The Journeys and Legs pages of the selected passenger, hidden while none is selected. </p>
+
 </div>
 </div>
 <a id="a5e3aea6d960b7f6310405730ade58348" name="a5e3aea6d960b7f6310405730ade58348"></a>
@@ -1171,6 +1282,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The warnings and notes for the selection. </p>
 
 </div>
 </div>

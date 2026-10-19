@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a893cdf9d2324e3abdc6e465a8c3fd7e5" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a893cdf9d2324e3abdc6e465a8c3fd7e5" target="_top" xlink:title="Lists the entities of the chosen facet again, and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="254,-30 145,-30 145,0 254,0 254,-30"/>
 <text text-anchor="start" x="153" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="199.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::refresh</text>

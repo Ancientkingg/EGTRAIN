@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#999999" stroke="#666666" points="120,-298 0,-298 0,-268 120,-268 120,-298"/>
 <text text-anchor="start" x="8" y="-286" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="60" y="-275" font-family="Helvetica,sans-Serif" font-size="10.00">::EntranceDelayPanel</text>
@@ -40,7 +40,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title="Lists the delays of the selected scenario again and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="518,-391 404,-391 404,-361 518,-361 518,-391"/>
 <text text-anchor="start" x="412" y="-379" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="461" y="-368" font-family="Helvetica,sans-Serif" font-size="10.00">::refresh</text>
@@ -59,7 +59,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title="Shows the fields of the selected delay again.">
 <polygon fill="white" stroke="#666666" points="698.5,-412 584.5,-412 584.5,-382 698.5,-382 698.5,-412"/>
 <text text-anchor="start" x="592.5" y="-400" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="641.5" y="-389" font-family="Helvetica,sans-Serif" font-size="10.00">::updateDetail</text>
@@ -96,7 +96,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_entrance_delay_panel.html#a08697c3bb62f317c1a172a1ab12ea242" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_entrance_delay_panel.html#a08697c3bb62f317c1a172a1ab12ea242" target="_top" xlink:title="Takes the occurrence from its field.">
 <polygon fill="white" stroke="#666666" points="311,-298 196,-298 196,-268 311,-268 311,-298"/>
 <text text-anchor="start" x="204" y="-286" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="253.5" y="-275" font-family="Helvetica,sans-Serif" font-size="10.00">::commitOccurrence</text>
@@ -115,7 +115,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_entrance_delay_panel.html#acd386ab2684633c40d040000b8f615fa" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_entrance_delay_panel.html#acd386ab2684633c40d040000b8f615fa" target="_top" xlink:title="Takes the delay in seconds from its field.">
 <polygon fill="white" stroke="#666666" points="310.5,-250 196.5,-250 196.5,-220 310.5,-220 310.5,-250"/>
 <text text-anchor="start" x="204.5" y="-238" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="253.5" y="-227" font-family="Helvetica,sans-Serif" font-size="10.00">::commitSeconds</text>
@@ -153,7 +153,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_entrance_delay_panel.html#a380e44076e412c89da9227f5f659bb98" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_entrance_delay_panel.html#a380e44076e412c89da9227f5f659bb98" target="_top" xlink:title="Takes the station at index of the station combo.">
 <polygon fill="white" stroke="#666666" points="310.5,-346 196.5,-346 196.5,-316 310.5,-316 310.5,-346"/>
 <text text-anchor="start" x="204.5" y="-334" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="253.5" y="-323" font-family="Helvetica,sans-Serif" font-size="10.00">::commitStation</text>
@@ -191,7 +191,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="class_entrance_delay_panel.html#aaa5c655c6b6cdd6194780b1000538022" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="class_entrance_delay_panel.html#aaa5c655c6b6cdd6194780b1000538022" target="_top" xlink:title="Deletes the selected delay after the user has confirmed it.">
 <polygon fill="white" stroke="#666666" points="316,-442 191,-442 191,-412 316,-412 316,-442"/>
 <text text-anchor="start" x="199" y="-430" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="253.5" y="-419" font-family="Helvetica,sans-Serif" font-size="10.00">::deleteEntranceDelay</text>
@@ -210,7 +210,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_entrance_delay_panel.html#a626c068f10d94cec966644e7da82ddc8" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="class_entrance_delay_panel.html#a626c068f10d94cec966644e7da82ddc8" target="_top" xlink:title="Inserts a copy of the selected delay after it.">
 <polygon fill="white" stroke="#666666" points="323,-394 184,-394 184,-364 323,-364 323,-394"/>
 <text text-anchor="start" x="192" y="-382" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="253.5" y="-371" font-family="Helvetica,sans-Serif" font-size="10.00">::duplicateEntranceDelay</text>
@@ -248,7 +248,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title="A panel without a document.">
 <polygon fill="white" stroke="#666666" points="335.5,-30 171.5,-30 171.5,0 335.5,0 335.5,-30"/>
 <text text-anchor="start" x="179.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::SceneEditor</text>
 <text text-anchor="middle" x="253.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -267,7 +267,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="535,-340.5 387,-340.5 387,-321.5 535,-321.5 535,-340.5"/>
 <text text-anchor="middle" x="461" y="-328.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>

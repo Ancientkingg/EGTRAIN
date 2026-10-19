@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Appends a unit with a new unique id and selects it.">
 <polygon fill="#999999" stroke="#666666" points="131,-94.5 0,-94.5 0,-75.5 131,-75.5 131,-94.5"/>
 <text text-anchor="middle" x="65.5" y="-82.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::addUnit</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="315,-159.5 167,-159.5 167,-140.5 315,-140.5 315,-159.5"/>
 <text text-anchor="middle" x="241" y="-147.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title="Lists the units again and shows the selected one.">
 <polygon fill="white" stroke="#666666" points="304.5,-122.5 177.5,-122.5 177.5,-103.5 304.5,-103.5 304.5,-122.5"/>
 <text text-anchor="middle" x="241" y="-110.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::refresh</text>
 </a>

@@ -1,5 +1,5 @@
 <map id="ValidationPanel::refreshLoadedData" name="ValidationPanel::refreshLoadedData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,95,181,135"/>
+<area shape="rect" id="Node000001" title="Writes the tree again." alt="" coords="5,95,181,135"/>
 <area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="273,29,408,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,93,229,63,260,55,261,60,230,69,146,98"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#af50f126ec84573bc40322ddf0a48140d" title=" " alt="" coords="229,103,452,128"/>

@@ -1,16 +1,16 @@
 <map id="InfrastructurePanel::updateSelection" name="InfrastructurePanel::updateSelection">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,120,151,160"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" title=" " alt="" coords="199,5,345,45"/>
+<area shape="rect" id="Node000001" title="Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend o..." alt="" coords="5,120,151,160"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" title="False while no scene is loaded or a run uses it." alt="" coords="199,5,345,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,117,197,62,219,50,221,54,200,66,111,122"/>
-<area shape="rect" id="Node000003" href="$class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" title=" " alt="" coords="393,35,539,75"/>
+<area shape="rect" id="Node000003" href="$class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" title="True when a scene is loaded." alt="" coords="393,35,539,75"/>
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="150,117,198,105,379,68,381,73,199,111,152,123"/>
-<area shape="rect" id="Node000004" href="$class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" title=" " alt="" coords="199,120,345,160"/>
+<area shape="rect" id="Node000004" href="$class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" title="The key of the chosen facet, one of facetKeys()." alt="" coords="199,120,345,160"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="151,137,186,137,186,143,151,143"/>
 <area shape="rect" id="Node000005" href="$class_infrastructure_panel.html#a9b4bd64176552b66de1c20d4e5dec616" title=" " alt="" coords="199,184,345,224"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="140,158,199,177,197,182,139,163"/>
 <area shape="rect" id="Node000007" href="$class_infrastructure_facet.html#a236bf728d7cfc10f94d25c5e862252b2" title=" " alt="" coords="200,248,344,288"/>
 <area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="103,158,146,195,200,234,210,240,208,244,197,238,143,200,99,162"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="346,34,380,39,379,44,345,39"/>
-<area shape="rect" id="Node000006" href="$class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" title=" " alt="" coords="393,184,539,224"/>
+<area shape="rect" id="Node000006" href="$class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" title="The facet with this key, or null. The panel keeps it." alt="" coords="393,184,539,224"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="346,201,379,201,379,207,346,207"/>
 </map>

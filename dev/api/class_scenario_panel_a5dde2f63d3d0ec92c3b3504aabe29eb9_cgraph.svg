@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#999999" stroke="#666666" points="159,-696 0,-696 0,-677 159,-677 159,-696"/>
 <text text-anchor="middle" x="79.5" y="-684" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::ScenarioPanel</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scenario_panel.html#a7376744fc56dd13e186054120934aac6" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scenario_panel.html#a7376744fc56dd13e186054120934aac6" target="_top" xlink:title="Appends a scenario &quot;New scenario&quot; without incidents or delays, with a new unique id,...">
 <polygon fill="white" stroke="#666666" points="386,-659 207,-659 207,-640 386,-640 386,-659"/>
 <text text-anchor="middle" x="296.5" y="-647" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::addBlankScenario</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scenario_panel.html#ab995bcfd8f4bdd39f2af9342bd340019" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scenario_panel.html#ab995bcfd8f4bdd39f2af9342bd340019" target="_top" xlink:title="Takes the description from its field.">
 <polygon fill="white" stroke="#666666" points="398,-770 195,-770 195,-751 398,-751 398,-770"/>
 <text text-anchor="middle" x="296.5" y="-758" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::commitDescriptionEdit</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_scenario_panel.html#a6fd48bc6c4753c7a8ae2ea7a8ae6027e" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_scenario_panel.html#a6fd48bc6c4753c7a8ae2ea7a8ae6027e" target="_top" xlink:title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again.">
 <polygon fill="white" stroke="#666666" points="374.5,-696 218.5,-696 218.5,-677 374.5,-677 374.5,-696"/>
 <text text-anchor="middle" x="296.5" y="-684" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::commitIdEdit</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_scenario_panel.html#a51435ca79a58242b2a1d18192fde3e46" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_scenario_panel.html#a51435ca79a58242b2a1d18192fde3e46" target="_top" xlink:title="Takes the name from its field.">
 <polygon fill="white" stroke="#666666" points="384.5,-733 208.5,-733 208.5,-714 384.5,-714 384.5,-733"/>
 <text text-anchor="middle" x="296.5" y="-721" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::commitNameEdit</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6" target="_top" xlink:title="Lists the scenarios again and shows the selected one.">
 <polygon fill="white" stroke="#666666" points="586,-922 461,-922 461,-903 586,-903 586,-922"/>
 <text text-anchor="middle" x="523.5" y="-910" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::refresh</text>
 </a>
@@ -147,7 +147,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_scenario_panel.html#a34f7b1632208d63c7fbed186373aa3fa" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_scenario_panel.html#a34f7b1632208d63c7fbed186373aa3fa" target="_top" xlink:title="Writes the selected scenario to a scenario JSON file.">
 <polygon fill="white" stroke="#666666" points="378.5,-315 214.5,-315 214.5,-296 378.5,-296 378.5,-315"/>
 <text text-anchor="middle" x="296.5" y="-303" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::exportScenario</text>
 </a>
@@ -183,7 +183,7 @@
 <!-- Node58 -->
 <g id="Node000058" class="node">
 <title>Node58</title>
-<g id="a_Node000058"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title=" ">
+<g id="a_Node000058"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title="A panel without a document.">
 <polygon fill="white" stroke="#666666" points="378.5,-277.5 214.5,-277.5 214.5,-247.5 378.5,-247.5 378.5,-277.5"/>
 <text text-anchor="start" x="222.5" y="-265.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::SceneEditor</text>
 <text text-anchor="middle" x="296.5" y="-254.5" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -202,7 +202,7 @@
 <!-- Node59 -->
 <g id="Node000059" class="node">
 <title>Node59</title>
-<g id="a_Node000059"><a xlink:href="class_scenario_panel.html#ad10d9ab8071297af00ef7324e28d8236" target="_top" xlink:title=" ">
+<g id="a_Node000059"><a xlink:href="class_scenario_panel.html#ad10d9ab8071297af00ef7324e28d8236" target="_top" xlink:title="Selects the scenario at this position of the scene; the list follows when it is refreshed.">
 <polygon fill="white" stroke="#666666" points="377.5,-846 215.5,-846 215.5,-827 377.5,-827 377.5,-846"/>
 <text text-anchor="middle" x="296.5" y="-834" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::selectScenario</text>
 </a>
@@ -247,7 +247,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="597.5,-770 449.5,-770 449.5,-751 597.5,-751 597.5,-770"/>
 <text text-anchor="middle" x="523.5" y="-758" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -301,7 +301,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" target="_top" xlink:title="Shows the fields of the selected scenario again.">
 <polygon fill="white" stroke="#666666" points="819,-862 665,-862 665,-843 819,-843 819,-862"/>
 <text text-anchor="middle" x="742" y="-850" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::updateDetail</text>
 </a>
@@ -346,7 +346,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" target="_top" xlink:title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea...">
 <polygon fill="white" stroke="#666666" points="1021,-907.5 876,-907.5 876,-877.5 1021,-877.5 1021,-907.5"/>
 <text text-anchor="start" x="884" y="-895.5" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::headerText</text>
 <text text-anchor="middle" x="948.5" y="-884.5" font-family="Helvetica,sans-Serif" font-size="10.00">Changed</text>
@@ -446,7 +446,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" target="_top" xlink:title="Writes the label of each scenario in the list again.">
 <polygon fill="white" stroke="#666666" points="835,-902 649,-902 649,-883 835,-883 835,-902"/>
 <text text-anchor="middle" x="742" y="-890" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::updatePresentation</text>
 </a>
@@ -590,7 +590,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" target="_top" xlink:title=" ">
+<g id="a_Node000030"><a xlink:href="class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" target="_top" xlink:title="A message for the status bar, shown for timeoutMs milliseconds.">
 <polygon fill="white" stroke="#666666" points="605.5,-370 441.5,-370 441.5,-351 605.5,-351 605.5,-370"/>
 <text text-anchor="middle" x="523.5" y="-358" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::statusMessage</text>
 </a>

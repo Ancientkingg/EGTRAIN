@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#999999" stroke="#666666" points="147,-672.5 0,-672.5 0,-653.5 147,-653.5 147,-672.5"/>
 <text text-anchor="middle" x="73.5" y="-660.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::ServicePanel</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_service_panel.html#a17feafc030f7ea0e4f86b46fac99a04e" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_service_panel.html#a17feafc030f7ea0e4f86b46fac99a04e" target="_top" xlink:title="Appends a service with a new unique id and default values, and selects it.">
 <polygon fill="white" stroke="#666666" points="350,-575.5 211,-575.5 211,-556.5 350,-556.5 350,-575.5"/>
 <text text-anchor="middle" x="280.5" y="-563.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::addService</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" target="_top" xlink:title="Lists the services again and shows the selected one.">
 <polygon fill="white" stroke="#666666" points="567,-522.5 448,-522.5 448,-503.5 567,-503.5 567,-522.5"/>
 <text text-anchor="middle" x="507.5" y="-510.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::refresh</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539" target="_top" xlink:title="Shows the fields of the selected service again.">
 <polygon fill="white" stroke="#666666" points="798,-408.5 650,-408.5 650,-389.5 798,-389.5 798,-408.5"/>
 <text text-anchor="middle" x="724" y="-396.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::updateDetail</text>
 </a>
@@ -130,7 +130,7 @@
 <!-- Node31 -->
 <g id="Node000031" class="node">
 <title>Node31</title>
-<g id="a_Node000031"><a xlink:href="class_service_panel.html#ac20ff0ada36687685f670887d83e9607" target="_top" xlink:title=" ">
+<g id="a_Node000031"><a xlink:href="class_service_panel.html#ac20ff0ada36687685f670887d83e9607" target="_top" xlink:title="Takes the category at index of its combo; the empty category is none.">
 <polygon fill="white" stroke="#666666" points="364,-1004.5 197,-1004.5 197,-985.5 364,-985.5 364,-1004.5"/>
 <text text-anchor="middle" x="280.5" y="-992.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitCategory</text>
 </a>
@@ -148,7 +148,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="class_service_panel.html#a28b81e211b80b2011e49ac2deb2f317e" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="class_service_panel.html#a28b81e211b80b2011e49ac2deb2f317e" target="_top" xlink:title="Takes the composition id.">
 <polygon fill="white" stroke="#666666" points="372.5,-967.5 188.5,-967.5 188.5,-948.5 372.5,-948.5 372.5,-967.5"/>
 <text text-anchor="middle" x="280.5" y="-955.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitComposition</text>
 </a>
@@ -166,7 +166,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="class_service_panel.html#a785a7896dc8890e24e5319873bad4335" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="class_service_panel.html#a785a7896dc8890e24e5319873bad4335" target="_top" xlink:title="Takes the entry time from its field, in whole seconds from the base time; text that is no number coun...">
 <polygon fill="white" stroke="#666666" points="354.5,-1321 206.5,-1321 206.5,-1291 354.5,-1291 354.5,-1321"/>
 <text text-anchor="start" x="214.5" y="-1309" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitEntry</text>
 <text text-anchor="middle" x="280.5" y="-1298" font-family="Helvetica,sans-Serif" font-size="10.00">TimeSeconds</text>
@@ -185,7 +185,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_service_panel.html#a5ecb8f09c12dafff2c02ec82db882598" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_service_panel.html#a5ecb8f09c12dafff2c02ec82db882598" target="_top" xlink:title="Sets whether the service has an entry time.">
 <polygon fill="white" stroke="#666666" points="376,-1272.5 185,-1272.5 185,-1253.5 376,-1253.5 376,-1272.5"/>
 <text text-anchor="middle" x="280.5" y="-1260.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitHasEntryTime</text>
 </a>
@@ -203,7 +203,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="class_service_panel.html#adc2ecaaac7b74cda1a5797cae2db777f" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="class_service_panel.html#adc2ecaaac7b74cda1a5797cae2db777f" target="_top" xlink:title="Sets whether the service has a maximum speed; one that has none gets 100 km/h.">
 <polygon fill="white" stroke="#666666" points="376,-1235 185,-1235 185,-1205 376,-1205 376,-1235"/>
 <text text-anchor="start" x="193" y="-1223" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitHasMaximum</text>
 <text text-anchor="middle" x="280.5" y="-1212" font-family="Helvetica,sans-Serif" font-size="10.00">Speed</text>
@@ -222,7 +222,7 @@
 <!-- Node36 -->
 <g id="Node000036" class="node">
 <title>Node36</title>
-<g id="a_Node000036"><a xlink:href="class_service_panel.html#a5f31261334a1922b4c7353fa4ce44544" target="_top" xlink:title=" ">
+<g id="a_Node000036"><a xlink:href="class_service_panel.html#a5f31261334a1922b4c7353fa4ce44544" target="_top" xlink:title="Sets whether the service code grows by a step with each occurrence; a step of 0 becomes 1.">
 <polygon fill="white" stroke="#666666" points="375,-1187 186,-1187 186,-1157 375,-1157 375,-1187"/>
 <text text-anchor="start" x="194" y="-1175" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitHasOperating</text>
 <text text-anchor="middle" x="280.5" y="-1164" font-family="Helvetica,sans-Serif" font-size="10.00">CodeStep</text>
@@ -241,7 +241,7 @@
 <!-- Node37 -->
 <g id="Node000037" class="node">
 <title>Node37</title>
-<g id="a_Node000037"><a xlink:href="class_service_panel.html#af9781db5f458e0440f10a6fd3a0ea647" target="_top" xlink:title=" ">
+<g id="a_Node000037"><a xlink:href="class_service_panel.html#af9781db5f458e0440f10a6fd3a0ea647" target="_top" xlink:title="Sets whether the service repeats. A service that stops repeating loses its repeat count and code step...">
 <polygon fill="white" stroke="#666666" points="368.5,-1138.5 192.5,-1138.5 192.5,-1119.5 368.5,-1119.5 368.5,-1138.5"/>
 <text text-anchor="middle" x="280.5" y="-1126.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitHasRepeat</text>
 </a>
@@ -259,7 +259,7 @@
 <!-- Node38 -->
 <g id="Node000038" class="node">
 <title>Node38</title>
-<g id="a_Node000038"><a xlink:href="class_service_panel.html#ae62a32c64f7c7416d7efbe8ec65afb76" target="_top" xlink:title=" ">
+<g id="a_Node000038"><a xlink:href="class_service_panel.html#ae62a32c64f7c7416d7efbe8ec65afb76" target="_top" xlink:title="Sets whether the number of occurrences is given; it is at least 1.">
 <polygon fill="white" stroke="#666666" points="368.5,-1101 192.5,-1101 192.5,-1071 368.5,-1071 368.5,-1101"/>
 <text text-anchor="start" x="200.5" y="-1089" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitHasRepeat</text>
 <text text-anchor="middle" x="280.5" y="-1078" font-family="Helvetica,sans-Serif" font-size="10.00">Count</text>
@@ -278,7 +278,7 @@
 <!-- Node39 -->
 <g id="Node000039" class="node">
 <title>Node39</title>
-<g id="a_Node000039"><a xlink:href="class_service_panel.html#ab1f00e35aa9b739296f66e66fc877d33" target="_top" xlink:title=" ">
+<g id="a_Node000039"><a xlink:href="class_service_panel.html#ab1f00e35aa9b739296f66e66fc877d33" target="_top" xlink:title="Takes the headway between occurrences from its field, in whole seconds; text that is no number counts...">
 <polygon fill="white" stroke="#666666" points="364.5,-1053 196.5,-1053 196.5,-1023 364.5,-1023 364.5,-1053"/>
 <text text-anchor="start" x="204.5" y="-1041" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitHeadway</text>
 <text text-anchor="middle" x="280.5" y="-1030" font-family="Helvetica,sans-Serif" font-size="10.00">Seconds</text>
@@ -297,7 +297,7 @@
 <!-- Node40 -->
 <g id="Node000040" class="node">
 <title>Node40</title>
-<g id="a_Node000040"><a xlink:href="class_service_panel.html#aaf5de4ccfa7af1694719ae9a556e80b9" target="_top" xlink:title=" ">
+<g id="a_Node000040"><a xlink:href="class_service_panel.html#aaf5de4ccfa7af1694719ae9a556e80b9" target="_top" xlink:title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again.">
 <polygon fill="white" stroke="#666666" points="355.5,-387.5 205.5,-387.5 205.5,-368.5 355.5,-368.5 355.5,-387.5"/>
 <text text-anchor="middle" x="280.5" y="-375.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitIdEdit</text>
 </a>
@@ -315,7 +315,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="class_service_panel.html#a0761e558153379882120fe741760f45a" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="class_service_panel.html#a0761e558153379882120fe741760f45a" target="_top" xlink:title="Takes the maximum speed in km/h from its field.">
 <polygon fill="white" stroke="#666666" points="366.5,-882 194.5,-882 194.5,-852 366.5,-852 366.5,-882"/>
 <text text-anchor="start" x="202.5" y="-870" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitMaximum</text>
 <text text-anchor="middle" x="280.5" y="-859" font-family="Helvetica,sans-Serif" font-size="10.00">Speed</text>
@@ -334,7 +334,7 @@
 <!-- Node44 -->
 <g id="Node000044" class="node">
 <title>Node44</title>
-<g id="a_Node000044"><a xlink:href="class_service_panel.html#a5927be489e40c621d79f382842ffaaa1" target="_top" xlink:title=" ">
+<g id="a_Node000044"><a xlink:href="class_service_panel.html#a5927be489e40c621d79f382842ffaaa1" target="_top" xlink:title="Takes the service code (the operating code) from its field, trimmed.">
 <polygon fill="white" stroke="#666666" points="378,-833.5 183,-833.5 183,-814.5 378,-814.5 378,-833.5"/>
 <text text-anchor="middle" x="280.5" y="-821.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitOperatingCode</text>
 </a>
@@ -352,7 +352,7 @@
 <!-- Node45 -->
 <g id="Node000045" class="node">
 <title>Node45</title>
-<g id="a_Node000045"><a xlink:href="class_service_panel.html#ac75d7eeafcb94d6cb01bd6f79a30f275" target="_top" xlink:title=" ">
+<g id="a_Node000045"><a xlink:href="class_service_panel.html#ac75d7eeafcb94d6cb01bd6f79a30f275" target="_top" xlink:title="Takes the step of the service code from its field; text that is no number, and 0, become 1.">
 <polygon fill="white" stroke="#666666" points="365.5,-796 195.5,-796 195.5,-766 365.5,-766 365.5,-796"/>
 <text text-anchor="start" x="203.5" y="-784" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitOperating</text>
 <text text-anchor="middle" x="280.5" y="-773" font-family="Helvetica,sans-Serif" font-size="10.00">CodeStep</text>
@@ -371,7 +371,7 @@
 <!-- Node46 -->
 <g id="Node000046" class="node">
 <title>Node46</title>
-<g id="a_Node000046"><a xlink:href="class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38" target="_top" xlink:title=" ">
+<g id="a_Node000046"><a xlink:href="class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38" target="_top" xlink:title="Takes the running performance in percent, held between 1 and 100.">
 <polygon fill="white" stroke="#666666" points="373,-748 188,-748 188,-718 373,-718 373,-748"/>
 <text text-anchor="start" x="196" y="-736" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitPerformance</text>
 <text text-anchor="middle" x="280.5" y="-725" font-family="Helvetica,sans-Serif" font-size="10.00">Percent</text>
@@ -390,7 +390,7 @@
 <!-- Node47 -->
 <g id="Node000047" class="node">
 <title>Node47</title>
-<g id="a_Node000047"><a xlink:href="class_service_panel.html#ae3c8883d6ef76b0c4f71ddbb705b8dcc" target="_top" xlink:title=" ">
+<g id="a_Node000047"><a xlink:href="class_service_panel.html#ae3c8883d6ef76b0c4f71ddbb705b8dcc" target="_top" xlink:title="Takes the number of occurrences, including the first, from its field; text that is no number counts a...">
 <polygon fill="white" stroke="#666666" points="359,-700 202,-700 202,-670 359,-670 359,-700"/>
 <text text-anchor="start" x="210" y="-688" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitRepeat</text>
 <text text-anchor="middle" x="280.5" y="-677" font-family="Helvetica,sans-Serif" font-size="10.00">Count</text>
@@ -409,7 +409,7 @@
 <!-- Node48 -->
 <g id="Node000048" class="node">
 <title>Node48</title>
-<g id="a_Node000048"><a xlink:href="class_service_panel.html#af95206d6b08f3ffca4b8f4f4dcc4456e" target="_top" xlink:title=" ">
+<g id="a_Node000048"><a xlink:href="class_service_panel.html#af95206d6b08f3ffca4b8f4f4dcc4456e" target="_top" xlink:title="Takes the route at index of the route combo.">
 <polygon fill="white" stroke="#666666" points="356,-651.5 205,-651.5 205,-632.5 356,-632.5 356,-651.5"/>
 <text text-anchor="middle" x="280.5" y="-639.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitRoute</text>
 </a>
@@ -427,7 +427,7 @@
 <!-- Node49 -->
 <g id="Node000049" class="node">
 <title>Node49</title>
-<g id="a_Node000049"><a xlink:href="class_service_panel.html#a3ce72403e5525acc9ddba510773617d7" target="_top" xlink:title=" ">
+<g id="a_Node000049"><a xlink:href="class_service_panel.html#a3ce72403e5525acc9ddba510773617d7" target="_top" xlink:title="Takes the display colour, &quot;#rrggbb&quot; or empty for the default.">
 <polygon fill="white" stroke="#666666" points="373,-930 188,-930 188,-900 373,-900 373,-930"/>
 <text text-anchor="start" x="196" y="-918" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::commitVisualization</text>
 <text text-anchor="middle" x="280.5" y="-907" font-family="Helvetica,sans-Serif" font-size="10.00">Color</text>
@@ -465,7 +465,7 @@
 <!-- Node51 -->
 <g id="Node000051" class="node">
 <title>Node51</title>
-<g id="a_Node000051"><a xlink:href="class_service_panel.html#a8bdbff0bbf3dd4d8c17349885263b254" target="_top" xlink:title=" ">
+<g id="a_Node000051"><a xlink:href="class_service_panel.html#a8bdbff0bbf3dd4d8c17349885263b254" target="_top" xlink:title="Deletes the selected service after the user has confirmed it; refused while something refers to it.">
 <polygon fill="white" stroke="#666666" points="356.5,-424.5 204.5,-424.5 204.5,-405.5 356.5,-405.5 356.5,-424.5"/>
 <text text-anchor="middle" x="280.5" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::deleteService</text>
 </a>
@@ -483,7 +483,7 @@
 <!-- Node57 -->
 <g id="Node000057" class="node">
 <title>Node57</title>
-<g id="a_Node000057"><a xlink:href="class_service_panel.html#a3c94766eeee29aa92581d5f646f520c9" target="_top" xlink:title=" ">
+<g id="a_Node000057"><a xlink:href="class_service_panel.html#a3c94766eeee29aa92581d5f646f520c9" target="_top" xlink:title="Inserts a copy of the selected service, with a new unique id, after it.">
 <polygon fill="white" stroke="#666666" points="363.5,-538.5 197.5,-538.5 197.5,-519.5 363.5,-519.5 363.5,-538.5"/>
 <text text-anchor="middle" x="280.5" y="-526.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::duplicateService</text>
 </a>
@@ -520,7 +520,7 @@
 <!-- Node59 -->
 <g id="Node000059" class="node">
 <title>Node59</title>
-<g id="a_Node000059"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title=" ">
+<g id="a_Node000059"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title="A panel without a document.">
 <polygon fill="white" stroke="#666666" points="362.5,-30 198.5,-30 198.5,0 362.5,0 362.5,-30"/>
 <text text-anchor="start" x="206.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::SceneEditor</text>
 <text text-anchor="middle" x="280.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -539,7 +539,7 @@
 <!-- Node60 -->
 <g id="Node000060" class="node">
 <title>Node60</title>
-<g id="a_Node000060"><a xlink:href="class_service_panel.html#a2eb6b32f3916a21d5b88001e4b8fd36c" target="_top" xlink:title=" ">
+<g id="a_Node000060"><a xlink:href="class_service_panel.html#a2eb6b32f3916a21d5b88001e4b8fd36c" target="_top" xlink:title="Includes every occurrence in the next run.">
 <polygon fill="white" stroke="#666666" points="601,-663.5 414,-663.5 414,-644.5 601,-644.5 601,-663.5"/>
 <text text-anchor="middle" x="507.5" y="-651.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::selectAllOccurrences</text>
 </a>
@@ -557,7 +557,7 @@
 <!-- Node61 -->
 <g id="Node000061" class="node">
 <title>Node61</title>
-<g id="a_Node000061"><a xlink:href="class_service_panel.html#a1676d8e741844b1aca79e0317588fda5" target="_top" xlink:title=" ">
+<g id="a_Node000061"><a xlink:href="class_service_panel.html#a1676d8e741844b1aca79e0317588fda5" target="_top" xlink:title="Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the...">
 <polygon fill="white" stroke="#666666" points="577.5,-571 437.5,-571 437.5,-541 577.5,-541 577.5,-571"/>
 <text text-anchor="start" x="445.5" y="-559" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::selectNone</text>
 <text text-anchor="middle" x="507.5" y="-548" font-family="Helvetica,sans-Serif" font-size="10.00">Occurrences</text>
@@ -576,7 +576,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="581.5,-967.5 433.5,-967.5 433.5,-948.5 581.5,-948.5 581.5,-967.5"/>
 <text text-anchor="middle" x="507.5" y="-955.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -621,7 +621,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" target="_top" xlink:title="Lists the occurrences again.">
 <polygon fill="#fff0f0" stroke="red" points="811,-878 637,-878 637,-848 811,-848 811,-878"/>
 <text text-anchor="start" x="645" y="-866" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::refreshOccurrence</text>
 <text text-anchor="middle" x="724" y="-855" font-family="Helvetica,sans-Serif" font-size="10.00">Preview</text>

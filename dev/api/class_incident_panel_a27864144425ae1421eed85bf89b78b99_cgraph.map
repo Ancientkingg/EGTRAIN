@@ -1,6 +1,6 @@
 <map id="IncidentPanel::updateDetail" name="IncidentPanel::updateDetail">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,188,207,213"/>
-<area shape="rect" id="Node000002" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title=" " alt="" coords="255,147,465,172"/>
+<area shape="rect" id="Node000001" title="Shows the fields of the selected incident again." alt="" coords="5,188,207,213"/>
+<area shape="rect" id="Node000002" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title="Lists the choices of targets of the selected incident again." alt="" coords="255,147,465,172"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,185,268,172,268,177,185,191"/>
 <area shape="rect" id="Node000007" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="277,224,443,249"/>
 <area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="196,211,263,220,262,226,196,216"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the occurrence and the delay that are being edited into the document.">
 <polygon fill="#999999" stroke="#666666" points="133,-106 0,-106 0,-76 133,-76 133,-106"/>
 <text text-anchor="start" x="8" y="-94" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="66.5" y="-83" font-family="Helvetica,sans-Serif" font-size="10.00">::commitPendingEditors</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_entrance_delay_panel.html#a08697c3bb62f317c1a172a1ab12ea242" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_entrance_delay_panel.html#a08697c3bb62f317c1a172a1ab12ea242" target="_top" xlink:title="Takes the occurrence from its field.">
 <polygon fill="white" stroke="#666666" points="284,-82 169,-82 169,-52 284,-52 284,-82"/>
 <text text-anchor="start" x="177" y="-70" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="226.5" y="-59" font-family="Helvetica,sans-Serif" font-size="10.00">::commitOccurrence</text>
@@ -40,7 +40,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_entrance_delay_panel.html#acd386ab2684633c40d040000b8f615fa" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_entrance_delay_panel.html#acd386ab2684633c40d040000b8f615fa" target="_top" xlink:title="Takes the delay in seconds from its field.">
 <polygon fill="white" stroke="#666666" points="283.5,-130 169.5,-130 169.5,-100 283.5,-100 283.5,-130"/>
 <text text-anchor="start" x="177.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="226.5" y="-107" font-family="Helvetica,sans-Serif" font-size="10.00">::commitSeconds</text>
@@ -59,7 +59,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="468,-55.5 320,-55.5 320,-36.5 468,-36.5 468,-55.5"/>
 <text text-anchor="middle" x="394" y="-43.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -77,7 +77,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title="Lists the delays of the selected scenario again and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="451,-152 337,-152 337,-122 451,-122 451,-152"/>
 <text text-anchor="start" x="345" y="-140" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="394" y="-129" font-family="Helvetica,sans-Serif" font-size="10.00">::refresh</text>
@@ -133,7 +133,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title="Shows the fields of the selected delay again.">
 <polygon fill="white" stroke="#666666" points="618,-113 504,-113 504,-83 618,-83 618,-113"/>
 <text text-anchor="start" x="512" y="-101" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="561" y="-90" font-family="Helvetica,sans-Serif" font-size="10.00">::updateDetail</text>

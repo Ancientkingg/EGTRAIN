@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the fields, disabled until a loaded document is set.">
 <polygon fill="#999999" stroke="#666666" points="113,-139 0,-139 0,-109 113,-109 113,-139"/>
 <text text-anchor="start" x="8" y="-127" font-family="Helvetica,sans-Serif" font-size="10.00">CaseSettingsPanel::</text>
 <text text-anchor="middle" x="56.5" y="-116" font-family="Helvetica,sans-Serif" font-size="10.00">CaseSettingsPanel</text>
@@ -59,7 +59,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9" target="_top" xlink:title="Shows the current state of the document.">
 <polygon fill="white" stroke="#666666" points="287.5,-139 174.5,-139 174.5,-109 287.5,-109 287.5,-139"/>
 <text text-anchor="start" x="182.5" y="-127" font-family="Helvetica,sans-Serif" font-size="10.00">CaseSettingsPanel::</text>
 <text text-anchor="middle" x="231" y="-116" font-family="Helvetica,sans-Serif" font-size="10.00">refresh</text>
@@ -78,7 +78,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title="A panel without a document.">
 <polygon fill="white" stroke="#666666" points="313,-91 149,-91 149,-61 313,-61 313,-91"/>
 <text text-anchor="start" x="157" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::SceneEditor</text>
 <text text-anchor="middle" x="231" y="-68" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -115,7 +115,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" target="_top" xlink:title="The base time of the model has been set to this text. Emitted before the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="479.5,-281 366.5,-281 366.5,-251 479.5,-251 479.5,-281"/>
 <text text-anchor="start" x="374.5" y="-269" font-family="Helvetica,sans-Serif" font-size="10.00">CaseSettingsPanel::</text>
 <text text-anchor="middle" x="423" y="-258" font-family="Helvetica,sans-Serif" font-size="10.00">baseTimeChanged</text>
@@ -134,7 +134,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="497,-232.5 349,-232.5 349,-213.5 497,-213.5 497,-232.5"/>
 <text text-anchor="middle" x="423" y="-220.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>

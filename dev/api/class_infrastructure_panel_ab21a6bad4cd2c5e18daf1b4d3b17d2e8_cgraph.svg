@@ -40,7 +40,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" target="_top" xlink:title="The text that names a section in a list of sections.">
 <polygon fill="white" stroke="#666666" points="290.5,-30 181.5,-30 181.5,0 290.5,0 290.5,-30"/>
 <text text-anchor="start" x="189.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="236" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::sectionLabel</text>

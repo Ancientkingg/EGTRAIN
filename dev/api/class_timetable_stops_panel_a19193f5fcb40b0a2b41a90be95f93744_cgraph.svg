@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Opens the dialog for a new stop after the selected one.">
 <polygon fill="#999999" stroke="#666666" points="137,-434.34 0,-434.34 0,-404.34 137,-404.34 137,-434.34"/>
 <text text-anchor="start" x="8" y="-422.34" font-family="Helvetica,sans-Serif" font-size="10.00">TimetableStopsPanel</text>
 <text text-anchor="middle" x="68.5" y="-411.34" font-family="Helvetica,sans-Serif" font-size="10.00">::insertStopAfterSelected</text>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="484,-734.84 336,-734.84 336,-715.84 484,-715.84 484,-734.84"/>
 <text text-anchor="middle" x="410" y="-722.84" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -239,7 +239,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" target="_top" xlink:title="Lists the stops of the service again.">
 <polygon fill="white" stroke="#666666" points="469.5,-456.34 350.5,-456.34 350.5,-426.34 469.5,-426.34 469.5,-456.34"/>
 <text text-anchor="start" x="358.5" y="-444.34" font-family="Helvetica,sans-Serif" font-size="10.00">TimetableStopsPanel</text>
 <text text-anchor="middle" x="410" y="-433.34" font-family="Helvetica,sans-Serif" font-size="10.00">::refresh</text>
@@ -700,7 +700,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" target="_top" xlink:title=" ">
+<g id="a_Node000024"><a xlink:href="class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" target="_top" xlink:title="The table shows the stops again, so what depends on the timetable of the services is out of date.">
 <polygon fill="white" stroke="#666666" points="685,-474.34 566,-474.34 566,-444.34 685,-444.34 685,-474.34"/>
 <text text-anchor="start" x="574" y="-462.34" font-family="Helvetica,sans-Serif" font-size="10.00">TimetableStopsPanel</text>
 <text text-anchor="middle" x="625.5" y="-451.34" font-family="Helvetica,sans-Serif" font-size="10.00">::timetableRefreshed</text>

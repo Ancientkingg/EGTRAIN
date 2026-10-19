@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Writes the selected scenario to a scenario JSON file.">
 <polygon fill="#999999" stroke="#666666" points="164,-200 0,-200 0,-181 164,-181 164,-200"/>
 <text text-anchor="middle" x="82" y="-188" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::exportScenario</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" target="_top" xlink:title="A message for the status bar, shown for timeoutMs milliseconds.">
 <polygon fill="white" stroke="#666666" points="364,-200 200,-200 200,-181 364,-181 364,-200"/>
 <text text-anchor="middle" x="282" y="-188" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioPanel::statusMessage</text>
 </a>

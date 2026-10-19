@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" target="_top" xlink:title="The base time of the model has been set to this text. Emitted before the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="279.5,-67.5 166.5,-67.5 166.5,-37.5 279.5,-37.5 279.5,-67.5"/>
 <text text-anchor="start" x="174.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">CaseSettingsPanel::</text>
 <text text-anchor="middle" x="223" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">baseTimeChanged</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="297,-19 149,-19 149,0 297,0 297,-19"/>
 <text text-anchor="middle" x="223" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>

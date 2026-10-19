@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Lists the choices of targets of the selected incident again.">
 <polygon fill="#999999" stroke="#666666" points="158,-49 0,-49 0,-30 158,-30 158,-49"/>
 <text text-anchor="middle" x="79" y="-37" font-family="Helvetica,sans-Serif" font-size="10.00">IncidentPanel::refreshTargets</text>
 </a>

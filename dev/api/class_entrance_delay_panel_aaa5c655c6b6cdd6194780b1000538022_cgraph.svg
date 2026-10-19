@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Deletes the selected delay after the user has confirmed it.">
 <polygon fill="#999999" stroke="#666666" points="125,-158 0,-158 0,-128 125,-128 125,-158"/>
 <text text-anchor="start" x="8" y="-146" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="62.5" y="-135" font-family="Helvetica,sans-Serif" font-size="10.00">::deleteEntranceDelay</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="309,-174.5 161,-174.5 161,-155.5 309,-155.5 309,-174.5"/>
 <text text-anchor="middle" x="235" y="-162.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title="Lists the delays of the selected scenario again and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="292,-137 178,-137 178,-107 292,-107 292,-137"/>
 <text text-anchor="start" x="186" y="-125" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="235" y="-114" font-family="Helvetica,sans-Serif" font-size="10.00">::refresh</text>
@@ -76,7 +76,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title="Shows the fields of the selected delay again.">
 <polygon fill="white" stroke="#666666" points="459,-116 345,-116 345,-86 459,-86 459,-116"/>
 <text text-anchor="start" x="353" y="-104" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="402" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">::updateDetail</text>

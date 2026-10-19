@@ -1,9 +1,9 @@
 <map id="SceneDocument::replace" name="SceneDocument::replace">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,189,56"/>
-<area shape="rect" id="Node000002" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title=" " alt="" coords="237,5,429,31"/>
+<area shape="rect" id="Node000001" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s..." alt="" coords="5,31,189,56"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="237,5,429,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,31,223,27,224,32,190,36"/>
-<area shape="rect" id="Node000003" href="$class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" title=" " alt="" coords="239,55,427,80"/>
+<area shape="rect" id="Node000003" href="$class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" title="Sets the dirty state, and emits dirtyChanged() when it changes." alt="" coords="239,55,427,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,50,226,54,225,59,189,55"/>
-<area shape="rect" id="Node000004" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title=" " alt="" coords="477,55,700,80"/>
+<area shape="rect" id="Node000004" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty." alt="" coords="477,55,700,80"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="428,65,463,65,463,70,428,70"/>
 </map>

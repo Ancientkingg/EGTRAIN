@@ -1,50 +1,50 @@
 <map id="TrainUnitPanel::TrainUnitPanel" name="TrainUnitPanel::TrainUnitPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,607,187,647"/>
+<area shape="rect" id="Node000001" title="Makes the widgets, empty until a loaded document is set." alt="" coords="5,607,187,647"/>
 <area shape="rect" id="Node000002" href="$class_train_unit_panel.html#a952596f47c0ddb56e339b03db9eb7944" title=" " alt="" coords="247,261,474,287"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,607,106,545,129,461,147,415,170,371,198,331,233,296,239,292,242,296,236,300,202,334,174,374,152,418,134,462,112,546,102,608"/>
-<area shape="rect" id="Node000004" href="$class_train_unit_panel.html#a24c77d62bbfdbe5bff7c307b14fb07a6" title=" " alt="" coords="273,113,448,139"/>
+<area shape="rect" id="Node000004" href="$class_train_unit_panel.html#a24c77d62bbfdbe5bff7c307b14fb07a6" title="Appends a unit with a new unique id and selects it." alt="" coords="273,113,448,139"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="98,607,114,510,143,371,162,300,183,236,207,183,233,148,259,132,261,137,236,152,211,186,188,238,167,302,148,372,119,511,103,608"/>
-<area shape="rect" id="Node000005" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title=" " alt="" coords="571,79,740,104"/>
+<area shape="rect" id="Node000005" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title="Lists the units again and shows the selected one." alt="" coords="571,79,740,104"/>
 <area shape="poly" id="edge57_Node000001_Node000005" title=" " alt="" coords="97,607,110,500,137,345,155,266,177,194,203,136,218,115,233,99,257,86,290,77,373,70,468,71,557,78,557,83,468,77,373,75,291,83,259,91,236,103,222,118,208,139,182,196,161,267,142,346,116,500,102,608"/>
-<area shape="rect" id="Node000009" href="$class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" title=" " alt="" coords="255,409,466,435"/>
+<area shape="rect" id="Node000009" href="$class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="255,409,466,435"/>
 <area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="104,606,123,570,151,526,188,481,233,444,244,438,247,442,236,448,192,485,155,529,127,573,109,608"/>
 <area shape="rect" id="Node000012" href="$class_train_unit_panel.html#a882a356aa1d9d93d9489e4f1e9c716bf" title=" " alt="" coords="247,311,474,336"/>
 <area shape="poly" id="edge17_Node000001_Node000012" title=" " alt="" coords="98,607,111,553,136,482,154,444,176,408,202,374,233,345,240,340,243,345,236,349,206,378,180,411,158,447,141,484,116,555,103,608"/>
-<area shape="rect" id="Node000013" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title=" " alt="" coords="249,459,473,484"/>
+<area shape="rect" id="Node000013" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title="Takes the parameter and traction source references from their fields." alt="" coords="249,459,473,484"/>
 <area shape="poly" id="edge19_Node000001_Node000013" title=" " alt="" coords="111,605,161,549,195,519,233,494,253,486,255,491,236,499,198,523,164,553,115,609"/>
 <area shape="rect" id="Node000015" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title=" " alt="" coords="267,509,454,549"/>
 <area shape="poly" id="edge22_Node000001_Node000015" title=" " alt="" coords="133,605,180,581,234,558,258,550,260,555,236,563,182,586,135,610"/>
-<area shape="rect" id="Node000017" href="$class_train_unit_panel.html#a39c33b0ee0eb7fd73494e957b77a752a" title=" " alt="" coords="265,212,456,237"/>
+<area shape="rect" id="Node000017" href="$class_train_unit_panel.html#a39c33b0ee0eb7fd73494e957b77a752a" title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it." alt="" coords="265,212,456,237"/>
 <area shape="poly" id="edge25_Node000001_Node000017" title=" " alt="" coords="95,607,102,537,123,440,140,387,164,335,194,288,233,247,251,235,254,239,236,251,199,291,168,338,145,389,128,441,108,538,101,607"/>
-<area shape="rect" id="Node000026" href="$class_train_unit_panel.html#a85f63f7e107fb87d41832ee72f112da6" title=" " alt="" coords="255,163,466,188"/>
+<area shape="rect" id="Node000026" href="$class_train_unit_panel.html#a85f63f7e107fb87d41832ee72f112da6" title="Inserts a copy of the selected unit, with a new unique id, after it." alt="" coords="255,163,466,188"/>
 <area shape="poly" id="edge41_Node000001_Node000026" title=" " alt="" coords="94,607,98,530,105,477,116,418,133,358,158,299,190,244,233,197,242,191,245,195,236,201,195,248,163,302,138,360,121,420,110,477,104,530,100,607"/>
 <area shape="rect" id="Node000027" href="$namespace_editor_layout.html#a769ed47df9b55c4bc2b8f3d98eecbf32" title=" " alt="" coords="267,647,455,687"/>
 <area shape="poly" id="edge46_Node000001_Node000027" title=" " alt="" coords="187,638,253,648,252,654,186,644"/>
-<area shape="rect" id="Node000032" href="$class_train_unit_panel.html#a5cd7e623087d526e823baa6607af67cf" title=" " alt="" coords="265,573,456,599"/>
+<area shape="rect" id="Node000032" href="$class_train_unit_panel.html#a5cd7e623087d526e823baa6607af67cf" title="The button that links the traction file (traction true) or the parameter file." alt="" coords="265,573,456,599"/>
 <area shape="poly" id="edge56_Node000001_Node000032" title=" " alt="" coords="186,611,265,598,266,603,187,616"/>
-<area shape="rect" id="Node000033" href="$class_train_unit_panel.html#a79506385069633fb6e79d87db52897a4" title=" " alt="" coords="235,360,487,385"/>
+<area shape="rect" id="Node000033" href="$class_train_unit_panel.html#a79506385069633fb6e79d87db52897a4" title="Removes the selected traction curve row." alt="" coords="235,360,487,385"/>
 <area shape="poly" id="edge58_Node000001_Node000033" title=" " alt="" coords="101,606,116,561,143,504,182,444,206,417,233,395,241,389,244,394,236,399,209,421,186,447,148,506,121,564,106,608"/>
-<area shape="rect" id="Node000034" href="$class_train_unit_panel.html#aa47fec1cc64dd1f967bd23e1d939e174" title=" " alt="" coords="262,712,459,737"/>
+<area shape="rect" id="Node000034" href="$class_train_unit_panel.html#aa47fec1cc64dd1f967bd23e1d939e174" title="The button that takes the linked traction file (traction true) or parameter file again." alt="" coords="262,712,459,737"/>
 <area shape="poly" id="edge60_Node000001_Node000034" title=" " alt="" coords="131,645,179,672,236,697,267,706,265,711,234,702,177,677,128,650"/>
-<area shape="rect" id="Node000035" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title=" " alt="" coords="251,762,470,802"/>
+<area shape="rect" id="Node000035" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="251,762,470,802"/>
 <area shape="poly" id="edge61_Node000001_Node000035" title=" " alt="" coords="117,646,167,696,200,723,236,746,253,755,251,759,233,751,197,728,163,700,113,650"/>
 <area shape="rect" id="Node000036" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="254,851,467,876"/>
 <area shape="poly" id="edge62_Node000001_Node000036" title=" " alt="" coords="110,646,158,726,194,772,236,812,266,830,298,844,295,849,263,835,233,816,190,775,153,729,105,649"/>
 <area shape="rect" id="Node000037" href="$namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde" title=" " alt="" coords="554,876,757,901"/>
 <area shape="poly" id="edge72_Node000001_Node000037" title=" " alt="" coords="103,647,116,698,140,766,158,801,179,834,205,863,236,886,281,908,329,921,379,928,429,929,524,919,600,902,601,908,524,924,429,934,378,933,328,926,279,913,233,891,202,867,175,837,153,803,135,768,111,700,98,648"/>
-<area shape="rect" id="Node000038" href="$class_train_unit_panel.html#af2652ae180796207e2e8ea6ca0310d8c" title=" " alt="" coords="258,952,463,977"/>
+<area shape="rect" id="Node000038" href="$class_train_unit_panel.html#af2652ae180796207e2e8ea6ca0310d8c" title="The shown unit, or null." alt="" coords="258,952,463,977"/>
 <area shape="poly" id="edge66_Node000001_Node000038" title=" " alt="" coords="103,647,115,704,139,781,156,822,178,862,205,899,236,931,258,944,255,949,233,935,201,902,174,865,152,824,134,783,110,705,98,648"/>
 <area shape="rect" id="Node000039" href="$class_train_unit_panel.html#adf0ef5738595e9fc20e9e0255cef59c2" title=" " alt="" coords="264,1002,457,1042"/>
 <area shape="poly" id="edge67_Node000001_Node000039" title=" " alt="" coords="101,647,110,713,131,805,149,855,172,904,201,949,236,988,253,1000,250,1004,233,992,196,952,167,906,144,857,126,807,105,714,96,648"/>
-<area shape="rect" id="Node000040" href="$class_train_unit_panel.html#ad4b2eb10354f6fd9c3a023406d8eb36b" title=" " alt="" coords="260,1066,461,1106"/>
+<area shape="rect" id="Node000040" href="$class_train_unit_panel.html#ad4b2eb10354f6fd9c3a023406d8eb36b" title="The user asks to take the linked traction file (traction true) or parameter file of the shown unit ag..." alt="" coords="260,1066,461,1106"/>
 <area shape="poly" id="edge68_Node000001_Node000040" title=" " alt="" coords="100,647,105,723,112,775,123,832,140,892,164,950,196,1005,237,1052,249,1062,246,1066,233,1056,192,1008,160,953,135,894,118,834,107,776,100,724,95,648"/>
-<area shape="rect" id="Node000041" href="$class_train_unit_panel.html#a003f8f0aa7aa9b5b70bb422ebc7de768" title=" " alt="" coords="257,1130,465,1170"/>
+<area shape="rect" id="Node000041" href="$class_train_unit_panel.html#a003f8f0aa7aa9b5b70bb422ebc7de768" title="The user asks to unlink the traction file (traction true) or the parameter file of the shown unit." alt="" coords="257,1130,465,1170"/>
 <area shape="poly" id="edge69_Node000001_Node000041" title=" " alt="" coords="99,648,100,733,105,793,116,860,132,929,157,997,191,1061,212,1090,237,1116,247,1124,243,1129,233,1120,208,1093,187,1064,152,999,127,930,110,861,100,794,95,734,94,648"/>
-<area shape="rect" id="Node000042" href="$class_train_unit_panel.html#ab91dedec627e1e09bf8405f47c6ee3c1" title=" " alt="" coords="274,1194,447,1234"/>
+<area shape="rect" id="Node000042" href="$class_train_unit_panel.html#ab91dedec627e1e09bf8405f47c6ee3c1" title="The plot of the traction curve of this unit is wanted." alt="" coords="274,1194,447,1234"/>
 <area shape="poly" id="edge70_Node000001_Node000042" title=" " alt="" coords="102,647,117,758,144,918,163,1001,185,1077,209,1139,223,1162,236,1180,263,1198,260,1202,233,1184,218,1165,204,1141,179,1079,158,1003,139,919,111,758,97,648"/>
-<area shape="rect" id="Node000043" href="$class_train_unit_panel.html#a09f9aed0cdb0a883a8041e9e83c41f6d" title=" " alt="" coords="257,1259,464,1284"/>
+<area shape="rect" id="Node000043" href="$class_train_unit_panel.html#a09f9aed0cdb0a883a8041e9e83c41f6d" title="The button that unlinks the traction file (traction true) or the parameter file." alt="" coords="257,1259,464,1284"/>
 <area shape="poly" id="edge71_Node000001_Node000043" title=" " alt="" coords="102,648,114,770,139,950,158,1044,180,1129,206,1198,221,1225,237,1244,247,1252,243,1257,233,1248,216,1228,201,1200,175,1130,152,1045,134,951,108,771,96,648"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="557,316,754,341"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="557,316,754,341"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="430,284,573,311,572,316,429,289"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="449,128,470,136,488,148,504,167,512,187,514,226,515,265,522,284,537,301,546,309,543,313,533,305,517,286,510,266,508,227,507,188,500,170,485,152,467,140,447,133"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="448,113,557,100,558,105,448,118"/>
@@ -60,12 +60,12 @@
 <area shape="poly" id="edge15_Node000009_Node000008" title=" " alt="" coords="465,409,485,395,504,369,512,343,512,317,509,290,505,262,506,234,514,206,533,179,548,166,551,171,537,182,518,209,511,235,511,262,514,289,517,317,517,344,508,372,489,399,468,413"/>
 <area shape="rect" id="Node000010" href="$_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" title="Rewrites the train unit id in the units of compositions." alt="" coords="535,389,776,415"/>
 <area shape="poly" id="edge13_Node000009_Node000010" title=" " alt="" coords="466,412,521,408,521,414,466,418"/>
-<area shape="rect" id="Node000011" href="$class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" title=" " alt="" coords="550,439,761,464"/>
+<area shape="rect" id="Node000011" href="$class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" title="The unit has got another id. Emitted after the document is marked changed." alt="" coords="550,439,761,464"/>
 <area shape="poly" id="edge16_Node000009_Node000011" title=" " alt="" coords="466,430,537,437,536,442,466,435"/>
 <area shape="poly" id="edge14_Node000010_Node000010" title=" " alt="" coords="609,391,598,381,604,371,623,365,655,363,697,367,709,372,712,378,707,381,705,376,696,372,655,368,624,370,607,375,604,380,612,387"/>
 <area shape="poly" id="edge18_Node000012_Node000003" title=" " alt="" coords="474,323,543,324,543,329,474,328"/>
 <area shape="poly" id="edge20_Node000013_Node000003" title=" " alt="" coords="463,456,485,444,496,433,502,422,508,399,514,374,521,362,533,351,543,344,546,349,536,355,526,365,519,376,513,400,507,424,500,437,488,448,466,461"/>
-<area shape="rect" id="Node000014" href="$class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" title=" " alt="" coords="536,489,775,529"/>
+<area shape="rect" id="Node000014" href="$class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" title="The references to the source files of the shown unit have changed." alt="" coords="536,489,775,529"/>
 <area shape="poly" id="edge21_Node000013_Node000014" title=" " alt="" coords="462,481,523,489,522,494,461,487"/>
 <area shape="rect" id="Node000016" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="583,577,728,603"/>
 <area shape="poly" id="edge23_Node000015_Node000016" title=" " alt="" coords="455,545,581,572,580,577,454,551"/>
@@ -75,7 +75,7 @@
 <area shape="poly" id="edge39_Node000017_Node000008" title=" " alt="" coords="434,209,486,197,534,178,560,170,562,175,536,183,487,202,436,215"/>
 <area shape="rect" id="Node000018" href="$_scene_references_8cpp.html#a08f3f60ca755346a82a46d9013729e12" title=" " alt="" coords="548,217,763,243"/>
 <area shape="poly" id="edge28_Node000017_Node000018" title=" " alt="" coords="456,224,534,225,534,230,456,229"/>
-<area shape="rect" id="Node000025" href="$class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" title=" " alt="" coords="556,267,755,292"/>
+<area shape="rect" id="Node000025" href="$class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" title="The unit is gone from the model. Emitted after the document is marked changed." alt="" coords="556,267,755,292"/>
 <area shape="poly" id="edge40_Node000017_Node000025" title=" " alt="" coords="430,235,573,261,572,267,429,240"/>
 <area shape="poly" id="edge38_Node000018_Node000018" title=" " alt="" coords="609,219,598,209,604,199,623,193,655,191,697,195,709,200,712,206,707,209,705,204,696,200,655,196,624,198,607,203,604,208,612,215"/>
 <area shape="rect" id="Node000019" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="845,160,1047,185"/>

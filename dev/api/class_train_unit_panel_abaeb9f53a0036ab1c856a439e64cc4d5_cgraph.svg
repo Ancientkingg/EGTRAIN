@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again.">
 <polygon fill="#999999" stroke="#666666" points="158,-83 0,-83 0,-64 158,-64 158,-83"/>
 <text text-anchor="middle" x="79" y="-71" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::commitIdEdit</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="358.5,-160 210.5,-160 210.5,-141 358.5,-141 358.5,-160"/>
 <text text-anchor="middle" x="284.5" y="-148" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title="The unit has got another id. Emitted after the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="363.5,-19 205.5,-19 205.5,0 363.5,0 363.5,-19"/>
 <text text-anchor="middle" x="284.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitRenamed</text>
 </a>

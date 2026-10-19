@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Asks for the plot of the selected unit, which has to have a traction curve.">
 <polygon fill="#999999" stroke="#666666" points="171,-51 0,-51 0,-21 171,-21 171,-51"/>
 <text text-anchor="start" x="8" y="-39" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::plotSelected</text>
 <text text-anchor="middle" x="85.5" y="-28" font-family="Helvetica,sans-Serif" font-size="10.00">UnitTraction</text>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8" target="_top" xlink:title="The plot of the traction curve of this train unit is wanted.">
 <polygon fill="white" stroke="#666666" points="355,-30 207,-30 207,0 355,0 355,-30"/>
 <text text-anchor="start" x="215" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::traction</text>
 <text text-anchor="middle" x="281" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PlotRequested</text>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Writes the status from the diagnostics again.">
 <polygon fill="#999999" stroke="#666666" points="162,-37 0,-37 0,-18 162,-18 162,-37"/>
 <text text-anchor="middle" x="81" y="-25" font-family="Helvetica,sans-Serif" font-size="10.00">ValidationPanel::updateStatus</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" target="_top" xlink:title="The status was written or cleared. What shows the diagnostics follows.">
 <polygon fill="white" stroke="#666666" points="368,-19 198,-19 198,0 368,0 368,-19"/>
 <text text-anchor="middle" x="283" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">ValidationPanel::statusChanged</text>
 </a>

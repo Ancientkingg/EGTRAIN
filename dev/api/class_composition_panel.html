@@ -129,46 +129,81 @@ Collaboration diagram for CompositionPanel:</div>
 Signals</h2></td></tr>
 <tr class="memitem:adeb9f8522bb9e61cdd217ad39c7e001e" id="r_adeb9f8522bb9e61cdd217ad39c7e001e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adeb9f8522bb9e61cdd217ad39c7e001e">compositionIdsChanged</a> ()</td></tr>
 <tr class="memitem:a980deac83d7950c40aa900f4eda2e2c8" id="r_a980deac83d7950c40aa900f4eda2e2c8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a980deac83d7950c40aa900f4eda2e2c8">tractionPlotRequested</a> (const QString &amp;unitId)</td></tr>
+<tr class="memdesc:a980deac83d7950c40aa900f4eda2e2c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The plot of the traction curve of this train unit is wanted.  <br /></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae5e75caf952af762387269c23b7a0adc" id="r_ae5e75caf952af762387269c23b7a0adc"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae5e75caf952af762387269c23b7a0adc">CompositionPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:ae5e75caf952af762387269c23b7a0adc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:aac00236b7a1120226a46cb697b28202b" id="r_aac00236b7a1120226a46cb697b28202b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aac00236b7a1120226a46cb697b28202b">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
+<tr class="memdesc:aac00236b7a1120226a46cb697b28202b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced.  <br /></td></tr>
 <tr class="memitem:ac3719025afe00095ef8812b733a819b4" id="r_ac3719025afe00095ef8812b733a819b4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac3719025afe00095ef8812b733a819b4">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a6cc6f68b9aeab162c200d75cbee14de1" id="r_a6cc6f68b9aeab162c200d75cbee14de1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6cc6f68b9aeab162c200d75cbee14de1">refresh</a> () override</td></tr>
+<tr class="memdesc:a6cc6f68b9aeab162c200d75cbee14de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current state of the document.  <br /></td></tr>
 <tr class="memitem:a785ce1339193e0c0b6a35933e2e09f54" id="r_a785ce1339193e0c0b6a35933e2e09f54"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a785ce1339193e0c0b6a35933e2e09f54">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:a785ce1339193e0c0b6a35933e2e09f54"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id that is being edited into the document.  <br /></td></tr>
 <tr class="memitem:a8e0679d192ea17fff12dae25b309518d" id="r_a8e0679d192ea17fff12dae25b309518d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8e0679d192ea17fff12dae25b309518d">refreshUnitDetails</a> ()</td></tr>
+<tr class="memdesc:a8e0679d192ea17fff12dae25b309518d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the sources and the warning of the selected unit again, for example after its sources have changed.  <br /></td></tr>
 <tr class="memitem:ae92a1cc7bb3f44699ded4605fc97aaf5" id="r_ae92a1cc7bb3f44699ded4605fc97aaf5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae92a1cc7bb3f44699ded4605fc97aaf5">addComposition</a> ()</td></tr>
+<tr class="memdesc:ae92a1cc7bb3f44699ded4605fc97aaf5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends a composition without units, with a new unique id, and selects it.  <br /></td></tr>
 <tr class="memitem:a4587ee8f166485b36c9c52093638ff7d" id="r_a4587ee8f166485b36c9c52093638ff7d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4587ee8f166485b36c9c52093638ff7d">duplicateComposition</a> ()</td></tr>
+<tr class="memdesc:a4587ee8f166485b36c9c52093638ff7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected composition, with a new unique id, after it.  <br /></td></tr>
 <tr class="memitem:ab1e12b259116cc85cf32a312ff2539af" id="r_ab1e12b259116cc85cf32a312ff2539af"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab1e12b259116cc85cf32a312ff2539af">deleteComposition</a> ()</td></tr>
+<tr class="memdesc:ab1e12b259116cc85cf32a312ff2539af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the selected composition after the user has confirmed it; refused while a service uses it.  <br /></td></tr>
 <tr class="memitem:afa6ece843725100b4a04402a748b43ff" id="r_afa6ece843725100b4a04402a748b43ff"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afa6ece843725100b4a04402a748b43ff">commitIdEdit</a> ()</td></tr>
+<tr class="memdesc:afa6ece843725100b4a04402a748b43ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id from the field. An empty or used id is dropped and the field shows the old id again.  <br /></td></tr>
 <tr class="memitem:a1b479f3821fea6491c372ef700491e09" id="r_a1b479f3821fea6491c372ef700491e09"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1b479f3821fea6491c372ef700491e09">addUnit</a> ()</td></tr>
+<tr class="memdesc:a1b479f3821fea6491c372ef700491e09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asks for a rolling stock unit of the scene and appends it to the units of the selected composition.  <br /></td></tr>
 <tr class="memitem:af1db8d10e8438da8c3099df41c87b4c9" id="r_af1db8d10e8438da8c3099df41c87b4c9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af1db8d10e8438da8c3099df41c87b4c9">removeUnit</a> ()</td></tr>
+<tr class="memdesc:af1db8d10e8438da8c3099df41c87b4c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the selected unit from the selected composition.  <br /></td></tr>
 <tr class="memitem:afb0634402936f82d4a0714491a07fcbe" id="r_afb0634402936f82d4a0714491a07fcbe"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afb0634402936f82d4a0714491a07fcbe">moveUnitUp</a> ()</td></tr>
+<tr class="memdesc:afb0634402936f82d4a0714491a07fcbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the selected unit one place towards the front of the composition.  <br /></td></tr>
 <tr class="memitem:ab28258935fa9e59a90af0412c971dae4" id="r_ab28258935fa9e59a90af0412c971dae4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab28258935fa9e59a90af0412c971dae4">moveUnitDown</a> ()</td></tr>
+<tr class="memdesc:ab28258935fa9e59a90af0412c971dae4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the selected unit one place towards the back of the composition.  <br /></td></tr>
 <tr class="memitem:a7fc526b9dc446945b7a0deaecedd0dcf" id="r_a7fc526b9dc446945b7a0deaecedd0dcf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7fc526b9dc446945b7a0deaecedd0dcf">plotSelectedUnitTraction</a> ()</td></tr>
+<tr class="memdesc:a7fc526b9dc446945b7a0deaecedd0dcf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asks for the plot of the selected unit, which has to have a traction curve.  <br /></td></tr>
 <tr class="memitem:aad68b96ee775734d1262784ef752a54c" id="r_aad68b96ee775734d1262784ef752a54c"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#aad68b96ee775734d1262784ef752a54c">listWidget</a> () const</td></tr>
+<tr class="memdesc:aad68b96ee775734d1262784ef752a54c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The list of the compositions, by id.  <br /></td></tr>
 <tr class="memitem:ac3ad4dbf7beae8e7820eea6e776e10cc" id="r_ac3ad4dbf7beae8e7820eea6e776e10cc"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#ac3ad4dbf7beae8e7820eea6e776e10cc">idEdit</a> () const</td></tr>
+<tr class="memdesc:ac3ad4dbf7beae8e7820eea6e776e10cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected composition.  <br /></td></tr>
 <tr class="memitem:a42269c3699cae8206fbc2c6d60ad7aef" id="r_a42269c3699cae8206fbc2c6d60ad7aef"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a42269c3699cae8206fbc2c6d60ad7aef">unitsListWidget</a> () const</td></tr>
+<tr class="memdesc:a42269c3699cae8206fbc2c6d60ad7aef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The units of the selected composition in order, by id. A unit can appear more than once.  <br /></td></tr>
 <tr class="memitem:a586d53c83ee6be6218b0fbc1bf36d6ec" id="r_a586d53c83ee6be6218b0fbc1bf36d6ec"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a586d53c83ee6be6218b0fbc1bf36d6ec">addButton</a> () const</td></tr>
+<tr class="memdesc:a586d53c83ee6be6218b0fbc1bf36d6ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ae92a1cc7bb3f44699ded4605fc97aaf5" title="Appends a composition without units, with a new unique id, and selects it.">addComposition()</a>.  <br /></td></tr>
 <tr class="memitem:a95eb57836f7a398e47f0a2e655945ebe" id="r_a95eb57836f7a398e47f0a2e655945ebe"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a95eb57836f7a398e47f0a2e655945ebe">duplicateButton</a> () const</td></tr>
+<tr class="memdesc:a95eb57836f7a398e47f0a2e655945ebe"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a4587ee8f166485b36c9c52093638ff7d" title="Inserts a copy of the selected composition, with a new unique id, after it.">duplicateComposition()</a>.  <br /></td></tr>
 <tr class="memitem:af0924ca8ebda14134dc62de9ab0dbc18" id="r_af0924ca8ebda14134dc62de9ab0dbc18"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#af0924ca8ebda14134dc62de9ab0dbc18">deleteButton</a> () const</td></tr>
+<tr class="memdesc:af0924ca8ebda14134dc62de9ab0dbc18"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ab1e12b259116cc85cf32a312ff2539af" title="Deletes the selected composition after the user has confirmed it; refused while a service uses it.">deleteComposition()</a>.  <br /></td></tr>
 <tr class="memitem:a65e6d394d42e4e1ba05665009c694a94" id="r_a65e6d394d42e4e1ba05665009c694a94"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a65e6d394d42e4e1ba05665009c694a94">addUnitButton</a> () const</td></tr>
+<tr class="memdesc:a65e6d394d42e4e1ba05665009c694a94"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a1b479f3821fea6491c372ef700491e09" title="Asks for a rolling stock unit of the scene and appends it to the units of the selected composition.">addUnit()</a>.  <br /></td></tr>
 <tr class="memitem:aece14237c82d0f060f86cb8a4d6af613" id="r_aece14237c82d0f060f86cb8a4d6af613"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aece14237c82d0f060f86cb8a4d6af613">removeUnitButton</a> () const</td></tr>
+<tr class="memdesc:aece14237c82d0f060f86cb8a4d6af613"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#af1db8d10e8438da8c3099df41c87b4c9" title="Removes the selected unit from the selected composition.">removeUnit()</a>.  <br /></td></tr>
 <tr class="memitem:aa81884139fcf717506a1d17efdf1b130" id="r_aa81884139fcf717506a1d17efdf1b130"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aa81884139fcf717506a1d17efdf1b130">moveUnitUpButton</a> () const</td></tr>
+<tr class="memdesc:aa81884139fcf717506a1d17efdf1b130"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#afb0634402936f82d4a0714491a07fcbe" title="Moves the selected unit one place towards the front of the composition.">moveUnitUp()</a>.  <br /></td></tr>
 <tr class="memitem:a70d049d1fcfd588c1855fa5ed4b632c6" id="r_a70d049d1fcfd588c1855fa5ed4b632c6"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a70d049d1fcfd588c1855fa5ed4b632c6">moveUnitDownButton</a> () const</td></tr>
+<tr class="memdesc:a70d049d1fcfd588c1855fa5ed4b632c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ab28258935fa9e59a90af0412c971dae4" title="Moves the selected unit one place towards the back of the composition.">moveUnitDown()</a>.  <br /></td></tr>
 <tr class="memitem:a7084166255f47ad6e3e0c370b2ac1df2" id="r_a7084166255f47ad6e3e0c370b2ac1df2"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a7084166255f47ad6e3e0c370b2ac1df2">emptyStateLabel</a> () const</td></tr>
+<tr class="memdesc:a7084166255f47ad6e3e0c370b2ac1df2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message shown while a scene is loaded and no composition is selected; empty otherwise.  <br /></td></tr>
 <tr class="memitem:a345726f1b707c9569f8f3c321cd7f84f" id="r_a345726f1b707c9569f8f3c321cd7f84f"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a345726f1b707c9569f8f3c321cd7f84f">unitsEmptyStateLabel</a> () const</td></tr>
+<tr class="memdesc:a345726f1b707c9569f8f3c321cd7f84f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message shown while the selected composition has no units.  <br /></td></tr>
 <tr class="memitem:a26ad31ea8e6f6feaf1ce792d6a40e1ce" id="r_a26ad31ea8e6f6feaf1ce792d6a40e1ce"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a26ad31ea8e6f6feaf1ce792d6a40e1ce">unitSourceDataLabel</a> () const</td></tr>
+<tr class="memdesc:a26ad31ea8e6f6feaf1ce792d6a40e1ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">The parameter source file of the selected unit, or "(none)".  <br /></td></tr>
 <tr class="memitem:a0a2d370af22e57b570404dc498287e34" id="r_a0a2d370af22e57b570404dc498287e34"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a0a2d370af22e57b570404dc498287e34">unitSourceTractionLabel</a> () const</td></tr>
+<tr class="memdesc:a0a2d370af22e57b570404dc498287e34"><td class="mdescLeft">&#160;</td><td class="mdescRight">The traction source file of the selected unit, or "(none)".  <br /></td></tr>
 <tr class="memitem:aa61a3dc72fdf5aa9f0462cb0f722a47c" id="r_aa61a3dc72fdf5aa9f0462cb0f722a47c"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#aa61a3dc72fdf5aa9f0462cb0f722a47c">unitWarningLabel</a> () const</td></tr>
+<tr class="memdesc:aa61a3dc72fdf5aa9f0462cb0f722a47c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The warning about the selected unit: a unit that the scene lacks, or one without a traction curve.  <br /></td></tr>
 <tr class="memitem:a7ff0980f21f7056dbe154443380c764b" id="r_a7ff0980f21f7056dbe154443380c764b"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a7ff0980f21f7056dbe154443380c764b">plotTractionButton</a> () const</td></tr>
+<tr class="memdesc:a7ff0980f21f7056dbe154443380c764b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a7fc526b9dc446945b7a0deaecedd0dcf" title="Asks for the plot of the selected unit, which has to have a traction curve.">plotSelectedUnitTraction()</a>, enabled when the selected unit has a traction curve.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The compositions of the scene: a list to pick one, its id and its ordered rolling stock units. Renaming a composition rewrites the services that use it, and deleting one that a service uses is refused. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ae5e75caf952af762387269c23b7a0adc" name="ae5e75caf952af762387269c23b7a0adc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae5e75caf952af762387269c23b7a0adc">&#9670;&#160;</a></span>CompositionPanel()</h2>
 
@@ -191,6 +226,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the widgets, empty until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -223,6 +260,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#ae92a1cc7bb3f44699ded4605fc97aaf5" title="Appends a composition without units, with a new unique id, and selects it.">addComposition()</a>. </p>
+
 </div>
 </div>
 <a id="ae92a1cc7bb3f44699ded4605fc97aaf5" name="ae92a1cc7bb3f44699ded4605fc97aaf5"></a>
@@ -239,6 +278,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Appends a composition without units, with a new unique id, and selects it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -261,6 +302,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Asks for a rolling stock unit of the scene and appends it to the units of the selected composition. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -292,6 +335,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a1b479f3821fea6491c372ef700491e09" title="Asks for a rolling stock unit of the scene and appends it to the units of the selected composition.">addUnit()</a>. </p>
+
 </div>
 </div>
 <a id="afa6ece843725100b4a04402a748b43ff" name="afa6ece843725100b4a04402a748b43ff"></a>
@@ -308,6 +353,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the id from the field. An empty or used id is dropped and the field shows the old id again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -338,6 +385,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the id that is being edited into the document. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
@@ -370,6 +419,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A composition has been added, duplicated, deleted or renamed. Other lists of composition ids are out of date. Emitted after the document is marked changed and before <a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed().">changed()</a>. </p>
 
 </div>
 </div>
@@ -396,6 +446,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#ab1e12b259116cc85cf32a312ff2539af" title="Deletes the selected composition after the user has confirmed it; refused while a service uses it.">deleteComposition()</a>. </p>
+
 </div>
 </div>
 <a id="ab1e12b259116cc85cf32a312ff2539af" name="ab1e12b259116cc85cf32a312ff2539af"></a>
@@ -412,6 +464,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Deletes the selected composition after the user has confirmed it; refused while a service uses it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -443,6 +497,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a4587ee8f166485b36c9c52093638ff7d" title="Inserts a copy of the selected composition, with a new unique id, after it.">duplicateComposition()</a>. </p>
+
 </div>
 </div>
 <a id="a4587ee8f166485b36c9c52093638ff7d" name="a4587ee8f166485b36c9c52093638ff7d"></a>
@@ -459,6 +515,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Inserts a copy of the selected composition, with a new unique id, after it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -490,6 +548,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The message shown while a scene is loaded and no composition is selected; empty otherwise. </p>
+
 </div>
 </div>
 <a id="ac3ad4dbf7beae8e7820eea6e776e10cc" name="ac3ad4dbf7beae8e7820eea6e776e10cc"></a>
@@ -514,6 +574,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The field of the id of the selected composition. </p>
 
 </div>
 </div>
@@ -540,6 +602,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The list of the compositions, by id. </p>
+
 </div>
 </div>
 <a id="ab28258935fa9e59a90af0412c971dae4" name="ab28258935fa9e59a90af0412c971dae4"></a>
@@ -556,6 +620,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Moves the selected unit one place towards the back of the composition. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -587,6 +653,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#ab28258935fa9e59a90af0412c971dae4" title="Moves the selected unit one place towards the back of the composition.">moveUnitDown()</a>. </p>
+
 </div>
 </div>
 <a id="afb0634402936f82d4a0714491a07fcbe" name="afb0634402936f82d4a0714491a07fcbe"></a>
@@ -603,6 +671,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Moves the selected unit one place towards the front of the composition. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -634,6 +704,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#afb0634402936f82d4a0714491a07fcbe" title="Moves the selected unit one place towards the front of the composition.">moveUnitUp()</a>. </p>
+
 </div>
 </div>
 <a id="a7fc526b9dc446945b7a0deaecedd0dcf" name="a7fc526b9dc446945b7a0deaecedd0dcf"></a>
@@ -650,6 +722,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Asks for the plot of the selected unit, which has to have a traction curve. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -681,6 +755,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a7fc526b9dc446945b7a0deaecedd0dcf" title="Asks for the plot of the selected unit, which has to have a traction curve.">plotSelectedUnitTraction()</a>, enabled when the selected unit has a traction curve. </p>
+
 </div>
 </div>
 <a id="a6cc6f68b9aeab162c200d75cbee14de1" name="a6cc6f68b9aeab162c200d75cbee14de1"></a>
@@ -706,6 +782,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Shows the current state of the document. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -729,6 +807,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Shows the sources and the warning of the selected unit again, for example after its sources have changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -751,6 +831,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Removes the selected unit from the selected composition. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -782,6 +864,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#af1db8d10e8438da8c3099df41c87b4c9" title="Removes the selected unit from the selected composition.">removeUnit()</a>. </p>
+
 </div>
 </div>
 <a id="aac00236b7a1120226a46cb697b28202b" name="aac00236b7a1120226a46cb697b28202b"></a>
@@ -807,6 +891,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Refreshes when the document is replaced. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -830,6 +916,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The questions and error messages go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
 
 </div>
 </div>
@@ -856,6 +943,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The plot of the traction curve of this train unit is wanted. </p>
+
 </div>
 </div>
 <a id="a345726f1b707c9569f8f3c321cd7f84f" name="a345726f1b707c9569f8f3c321cd7f84f"></a>
@@ -880,6 +969,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The message shown while the selected composition has no units. </p>
 
 </div>
 </div>
@@ -906,6 +997,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The units of the selected composition in order, by id. A unit can appear more than once. </p>
+
 </div>
 </div>
 <a id="a26ad31ea8e6f6feaf1ce792d6a40e1ce" name="a26ad31ea8e6f6feaf1ce792d6a40e1ce"></a>
@@ -930,6 +1023,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The parameter source file of the selected unit, or "(none)". </p>
 
 </div>
 </div>
@@ -956,6 +1051,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The traction source file of the selected unit, or "(none)". </p>
+
 </div>
 </div>
 <a id="aa61a3dc72fdf5aa9f0462cb0f722a47c" name="aa61a3dc72fdf5aa9f0462cb0f722a47c"></a>
@@ -980,6 +1077,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The warning about the selected unit: a unit that the scene lacks, or one without a traction curve. </p>
 
 </div>
 </div>

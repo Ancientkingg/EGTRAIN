@@ -113,23 +113,34 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_train_u
 </div><!--header-->
 <div class="contents">
 
+<p>The state of the links of one unit. <span class="tt">data</span> is the parameter file and <span class="tt">traction</span> the traction file.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_train_unit_source_linker_8h_source.html">editors/TrainUnitSourceLinker.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab5dbf5e9c5f096451f54ed932af684cd" id="r_ab5dbf5e9c5f096451f54ed932af684cd"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ab5dbf5e9c5f096451f54ed932af684cd">dataPath</a></td></tr>
+<tr class="memdesc:ab5dbf5e9c5f096451f54ed932af684cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The absolute path of the linked parameter file; empty when it is not linked.  <br /></td></tr>
 <tr class="memitem:ac1cbf12a2f8e789cde67e483a3f7d9df" id="r_ac1cbf12a2f8e789cde67e483a3f7d9df"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ac1cbf12a2f8e789cde67e483a3f7d9df">tractionPath</a></td></tr>
 <tr class="memitem:a5f73199ab871c6789ff1829c58fbddf9" id="r_a5f73199ab871c6789ff1829c58fbddf9"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5f73199ab871c6789ff1829c58fbddf9">acceptedPhysical</a></td></tr>
 <tr class="memitem:a9039d81c5e4b908fc1efd84a52413dea" id="r_a9039d81c5e4b908fc1efd84a52413dea"><td class="memItemLeft">std::vector&lt; std::array&lt; double, 5 &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9039d81c5e4b908fc1efd84a52413dea">acceptedTraction</a></td></tr>
 <tr class="memitem:aa80cc091565e0a13c6dcbaa40a19d191" id="r_aa80cc091565e0a13c6dcbaa40a19d191"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa80cc091565e0a13c6dcbaa40a19d191">dataSignature</a></td></tr>
 <tr class="memitem:a83799fc30f11f8441577ac01870eeb9f" id="r_a83799fc30f11f8441577ac01870eeb9f"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a83799fc30f11f8441577ac01870eeb9f">tractionSignature</a></td></tr>
+<tr class="memdesc:a83799fc30f11f8441577ac01870eeb9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same for the traction file.  <br /></td></tr>
 <tr class="memitem:a53feed326be1c5b238ac8fd93526de79" id="r_a53feed326be1c5b238ac8fd93526de79"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a53feed326be1c5b238ac8fd93526de79">dataStatus</a></td></tr>
 <tr class="memitem:ada74490012a516338a69bb3f3c2aaf05" id="r_ada74490012a516338a69bb3f3c2aaf05"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ada74490012a516338a69bb3f3c2aaf05">tractionStatus</a></td></tr>
+<tr class="memdesc:ada74490012a516338a69bb3f3c2aaf05"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same for the traction file link.  <br /></td></tr>
 <tr class="memitem:ae8507726ec26cedde44c4c8f8bc2962d" id="r_ae8507726ec26cedde44c4c8f8bc2962d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae8507726ec26cedde44c4c8f8bc2962d">dataDeferred</a> = false</td></tr>
+<tr class="memdesc:ae8507726ec26cedde44c4c8f8bc2962d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The parameter file changed while a run used the model, so the user is asked before it is taken.  <br /></td></tr>
 <tr class="memitem:a81c08265bbf763ae7f68479240025f3a" id="r_a81c08265bbf763ae7f68479240025f3a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a81c08265bbf763ae7f68479240025f3a">tractionDeferred</a> = false</td></tr>
+<tr class="memdesc:a81c08265bbf763ae7f68479240025f3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same for the traction file.  <br /></td></tr>
 <tr class="memitem:a8eb0f71e16e0ed6594e59df01250b28d" id="r_a8eb0f71e16e0ed6594e59df01250b28d"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#a8eb0f71e16e0ed6594e59df01250b28d">generation</a> = 0</td></tr>
+<tr class="memdesc:a8eb0f71e16e0ed6594e59df01250b28d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Grows when the link is made or removed, so that an answer to a question about an older link is dropped.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The state of the links of one unit. <span class="tt">data</span> is the parameter file and <span class="tt">traction</span> the traction file. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a5f73199ab871c6789ff1829c58fbddf9" name="a5f73199ab871c6789ff1829c58fbddf9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5f73199ab871c6789ff1829c58fbddf9">&#9670;&#160;</a></span>acceptedPhysical</h2>
 
@@ -141,6 +152,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The physical values of the unit when the parameter file was last taken or linked; empty while it is not linked. A hand edit is a difference from these. </p>
 
 </div>
 </div>
@@ -155,6 +167,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The traction curve of the unit when the traction file was last taken or linked, in the units of <a class="el" href="struct_scene_train_unit.html#a33cbdfc20ab203e0451865ffd9650530">SceneTrainUnit::tractionCurve</a>. </p>
 
 </div>
 </div>
@@ -170,6 +183,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The parameter file changed while a run used the model, so the user is asked before it is taken. </p>
+
 </div>
 </div>
 <a id="ab5dbf5e9c5f096451f54ed932af684cd" name="ab5dbf5e9c5f096451f54ed932af684cd"></a>
@@ -184,6 +199,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The absolute path of the linked parameter file; empty when it is not linked. </p>
+
 </div>
 </div>
 <a id="aa80cc091565e0a13c6dcbaa40a19d191" name="aa80cc091565e0a13c6dcbaa40a19d191"></a>
@@ -197,6 +214,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>What the parameter file held when it was last handled, as a digest of its content, or "&lt;missing&gt;" when it could not be read. Empty when the file is to be taken again whatever it holds. </p>
 
 </div>
 </div>
@@ -211,6 +229,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The state of the parameter file link that the panel shows, such as "Reloaded" or "Up to date"; empty when the link has no status of its own. </p>
 
 </div>
 </div>
@@ -226,6 +245,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Grows when the link is made or removed, so that an answer to a question about an older link is dropped. </p>
+
 </div>
 </div>
 <a id="a81c08265bbf763ae7f68479240025f3a" name="a81c08265bbf763ae7f68479240025f3a"></a>
@@ -240,6 +261,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The same for the traction file. </p>
+
 </div>
 </div>
 <a id="ac1cbf12a2f8e789cde67e483a3f7d9df" name="ac1cbf12a2f8e789cde67e483a3f7d9df"></a>
@@ -253,6 +276,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The absolute path of the linked traction file; empty when it is not linked. </p>
 
 </div>
 </div>
@@ -268,6 +292,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The same for the traction file. </p>
+
 </div>
 </div>
 <a id="ada74490012a516338a69bb3f3c2aaf05" name="ada74490012a516338a69bb3f3c2aaf05"></a>
@@ -281,6 +307,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The same for the traction file link. </p>
 
 </div>
 </div>

@@ -39,7 +39,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train_unit_panel.html#a5cd7e623087d526e823baa6607af67cf" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_train_unit_panel.html#a5cd7e623087d526e823baa6607af67cf" target="_top" xlink:title="The button that links the traction file (traction true) or the parameter file.">
 <polygon fill="white" stroke="#666666" points="325,-179 182,-179 182,-160 325,-160 325,-179"/>
 <text text-anchor="middle" x="253.5" y="-167" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::linkButton</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train_unit_panel.html#aa47fec1cc64dd1f967bd23e1d939e174" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_train_unit_panel.html#aa47fec1cc64dd1f967bd23e1d939e174" target="_top" xlink:title="The button that takes the linked traction file (traction true) or parameter file again.">
 <polygon fill="white" stroke="#666666" points="327.5,-142 179.5,-142 179.5,-123 327.5,-123 327.5,-142"/>
 <text text-anchor="middle" x="253.5" y="-130" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::retryButton</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_train_unit_panel.html#af2652ae180796207e2e8ea6ca0310d8c" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_train_unit_panel.html#af2652ae180796207e2e8ea6ca0310d8c" target="_top" xlink:title="The shown unit, or null.">
 <polygon fill="white" stroke="#666666" points="330.5,-105 176.5,-105 176.5,-86 330.5,-86 330.5,-105"/>
 <text text-anchor="middle" x="253.5" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::selectedUnit</text>
 </a>
@@ -93,7 +93,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_train_unit_panel.html#abd40b89b99fd5cf1a4c401eb8d288dc3" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_train_unit_panel.html#abd40b89b99fd5cf1a4c401eb8d288dc3" target="_top" xlink:title="The state of the link of the traction file (traction true) or the parameter file.">
 <polygon fill="white" stroke="#666666" points="331,-67.5 176,-67.5 176,-37.5 331,-37.5 331,-67.5"/>
 <text text-anchor="start" x="184" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceStatus</text>
 <text text-anchor="middle" x="253.5" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">Label</text>
@@ -112,7 +112,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_train_unit_panel.html#a09f9aed0cdb0a883a8041e9e83c41f6d" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_train_unit_panel.html#a09f9aed0cdb0a883a8041e9e83c41f6d" target="_top" xlink:title="The button that unlinks the traction file (traction true) or the parameter file.">
 <polygon fill="white" stroke="#666666" points="331,-19 176,-19 176,0 331,0 331,-19"/>
 <text text-anchor="middle" x="253.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unlinkButton</text>
 </a>

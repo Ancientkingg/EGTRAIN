@@ -128,26 +128,40 @@ Collaboration diagram for CaseSettingsPanel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a5ea1b6d082ad62636f686c1fbcbabb64" id="r_a5ea1b6d082ad62636f686c1fbcbabb64"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5ea1b6d082ad62636f686c1fbcbabb64">baseTimeChanged</a> (const QString &amp;baseTime)</td></tr>
+<tr class="memdesc:a5ea1b6d082ad62636f686c1fbcbabb64"><td class="mdescLeft">&#160;</td><td class="mdescRight">The base time of the model has been set to this text. Emitted before the document is marked changed.  <br /></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab626149c6737ccedf70c13e9e5a2722a" id="r_ab626149c6737ccedf70c13e9e5a2722a"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ab626149c6737ccedf70c13e9e5a2722a">CaseSettingsPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:ab626149c6737ccedf70c13e9e5a2722a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the fields, disabled until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:af2581c6046d3e6ebea0acee871cf5e13" id="r_af2581c6046d3e6ebea0acee871cf5e13"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af2581c6046d3e6ebea0acee871cf5e13">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
+<tr class="memdesc:af2581c6046d3e6ebea0acee871cf5e13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced.  <br /></td></tr>
 <tr class="memitem:acb968dbe3f40db2f385af2b032ac32f9" id="r_acb968dbe3f40db2f385af2b032ac32f9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb968dbe3f40db2f385af2b032ac32f9">refresh</a> () override</td></tr>
+<tr class="memdesc:acb968dbe3f40db2f385af2b032ac32f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current state of the document.  <br /></td></tr>
 <tr class="memitem:a50a48c015c7022a049f7f5d636841d4d" id="r_a50a48c015c7022a049f7f5d636841d4d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a50a48c015c7022a049f7f5d636841d4d">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:a50a48c015c7022a049f7f5d636841d4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the text of a field that is being edited into the document, as if the user had left the field.  <br /></td></tr>
 <tr class="memitem:a98fc2e3ca7e313d5fd05fe3cfd172d09" id="r_a98fc2e3ca7e313d5fd05fe3cfd172d09"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a98fc2e3ca7e313d5fd05fe3cfd172d09">commit</a> ()</td></tr>
 <tr class="memitem:adf7a9af461fd8312d03f90db5890eae2" id="r_adf7a9af461fd8312d03f90db5890eae2"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#adf7a9af461fd8312d03f90db5890eae2">nameEdit</a> () const</td></tr>
+<tr class="memdesc:adf7a9af461fd8312d03f90db5890eae2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the scene name.  <br /></td></tr>
 <tr class="memitem:a912f7ba1975f5526c7fef36c61cfd1fd" id="r_a912f7ba1975f5526c7fef36c61cfd1fd"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a912f7ba1975f5526c7fef36c61cfd1fd">descriptionEdit</a> () const</td></tr>
+<tr class="memdesc:a912f7ba1975f5526c7fef36c61cfd1fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the scene description.  <br /></td></tr>
 <tr class="memitem:af84b8ae72f2c266f736e2601f4244083" id="r_af84b8ae72f2c266f736e2601f4244083"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#af84b8ae72f2c266f736e2601f4244083">baseTimeEdit</a> () const</td></tr>
 <tr class="memitem:ae3a7929359c0847f8984b9c59303f5aa" id="r_ae3a7929359c0847f8984b9c59303f5aa"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#ae3a7929359c0847f8984b9c59303f5aa">durationSecondsEdit</a> () const</td></tr>
+<tr class="memdesc:ae3a7929359c0847f8984b9c59303f5aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the duration of the run in seconds, 0 or more.  <br /></td></tr>
 <tr class="memitem:a0f0584a419b0399016fe1804c9813a2c" id="r_a0f0584a419b0399016fe1804c9813a2c"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a0f0584a419b0399016fe1804c9813a2c">bufferSecondsEdit</a> () const</td></tr>
+<tr class="memdesc:a0f0584a419b0399016fe1804c9813a2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the buffer time in seconds, 0 or more.  <br /></td></tr>
 <tr class="memitem:a0aa7a7ae30964978c4d7786745d6edf5" id="r_a0aa7a7ae30964978c4d7786745d6edf5"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a0aa7a7ae30964978c4d7786745d6edf5">recoveryPercentEdit</a> () const</td></tr>
+<tr class="memdesc:a0aa7a7ae30964978c4d7786745d6edf5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the recovery time in percent, 0 or more.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The six scene-level values: name, description, base time (HH:MM:SS), duration and buffer time in seconds and recovery time in percent. Opening the panel never changes the model, and every edit takes the same path through <a class="el" href="#a98fc2e3ca7e313d5fd05fe3cfd172d09">commit()</a>. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ab626149c6737ccedf70c13e9e5a2722a" name="ab626149c6737ccedf70c13e9e5a2722a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab626149c6737ccedf70c13e9e5a2722a">&#9670;&#160;</a></span>CaseSettingsPanel()</h2>
 
@@ -170,6 +184,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the fields, disabled until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -202,6 +218,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The base time of the model has been set to this text. Emitted before the document is marked changed. </p>
+
 </div>
 </div>
 <a id="af84b8ae72f2c266f736e2601f4244083" name="af84b8ae72f2c266f736e2601f4244083"></a>
@@ -226,6 +244,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The field of the base time, the clock time HH:MM:SS from which the run and the service, stop and incident times count. The text is stored as it is typed. </p>
 
 </div>
 </div>
@@ -252,6 +271,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the buffer time in seconds, 0 or more. </p>
+
 </div>
 </div>
 <a id="a98fc2e3ca7e313d5fd05fe3cfd172d09" name="a98fc2e3ca7e313d5fd05fe3cfd172d09"></a>
@@ -268,6 +289,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes the values of the fields into the document, when one differs from the model, as one change "Edit case
+settings". The fields call it when editing finishes. A duration, buffer or recovery value that is set this way counts as given in the scene from then on. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -298,6 +321,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the text of a field that is being edited into the document, as if the user had left the field. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
@@ -331,6 +356,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the scene description. </p>
+
 </div>
 </div>
 <a id="ae3a7929359c0847f8984b9c59303f5aa" name="ae3a7929359c0847f8984b9c59303f5aa"></a>
@@ -355,6 +382,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The field of the duration of the run in seconds, 0 or more. </p>
 
 </div>
 </div>
@@ -381,6 +410,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the scene name. </p>
+
 </div>
 </div>
 <a id="a0aa7a7ae30964978c4d7786745d6edf5" name="a0aa7a7ae30964978c4d7786745d6edf5"></a>
@@ -406,6 +437,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the recovery time in percent, 0 or more. </p>
+
 </div>
 </div>
 <a id="acb968dbe3f40db2f385af2b032ac32f9" name="acb968dbe3f40db2f385af2b032ac32f9"></a>
@@ -430,6 +463,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Shows the current state of the document. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 
@@ -457,6 +492,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Refreshes when the document is replaced. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">

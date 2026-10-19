@@ -40,7 +40,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" target="_top" xlink:title="The model of the document for an edit by a facet. The panel must have a document.">
 <polygon fill="white" stroke="#666666" points="322.5,-126 213.5,-126 213.5,-96 322.5,-96 322.5,-126"/>
 <text text-anchor="start" x="221.5" y="-114" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="268" y="-103" font-family="Helvetica,sans-Serif" font-size="10.00">::mutableModel</text>
@@ -78,7 +78,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" target="_top" xlink:title="The table that the facets fill; the panel owns it.">
 <polygon fill="white" stroke="#666666" points="322.5,-30 213.5,-30 213.5,0 322.5,0 322.5,-30"/>
 <text text-anchor="start" x="221.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="268" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::table</text>
@@ -97,7 +97,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="520,-168.5 372,-168.5 372,-149.5 520,-149.5 520,-168.5"/>
 <text text-anchor="middle" x="446" y="-156.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -134,7 +134,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" target="_top" xlink:title="The text that names a section in a list of sections.">
 <polygon fill="white" stroke="#666666" points="500.5,-54 391.5,-54 391.5,-24 500.5,-24 500.5,-54"/>
 <text text-anchor="start" x="399.5" y="-42" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="446" y="-31" font-family="Helvetica,sans-Serif" font-size="10.00">::sectionLabel</text>

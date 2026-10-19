@@ -1,20 +1,20 @@
 <map id="TrainUnitSourceLinker::processFile" name="TrainUnitSourceLinker::processFile">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,381,168,421"/>
-<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title=" " alt="" coords="216,63,449,103"/>
+<area shape="rect" id="Node000001" title="Takes the values of this file into the units that are linked to it." alt="" coords="5,381,168,421"/>
+<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title="Pending edits have to be taken into the model before the linker compares the model with a file." alt="" coords="216,63,449,103"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,380,100,327,123,255,139,216,160,179,185,144,214,113,221,108,224,113,218,117,189,147,164,182,144,219,128,257,105,328,94,381"/>
 <area shape="rect" id="Node000003" href="$_scene_importer_8cpp.html#aacfecc4e25bcb168faf76da83167440f" title=" " alt="" coords="227,225,438,251"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="99,379,145,320,177,288,215,261,231,253,234,258,217,266,181,292,149,323,103,382"/>
 <area shape="rect" id="Node000010" href="$_scene_importer_8cpp.html#af2140a30b929da68c19a93d11c3a6177" title=" " alt="" coords="229,152,436,177"/>
 <area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="92,379,107,338,132,286,168,233,190,209,214,188,226,181,229,185,218,192,194,212,172,236,137,289,112,340,97,381"/>
-<area shape="rect" id="Node000013" href="$class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" title=" " alt="" coords="251,275,414,315"/>
+<area shape="rect" id="Node000013" href="$class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" title="Watches exactly the linked files and the folders that hold them." alt="" coords="251,275,414,315"/>
 <area shape="poly" id="edge25_Node000001_Node000013" title=" " alt="" coords="117,378,162,351,215,325,237,316,239,321,217,330,165,356,119,383"/>
 <area shape="rect" id="Node000014" href="$class_train_unit_source_linker.html#a7f8c7b0786c8a294cfa526e7ad9b407b" title=" " alt="" coords="251,339,414,379"/>
 <area shape="poly" id="edge26_Node000001_Node000014" title=" " alt="" coords="168,384,237,373,238,378,168,390"/>
 <area shape="rect" id="Node000015" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="259,428,406,453"/>
 <area shape="poly" id="edge27_Node000001_Node000015" title=" " alt="" coords="168,411,246,424,245,429,168,416"/>
-<area shape="rect" id="Node000016" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title=" " alt="" coords="251,478,414,518"/>
+<area shape="rect" id="Node000016" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title="The status of a link, or a link itself, has changed." alt="" coords="251,478,414,518"/>
 <area shape="poly" id="edge29_Node000001_Node000016" title=" " alt="" coords="124,419,168,442,217,464,239,471,237,476,215,468,166,446,122,423"/>
-<area shape="rect" id="Node000017" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title=" " alt="" coords="251,542,414,582"/>
+<area shape="rect" id="Node000017" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title="A message for the status line, shown for milliseconds." alt="" coords="251,542,414,582"/>
 <area shape="poly" id="edge30_Node000001_Node000017" title=" " alt="" coords="105,419,151,474,182,503,217,528,239,538,237,543,215,532,179,507,147,477,101,423"/>
 <area shape="rect" id="Node000018" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title="True when error is empty." alt="" coords="237,606,428,646"/>
 <area shape="poly" id="edge31_Node000001_Node000018" title=" " alt="" coords="98,420,115,457,140,504,175,551,218,592,226,597,223,602,214,596,171,555,136,507,110,460,93,422"/>

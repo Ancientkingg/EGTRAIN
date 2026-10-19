@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Deletes the selected item when the user confirms it and nothing uses it. An item with an empty id is ...">
 <polygon fill="#999999" stroke="#666666" points="103,-176.5 0,-176.5 0,-157.5 103,-157.5 103,-176.5"/>
 <text text-anchor="middle" x="51.5" y="-164.5" font-family="Helvetica,sans-Serif" font-size="10.00">ListFacet::remove</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" target="_top" xlink:title="The model of the document; an empty scene without one.">
 <polygon fill="white" stroke="#666666" points="868.5,-301 759.5,-301 759.5,-271 868.5,-271 868.5,-301"/>
 <text text-anchor="start" x="767.5" y="-289" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="814" y="-278" font-family="Helvetica,sans-Serif" font-size="10.00">::model</text>
@@ -77,7 +77,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" target="_top" xlink:title="The model of the document for an edit by a facet. The panel must have a document.">
 <polygon fill="white" stroke="#666666" points="274,-182 165,-182 165,-152 274,-152 274,-182"/>
 <text text-anchor="start" x="173" y="-170" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="219.5" y="-159" font-family="Helvetica,sans-Serif" font-size="10.00">::mutableModel</text>
@@ -114,7 +114,7 @@
 <!-- Node29 -->
 <g id="Node000029" class="node">
 <title>Node29</title>
-<g id="a_Node000029"><a xlink:href="class_infrastructure_panel.html#a23b041cde9222f809aa22cbfe44d4091" target="_top" xlink:title=" ">
+<g id="a_Node000029"><a xlink:href="class_infrastructure_panel.html#a23b041cde9222f809aa22cbfe44d4091" target="_top" xlink:title="Sets the selection without showing it.">
 <polygon fill="white" stroke="#666666" points="274,-78 165,-78 165,-48 274,-48 274,-78"/>
 <text text-anchor="start" x="173" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="219.5" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">::setSelectionId</text>
@@ -133,7 +133,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" target="_top" xlink:title=" ">
+<g id="a_Node000030"><a xlink:href="class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" target="_top" xlink:title="The table that the facets fill; the panel owns it.">
 <polygon fill="white" stroke="#666666" points="274,-30 165,-30 165,0 274,0 274,-30"/>
 <text text-anchor="start" x="173" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="219.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::table</text>
@@ -152,7 +152,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_infrastructure_panel.html#a61ff0dbc34d7c80ed1d05f771a4a9a19" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_infrastructure_panel.html#a61ff0dbc34d7c80ed1d05f771a4a9a19" target="_top" xlink:title="The name that the combo shows for the chosen facet.">
 <polygon fill="white" stroke="#666666" points="482,-830 373,-830 373,-800 482,-800 482,-830"/>
 <text text-anchor="start" x="381" y="-818" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="427.5" y="-807" font-family="Helvetica,sans-Serif" font-size="10.00">::facetTitle</text>
@@ -171,7 +171,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_infrastructure_panel.html#a4953dd5bbfeb02808559e99e0f5b6e47" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_infrastructure_panel.html#a4953dd5bbfeb02808559e99e0f5b6e47" target="_top" xlink:title="A facet has changed the entities of its kind and listed them again. facet is its key.">
 <polygon fill="white" stroke="#666666" points="868.5,-773 759.5,-773 759.5,-743 868.5,-743 868.5,-773"/>
 <text text-anchor="start" x="767.5" y="-761" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="814" y="-750" font-family="Helvetica,sans-Serif" font-size="10.00">::entitiesChanged</text>
@@ -209,7 +209,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" target="_top" xlink:title="The key of the chosen facet, one of facetKeys().">
 <polygon fill="white" stroke="#666666" points="868.5,-368 759.5,-368 759.5,-338 868.5,-338 868.5,-368"/>
 <text text-anchor="start" x="767.5" y="-356" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="814" y="-345" font-family="Helvetica,sans-Serif" font-size="10.00">::facetKey</text>
@@ -228,7 +228,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_infrastructure_panel.html#a0c87b611dfdbee714133398d548be696" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_infrastructure_panel.html#a0c87b611dfdbee714133398d548be696" target="_top" xlink:title="The same as refresh(bool) without the state of the combo and the add button. The facets call it after...">
 <polygon fill="white" stroke="#666666" points="482,-493 373,-493 373,-463 482,-463 482,-493"/>
 <text text-anchor="start" x="381" y="-481" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="427.5" y="-470" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshTable</text>
@@ -247,7 +247,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_infrastructure_panel.html#a1ede3387c827781076354d8e8b2d4173" target="_top" xlink:title="The facet with this key, or null. The panel keeps it.">
 <polygon fill="white" stroke="#666666" points="1014,-725 905,-725 905,-695 1014,-695 1014,-725"/>
 <text text-anchor="start" x="913" y="-713" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="959.5" y="-702" font-family="Helvetica,sans-Serif" font-size="10.00">::facet</text>
@@ -266,7 +266,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="713,-776.5 565,-776.5 565,-757.5 713,-757.5 713,-776.5"/>
 <text text-anchor="middle" x="639" y="-764.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -293,7 +293,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" target="_top" xlink:title="False while no scene is loaded or a run uses it.">
 <polygon fill="white" stroke="#666666" points="868.5,-504 759.5,-504 759.5,-474 868.5,-474 868.5,-504"/>
 <text text-anchor="start" x="767.5" y="-492" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="814" y="-481" font-family="Helvetica,sans-Serif" font-size="10.00">::canEdit</text>
@@ -312,7 +312,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" target="_top" xlink:title="True when a scene is loaded.">
 <polygon fill="white" stroke="#666666" points="1014,-596 905,-596 905,-566 1014,-566 1014,-596"/>
 <text text-anchor="start" x="913" y="-584" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="959.5" y="-573" font-family="Helvetica,sans-Serif" font-size="10.00">::hasScene</text>
@@ -331,7 +331,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_infrastructure_facet.html#a1bcf515fa43eaf66f879c75970f36875" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_infrastructure_facet.html#a1bcf515fa43eaf66f879c75970f36875" target="_top" xlink:title="The headers of the table.">
 <polygon fill="white" stroke="#666666" points="693,-572 585,-572 585,-542 693,-542 693,-572"/>
 <text text-anchor="start" x="593" y="-560" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructureFacet</text>
 <text text-anchor="middle" x="639" y="-549" font-family="Helvetica,sans-Serif" font-size="10.00">::columns</text>
@@ -396,7 +396,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_infrastructure_panel.html#a372635fb6d8c1c16b14aa9489d21c5f8" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_infrastructure_panel.html#a372635fb6d8c1c16b14aa9489d21c5f8" target="_top" xlink:title="Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exist...">
 <polygon fill="white" stroke="#666666" points="706,-344 572,-344 572,-314 706,-314 706,-344"/>
 <text text-anchor="start" x="580" y="-332" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="639" y="-321" font-family="Helvetica,sans-Serif" font-size="10.00">::refreshBlockTrackFilter</text>
@@ -434,7 +434,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_infrastructure_panel.html#aa5c4d490988f68fa3f7085752c78e400" target="_top" xlink:title="Takes the selected row as the selection, tells selectionChanged, and shows the controls that depend o...">
 <polygon fill="white" stroke="#666666" points="693.5,-658 584.5,-658 584.5,-628 693.5,-628 693.5,-658"/>
 <text text-anchor="start" x="592.5" y="-646" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
 <text text-anchor="middle" x="639" y="-635" font-family="Helvetica,sans-Serif" font-size="10.00">::updateSelection</text>

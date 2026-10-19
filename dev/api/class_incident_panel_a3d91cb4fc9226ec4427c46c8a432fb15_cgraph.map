@@ -1,12 +1,12 @@
 <map id="IncidentPanel::commitHasEndSeconds" name="IncidentPanel::commitHasEndSeconds">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,131,197,171"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="259,89,456,115"/>
+<area shape="rect" id="Node000001" title="Gives the incident an end, or none (0 seconds) when checked is false." alt="" coords="5,131,197,171"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="259,89,456,115"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,130,277,115,278,120,198,136"/>
 <area shape="rect" id="Node000003" href="$class_incident_panel.html#a375e4980dce11bb5cbe65638f67b98d8" title=" " alt="" coords="245,139,469,164"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,149,232,149,232,154,197,154"/>
-<area shape="rect" id="Node000004" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title=" " alt="" coords="257,188,458,213"/>
+<area shape="rect" id="Node000004" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again." alt="" coords="257,188,458,213"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,167,278,183,277,188,197,172"/>
-<area shape="rect" id="Node000005" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title=" " alt="" coords="517,147,728,172"/>
+<area shape="rect" id="Node000005" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title="Lists the choices of targets of the selected incident again." alt="" coords="517,147,728,172"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="439,185,527,172,527,177,440,191"/>
 <area shape="rect" id="Node000010" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="539,224,706,249"/>
 <area shape="poly" id="edge12_Node000004_Node000010" title=" " alt="" coords="452,211,526,221,526,226,451,216"/>

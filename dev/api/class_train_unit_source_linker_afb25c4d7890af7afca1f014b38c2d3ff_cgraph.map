@@ -1,22 +1,22 @@
 <map id="TrainUnitSourceLinker::processChanges" name="TrainUnitSourceLinker::processChanges">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,381,168,421"/>
-<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" title=" " alt="" coords="216,381,379,421"/>
+<area shape="rect" id="Node000001" title="Takes the files that changed. Nothing happens while a run uses the model." alt="" coords="5,381,168,421"/>
+<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" title="Takes the values of this file into the units that are linked to it." alt="" coords="216,381,379,421"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,398,202,398,202,403,168,403"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title=" " alt="" coords="427,63,660,103"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title="Pending edits have to be taken into the model before the linker compares the model with a file." alt="" coords="427,63,660,103"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="299,380,310,327,333,255,350,216,370,179,395,144,425,113,431,108,435,113,428,117,399,147,375,182,355,219,338,257,316,328,304,381"/>
 <area shape="rect" id="Node000004" href="$_scene_importer_8cpp.html#aacfecc4e25bcb168faf76da83167440f" title=" " alt="" coords="438,225,649,251"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="310,379,356,320,388,288,425,261,442,253,444,258,428,266,392,292,360,323,314,382"/>
 <area shape="rect" id="Node000011" href="$_scene_importer_8cpp.html#af2140a30b929da68c19a93d11c3a6177" title=" " alt="" coords="440,152,647,177"/>
 <area shape="poly" id="edge16_Node000002_Node000011" title=" " alt="" coords="303,379,318,338,343,286,379,233,400,209,425,188,437,181,439,185,428,192,404,212,383,236,348,289,323,340,307,381"/>
-<area shape="rect" id="Node000014" href="$class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" title=" " alt="" coords="462,275,625,315"/>
+<area shape="rect" id="Node000014" href="$class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" title="Watches exactly the linked files and the folders that hold them." alt="" coords="462,275,625,315"/>
 <area shape="poly" id="edge26_Node000002_Node000014" title=" " alt="" coords="327,378,373,351,426,325,448,316,450,321,428,330,375,356,330,383"/>
 <area shape="rect" id="Node000015" href="$class_train_unit_source_linker.html#a7f8c7b0786c8a294cfa526e7ad9b407b" title=" " alt="" coords="462,339,625,379"/>
 <area shape="poly" id="edge27_Node000002_Node000015" title=" " alt="" coords="378,384,448,373,449,378,379,390"/>
 <area shape="rect" id="Node000016" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="470,428,617,453"/>
 <area shape="poly" id="edge28_Node000002_Node000016" title=" " alt="" coords="379,411,457,424,456,429,378,416"/>
-<area shape="rect" id="Node000017" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title=" " alt="" coords="462,478,625,518"/>
+<area shape="rect" id="Node000017" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title="The status of a link, or a link itself, has changed." alt="" coords="462,478,625,518"/>
 <area shape="poly" id="edge30_Node000002_Node000017" title=" " alt="" coords="335,419,379,442,428,464,450,471,448,476,426,468,376,446,332,423"/>
-<area shape="rect" id="Node000018" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title=" " alt="" coords="462,542,625,582"/>
+<area shape="rect" id="Node000018" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title="A message for the status line, shown for milliseconds." alt="" coords="462,542,625,582"/>
 <area shape="poly" id="edge31_Node000002_Node000018" title=" " alt="" coords="315,419,362,474,393,503,428,528,450,538,447,543,425,532,390,507,358,477,311,423"/>
 <area shape="rect" id="Node000019" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title="True when error is empty." alt="" coords="448,606,639,646"/>
 <area shape="poly" id="edge32_Node000002_Node000019" title=" " alt="" coords="309,420,326,457,351,504,386,551,428,592,437,597,434,602,425,596,381,555,347,507,321,460,304,422"/>

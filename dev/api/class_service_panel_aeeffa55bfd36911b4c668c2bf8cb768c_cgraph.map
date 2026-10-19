@@ -1,24 +1,24 @@
 <map id="ServicePanel::commitPendingEditors" name="ServicePanel::commitPendingEditors">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,237,220,277"/>
-<area shape="rect" id="Node000002" href="$class_service_panel.html#a785a7896dc8890e24e5319873bad4335" title=" " alt="" coords="299,333,497,373"/>
+<area shape="rect" id="Node000001" title="Takes the id and the fields that are being edited into the document." alt="" coords="5,237,220,277"/>
+<area shape="rect" id="Node000002" href="$class_service_panel.html#a785a7896dc8890e24e5319873bad4335" title="Takes the entry time from its field, in whole seconds from the base time; text that is no number coun..." alt="" coords="299,333,497,373"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,274,269,318,297,327,295,332,267,323,157,279"/>
-<area shape="rect" id="Node000013" href="$class_service_panel.html#ab1f00e35aa9b739296f66e66fc877d33" title=" " alt="" coords="286,397,510,437"/>
+<area shape="rect" id="Node000013" href="$class_service_panel.html#ab1f00e35aa9b739296f66e66fc877d33" title="Takes the headway between occurrences from its field, in whole seconds; text that is no number counts..." alt="" coords="286,397,510,437"/>
 <area shape="poly" id="edge22_Node000001_Node000013" title=" " alt="" coords="134,275,191,329,229,358,269,382,285,389,283,394,267,387,226,362,188,333,131,279"/>
-<area shape="rect" id="Node000014" href="$class_service_panel.html#aaf5de4ccfa7af1694719ae9a556e80b9" title=" " alt="" coords="298,461,498,487"/>
+<area shape="rect" id="Node000014" href="$class_service_panel.html#aaf5de4ccfa7af1694719ae9a556e80b9" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="298,461,498,487"/>
 <area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="126,276,147,313,179,360,220,407,269,446,286,455,284,460,267,451,216,411,175,363,143,316,122,278"/>
-<area shape="rect" id="Node000019" href="$class_service_panel.html#a0761e558153379882120fe741760f45a" title=" " alt="" coords="283,26,513,66"/>
+<area shape="rect" id="Node000019" href="$class_service_panel.html#a0761e558153379882120fe741760f45a" title="Takes the maximum speed in km/h from its field." alt="" coords="283,26,513,66"/>
 <area shape="poly" id="edge34_Node000001_Node000019" title=" " alt="" coords="123,235,146,200,178,157,219,113,267,76,278,69,281,74,269,80,222,117,182,160,150,203,128,238"/>
-<area shape="rect" id="Node000020" href="$class_service_panel.html#a5927be489e40c621d79f382842ffaaa1" title=" " alt="" coords="268,91,528,116"/>
+<area shape="rect" id="Node000020" href="$class_service_panel.html#a5927be489e40c621d79f382842ffaaa1" title="Takes the service code (the operating code) from its field, trimmed." alt="" coords="268,91,528,116"/>
 <area shape="poly" id="edge37_Node000001_Node000020" title=" " alt="" coords="130,235,187,180,225,151,267,126,289,117,291,122,269,131,228,155,190,184,134,239"/>
-<area shape="rect" id="Node000021" href="$class_service_panel.html#ac75d7eeafcb94d6cb01bd6f79a30f275" title=" " alt="" coords="285,141,511,181"/>
+<area shape="rect" id="Node000021" href="$class_service_panel.html#ac75d7eeafcb94d6cb01bd6f79a30f275" title="Takes the step of the service code from its field; text that is no number, and 0, become 1." alt="" coords="285,141,511,181"/>
 <area shape="poly" id="edge40_Node000001_Node000021" title=" " alt="" coords="157,234,267,190,295,182,297,187,269,195,159,239"/>
-<area shape="rect" id="Node000022" href="$class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38" title=" " alt="" coords="275,205,521,245"/>
+<area shape="rect" id="Node000022" href="$class_service_panel.html#afedb2b0383252f1538dc5d4c7ff2be38" title="Takes the running performance in percent, held between 1 and 100." alt="" coords="275,205,521,245"/>
 <area shape="poly" id="edge43_Node000001_Node000022" title=" " alt="" coords="220,242,260,237,261,243,220,247"/>
-<area shape="rect" id="Node000023" href="$class_service_panel.html#ae3c8883d6ef76b0c4f71ddbb705b8dcc" title=" " alt="" coords="293,269,503,309"/>
+<area shape="rect" id="Node000023" href="$class_service_panel.html#ae3c8883d6ef76b0c4f71ddbb705b8dcc" title="Takes the number of occurrences, including the first, from its field; text that is no number counts a..." alt="" coords="293,269,503,309"/>
 <area shape="poly" id="edge46_Node000001_Node000023" title=" " alt="" coords="220,266,280,273,279,278,220,271"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="593,273,791,299"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="593,273,791,299"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="486,330,621,299,622,304,487,335"/>
-<area shape="rect" id="Node000004" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="576,206,808,246"/>
+<area shape="rect" id="Node000004" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="576,206,808,246"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="496,333,526,318,542,305,550,290,558,274,574,259,590,250,592,254,578,263,563,277,555,292,546,308,530,323,498,338"/>
 <area shape="rect" id="Node000005" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="856,74,1083,114"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="723,204,783,168,855,130,890,116,892,121,857,135,786,172,726,208"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A facet is not copied; the panel owns one of each kind.">
 <polygon fill="#999999" stroke="#666666" points="114,-30 0,-30 0,0 114,0 114,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructureFacet</text>
 <text text-anchor="middle" x="57" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::InfrastructureFacet</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_facet.html#a9edf07a88e8287f92ca0898f8d8ade04" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_facet.html#a9edf07a88e8287f92ca0898f8d8ade04" target="_top" xlink:title="Makes the base of a facet, which holds nothing.">
 <polygon fill="white" stroke="#666666" points="264,-30 150,-30 150,0 264,0 264,-30"/>
 <text text-anchor="start" x="158" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructureFacet</text>
 <text text-anchor="middle" x="207" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::InfrastructureFacet</text>

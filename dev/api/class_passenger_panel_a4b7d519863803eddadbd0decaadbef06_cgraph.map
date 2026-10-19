@@ -1,12 +1,12 @@
 <map id="PassengerPanel::PassengerPanel" name="PassengerPanel::PassengerPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,126,203,166"/>
+<area shape="rect" id="Node000001" title="Makes the widgets, empty until a loaded document is set." alt="" coords="5,126,203,166"/>
 <area shape="rect" id="Node000002" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="251,19,511,44"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,124,184,88,250,54,278,45,280,50,252,59,186,92,133,128"/>
 <area shape="rect" id="Node000004" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title=" " alt="" coords="287,69,474,109"/>
 <area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="201,123,274,108,275,113,202,129"/>
-<area shape="rect" id="Node000005" href="$class_passenger_panel.html#a4765b3745b9ecd6448d36c2d849255d1" title=" " alt="" coords="292,133,469,159"/>
+<area shape="rect" id="Node000005" href="$class_passenger_panel.html#a4765b3745b9ecd6448d36c2d849255d1" title="Shows the passengers of the document and keeps the selected rows where they still exist." alt="" coords="292,133,469,159"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="203,143,278,143,278,149,203,149"/>
-<area shape="rect" id="Node000008" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title=" " alt="" coords="271,183,490,223"/>
+<area shape="rect" id="Node000008" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="271,183,490,223"/>
 <area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="202,163,271,178,270,183,201,169"/>
 <area shape="rect" id="Node000009" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="274,272,487,297"/>
 <area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="136,164,189,198,252,233,329,265,327,270,250,238,186,202,133,168"/>
@@ -14,7 +14,7 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="511,34,575,36,575,41,511,39"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="617,31,607,21,612,11,631,5,662,3,703,7,713,12,717,18,712,21,710,16,701,12,662,8,632,10,616,15,612,20,621,27"/>
 <area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="474,71,575,54,576,59,474,76"/>
-<area shape="rect" id="Node000006" href="$class_passenger_panel.html#add7b16e614d373cce568b2e072a0ddd8" title=" " alt="" coords="559,90,765,130"/>
+<area shape="rect" id="Node000006" href="$class_passenger_panel.html#add7b16e614d373cce568b2e072a0ddd8" title="Empties the table with the result of the latest import." alt="" coords="559,90,765,130"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="469,132,545,122,545,128,470,137"/>
 <area shape="rect" id="Node000007" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="615,179,709,204"/>
 <area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="460,156,602,179,601,184,460,161"/>

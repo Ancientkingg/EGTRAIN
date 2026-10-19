@@ -8,7 +8,7 @@
 <area shape="poly" id="edge38_Node000001_Node000017" title=" " alt="" coords="155,251,273,216,310,206,311,212,274,221,156,256"/>
 <area shape="rect" id="Node000018" href="$_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" title="A free scenario id. An empty baseId stands for &quot;scenario&quot;." alt="" coords="295,254,470,279"/>
 <area shape="poly" id="edge40_Node000001_Node000018" title=" " alt="" coords="225,264,281,264,281,269,225,269"/>
-<area shape="rect" id="Node000019" href="$class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" title=" " alt="" coords="273,303,492,329"/>
+<area shape="rect" id="Node000019" href="$class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" title="A message for the status bar, shown for timeoutMs milliseconds." alt="" coords="273,303,492,329"/>
 <area shape="poly" id="edge42_Node000001_Node000019" title=" " alt="" coords="185,277,300,298,299,303,184,282"/>
 <area shape="rect" id="Node000020" href="$struct_scenario_load_result.html#a57ff51fbc1c1473c062f06fdb264c7ee" title="True when no diagnostic is an error." alt="" coords="307,353,458,393"/>
 <area shape="poly" id="edge43_Node000001_Node000020" title=" " alt="" coords="142,277,201,307,274,339,295,346,294,351,272,344,199,312,139,282"/>

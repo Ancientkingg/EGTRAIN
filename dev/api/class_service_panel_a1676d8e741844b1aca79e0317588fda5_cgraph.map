@@ -1,6 +1,6 @@
 <map id="ServicePanel::selectNoneOccurrences" name="ServicePanel::selectNoneOccurrences">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,293,192,333"/>
-<area shape="rect" id="Node000002" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="240,230,472,270"/>
+<area shape="rect" id="Node000001" title="Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the..." alt="" coords="5,293,192,333"/>
+<area shape="rect" id="Node000002" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="240,230,472,270"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,290,260,271,261,276,182,295"/>
 <area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="548,403,719,428"/>
 <area shape="poly" id="edge20_Node000001_Node000010" title=" " alt="" coords="193,328,554,397,553,403,192,333"/>

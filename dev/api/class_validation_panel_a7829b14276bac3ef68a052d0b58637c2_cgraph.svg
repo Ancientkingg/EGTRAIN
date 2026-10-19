@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Writes the tree again.">
 <polygon fill="#999999" stroke="#666666" points="132,-43.5 0,-43.5 0,-13.5 132,-13.5 132,-43.5"/>
 <text text-anchor="start" x="8" y="-31.5" font-family="Helvetica,sans-Serif" font-size="10.00">ValidationPanel::refresh</text>
 <text text-anchor="middle" x="66" y="-20.5" font-family="Helvetica,sans-Serif" font-size="10.00">LoadedData</text>

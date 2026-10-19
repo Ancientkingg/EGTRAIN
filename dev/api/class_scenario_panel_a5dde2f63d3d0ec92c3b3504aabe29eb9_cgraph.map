@@ -1,42 +1,42 @@
 <map id="ScenarioPanel::ScenarioPanel" name="ScenarioPanel::ScenarioPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,361,217,387"/>
-<area shape="rect" id="Node000002" href="$class_scenario_panel.html#a7376744fc56dd13e186054120934aac6" title=" " alt="" coords="281,411,520,436"/>
+<area shape="rect" id="Node000001" title="Makes the widgets, empty until a loaded document is set." alt="" coords="5,361,217,387"/>
+<area shape="rect" id="Node000002" href="$class_scenario_panel.html#a7376744fc56dd13e186054120934aac6" title="Appends a scenario &quot;New scenario&quot; without incidents or delays, with a new unique id,..." alt="" coords="281,411,520,436"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,384,312,406,311,411,186,389"/>
-<area shape="rect" id="Node000004" href="$class_scenario_panel.html#ab995bcfd8f4bdd39f2af9342bd340019" title=" " alt="" coords="265,263,536,288"/>
+<area shape="rect" id="Node000004" href="$class_scenario_panel.html#ab995bcfd8f4bdd39f2af9342bd340019" title="Takes the description from its field." alt="" coords="265,263,536,288"/>
 <area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="133,359,191,328,264,297,295,288,296,293,266,302,193,332,135,363"/>
-<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a6fd48bc6c4753c7a8ae2ea7a8ae6027e" title=" " alt="" coords="297,361,505,387"/>
+<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a6fd48bc6c4753c7a8ae2ea7a8ae6027e" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="297,361,505,387"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="217,371,283,371,283,377,217,377"/>
-<area shape="rect" id="Node000011" href="$class_scenario_panel.html#a51435ca79a58242b2a1d18192fde3e46" title=" " alt="" coords="283,312,518,337"/>
+<area shape="rect" id="Node000011" href="$class_scenario_panel.html#a51435ca79a58242b2a1d18192fde3e46" title="Takes the name from its field." alt="" coords="283,312,518,337"/>
 <area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="186,359,311,337,312,342,187,364"/>
 <area shape="rect" id="Node000012" href="$class_scenario_panel.html#a8de99906e3991249e99cbf0835618efe" title=" " alt="" coords="291,212,510,237"/>
 <area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="122,359,179,304,220,273,264,248,287,239,289,244,266,252,223,278,183,308,126,363"/>
-<area shape="rect" id="Node000013" href="$class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6" title=" " alt="" coords="620,60,787,85"/>
+<area shape="rect" id="Node000013" href="$class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6" title="Lists the scenarios again and shows the selected one." alt="" coords="620,60,787,85"/>
 <area shape="poly" id="edge97_Node000001_Node000013" title=" " alt="" coords="115,360,132,318,163,259,207,198,234,170,264,146,305,124,348,106,439,81,528,69,606,66,607,71,528,75,440,86,350,111,307,129,267,151,237,174,211,201,167,262,137,320,120,362"/>
 <area shape="rect" id="Node000018" href="$class_scenario_panel.html#ad12d161bef58e27f3b71ef6b436782b6" title=" " alt="" coords="310,461,491,501"/>
 <area shape="poly" id="edge29_Node000001_Node000018" title=" " alt="" coords="137,384,194,414,266,445,298,455,296,460,264,450,192,419,134,389"/>
-<area shape="rect" id="Node000020" href="$class_scenario_panel.html#a34f7b1632208d63c7fbed186373aa3fa" title=" " alt="" coords="291,869,510,895"/>
+<area shape="rect" id="Node000020" href="$class_scenario_panel.html#a34f7b1632208d63c7fbed186373aa3fa" title="Writes the selected scenario to a scenario JSON file." alt="" coords="291,869,510,895"/>
 <area shape="poly" id="edge33_Node000001_Node000020" title=" " alt="" coords="121,386,178,508,268,679,330,779,384,857,380,860,326,782,263,682,173,510,116,388"/>
 <area shape="rect" id="Node000042" href="$class_scenario_panel.html#ab79136c37b79ab701b8ce5bdaf36a869" title=" " alt="" coords="291,644,511,669"/>
 <area shape="poly" id="edge66_Node000001_Node000042" title=" " alt="" coords="128,385,378,632,375,636,124,389"/>
-<area shape="rect" id="Node000058" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title=" " alt="" coords="291,919,510,959"/>
+<area shape="rect" id="Node000058" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="291,919,510,959"/>
 <area shape="poly" id="edge98_Node000001_Node000058" title=" " alt="" coords="115,387,116,474,121,539,131,613,150,691,177,769,216,841,240,874,267,904,281,915,277,919,264,908,236,878,211,844,172,771,145,693,126,614,115,540,110,474,109,387"/>
-<area shape="rect" id="Node000059" href="$class_scenario_panel.html#ad10d9ab8071297af00ef7324e28d8236" title=" " alt="" coords="293,161,509,187"/>
+<area shape="rect" id="Node000059" href="$class_scenario_panel.html#ad10d9ab8071297af00ef7324e28d8236" title="Selects the scenario at this position of the scene; the list follows when it is refreshed." alt="" coords="293,161,509,187"/>
 <area shape="poly" id="edge99_Node000001_Node000059" title=" " alt="" coords="117,360,138,326,170,282,213,235,264,197,281,189,283,194,267,202,217,239,175,285,142,329,122,363"/>
 <area shape="rect" id="Node000003" href="$_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" title="A free scenario id. An empty baseId stands for &quot;scenario&quot;." alt="" coords="616,461,791,487"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="478,433,613,456,613,462,477,439"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="657,463,646,453,652,443,671,437,703,435,745,439,757,444,760,450,755,453,753,448,744,444,703,440,672,442,655,447,652,452,660,459"/>
-<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="605,263,802,288"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="605,263,802,288"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="536,273,591,273,591,278,536,278"/>
 <area shape="poly" id="edge10_Node000006_Node000003" title=" " alt="" coords="496,384,537,396,562,408,585,422,657,454,655,459,583,427,559,413,535,400,495,389"/>
 <area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="501,359,535,346,549,337,558,327,568,316,583,305,621,289,623,294,585,310,571,320,562,330,552,341,537,351,503,364"/>
 <area shape="rect" id="Node000007" href="$_scene_references_8cpp.html#a15b7add0357cd569d4a7402d09b528aa" title="Rewrites the scenario id in defaultScenarioId." alt="" coords="584,388,823,413"/>
 <area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="505,380,571,386,570,392,505,386"/>
-<area shape="rect" id="Node000008" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title=" " alt="" coords="892,140,1097,165"/>
+<area shape="rect" id="Node000008" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title="Shows the fields of the selected scenario again." alt="" coords="892,140,1097,165"/>
 <area shape="poly" id="edge11_Node000006_Node000008" title=" " alt="" coords="487,359,686,326,773,310,822,297,867,270,909,237,972,174,976,178,913,241,870,274,824,302,774,315,687,332,488,364"/>
 <area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="657,390,646,380,652,370,671,363,703,361,745,366,757,371,760,377,755,380,753,375,744,371,703,367,672,369,655,374,652,379,660,386"/>
 <area shape="rect" id="Node000009" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="1173,144,1367,169"/>
 <area shape="poly" id="edge12_Node000008_Node000009" title=" " alt="" coords="1098,151,1159,152,1159,158,1097,157"/>
-<area shape="rect" id="Node000010" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title=" " alt="" coords="1173,79,1367,119"/>
+<area shape="rect" id="Node000010" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="1173,79,1367,119"/>
 <area shape="poly" id="edge13_Node000008_Node000010" title=" " alt="" coords="1060,137,1159,118,1161,123,1061,143"/>
 <area shape="poly" id="edge15_Node000011_Node000005" title=" " alt="" coords="479,309,611,288,612,293,480,315"/>
 <area shape="poly" id="edge17_Node000012_Node000005" title=" " alt="" coords="478,235,613,258,613,263,477,240"/>
@@ -47,7 +47,7 @@
 <area shape="poly" id="edge23_Node000013_Node000008" title=" " alt="" coords="757,83,824,102,872,121,920,134,919,139,870,126,822,107,755,88"/>
 <area shape="rect" id="Node000014" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="933,33,1057,59"/>
 <area shape="poly" id="edge19_Node000013_Node000014" title=" " alt="" coords="787,62,919,50,919,56,787,68"/>
-<area shape="rect" id="Node000016" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title=" " alt="" coords="871,87,1119,112"/>
+<area shape="rect" id="Node000016" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title="Writes the label of each scenario in the list again." alt="" coords="871,87,1119,112"/>
 <area shape="poly" id="edge24_Node000013_Node000016" title=" " alt="" coords="787,78,857,84,857,89,787,83"/>
 <area shape="poly" id="edge20_Node000014_Node000014" title=" " alt="" coords="950,35,941,25,946,15,964,9,995,7,1034,11,1045,16,1048,22,1044,24,1041,20,1033,16,995,12,965,14,949,19,946,24,954,31"/>
 <area shape="rect" id="Node000015" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="1185,29,1355,55"/>
@@ -63,7 +63,7 @@
 <area shape="poly" id="edge34_Node000020_Node000021" title=" " alt="" coords="510,879,603,879,603,885,510,885"/>
 <area shape="rect" id="Node000022" href="$_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" title="Writes one scenario as a standalone scenario file, replacing the file at filePath." alt="" coords="635,1065,771,1091"/>
 <area shape="poly" id="edge36_Node000020_Node000022" title=" " alt="" coords="512,890,538,905,552,920,559,936,564,967,568,998,574,1013,586,1028,608,1045,634,1058,632,1063,605,1050,582,1032,570,1016,563,999,559,967,554,937,547,923,534,909,509,895"/>
-<area shape="rect" id="Node000030" href="$class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" title=" " alt="" coords="594,796,813,821"/>
+<area shape="rect" id="Node000030" href="$class_scenario_panel.html#a60432d81a1748551f1afc6e9222a1f69" title="A message for the status bar, shown for timeoutMs milliseconds." alt="" coords="594,796,813,821"/>
 <area shape="poly" id="edge54_Node000020_Node000030" title=" " alt="" coords="445,867,583,830,622,822,623,827,585,835,447,872"/>
 <area shape="rect" id="Node000031" href="$struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" title="True when wroteAll is set and no diagnostic is an error." alt="" coords="607,919,800,944"/>
 <area shape="poly" id="edge55_Node000020_Node000031" title=" " alt="" coords="480,892,612,914,611,919,479,897"/>

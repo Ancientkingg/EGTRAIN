@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the widgets, empty until a loaded document is set.">
 <polygon fill="#999999" stroke="#666666" points="136,-507.5 0,-507.5 0,-477.5 136,-477.5 136,-507.5"/>
 <text text-anchor="start" x="8" y="-495.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::TrainUnit</text>
 <text text-anchor="middle" x="68" y="-484.5" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -39,7 +39,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train_unit_panel.html#a24c77d62bbfdbe5bff7c307b14fb07a6" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_train_unit_panel.html#a24c77d62bbfdbe5bff7c307b14fb07a6" target="_top" xlink:title="Appends a unit with a new unique id and selects it.">
 <polygon fill="white" stroke="#666666" points="332,-878 201,-878 201,-859 332,-859 332,-878"/>
 <text text-anchor="middle" x="266.5" y="-866" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::addUnit</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" target="_top" xlink:title="Lists the units again and shows the selected one.">
 <polygon fill="white" stroke="#666666" points="551,-904 424,-904 424,-885 551,-885 551,-904"/>
 <text text-anchor="middle" x="487.5" y="-892" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::refresh</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" target="_top" xlink:title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again.">
 <polygon fill="white" stroke="#666666" points="345.5,-656 187.5,-656 187.5,-637 345.5,-637 345.5,-656"/>
 <text text-anchor="middle" x="266.5" y="-644" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::commitIdEdit</text>
 </a>
@@ -111,7 +111,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" target="_top" xlink:title="Takes the parameter and traction source references from their fields.">
 <polygon fill="white" stroke="#666666" points="350.5,-619 182.5,-619 182.5,-600 350.5,-600 350.5,-619"/>
 <text text-anchor="middle" x="266.5" y="-607" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::commitSources</text>
 </a>
@@ -148,7 +148,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_train_unit_panel.html#a39c33b0ee0eb7fd73494e957b77a752a" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_train_unit_panel.html#a39c33b0ee0eb7fd73494e957b77a752a" target="_top" xlink:title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it.">
 <polygon fill="white" stroke="#666666" points="338,-804 195,-804 195,-785 338,-785 338,-804"/>
 <text text-anchor="middle" x="266.5" y="-792" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::deleteUnit</text>
 </a>
@@ -166,7 +166,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="class_train_unit_panel.html#a85f63f7e107fb87d41832ee72f112da6" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="class_train_unit_panel.html#a85f63f7e107fb87d41832ee72f112da6" target="_top" xlink:title="Inserts a copy of the selected unit, with a new unique id, after it.">
 <polygon fill="white" stroke="#666666" points="345.5,-841 187.5,-841 187.5,-822 345.5,-822 345.5,-841"/>
 <text text-anchor="middle" x="266.5" y="-829" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::duplicateUnit</text>
 </a>
@@ -203,7 +203,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="class_train_unit_panel.html#a5cd7e623087d526e823baa6607af67cf" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="class_train_unit_panel.html#a5cd7e623087d526e823baa6607af67cf" target="_top" xlink:title="The button that links the traction file (traction true) or the parameter file.">
 <polygon fill="white" stroke="#666666" points="338,-533 195,-533 195,-514 338,-514 338,-533"/>
 <text text-anchor="middle" x="266.5" y="-521" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::linkButton</text>
 </a>
@@ -221,7 +221,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="class_train_unit_panel.html#a79506385069633fb6e79d87db52897a4" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="class_train_unit_panel.html#a79506385069633fb6e79d87db52897a4" target="_top" xlink:title="Removes the selected traction curve row.">
 <polygon fill="white" stroke="#666666" points="361,-693 172,-693 172,-674 361,-674 361,-693"/>
 <text text-anchor="middle" x="266.5" y="-681" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::removeTractionRow</text>
 </a>
@@ -239,7 +239,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_train_unit_panel.html#aa47fec1cc64dd1f967bd23e1d939e174" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_train_unit_panel.html#aa47fec1cc64dd1f967bd23e1d939e174" target="_top" xlink:title="The button that takes the linked traction file (traction true) or parameter file again.">
 <polygon fill="white" stroke="#666666" points="340.5,-429 192.5,-429 192.5,-410 340.5,-410 340.5,-429"/>
 <text text-anchor="middle" x="266.5" y="-417" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::retryButton</text>
 </a>
@@ -257,7 +257,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" target="_top" xlink:title="A panel without a document.">
 <polygon fill="white" stroke="#666666" points="348.5,-391.5 184.5,-391.5 184.5,-361.5 348.5,-361.5 348.5,-391.5"/>
 <text text-anchor="start" x="192.5" y="-379.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::SceneEditor</text>
 <text text-anchor="middle" x="266.5" y="-368.5" font-family="Helvetica,sans-Serif" font-size="10.00">Panel</text>
@@ -312,7 +312,7 @@
 <!-- Node38 -->
 <g id="Node000038" class="node">
 <title>Node38</title>
-<g id="a_Node000038"><a xlink:href="class_train_unit_panel.html#af2652ae180796207e2e8ea6ca0310d8c" target="_top" xlink:title=" ">
+<g id="a_Node000038"><a xlink:href="class_train_unit_panel.html#af2652ae180796207e2e8ea6ca0310d8c" target="_top" xlink:title="The shown unit, or null.">
 <polygon fill="white" stroke="#666666" points="343.5,-249 189.5,-249 189.5,-230 343.5,-230 343.5,-249"/>
 <text text-anchor="middle" x="266.5" y="-237" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::selectedUnit</text>
 </a>
@@ -349,7 +349,7 @@
 <!-- Node40 -->
 <g id="Node000040" class="node">
 <title>Node40</title>
-<g id="a_Node000040"><a xlink:href="class_train_unit_panel.html#ad4b2eb10354f6fd9c3a023406d8eb36b" target="_top" xlink:title=" ">
+<g id="a_Node000040"><a xlink:href="class_train_unit_panel.html#ad4b2eb10354f6fd9c3a023406d8eb36b" target="_top" xlink:title="The user asks to take the linked traction file (traction true) or parameter file of the shown unit ag...">
 <polygon fill="white" stroke="#666666" points="342,-163.5 191,-163.5 191,-133.5 342,-133.5 342,-163.5"/>
 <text text-anchor="start" x="199" y="-151.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceRetry</text>
 <text text-anchor="middle" x="266.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
@@ -368,7 +368,7 @@
 <!-- Node41 -->
 <g id="Node000041" class="node">
 <title>Node41</title>
-<g id="a_Node000041"><a xlink:href="class_train_unit_panel.html#a003f8f0aa7aa9b5b70bb422ebc7de768" target="_top" xlink:title=" ">
+<g id="a_Node000041"><a xlink:href="class_train_unit_panel.html#a003f8f0aa7aa9b5b70bb422ebc7de768" target="_top" xlink:title="The user asks to unlink the traction file (traction true) or the parameter file of the shown unit.">
 <polygon fill="white" stroke="#666666" points="344.5,-115.5 188.5,-115.5 188.5,-85.5 344.5,-85.5 344.5,-115.5"/>
 <text text-anchor="start" x="196.5" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceUnlink</text>
 <text text-anchor="middle" x="266.5" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">Requested</text>
@@ -387,7 +387,7 @@
 <!-- Node42 -->
 <g id="Node000042" class="node">
 <title>Node42</title>
-<g id="a_Node000042"><a xlink:href="class_train_unit_panel.html#ab91dedec627e1e09bf8405f47c6ee3c1" target="_top" xlink:title=" ">
+<g id="a_Node000042"><a xlink:href="class_train_unit_panel.html#ab91dedec627e1e09bf8405f47c6ee3c1" target="_top" xlink:title="The plot of the traction curve of this unit is wanted.">
 <polygon fill="white" stroke="#666666" points="331.5,-67.5 201.5,-67.5 201.5,-37.5 331.5,-37.5 331.5,-67.5"/>
 <text text-anchor="start" x="209.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::traction</text>
 <text text-anchor="middle" x="266.5" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">PlotRequested</text>
@@ -406,7 +406,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="class_train_unit_panel.html#a09f9aed0cdb0a883a8041e9e83c41f6d" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="class_train_unit_panel.html#a09f9aed0cdb0a883a8041e9e83c41f6d" target="_top" xlink:title="The button that unlinks the traction file (traction true) or the parameter file.">
 <polygon fill="white" stroke="#666666" points="344,-19 189,-19 189,0 344,0 344,-19"/>
 <text text-anchor="middle" x="266.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unlinkButton</text>
 </a>
@@ -424,7 +424,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="561.5,-726 413.5,-726 413.5,-707 561.5,-707 561.5,-726"/>
 <text text-anchor="middle" x="487.5" y="-714" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -569,7 +569,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" target="_top" xlink:title="The unit has got another id. Emitted after the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="566.5,-634 408.5,-634 408.5,-615 566.5,-615 566.5,-634"/>
 <text text-anchor="middle" x="487.5" y="-622" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitRenamed</text>
 </a>
@@ -614,7 +614,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" target="_top" xlink:title="The references to the source files of the shown unit have changed.">
 <polygon fill="white" stroke="#666666" points="577,-596.5 398,-596.5 398,-566.5 577,-566.5 577,-596.5"/>
 <text text-anchor="start" x="406" y="-584.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::sourceReferences</text>
 <text text-anchor="middle" x="487.5" y="-573.5" font-family="Helvetica,sans-Serif" font-size="10.00">Changed</text>
@@ -705,7 +705,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" target="_top" xlink:title="The unit is gone from the model. Emitted after the document is marked changed.">
 <polygon fill="white" stroke="#666666" points="562,-763 413,-763 413,-744 562,-744 562,-763"/>
 <text text-anchor="middle" x="487.5" y="-751" font-family="Helvetica,sans-Serif" font-size="10.00">TrainUnitPanel::unitDeleted</text>
 </a>

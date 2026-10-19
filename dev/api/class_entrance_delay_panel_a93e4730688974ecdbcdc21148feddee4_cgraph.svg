@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Refreshes when the document is replaced, and when the case settings, the infrastructure or the servic...">
 <polygon fill="#999999" stroke="#666666" points="114,-153 0,-153 0,-123 114,-123 114,-153"/>
 <text text-anchor="start" x="8" y="-141" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="57" y="-130" font-family="Helvetica,sans-Serif" font-size="10.00">::setDocument</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" target="_top" xlink:title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">
 <polygon fill="white" stroke="#666666" points="293.5,-190.5 150.5,-190.5 150.5,-171.5 293.5,-171.5 293.5,-190.5"/>
 <text text-anchor="middle" x="222" y="-178.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::changed</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a" target="_top" xlink:title="Lists the delays of the selected scenario again and keeps the selected row where it still exists.">
 <polygon fill="white" stroke="#666666" points="279,-153 165,-153 165,-123 279,-123 279,-153"/>
 <text text-anchor="start" x="173" y="-141" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="222" y="-130" font-family="Helvetica,sans-Serif" font-size="10.00">::refresh</text>
@@ -58,7 +58,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" target="_top" xlink:title="Emitted by replace(), after the whole state is set.">
 <polygon fill="white" stroke="#666666" points="294,-104.5 150,-104.5 150,-85.5 294,-85.5 294,-104.5"/>
 <text text-anchor="middle" x="222" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneDocument::replaced</text>
 </a>
@@ -94,7 +94,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" target="_top" xlink:title="Shows the fields of the selected delay again.">
 <polygon fill="white" stroke="#666666" points="444,-116 330,-116 330,-86 444,-86 444,-116"/>
 <text text-anchor="start" x="338" y="-104" font-family="Helvetica,sans-Serif" font-size="10.00">EntranceDelayPanel</text>
 <text text-anchor="middle" x="387" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">::updateDetail</text>

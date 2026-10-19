@@ -1,5 +1,5 @@
 <map id="TrainUnitPanel::addTractionRow" name="TrainUnitPanel::addTractionRow">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,232,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="280,5,477,31"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="280,5,477,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,15,266,15,266,21,232,21"/>
 </map>

@@ -1,12 +1,12 @@
 <map id="IncidentPanel::commitType" name="IncidentPanel::commitType">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,139,203,164"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="264,89,461,115"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="264,89,461,115"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,136,281,115,282,120,172,141"/>
 <area shape="rect" id="Node000003" href="$class_incident_panel.html#a375e4980dce11bb5cbe65638f67b98d8" title=" " alt="" coords="251,139,475,164"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,149,237,149,237,154,203,154"/>
-<area shape="rect" id="Node000004" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title=" " alt="" coords="262,188,463,213"/>
+<area shape="rect" id="Node000004" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title="Shows the fields of the selected incident again." alt="" coords="262,188,463,213"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,161,282,183,281,188,171,167"/>
-<area shape="rect" id="Node000005" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title=" " alt="" coords="523,147,733,172"/>
+<area shape="rect" id="Node000005" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title="Lists the choices of targets of the selected incident again." alt="" coords="523,147,733,172"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="444,185,532,172,533,177,445,191"/>
 <area shape="rect" id="Node000010" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="545,224,711,249"/>
 <area shape="poly" id="edge12_Node000004_Node000010" title=" " alt="" coords="457,211,532,221,531,226,456,216"/>

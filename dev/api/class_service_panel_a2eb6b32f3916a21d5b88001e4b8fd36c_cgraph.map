@@ -1,6 +1,6 @@
 <map id="ServicePanel::selectAllOccurrences" name="ServicePanel::selectAllOccurrences">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,196,255,221"/>
-<area shape="rect" id="Node000002" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="303,189,535,229"/>
+<area shape="rect" id="Node000001" title="Includes every occurrence in the next run." alt="" coords="5,196,255,221"/>
+<area shape="rect" id="Node000002" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="303,189,535,229"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="255,206,289,206,289,211,255,211"/>
 <area shape="rect" id="Node000003" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="583,74,809,114"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="459,186,582,130,619,116,621,121,584,135,461,191"/>

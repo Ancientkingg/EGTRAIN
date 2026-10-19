@@ -128,53 +128,83 @@ Collaboration diagram for ScenarioPanel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a84d23c61e99ac3a0629b324b3e1def3c" id="r_a84d23c61e99ac3a0629b324b3e1def3c"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a84d23c61e99ac3a0629b324b3e1def3c">ExportFailureReport</a> = std::function&lt;void(const std::vector&lt;<a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a>&gt;&amp;)&gt;</td></tr>
+<tr class="memdesc:a84d23c61e99ac3a0629b324b3e1def3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when a scenario file cannot be written, with what the writer reports.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a655b2f602434599d9d7d3aa0f57724ca" id="r_a655b2f602434599d9d7d3aa0f57724ca"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a655b2f602434599d9d7d3aa0f57724ca">scenarioSelected</a> (const QString &amp;id)</td></tr>
 <tr class="memitem:a228ab01925be2a02afc7768776978c3f" id="r_a228ab01925be2a02afc7768776978c3f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a228ab01925be2a02afc7768776978c3f">headerTextChanged</a> (const QString &amp;text)</td></tr>
+<tr class="memdesc:a228ab01925be2a02afc7768776978c3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected scenario or its id or name has changed, or the document is replaced; the argument is <a class="el" href="#ad46effab46a47abd2d4939afe375c79f">headerText()</a>.  <br /></td></tr>
 <tr class="memitem:a60432d81a1748551f1afc6e9222a1f69" id="r_a60432d81a1748551f1afc6e9222a1f69"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a60432d81a1748551f1afc6e9222a1f69">statusMessage</a> (const QString &amp;text, int timeoutMs)</td></tr>
+<tr class="memdesc:a60432d81a1748551f1afc6e9222a1f69"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status bar, shown for <span class="tt">timeoutMs</span> milliseconds.  <br /></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a5dde2f63d3d0ec92c3b3504aabe29eb9" id="r_a5dde2f63d3d0ec92c3b3504aabe29eb9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a5dde2f63d3d0ec92c3b3504aabe29eb9">ScenarioPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a5dde2f63d3d0ec92c3b3504aabe29eb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
 <tr class="memitem:aa20347077c0648b1fe9c71bfffa6bb82" id="r_aa20347077c0648b1fe9c71bfffa6bb82"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa20347077c0648b1fe9c71bfffa6bb82">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
+<tr class="memdesc:aa20347077c0648b1fe9c71bfffa6bb82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced, and writes the labels of the list again when scenarios are edited.  <br /></td></tr>
 <tr class="memitem:ae9f1853ea41d82f250982d366510c177" id="r_ae9f1853ea41d82f250982d366510c177"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae9f1853ea41d82f250982d366510c177">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:ad41f3a1eaf744c2329bd342cd60284ae" id="r_ad41f3a1eaf744c2329bd342cd60284ae"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad41f3a1eaf744c2329bd342cd60284ae">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
 <tr class="memitem:afdd8df3c12c754b4d09c217b4a48710d" id="r_afdd8df3c12c754b4d09c217b4a48710d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afdd8df3c12c754b4d09c217b4a48710d">setDiagnostics</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; *diagnostics)</td></tr>
 <tr class="memitem:a4745424d5f32c092bbfbb06b23b0a9f4" id="r_a4745424d5f32c092bbfbb06b23b0a9f4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4745424d5f32c092bbfbb06b23b0a9f4">setAdvancedDetails</a> (std::function&lt; bool()&gt; enabled)</td></tr>
+<tr class="memdesc:a4745424d5f32c092bbfbb06b23b0a9f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tells whether the list gives the details of each scenario. Without it the list is short.  <br /></td></tr>
 <tr class="memitem:adc28ef45e373728492c8e2dcfba3458b" id="r_adc28ef45e373728492c8e2dcfba3458b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adc28ef45e373728492c8e2dcfba3458b">setImportFileChooser</a> (std::function&lt; QString()&gt; chooser)</td></tr>
+<tr class="memdesc:adc28ef45e373728492c8e2dcfba3458b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gives the file that Import reads; an empty path cancels. Without a chooser the panel asks with a file dialog.  <br /></td></tr>
 <tr class="memitem:ad8068d1d7994f46bc5ef4bdfaacface8" id="r_ad8068d1d7994f46bc5ef4bdfaacface8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad8068d1d7994f46bc5ef4bdfaacface8">setExportFileChooser</a> (std::function&lt; QString(const QString &amp;suggestedName)&gt; chooser)</td></tr>
 <tr class="memitem:a841ff390a2c6814cbd2f792853dfa94c" id="r_a841ff390a2c6814cbd2f792853dfa94c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a841ff390a2c6814cbd2f792853dfa94c">setExportObserver</a> (std::function&lt; <a class="el" href="#a84d23c61e99ac3a0629b324b3e1def3c">ExportFailureReport</a>()&gt; begin)</td></tr>
 <tr class="memitem:a8d72bafa45cdda75db1d8c8219db78b6" id="r_a8d72bafa45cdda75db1d8c8219db78b6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8d72bafa45cdda75db1d8c8219db78b6">refresh</a> () override</td></tr>
+<tr class="memdesc:a8d72bafa45cdda75db1d8c8219db78b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the scenarios again and shows the selected one.  <br /></td></tr>
 <tr class="memitem:a22b2732001e960ff583b44bb9e59ce26" id="r_a22b2732001e960ff583b44bb9e59ce26"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a22b2732001e960ff583b44bb9e59ce26">commitPendingEditors</a> () override</td></tr>
+<tr class="memdesc:a22b2732001e960ff583b44bb9e59ce26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id, the name and the description that are being edited into the document.  <br /></td></tr>
 <tr class="memitem:a93b9ded73a07ec40693f62c3ca6286c3" id="r_a93b9ded73a07ec40693f62c3ca6286c3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a93b9ded73a07ec40693f62c3ca6286c3">updatePresentation</a> ()</td></tr>
+<tr class="memdesc:a93b9ded73a07ec40693f62c3ca6286c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes the label of each scenario in the list again.  <br /></td></tr>
 <tr class="memitem:a858854f50371f61585fdc7b305aeab8b" id="r_a858854f50371f61585fdc7b305aeab8b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a858854f50371f61585fdc7b305aeab8b">updateDetail</a> ()</td></tr>
+<tr class="memdesc:a858854f50371f61585fdc7b305aeab8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the fields of the selected scenario again.  <br /></td></tr>
 <tr class="memitem:ad46effab46a47abd2d4939afe375c79f" id="r_ad46effab46a47abd2d4939afe375c79f"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad46effab46a47abd2d4939afe375c79f">headerText</a> () const</td></tr>
 <tr class="memitem:ad10d9ab8071297af00ef7324e28d8236" id="r_ad10d9ab8071297af00ef7324e28d8236"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad10d9ab8071297af00ef7324e28d8236">selectScenario</a> (int row)</td></tr>
+<tr class="memdesc:ad10d9ab8071297af00ef7324e28d8236"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects the scenario at this position of the scene; the list follows when it is refreshed.  <br /></td></tr>
 <tr class="memitem:a7376744fc56dd13e186054120934aac6" id="r_a7376744fc56dd13e186054120934aac6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7376744fc56dd13e186054120934aac6">addBlankScenario</a> ()</td></tr>
+<tr class="memdesc:a7376744fc56dd13e186054120934aac6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends a scenario "New scenario" without incidents or delays, with a new unique id, and selects it.  <br /></td></tr>
 <tr class="memitem:ad12d161bef58e27f3b71ef6b436782b6" id="r_ad12d161bef58e27f3b71ef6b436782b6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad12d161bef58e27f3b71ef6b436782b6">duplicateScenario</a> ()</td></tr>
 <tr class="memitem:a8de99906e3991249e99cbf0835618efe" id="r_a8de99906e3991249e99cbf0835618efe"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8de99906e3991249e99cbf0835618efe">deleteScenario</a> ()</td></tr>
 <tr class="memitem:ab79136c37b79ab701b8ce5bdaf36a869" id="r_ab79136c37b79ab701b8ce5bdaf36a869"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab79136c37b79ab701b8ce5bdaf36a869">importScenario</a> ()</td></tr>
 <tr class="memitem:a34f7b1632208d63c7fbed186373aa3fa" id="r_a34f7b1632208d63c7fbed186373aa3fa"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a34f7b1632208d63c7fbed186373aa3fa">exportScenario</a> ()</td></tr>
+<tr class="memdesc:a34f7b1632208d63c7fbed186373aa3fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes the selected scenario to a scenario JSON file.  <br /></td></tr>
 <tr class="memitem:a6fd48bc6c4753c7a8ae2ea7a8ae6027e" id="r_a6fd48bc6c4753c7a8ae2ea7a8ae6027e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6fd48bc6c4753c7a8ae2ea7a8ae6027e">commitIdEdit</a> ()</td></tr>
+<tr class="memdesc:a6fd48bc6c4753c7a8ae2ea7a8ae6027e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the id from the field. An empty or used id is dropped and the field shows the old id again.  <br /></td></tr>
 <tr class="memitem:a51435ca79a58242b2a1d18192fde3e46" id="r_a51435ca79a58242b2a1d18192fde3e46"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a51435ca79a58242b2a1d18192fde3e46">commitNameEdit</a> ()</td></tr>
+<tr class="memdesc:a51435ca79a58242b2a1d18192fde3e46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the name from its field.  <br /></td></tr>
 <tr class="memitem:ab995bcfd8f4bdd39f2af9342bd340019" id="r_ab995bcfd8f4bdd39f2af9342bd340019"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab995bcfd8f4bdd39f2af9342bd340019">commitDescriptionEdit</a> ()</td></tr>
+<tr class="memdesc:ab995bcfd8f4bdd39f2af9342bd340019"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the description from its field.  <br /></td></tr>
 <tr class="memitem:ae4e8b07e1509dbe5c8e5d88e605d58cb" id="r_ae4e8b07e1509dbe5c8e5d88e605d58cb"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#ae4e8b07e1509dbe5c8e5d88e605d58cb">listWidget</a> () const</td></tr>
+<tr class="memdesc:ae4e8b07e1509dbe5c8e5d88e605d58cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenarios of the scene, one row each.  <br /></td></tr>
 <tr class="memitem:ab3c90cb71d22d1c14f3ceb2c3043b43b" id="r_ab3c90cb71d22d1c14f3ceb2c3043b43b"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#ab3c90cb71d22d1c14f3ceb2c3043b43b">idEdit</a> () const</td></tr>
+<tr class="memdesc:ab3c90cb71d22d1c14f3ceb2c3043b43b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the id of the selected scenario.  <br /></td></tr>
 <tr class="memitem:a3ff45f21d389f42bbae2ebc80d228597" id="r_a3ff45f21d389f42bbae2ebc80d228597"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a3ff45f21d389f42bbae2ebc80d228597">nameEdit</a> () const</td></tr>
+<tr class="memdesc:a3ff45f21d389f42bbae2ebc80d228597"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the name of the selected scenario.  <br /></td></tr>
 <tr class="memitem:a8dada1f02dc66076041fb85604e31874" id="r_a8dada1f02dc66076041fb85604e31874"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a8dada1f02dc66076041fb85604e31874">descriptionEdit</a> () const</td></tr>
+<tr class="memdesc:a8dada1f02dc66076041fb85604e31874"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the description of the selected scenario.  <br /></td></tr>
 <tr class="memitem:adae88d86aa78217e85da5be8d40f35b0" id="r_adae88d86aa78217e85da5be8d40f35b0"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#adae88d86aa78217e85da5be8d40f35b0">blankButton</a> () const</td></tr>
+<tr class="memdesc:adae88d86aa78217e85da5be8d40f35b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a7376744fc56dd13e186054120934aac6" title="Appends a scenario &quot;New scenario&quot; without incidents or delays, with a new unique id,...">addBlankScenario()</a>.  <br /></td></tr>
 <tr class="memitem:a67f780ffa2ec5d03b56312e02bfeae47" id="r_a67f780ffa2ec5d03b56312e02bfeae47"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a67f780ffa2ec5d03b56312e02bfeae47">duplicateButton</a> () const</td></tr>
+<tr class="memdesc:a67f780ffa2ec5d03b56312e02bfeae47"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ad12d161bef58e27f3b71ef6b436782b6">duplicateScenario()</a>.  <br /></td></tr>
 <tr class="memitem:a092dae6b7c6c717ce4ff488c3f21ef04" id="r_a092dae6b7c6c717ce4ff488c3f21ef04"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a092dae6b7c6c717ce4ff488c3f21ef04">deleteButton</a> () const</td></tr>
+<tr class="memdesc:a092dae6b7c6c717ce4ff488c3f21ef04"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a8de99906e3991249e99cbf0835618efe">deleteScenario()</a>.  <br /></td></tr>
 <tr class="memitem:afd91577c75a05a80413aea6e7eaed63c" id="r_afd91577c75a05a80413aea6e7eaed63c"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#afd91577c75a05a80413aea6e7eaed63c">importButton</a> () const</td></tr>
+<tr class="memdesc:afd91577c75a05a80413aea6e7eaed63c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#ab79136c37b79ab701b8ce5bdaf36a869">importScenario()</a>.  <br /></td></tr>
 <tr class="memitem:aeee76f8c2cfce9059549af70f129310b" id="r_aeee76f8c2cfce9059549af70f129310b"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#aeee76f8c2cfce9059549af70f129310b">exportButton</a> () const</td></tr>
+<tr class="memdesc:aeee76f8c2cfce9059549af70f129310b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button of <a class="el" href="#a34f7b1632208d63c7fbed186373aa3fa" title="Writes the selected scenario to a scenario JSON file.">exportScenario()</a>.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
 </table>
-<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The scenarios of the scene: a list to pick one, the buttons that add, copy, delete, import and export them, and the id, name and description of the selected one. The selected scenario is kept in the run selection, because the next run uses it and the incident and entrance delay editors show its entries. Renaming a scenario rewrites what refers to it, and the default scenario cannot be deleted. </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a84d23c61e99ac3a0629b324b3e1def3c" name="a84d23c61e99ac3a0629b324b3e1def3c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a84d23c61e99ac3a0629b324b3e1def3c">&#9670;&#160;</a></span>ExportFailureReport</h2>
 
@@ -186,6 +216,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Called when a scenario file cannot be written, with what the writer reports. </p>
 
 </div>
 </div>
@@ -212,6 +244,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes the widgets, empty until a loaded document is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -235,6 +269,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Appends a scenario "New scenario" without incidents or delays, with a new unique id, and selects it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -266,6 +302,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a7376744fc56dd13e186054120934aac6" title="Appends a scenario &quot;New scenario&quot; without incidents or delays, with a new unique id,...">addBlankScenario()</a>. </p>
+
 </div>
 </div>
 <a id="ab995bcfd8f4bdd39f2af9342bd340019" name="ab995bcfd8f4bdd39f2af9342bd340019"></a>
@@ -282,6 +320,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the description from its field. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -304,6 +344,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the id from the field. An empty or used id is dropped and the field shows the old id again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -326,6 +368,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Takes the name from its field. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -356,6 +400,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the id, the name and the description that are being edited into the document. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
@@ -389,6 +435,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a8de99906e3991249e99cbf0835618efe">deleteScenario()</a>. </p>
+
 </div>
 </div>
 <a id="a8de99906e3991249e99cbf0835618efe" name="a8de99906e3991249e99cbf0835618efe"></a>
@@ -405,6 +453,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Deletes the selected scenario after the user has confirmed it and selects the default one. The default scenario cannot be deleted, nor any while the scene has no valid default. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -436,6 +485,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the description of the selected scenario. </p>
+
 </div>
 </div>
 <a id="a67f780ffa2ec5d03b56312e02bfeae47" name="a67f780ffa2ec5d03b56312e02bfeae47"></a>
@@ -461,6 +512,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#ad12d161bef58e27f3b71ef6b436782b6">duplicateScenario()</a>. </p>
+
 </div>
 </div>
 <a id="ad12d161bef58e27f3b71ef6b436782b6" name="ad12d161bef58e27f3b71ef6b436782b6"></a>
@@ -477,6 +530,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Appends a copy of the selected scenario, named "Copy of" its name, with new unique ids for it and its incidents, and selects it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -508,6 +562,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#a34f7b1632208d63c7fbed186373aa3fa" title="Writes the selected scenario to a scenario JSON file.">exportScenario()</a>. </p>
+
 </div>
 </div>
 <a id="a34f7b1632208d63c7fbed186373aa3fa" name="a34f7b1632208d63c7fbed186373aa3fa"></a>
@@ -524,6 +580,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Writes the selected scenario to a scenario JSON file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -546,6 +604,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>One line that names the selected scenario, for a header over the editors that work on its entries, such as "Scenario: id (name)" or "No scenario selected". </p>
 
 </div>
 </div>
@@ -572,6 +631,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The selected scenario or its id or name has changed, or the document is replaced; the argument is <a class="el" href="#ad46effab46a47abd2d4939afe375c79f">headerText()</a>. </p>
+
 </div>
 </div>
 <a id="ab3c90cb71d22d1c14f3ceb2c3043b43b" name="ab3c90cb71d22d1c14f3ceb2c3043b43b"></a>
@@ -596,6 +657,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The field of the id of the selected scenario. </p>
 
 </div>
 </div>
@@ -622,6 +685,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The button of <a class="el" href="#ab79136c37b79ab701b8ce5bdaf36a869">importScenario()</a>. </p>
+
 </div>
 </div>
 <a id="ab79136c37b79ab701b8ce5bdaf36a869" name="ab79136c37b79ab701b8ce5bdaf36a869"></a>
@@ -638,6 +703,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a scenario JSON file and appends it; an id that the scene already has, of the scenario or of an incident, is made unique. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -669,6 +735,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The scenarios of the scene, one row each. </p>
+
 </div>
 </div>
 <a id="a3ff45f21d389f42bbae2ebc80d228597" name="a3ff45f21d389f42bbae2ebc80d228597"></a>
@@ -694,6 +762,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The field of the name of the selected scenario. </p>
+
 </div>
 </div>
 <a id="a8d72bafa45cdda75db1d8c8219db78b6" name="a8d72bafa45cdda75db1d8c8219db78b6"></a>
@@ -718,6 +788,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Lists the scenarios again and shows the selected one. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8">SceneEditorPanel</a>.</p>
 <div class="dynheader">
@@ -750,6 +822,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Another scenario is selected, by the user or because an edit has added or removed one. Its incidents and entrance delays are to be shown, and what a run showed no longer applies to the selection. Emitted after the run selection is updated and, for an edit, after the document is marked changed. </p>
 
 </div>
 </div>
@@ -767,6 +840,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Selects the scenario at this position of the scene; the list follows when it is refreshed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -790,6 +865,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Tells whether the list gives the details of each scenario. Without it the list is short. </p>
+
 </div>
 </div>
 <a id="afdd8df3c12c754b4d09c217b4a48710d" name="afdd8df3c12c754b4d09c217b4a48710d"></a>
@@ -806,6 +883,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The validation messages that the list shows as the state of each scenario. The vector must outlive the panel or be replaced first; null shows none. Call <a class="el" href="#a93b9ded73a07ec40693f62c3ca6286c3" title="Writes the label of each scenario in the list again.">updatePresentation()</a> after the diagnostics have changed. </p>
 
 </div>
 </div>
@@ -832,6 +910,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Refreshes when the document is replaced, and writes the labels of the list again when scenarios are edited. </p>
+
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
@@ -855,6 +935,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the file that Export writes, for which it gets the name that the dialog suggests; an empty path cancels. Without a chooser the panel asks with a file dialog. </p>
 
 </div>
 </div>
@@ -872,6 +953,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Called when an export starts, before the user names the file. The report it returns is called when the file cannot be written. </p>
 
 </div>
 </div>
@@ -890,6 +972,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Gives the file that Import reads; an empty path cancels. Without a chooser the panel asks with a file dialog. </p>
+
 </div>
 </div>
 <a id="ae9f1853ea41d82f250982d366510c177" name="ae9f1853ea41d82f250982d366510c177"></a>
@@ -906,6 +990,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The messages and questions go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
 
 </div>
 </div>
@@ -923,6 +1008,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The selected scenario and the scenarios that are edited are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
 
 </div>
 </div>
@@ -953,6 +1039,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>A message for the status bar, shown for <span class="tt">timeoutMs</span> milliseconds. </p>
+
 </div>
 </div>
 <a id="a858854f50371f61585fdc7b305aeab8b" name="a858854f50371f61585fdc7b305aeab8b"></a>
@@ -969,6 +1057,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Shows the fields of the selected scenario again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -991,6 +1081,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Writes the label of each scenario in the list again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

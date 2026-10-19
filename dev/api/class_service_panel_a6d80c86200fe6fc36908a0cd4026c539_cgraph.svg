@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Shows the fields of the selected service again.">
 <polygon fill="#999999" stroke="#666666" points="148,-85.5 0,-85.5 0,-66.5 148,-66.5 148,-85.5"/>
 <text text-anchor="middle" x="74" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServicePanel::updateDetail</text>
 </a>

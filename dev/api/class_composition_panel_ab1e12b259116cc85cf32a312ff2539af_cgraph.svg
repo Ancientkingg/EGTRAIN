@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Deletes the selected composition after the user has confirmed it; refused while a service uses it.">
 <polygon fill="#999999" stroke="#666666" points="141,-193.5 0,-193.5 0,-163.5 141,-163.5 141,-193.5"/>
 <text text-anchor="start" x="8" y="-181.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::delete</text>
 <text text-anchor="middle" x="70.5" y="-170.5" font-family="Helvetica,sans-Serif" font-size="10.00">Composition</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" target="_top" xlink:title="The panel has changed the document. Emitted after SceneDocument::changed().">
 <polygon fill="white" stroke="#666666" points="336,-253 188,-253 188,-234 336,-234 336,-253"/>
 <text text-anchor="middle" x="262" y="-241" font-family="Helvetica,sans-Serif" font-size="10.00">SceneEditorPanel::changed</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" target="_top" xlink:title="Shows the current state of the document.">
 <polygon fill="white" stroke="#666666" points="334.5,-167 189.5,-167 189.5,-148 334.5,-148 334.5,-167"/>
 <text text-anchor="middle" x="262" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">CompositionPanel::refresh</text>
 </a>
