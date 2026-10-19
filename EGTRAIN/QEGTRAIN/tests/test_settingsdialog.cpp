@@ -19,10 +19,6 @@ static bool check(bool ok, const char* text) {
 	return ok;
 }
 
-static QCheckBox* box(const SettingsDialog& dialog, const char* name) {
-	return dialog.findChild<QCheckBox*>(QString::fromLatin1(name));
-}
-
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
 	QTemporaryDir dir;
@@ -46,7 +42,7 @@ int main(int argc, char** argv) {
 		dialog.findChild<QPushButton*>(QStringLiteral("settingsClearRecentCases"))->click();
 		for (const char* name : {"settingsShowPassengers", "settingsAdvancedDetails", "settingsAutomaticUpdateChecks", "settingsUsage",
 				 "settingsDiagnostics"})
-			box(dialog, name)->setChecked(true);
+			dialog.findChild<QCheckBox*>(QString::fromLatin1(name))->setChecked(true);
 		dialog.accept();
 	}
 	{
@@ -65,6 +61,10 @@ int main(int argc, char** argv) {
 		settings.setValue(kRecentScenesKey, QStringList{QStringLiteral("/cases/a.egscene")});
 		TelemetryConsent consent(settings, context);
 		SettingsDialog dialog(settings, consent);
+		ok &= check(dialog.findChild<QListWidget*>(QStringLiteral("settingsRecentCases"))->count() == 1, "the window lists the saved cases");
+		for (const char* name : {"settingsShowPassengers", "settingsAdvancedDetails", "settingsAutomaticUpdateChecks", "settingsUsage",
+				 "settingsDiagnostics"})
+			ok &= check(dialog.findChild<QCheckBox*>(QString::fromLatin1(name))->isChecked(), name);
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::RestoreDefaults)->click();
 		dialog.accept();
 	}

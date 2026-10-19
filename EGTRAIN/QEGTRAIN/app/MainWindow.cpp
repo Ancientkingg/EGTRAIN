@@ -486,12 +486,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->menuEdit->addAction(settingsAction);
 	connect(settingsAction, &QAction::triggered, this, [this] {
 		QSettings settings;
-		TelemetryConsent consent(settings, applicationTelemetryContext());
-		SettingsDialog dialog(settings, consent, this);
+		TelemetryConsent localConsent(settings, applicationTelemetryContext());
+		// The sender closes at once when the consent it follows is revoked.
+		TelemetryConsent* senderConsent = m_updateTelemetry->consent();
+		SettingsDialog dialog(settings, senderConsent ? *senderConsent : localConsent, this);
+		// The command line can start with a passenger display other than the saved one; OK keeps it unless the saved
+		// value changes.
+		const bool passengersBefore = savedShowPassengers();
 		if (dialog.exec() != QDialog::Accepted)
 			return;
 		// The menu entries take the saved values; their own handlers apply them to the window.
-		m_showPassengersAction->setChecked(savedShowPassengers());
+		if (savedShowPassengers() != passengersBefore)
+			m_showPassengersAction->setChecked(savedShowPassengers());
 		m_advancedDetailsAction->setChecked(settings.value(kAdvancedDetailsKey, false).toBool());
 		if (auto* updateChecks = findChild<QAction*>(QStringLiteral("actionAutomaticallyCheckForUpdates"))) {
 			const QSignalBlocker blocker(updateChecks);

@@ -42,7 +42,6 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 	: QDialog(parent), m_settings(settings), m_consent(consent) {
 	setObjectName(QStringLiteral("settingsDialog"));
 	setWindowTitle(QStringLiteral("Settings"));
-	setModal(true);
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	layout->setContentsMargins(0, 0, 0, 0);
@@ -71,10 +70,11 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 		settings.value(kAdvancedDetailsKey, false).toBool());
 
 	QVBoxLayout* updates = addSection(layout, QStringLiteral("Updates and privacy"));
-	m_updateChecksWereOn = readUpdateCheckState(settings) == UpdateCheckState::Enabled;
+	m_updateCheckState = readUpdateCheckState(settings);
 	m_updateChecks = addCheckBox(updates, QStringLiteral("Automatically check for updates"), "settingsAutomaticUpdateChecks",
-		m_updateChecksWereOn);
-	connect(m_updateChecks, &QCheckBox::toggled, this, [this] { m_askAboutUpdateChecks = false; });
+		m_updateCheckState == UpdateCheckState::Enabled);
+	connect(m_updateChecks, &QCheckBox::toggled, this,
+		[this](bool on) { m_updateCheckState = on ? UpdateCheckState::Enabled : UpdateCheckState::Disabled; });
 	const bool privacy = consent.available();
 	m_usage = addCheckBox(updates, QStringLiteral("Share usage statistics"), "settingsUsage", privacy && consent.usageEnabled());
 	m_diagnostics = addCheckBox(updates, QStringLiteral("Share diagnostic reports"), "settingsDiagnostics",
@@ -106,7 +106,7 @@ void SettingsDialog::restoreDefaults() {
 	m_showPassengers->setChecked(false);
 	m_advancedDetails->setChecked(false);
 	m_updateChecks->setChecked(false);
-	m_askAboutUpdateChecks = true;
+	m_updateCheckState = UpdateCheckState::Unknown;
 	m_usage->setChecked(false);
 	m_diagnostics->setChecked(false);
 }
@@ -125,10 +125,7 @@ void SettingsDialog::accept() {
 		m_settings.remove(kRecentScenesKey);
 	m_settings.setValue(kShowPassengersKey, m_showPassengers->isChecked());
 	m_settings.setValue(kAdvancedDetailsKey, m_advancedDetails->isChecked());
-	if (m_askAboutUpdateChecks)
-		writeUpdateCheckState(m_settings, UpdateCheckState::Unknown);
-	else if (m_updateChecks->isChecked() != m_updateChecksWereOn)
-		writeUpdateCheckState(m_settings, m_updateChecks->isChecked() ? UpdateCheckState::Enabled : UpdateCheckState::Disabled);
+	writeUpdateCheckState(m_settings, m_updateCheckState);
 	m_settings.sync();
 	QDialog::accept();
 }
