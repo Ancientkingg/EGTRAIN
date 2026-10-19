@@ -4,8 +4,6 @@ from docutils import nodes
 
 project = "EGTRAIN"
 extensions = ["myst_parser"]
-source_suffix = {".md": "markdown"}
-exclude_patterns = ["requirements.txt"]
 
 myst_heading_anchors = 4
 # tools/docs/check_docs.py checks every relative link, including the ones to files outside docs/ that
