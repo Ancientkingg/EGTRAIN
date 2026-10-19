@@ -188,34 +188,19 @@ QPushButton:focus, QComboBox:focus, QLineEdit:focus {
     border-color: #315a70;
 }
 
-QPushButton, QComboBox, QLineEdit {
+QPushButton, QComboBox, QLineEdit, QToolButton#runResultsViewsButton {
     background: #ffffff;
     border: 1px solid #c8ced2;
     border-radius: 2px;
     padding: 5px 7px;
 }
 
-QPushButton:hover, QComboBox:hover {
+QPushButton:hover, QComboBox:hover, QToolButton#runResultsViewsButton:hover, QToolButton#runResultsViewsButton:focus {
     border-color: #315a70;
 }
 
 QPushButton:pressed {
     background: #d8e1e5;
-}
-
-QToolButton#runResultsViewsButton {
-    background: #ffffff;
-    border-color: #c8ced2;
-    padding: 5px 7px;
-}
-
-QToolButton#runResultsViewsButton:hover, QToolButton#runResultsViewsButton:focus {
-    border-color: #315a70;
-}
-
-QToolButton#runResultsViewsButton:disabled {
-    background: #e4e8eb;
-    border-color: #c9d3db;
 }
 
 QDialog#runReviewDialog, QDialog[dialogPresentation="true"] {
@@ -313,7 +298,8 @@ QMessageBox QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRun
 
 QPushButton:disabled,
 QComboBox:disabled,
-QLineEdit:disabled {
+QLineEdit:disabled,
+QToolButton#runResultsViewsButton:disabled {
     background: #e4e8eb;
     border-color: #c9d3db;
     color: #64717a;
@@ -397,7 +383,7 @@ QProgressBar::chunk {
     background: #315a70;
 }
 
-QHeaderView::section {
+QHeaderView::section, QTableCornerButton::section {
     background: #e3eaee;
     color: #24313a;
     border: 0;
@@ -405,13 +391,6 @@ QHeaderView::section {
     border-bottom: 1px solid #c9d3db;
     padding: 4px 6px;
     font-weight: 600;
-}
-
-QTableView QTableCornerButton::section {
-    background: #e3eaee;
-    border: 0;
-    border-right: 1px solid #c9d3db;
-    border-bottom: 1px solid #c9d3db;
 }
 
 QAbstractItemView {
