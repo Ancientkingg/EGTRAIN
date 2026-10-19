@@ -1443,10 +1443,33 @@ if(EGTRAIN_BUILD_TESTS)
 	else()
 		message(STATUS "Windows: skipping bash smoke tests (test_csv_export_smoke, test_creator_acceptance_smoke, test_editor_smoke, test_dialog_presentation_contract)")
 	endif()
-	# The scripted scenarios of the release workflow and the route diagram run. A build with sanitizers
+	# The end-to-end smokes of the committed scenes and the route diagram run. A build with sanitizers
 	# does not register them: the sanitizer job of the release workflow runs all of CTest on an
 	# instrumented Debug build, and the time limits of these scripts are set for an uninstrumented one.
 	if(NOT EGTRAIN_ENABLE_SANITIZERS)
+		# One test per committed scene, so that they run side by side. Each case writes its own Output folder.
+		# Copenhagen takes longest and starts first.
+		foreach(egtrain_case 1 2 3 4 5 7)
+			add_test(NAME test_headless_smoke_case_${egtrain_case}
+				COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_smoke.py ${egtrain_case})
+			set_tests_properties(test_headless_smoke_case_${egtrain_case} PROPERTIES TIMEOUT 900)
+			list(APPEND egtrain_e2e_smokes test_headless_smoke_case_${egtrain_case})
+		endforeach()
+		set_tests_properties(test_headless_smoke_case_3 PROPERTIES COST 200)
+		add_test(NAME test_roundtrip_smoke
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/roundtrip_smoke.py)
+		add_test(NAME test_bundle_smoke
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/bundle_smoke.py $<TARGET_FILE:scene_tool> $<TARGET_FILE:QEGTRAIN>)
+		add_test(NAME test_incident_smoke
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/incident_smoke.py)
+		add_test(NAME test_assignment_smoke
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/assignment_smoke.py)
+		set_tests_properties(test_roundtrip_smoke test_bundle_smoke PROPERTIES TIMEOUT 300)
+		set_tests_properties(test_incident_smoke PROPERTIES TIMEOUT 600)
+		set_tests_properties(test_assignment_smoke PROPERTIES TIMEOUT 30)
+		list(APPEND egtrain_e2e_smokes test_roundtrip_smoke test_bundle_smoke test_incident_smoke test_assignment_smoke)
+		set_tests_properties(${egtrain_e2e_smokes} PROPERTIES
+			ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>;QT_QPA_PLATFORM=offscreen")
 		if(UNIX)
 			add_test(NAME test_scene_render_smoke
 				COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/scene_render_smoke.sh)
@@ -1679,6 +1702,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke
 		test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
 		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke ${egtrain_visual_polish_smokes}
+		${egtrain_e2e_smokes}
 		test_scene_version_run_main-82.1 test_scene_version_run_production-107.1 test_scene_version_run_v1.0.2 test_scene_version_run_main-81.1
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
 		test_sign_macos)
