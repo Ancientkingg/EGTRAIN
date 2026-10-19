@@ -26,90 +26,103 @@ class TrainBodyItem;
 struct GuiPassengerState;
 struct SceneModel;
 
-// The inspector dock, titled after the selected item. It has one form for each kind of item that the user can select on the canvas: a node, an arc,
-// a connection, a signal and a train. Selecting an item shows its form, fills it in and puts a highlight on the item.
-// Before a run the items are the ones of the track preview, which the form fills in from the scene. During and after a
-// run the items belong to the run and the form fills in from them. The panel keeps what is selected, so that the window
-// can mark the station overlay and the train of the selection.
+/// The inspector dock, titled after the selected item. It has one form for each kind of item that the user can select on the canvas: a node, an arc,
+/// a connection, a signal and a train. Selecting an item shows its form, fills it in and puts a highlight on the item.
+/// Before a run the items are the ones of the track preview, which the form fills in from the scene. During and after a
+/// run the items belong to the run and the form fills in from them. The panel keeps what is selected, so that the window
+/// can mark the station overlay and the train of the selection.
 class InspectorPanel : public QObject {
 	Q_OBJECT
 
 public:
-	// What the panel asks of the window.
+	/// What the panel asks of the window.
 	class Host {
 	public:
 		virtual ~Host() = default;
 
-		// The canvas shows the track preview of the scene and not a run.
+		/// True while the canvas shows the track preview of the scene and not a run.
 		virtual bool showingTrackPreview() const = 0;
-		// The scene that the document holds, or null while it holds none.
+		/// The scene that the document holds, or null while it holds none.
 		virtual const SceneModel* loadedScene() const = 0;
-		// The revision of the scene that the document holds.
+		/// The revision of the scene that the document holds.
 		virtual quint64 loadedSceneRevision() const = 0;
-		// The region of the block set of a track of the run.
+		/// The region of the block set of a track of the run.
 		virtual int regionOfTrack(int track) const = 0;
-		// The run has passengers.
+		/// True when the run has passengers.
 		virtual bool passengerGui() const = 0;
-		// The details of a passenger in the displayed snapshot; only the id is known when the snapshot does not list the
-		// passenger.
+		/// The details of a passenger in the displayed snapshot; only the id is known when the snapshot does not list the
+		/// passenger.
 		virtual GuiPassengerState passengerState(const std::string& id) const = 0;
-		// The displayed step is a step of a replay.
+		/// True when the displayed step is a step of a replay.
 		virtual bool replayActive() const = 0;
 
-		// Closes the context menu of the scene when one is open.
+		/// Closes the context menu of the scene when one is open.
 		virtual void closeSceneContextMenu() = 0;
-		// The selection or the highlight changed, so the overlays of the viewport are drawn again.
+		/// The selection or the highlight changed, so the overlays of the viewport are drawn again.
 		virtual void inspectionChanged() = 0;
-		// The signal that the panel shows was selected.
+		/// The signal that the panel shows was selected.
 		virtual void signalInspected() = 0;
-		// Follows a train, or no train for -1.
+		/// Follows the train with this index, or no train for -1.
 		virtual void followTrain(int trainIndex) = 0;
 	};
 
-	// Adds the dock to the right side of the window and hides it. The window owns the panel and the dock. The scene is the
-	// one that the items are on, and the presenter holds the highlight and the passenger information of the selection.
+	/// Adds the dock to the right side of the window and hides it. The window owns the panel and the dock. The scene is the
+	/// one that the items are on, and the presenter holds the highlight and the passenger information of the selection.
+	/// The presenter and the host must outlive the panel.
 	InspectorPanel(QMainWindow* window, QGraphicsScene* scene, NetworkPresenter& presenter, Host& host);
 
+	/// The dock that holds the forms; owned by the window.
 	InfoDockWidget* dock() const { return infoDockWidget; }
 
-	// double to string with precision
+	/// The value in fixed notation with precision digits after the decimal point.
 	static std::string to_string_precision(double value, int precision);
 
-	// The train whose details are shown, or -1.
+	/// The index of the train whose details are shown, or -1.
 	int selectedTrainIndex() const { return m_selectedTrainIndex; }
-	// The station overlay is the one of the selected station.
+	/// True when the overlay belongs to the selected station.
 	bool selectsStationOverlay(const StationOverlayItem* overlay) const;
-	// Forget the selected station and the selected train. The window does so when it clears the canvas.
+	/// Forgets the selected station. The window does so when it clears the canvas.
 	void clearSelectedStation();
+	/// Forgets the selected train. The window does so when it clears the canvas.
 	void clearSelectedTrain();
 
-	// Shows the aspect and the signals at the location again for the signal that is shown, when they changed.
+	/// Shows the aspect and the signals at the location again for the signal that is shown, when they changed.
 	void refreshInspectedSignal();
 
-	// Closes the context menu of the scene and, when the canvas shows the track preview, the form of the preview, and
-	// empties its fields.
+	/// Closes the context menu of the scene and, when the canvas shows the track preview, the form of the preview, and
+	/// empties its fields.
 	void clearPreviewInspection();
 
-	// The item of the preview with this kind and id, or null. The scene must be the one that the item was found in, which
-	// the revision tells.
+	/// The item of the preview with this kind and id, or null. The scene must be the one that the item was found in, which
+	/// the revision tells. Track and reversed only narrow the search for a signal.
 	QGraphicsItem* resolvePreviewItem(const QString& kind, const QString& id, const QString& track, bool reversed,
 		quint64 revision) const;
 
-	// Shows the train and, when changeFollowMode is set, follows it.
+	/// Shows the train and, when changeFollowMode is set, follows it.
 	void displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode);
 
 public slots:
-	// hides all widgets from the dock widget
-	// removes highlight from last clicked item
+	/// Hides every form, forgets the selection, removes the passenger information and the highlight. The dock itself stays
+	/// as it is. Runs when the dock is closed.
 	void handleCloseInfoDockWidget();
+	/// Shows the form of an item of the track preview, filled in from the scene. Does nothing for an item of another scene
+	/// or while the canvas shows a run.
 	void displayPreviewInfo(QGraphicsItem* item);
+	/// Shows the form of a node of the run, with its coordinates in metres.
 	void displayNodeInfo(NodeItem* el);
+	/// Shows the form of a station node of the run and selects its station.
 	void displayStationNodeInfo(StationNodeItem* re);
+	/// Shows the form of an arc of the run.
 	void displayArcInfo(TrackLineItem* line);
+	/// Shows the form of a connection of the run, with the positions of its nodes in metres.
 	void displayConnectionInfo(ConnectionItem* line);
+	/// Shows the form of a signal of the run, with its position and the length of the section ahead in metres.
 	void displaySignallingInfo(SignalItem* signal);
+	/// Shows the train and follows it.
 	void displayTrainInfo(TrainBodyItem* trainItem);
+	/// Hides the dock and shows the information of the passenger on the canvas instead.
 	void displayPassengerInfo(PassengerItem* paxItem);
+	/// Does what handleCloseInfoDockWidget does and hides the dock.
 	void handleDisableHighlight();
 
 private:

@@ -18,12 +18,15 @@
 
 #include "widgets/FocusWheel.h"
 
+/// The common layout of the dialogs: a heading, an optional context line, a body that scrolls and a footer of
+/// buttons, and the inline status and help labels inside them.
 namespace DialogLayout {
 
+/// Helpers of the functions below.
 namespace detail {
-// The dialog height at which the body of an installed dialog needs no vertical scroll bar when the dialog is
-// width wide: the whole content and every other visible item of the layout (the heading, the footer and any
-// widget a caller added), with the margins and spacing between them.
+/// The dialog height at which the body of an installed dialog needs no vertical scroll bar when the dialog is
+/// width wide: the whole content and every other visible item of the layout (the heading, the footer and any
+/// widget a caller added), with the margins and spacing between them.
 inline int heightForContent(QDialog& dialog, int width) {
 	// The style sheet adds padding and borders to labels when they are polished, which changes their size hints.
 	dialog.ensurePolished();
@@ -52,11 +55,12 @@ inline int heightForContent(QDialog& dialog, int width) {
 }
 } // namespace detail
 
-// Transfers body and actions to dialog. The caller owns button roles, connections,
-// validation, default action and any changes to application state. The combo boxes and spin
-// boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls
-// the body. The footer buttons are styled again, because the caller named them and made one
-// the default after they were built, and a style cached by then misses the rules that name it.
+/// Lays out dialog as a heading, the context line when it is not empty, body in a scroll area and actions as the
+/// footer, and returns the scroll area. Transfers body and actions to dialog. The caller owns button roles, connections,
+/// validation, default action and any changes to application state. The combo boxes and spin
+/// boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls
+/// the body. The footer buttons are styled again, because the caller named them and made one
+/// the default after they were built, and a style cached by then misses the rules that name it.
 inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	const QString& context, QWidget* body,
 	QDialogButtonBox* actions,
@@ -139,10 +143,10 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	return scroll;
 }
 
-// Widens an installed dialog to show its body without clipping, up to the width limit
-// that install set. Call it after the body is filled, and again after a change to the body
-// of a dialog that is shown; it never narrows the dialog. It also makes the dialog tall enough for the
-// body at the new width, up to the height limit, and never shortens it.
+/// Widens an installed dialog to show its body without clipping, up to the width limit
+/// that install set. Call it after the body is filled, and again after a change to the body
+/// of a dialog that is shown; it never narrows the dialog. It also makes the dialog tall enough for the
+/// body at the new width, up to the height limit, and never shortens it.
 inline void fitWidthToContent(QDialog& dialog) {
 	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 	if (!scroll || !dialog.layout())
@@ -158,15 +162,15 @@ inline void fitWidthToContent(QDialog& dialog) {
 	dialog.resize(width, qMin(dialog.maximumHeight(), qMax(dialog.height(), detail::heightForContent(dialog, width))));
 }
 
-// How serious an inline message is. Each value selects one callout of the stylesheet.
-enum class Severity { Neutral,
-	Warning,
-	Error };
+/// How serious an inline message is. Each value selects one callout of the stylesheet.
+enum class Severity { Neutral, ///< A note.
+	Warning,				   ///< Something to check before going on.
+	Error };				   ///< Something that blocks the action.
 
 namespace detail {
-// Shows text in label as plain wrapped text with the role that the two property values give: a
-// valid value sets that property and an invalid one removes it. The label is styled again, so the
-// new role shows also when the label is already polished, and it is hidden when text is empty.
+/// Shows text in label as plain wrapped text with the role that the two property values give: a
+/// valid value sets that property and an invalid one removes it. The label is styled again, so the
+/// new role shows also when the label is already polished, and it is hidden when text is empty.
 inline void showMessage(QLabel* label, const QString& text, const QVariant& status, const QVariant& help) {
 	label->setTextFormat(Qt::PlainText);
 	label->setWordWrap(true);
@@ -187,22 +191,22 @@ inline void showMessage(QLabel* label, const QString& text, const QVariant& stat
 }
 } // namespace detail
 
-// Shows text in label as an inline status of the given severity. The text is plain and wraps, so
-// a long word never widens the dialog. The label has this role only: a call replaces the help or
-// status role of an earlier call, and may be made again to change role or text, also after the
-// dialog is shown. An empty text hides the label. The label must already have a parent widget
-// (the dialog body, the dialog itself or an editor panel), because showing a label without a
-// parent opens a window of its own.
+/// Shows text in label as an inline status of the given severity. The text is plain and wraps, so
+/// a long word never widens the dialog. The label has this role only: a call replaces the help or
+/// status role of an earlier call, and may be made again to change role or text, also after the
+/// dialog is shown. An empty text hides the label. The label must already have a parent widget
+/// (the dialog body, the dialog itself or an editor panel), because showing a label without a
+/// parent opens a window of its own.
 inline void setStatus(QLabel* label, Severity severity, const QString& text) {
 	static const char* const names[] = {"neutral", "warning", "error"};
 	detail::showMessage(label, text, QString::fromLatin1(names[static_cast<int>(severity)]), QVariant());
 }
 
-// Shows text in label as help text. The text is plain and wraps, so a long word never widens the
-// dialog. The label has this role only: a call replaces the status role of an earlier call, and
-// may be made again to change role or text, also after the dialog is shown. An empty text hides
-// the label. The label must already have a parent widget (the dialog body, the dialog itself or
-// an editor panel), because showing a label without a parent opens a window of its own.
+/// Shows text in label as help text. The text is plain and wraps, so a long word never widens the
+/// dialog. The label has this role only: a call replaces the status role of an earlier call, and
+/// may be made again to change role or text, also after the dialog is shown. An empty text hides
+/// the label. The label must already have a parent widget (the dialog body, the dialog itself or
+/// an editor panel), because showing a label without a parent opens a window of its own.
 inline void setHelp(QLabel* label, const QString& text) {
 	detail::showMessage(label, text, QVariant(), true);
 }

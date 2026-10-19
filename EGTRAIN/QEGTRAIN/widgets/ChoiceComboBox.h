@@ -15,14 +15,15 @@
 
 #include "widgets/FocusWheel.h"
 
-// Combo box for choice fields in dialogs whose entries can be long imported names.
-// The field can shrink below its text so that a form never needs a horizontal scroll
-// bar, while its size hint still lets the dialog grow to show the whole text. A text
-// wider than the field is drawn with its middle elided. The tooltip is the current
-// text, and the popup list is as wide as its widest entry within the screen. The wheel changes the choice only
-// while the field has keyboard focus.
+/// Combo box for choice fields in dialogs whose entries can be long imported names.
+/// The field can shrink below its text so that a form never needs a horizontal scroll
+/// bar, while its size hint still lets the dialog grow to show the whole text. A text
+/// wider than the field is drawn with its middle elided. The tooltip is the current
+/// text, and the popup list is as wide as its widest entry within the screen. The wheel changes the choice only
+/// while the field has keyboard focus.
 class ChoiceComboBox : public QComboBox {
 public:
+	/// A combo box that expands across its row and fits its size hint to its entries.
 	explicit ChoiceComboBox(QWidget* parent = nullptr)
 		: QComboBox(parent) {
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -31,7 +32,7 @@ public:
 		FocusWheel::guard(this);
 	}
 
-	// The current text as the field draws it.
+	/// The current text as the field draws it.
 	QString displayText() const {
 		QStyleOptionComboBox option;
 		initStyleOption(&option);
@@ -44,6 +45,7 @@ public:
 		return option.fontMetrics.elidedText(option.currentText, Qt::ElideMiddle, width);
 	}
 
+	/// Room for about 12 characters, or the size hint when that is smaller.
 	QSize minimumSizeHint() const override {
 		const QSize hint = QComboBox::sizeHint();
 		QStyleOptionComboBox option;
@@ -54,6 +56,7 @@ public:
 		return QSize(qMin(width, hint.width()), hint.height());
 	}
 
+	/// Opens the list as wide as its widest entry, at most nine tenths of the screen width, and keeps it on the screen.
 	void showPopup() override {
 		QScreen* target = QGuiApplication::screenAt(mapToGlobal(rect().center()));
 		if (!target)
@@ -78,6 +81,7 @@ public:
 	}
 
 protected:
+	/// Shows the current text as the tooltip.
 	bool event(QEvent* event) override {
 		// The tip reads the current text when it is shown, so a selection made while
 		// signals are blocked cannot leave an old text behind.
@@ -88,6 +92,7 @@ protected:
 		return QComboBox::event(event);
 	}
 
+	/// Draws the field with displayText().
 	void paintEvent(QPaintEvent*) override {
 		QStylePainter painter(this);
 		QStyleOptionComboBox option;
