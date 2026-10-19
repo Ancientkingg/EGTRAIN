@@ -1867,7 +1867,6 @@ if(EXISTS "${egtrain_docs_bin}/sphinx-build${CMAKE_EXECUTABLE_SUFFIX}")
 	if(APPLE)
 		target_sources(QEGTRAIN PRIVATE "${egtrain_manual}")
 		set_source_files_properties("${egtrain_manual}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-		add_custom_target(manual DEPENDS "${egtrain_manual}")
 	else()
 		add_custom_target(manual ALL
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${egtrain_manual}" "$<TARGET_FILE_DIR:QEGTRAIN>/EGTRAIN.qch"

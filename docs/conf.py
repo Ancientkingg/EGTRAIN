@@ -13,7 +13,7 @@ suppress_warnings = ["myst.xref_missing"]
 html_theme = "furo"
 html_title = "EGTRAIN documentation"
 
-# The manual of the application (the CMake target manual) builds with -t manual and the qthelp builder: the start page and
+# The manual of the application, EGTRAIN.qch, builds with -t manual and the qthelp builder: the start page and
 # docs/guides only. Its start page leaves out the developer paragraph and contents, and the landing page README is not part of it.
 if tags.has("manual"):
     include_patterns = ["index.md", "guides/**"]

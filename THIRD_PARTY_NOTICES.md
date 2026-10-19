@@ -5,6 +5,8 @@ EGTRAIN is licensed under the GNU General Public License, version 3 only (see `L
 | Library | macOS | Windows | Linux | Licence | Source |
 | --- | :-: | :-: | :-: | --- | --- |
 | Qt 5.15 Core, Gui, Widgets, Network, Svg and plugins | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/5.15/ |
+| Qt 5.15 Help and Sql with its SQLite plugin, for the manual | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/5.15/ |
+| SQLite, inside the Qt SQLite plugin | yes | yes | yes | public domain | https://sqlite.org |
 | Qt 5.15 DBus (macOS, Linux), PrintSupport (macOS) | yes | | yes | LGPL-3.0 | https://download.qt.io/archive/qt/5.15/ |
 | Qt Charts 5.15 | yes | yes | yes | GPL-3.0 | https://download.qt.io/archive/qt/5.15/ |
 | ZeroMQ (libzmq) | yes | yes | yes | MPL-2.0 | https://github.com/zeromq/libzmq |
