@@ -152,7 +152,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events, see the [wire contract](../telemetry/README.md) |
 | `recovery/` | Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the controller that writes them in the background |
 | `tests/` | C++ test executables, one per file, with data in `tests/fixtures/`. The folder `tests/e2e/` is the runner of the scripted GUI scenarios, compiled into `QEGTRAIN` itself and not a test executable |
-| `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `golden_master/`, `memory/`, `performance/`, `release/`) |
+| `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `memory/`, `performance/`, `release/`) |
 
 - Add a new `.cpp` to the library that holds its folder ([Libraries](../architecture/source-layout.md#libraries)),
   or to `EGTRAIN_SOURCES` when only the application uses it. Add a new `.h` to `EGTRAIN_HEADERS`
