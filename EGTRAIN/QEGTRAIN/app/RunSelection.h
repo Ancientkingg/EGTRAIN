@@ -29,8 +29,7 @@ public:
 	/// The selected scenario of `model`, or its default scenario when the model has none with the selected id. This
 	/// overload adds the baseline scenario to a model without scenarios.
 	SceneScenario* selectedScenario(SceneModel& model) const;
-	/// The selected scenario of `model`, or its default scenario when the model has none with the selected id. Null for
-	/// a model without scenarios.
+	/// As the overload above, but null for a model without scenarios.
 	const SceneScenario* selectedScenario(const SceneModel& model) const;
 	/// The scenario that the latest run used; empty while no run's results are kept.
 	const std::string& appliedScenarioId() const { return m_appliedScenarioId; }

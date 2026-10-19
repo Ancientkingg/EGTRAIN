@@ -95,7 +95,9 @@ public slots:
 	void showDelayAnalysis();
 	/// Asks for the scope and opens ResultViewName::kBlockingTime.
 	void showBlockingTimeDiagram();
-	/// Opens ResultViewName::kCapacity for the first section with two occurrences that share an entry block.
+	/// Asks for the scope, starting at the first section with two occurrences that share an entry block, and opens
+	/// ResultViewName::kCapacity. Shows a message instead when the run has no such section or the chosen scope cannot
+	/// be analysed.
 	void showCapacityAnalysis();
 	/// Opens ResultViewName::kCapacityByArea.
 	void showAreaCapacity();

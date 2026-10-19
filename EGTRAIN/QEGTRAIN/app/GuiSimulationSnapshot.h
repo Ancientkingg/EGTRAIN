@@ -21,10 +21,12 @@ struct GuiOccupiedArc {
 /// One train at one step, as the window, the replay and the live stream show it. Steps and times are seconds from the
 /// start of the run.
 struct GuiTrainState {
-	int index = -1;			   ///< Position of the train in the trains of the run, from 0.
-	double id = 0.0;		   ///< The ID number of the train in the simulation.
-	std::string type;		   ///< The type of the train. A run built from a scene uses the service ID.
-	std::string description;   ///< The name of the train in the simulation: the service ID and the occurrence, as "S1-2".
+	int index = -1;	  ///< Position of the train in the trains of the run, from 0.
+	double id = 0.0;  ///< The ID number of the train in the simulation.
+	std::string type; ///< The type of the train. A run built from a scene uses the service ID.
+	/// The name of the train in the simulation, or "None" when unset. A run built from a scene uses the service ID and
+	/// the occurrence, as "S1-2".
+	std::string description;
 	std::string operatingCode; ///< The operating code of the occurrence, or empty when it has none.
 	std::string serviceId;	   ///< The ID of the service in the scene.
 	/// Occurrence of the service that this train runs, counted from 1.
@@ -35,14 +37,16 @@ struct GuiTrainState {
 	double length = 0.0;			///< Length of the train, in metres.
 	int departureTime = 0;			///< Step at which the train may enter, in seconds.
 	bool outOfSimulation = false;	///< The train has passed the end of its route and left the simulation.
-	/// Position of the head along the route, in metres. -9999 after the train has left, and while there is no route
-	/// or no trajectory for the step.
+	/// Position of the head along the route, in metres. -9999 at the step at which the train leaves the route; later
+	/// steps are not written and hold 0, so test outOfSimulation instead. -9999 when there is no route or the step lies
+	/// outside the trajectory.
 	double routeAxisPosition = -9999.0;
 	double speedKmh = 0.0;			  ///< Speed, in km/h.
 	int currentOnboardPassengers = 0; ///< Passengers on board.
 	int maxOnboardPassengers = 0;	  ///< Passengers that the train can carry.
 	/// The X coordinate of the front of each vehicle, traction unit first, in kilometres. -1 for a front that is on no
-	/// section of the route. Empty when routeAxisPosition has no value for the step.
+	/// section of the route. Empty when there is no route or the step lies outside the trajectory. At the step at which
+	/// the train leaves, every entry is -1.
 	std::vector<double> wagonHeadPositions;
 	/// The X coordinate of the rear of each vehicle, in the order and units of wagonHeadPositions.
 	std::vector<double> wagonTailPositions;
@@ -80,8 +84,8 @@ constexpr int kGuiSignalNoLevel = -1;
 /// One entry per section ID and direction (see GuiSignalStateList).
 struct GuiSignalState {
 	std::string sectionId; ///< The ID of the block section.
-	/// The aspect code of the section: 270 clear, 180 approach, 75 caution, 751 red-red, 0 occupied or failed (see
-	/// guiSignalRestriction()).
+	/// The aspect code of the section: 270 clear (only for a section with a level; see level), 180 approach,
+	/// 75 caution, 751 red-red, 0 occupied or failed (see guiSignalRestriction()).
 	int code = 0;
 	bool reversedDirection = false; ///< The entry is for the direction against the definition of the route.
 	/// Signalling level of the section (0 to 5), or kGuiSignalNoLevel. A section
