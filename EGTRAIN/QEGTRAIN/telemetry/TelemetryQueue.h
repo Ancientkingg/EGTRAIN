@@ -47,10 +47,11 @@ public:
 	TelemetryQueue() = default;
 	/// Calls close().
 	~TelemetryQueue();
-	/// Closes any earlier state, creates privateDirectory readable only by the user and takes
-	/// owner.lock without waiting. exactEndpoint may have at most 2048 UTF-8 bytes and terms at most
-	/// 64. Stored events of another endpoint or terms, and their retry state, are dropped; the list of
-	/// retired endpoints is kept. Expired events are pruned at now.
+	/// Closes any earlier state, creates privateDirectory (owner-only on macOS and Linux; on Windows it
+	/// keeps the permissions of its parent folder) and takes owner.lock without waiting. exactEndpoint
+	/// may have at most 2048 UTF-8 bytes and terms at most 64. Stored events of another endpoint or
+	/// terms, and their retry state, are dropped; the list of retired endpoints is kept. Expired events
+	/// are pruned at now.
 	OpenResult open(const QString& privateDirectory, const QString& exactEndpoint, const QString& terms,
 		const QDateTime& now);
 	/// Stores a usage event under its installation ID. Returns false for an invalid or duplicate event,

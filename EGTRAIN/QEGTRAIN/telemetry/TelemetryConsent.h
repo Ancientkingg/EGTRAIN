@@ -26,22 +26,20 @@ struct TelemetryContext {
 class QLockFile;
 
 /// The saved choices for usage statistics and diagnostic reports, for the receiver and terms of the
-/// context. They are one JSON value in the given QSettings, read and written under a lock file
+/// context. They are one JSON value in the given QSettings, re-read and written under a lock file
 /// that is tried for at most 100 ms.
 ///
 /// promptRequired(), usageEnabled(), diagnosticsEnabled(), usageInstallationId() and save() re-read
-/// the settings, so they see choices changed by another process, and emit revoked and
-/// receiverChanged after the lock is released.
-///
-/// A lock or storage failure fails closed: from then on promptRequired(), usageEnabled(),
-/// diagnosticsEnabled(), usageInstallationId() and save() report no choice as enabled.
+/// the settings, so they see choices changed by another process. After a lock or storage failure
+/// they fail closed and report no choice as enabled.
 /// observeUsage() and observeDiagnostics() read the settings again on each call and return Error
 /// when the lock or read fails. A saved choice for another endpoint or terms version is reset on
 /// the next re-read.
 class TelemetryConsent : public QObject {
 	Q_OBJECT
 public:
-	/// settings is not owned and must outlive this object. Reads the saved choices once.
+	/// settings is not owned and must outlive this object. Reads the saved choices once, without the
+	/// lock.
 	TelemetryConsent(QSettings& settings, TelemetryContext context, QObject* parent = nullptr);
 	/// True when the context is capable, so the choices can be asked for and saved.
 	bool available() const;
@@ -134,8 +132,8 @@ private:
 #endif
 };
 
-/// False when the environment marks a CI, automation or test run, or the Qt platform (QT_QPA_PLATFORM
-/// or platform) is offscreen or minimal.
+/// False when the environment marks a CI, automation, profiling or test run, or the Qt platform
+/// (QT_QPA_PLATFORM or platform) is offscreen or minimal.
 bool telemetryInteractiveEnvironment(const QProcessEnvironment& environment, const QString& platform);
 /// The context of this build from its compile definitions, interactive when a QGuiApplication runs
 /// in an interactive environment.
