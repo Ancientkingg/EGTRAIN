@@ -29,7 +29,7 @@ QEGTRAIN_E2E_LEGACY_DEST="$DEST" \
 QEGTRAIN_E2E_LEGACY_BAD_SOURCE="$TMP_ROOT/missing-source" \
 QEGTRAIN_E2E_LEGACY_BAD_DEST="$BAD_DEST" \
 QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
-"$APP" -n 3 -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
+"$APP" -n 3 -h 100 -g 1 -pax 0 >"$LOG" 2>&1
 APP_EXIT=$?
 set -e
 

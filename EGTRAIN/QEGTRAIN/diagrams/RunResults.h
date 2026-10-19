@@ -38,8 +38,6 @@ struct RunProvenance {
 	double bufferSeconds = 0.0;					   ///< Buffer time in seconds
 	double recoveryPercent = 0.0;				   ///< Running time recovery in percent
 	int paxMode = 0;							   ///< 1 when InitialParameters::PAX_GUI was set, else 0
-	int tsmMode = 0;							   ///< Value of InitialParameters::TSM
-	int routeChoiceMode = 0;					   ///< Value of InitialParameters::RChoice
 	unsigned long randomSeed = kDefaultRandomSeed; ///< Seed of the passenger sampling
 	/// The trains of the run, in run order.
 	std::vector<RunOccurrenceProvenance> selectedOccurrences;

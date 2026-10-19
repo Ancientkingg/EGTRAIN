@@ -84,8 +84,6 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 	const QString& chosenDuringRun = QString(), int horizonSeconds = kHorizonSeconds,
 	const RunMode& mode = kWorkerRequest) {
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.durationOverride = true;
 	initial_variables.times = horizonSeconds;
 	initial_variables.OutputMainFolder = outputDir.toStdString();

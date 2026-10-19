@@ -151,7 +151,7 @@ existing file or directory.
 The simulator also accepts a bundle directly:
 
 ```bash
-QEGTRAIN --scene case-study.egscene -g 0 -TSM 0 -RC 0
+QEGTRAIN --scene case-study.egscene -g 0
 ```
 
 A file name without `--scene` opens the bundle in the same way:

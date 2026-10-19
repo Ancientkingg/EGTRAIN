@@ -41,7 +41,7 @@ Paths are relative to `EGTRAIN/QEGTRAIN/`. A file named without its extension ha
 | `graphics/items/` | The `QGraphicsItem` classes that draw the network, named after what they draw (see [Renames](#renames)), and the items of the selection cue ([`SelectionCueItem`], [`HighlightEffect`]), the station overlay ([`StationOverlayItem`]) and the train badge ([`TrainBadgeItem`]) |
 | `widgets/` | Dock widgets, dialogs and small controls: [`ConsoleWidget`], [`InfoDockWidget`], [`InspectorPanel`] (the inspector dock on the right, whose title names the selected item: the form of the selected item and the selection that the window marks), [`TimeProgressBar`], [`AboutDialog`], [`CaseChooserDialog`], `FindDialog`, [`NetworkLegendWidget`], [`ColorChoiceButton`], [`ChoiceComboBox`], [`CompactDoubleSpinBox`], `DialogLayout`, `EditorLayout`, [`ElidedLabel`] and [`UserPrompts`] |
 | `diagrams/` | Result views and their data. `CompletedRunCapture` copies a finished run into [`CompletedRunData`]; [`RunResults`] builds the Run Results table; `RunExports` writes the CSV files. The windows are [`DiagramWindow`], [`TimetableTableWindow`], `BlockingTimeDiagram`, [`DelayAnalysisWindow`] and [`AreaCapacityWindow`], over [`BlockingTimeScope`], `CapacityAnalysis`, `CapacityScope`, `AreaCapacity` and `DelayAnalysis`. Also `RouteDiagramCoordinates`, [`RouteReferenceChoice`], `TractionCurve`, `TrainColors`, [`TrainFilterButton`] and `SimulationHeaders` |
-| `io/` | Interoperability formats. `RttpXml` is the XML of the legacy channels and `ExternalState` the sender of that XML. `LiveFrame` (the JSON frames of the live contract in `docs/live/frame-v1.schema.json`), [`LiveCommand`] (the requests of its clients and the checks on them) and [`LiveServer`] (the ZeroMQ transport) make the live stream. The vendored pugixml and miniz are in `io/third_party/` |
+| `io/` | Interoperability formats. `LiveFrame` (the JSON frames of the live contract in `docs/live/frame-v1.schema.json`), [`LiveCommand`] (the requests of its clients and the checks on them) and [`LiveServer`] (the ZeroMQ transport) make the live stream. The vendored miniz is in `io/third_party/` |
 | `util/` | Helpers used everywhere: `Log` (the logging core), `Util.hpp`, `timeutil.hpp`, `TimeFormat`, `SpeedFormat`, `CsvWriter`, `TrajectoryUtil`, [`PlaybackProfiler`], `Version`, `portability.h` and `QtMsvcCompat.h` |
 | `update/` | Release check, package download and self-update: [`UpdateChecker`], [`HttpTransport`], `WinHttpTransport`, `ReleaseInfo`, `Distribution`, [`SelfUpdater`], `UpdatePreparation`, `UpdateSettings`, [`UpdateRecord`], `UpdateNotices` and `WindowsStaging.h`. `UpdateHelper.cpp` is the source of the `egtrain_update_helper` program |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: [`TelemetryConsent`], [`TelemetryConsentDialog`], `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue` and `TelemetrySender` |
@@ -87,8 +87,6 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_scene` | `scene/` except `SceneTool.cpp` | nlohmann-json, `egtrain_miniz` |
 | `egtrain_sim` | `simulation/` except `RunControl` and `SimulationWorker` | `egtrain_scene`, `egtrain_util` |
 | `egtrain_util` | `util/*.cpp` | nlohmann-json |
-| `egtrain_rttp` | `io/RttpXml.cpp`, `io/ExternalState.cpp` | `egtrain_pugixml`, cppzmq |
-| `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
 | `egtrain_live` | `io/LiveCommand.cpp`, `io/LiveFrame.cpp`, `io/LiveServer.cpp` | nlohmann-json, `egtrain_util`, cppzmq |
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
@@ -100,10 +98,10 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_openrelay` | `app/OpenRequestRelay.cpp` | Qt Core, Gui and Network |
 | `egtrain_recovery` | `recovery/` | Qt Core, Gui and Widgets, `egtrain_scene` |
 | `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets, `egtrain_http` |
-| `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/RunControl.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_rttp`, `egtrain_sim` |
+| `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/RunControl.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_live`, `egtrain_sim` |
 | `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
-`egtrain_miniz` holds the vendored zip code. The first six libraries and
+`egtrain_miniz` holds the vendored zip code. The first four libraries and
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
 `egtrain_recovery` is linked by `QEGTRAIN`, `test_recoverystore`, `test_recoverycontroller` and `test_recoveryprompt`.
 
@@ -164,7 +162,6 @@ after what they draw.
 | `timeQProgressBar` | `TimeProgressBar` |
 | `infoQDockWidget` | `InfoDockWidget` |
 | `EGTRAIN` (class) | `DispatchController` |
-| `IOClass` (file) | `RttpXml` and `ExternalState` |
 | `initial_parameters` | `InitialParameters` |
 
 The `EGTRAIN` rename touched the class only. The project name, the `QEGTRAIN`

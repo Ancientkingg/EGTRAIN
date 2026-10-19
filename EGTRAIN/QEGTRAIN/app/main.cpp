@@ -76,9 +76,7 @@ static const CommandLineOption commandLineOptions[] = {
 	{"-c", "PERCENT", "from the scene", "Recovery time"},
 	{"-g", "0|1", "1", "0 runs without a window and exits when the run ends"},
 	{"-pax", "0|1", "last choice of View > Show Passengers", "1 shows the passengers; read only when -g is 1"},
-	{"-TSM", "0|1", "0", "Deprecated; sends the traffic state to port 5555"},
-	{"-RC", "0|1", "0", "Deprecated; sends route choice requests to port 5556"},
-	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g, -pax, -TSM and -RC when they are left out"},
+	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g and -pax when they are left out"},
 	{"-interactive", nullptr, "off", "Same as --interactive"},
 	{"--detailed-trajectories", nullptr, "off", "Also writes the per-train files"},
 	{"--live", "PORT", "off", "Publishes the run state on a ZeroMQ socket; 0 takes a free port"},
@@ -215,33 +213,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	}
 
-	// Traffic state: send it to tcp://127.0.0.1:5555 if enabled
-	if (cmdOptionEntered(argv, argv + argc, "-TSM")) {
-		char* argument = getCmdOption(argv, argv + argc, "-TSM");
-		if (argument) {
-			initial_variables.TSM = std::atoi(argument);
-		}
-	} else if (promptForMissingOptions) {
-		std::cout << "Do you want EGTRAIN to send the traffic state to an external module that listens on port 5555 (1: send, 0: do not send)?  :";
-		std::cin >> initial_variables.TSM;
-	} else {
-		initial_variables.TSM = 0;
-	}
-	// Route choice: send the passengers' state to tcp://127.0.0.1:5556 if enabled
-	if (cmdOptionEntered(argv, argv + argc, "-RC")) {
-		char* argument = getCmdOption(argv, argv + argc, "-RC");
-		if (argument) {
-			initial_variables.RChoice = std::atoi(argument);
-		}
-	} else if (promptForMissingOptions) {
-		std::cout << "Do you want EGTRAIN to send the passengers' route choice requests to an external module that listens on port 5556 (1: send, 0: do not send)?  :";
-		std::cin >> initial_variables.RChoice;
-	} else {
-		initial_variables.RChoice = 0;
-	}
 	initial_variables.exportDetailedTrajectories = cmdOptionEntered(argv, argv + argc, "--detailed-trajectories");
-	if (initial_variables.TSM || initial_variables.RChoice)
-		std::cerr << "WARNING: -TSM and -RC are legacy options, kept for one release. Use --live <port> for the supported live stream.\n";
 }
 
 // Reads a whole number from low to high from the text of an option. Returns false when the text is none.
@@ -380,6 +352,11 @@ int main(int argc, char* argv[]) {
 	if (cmdOptionEntered(argv, argv + argc, "--help")) {
 		printHelp();
 		return 0;
+	}
+	// Before --interactive asks anything and before the value can count as a file name.
+	if (cmdOptionEntered(argv, argv + argc, "-TSM") || cmdOptionEntered(argv, argv + argc, "-RC")) {
+		std::cerr << "ERROR: -TSM and -RC were removed. Use --live <port> for the live stream.\n";
+		return 1;
 	}
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");

@@ -22,7 +22,7 @@ def main() -> None:
         env["QEGTRAIN_OUTPUT_DIR"] = tmp
         proc = subprocess.run(
             [str(app), "--scene", str(ROOT / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
-             "-h", "1", "-g", "0", "-TSM", "0", "-RC", "0"],
+             "-h", "1", "-g", "0"],
             cwd=tmp,
             env=env,
             stdout=subprocess.PIPE,

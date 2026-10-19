@@ -27,7 +27,7 @@ def run_scene(app: Path, scene: str, horizon: str, output: Path, options: list[s
     env = os.environ.copy()
     env["QEGTRAIN_OUTPUT_DIR"] = str(output)
     env["QT_QPA_PLATFORM"] = "offscreen"
-    command = [str(app), "--scene", scene, "-h", horizon, "-g", "0", "-pax", "0", "-TSM", "0", "-RC", "0", *options]
+    command = [str(app), "--scene", scene, "-h", horizon, "-g", "0", "-pax", "0", *options]
     try:
         proc = subprocess.run(command, cwd=app.parent, env=env, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT, timeout=RUN_TIMEOUT_SECONDS)

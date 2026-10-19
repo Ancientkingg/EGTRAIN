@@ -336,8 +336,6 @@ Outcome runScene(const RunSetup& setup) {
 	Outcome outcome;
 	QTemporaryDir output;
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.PAX_GUI = setup.passengerGui;
 	initial_variables.durationOverride = true;
 	initial_variables.times = setup.horizonSeconds;
@@ -445,8 +443,6 @@ bool settingsTests(const SceneModel& line) {
 	QTemporaryDir prepared;
 	QTemporaryDir changed;
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.PAX_GUI = false;
 	initial_variables.durationOverride = true;
 	initial_variables.times = 600;

@@ -563,7 +563,7 @@ def main() -> None:
         'mkdir -p "$RUN_DIR"',
         'cd "$RUN_DIR"',
         'QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \\',
-        '"$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1',
+        '"$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1',
         'run_status=$?',
         'if [ "$run_status" -ne 0 ]; then',
         'cat "$RUN_DIR/qegtrain.log"',
@@ -1554,7 +1554,7 @@ def main() -> None:
         'hdiutil detach "$MOUNT" || hdiutil detach "$MOUNT" -force\n          trap - EXIT\n',
         'codesign --verify --deep --strict --verbose=2 "$COPY/QEGTRAIN.app"\n',
         '[ "$version" = "${{ inputs.version }}" ]',
-        '"$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1\n',
+        '"$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1\n',
         'grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"',
         'test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"',
     )

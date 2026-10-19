@@ -31,10 +31,9 @@ EGTRAIN is licensed under the GNU General Public License, version 3 only (see `L
 | Graphite2 | | | yes | LGPL-2.1 or later | https://github.com/silnrsi/graphite |
 | xz (liblzma), LZ4, bzip2, libbsd, libmd | | | yes | public domain, BSD-2-Clause, bzip2 licence, BSD style | Ubuntu 24.04 source packages `xz-utils`, `lz4`, `bzip2`, `libbsd`, `libmd` |
 | miniz | yes | yes | yes | MIT | https://github.com/richgel999/miniz |
-| pugixml 1.11 | yes | yes | yes | MIT | https://pugixml.org |
 | nlohmann/json | yes | yes | yes | MIT | https://github.com/nlohmann/json |
 | cppzmq | yes | yes | yes | MIT | https://github.com/zeromq/cppzmq |
 
-miniz and pugixml are compiled into the program from `EGTRAIN/QEGTRAIN/io/third_party`. nlohmann/json and cppzmq are header-only libraries compiled into the program. The Windows Qt libraries also contain Qt's own copies of third-party code such as PCRE2, double-conversion and HarfBuzz.
+miniz is compiled into the program from `EGTRAIN/QEGTRAIN/io/third_party`. nlohmann/json and cppzmq are header-only libraries compiled into the program. The Windows Qt libraries also contain Qt's own copies of third-party code such as PCRE2, double-conversion and HarfBuzz.
 
 The case studies have their own sources and terms, listed in `DATA.md` of the source repository, https://github.com/Ancientkingg/EGTRAIN.

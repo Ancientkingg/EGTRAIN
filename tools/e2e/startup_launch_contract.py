@@ -42,7 +42,7 @@ def scaled(seconds: int) -> int:
 
 # A file name with an e acute and two CJK characters; the CJK characters are outside the Western Windows code page.
 NON_ASCII_NAME = "Paimpol \u00e9\u6771\u4eac.egscene"
-HEADLESS_OPTIONS = ["-g", "0", "-h", "1", "-pax", "0", "-TSM", "0", "-RC", "0"]
+HEADLESS_OPTIONS = ["-g", "0", "-h", "1", "-pax", "0"]
 REJECTION_LINE = "ERROR: Cannot open"
 # The test hook QEGTRAIN_E2E_OPEN_REQUEST prints the status line of the window after the open event.
 STATUS_PREFIX = "E2E_OPEN_REQUEST_STATUS="
@@ -188,7 +188,7 @@ def assert_deferred_success_path_resets() -> None:
     ]
     if prepare.index("beginScenePreparation();") > prepare.index("validateRunnableScene("):
         raise SystemExit("scene preparation does not clear lightweight state before validation")
-    if prepare.count("resetState();") != 4:
+    if prepare.count("resetState();") != 3:
         raise SystemExit("scene preparation failure paths do not all perform a full reset")
     # The scene is built into a run of its own, which replaces the run of the controller once it is complete: after the last failure
     # path, with the copy of the settings, which the reset of the run returns to the default.
@@ -365,7 +365,6 @@ def assert_help_and_unknown_option(app: Path) -> None:
         print("--help lists the options and exits with 0; an unknown option exits with an error that names --help")
 
 
-# The -TSM and -RC questions are not answered: at the end of the input they read 0.
 def assert_interactive_questions(app: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="qegtrain-interactive-") as root_name:
         root = Path(root_name)

@@ -36,7 +36,7 @@ def main() -> None:
     env.setdefault("QT_QPA_PLATFORM", "offscreen")
     with tempfile.TemporaryDirectory() as temp_dir:
         env["QEGTRAIN_OUTPUT_DIR"] = str(Path(temp_dir) / "output")
-        command = [str(app), "--scene", str(SCENE), "-g", "1", "-pax", "0", "-TSM", "0", "-RC", "0"]
+        command = [str(app), "--scene", str(SCENE), "-g", "1", "-pax", "0"]
         try:
             proc = subprocess.run(command, cwd=RUN_DIR, env=env, stdout=subprocess.PIPE,
                                   stderr=subprocess.STDOUT, timeout=EXIT_SECONDS)

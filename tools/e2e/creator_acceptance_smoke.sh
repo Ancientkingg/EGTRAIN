@@ -59,7 +59,7 @@ environment.update({
     "QEGTRAIN_E2E_SETTINGS_DIR": str(log.parent / "settings"),
     "QT_QPA_PLATFORM": "offscreen",
 })
-command = [str(app), "-g", "1", "-pax", "1", "-TSM", "0", "-RC", "0"]
+command = [str(app), "-g", "1", "-pax", "1"]
 
 
 def stop_group(process: subprocess.Popen[bytes]) -> None:
@@ -417,8 +417,7 @@ def check_input(run, scenario, bundle_path):
            f"provenance scenario mismatch: expected {scenario}")
     expect(run["case_name"] == "creator_acceptance_case", "provenance case name mismatch")
     expect(run["scene_schema_version"] == 1, "provenance scene schema mismatch")
-    expect(run["duration_seconds"] == 900 and run["pax_mode"] == 1
-           and run["tsm_mode"] == 0 and run["route_choice_mode"] == 0,
+    expect(run["duration_seconds"] == 900 and run["pax_mode"] == 1,
            "provenance run settings mismatch")
     input_data = run["input"]
     expect(input_data["kind"] == "bundle", "provenance input is not the saved bundle")

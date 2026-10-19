@@ -53,7 +53,7 @@ canonical model.
 - [Scene model design](architecture/scene-model.md)
 - [Scene editor flow](architecture/scene-editor-flow.md): how the editor creates, opens, validates, runs and saves a case, with the main window layout and the edit panes.
 - [Signalling levels and signalling areas](architecture/signalling-levels.md)
-- [External state sharing](architecture/external-sharing.md): the legacy `-TSM` and `-RC` channels, and the live stream with its contract version 1 (frames, units, ordering, sampling, compatibility, threads, commands and errors).
+- [External state sharing](architecture/external-sharing.md): the live stream with its contract version 1 (frames, units, ordering, sampling, compatibility, threads, commands and errors).
 - [Usage and diagnostics wire contract](telemetry/README.md)
 - [Custom dialog presentation contract](ui/dialog-presentation.md): the rules for custom dialogs, how to build one with `DialogLayout`, which dialogs use it, and the checks that cover them.
 - [Dialog sheet 2026-10-17](ui/dialog-sheet-2026-10-17.md): the custom dialogs before and after the shared presentation, side by side, as a dated record.

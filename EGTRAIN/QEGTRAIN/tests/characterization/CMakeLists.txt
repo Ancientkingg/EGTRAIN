@@ -1,7 +1,7 @@
 # Behaviour characterization of the simulation core. One executable drives the
 # real DispatchController in-process; each case is its own CTest entry.
 add_executable(test_characterization ${SRC_DIR}/tests/characterization/test_characterization.cpp)
-target_link_libraries(test_characterization PRIVATE egtrain_dispatch egtrain_diagrams egtrain_rttp egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
+target_link_libraries(test_characterization PRIVATE egtrain_dispatch egtrain_diagrams egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
 
 set(EGTRAIN_CHARACTERIZATION_FIXTURE ${SRC_DIR}/tests/fixtures/scenes/line)
 set(EGTRAIN_CHARACTERIZATION_EXPECTED ${CMAKE_CURRENT_SOURCE_DIR}/expected)
@@ -267,7 +267,7 @@ set_tests_properties(characterization_repeat_netherlands PROPERTIES COST 40)
 # Two crossovers that follow each other directly, at the fixed block levels. A
 # separate executable: the harness above is tied to the line fixture.
 add_executable(test_crossover_chain ${SRC_DIR}/tests/characterization/test_crossover_chain.cpp)
-target_link_libraries(test_crossover_chain PRIVATE egtrain_dispatch egtrain_diagrams egtrain_rttp egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
+target_link_libraries(test_crossover_chain PRIVATE egtrain_dispatch egtrain_diagrams egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
 
 set(EGTRAIN_CROSSOVER_CHAIN_FIXTURE ${SRC_DIR}/tests/fixtures/scenes/crossovers)
 foreach(level 0 1 2 5)

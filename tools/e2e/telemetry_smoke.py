@@ -27,7 +27,7 @@ def run(executable, root, mode):
                QEGTRAIN_OUTPUT_DIR=str(root / "output"))
     # Native file choosers are not used on the offscreen Qt platform.
     args = [str(executable), "--scene", str(root / "case"), "-h", "1" if mode == "short_horizon" else "200", "-g", "1",
-            "-pax", "0", "-TSM", "0", "-RC", "0"]
+            "-pax", "0"]
     with (root / f"{mode}.log").open("wb") as log:
         result = subprocess.run(args, cwd=ROOT / "EGTRAIN/QEGTRAIN", env=env,
                                 stdout=log, stderr=subprocess.STDOUT, timeout=150)

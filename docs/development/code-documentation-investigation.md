@@ -48,10 +48,10 @@ What the counts show:
 | `diagrams/` | Copies a finished run into `CompletedRunData`, builds the Run Results table, the CSV exports and the chart windows | `CompletedRunCapture`, `RunResults`, `RunExports`, `DiagramWindow`, `DelayAnalysis` | `app/` (24), `editors/` (1), `simulation/Simulation.cpp:2` (for `energyMJKWh`) |
 | `editors/` | The scene editor panels and the open scene with its unsaved state | `SceneDocument`, `SceneEditorPanel`, the `*Panel` classes, `InfrastructureFacet` | `app/` only (20) |
 | `graphics/` | The network canvas: scene, view, items, follow camera | `NetworkPresenter`, `NetworkScene`, `NetworkView`, `RuntimeGeometrySource` | `app/` (28), `widgets/` (15) |
-| `io/` | Live stream (JSON frames, commands, ZeroMQ server) and the legacy XML channels | `LiveFrame`, `LiveCommand`, `LiveServer`, `RttpXml`, `ExternalState` | `app/` (4). `scene/SceneBundle.cpp:3` includes the vendored `miniz` from `io/third_party/` |
+| `io/` | Live stream (JSON frames, commands, ZeroMQ server) | `LiveFrame`, `LiveCommand`, `LiveServer` | `app/` (4). `scene/SceneBundle.cpp:3` includes the vendored `miniz` from `io/third_party/` |
 | `recovery/` | Recovery copies of a scene with unsaved edits | `RecoveryStore`, `RecoveryController`, `RecoveryPrompt` | `app/` (3) |
 | `scene/` | The canonical scene model, its loading, validation, saving, bundling, import and export | `SceneModel`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneImporter`, `SceneExporter` | `editors/` (41), `app/` (32), `simulation/` (17), `diagrams/`, `graphics/`, `recovery/`, `widgets/` |
-| `simulation/` | The simulation engine, the builders that fill a run from a scene, and the run state | `SimulationRun`, `Train`, `Regional`, `Section`, `Route`, `Passenger` | `app/` (`DispatchController`, `RunController`, `main`, `MainWindow`, `RuntimeGeometryFromRun`), `diagrams/` (`CompletedRunCapture`, `RunResults.h`, `SimulationHeaders.h`), `graphics/` (items and `NetworkPresenter`), `io/RttpXml.cpp` |
+| `simulation/` | The simulation engine, the builders that fill a run from a scene, and the run state | `SimulationRun`, `Train`, `Regional`, `Section`, `Route`, `Passenger` | `app/` (`DispatchController`, `RunController`, `main`, `MainWindow`, `RuntimeGeometryFromRun`), `diagrams/` (`CompletedRunCapture`, `RunResults.h`, `SimulationHeaders.h`), `graphics/` (items and `NetworkPresenter`) |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events | `TelemetryConsent`, `TelemetryQueue`, `TelemetrySender` | `app/` (7), `diagrams/` (4) |
 | `update/` | Release check, package download and self-update | `UpdateChecker`, `SelfUpdater`, `HttpTransport`, `UpdatePreparation` | `app/` (7), `telemetry/` (1) |
 | `util/` | Logging, time and speed formatting, CSV, trajectory helpers, playback profiler | `Log`, `PlaybackProfiler`, `TimeFormat`, `CsvWriter` | Every other folder except `scene/`, `recovery/` and `telemetry/` |
@@ -69,7 +69,7 @@ Some includes run from a lower folder into `app/` or `diagrams/`, and they will 
 
 ## The legacy simulation core
 
-The folder is `simulation/`. Existing pages that explain a part: [Signalling levels](../architecture/signalling-levels.md) (the step, the codes, every level), [Scene model](../architecture/scene-model.md) and [Scene schema](../architecture/scene-schema.md) (the input, units of the input keys, dwell rule), [External state sharing](../architecture/external-sharing.md) (the `-TSM` and `-RC` payloads) and [Run output](../guides/run-output.md) (the files). No page describes the data structures or the equations of motion.
+The folder is `simulation/`. Existing pages that explain a part: [Signalling levels](../architecture/signalling-levels.md) (the step, the codes, every level), [Scene model](../architecture/scene-model.md) and [Scene schema](../architecture/scene-schema.md) (the input, units of the input keys, dwell rule), [External state sharing](../architecture/external-sharing.md) (the live stream) and [Run output](../guides/run-output.md) (the files). No page describes the data structures or the equations of motion.
 
 ### Files
 
@@ -108,10 +108,9 @@ The folder is `simulation/`. Existing pages that explain a part: [Signalling lev
 1. `RunControl::beginStep` applies queued pause, stop and delay commands (line 684).
 2. Passengers whose journey starts at `t + startingSimulationTime` enter the network (`checkJourneyStartForAllPassengers`, line 698). With the passenger view on, every platform's waiting list is refreshed (line 704).
 3. Every train moves, in the order of the run except that trains that are due and still waiting take the places of the others in order of due time (lines 715 to 725). Each calls `trajectoryComputationIncludingMovingBlock(t, ...)`, then records its station passages and its arrival or departure at the ends of its route (lines 726 to 733).
-4. For every train, `Simulate_Train_Passenger_Interactions` lets passengers alight and board and may lengthen the stop (line 744). With `-TSM` it also builds the traffic state payload (line 750).
-5. With `-TSM` or `-RC`, the XML is sent to ZeroMQ ports 5555 and 5556 (lines 773 to 787).
-6. The signalling for the next step: `etcsMa` is cleared, then `Occupy_Block_Sections_Of_Route`, `Apply_Signal_Failures_Mixed_Signalling`, `Apply_Single_Track_Authorities_Mixed_Signalling`, `ReportAllTrainPositionsToRBC` (margin 50 m), `protectStationAreas`, `releaseMixedSignallingSystem`, `activateMixedSignallingSystem` and `unlockDoubleSwitches` run, and the occupied and connected lists are cleared (lines 792 to 816). [Signalling levels](../architecture/signalling-levels.md#what-happens-in-a-step) explains each.
-7. `publishSimulationSnapshot(t)` hands the step to the window (line 823).
+4. For every train, `Simulate_Train_Passenger_Interactions` lets passengers alight and board and may lengthen the stop (line 744).
+5. The signalling for the next step: `etcsMa` is cleared, then `Occupy_Block_Sections_Of_Route`, `Apply_Signal_Failures_Mixed_Signalling`, `Apply_Single_Track_Authorities_Mixed_Signalling`, `ReportAllTrainPositionsToRBC` (margin 50 m), `protectStationAreas`, `releaseMixedSignallingSystem`, `activateMixedSignallingSystem` and `unlockDoubleSwitches` run, and the occupied and connected lists are cleared (lines 792 to 816). [Signalling levels](../architecture/signalling-levels.md#what-happens-in-a-step) explains each.
+6. `publishSimulationSnapshot(t)` hands the step to the window (line 823).
 
 After the loop the passenger status file is written (line 832). `runSimulation` (`app/DispatchController.cpp:532`) sets every `departure_time` to `scheduled_departure_time` before the loop (line 571) and then runs the stages after the steps: energy totals (580), timetable points (604), delay statistics (607 to 622), blocking times (632), and the optional per-train files (645 to 652). Between the stages it checks for a stop request.
 
@@ -247,7 +246,7 @@ One task per subsystem. The order follows the dependencies: the scene data every
 8. `editors/`: `SceneDocument`, `SceneEditorPanel`, `InfrastructureFacet` and the facet bases, then the panel classes.
 9. `graphics/`: `NetworkPresenter.h`, `RuntimeGeometrySource.h`, `NetworkScene.h`, `NetworkView.h`, then `graphics/items/`.
 10. `widgets/`: the dock widgets and dialogs, then the small controls.
-11. `io/`: `LiveFrame.h`, `LiveCommand.h`, `LiveServer.h`, `RttpXml.h`, `ExternalState.h`. Link to [External state sharing](../architecture/external-sharing.md) and `docs/live/frame-v1.schema.json`.
+11. `io/`: `LiveFrame.h`, `LiveCommand.h`, `LiveServer.h`. Link to [External state sharing](../architecture/external-sharing.md) and `docs/live/frame-v1.schema.json`.
 12. `recovery/`: `RecoveryStore.h`, `RecoveryController.h`, `RecoveryPrompt.h`.
 13. `update/`: `UpdateChecker.h`, `SelfUpdater.h`, `HttpTransport.h`, `UpdatePreparation.h`, `Distribution.h`, `ReleaseInfo.h`.
 14. `telemetry/`: `TelemetryConsent.h`, `TelemetryQueue.h`, `TelemetrySender.h`, `TelemetryEvent.h`. Link to the [telemetry contract](../telemetry/README.md).

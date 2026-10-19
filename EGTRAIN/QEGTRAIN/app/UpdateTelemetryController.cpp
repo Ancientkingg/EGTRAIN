@@ -102,7 +102,6 @@ std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<Scene
 		"scene.route.disconnected",
 		"scene.route.empty",
 		"scene.route.region_jump",
-		"scene.route_choice.passengers.none",
 		"scene.routes.none",
 		"scene.scenario.default.missing",
 		"scene.scenarios.none",

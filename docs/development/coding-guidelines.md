@@ -99,8 +99,8 @@ target that links a library does not get them.
   warning fails the build.
 - `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
   build log come from the simulation headers.
-- These have no flags: the vendored `egtrain_pugixml` and `egtrain_miniz`, the legacy
-  `egtrain_sim` and `egtrain_rttp`, `QEGTRAIN`, and the test executables that use the
+- These have no flags: the vendored `egtrain_miniz`, the legacy
+  `egtrain_sim`, `QEGTRAIN`, and the test executables that use the
   simulation. A comment next to the calls gives the number of warnings.
 - `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp`, `app/UpdateTelemetryController.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
@@ -348,8 +348,7 @@ to the console directly.
   following mode, arrivals, departures and the failure to write an arrival message,
   `sim.step` at `debug`, which is off by default, for messages written once per step by a
   train in the trajectory code, and `sim.pax` for passengers. The application uses `app.run`
-  for the banners and the progress of a run. `io/RttpXml.cpp` uses `io.railml`, and the legacy
-  sender (`io/ExternalState.cpp` and the XML that `app/DispatchController.cpp` sends) uses
+  for the banners and the progress of a run. The live server (`io/LiveServer.cpp`) uses
   `io.zmq`.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).

@@ -25,9 +25,8 @@ enum class Category {
 	SimEvents, ///< "sim.events": coupling and following mode, arrivals and departures, and problems in the
 			   ///< acceleration and braking calculation.
 	SimPax,	   ///< "sim.pax": passengers.
-	IoRailml,  ///< "io.railml": the messages of io/RttpXml.cpp.
-	IoZmq,	   ///< "io.zmq": the ZeroMQ transports, which are the legacy sender of the -TSM and -RC channels
-			   ///< and the live server.
+	IoRailml,  ///< "io.railml": kept as a name for EGTRAIN_LOG; nothing logs to it since the XML channels were removed.
+	IoZmq,	   ///< "io.zmq": the ZeroMQ transport of the live server.
 	AppRun,	   ///< "app.run": the banners and the progress of a run.
 	AppUi,	   ///< "app.ui": the messages of Qt (qDebug, qInfo, qWarning, qCritical, qFatal).
 	Update,	   ///< "update": no product code logs in this category.

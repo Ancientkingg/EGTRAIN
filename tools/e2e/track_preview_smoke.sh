@@ -27,7 +27,7 @@ cd "$ROOT/EGTRAIN/QEGTRAIN"
 QEGTRAIN_E2E_TRACK_PREVIEW=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
 QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
-"$APP" -n 3 -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
+"$APP" -n 3 -h 100 -g 1 -pax 0 >"$LOG" 2>&1
 APP_EXIT=$?
 set -e
 

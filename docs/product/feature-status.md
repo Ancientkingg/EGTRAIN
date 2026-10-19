@@ -137,11 +137,10 @@ The editors are panels in `editors/`. They are docks under View or Editors.
 
 | Feature | Verdict | Evidence |
 | --- | --- | --- |
-| `-n`, `-h`, `-g`, `--scene`, `--seed`, a file name | tested | `test_headless_scene_smoke`, `test_simulation_determinism`, `test_startup_launch_contract`, `test_scene_version_run_*`; manual run, 2026-10-17, Linux (E3): Copenhagen with `-n 3 -g 0 -h 300 -TSM 0 -RC 0` and seed 12345 twice gave identical output apart from `Computing_Times.txt`, and seed 54321 also (no passengers); Paimpol `-n 2` with the same seed gave identical `PassengerStatus.txt`, `JourneyDelays.txt` and `TimetablePoints.txt`, and with seed 54321 the first two differ |
+| `-n`, `-h`, `-g`, `--scene`, `--seed`, a file name | tested | `test_headless_scene_smoke`, `test_simulation_determinism`, `test_startup_launch_contract`, `test_scene_version_run_*`; manual run, 2026-10-17, Linux (E3): Copenhagen with `-n 3 -g 0 -h 300` and seed 12345 twice gave identical output apart from `Computing_Times.txt`, and seed 54321 also (no passengers); Paimpol `-n 2` with the same seed gave identical `PassengerStatus.txt`, `JourneyDelays.txt` and `TimetablePoints.txt`, and with seed 54321 the first two differ |
 | `-b` and `-c` | untested | No test or run sets them (covered after this snapshot by `test_simulation_determinism`: Paimpol with `-b 30` and with `-c 10` each give a `BlockingTimes.txt` that differs from the default run) |
 | `-pax 1` in the window | tested | `test_creator_acceptance_smoke` |
 | `--live`, `--live-every`, `--live-commands` | tested | `test_liveframe`, `test_livecommand`, `test_livereplay`, `test_liveserver`, `test_live_stream_smoke` (macOS only) |
-| `-TSM 1` and `-RC 1` | partial | `test_external_sharing_no_listener`, `test_route_choice_missing_data`, `test_rttp`. Tested only without a listener; deprecated |
 | `--interactive` | untested | No test or run uses the questions (covered after this snapshot by `test_startup_launch_contract`, macOS and Linux; the `-pax` question is not tested) |
 | `--help` | placeholder | The option does not exist. An unknown option is ignored and the window starts (#783, fixed after this snapshot) |
 | `scene_tool` import, pack, unpack, export, validate | tested | `test_scene_tool_diagnostics`, `test_sceneimporter`, `test_sceneexporter`, `test_scenebundle`; Release run 39019990227, `roundtrip_smoke.py` and `bundle_smoke.py` |
@@ -173,7 +172,6 @@ The editors are panels in `editors/`. They are docks under View or Editors.
 - No scene has signals. Every committed case has one network-wide signalling area at level 0, so signal-based separation is not exercised by any of them.
 - A case saved by this version cannot be upgraded from an older schema, because there is no older schema. The upgrade flow is code that the shipped application cannot reach.
 - The replay keeps every frame of a run (#460). The scrolling of the canvas, the trackpad and the wheel cannot be proved from tool output, also not on a physical Mac, where the test tool reaches only the accessible controls and the canvas has none; a person has to check them. `test_networkview` and the visual polish smoke cover them in code.
-- `-TSM` and `-RC` are deprecated and have no supported consumer. The live stream replaces them.
 - The macOS and Windows packages of the release candidates were not signed in the runs that were rehearsed. A signed and notarized build has not been rehearsed (#402 and #404 are closed; the rehearsals used runs that skip signing).
 - Applying a downloaded update on a Windows installed copy is not supported; the release page is the way (#405).
 - The source-backed Assignment case is deferred until the OpenTrack data are available (#181, #182, #228).

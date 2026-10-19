@@ -412,8 +412,6 @@ Results runFixture(const std::string& fixture, const RunOptions& options, Stream
 	const fs::path output = fs::path(work.path().toStdString()) / "output";
 	fs::create_directories(output);
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.PAX_GUI = false;
 	initial_variables.exportDetailedTrajectories = false;
 	initial_variables.OutputMainFolder = output.string();
