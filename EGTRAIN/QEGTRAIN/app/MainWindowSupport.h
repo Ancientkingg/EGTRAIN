@@ -25,13 +25,13 @@
 
 // What MainWindow.cpp and the scripted runs in tests/e2e share.
 
-// The name of a train in the train list, to which the entry text adds a state.
+/// The name of a train in the train list, to which the entry text adds a state.
 constexpr int kFollowNameRole = Qt::UserRole + 1;
-// Widest the status sentence about Follow gets. It shows the state of a train with a name of 25
-// characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
+/// Widest the status sentence about Follow gets, in pixels. It shows the state of a train with a name of 25
+/// characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
 constexpr int kFollowStatusMaxWidth = 640;
 
-// Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
+/// Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
 inline int baseTimeToSeconds(const std::string& hhmmss) {
 	if (hhmmss.empty())
 		return 0;
@@ -44,21 +44,23 @@ inline int baseTimeToSeconds(const std::string& hhmmss) {
 	return h * 3600 + m * 60 + s;
 }
 
-// The speed slider reads left-to-right as slow-to-fast; the worker wants a
-// per-step delay, so the delay is the distance from the fast end.
+/// The longest delay between two steps of a run, in milliseconds: the delay at the slow end of the speed slider, whose
+/// range is 0 to this value.
 constexpr int kMaxStepDelayMs = 500;
+/// The delay between two steps, in milliseconds: how far `sliderValue` is from the fast end of the speed slider.
 inline int stepDelayForSlider(int sliderValue) {
 	return kMaxStepDelayMs - sliderValue;
 }
 
-// What the train list reports while 'frames' shows frames that change no state. Every row gets a
-// marker text first. The list is left alone only if it reports no change and each marker is still
-// there, so a row that is written again with the text it already has is noticed too.
+/// What the train list reports while 'frames' shows frames that change no state. Every row gets a
+/// marker text first. The list is left alone only if it reports no change and each marker is still
+/// there, so a row that is written again with the text it already has is noticed too.
 struct FollowListUnderFrames {
-	int changes = 0;
-	bool rowsKept = true;
+	int changes = 0;	  ///< Changes of the model of the list: changed data, inserted or removed rows, and resets.
+	bool rowsKept = true; ///< Every row still holds its marker text.
 };
 
+/// Writes a marker text into every row of `list`, runs `frames` and reports what the list did meanwhile.
 inline FollowListUnderFrames showFramesOverMarkedList(QComboBox* list, const std::function<void()>& frames) {
 	const QString marker = QStringLiteral("not written");
 	for (int row = 0; row < list->count(); ++row)
@@ -79,13 +81,14 @@ inline FollowListUnderFrames showFramesOverMarkedList(QComboBox* list, const std
 	return result;
 }
 
-// Pans the view by a third of its width, as a drag of the user does, to the side that has room.
+/// Pans the view by a third of its width, as a drag of the user does, to the side that has room.
 inline void panViewAway(NetworkView* view) {
 	QScrollBar* bar = view->horizontalScrollBar();
 	const int distance = view->viewport()->width() / 3;
 	bar->setValue(bar->value() + distance <= bar->maximum() ? bar->value() + distance : bar->value() - distance);
 }
 
+/// The incident IDs joined with ";".
 inline std::string joinIncidentIds(const std::vector<std::string>& ids) {
 	std::string result;
 	for (const std::string& id : ids) {
@@ -96,14 +99,17 @@ inline std::string joinIncidentIds(const std::vector<std::string>& ids) {
 	return result;
 }
 
+/// The Termination outcome column of the run summary: whether the termination at the destination was requested and
+/// done.
 inline std::string terminationOutcome(bool requested, bool terminated) {
 	if (!requested)
 		return "not requested";
 	return terminated ? "terminated at destination" : "not terminated at destination";
 }
 
-// Run summary: per-train start, end, travel time, and energy totals, plus a
-// network totals row.
+/// Run summary: per-train start, end, travel time, and energy totals, plus a
+/// network totals row. Times are seconds, energy kWh, the incident location metres, and the units are in the column
+/// names. Empty when the run has no trains.
 inline std::string buildRunSummaryCsv(const RunResults& results) {
 	std::vector<std::vector<std::string>> rows;
 	for (const TrainRunResult& t : results.trains) {

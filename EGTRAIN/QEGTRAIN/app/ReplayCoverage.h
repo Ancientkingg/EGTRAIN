@@ -17,37 +17,42 @@
 // selected time, so the row keeps its height while the user seeks. The interval is the one the
 // slider covers, and Start goes to its first time.
 
+/// How much of the run the replay holds.
 enum class ReplayCoverageKind {
-	WholeRun,	// every frame of the run is kept
-	FromLater,	// the first part of the run was dropped to stay within the replay memory
-	Unavailable // not one frame fits in the replay memory
+	WholeRun,	///< no frame was dropped, so the replay covers the whole run
+	FromLater,	///< the first part of the run was dropped to stay within the replay memory
+	Unavailable ///< not one frame fits in the replay memory
 };
 
+/// What the replay history holds, as the replay row describes it.
 struct ReplayCoverage {
-	ReplayCoverageKind kind = ReplayCoverageKind::Unavailable;
-	// First and last time that is kept, in seconds since simulation start.
+	ReplayCoverageKind kind = ReplayCoverageKind::Unavailable; ///< How much of the run is kept.
+	/// First time that is kept, in seconds since simulation start.
 	int firstTime = 0;
+	/// Last time that is kept, in seconds since simulation start.
 	int lastTime = 0;
+	/// The interval between two kept frames, in seconds.
 	int cadenceSeconds = GuiReplayHistory::cadenceSeconds;
-	// Size of the replay memory in bytes.
+	/// Size of the replay memory in bytes.
 	std::size_t budgetBytes = GuiReplayHistory::payloadLimit;
-	// Simulation start, seconds since midnight (the offset formatSimTime takes).
+	/// Simulation start, seconds since midnight (the offset formatSimTime takes).
 	long long clockOffsetSeconds = 0;
 };
 
+/// The texts of the replay row and whether its controls can be used.
 struct ReplayBarText {
-	// For the label beside the slider: "Replay at 1230 s", "Replay" while no frame is selected, or "No replay".
+	/// For the label beside the slider: "Replay at 1230 s", "Replay" while no frame is selected, or "No replay".
 	std::string selected;
-	// For the label below the controls: the kept interval and why the rest of the run is missing.
+	/// For the label below the controls: the kept interval and why the rest of the run is missing.
 	std::string coverage;
-	// Tooltip of the Start button. It is empty while Start goes to the start of the run.
+	/// Tooltip of the Start button. It is empty while Start goes to the start of the run.
 	std::string startTip;
-	// The slider and the Play button can be used.
+	/// The slider and the Play button can be used.
 	bool usable = false;
 };
 
-// A history without frames cannot be replayed, whether it was never filled or one frame was too
-// large for it.
+/// The coverage of `history`, with the clock time of simulation start in seconds since midnight. A history without
+/// frames cannot be replayed, whether it was never filled or one frame was too large for it.
 inline ReplayCoverage replayCoverageOf(const GuiReplayHistory& history, long long clockOffsetSeconds) {
 	ReplayCoverage out;
 	if (!history.empty())
@@ -59,7 +64,7 @@ inline ReplayCoverage replayCoverageOf(const GuiReplayHistory& history, long lon
 	return out;
 }
 
-// The size of the replay memory: whole mebibytes as "128 MiB", otherwise one decimal as "2.5 MiB".
+/// The size of the replay memory: whole mebibytes as "128 MiB", otherwise one decimal as "2.5 MiB".
 inline std::string replayMemoryText(std::size_t bytes) {
 	const std::size_t mebibyte = 1024u * 1024u;
 	if (bytes % mebibyte == 0)
@@ -68,8 +73,8 @@ inline std::string replayMemoryText(std::size_t bytes) {
 	return std::to_string(tenths / 10) + "." + std::to_string(tenths % 10) + " MiB";
 }
 
-// shownTime is the time of the frame on the canvas. It is left out while no frame has been
-// selected yet, as when the run has just finished.
+/// The texts of the replay row for `coverage`. shownTime is the time of the frame on the canvas, in seconds since
+/// simulation start. It is left out while no frame has been selected yet, as when the run has just finished.
 inline ReplayBarText replayBarText(const ReplayCoverage& coverage, std::optional<int> shownTime = std::nullopt) {
 	ReplayBarText out;
 	const std::string memory = replayMemoryText(coverage.budgetBytes);

@@ -7,15 +7,18 @@
 
 #include "widgets/DisplayPath.h"
 
-// The message for a case study that is damaged or is not a case study. The window and the start of the program show
-// the same title and text; the internal error follows the plain sentence. A folder gets its own sentence, which names
-// the scene.json that a scene folder holds.
+/// The message for a case study that is damaged or is not a case study. The window and the start of the program show
+/// the same title and text; the internal error follows the plain sentence. A folder gets its own sentence, which names
+/// the scene.json that a scene folder holds.
 namespace cannot_open {
 
+/// The title of the message box.
 inline QString title() {
 	return QStringLiteral("Cannot Open Case Study");
 }
 
+/// The text for the case at `path`: its name, the sentence for a file or a folder, then `error` after a blank line
+/// when it is not empty.
 inline QString text(const QString& path, const QString& error) {
 	const QFileInfo info(path);
 	const QString name = info.fileName();

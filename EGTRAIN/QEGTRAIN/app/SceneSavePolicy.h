@@ -5,9 +5,10 @@
 #include <QFileInfo>
 #include <QStringList>
 
+/// Path helpers of isInstalledScenePath().
 namespace scene_save_policy {
-// Resolve the deepest existing ancestor, retaining any not-yet-created suffix.
-// A dangling or unreadable existing entry has no resolved spelling.
+/// Resolve the deepest existing ancestor, retaining any not-yet-created suffix.
+/// A dangling or unreadable existing entry has no resolved spelling.
 inline QString resolvedPath(QString path) {
 	QStringList suffix;
 	for (;;) {
@@ -26,15 +27,19 @@ inline QString resolvedPath(QString path) {
 	}
 }
 
+/// `path` is `root` or lies below it, ignoring letter case. Both are absolute paths with forward slashes. False when
+/// either is empty.
 inline bool containsPath(const QString& root, const QString& path) {
 	return !root.isEmpty() && !path.isEmpty()
 		&& (path.compare(root, Qt::CaseInsensitive) == 0 || path.startsWith(root.endsWith('/') ? root : root + '/', Qt::CaseInsensitive));
 }
 }
 
-// Only application-relative installed namespaces are protected, not CWD/Scenes.
-// Case-only siblings are deliberately protected even on case-sensitive volumes.
-// An installed-root symlink also protects its target, including an aliased checkout.
+/// Whether `path` lies in a folder of installed scenes beside `applicationDir` (Scenes, ../Resources/Scenes or
+/// ../share/EGTRAIN/Scenes), where a scene must not be saved.
+/// Only application-relative installed namespaces are protected, not CWD/Scenes.
+/// Case-only siblings are deliberately protected even on case-sensitive volumes.
+/// An installed-root symlink also protects its target, including an aliased checkout.
 inline bool isInstalledScenePath(const QString& path, const QString& applicationDir) {
 	if (path.isEmpty() || applicationDir.isEmpty())
 		return false;
