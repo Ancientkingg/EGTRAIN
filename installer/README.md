@@ -25,7 +25,7 @@ Besides the payload, the compiler reads three files of the repository: `installe
 ## What the installer does
 
 - It runs without administrator rights and has one install scope, the current user. The script sets no way to choose another.
-- It shows the GNU General Public License version 3 (`LICENSE` of the repository) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies `LICENSE` into the package, so the installation folder and the portable ZIP hold it too.
+- It shows the GNU General Public License version 3 (`LICENSE` of the repository) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies `LICENSE` and `THIRD_PARTY_NOTICES.md` (the licences of the bundled libraries) into the package, so the installation folder and the portable ZIP hold both.
 - It installs the payload as it is into `%LOCALAPPDATA%\Programs\EGTRAIN` by default, a folder of the user. The folder page of the wizard lets the user choose another folder on a first install.
 - It adds the entry `EGTRAIN` to the Start Menu of the user, directly in the Programs folder.
 - It offers a desktop shortcut as the task `desktopicon`, which is unchecked by default.

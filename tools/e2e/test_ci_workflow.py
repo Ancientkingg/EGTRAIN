@@ -1846,6 +1846,14 @@ def main() -> None:
         missing.append("Linux package start of the extracted AppImage under RUNNER_TEMP on a virtual display with Python set up")
     if "QT_QPA_PLATFORM" in linux_job or "QT_PLUGIN_PATH" in linux_job:
         missing.append("Linux package start with the platform plugin that the image holds, without a Qt variable")
+    # Every package job fails when the licence or the third-party notices are missing from its package.
+    for job, step in (
+        ("package-macos", "Verify the packaged app"),
+        ("package-windows", "Verify the package is complete"),
+        ("package-linux", "Verify AppImage contents"),
+    ):
+        if any(name not in step_block(job_block(package_only, job), step) for name in ("LICENSE", "THIRD_PARTY_NOTICES.md")):
+            missing.append(f"{job} check that the package holds LICENSE and THIRD_PARTY_NOTICES.md")
     if package_only.count("tools/release/package_start_smoke.py") != 4:
         missing.append("package start script in the three package jobs and for the portable archive")
     # The Linux rehearsal runs on a runner of its own, with a display and the accessibility bus but no Qt. It takes the AppImage that
