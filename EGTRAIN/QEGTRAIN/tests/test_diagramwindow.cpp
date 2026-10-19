@@ -320,6 +320,8 @@ static bool exerciseTrainFilterKeysInWindow() {
 			&& filter->visibleTrainIds() == QStringList({"B", "C"}),
 		"Space in the open filter hides the first train of the diagram");
 	menu->hide();
+	// The offscreen platform of Qt 6 leaves no window active when the popup closes.
+	window.activateWindow();
 	QApplication::processEvents();
 
 	view->setFocus();
