@@ -50,9 +50,11 @@ void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run);
 /// until set, and TrainSpeed is -1.
 class TrainEvent {
 public:
-	std::string trainDescription; ///< trainDescription of the train; for a signal failure authority "signal_failure:" and the incident ID.
-	double Time;				  ///< Time of the event: the passage, or the arrival at a timetable point.
-	double Time2;				  ///< Departure from a timetable point; unset when the train did not leave it.
+	/// trainDescription of the train; for a signal failure authority "signal_failure:" and the incident ID (its target
+	/// when it has none); for a held single-track section "single_track:" and the limit ID.
+	std::string trainDescription;
+	double Time;  ///< Time of the event: the passage, or the arrival at a timetable point.
+	double Time2; ///< Departure from a timetable point; unset when the train did not leave it.
 	/// Position in metres: the route position of a passage, the scene position of an authority or a timetable point. A
 	/// timetable point the train never reached keeps the X of its node in kilometres.
 	double Position;

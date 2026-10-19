@@ -271,8 +271,8 @@ public:
 	/// X of the first node in kilometres.
 	double xFirstNode, xSecondNode; ///< X of the second node in kilometres.
 	double speedlimit;				///< Speed limit in m/s; 16.667 (60 km/h) when the scene gives none.
-	/// Canvas coordinates of the two nodes, copied from Node::graphX and graphY while the builder runs, before the canvas
-	/// sets those, so they are 0.
+	/// Canvas coordinates of the two ends of the connection. The builder copies them from Node::graphX and graphY, which
+	/// are 0 at that point, and the network presenter sets them (egtrainPoint2Screen) before it draws the connection.
 	double graphXFirstNode, graphYFirstNode, graphXSecondNode, graphYSecondNode; ///< See graphXFirstNode.
 	/// \var Connections::graphYFirstNode
 	/// See graphXFirstNode.

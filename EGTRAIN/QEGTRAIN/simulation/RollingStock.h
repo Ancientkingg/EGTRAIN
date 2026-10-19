@@ -81,18 +81,21 @@ public:
 	double EndClearTime;		  ///< When the tail leaves the section.
 	double length;				  ///< Length of the section in kilometres (Section::length); 0 for an infrastructure element.
 	double StartOccTime;		  ///< Start of the blocking time: StartApproachTime minus setupTime and sightReacTime.
-	double EndOccTime;			  ///< End of the blocking time: EndClearTime plus ReleaseTime and RunTimeMargin.
-	double setupTime;			  ///< Setup time of the route.
-	double sightReacTime;		  ///< Sight and reaction time.
-	double ApproachTime;		  ///< EndApproachTime minus StartApproachTime.
-	double RunTime;				  ///< EndRunTime minus StartRunTime.
-	double clearingTime;		  ///< EndClearTime minus StartClearTime.
-	double ReleaseTime;			  ///< Release time.
-	double RunTimeMargin;		  ///< Running time supplement added to EndOccTime.
-	double PosStart;			  ///< Route position of the start of the section.
-	double PosEnd;				  ///< Route position of the end of the section.
-	double GeoPosStart;			  ///< Scene position of the start of the section.
-	double GeoPosEnd;			  ///< Scene position of the end of the section.
+	/// End of the blocking time: EndClearTime plus ReleaseTime, plus RunTimeMargin for a block section.
+	double EndOccTime;
+	double setupTime;	  ///< Setup time of the route.
+	double sightReacTime; ///< Sight and reaction time.
+	double ApproachTime;  ///< EndApproachTime minus StartApproachTime.
+	double RunTime;		  ///< EndRunTime minus StartRunTime.
+	double clearingTime;  ///< EndClearTime minus StartClearTime.
+	double ReleaseTime;	  ///< Release time.
+	/// Running time supplement in seconds: added to EndOccTime for a block section and to EndRunTime for an element at
+	/// levels 3 and 4; -1 when none applies.
+	double RunTimeMargin;
+	double PosStart;	///< Route position of the start of the section.
+	double PosEnd;		///< Route position of the end of the section.
+	double GeoPosStart; ///< Scene position of the start of the section.
+	double GeoPosEnd;	///< Scene position of the end of the section.
 	/// ID of the other edge of the same diverging switch, whose blocking time is joined with this one; "None" otherwise.
 	std::string ConnectedBlockingTimeID;
 	double PosConnectedBlockingTime; ///< Route position of the other edge of the switch; -1 when there is none.
@@ -243,10 +246,12 @@ public:
 	double departure_time = 0.0;
 	int brakingPoint;					   ///< Index in Sbrak and Vbrak used by the last braking step. Nothing reads it.
 	double scheduled_departure_time = 0.0; ///< Entry time of the train in the timetable, in seconds from the start of the run.
-	/// Step at which the current braking began.
+	/// Last accelerating, cruising or following step, from which brakingEffort counts the braking time (temp + 1 is the
+	/// first braking step).
 	int temp, stop, counter; ///< 1 while the train follows the stored braking plan (Sbrak, Vbrak), 0 otherwise.
 	/// \var Train::stop
-	/// Step from which the dwell at a stop counts: set while the train brakes and at its first standing step at the stop.
+	/// Step from which the dwell at a stop counts. Accelerating, cruising and following steps set it, some braking steps
+	/// set it while the train moves, and the first standing step at a stop sets it.
 
 	double ID = 0.0;		   ///< Occurrence number of the service, from 1.
 	std::string type;		   ///< ID of the service.
@@ -390,7 +395,7 @@ public:
 	/// servicePerformancePercent. 0 outside every band.
 	virtual double tractiveEffort(double V);
 
-	/// Braking force in N after T seconds of braking: it grows with Jerk until it reaches max_train_decelaration.
+	/// Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration.
 	virtual double brakingEffort(double T);
 
 
