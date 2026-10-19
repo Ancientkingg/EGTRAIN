@@ -417,11 +417,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		ok = false;
 		failures << "toolbar still contains the case badge or simulation clock";
 	}
-	QAction* startTimeAction = actionNamed("actionStartTime");
-	if (!startTimeAction || !w.ui->menuSimulation || !w.ui->menuSimulation->actions().contains(startTimeAction)
-		|| (w.m_toolBar && w.m_toolBar->actions().contains(startTimeAction))) {
-		ok = false;
-		failures << "Start Time is not exclusively in the Simulation menu";
+	for (QAction* action : w.ui->menuSimulation->actions()) {
+		if (action->text().contains("Start Time", Qt::CaseInsensitive)) {
+			ok = false;
+			failures << "the Simulation menu has a Start Time entry";
+		}
 	}
 	QLabel* slowerLabel = w.findChild<QLabel*>("speedSlowerLabel");
 	QLabel* fasterLabel = w.findChild<QLabel*>("speedFasterLabel");
@@ -2903,9 +2903,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				break;
 			}
 		}
-		if (!w.m_outputFolderAction || w.m_outputFolderAction->isEnabled() || w.ui->actionStartTime->isEnabled()) {
+		if (!w.m_outputFolderAction || w.m_outputFolderAction->isEnabled()) {
 			ok = false;
-			failures << "the output folder or the start time can be changed during a run";
+			failures << "the output folder can be changed during a run";
 		}
 		if (!lifecycleTrack) {
 			ok = false;
@@ -2953,10 +2953,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			if (w.m_runController->m_worker) {
 				ok = false;
 				failures << "Stop did not complete through the worker lifecycle";
-			} else if (!w.m_outputFolderAction || !w.m_outputFolderAction->isEnabled()
-				|| !w.ui->actionStartTime->isEnabled()) {
+			} else if (!w.m_outputFolderAction || !w.m_outputFolderAction->isEnabled()) {
 				ok = false;
-				failures << "the output folder and the start time stayed disabled after the run";
+				failures << "the output folder stayed disabled after the run";
 			}
 			if (!w.m_completedReplay.empty() || w.m_replayTimer->isActive()) {
 				ok = false;

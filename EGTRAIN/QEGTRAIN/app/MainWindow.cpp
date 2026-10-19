@@ -931,9 +931,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_openCaseAction->setToolTip("Choose a bundled, recent, scene-folder, or legacy case");
 	connect(m_openCaseAction, &QAction::triggered, this, &MainWindow::showStartupChooser);
 
-	connect(ui->actionStartTime, &QAction::triggered, m_runController, &RunController::setStartTime);
-	ui->actionStartTime->setToolTip("Set the clock time the simulation starts at (HH:MM)");
-
 	ui->actionZoomIn->setObjectName("actionZoomIn");
 	ui->actionZoomIn->setIcon(QIcon(":/icons/zoom-in.svg"));
 	ui->actionZoomIn->setToolTip("Zoom in on the network view (Ctrl++)");
@@ -1922,16 +1919,13 @@ void MainWindow::runPhaseChanged(RunController::RunPhase phase) {
 				ui->actionSimulationStop->setEnabled(false);
 			if (m_outputFolderAction)
 				m_outputFolderAction->setEnabled(true);
-			if (ui->actionStartTime)
-				ui->actionStartTime->setEnabled(true);
 			break;
 		case RunController::RunPhase::Running:
 			ui->actionSimulationPause->setEnabled(true);
 			ui->actionSimulationStop->setEnabled(true);
-			// A run keeps the output folder and the start time it was prepared with.
+			// A run keeps the output folder it was prepared with.
 			if (m_outputFolderAction)
 				m_outputFolderAction->setEnabled(false);
-			ui->actionStartTime->setEnabled(false);
 			break;
 		case RunController::RunPhase::Stopping:
 			ui->actionSimulationPause->setEnabled(false);

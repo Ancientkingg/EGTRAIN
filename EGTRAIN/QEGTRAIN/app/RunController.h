@@ -41,7 +41,7 @@ class RunController : public QObject {
 	Q_OBJECT
 
 public:
-	// What Pause, Stop, Start Time and Output Folder allow.
+	// What Pause, Stop and Output Folder allow.
 	enum class RunPhase {
 		// No worker exists.
 		Idle,
@@ -116,7 +116,7 @@ public:
 		virtual void runStarting() = 0;
 		// The worker is set up and its thread starts next.
 		virtual void workerReady() = 0;
-		// Pause and Stop mean something while a run exists, and Start Time and Output Folder only while none does.
+		// Pause and Stop mean something while a run exists, and Output Folder only while none does.
 		virtual void runPhaseChanged(RunPhase phase) = 0;
 		// The editors, the infrastructure dock and the actions follow the run state.
 		virtual void runPanelsChanged() = 0;
@@ -223,7 +223,6 @@ public slots:
 	// Asks to review the run, prepares the scene, builds the canvas and starts the simulation.
 	void runScene();
 	void chooseOutputFolder();
-	void setStartTime();
 	void setDelayBaseline();
 	void showDelayComparison();
 
