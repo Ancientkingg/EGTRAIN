@@ -26,7 +26,7 @@ struct UpdatePreparationInput {
 /// The outcome of preparing a package.
 struct UpdatePreparationResult {
 	bool success = false; ///< True when the package was verified and staged.
-	QString error;		  ///< Why the preparation failed, for the user. Empty on success.
+	QString error;		  ///< Why the preparation failed, for the user. Empty on success; may be empty on failure.
 	QString stagedPath;	  ///< What the update helper installs. Empty on failure.
 };
 
