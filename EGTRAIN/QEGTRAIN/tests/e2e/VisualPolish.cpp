@@ -1114,6 +1114,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	const QStringList mapKeyEntries = w.m_networkLegendWidget
 		? w.m_networkLegendWidget->entryLabels()
 		: QStringList();
+	// The run shows passengers, but a case without passengers has no passenger row in the map key.
+	if (w.m_document->model().passengers.empty() && mapKeyEntries.contains(QStringLiteral("Passenger count"))) {
+		ok = false;
+		failures << "the map key lists Passenger count for a case without passengers";
+	}
 	if (!stationLayer || !stationNames || !trainLayer || !trainSpeedLabels
 		|| !signalLayer || !passengerLayer) {
 		ok = false;

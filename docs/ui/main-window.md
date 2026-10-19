@@ -24,6 +24,8 @@ When Run Results first opens at the bottom of the window it takes a third of the
 
 The Case and Layers dock opens at the width of its widest layer toggle, **Stations and platforms**, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.
 
+The map key has a **Passenger count** row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.
+
 An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways.
 
 ## Tables and progress bar

@@ -909,6 +909,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			m_presenter->trainPaxInfoItem->setVisible(checked);
 		if (m_presenter->paxIconInfoItem)
 			m_presenter->paxIconInfoItem->setVisible(checked);
+		updateNetworkLegend();
 		if (checked) {
 			m_presenter->updateTrainPaxInfo();
 			m_presenter->updatePaxIconInfo(m_snapshot.get(),
@@ -3781,7 +3782,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSignals = !preview && !m_presenter->allSignals.isEmpty();
 	if (preview)
 		content.hasSignals = m_presenter->m_previewHasSignals;
-	content.hasPassengers = !preview && passengerGui();
+	content.hasPassengers = !preview && passengerGui() && m_presenter->m_passengerLayerVisible && !m_document->model().passengers.empty();
 	m_networkLegendWidget->setCaseContent(content);
 }
 
