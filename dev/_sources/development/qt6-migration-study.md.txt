@@ -189,9 +189,9 @@ included.
 Status on 2026-10-19: steps 1 and 2 are done. With Qt 6.8.3 on macOS the application and all tests build. On the
 offscreen platform these tests fail:
 
-- `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` and `test_editor_smoke` pass their checks, then
-  the application crashes when `MainWindow` deletes the infrastructure panel: a `destroyed` connection of a line
-  edit in its table runs on freed memory.
+- `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` and `test_editor_smoke` passed their checks,
+  then crashed when `MainWindow` deleted the infrastructure panel: refilling the table after a facet switch let the
+  table open an editor it lost track of. Fixed on 2026-10-20: no editor opens while the table is refilled.
 - `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP index of the scene.
 - `test_startup_launch_contract` looks for non-ASCII recent cases in the settings file as `\xe9` escapes; Qt 6
   writes INI files in UTF-8.
