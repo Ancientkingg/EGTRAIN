@@ -186,11 +186,7 @@ included.
 7. **Decide on Qt Charts.** Weigh Qt Graphs against keeping Qt Charts while Qt ships it. Include the size of the Qt
    Quick runtime in the decision.
 
-Status on 2026-10-19: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that are not required yet. With Qt 6.8.3 on
-macOS the application and all tests build with warnings as errors. On the offscreen platform these tests fail, and the
-Qt 6 jobs leave them out:
-
-- `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` and `test_editor_smoke` passed their checks,
-  then crashed when `MainWindow` deleted the infrastructure panel: refilling the table after a facet switch let the
-  table open an editor it lost track of. Fixed on 2026-10-20: no editor opens while the table is refilled.
-- `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP index of the scene.
+Status on 2026-10-20: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that are not required yet. With Qt 6.8.3 the
+application and all tests build with warnings as errors on macOS, Windows and Linux. The Qt 6 jobs leave out one test
+that fails on the offscreen platform: `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP
+index of the scene.

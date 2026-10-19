@@ -296,16 +296,14 @@ jobs:
         shell: bash
         run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
 
-      # Tests that fail with Qt 6 are left out until their issue is fixed:
-      # - test_creator_acceptance_smoke, test_dialog_presentation_contract and test_editor_smoke pass their checks, then
-      #   crash when the main window deletes the infrastructure panel (#981).
+      # A test that fails with Qt 6 is left out until its issue is fixed:
       # - test_visual_polish_smoke_live crashes while the network view paints (#981).
       - name: Test (Qt 6)
         if: needs.changes.outputs.build == 'true' && matrix.qt == 6
         shell: bash
         run: >
           ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
-          -E '^(test_creator_acceptance_smoke|test_dialog_presentation_contract|test_editor_smoke|test_visual_polish_smoke_live)$'
+          -E '^(test_visual_polish_smoke_live)$'
 
       # One real request to the GitHub release list through the update transport, WinHTTP on Windows, where Qt 5.15 has no TLS
       # library. It fails when no HTTPS response arrives. When GitHub answers with its rate limit or an outage, the test is skipped.
