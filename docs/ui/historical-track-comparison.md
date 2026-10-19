@@ -240,7 +240,7 @@ reference line has a signal.
 Reference build `f138134` above, current build main `946ee7eb` below. Scene
 Netherlands, 6 zoom-in clicks from Fit (zoom label 2.3x in the current build).
 The landmarks are the track corner at Ndb, the corner between Hvsm and Hvsp and
-the corner at Blm, which agree within about 20 px in the 500 px frames. This is
+the corner at Brn, which agree within about 20 px in the 500 px frames. This is
 the loosest match of the pairs, because the current case has doubled tracks.
 
 In the symbols, the current frame draws a light disc at each station and a name
