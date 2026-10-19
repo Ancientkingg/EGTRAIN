@@ -909,6 +909,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			m_presenter->trainPaxInfoItem->setVisible(checked);
 		if (m_presenter->paxIconInfoItem)
 			m_presenter->paxIconInfoItem->setVisible(checked);
+		updateNetworkLegend();
 		if (checked) {
 			m_presenter->updateTrainPaxInfo();
 			m_presenter->updatePaxIconInfo(m_snapshot.get(),
@@ -1535,6 +1536,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		dock->setWidget(scroll);
 		// The wheel scrolls the dock over a field and changes the field only once it has focus.
 		FocusWheel::watch(content);
+		// Once any dock has been resized, Qt opens a dock at the width that its side of the window had last. An editor dock
+		// that opens narrower than its size hint is widened to it, once the window has placed the dock.
+		connect(dock->toggleViewAction(), &QAction::toggled, this, [this, dock]() {
+			if (dock->isHidden() || dock->isFloating())
+				return;
+			dock->widget()->updateGeometry();
+			if (dock->width() < dock->sizeHint().width())
+				resizeDocks({dock}, {dock->sizeHint().width()}, Qt::Horizontal); }, Qt::QueuedConnection);
 	}
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();
@@ -3773,7 +3782,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSignals = !preview && !m_presenter->allSignals.isEmpty();
 	if (preview)
 		content.hasSignals = m_presenter->m_previewHasSignals;
-	content.hasPassengers = !preview && passengerGui();
+	content.hasPassengers = !preview && passengerGui() && m_presenter->m_passengerLayerVisible && !m_document->model().passengers.empty();
 	m_networkLegendWidget->setCaseContent(content);
 }
 
