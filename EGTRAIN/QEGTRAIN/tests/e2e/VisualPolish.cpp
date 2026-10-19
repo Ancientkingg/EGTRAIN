@@ -436,6 +436,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "speed slider right-is-faster mapping changed";
 		}
+		if (!w.m_speedSlider->toolTip().contains("right is faster")) {
+			ok = false;
+			failures << "speed slider tooltip does not name its direction";
+		}
 	}
 	if (!w.m_followAction || !w.m_followTrainCombo || w.m_followTrainCombo->minimumWidth() != 180
 		|| w.m_followTrainCombo->maximumWidth() > 200) {

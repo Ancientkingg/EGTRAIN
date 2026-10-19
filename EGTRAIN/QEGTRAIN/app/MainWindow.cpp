@@ -562,7 +562,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedSlider->setRange(0, kMaxStepDelayMs);
 	m_speedSlider->setValue(kMaxStepDelayMs);
 	m_speedSlider->setMaximumWidth(108);
-	m_speedSlider->setToolTip("Simulation speed: fastest");
+	m_speedSlider->setToolTip("Simulation speed: fastest; right is faster");
 	m_speedSlider->setObjectName("speedSlider");
 	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())), this);
 	m_speedLabel->setObjectName("speedModeLabel");
@@ -2525,7 +2525,7 @@ void MainWindow::updateSpeedModeDisplay(int delayMs) {
 	if (m_speedLabel)
 		m_speedLabel->setText(simulationSpeedLabel(delayMs));
 	if (m_speedSlider) {
-		m_speedSlider->setToolTip(QString("Simulation speed: %1").arg(simulationSpeedMode(delayMs).toLower()));
+		m_speedSlider->setToolTip(QString("Simulation speed: %1; right is faster").arg(simulationSpeedMode(delayMs).toLower()));
 	}
 }
 

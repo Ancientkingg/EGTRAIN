@@ -56,7 +56,7 @@ The runtime is the working data that a run builds in memory from the case: the i
 
 ### Playback
 
-Playback is what you watch during a run: the trains move on the canvas as the simulation produces steps. **Pause** (the button then reads **Resume**), **Stop** and the speed slider (right is faster, with the speed shown next to it) control it, and the tooltip of the slider reads "Simulation speed: fastest" or names a factor. A run that you stop before its end leaves no results. Playback is not the replay and not the results; [Replay a completed run](how-to.md#replay-a-completed-run) says what a stopped run leaves.
+Playback is what you watch during a run: the trains move on the canvas as the simulation produces steps. **Pause** (the button then reads **Resume**), **Stop** and the speed slider (right is faster, with the speed shown next to it) control it, and the tooltip of the slider reads "Simulation speed: fastest; right is faster" or names a factor. A run that you stop before its end leaves no results. Playback is not the replay and not the results; [Replay a completed run](how-to.md#replay-a-completed-run) says what a stopped run leaves.
 
 ### Replay
 

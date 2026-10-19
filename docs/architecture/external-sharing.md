@@ -190,7 +190,7 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 | `pause` | The run stops at the top of the step and waits. No step runs and no state frame is made. |
 | `resume` | Ends a pause. The run goes on with the step at which it stopped. Without a pause it changes nothing. |
 | `stop` | Ends the run as the Stop button of the window does: `steps_finished` with the steps that ran, then `run_finished` with the status `cancelled`. The stages after the steps are skipped, so the energy, delay and blocking-time files are not written. A headless run still ends with exit code 0. |
-| `set_delay_ms` | Sets the time that the run waits at the top of each step, in milliseconds from 0 to 1000. A window run does not show it on its speed slider. |
+| `set_delay_ms` | Sets the time that the run waits at the top of each step, in milliseconds from 0 to 1000. A window run does not show it on its speed slider or the readout next to it. |
 
 - The effect point is the top of a step. `Train_Simulation_Mixed_Signalling_With_Passengers` calls `RunControl::beginStep` with a function that takes the accepted commands from the server (`tryPopCommand`) and submits them to the control, in the order in which the server accepted them. `beginStep` applies them before any train moves. A paused run calls the function again every 50 ms, so a `resume` or a `stop` reaches it. A command never acts in the middle of a step.
 - Each command is reported as an `event` frame, made by the thread of the run. `applied` means that the run takes the command before the next step; `step` is the number of steps that have run then. `rejected` means that it does not take it, and `reason` says why:
