@@ -37,10 +37,7 @@ public:
 		bool eligible[2] = {false, false};
 	};
 #ifdef EGTRAIN_SENDER_TEST_HOOK
-	/// Test hooks. Only isolated numeric loopback, private settings and private storage are
-	/// permitted: when any option is set, settingsFactory is required, the endpoint host must be
-	/// 127.0.0.1 or ::1, and the settings file and the queue directory must lie apart in the system
-	/// temporary directory.
+	/// Test hooks. Only isolated numeric loopback, private settings and private storage are permitted.
 	struct TestOptions {
 		std::function<std::unique_ptr<QSettings>()> settingsFactory; ///< Creates the settings the worker reads consent from.
 		std::function<QDateTime()> utcNow;							 ///< Replaces the UTC clock.

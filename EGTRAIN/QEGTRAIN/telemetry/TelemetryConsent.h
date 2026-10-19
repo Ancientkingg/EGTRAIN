@@ -17,9 +17,7 @@ struct TelemetryContext {
 	bool interactive = false;					///< An ordinary interactive GUI run; see telemetryInteractiveEnvironment().
 	QString endpoint;							///< Exact HTTPS URL of the receiver (EGTRAIN_TELEMETRY_URL); empty when none.
 	QString termsVersion = QStringLiteral("1"); ///< Version of the collection terms. A change resets the saved choices.
-	/// True when packaged, enabled and interactive, the terms version is not empty and endpoint is a
-	/// valid HTTPS URL with a host, no user info, no fragment and no port 0, written in its fully
-	/// encoded form.
+	/// True when packaged, enabled and interactive, with non-empty terms and a valid exact HTTPS endpoint.
 	bool capable() const;
 	/// Host of endpoint, shown as the receiving domain; empty when endpoint has none.
 	QString domain() const;
@@ -29,16 +27,17 @@ class QLockFile;
 
 /// The saved choices for usage statistics and diagnostic reports, for the receiver and terms of the
 /// context. They are one JSON value in the given QSettings, read and written under a lock file
-/// beside the settings file (on Windows with registry settings, in the local application data
-/// folder). The lock is tried for at most 100 ms.
+/// that is tried for at most 100 ms.
 ///
 /// promptRequired(), usageEnabled(), diagnosticsEnabled(), usageInstallationId() and save() re-read
 /// the settings, so they see choices changed by another process, and emit revoked and
-/// receiverChanged after the lock is released. Connect those signals with a direct connection to
-/// TelemetrySender::invalidateConsent and TelemetrySender::invalidateReceiver.
+/// receiverChanged after the lock is released.
 ///
-/// A lock or storage failure fails closed: from then on this object reports no choice as enabled.
-/// A saved choice for another endpoint or terms version is reset on the next re-read.
+/// A lock or storage failure fails closed: from then on promptRequired(), usageEnabled(),
+/// diagnosticsEnabled(), usageInstallationId() and save() report no choice as enabled.
+/// observeUsage() and observeDiagnostics() read the settings again on each call and return Error
+/// when the lock or read fails. A saved choice for another endpoint or terms version is reset on
+/// the next re-read.
 class TelemetryConsent : public QObject {
 	Q_OBJECT
 public:
@@ -135,9 +134,8 @@ private:
 #endif
 };
 
-/// False when the environment marks a non-interactive run: CI, GITHUB_ACTIONS, QEGTRAIN_AUTOSTART,
-/// QEGTRAIN_STARTUP_TIMING, QEGTRAIN_PLAYBACK_PROFILE or any QEGTRAIN_E2E_ variable is set, or the
-/// Qt platform (QT_QPA_PLATFORM or platform) is offscreen or minimal.
+/// False when the environment marks a CI, automation or test run, or the Qt platform (QT_QPA_PLATFORM
+/// or platform) is offscreen or minimal.
 bool telemetryInteractiveEnvironment(const QProcessEnvironment& environment, const QString& platform);
 /// The context of this build from its compile definitions, interactive when a QGuiApplication runs
 /// in an interactive environment.

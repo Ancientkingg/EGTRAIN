@@ -28,12 +28,14 @@ struct PreparedBatch {
 /// The persistent queue of usage and diagnostic events for one exact receiver endpoint and terms
 /// version, in a private directory (usage.json, diagnostics.json, control.json and owner.lock).
 /// Only the process that holds owner.lock uses the files. Each category holds at most 512 events and
-/// 192 KiB, one stored event at most 1 KiB, and the directory at most 1 MiB in 32 files; the oldest
-/// events give way first. An event expires seven days after it occurred. All times are UTC.
+/// 192 KiB, one stored event at most 1 KiB, and the directory at most 1 MiB in 32 files. The oldest
+/// events give way first when a category is full; going over the directory limit is a storage
+/// failure. An event expires seven days after it occurred. All times are UTC.
 ///
 /// One worker owns this object and all methods. An unsuccessful storage operation fails closed; the
-/// caller must close ingress and abandon outstanding RAM work. It also leaves a disabled marker file,
-/// after which every later open() of the directory discards the queued events and returns Disabled.
+/// caller must close ingress and abandon outstanding RAM work. It also tries to leave a disabled
+/// marker file, after which every later open() of the directory discards the queued events and
+/// returns Disabled.
 class TelemetryQueue {
 public:
 	/// Result of open().

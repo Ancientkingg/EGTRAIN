@@ -39,8 +39,8 @@ enum class Duration { Under1s, ///< Under 1 s (under_1s).
 /// What an export writes.
 enum class ExportKind { SceneBundle, ///< A .egscene bundle from Save or Save As (scene_bundle).
 	Legacy,							 ///< Legacy input files (legacy). No interactive export uses it.
-	Csv,							 ///< A CSV file with its provenance sidecar (csv).
-	Png								 ///< A PNG image with its provenance sidecar (png).
+	Csv,							 ///< A CSV file (csv).
+	Png								 ///< A PNG image (png).
 };
 /// The operation that failed in an operation.failed event.
 enum class Operation { SceneOpen, ///< Opening a scene (scene_open).
