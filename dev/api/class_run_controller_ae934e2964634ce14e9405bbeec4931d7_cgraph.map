@@ -1,5 +1,5 @@
 <map id="RunController::selectSceneOutputFolder" name="RunController::selectSceneOutputFolder">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,203,87"/>
+<area shape="rect" id="Node000001" title="The next run writes to the folder of the scene sceneName, unless the user chose a folder." alt="" coords="5,47,203,87"/>
 <area shape="rect" id="Node000002" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="251,5,419,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,46,237,40,238,45,203,52"/>
 <area shape="rect" id="Node000003" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="253,94,417,119"/>

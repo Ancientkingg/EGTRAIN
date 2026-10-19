@@ -137,23 +137,33 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:GuiOccupiedArc" id="r_GuiOccupiedArc"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_occupied_arc.html">GuiOccupiedArc</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An arc of the block section that a train occupies.  <a href="struct_gui_occupied_arc.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiTrainState" id="r_GuiTrainState"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_train_state.html">GuiTrainState</a></td></tr>
 <tr class="memitem:GuiSignalState" id="r_GuiSignalState"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_signal_state.html">GuiSignalState</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One entry per section ID and direction (see <a class="el" href="class_gui_signal_state_list.html">GuiSignalStateList</a>).  <a href="struct_gui_signal_state.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiSignalStateList" id="r_GuiSignalStateList"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_gui_signal_state_list.html">GuiSignalStateList</a></td></tr>
 <tr class="memitem:GuiSectionState" id="r_GuiSectionState"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_section_state.html">GuiSectionState</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One block section at one step, merged over its copies in the routes.  <a href="struct_gui_section_state.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiPlatformState" id="r_GuiPlatformState"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_platform_state.html">GuiPlatformState</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One station platform at one step.  <a href="struct_gui_platform_state.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiPassengerState" id="r_GuiPassengerState"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_passenger_state.html">GuiPassengerState</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One passenger at one step.  <a href="struct_gui_passenger_state.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiVirtualCouplingState" id="r_GuiVirtualCouplingState"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_virtual_coupling_state.html">GuiVirtualCouplingState</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message of virtual coupling, which a snapshot shows for 40 seconds after its step.  <a href="struct_gui_virtual_coupling_state.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiSimulationSnapshot" id="r_GuiSimulationSnapshot"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of a run at one step: what the canvas, the panels, the replay and the live stream show.  <a href="struct_gui_simulation_snapshot.html#details">More...</a><br /></td></tr>
 <tr class="memitem:GuiSimulationSnapshotMailbox" id="r_GuiSimulationSnapshotMailbox"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_gui_simulation_snapshot_mailbox.html">GuiSimulationSnapshotMailbox</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:adbc7d0bbe4ca909664f6723c1413dc0a" id="r_adbc7d0bbe4ca909664f6723c1413dc0a"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#adbc7d0bbe4ca909664f6723c1413dc0a">guiTrainDisplayIdentifier</a> (const <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &amp;train)</td></tr>
+<tr class="memdesc:adbc7d0bbe4ca909664f6723c1413dc0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of a train in lists and messages: its operating code, or its description when it has none.  <br /></td></tr>
 <tr class="memitem:a9d3587a1b79afd5c277b880adabbf418" id="r_a9d3587a1b79afd5c277b880adabbf418"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9d3587a1b79afd5c277b880adabbf418">followTrainName</a> (const std::string &amp;description, int trainIndex)</td></tr>
 <tr class="memitem:aa8c73afe282056bcc3e3e43d7ec87539" id="r_aa8c73afe282056bcc3e3e43d7ec87539"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa8c73afe282056bcc3e3e43d7ec87539">guiTrainPublishesOccupiedArcs</a> (const <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &amp;train)</td></tr>
+<tr class="memdesc:aa8c73afe282056bcc3e3e43d7ec87539"><td class="mdescLeft">&#160;</td><td class="mdescRight">A train in the simulation reports the arcs that it occupies; one that has left does not.  <br /></td></tr>
 <tr class="memitem:ab4397b256aacd088b6767e677794ce57" id="r_ab4397b256aacd088b6767e677794ce57"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab4397b256aacd088b6767e677794ce57">guiReplayTrainHasPosition</a> (const <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &amp;train, int timestep)</td></tr>
 <tr class="memitem:a708a4d8239fea6f5efa7a59bf662d59a" id="r_a708a4d8239fea6f5efa7a59bf662d59a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a708a4d8239fea6f5efa7a59bf662d59a">guiSignalHasLevel</a> (int level)</td></tr>
+<tr class="memdesc:a708a4d8239fea6f5efa7a59bf662d59a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt">level</span> is a signalling level from 0 to 5.  <br /></td></tr>
 <tr class="memitem:a4e5054d0bf4f163d0ab6bef2f25fff13" id="r_a4e5054d0bf4f163d0ab6bef2f25fff13"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4e5054d0bf4f163d0ab6bef2f25fff13">guiSignalDisplayCode</a> (const <a class="el" href="struct_gui_signal_state.html">GuiSignalState</a> &amp;state)</td></tr>
 <tr class="memitem:af060009e2c033c17dfc8996f308a6c69" id="r_af060009e2c033c17dfc8996f308a6c69"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af060009e2c033c17dfc8996f308a6c69">guiSignalRestriction</a> (int code)</td></tr>
 <tr class="memitem:a7c6d85d3d1c8db2484cb1e0612a25c00" id="r_a7c6d85d3d1c8db2484cb1e0612a25c00"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7c6d85d3d1c8db2484cb1e0612a25c00">guiSectionReportsPermissiveSignalling</a> (double signalCode)</td></tr>
@@ -162,7 +172,9 @@ Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:ac87cb9b6b7601619357fef0c62866feb" id="r_ac87cb9b6b7601619357fef0c62866feb"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ac87cb9b6b7601619357fef0c62866feb">kGuiSignalNoLevel</a> = -1</td></tr>
+<tr class="memdesc:ac87cb9b6b7601619357fef0c62866feb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Value of <a class="el" href="struct_gui_signal_state.html#a275f7955d23196ae6989b668a4e49fed">GuiSignalState::level</a> for a section without a signalling level.  <br /></td></tr>
 <tr class="memitem:a32b9b3beb186e85095c713881a4ed2c9" id="r_a32b9b3beb186e85095c713881a4ed2c9"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a32b9b3beb186e85095c713881a4ed2c9">kGuiSignalUnavailable</a> = -1</td></tr>
+<tr class="memdesc:a32b9b3beb186e85095c713881a4ed2c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display code of a head that has no signalling data to show.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="ad061adfde0ecf72b801d3da8313221d6" name="ad061adfde0ecf72b801d3da8313221d6"></a>
@@ -183,6 +195,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The snapshot of a run at a step. It reads the run and changes nothing, and it is defined in <a class="el" href="_dispatch_controller_8cpp.html">app/DispatchController.cpp</a>. The thread that steps the run builds it, and the window and the live stream see the run through it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -217,6 +230,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The name that the train list and the Follow status give a train: its description, or its place in the list (counted from 1) when it has none or it is "None". <span class="tt">trainIndex</span> counts from 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -251,6 +265,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The train has a place to draw at <span class="tt"><a class="el" href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa" title="The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...">timestep</a></span> (seconds from the start of the run): it is in the simulation, due, and has a head position and vehicle positions. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -281,6 +296,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Every nonzero copied route-section code reports the permissive-signalling cue. The producer value can describe an approach aspect and is not a reservation or a movement guarantee for the selected direction. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -311,6 +327,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The code a head shows for this state. A section without a signalling level keeps its initial code 270, which is not a clear signal, so it shows as unavailable. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -341,6 +358,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p><span class="tt">level</span> is a signalling level from 0 to 5. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -371,6 +390,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Rank of a section code, lowest is most restrictive. 0 is an occupied or failed section, 751 the section behind it in BACC (red_red, speed limit V_751), 75 caution, 180 approach and 270 clear. A code that is none of these ranks last. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -401,6 +421,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The name of a train in lists and messages: its operating code, or its description when it has none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -431,6 +453,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A train in the simulation reports the arcs that it occupies; one that has left does not. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -460,6 +484,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Value of <a class="el" href="struct_gui_signal_state.html#a275f7955d23196ae6989b668a4e49fed">GuiSignalState::level</a> for a section without a signalling level. </p>
+
 </div>
 </div>
 <a id="a32b9b3beb186e85095c713881a4ed2c9" name="a32b9b3beb186e85095c713881a4ed2c9"></a>
@@ -481,6 +507,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Display code of a head that has no signalling data to show. </p>
 
 </div>
 </div>

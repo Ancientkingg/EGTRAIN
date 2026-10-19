@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The next run writes to the folder of the scene sceneName, unless the user chose a folder.">
 <polygon fill="#999999" stroke="#666666" points="148,-54.5 0,-54.5 0,-24.5 148,-24.5 148,-54.5"/>
 <text text-anchor="start" x="8" y="-42.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::selectScene</text>
 <text text-anchor="middle" x="74" y="-31.5" font-family="Helvetica,sans-Serif" font-size="10.00">OutputFolder</text>

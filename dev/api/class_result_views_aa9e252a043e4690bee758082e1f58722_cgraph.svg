@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Asks for the scope and opens ResultViewName::kBlockingTime.">
 <polygon fill="#999999" stroke="#666666" points="150,-435.5 0,-435.5 0,-405.5 150,-405.5 150,-435.5"/>
 <text text-anchor="start" x="8" y="-423.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showBlocking</text>
 <text text-anchor="middle" x="75" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">TimeDiagram</text>
@@ -365,7 +365,7 @@
 <!-- Node68 -->
 <g id="Node000068" class="node">
 <title>Node68</title>
-<g id="a_Node000068"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title=" ">
+<g id="a_Node000068"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="352.5,-19 205.5,-19 205.5,0 352.5,0 352.5,-19"/>
 <text text-anchor="middle" x="279" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>

@@ -1,7 +1,7 @@
 var _telemetry_smoke_support_8h =
 [
     [ "telemetry_smoke::State", "structtelemetry__smoke_1_1_state.html", "structtelemetry__smoke_1_1_state" ],
-    [ "telemetry_smoke::chooseDirectory", "namespacetelemetry__smoke.html#a2f0e7b2aec22df70ab8f6423a8f85956", null ],
+    [ "telemetry_smoke::chooseDirectory", "namespacetelemetry__smoke.html#a85275817c611471f3d0e7a436fe7abcf", null ],
     [ "telemetry_smoke::chooseFile", "namespacetelemetry__smoke.html#a3c1041a79e9cab25bed16e004be72ab3", null ],
     [ "telemetry_smoke::dismissMessages", "namespacetelemetry__smoke.html#a88e3fb2ed40440e4fec7a11c3075ab6a", null ],
     [ "telemetry_smoke::failObservationInstallation", "namespacetelemetry__smoke.html#a18f65fdfc1ed13a429b109490b72224f", null ],

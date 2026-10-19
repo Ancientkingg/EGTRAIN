@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Not noexcept, as the move constructor.">
 <polygon fill="#999999" stroke="#666666" points="157,-67.5 0,-67.5 0,-48.5 157,-48.5 157,-67.5"/>
 <text text-anchor="middle" x="78.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::operator=</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a8e7c0b98d6d98890ee9569fcb94b8406" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a8e7c0b98d6d98890ee9569fcb94b8406" target="_top" xlink:title="Drops every frame and resets the truncated and oversize flags. The budget stays.">
 <polygon fill="white" stroke="#666666" points="525.5,-67.5 394.5,-67.5 394.5,-48.5 525.5,-48.5 525.5,-67.5"/>
 <text text-anchor="middle" x="460" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::clear</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" target="_top" xlink:title="An empty history that keeps at most budgetBytes bytes of accounted payload.">
 <polygon fill="white" stroke="#666666" points="351,-116 193,-116 193,-86 351,-86 351,-116"/>
 <text text-anchor="start" x="201" y="-104" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::GuiReplay</text>
 <text text-anchor="middle" x="272" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">History</text>
@@ -75,7 +75,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" target="_top" xlink:title="The budget of accounted payload, in bytes.">
 <polygon fill="white" stroke="#666666" points="530.5,-116 389.5,-116 389.5,-86 530.5,-86 530.5,-116"/>
 <text text-anchor="start" x="397.5" y="-104" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::budget</text>
 <text text-anchor="middle" x="460" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">Bytes</text>
@@ -103,7 +103,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_gui_replay_history.html#a8d9254b9de5abe7b8bf9702530e06a13" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_gui_replay_history.html#a8d9254b9de5abe7b8bf9702530e06a13" target="_top" xlink:title="Accounted payload of the frames, layouts and string table, in bytes.">
 <polygon fill="white" stroke="#666666" points="533,-30 387,-30 387,0 533,0 533,-30"/>
 <text text-anchor="start" x="395" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::payload</text>
 <text text-anchor="middle" x="460" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Bytes</text>

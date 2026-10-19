@@ -5,7 +5,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,157,199,120,242,105,244,110,201,125,111,162"/>
 <area shape="rect" id="Node000005" href="$namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8" title=" " alt="" coords="209,159,427,185"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="152,169,196,169,196,175,152,175"/>
-<area shape="rect" id="Node000014" href="$namespacepath__message.html#a2fa855a973b8110677b06dea96187af9" title=" " alt="" coords="220,233,416,258"/>
+<area shape="rect" id="Node000014" href="$namespacepath__message.html#a2fa855a973b8110677b06dea96187af9" title="A write that failed. what completes &quot;Could not&quot;, for example &quot;write the image to&quot;." alt="" coords="220,233,416,258"/>
 <area shape="poly" id="edge27_Node000001_Node000014" title=" " alt="" coords="122,182,264,226,262,231,120,187"/>
 <area shape="rect" id="Node000003" href="$classtelemetry_1_1_operation_observation.html#a2db562cb6e4d6783eb276f421a01dc07" title=" " alt="" coords="484,63,720,103"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="436,80,470,80,470,85,436,85"/>
@@ -16,7 +16,7 @@
 <area shape="rect" id="Node000006" href="$namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3" title=" " alt="" coords="506,159,698,185"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="427,169,492,169,492,175,427,175"/>
 <area shape="poly" id="edge25_Node000006_Node000006" title=" " alt="" coords="557,161,547,151,552,141,571,135,602,133,643,137,654,142,657,148,653,151,650,146,642,142,602,138,572,140,555,145,552,150,560,157"/>
-<area shape="rect" id="Node000007" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title=" " alt="" coords="783,94,989,119"/>
+<area shape="rect" id="Node000007" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string." alt="" coords="783,94,989,119"/>
 <area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="651,157,767,128,806,120,808,125,769,133,652,162"/>
 <area shape="rect" id="Node000010" href="$namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242" title=" " alt="" coords="783,167,989,193"/>
 <area shape="poly" id="edge14_Node000006_Node000010" title=" " alt="" coords="698,172,769,174,769,179,698,177"/>

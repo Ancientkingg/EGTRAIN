@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,757,261,580,265,584,106,761"/>
 <area shape="rect" id="Node000026" href="$_stop_insertion_8cpp.html#ad83550cbe065ba3ce8e55ec06fc255b1" title=" " alt="" coords="429,995,627,1020"/>
 <area shape="poly" id="edge65_Node000001_Node000026" title=" " alt="" coords="126,797,491,986,489,991,123,802"/>
-<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="738,405,893,431"/>
+<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="738,405,893,431"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="307,529,352,482,383,458,418,440,496,416,578,405,656,402,725,405,724,410,656,407,578,410,497,421,420,444,386,463,356,486,310,533"/>
 <area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="429,481,627,507"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="370,529,418,517,458,507,459,512,419,522,371,534"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Shows text in the status bar for milliseconds.">
 <polygon fill="#999999" stroke="#666666" points="111,-992.5 0,-992.5 0,-962.5 111,-962.5 111,-992.5"/>
 <text text-anchor="start" x="8" y="-980.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::Host::</text>
 <text text-anchor="middle" x="55.5" y="-969.5" font-family="Helvetica,sans-Serif" font-size="10.00">resultMessage</text>
@@ -30,7 +30,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50" target="_top" xlink:title="Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance,...">
 <polygon fill="white" stroke="#666666" points="526.5,-1209.5 380.5,-1209.5 380.5,-1179.5 526.5,-1179.5 526.5,-1209.5"/>
 <text text-anchor="start" x="388.5" y="-1197.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::buildPerTrain</text>
 <text text-anchor="middle" x="453.5" y="-1186.5" font-family="Helvetica,sans-Serif" font-size="10.00">Diagram</text>
@@ -67,7 +67,7 @@
 <!-- Node42 -->
 <g id="Node000042" class="node">
 <title>Node42</title>
-<g id="a_Node000042"><a xlink:href="class_result_views.html#a6654ed2f9732984a4810179a9275addf" target="_top" xlink:title=" ">
+<g id="a_Node000042"><a xlink:href="class_result_views.html#a6654ed2f9732984a4810179a9275addf" target="_top" xlink:title="Asks for the reference route and opens ResultViewName::kTrainPaths.">
 <polygon fill="white" stroke="#666666" points="308,-949.5 167,-949.5 167,-919.5 308,-919.5 308,-949.5"/>
 <text text-anchor="start" x="175" y="-937.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::displayTrain</text>
 <text text-anchor="middle" x="237.5" y="-926.5" font-family="Helvetica,sans-Serif" font-size="10.00">PathDiagrams</text>
@@ -86,7 +86,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b" target="_top" xlink:title="The views are a child of window. They do not own runController or host, which have to outlive them.">
 <polygon fill="white" stroke="#666666" points="309,-777 166,-777 166,-758 309,-758 309,-777"/>
 <text text-anchor="middle" x="237.5" y="-765" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::ResultViews</text>
 </a>
@@ -104,7 +104,7 @@
 <!-- Node44 -->
 <g id="Node000044" class="node">
 <title>Node44</title>
-<g id="a_Node000044"><a xlink:href="class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78" target="_top" xlink:title=" ">
+<g id="a_Node000044"><a xlink:href="class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78" target="_top" xlink:title="Opens ResultViewName::kCapacityByArea.">
 <polygon fill="white" stroke="#666666" points="324,-740 151,-740 151,-721 324,-721 324,-740"/>
 <text text-anchor="middle" x="237.5" y="-728" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showAreaCapacity</text>
 </a>
@@ -122,7 +122,7 @@
 <!-- Node60 -->
 <g id="Node000060" class="node">
 <title>Node60</title>
-<g id="a_Node000060"><a xlink:href="class_result_views.html#aa9e252a043e4690bee758082e1f58722" target="_top" xlink:title=" ">
+<g id="a_Node000060"><a xlink:href="class_result_views.html#aa9e252a043e4690bee758082e1f58722" target="_top" xlink:title="Asks for the scope and opens ResultViewName::kBlockingTime.">
 <polygon fill="white" stroke="#666666" points="528.5,-660.5 378.5,-660.5 378.5,-630.5 528.5,-630.5 528.5,-660.5"/>
 <text text-anchor="start" x="386.5" y="-648.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showBlocking</text>
 <text text-anchor="middle" x="453.5" y="-637.5" font-family="Helvetica,sans-Serif" font-size="10.00">TimeDiagram</text>
@@ -160,7 +160,7 @@
 <!-- Node127 -->
 <g id="Node000127" class="node">
 <title>Node127</title>
-<g id="a_Node000127"><a xlink:href="class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0" target="_top" xlink:title=" ">
+<g id="a_Node000127"><a xlink:href="class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0" target="_top" xlink:title="Opens ResultViewName::kDelayAnalysis through RunController::openDelayAnalysis().">
 <polygon fill="white" stroke="#666666" points="326.5,-703 148.5,-703 148.5,-684 326.5,-684 326.5,-703"/>
 <text text-anchor="middle" x="237.5" y="-691" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showDelayAnalysis</text>
 </a>
@@ -178,7 +178,7 @@
 <!-- Node128 -->
 <g id="Node000128" class="node">
 <title>Node128</title>
-<g id="a_Node000128"><a xlink:href="class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071" target="_top" xlink:title=" ">
+<g id="a_Node000128"><a xlink:href="class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071" target="_top" xlink:title="Opens ResultViewName::kDelays.">
 <polygon fill="#fff0f0" stroke="red" points="543,-1152 364,-1152 364,-1133 543,-1133 543,-1152"/>
 <text text-anchor="middle" x="453.5" y="-1140" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showDelayDiagram</text>
 </a>
@@ -196,7 +196,7 @@
 <!-- Node130 -->
 <g id="Node000130" class="node">
 <title>Node130</title>
-<g id="a_Node000130"><a xlink:href="class_result_views.html#aac25495cbc2eeebd47d6343d7494868a" target="_top" xlink:title=" ">
+<g id="a_Node000130"><a xlink:href="class_result_views.html#aac25495cbc2eeebd47d6343d7494868a" target="_top" xlink:title="Opens ResultViewName::kSpeedDistance.">
 <polygon fill="white" stroke="#666666" points="328,-1217.5 147,-1217.5 147,-1187.5 328,-1187.5 328,-1217.5"/>
 <text text-anchor="start" x="155" y="-1205.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showSpeedDistance</text>
 <text text-anchor="middle" x="237.5" y="-1194.5" font-family="Helvetica,sans-Serif" font-size="10.00">Diagram</text>
@@ -215,7 +215,7 @@
 <!-- Node131 -->
 <g id="Node000131" class="node">
 <title>Node131</title>
-<g id="a_Node000131"><a xlink:href="class_result_views.html#a0f3f690fe5e7f9f99d753b5afaff1f1c" target="_top" xlink:title=" ">
+<g id="a_Node000131"><a xlink:href="class_result_views.html#a0f3f690fe5e7f9f99d753b5afaff1f1c" target="_top" xlink:title="Opens ResultViewName::kSpeedTime.">
 <polygon fill="white" stroke="#666666" points="319,-1169.5 156,-1169.5 156,-1139.5 319,-1139.5 319,-1169.5"/>
 <text text-anchor="start" x="164" y="-1157.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showSpeedTime</text>
 <text text-anchor="middle" x="237.5" y="-1146.5" font-family="Helvetica,sans-Serif" font-size="10.00">Diagram</text>
@@ -234,7 +234,7 @@
 <!-- Node132 -->
 <g id="Node000132" class="node">
 <title>Node132</title>
-<g id="a_Node000132"><a xlink:href="class_result_views.html#ad1c48db154efc6c4894aa92e13d4662f" target="_top" xlink:title=" ">
+<g id="a_Node000132"><a xlink:href="class_result_views.html#ad1c48db154efc6c4894aa92e13d4662f" target="_top" xlink:title="Opens ResultViewName::kTimeDistance.">
 <polygon fill="white" stroke="#666666" points="325.5,-1121.5 149.5,-1121.5 149.5,-1091.5 325.5,-1091.5 325.5,-1121.5"/>
 <text text-anchor="start" x="157.5" y="-1109.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showTimeDistance</text>
 <text text-anchor="middle" x="237.5" y="-1098.5" font-family="Helvetica,sans-Serif" font-size="10.00">Diagram</text>
@@ -253,7 +253,7 @@
 <!-- Node133 -->
 <g id="Node000133" class="node">
 <title>Node133</title>
-<g id="a_Node000133"><a xlink:href="class_result_views.html#abbd242b2f22778b903475a53c4dc8447" target="_top" xlink:title=" ">
+<g id="a_Node000133"><a xlink:href="class_result_views.html#abbd242b2f22778b903475a53c4dc8447" target="_top" xlink:title="Asks for the reference route and opens ResultViewName::kTimetableGraph.">
 <polygon fill="white" stroke="#666666" points="316.5,-901.5 158.5,-901.5 158.5,-871.5 316.5,-871.5 316.5,-901.5"/>
 <text text-anchor="start" x="166.5" y="-889.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showTimetable</text>
 <text text-anchor="middle" x="237.5" y="-878.5" font-family="Helvetica,sans-Serif" font-size="10.00">Graph</text>
@@ -272,7 +272,7 @@
 <!-- Node134 -->
 <g id="Node000134" class="node">
 <title>Node134</title>
-<g id="a_Node000134"><a xlink:href="class_result_views.html#a4fa7fe533fd5fd1ac1773d910b0c4c9e" target="_top" xlink:title=" ">
+<g id="a_Node000134"><a xlink:href="class_result_views.html#a4fa7fe533fd5fd1ac1773d910b0c4c9e" target="_top" xlink:title="Opens ResultViewName::kTimetable.">
 <polygon fill="#fff0f0" stroke="red" points="532.5,-1298.5 374.5,-1298.5 374.5,-1268.5 532.5,-1268.5 532.5,-1298.5"/>
 <text text-anchor="start" x="382.5" y="-1286.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showTimetable</text>
 <text text-anchor="middle" x="453.5" y="-1275.5" font-family="Helvetica,sans-Serif" font-size="10.00">Table</text>
@@ -291,7 +291,7 @@
 <!-- Node136 -->
 <g id="Node000136" class="node">
 <title>Node136</title>
-<g id="a_Node000136"><a xlink:href="class_result_views.html#ad604d7cb46e009e65178785bcd6f6191" target="_top" xlink:title=" ">
+<g id="a_Node000136"><a xlink:href="class_result_views.html#ad604d7cb46e009e65178785bcd6f6191" target="_top" xlink:title="Opens ResultViewName::kTractiveEffortDistance.">
 <polygon fill="white" stroke="#666666" points="310.5,-1073.5 164.5,-1073.5 164.5,-1043.5 310.5,-1043.5 310.5,-1073.5"/>
 <text text-anchor="start" x="172.5" y="-1061.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showTractive</text>
 <text text-anchor="middle" x="237.5" y="-1050.5" font-family="Helvetica,sans-Serif" font-size="10.00">EffortDistanceDiagram</text>
@@ -527,7 +527,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="745.5,-949 598.5,-949 598.5,-930 745.5,-930 745.5,-949"/>
 <text text-anchor="middle" x="672" y="-937" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>
@@ -752,7 +752,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="737.5,-178 606.5,-178 606.5,-159 737.5,-159 737.5,-178"/>
 <text text-anchor="middle" x="672" y="-166" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>

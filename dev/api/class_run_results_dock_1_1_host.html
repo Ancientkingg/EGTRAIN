@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_run_resu
 </div><!--header-->
 <div class="contents">
 
+<p>What the dock asks of the window.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_results_dock_8h_source.html">app/RunResultsDock.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for RunResultsDock::Host:</div>
@@ -124,10 +127,15 @@ Inheritance diagram for RunResultsDock::Host:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1dfdc4aff5bbc1e4a400167bda58a1de" id="r_a1dfdc4aff5bbc1e4a400167bda58a1de"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#a1dfdc4aff5bbc1e4a400167bda58a1de">~Host</a> ()=default</td></tr>
 <tr class="memitem:ad3ad01f82ae06d607e12097edd48b4b6" id="r_ad3ad01f82ae06d607e12097edd48b4b6"><td class="memItemLeft">virtual <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad3ad01f82ae06d607e12097edd48b4b6">captureTelemetryOperation</a> () const noexcept=0</td></tr>
+<tr class="memdesc:ad3ad01f82ae06d607e12097edd48b4b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The telemetry record of the user action that is going on, which the exports report to.  <br /></td></tr>
 <tr class="memitem:a2b822dad90eb9d9ee199078b373b2103" id="r_a2b822dad90eb9d9ee199078b373b2103"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a2b822dad90eb9d9ee199078b373b2103">advancedDetailsEnabled</a> () const =0</td></tr>
+<tr class="memdesc:a2b822dad90eb9d9ee199078b373b2103"><td class="mdescLeft">&#160;</td><td class="mdescRight">The summary adds the incident evidence and the number of destination terminations.  <br /></td></tr>
 <tr class="memitem:a6b3a282199ef66f6e51e4c63b5e82a71" id="r_a6b3a282199ef66f6e51e4c63b5e82a71"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a6b3a282199ef66f6e51e4c63b5e82a71">runResultsRefreshed</a> ()=0</td></tr>
+<tr class="memdesc:a6b3a282199ef66f6e51e4c63b5e82a71"><td class="mdescLeft">&#160;</td><td class="mdescRight">The table of a completed run has been written and the dock is shown.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the dock asks of the window. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1dfdc4aff5bbc1e4a400167bda58a1de" name="a1dfdc4aff5bbc1e4a400167bda58a1de"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1dfdc4aff5bbc1e4a400167bda58a1de">&#9670;&#160;</a></span>~Host()</h2>
 
@@ -176,6 +184,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The summary adds the incident evidence and the number of destination terminations. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -207,6 +217,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The telemetry record of the user action that is going on, which the exports report to. </p>
+
 </div>
 </div>
 <a id="a6b3a282199ef66f6e51e4c63b5e82a71" name="a6b3a282199ef66f6e51e4c63b5e82a71"></a>
@@ -231,6 +243,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The table of a completed run has been written and the dock is shown. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

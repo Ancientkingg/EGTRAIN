@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_gui_sig
 </div><!--header-->
 <div class="contents">
 
+<p>One entry per section ID and direction (see <a class="el" href="class_gui_signal_state_list.html">GuiSignalStateList</a>).  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -122,8 +125,11 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a6240f8cd0b1f4c22befdb4d47e4e4ad6" id="r_a6240f8cd0b1f4c22befdb4d47e4e4ad6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6240f8cd0b1f4c22befdb4d47e4e4ad6">reversedDirection</a> = false</td></tr>
 <tr class="memitem:a275f7955d23196ae6989b668a4e49fed" id="r_a275f7955d23196ae6989b668a4e49fed"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a275f7955d23196ae6989b668a4e49fed">level</a> = <a class="el" href="_gui_simulation_snapshot_8h.html#ac87cb9b6b7601619357fef0c62866feb">kGuiSignalNoLevel</a></td></tr>
 <tr class="memitem:ab6711034a40529aaad3f46f27151f938" id="r_ab6711034a40529aaad3f46f27151f938"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab6711034a40529aaad3f46f27151f938">failed</a> = false</td></tr>
+<tr class="memdesc:ab6711034a40529aaad3f46f27151f938"><td class="mdescLeft">&#160;</td><td class="mdescRight">A signal_failure incident covers the section in this step.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One entry per section ID and direction (see <a class="el" href="class_gui_signal_state_list.html">GuiSignalStateList</a>). </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ae5eb6c8d9d1488352138159d4f6d92ec" name="ae5eb6c8d9d1488352138159d4f6d92ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae5eb6c8d9d1488352138159d4f6d92ec">&#9670;&#160;</a></span>code</h2>
 
@@ -135,6 +141,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The aspect code of the section: 270 clear (only for a section with a level; see level), 180 approach, 75 caution, 751 red-red, 0 occupied or failed (see <a class="el" href="_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69">guiSignalRestriction()</a>). </p>
 
 </div>
 </div>
@@ -150,6 +157,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>A signal_failure incident covers the section in this step. </p>
+
 </div>
 </div>
 <a id="a275f7955d23196ae6989b668a4e49fed" name="a275f7955d23196ae6989b668a4e49fed"></a>
@@ -163,6 +172,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Signalling level of the section (0 to 5), or kGuiSignalNoLevel. A section without a level keeps its initial code 270, which is not a clear signal. </p>
 
 </div>
 </div>
@@ -177,6 +187,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The entry is for the direction against the definition of the route. </p>
 
 </div>
 </div>
@@ -191,6 +202,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The ID of the block section. </p>
 
 </div>
 </div>

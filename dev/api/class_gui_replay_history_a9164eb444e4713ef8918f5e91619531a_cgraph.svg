@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a8e7c0b98d6d98890ee9569fcb94b8406" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a8e7c0b98d6d98890ee9569fcb94b8406" target="_top" xlink:title="Drops every frame and resets the truncated and oversize flags. The budget stays.">
 <polygon fill="white" stroke="#666666" points="312.5,-67.5 181.5,-67.5 181.5,-48.5 312.5,-48.5 312.5,-67.5"/>
 <text text-anchor="middle" x="247" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::clear</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#a8d9254b9de5abe7b8bf9702530e06a13" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#a8d9254b9de5abe7b8bf9702530e06a13" target="_top" xlink:title="Accounted payload of the frames, layouts and string table, in bytes.">
 <polygon fill="white" stroke="#666666" points="320,-30 174,-30 174,0 320,0 320,-30"/>
 <text text-anchor="start" x="182" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::payload</text>
 <text text-anchor="middle" x="247" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Bytes</text>

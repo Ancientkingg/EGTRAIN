@@ -324,8 +324,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_8
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:afc4b99469fe5a5e382be0216b6184cdd" id="r_afc4b99469fe5a5e382be0216b6184cdd"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc4b99469fe5a5e382be0216b6184cdd">startupTimingEnabled</a> ()</td></tr>
+<tr class="memdesc:afc4b99469fe5a5e382be0216b6184cdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".  <br /></td></tr>
 <tr class="memitem:a83e0ad346d67e58fe51907c04f72f66c" id="r_a83e0ad346d67e58fe51907c04f72f66c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a83e0ad346d67e58fe51907c04f72f66c">beginStartupTiming</a> ()</td></tr>
+<tr class="memdesc:a83e0ad346d67e58fe51907c04f72f66c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off.  <br /></td></tr>
 <tr class="memitem:a63d91ad96a8a23ba52cc91ea2b8912f9" id="r_a63d91ad96a8a23ba52cc91ea2b8912f9"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a63d91ad96a8a23ba52cc91ea2b8912f9">startupTimingNowNanoseconds</a> ()</td></tr>
+<tr class="memdesc:a63d91ad96a8a23ba52cc91ea2b8912f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nanoseconds since <a class="el" href="_main_window_8h.html#a83e0ad346d67e58fe51907c04f72f66c" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">beginStartupTiming()</a> started the clock.  <br /></td></tr>
 <tr class="memitem:a47c2ba6e7064ed2ad030d4c1c2b34528" id="r_a47c2ba6e7064ed2ad030d4c1c2b34528"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a47c2ba6e7064ed2ad030d4c1c2b34528">recordStartupTiming</a> (const QString &amp;phase, int iteration, int generation, qint64 elapsedNanoseconds, const QString &amp;invocation, const QString &amp;source, bool identityOk, bool canonicalPreloadNested)</td></tr>
 <tr class="memitem:a8b8f228ef04f0786d5039638590d0a67" id="r_a8b8f228ef04f0786d5039638590d0a67"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8b8f228ef04f0786d5039638590d0a67">setStartupTimingPreloadIdentity</a> (const QString &amp;path, const <a class="el" href="struct_scene_load_result.html">SceneLoadResult</a> &amp;loaded)</td></tr>
 </table>
@@ -344,6 +347,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -381,25 +386,26 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>invocation</em></span>, </td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>invocation</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>source</em></span>, </td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>source</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>identityOk</em></span>, </td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>identityOk</em></span><span class="paramdefsep"> = </span><span class="paramdefval">true</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>canonicalPreloadNested</em></span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>canonicalPreloadNested</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes one QEGTRAIN_TIMING line of JSON to standard output when startup timing is on. <span class="tt">elapsedNanoseconds</span> is written in milliseconds. <span class="tt">iteration</span> 0 is the fresh process and higher ones are warm reloads; a negative <span class="tt">generation</span> and empty <span class="tt">invocation</span> and <span class="tt">source</span> are left out. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -426,6 +432,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Records the scene at <span class="tt">path</span>, as <span class="tt">loaded</span> read it, as the scene that startup timing expects. Does nothing when startup timing is off. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -448,6 +455,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -470,6 +479,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Nanoseconds since <a class="el" href="_main_window_8h.html#a83e0ad346d67e58fe51907c04f72f66c" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">beginStartupTiming()</a> started the clock. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

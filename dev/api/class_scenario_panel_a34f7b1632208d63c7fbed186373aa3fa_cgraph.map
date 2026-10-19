@@ -1,6 +1,6 @@
 <map id="ScenarioPanel::exportScenario" name="ScenarioPanel::exportScenario">
 <area shape="rect" id="Node000001" title="Writes the selected scenario to a scenario JSON file." alt="" coords="5,237,224,263"/>
-<area shape="rect" id="Node000002" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="294,115,469,140"/>
+<area shape="rect" id="Node000002" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title="The message of the first error among the diagnostics, else of the first diagnostic,..." alt="" coords="294,115,469,140"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,235,190,193,229,169,271,149,292,141,294,146,273,154,232,174,193,197,134,239"/>
 <area shape="rect" id="Node000003" href="$_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" title="Writes one scenario as a standalone scenario file, replacing the file at filePath." alt="" coords="313,188,449,213"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="183,235,299,213,300,218,184,240"/>
@@ -42,7 +42,7 @@
 <area shape="rect" id="Node000015" href="$namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3" title=" " alt="" coords="539,360,731,385"/>
 <area shape="poly" id="edge26_Node000014_Node000015" title=" " alt="" coords="490,370,525,370,525,375,490,375"/>
 <area shape="poly" id="edge44_Node000015_Node000015" title=" " alt="" coords="595,362,586,352,591,342,607,336,635,333,669,337,679,342,683,348,678,351,676,346,668,342,635,339,608,341,594,346,592,351,599,358"/>
-<area shape="rect" id="Node000016" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title=" " alt="" coords="779,423,985,448"/>
+<area shape="rect" id="Node000016" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string." alt="" coords="779,423,985,448"/>
 <area shape="poly" id="edge27_Node000015_Node000016" title=" " alt="" coords="686,383,818,417,817,422,685,388"/>
 <area shape="rect" id="Node000019" href="$namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242" title=" " alt="" coords="779,349,985,375"/>
 <area shape="poly" id="edge33_Node000015_Node000019" title=" " alt="" coords="731,366,765,364,765,370,731,371"/>

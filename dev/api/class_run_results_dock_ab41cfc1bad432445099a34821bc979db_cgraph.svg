@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_run_results_dock.html#ab9abe45276997ba766f77a1d582dc4e1" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_run_results_dock.html#ab9abe45276997ba766f77a1d582dc4e1" target="_top" xlink:title="A number of seconds as H:MM:SS. The hours do not wrap at a day.">
 <polygon fill="white" stroke="#666666" points="346.5,-138 183.5,-138 183.5,-119 346.5,-119 346.5,-138"/>
 <text text-anchor="middle" x="265" y="-126" font-family="Helvetica,sans-Serif" font-size="10.00">RunResultsDock::durationText</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_run_results_dock.html#ae64779fcdc776e6ac3b1b6fa4911bdd7" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_run_results_dock.html#ae64779fcdc776e6ac3b1b6fa4911bdd7" target="_top" xlink:title="Writes the lines that say which run the table shows and its status, each entry on a line of its own.">
 <polygon fill="white" stroke="#666666" points="357,-46 173,-46 173,-27 357,-27 357,-46"/>
 <text text-anchor="middle" x="265" y="-34" font-family="Helvetica,sans-Serif" font-size="10.00">RunResultsDock::refreshSummary</text>
 </a>

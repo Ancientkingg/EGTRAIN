@@ -118,30 +118,52 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_gui_repl
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a893d5a3f40cb78d5fb1329659dadb9ae" id="r_a893d5a3f40cb78d5fb1329659dadb9ae"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a893d5a3f40cb78d5fb1329659dadb9ae">GuiReplayHistory</a> (std::size_t budgetBytes=<a class="el" href="#a268cfa7fdb12e55214b82c937eaa6af5">payloadLimit</a>)</td></tr>
+<tr class="memdesc:a893d5a3f40cb78d5fb1329659dadb9ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty history that keeps at most <span class="tt"><a class="el" href="#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes.">budgetBytes</a></span> bytes of accounted payload.  <br /></td></tr>
 <tr class="memitem:ae9a7813ad6b22bca029ed20e2e41d7c4" id="r_ae9a7813ad6b22bca029ed20e2e41d7c4"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae9a7813ad6b22bca029ed20e2e41d7c4">GuiReplayHistory</a> (const <a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> &amp;)=delete</td></tr>
+<tr class="memdesc:ae9a7813ad6b22bca029ed20e2e41d7c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The string table keys point into the table of the same object, so a copy would dangle.  <br /></td></tr>
 <tr class="memitem:ad43c317b8d129b60d75203b854b1b76b" id="r_ad43c317b8d129b60d75203b854b1b76b"><td class="memItemLeft"><a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ad43c317b8d129b60d75203b854b1b76b">operator=</a> (const <a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> &amp;)=delete</td></tr>
+<tr class="memdesc:ad43c317b8d129b60d75203b854b1b76b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deleted, as the copy constructor.  <br /></td></tr>
 <tr class="memitem:a79e4ea7d823679887b7992a4f90906bf" id="r_a79e4ea7d823679887b7992a4f90906bf"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a79e4ea7d823679887b7992a4f90906bf">GuiReplayHistory</a> (<a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> &amp;&amp;)=default</td></tr>
+<tr class="memdesc:a79e4ea7d823679887b7992a4f90906bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not noexcept: the move of std::unordered_map may allocate in some standard libraries.  <br /></td></tr>
 <tr class="memitem:a48619ad5b3fda563c4b17b7583e0b52f" id="r_a48619ad5b3fda563c4b17b7583e0b52f"><td class="memItemLeft"><a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a48619ad5b3fda563c4b17b7583e0b52f">operator=</a> (<a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> &amp;&amp;)=default</td></tr>
+<tr class="memdesc:a48619ad5b3fda563c4b17b7583e0b52f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not noexcept, as the move constructor.  <br /></td></tr>
 <tr class="memitem:a8e7c0b98d6d98890ee9569fcb94b8406" id="r_a8e7c0b98d6d98890ee9569fcb94b8406"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8e7c0b98d6d98890ee9569fcb94b8406">clear</a> ()</td></tr>
+<tr class="memdesc:a8e7c0b98d6d98890ee9569fcb94b8406"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drops every frame and resets the truncated and oversize flags. The budget stays.  <br /></td></tr>
 <tr class="memitem:a9164eb444e4713ef8918f5e91619531a" id="r_a9164eb444e4713ef8918f5e91619531a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9164eb444e4713ef8918f5e91619531a">record</a> (const std::shared_ptr&lt; const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &gt; &amp;frame)</td></tr>
 <tr class="memitem:a2a831e1fbd0f0d1faa5e051548ad8d84" id="r_a2a831e1fbd0f0d1faa5e051548ad8d84"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2a831e1fbd0f0d1faa5e051548ad8d84">empty</a> () const</td></tr>
+<tr class="memdesc:a2a831e1fbd0f0d1faa5e051548ad8d84"><td class="mdescLeft">&#160;</td><td class="mdescRight">No frame is kept.  <br /></td></tr>
 <tr class="memitem:a379de4c1249cdf2d57a800dc9680c196" id="r_a379de4c1249cdf2d57a800dc9680c196"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a379de4c1249cdf2d57a800dc9680c196">oversize</a> () const</td></tr>
+<tr class="memdesc:a379de4c1249cdf2d57a800dc9680c196"><td class="mdescLeft">&#160;</td><td class="mdescRight">One frame did not fit in the budget on its own. The history was cleared and records nothing more until <a class="el" href="#a8e7c0b98d6d98890ee9569fcb94b8406" title="Drops every frame and resets the truncated and oversize flags. The budget stays.">clear()</a>.  <br /></td></tr>
 <tr class="memitem:a2ca8c4c0fd3f3803b5c7f7984a0b2ec7" id="r_a2ca8c4c0fd3f3803b5c7f7984a0b2ec7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2ca8c4c0fd3f3803b5c7f7984a0b2ec7">truncated</a> () const</td></tr>
+<tr class="memdesc:a2ca8c4c0fd3f3803b5c7f7984a0b2ec7"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when frames were dropped to stay within the budget.  <br /></td></tr>
 <tr class="memitem:a2da7e2bd56ebc9a7b2425d99dc0105f0" id="r_a2da7e2bd56ebc9a7b2425d99dc0105f0"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a2da7e2bd56ebc9a7b2425d99dc0105f0">size</a> () const</td></tr>
+<tr class="memdesc:a2da7e2bd56ebc9a7b2425d99dc0105f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of frames kept.  <br /></td></tr>
 <tr class="memitem:a8d9254b9de5abe7b8bf9702530e06a13" id="r_a8d9254b9de5abe7b8bf9702530e06a13"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a8d9254b9de5abe7b8bf9702530e06a13">payloadBytes</a> () const</td></tr>
+<tr class="memdesc:a8d9254b9de5abe7b8bf9702530e06a13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accounted payload of the frames, layouts and string table, in bytes.  <br /></td></tr>
 <tr class="memitem:a5ca9e9f603b51b875385dc41f2cfef1a" id="r_a5ca9e9f603b51b875385dc41f2cfef1a"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a5ca9e9f603b51b875385dc41f2cfef1a">budgetBytes</a> () const</td></tr>
+<tr class="memdesc:a5ca9e9f603b51b875385dc41f2cfef1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The budget of accounted payload, in bytes.  <br /></td></tr>
 <tr class="memitem:a1ef3c453582eba9742c21275d180ac38" id="r_a1ef3c453582eba9742c21275d180ac38"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a1ef3c453582eba9742c21275d180ac38">layoutCount</a> () const</td></tr>
+<tr class="memdesc:a1ef3c453582eba9742c21275d180ac38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of layouts in use. It stays 1 while the static data of a run does not change.  <br /></td></tr>
 <tr class="memitem:adaaf08e3b6f16671f143142825dd6c39" id="r_adaaf08e3b6f16671f143142825dd6c39"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adaaf08e3b6f16671f143142825dd6c39">firstTime</a> () const</td></tr>
+<tr class="memdesc:adaaf08e3b6f16671f143142825dd6c39"><td class="mdescLeft">&#160;</td><td class="mdescRight">The step of the oldest frame kept, in seconds from the start of the run. 0 when the history is empty.  <br /></td></tr>
 <tr class="memitem:ab1023e589af0f9ea60ec32a6fe9ab059" id="r_ab1023e589af0f9ea60ec32a6fe9ab059"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab1023e589af0f9ea60ec32a6fe9ab059">lastTime</a> () const</td></tr>
+<tr class="memdesc:ab1023e589af0f9ea60ec32a6fe9ab059"><td class="mdescLeft">&#160;</td><td class="mdescRight">The step of the newest frame kept, in seconds from the start of the run. 0 when the history is empty.  <br /></td></tr>
 <tr class="memitem:a446ab9a8747d56f94b2b8e49cebe3d83" id="r_a446ab9a8747d56f94b2b8e49cebe3d83"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a446ab9a8747d56f94b2b8e49cebe3d83">evictedBeforeTime</a> () const</td></tr>
+<tr class="memdesc:a446ab9a8747d56f94b2b8e49cebe3d83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frames before this step, in seconds from the start of the run, were dropped, or 0 when none were.  <br /></td></tr>
 <tr class="memitem:a763f2e97c297cfc6c239546e93abe36f" id="r_a763f2e97c297cfc6c239546e93abe36f"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a763f2e97c297cfc6c239546e93abe36f">atOrBefore</a> (int time) const</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a6496af7c6af4fd206cebc70c5c0a8762" id="r_a6496af7c6af4fd206cebc70c5c0a8762"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6496af7c6af4fd206cebc70c5c0a8762">cadenceSeconds</a> = 5</td></tr>
 <tr class="memitem:a268cfa7fdb12e55214b82c937eaa6af5" id="r_a268cfa7fdb12e55214b82c937eaa6af5"><td class="memItemLeft">static constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a268cfa7fdb12e55214b82c937eaa6af5">payloadLimit</a> = 128u * 1024u * 1024u</td></tr>
+<tr class="memdesc:a268cfa7fdb12e55214b82c937eaa6af5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default budget of accounted payload, in bytes (128 MiB).  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The frames of a completed run, kept for replay.</p>
+<p>What is the same for the whole run (identity and static data of trains, signal and section ids, platforms) is stored once in a layout. A frame stores only flat arrays of the values that change. Strings that vary (passengers, virtual coupling messages) are stored once in a string table and referred to by number. <a class="el" href="#a763f2e97c297cfc6c239546e93abe36f">atOrBefore()</a> rebuilds an ordinary snapshot from the compact form. A frame that is still in use, and the last one handed out, is not rebuilt.</p>
+<p>Accounted payload bounds include vector and string capacities, but not allocator bookkeeping, shared_ptr control blocks or container-node overhead. This is not RSS. When the budget is reached the oldest frames are dropped; <a class="el" href="#adaaf08e3b6f16671f143142825dd6c39" title="The step of the oldest frame kept, in seconds from the start of the run. 0 when the history is empty.">firstTime()</a> and <a class="el" href="#ab1023e589af0f9ea60ec32a6fe9ab059" title="The step of the newest frame kept, in seconds from the start of the run. 0 when the history is empty.">lastTime()</a> tell what is kept.</p>
+<p><a class="el" href="#a9164eb444e4713ef8918f5e91619531a">record()</a> is called on the simulation thread. The history is read on the GUI thread after it has been moved out of the producer, so no member is shared between threads. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a893d5a3f40cb78d5fb1329659dadb9ae" name="a893d5a3f40cb78d5fb1329659dadb9ae"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a893d5a3f40cb78d5fb1329659dadb9ae">&#9670;&#160;</a></span>GuiReplayHistory() <span class="overload">[1/3]</span></h2>
 
@@ -164,6 +186,8 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>An empty history that keeps at most <span class="tt"><a class="el" href="#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes.">budgetBytes</a></span> bytes of accounted payload. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -194,6 +218,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The string table keys point into the table of the same object, so a copy would dangle. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -224,6 +250,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Not noexcept: the move of std::unordered_map may allocate in some standard libraries. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -247,6 +275,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The last frame at or before the step <span class="tt">time</span>, or the first frame when the time is earlier. Null when the history is empty. Asking again for the same frame returns the same object while the caller or the history holds it. </p>
 
 </div>
 </div>
@@ -273,6 +302,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The budget of accounted payload, in bytes. </p>
+
 </div>
 </div>
 <a id="a8e7c0b98d6d98890ee9569fcb94b8406" name="a8e7c0b98d6d98890ee9569fcb94b8406"></a>
@@ -289,6 +320,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Drops every frame and resets the truncated and oversize flags. The budget stays. </p>
 
 </div>
 </div>
@@ -315,6 +348,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>No frame is kept. </p>
+
 </div>
 </div>
 <a id="a446ab9a8747d56f94b2b8e49cebe3d83" name="a446ab9a8747d56f94b2b8e49cebe3d83"></a>
@@ -339,6 +374,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Frames before this step, in seconds from the start of the run, were dropped, or 0 when none were. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -370,6 +407,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The step of the oldest frame kept, in seconds from the start of the run. 0 when the history is empty. </p>
+
 </div>
 </div>
 <a id="ab1023e589af0f9ea60ec32a6fe9ab059" name="ab1023e589af0f9ea60ec32a6fe9ab059"></a>
@@ -394,6 +433,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The step of the newest frame kept, in seconds from the start of the run. 0 when the history is empty. </p>
 
 </div>
 </div>
@@ -420,6 +461,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Number of layouts in use. It stays 1 while the static data of a run does not change. </p>
+
 </div>
 </div>
 <a id="ad43c317b8d129b60d75203b854b1b76b" name="ad43c317b8d129b60d75203b854b1b76b"></a>
@@ -444,6 +487,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Deleted, as the copy constructor. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -474,6 +519,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Not noexcept, as the move constructor. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -505,6 +552,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>One frame did not fit in the budget on its own. The history was cleared and records nothing more until <a class="el" href="#a8e7c0b98d6d98890ee9569fcb94b8406" title="Drops every frame and resets the truncated and oversize flags. The budget stays.">clear()</a>. </p>
+
 </div>
 </div>
 <a id="a8d9254b9de5abe7b8bf9702530e06a13" name="a8d9254b9de5abe7b8bf9702530e06a13"></a>
@@ -530,6 +579,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Accounted payload of the frames, layouts and string table, in bytes. </p>
+
 </div>
 </div>
 <a id="a9164eb444e4713ef8918f5e91619531a" name="a9164eb444e4713ef8918f5e91619531a"></a>
@@ -546,6 +597,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Keeps <span class="tt">frame</span> when it is the first, falls on a multiple of cadenceSeconds or is the last step of the run, and its step is not the step of the frame kept last. Drops the oldest frames to stay within the budget. Ignores null and every frame after the history became oversize. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -577,6 +629,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The number of frames kept. </p>
+
 </div>
 </div>
 <a id="a2ca8c4c0fd3f3803b5c7f7984a0b2ec7" name="a2ca8c4c0fd3f3803b5c7f7984a0b2ec7"></a>
@@ -602,6 +656,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True when frames were dropped to stay within the budget. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -624,6 +680,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The interval between two kept frames, in seconds of simulated time. The first frame and the last step of the run are kept as well. </p>
 
 </div>
 </div>
@@ -646,6 +703,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Default budget of accounted payload, in bytes (128 MiB). </p>
 
 </div>
 </div>

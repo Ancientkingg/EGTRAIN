@@ -1,5 +1,5 @@
 <map id="RunController::onSimulationFinished" name="RunController::onSimulationFinished">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,506,211,546"/>
+<area shape="rect" id="Node000001" title="The results of the run are kept or discarded, and the window follows." alt="" coords="5,506,211,546"/>
 <area shape="rect" id="Node000002" href="$_completed_run_capture_8cpp.html#a28ef20b66f910d15773edc1894e07444" title=" " alt="" coords="286,204,453,229"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,505,173,415,213,359,257,306,297,267,337,236,340,240,301,271,261,309,217,362,178,418,123,507"/>
 <area shape="rect" id="Node000012" href="$class_run_controller.html#a7800e103e0f9e83da53b0ae2b98a6618" title=" " alt="" coords="259,319,480,359"/>
@@ -47,7 +47,7 @@
 <area shape="rect" id="Node000010" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="787,226,995,266"/>
 <area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="718,224,773,230,773,235,717,229"/>
 <area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="592,279,583,269,588,259,605,253,633,251,669,255,680,259,684,265,679,268,676,263,668,260,633,256,606,258,591,263,588,268,596,275"/>
-<area shape="rect" id="Node000013" href="$class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" title=" " alt="" coords="535,327,732,352"/>
+<area shape="rect" id="Node000013" href="$class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" title="Asks the run to stop. Returns whether a run existed." alt="" coords="535,327,732,352"/>
 <area shape="poly" id="edge21_Node000012_Node000013" title=" " alt="" coords="480,337,521,337,521,342,480,342"/>
 <area shape="rect" id="Node000014" href="$class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054" title=" " alt="" coords="539,377,727,417"/>
 <area shape="poly" id="edge22_Node000012_Node000014" title=" " alt="" coords="463,357,528,371,527,376,461,362"/>
@@ -59,8 +59,8 @@
 <area shape="poly" id="edge30_Node000020_Node000021" title=" " alt="" coords="705,631,830,645,830,650,705,636"/>
 <area shape="poly" id="edge31_Node000021_Node000021" title=" " alt="" coords="852,643,843,633,848,623,864,617,891,615,924,619,937,628,934,632,922,623,891,620,865,622,851,627,849,632,856,639"/>
 <area shape="poly" id="edge33_Node000022_Node000021" title=" " alt="" coords="719,671,830,658,831,663,720,676"/>
-<area shape="rect" id="Node000025" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title=" " alt="" coords="528,793,739,833"/>
+<area shape="rect" id="Node000025" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title="An empty history that keeps at most budgetBytes bytes of accounted payload." alt="" coords="528,793,739,833"/>
 <area shape="poly" id="edge37_Node000024_Node000025" title=" " alt="" coords="454,810,514,810,514,815,454,815"/>
-<area shape="rect" id="Node000026" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title=" " alt="" coords="797,793,985,833"/>
+<area shape="rect" id="Node000026" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes." alt="" coords="797,793,985,833"/>
 <area shape="poly" id="edge38_Node000025_Node000026" title=" " alt="" coords="739,810,783,810,783,815,739,815"/>
 </map>

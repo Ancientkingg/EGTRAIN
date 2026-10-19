@@ -1,5 +1,5 @@
 <map id="dialog_folders::folderOfCase" name="dialog_folders::folderOfCase">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,212,92"/>
+<area shape="rect" id="Node000001" title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string." alt="" coords="5,67,212,92"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="68,68,60,58,64,48,81,42,109,40,144,44,154,49,157,54,153,57,150,53,142,49,109,45,82,47,68,52,65,58,72,65"/>
 <area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d" title=" " alt="" coords="268,29,447,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,64,259,54,259,59,194,69"/>

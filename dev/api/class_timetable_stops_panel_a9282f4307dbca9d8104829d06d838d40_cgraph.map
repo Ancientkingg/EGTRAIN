@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,278,215,272,215,277,165,284"/>
 <area shape="rect" id="Node000016" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="212,307,404,332"/>
 <area shape="poly" id="edge27_Node000001_Node000016" title=" " alt="" coords="165,299,199,303,198,308,164,304"/>
-<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="471,29,626,55"/>
+<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="471,29,626,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="316,241,335,203,364,155,403,105,450,64,461,58,463,62,454,68,407,109,369,158,340,205,321,243"/>
 <area shape="rect" id="Node000004" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="478,103,619,128"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="325,240,378,188,413,161,451,137,466,130,469,135,453,142,416,165,381,192,329,244"/>

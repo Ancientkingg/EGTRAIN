@@ -173,7 +173,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c" target="_top" xlink:title="The title of the message box.">
 <polygon fill="white" stroke="#666666" points="442.5,-74 338.5,-74 338.5,-55 442.5,-55 442.5,-74"/>
 <text text-anchor="middle" x="390.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">cannot_open::title</text>
 </a>

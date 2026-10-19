@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,221,199,216,200,222,164,226"/>
 <area shape="rect" id="Node000003" href="$class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" title="Lists the stops of the service again." alt="" coords="231,242,390,282"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,241,218,248,217,253,164,246"/>
-<area shape="rect" id="Node000004" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="477,29,631,55"/>
+<area shape="rect" id="Node000004" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="477,29,631,55"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="388,241,407,227,422,207,429,187,430,146,432,105,439,84,455,64,463,58,466,62,459,68,444,87,437,106,435,147,434,188,427,209,411,231,392,245"/>
 <area shape="rect" id="Node000005" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="483,103,625,128"/>
 <area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="387,240,408,227,424,205,430,183,437,160,456,137,470,129,472,133,459,141,442,162,435,184,429,207,411,231,390,244"/>

@@ -3,9 +3,9 @@
 <area shape="poly" id="edge46_Node000001_Node000001" title=" " alt="" coords="13,1238,4,1227,6,1217,20,1210,43,1207,73,1212,81,1218,82,1225,77,1226,76,1221,71,1217,43,1213,21,1215,10,1220,9,1226,17,1234"/>
 <area shape="rect" id="Node000002" href="$class_open_request_relay.html#a0ea70ab9b3dbfb8e079ccb5537ddbd18" title=" " alt="" coords="138,5,342,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="42,1234,42,1013,50,639,59,444,72,270,91,137,102,91,116,62,126,52,130,55,120,66,107,93,96,138,77,271,64,445,55,640,48,1013,47,1234"/>
-<area shape="rect" id="Node000003" href="$_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" title=" " alt="" coords="165,145,316,170"/>
+<area shape="rect" id="Node000003" href="$_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i..." alt="" coords="165,145,316,170"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="42,1234,43,1033,51,696,60,520,73,364,91,245,103,205,116,180,132,166,151,158,153,163,135,171,120,183,108,207,97,246,78,365,65,521,56,696,48,1033,47,1234"/>
-<area shape="rect" id="Node000004" href="$_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" title=" " alt="" coords="449,182,614,207"/>
+<area shape="rect" id="Node000004" href="$_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;." alt="" coords="449,182,614,207"/>
 <area shape="poly" id="edge98_Node000001_Node000004" title=" " alt="" coords="42,1234,49,1012,64,640,86,284,100,163,108,125,116,106,138,89,162,77,188,69,214,65,269,68,324,81,378,102,427,126,503,172,500,177,425,131,376,106,323,86,268,73,214,70,189,74,164,82,141,93,120,110,113,127,105,163,92,284,69,641,54,1012,47,1234"/>
 <area shape="rect" id="Node000005" href="$class_self_updater.html#aa1bb90da2d756e38b8384ea94521a064" title="Removes staging folders that an earlier update left next to the installation." alt="" coords="145,341,336,381"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="42,1234,47,1070,59,805,69,667,81,545,97,451,106,419,116,398,132,384,135,388,120,402,111,420,102,452,87,545,74,667,64,805,52,1071,47,1234"/>
@@ -13,9 +13,9 @@
 <area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="42,1234,46,1086,58,848,68,726,80,618,96,537,106,509,116,493,146,471,175,459,202,456,231,459,291,475,363,492,427,506,485,524,484,529,426,511,362,497,289,480,230,464,202,461,176,464,149,475,120,496,110,512,101,538,85,619,73,727,63,848,51,1086,47,1234"/>
 <area shape="rect" id="Node000011" href="$main_8cpp.html#a9d570c6ca7df03a997fd0dc3d0a2de5f" title=" " alt="" coords="448,449,616,474"/>
 <area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="42,1234,46,1079,57,830,66,702,79,589,95,503,105,474,116,457,159,428,206,410,257,403,309,403,360,408,408,418,487,441,485,446,407,423,359,414,309,408,257,408,208,416,161,433,120,461,110,476,101,504,84,590,72,703,62,831,51,1080,47,1234"/>
-<area shape="rect" id="Node000012" href="$class_open_request_relay.html#a80bc61b0bccd00fdc832e1b22b915551" title=" " alt="" coords="141,705,340,745"/>
+<area shape="rect" id="Node000012" href="$class_open_request_relay.html#a80bc61b0bccd00fdc832e1b22b915551" title="The application folder of this process, in the form that requests name." alt="" coords="141,705,340,745"/>
 <area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="42,1234,44,1140,54,997,64,922,77,852,94,795,116,756,128,745,131,749,120,759,99,797,82,854,69,922,60,997,50,1141,47,1234"/>
-<area shape="rect" id="Node000013" href="$class_open_request_relay.html#ac60d0f970ced7d87bf8b9e5dd1e1b9c5" title=" " alt="" coords="141,769,340,809"/>
+<area shape="rect" id="Node000013" href="$class_open_request_relay.html#ac60d0f970ced7d87bf8b9e5dd1e1b9c5" title="The name of the local server of the current user: &quot;egtrain&#45;open&#45;&quot; and at most 32 characters that name..." alt="" coords="141,769,340,809"/>
 <area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="42,1234,46,1151,58,1027,68,962,80,903,96,853,116,820,127,810,131,814,120,823,101,856,85,904,73,963,63,1027,52,1151,47,1234"/>
 <area shape="rect" id="Node000014" href="$class_open_request_relay.html#a07b12213e57598a74b7a6cb9a768f00e" title=" " alt="" coords="139,834,342,859"/>
 <area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="42,1234,48,1161,62,1054,84,948,98,906,116,877,133,864,136,868,120,880,103,908,89,949,67,1055,54,1161,48,1234"/>
@@ -35,7 +35,7 @@
 <area shape="poly" id="edge35_Node000001_Node000033" title=" " alt="" coords="62,1258,120,1296,190,1328,188,1333,117,1301,59,1262"/>
 <area shape="rect" id="Node000055" href="$main_8cpp.html#a0e22c903a39d60235031cba17ec26836" title=" " alt="" coords="168,1409,312,1434"/>
 <area shape="poly" id="edge47_Node000001_Node000055" title=" " alt="" coords="51,1258,75,1312,95,1343,120,1370,147,1388,176,1402,174,1406,144,1393,116,1374,91,1346,71,1314,46,1261"/>
-<area shape="rect" id="Node000057" href="$class_main_window.html#a07d2c6f665c664cf1357596a70560615" title=" " alt="" coords="156,1458,325,1483"/>
+<area shape="rect" id="Node000057" href="$class_main_window.html#a07d2c6f665c664cf1357596a70560615" title="Shows the window maximized, at most eight ninths of the screen when restored, and fits the view." alt="" coords="156,1458,325,1483"/>
 <area shape="poly" id="edge49_Node000001_Node000057" title=" " alt="" coords="48,1259,52,1296,63,1346,85,1399,101,1423,120,1443,144,1458,141,1462,117,1447,96,1426,80,1402,58,1348,47,1297,42,1260"/>
 <area shape="rect" id="Node000059" href="$class_main_window.html#acde9f513d29189eea7b7488e569ae63e" title=" " alt="" coords="118,1507,362,1533"/>
 <area shape="poly" id="edge50_Node000001_Node000059" title=" " alt="" coords="47,1260,48,1305,57,1368,66,1402,79,1435,97,1466,120,1493,126,1498,123,1502,116,1497,93,1469,74,1438,61,1404,52,1369,43,1305,41,1260"/>
@@ -79,7 +79,7 @@
 <area shape="poly" id="edge92_Node000001_Node000207" title=" " alt="" coords="42,1234,45,1058,56,768,65,619,78,485,95,384,105,349,116,328,121,323,124,327,120,331,110,351,100,385,83,486,70,619,61,769,50,1058,47,1234"/>
 <area shape="rect" id="Node000208" href="$main_8cpp.html#aaf4b2d129f9ea7f2ecab4e56d100c450" title=" " alt="" coords="468,2193,595,2218"/>
 <area shape="poly" id="edge95_Node000001_Node000208" title=" " alt="" coords="47,1260,49,1441,58,1738,67,1892,80,2028,98,2131,108,2165,120,2185,143,2199,176,2208,264,2218,363,2217,454,2211,454,2216,364,2222,264,2223,175,2214,141,2203,116,2189,103,2167,92,2132,75,2029,62,1892,52,1739,43,1441,42,1260"/>
-<area shape="rect" id="Node000214" href="$_main_window_8cpp.html#a63d91ad96a8a23ba52cc91ea2b8912f9" title=" " alt="" coords="126,2487,355,2513"/>
+<area shape="rect" id="Node000214" href="$_main_window_8cpp.html#a63d91ad96a8a23ba52cc91ea2b8912f9" title="Nanoseconds since beginStartupTiming() started the clock." alt="" coords="126,2487,355,2513"/>
 <area shape="poly" id="edge99_Node000001_Node000214" title=" " alt="" coords="47,1259,48,1483,56,1863,65,2061,78,2238,97,2375,108,2421,120,2449,138,2467,161,2480,158,2485,135,2471,116,2452,103,2423,91,2376,73,2239,60,2061,51,1863,43,1483,42,1259"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="208,146,201,136,204,126,218,120,240,118,267,122,279,130,275,135,265,126,240,123,219,125,208,130,206,136,212,143"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="316,164,435,180,435,185,316,170"/>

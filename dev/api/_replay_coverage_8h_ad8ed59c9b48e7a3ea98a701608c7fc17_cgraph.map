@@ -3,7 +3,7 @@
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="32,68,26,58,29,49,41,42,61,40,86,44,96,52,92,56,83,48,61,45,43,47,33,52,31,58,36,65"/>
 <area shape="rect" id="Node000002" href="$_time_format_8cpp.html#a6903059349242c88f94f30ba656a03b1" title=" " alt="" coords="175,29,299,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,65,163,55,164,60,118,70"/>
-<area shape="rect" id="Node000003" href="$_replay_coverage_8h.html#a92a86dabec9dc9bf0ab1fc9995e95781" title=" " alt="" coords="165,103,309,128"/>
+<area shape="rect" id="Node000003" href="$_replay_coverage_8h.html#a92a86dabec9dc9bf0ab1fc9995e95781" title="The size of the replay memory: whole mebibytes as &quot;128 MiB&quot;, otherwise one decimal as &quot;2...." alt="" coords="165,103,309,128"/>
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="118,88,162,97,161,102,117,93"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="208,31,202,21,205,11,217,5,237,3,262,6,272,15,268,19,259,11,237,8,219,10,209,15,207,20,212,28"/>
 <area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="208,104,202,94,205,85,217,78,237,76,262,80,272,88,268,92,259,84,237,81,219,83,209,88,207,94,212,101"/>

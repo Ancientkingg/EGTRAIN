@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Opens ResultViewName::kTimetable.">
 <polygon fill="#999999" stroke="#666666" points="158,-250 0,-250 0,-220 158,-220 158,-250"/>
 <text text-anchor="start" x="8" y="-238" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showTimetable</text>
 <text text-anchor="middle" x="79" y="-227" font-family="Helvetica,sans-Serif" font-size="10.00">Table</text>

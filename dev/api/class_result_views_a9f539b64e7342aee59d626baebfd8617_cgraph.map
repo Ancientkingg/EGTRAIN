@@ -30,7 +30,7 @@
 <area shape="poly" id="edge80_Node000001_Node000037" title=" " alt="" coords="134,785,189,826,256,870,330,907,327,912,253,874,186,830,131,789"/>
 <area shape="rect" id="Node000038" href="$_capacity_scope_8cpp.html#aef5487a731116924537c202f04406798" title=" " alt="" coords="257,467,487,493"/>
 <area shape="poly" id="edge82_Node000001_Node000038" title=" " alt="" coords="111,746,128,698,156,634,198,567,224,536,253,510,278,496,280,500,256,514,228,540,202,570,161,636,132,700,116,748"/>
-<area shape="rect" id="Node000039" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title=" " alt="" coords="285,1062,459,1087"/>
+<area shape="rect" id="Node000039" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="285,1062,459,1087"/>
 <area shape="poly" id="edge87_Node000001_Node000039" title=" " alt="" coords="116,786,134,833,163,897,204,964,229,995,256,1023,282,1041,310,1055,308,1060,279,1046,253,1027,225,999,200,967,159,899,129,835,111,788"/>
 <area shape="rect" id="Node000040" href="$_blocking_time_diagram_8cpp.html#a825c9b951fc77261f4dbda700c22545a" title=" " alt="" coords="537,901,791,926"/>
 <area shape="poly" id="edge89_Node000001_Node000040" title=" " alt="" coords="152,784,255,824,392,855,587,895,586,901,391,860,254,829,150,789"/>
@@ -150,7 +150,7 @@
 <area shape="poly" id="edge101_Node000044_Node000045" title=" " alt="" coords="445,1423,532,1411,533,1416,446,1428"/>
 <area shape="rect" id="Node000048" href="$namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8" title=" " alt="" coords="555,1463,773,1489"/>
 <area shape="poly" id="edge106_Node000044_Node000048" title=" " alt="" coords="446,1443,557,1459,557,1464,445,1449"/>
-<area shape="rect" id="Node000057" href="$namespacepath__message.html#a2fa855a973b8110677b06dea96187af9" title=" " alt="" coords="566,1537,762,1562"/>
+<area shape="rect" id="Node000057" href="$namespacepath__message.html#a2fa855a973b8110677b06dea96187af9" title="A write that failed. what completes &quot;Could not&quot;, for example &quot;write the image to&quot;." alt="" coords="566,1537,762,1562"/>
 <area shape="poly" id="edge110_Node000044_Node000057" title=" " alt="" coords="447,1443,491,1458,506,1468,516,1478,525,1489,539,1499,572,1516,607,1530,605,1535,570,1521,536,1504,521,1493,512,1482,502,1472,488,1462,445,1448"/>
 <area shape="rect" id="Node000046" href="$classtelemetry_1_1_operation_observation.html#a2db562cb6e4d6783eb276f421a01dc07" title=" " alt="" coords="851,1401,1087,1441"/>
 <area shape="poly" id="edge102_Node000045_Node000046" title=" " alt="" coords="782,1402,837,1407,836,1412,782,1408"/>

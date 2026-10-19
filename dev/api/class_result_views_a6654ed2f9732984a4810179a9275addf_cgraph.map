@@ -1,5 +1,5 @@
 <map id="ResultViews::displayTrainPathDiagrams" name="ResultViews::displayTrainPathDiagrams">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,529,193,569"/>
+<area shape="rect" id="Node000001" title="Asks for the reference route and opens ResultViewName::kTrainPaths." alt="" coords="5,529,193,569"/>
 <area shape="rect" id="Node000002" href="$class_result_views.html#a0a1a09d502810a0902eeb4d48205af14" title=" " alt="" coords="241,536,477,561"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,546,228,546,228,551,194,551"/>
 <area shape="rect" id="Node000003" href="$_route_diagram_coordinates_8cpp.html#a4ef8a6f26ad283cc10b2b8e8c4dfee6d" title=" " alt="" coords="562,32,734,57"/>
@@ -8,7 +8,7 @@
 <area shape="poly" id="edge10_Node000002_Node000007" title=" " alt="" coords="359,535,369,466,379,415,394,359,415,300,443,243,479,189,524,144,550,129,552,134,527,148,483,193,448,245,420,302,399,361,384,416,374,466,364,536"/>
 <area shape="rect" id="Node000008" href="$class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" title="An empty window with the given title." alt="" coords="525,159,771,184"/>
 <area shape="poly" id="edge12_Node000002_Node000008" title=" " alt="" coords="360,535,374,475,403,385,425,336,452,287,485,242,524,203,549,187,552,191,527,207,489,245,456,290,430,338,408,387,379,476,365,536"/>
-<area shape="rect" id="Node000011" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title=" " alt="" coords="561,241,735,267"/>
+<area shape="rect" id="Node000011" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="561,241,735,267"/>
 <area shape="poly" id="edge16_Node000002_Node000011" title=" " alt="" coords="362,535,379,486,411,415,433,376,459,339,489,305,524,276,546,264,548,269,527,280,493,309,463,342,437,379,416,417,384,488,367,537"/>
 <area shape="rect" id="Node000012" href="$_run_exports_8cpp.html#a9e66592dd211190d72140e97499e0152" title=" " alt="" coords="577,315,719,340"/>
 <area shape="poly" id="edge18_Node000002_Node000012" title=" " alt="" coords="365,535,386,497,421,446,468,393,495,369,524,349,562,334,564,339,527,354,498,374,471,397,425,450,391,500,369,537"/>
@@ -34,7 +34,7 @@
 <area shape="poly" id="edge47_Node000002_Node000032" title=" " alt="" coords="366,561,383,614,414,694,436,738,462,781,492,822,527,859,554,877,584,890,582,895,551,882,524,863,488,826,458,784,432,740,410,696,378,616,361,562"/>
 <area shape="rect" id="Node000033" href="$class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" title="A click on a series selected this train." alt="" coords="537,945,759,971"/>
 <area shape="poly" id="edge49_Node000002_Node000033" title=" " alt="" coords="365,561,375,628,401,729,422,785,450,839,485,889,527,932,533,937,530,941,524,936,480,893,445,842,418,787,396,731,370,629,359,562"/>
-<area shape="rect" id="Node000035" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title=" " alt="" coords="550,1019,746,1044"/>
+<area shape="rect" id="Node000035" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="550,1019,746,1044"/>
 <area shape="poly" id="edge51_Node000002_Node000035" title=" " alt="" coords="364,561,375,633,401,745,422,808,450,870,484,929,527,981,550,999,576,1012,573,1016,547,1003,523,985,480,932,445,873,417,810,396,747,369,634,359,562"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="603,34,593,24,598,14,617,7,648,5,689,10,699,15,703,21,698,23,696,19,687,15,648,11,618,13,602,18,598,23,607,30"/>
 <area shape="rect" id="Node000004" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="851,29,1005,55"/>

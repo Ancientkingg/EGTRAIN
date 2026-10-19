@@ -130,6 +130,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:SceneOpenChoice" id="r_SceneOpenChoice"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_open_choice.html">SceneOpenChoice</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The answer for a list of paths: exactly one of the two members is not empty.  <a href="struct_scene_open_choice.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -152,6 +153,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Accepts exactly one path that names an existing file with the extension .egscene, in any case. The checks run in this order: the count, the existence, the kind (a file, not a directory) and the extension. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -178,6 +180,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The argument after the first occurrence of option, or an empty string when option is absent or the last entry. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -204,6 +207,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The arguments that are positional: not the program name (the first entry), not an argument that starts with "-", and not the one argument after an option of optionsWithValue. An option that is not in optionsWithValue is skipped without its value. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

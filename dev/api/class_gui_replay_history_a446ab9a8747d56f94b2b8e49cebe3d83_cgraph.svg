@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Frames before this step, in seconds from the start of the run, were dropped, or 0 when none were.">
 <polygon fill="#999999" stroke="#666666" points="143,-30 0,-30 0,0 143,0 143,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::evicted</text>
 <text text-anchor="middle" x="71.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">BeforeTime</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#adaaf08e3b6f16671f143142825dd6c39" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#adaaf08e3b6f16671f143142825dd6c39" target="_top" xlink:title="The step of the oldest frame kept, in seconds from the start of the run. 0 when the history is empty.">
 <polygon fill="white" stroke="#666666" points="330,-24.5 179,-24.5 179,-5.5 330,-5.5 330,-24.5"/>
 <text text-anchor="middle" x="254.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::firstTime</text>
 </a>

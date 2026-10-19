@@ -112,23 +112,32 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespacetelem
   <div class="headertitle"><div class="title">telemetry_smoke Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Helpers of the isolated telemetry smoke test, which drives the window with a scripted telemetry endpoint.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:State" id="r_State"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structtelemetry__smoke_1_1_state.html">State</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the scripted sender and the driver have seen.  <a href="structtelemetry__smoke_1_1_state.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:afa73675d5a5c3e79b63eddab4ab0bc59" id="r_afa73675d5a5c3e79b63eddab4ab0bc59"><td class="memItemLeft">telemetry::TelemetrySender::TestOptions&#160;</td><td class="memItemRight"><a class="el" href="#afa73675d5a5c3e79b63eddab4ab0bc59">options</a> (const QString &amp;root, const QString &amp;mode, std::shared_ptr&lt; <a class="el" href="structtelemetry__smoke_1_1_state.html">State</a> &gt; state)</td></tr>
 <tr class="memitem:a3c1041a79e9cab25bed16e004be72ab3" id="r_a3c1041a79e9cab25bed16e004be72ab3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3c1041a79e9cab25bed16e004be72ab3">chooseFile</a> (const QString &amp;path, std::function&lt; bool()&gt; ready, std::function&lt; void()&gt; selected)</td></tr>
-<tr class="memitem:a2f0e7b2aec22df70ab8f6423a8f85956" id="r_a2f0e7b2aec22df70ab8f6423a8f85956"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2f0e7b2aec22df70ab8f6423a8f85956">chooseDirectory</a> (const QString &amp;path, const QString &amp;title, std::function&lt; bool()&gt; ready)</td></tr>
+<tr class="memitem:a85275817c611471f3d0e7a436fe7abcf" id="r_a85275817c611471f3d0e7a436fe7abcf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a85275817c611471f3d0e7a436fe7abcf">chooseDirectory</a> (const QString &amp;path, const QString &amp;title, std::function&lt; bool()&gt; ready={})</td></tr>
+<tr class="memdesc:a85275817c611471f3d0e7a436fe7abcf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Answers the next modal folder dialog with the title <span class="tt">title</span> with <span class="tt">path</span>, once <span class="tt">ready</span> returns true.  <br /></td></tr>
 <tr class="memitem:a18f65fdfc1ed13a429b109490b72224f" id="r_a18f65fdfc1ed13a429b109490b72224f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a18f65fdfc1ed13a429b109490b72224f">failObservationInstallation</a> (<a class="el" href="structtelemetry__smoke_1_1_state.html">State</a> *state, int point)</td></tr>
+<tr class="memdesc:a18f65fdfc1ed13a429b109490b72224f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Throws std::bad_alloc when <span class="tt">point</span> is the installFailurePoint of <span class="tt">state</span>, and counts the failure.  <br /></td></tr>
 <tr class="memitem:a367da95c2d49956edd80cf0cc13b7734" id="r_a367da95c2d49956edd80cf0cc13b7734"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a367da95c2d49956edd80cf0cc13b7734">recordRun</a> (const QString &amp;root, int ordinal, const std::string &amp;csv, const QString &amp;energyPath)</td></tr>
 <tr class="memitem:a88e3fb2ed40440e4fec7a11c3075ab6a" id="r_a88e3fb2ed40440e4fec7a11c3075ab6a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a88e3fb2ed40440e4fec7a11c3075ab6a">dismissMessages</a> ()</td></tr>
+<tr class="memdesc:a88e3fb2ed40440e4fec7a11c3075ab6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Answers every message box that opens from now on with Yes, Save or Ok, or accepts it.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a2f0e7b2aec22df70ab8f6423a8f85956" name="a2f0e7b2aec22df70ab8f6423a8f85956"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f0e7b2aec22df70ab8f6423a8f85956">&#9670;&#160;</a></span>chooseDirectory()</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Helpers of the isolated telemetry smoke test, which drives the window with a scripted telemetry endpoint. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a85275817c611471f3d0e7a436fe7abcf" name="a85275817c611471f3d0e7a436fe7abcf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85275817c611471f3d0e7a436fe7abcf">&#9670;&#160;</a></span>chooseDirectory()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -150,10 +159,12 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Answers the next modal folder dialog with the title <span class="tt">title</span> with <span class="tt">path</span>, once <span class="tt">ready</span> returns true. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespacetelemetry__smoke_a2f0e7b2aec22df70ab8f6423a8f85956_cgraph.svg" width="262" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespacetelemetry__smoke_a85275817c611471f3d0e7a436fe7abcf_cgraph.svg" width="262" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -172,15 +183,16 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::function&lt; bool()&gt;</td>          <td class="paramname"><span class="paramname"><em>ready</em></span>, </td>
+          <td class="paramtype">std::function&lt; bool()&gt;</td>          <td class="paramname"><span class="paramname"><em>ready</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>selected</em></span>&#160;)</td>
+          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>selected</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Answers the next modal file dialog with <span class="tt">path</span>, or cancels it when <span class="tt">path</span> is empty. Invoked only by the isolated scripted driver. Never changes chooser behavior in an ordinary build. A false readiness predicate keeps the modal chooser open. <span class="tt">selected</span> is called when the dialog selects the file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -203,6 +215,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Answers every message box that opens from now on with Yes, Save or Ok, or accepts it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -229,6 +243,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Throws std::bad_alloc when <span class="tt">point</span> is the installFailurePoint of <span class="tt">state</span>, and counts the failure. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -260,6 +276,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sender options for the smoke test: settings in <span class="tt">root</span>/consent.ini, a clock that runs 100 times as fast, and posts that are saved under <span class="tt">root</span>/payloads and answered as <span class="tt">mode</span> says ("offline" fails, "retired" answers 410, any other mode 202). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -296,6 +313,9 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes <span class="tt"><a class="el" href="namespacecsv.html">csv</a></span> to install_run_N.csv in <span class="tt">root</span> and copies the energy file next to it, for an <span class="tt">ordinal</span> N from 0 to</p><ol type="1">
+<li>Returns whether both were written. </li>
+</ol>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

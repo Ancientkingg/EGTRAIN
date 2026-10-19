@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" target="_top" xlink:title="The messages of the last validation of the scene.">
 <polygon fill="white" stroke="#666666" points="593,-2102 448,-2102 448,-2083 593,-2083 593,-2102"/>
 <text text-anchor="middle" x="520.5" y="-2090" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::diagnostics</text>
 </a>
@@ -111,7 +111,7 @@
 <!-- Node75 -->
 <g id="Node000075" class="node">
 <title>Node75</title>
-<g id="a_Node000075"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title=" ">
+<g id="a_Node000075"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title="Asks whether to save unsaved changes. Returns false when the user cancels or the save fails.">
 <polygon fill="#fff0f0" stroke="red" points="398,-943 222,-943 222,-924 398,-924 398,-943"/>
 <text text-anchor="middle" x="310" y="-931" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::maybeSaveScene</text>
 </a>
@@ -129,7 +129,7 @@
 <!-- Node92 -->
 <g id="Node000092" class="node">
 <title>Node92</title>
-<g id="a_Node000092"><a xlink:href="class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" target="_top" xlink:title=" ">
+<g id="a_Node000092"><a xlink:href="class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" target="_top" xlink:title="Opens the scene folder or bundle at dir now. The scene stays as it was when this returns false.">
 <polygon fill="white" stroke="#666666" points="404,-888 216,-888 216,-869 404,-869 404,-888"/>
 <text text-anchor="middle" x="310" y="-876" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::openSceneDirectory</text>
 </a>

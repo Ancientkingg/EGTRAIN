@@ -76,7 +76,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" target="_top" xlink:title="The name of a train in lists and messages: its operating code, or its description when it has none.">
 <polygon fill="white" stroke="#666666" points="529.5,-867.5 394.5,-867.5 394.5,-848.5 529.5,-848.5 529.5,-867.5"/>
 <text text-anchor="middle" x="462" y="-855.5" font-family="Helvetica,sans-Serif" font-size="10.00">guiTrainDisplayIdentifier</text>
 </a>

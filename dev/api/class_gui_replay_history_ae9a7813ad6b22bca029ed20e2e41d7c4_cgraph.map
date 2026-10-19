@@ -1,7 +1,7 @@
 <map id="GuiReplayHistory::GuiReplayHistory" name="GuiReplayHistory::GuiReplayHistory">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,216,45"/>
-<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title=" " alt="" coords="264,5,475,45"/>
+<area shape="rect" id="Node000001" title="The string table keys point into the table of the same object, so a copy would dangle." alt="" coords="5,5,216,45"/>
+<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title="An empty history that keeps at most budgetBytes bytes of accounted payload." alt="" coords="264,5,475,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,23,251,23,251,28,216,28"/>
-<area shape="rect" id="Node000003" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title=" " alt="" coords="523,5,711,45"/>
+<area shape="rect" id="Node000003" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes." alt="" coords="523,5,711,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="475,23,509,23,509,28,475,28"/>
 </map>

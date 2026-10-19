@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title="The message of the first error among the diagnostics, else of the first diagnostic,...">
 <polygon fill="white" stroke="#666666" points="347.5,-292 216.5,-292 216.5,-273 347.5,-273 347.5,-292"/>
 <text text-anchor="middle" x="282" y="-280" font-family="Helvetica,sans-Serif" font-size="10.00">firstDiagnosticMessage</text>
 </a>
@@ -398,7 +398,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" target="_top" xlink:title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string.">
 <polygon fill="white" stroke="#666666" points="735,-61 580,-61 580,-42 735,-42 735,-61"/>
 <text text-anchor="middle" x="657.5" y="-49" font-family="Helvetica,sans-Serif" font-size="10.00">dialog_folders::folderOfCase</text>
 </a>

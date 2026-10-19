@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Asks for the reference route and opens ResultViewName::kTimetableGraph.">
 <polygon fill="#999999" stroke="#666666" points="158,-386.5 0,-386.5 0,-356.5 158,-356.5 158,-386.5"/>
 <text text-anchor="start" x="8" y="-374.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showTimetable</text>
 <text text-anchor="middle" x="79" y="-363.5" font-family="Helvetica,sans-Serif" font-size="10.00">Graph</text>
@@ -93,7 +93,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="564.5,-602 433.5,-602 433.5,-583 564.5,-583 564.5,-602"/>
 <text text-anchor="middle" x="499" y="-590" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>
@@ -328,7 +328,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="572.5,-19 425.5,-19 425.5,0 572.5,0 572.5,-19"/>
 <text text-anchor="middle" x="499" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>

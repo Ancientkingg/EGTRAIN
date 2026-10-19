@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_replay_coverage_8h.html#a92a86dabec9dc9bf0ab1fc9995e95781" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_replay_coverage_8h.html#a92a86dabec9dc9bf0ab1fc9995e95781" target="_top" xlink:title="The size of the replay memory: whole mebibytes as &quot;128 MiB&quot;, otherwise one decimal as &quot;2....">
 <polygon fill="white" stroke="#666666" points="228,-19 120,-19 120,0 228,0 228,-19"/>
 <text text-anchor="middle" x="174" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">replayMemoryText</text>
 </a>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Asks about unsaved changes, then replaces the scene with a new one.">
 <polygon fill="#999999" stroke="#666666" points="139,-1052 0,-1052 0,-1033 139,-1033 139,-1052"/>
 <text text-anchor="middle" x="69.5" y="-1040" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::newScene</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title="Asks whether to save unsaved changes. Returns false when the user cancels or the save fails.">
 <polygon fill="white" stroke="#666666" points="351,-1052 175,-1052 175,-1033 351,-1033 351,-1052"/>
 <text text-anchor="middle" x="263" y="-1040" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::maybeSaveScene</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title="Save: saveSceneToCurrentDir().">
 <polygon fill="white" stroke="#666666" points="717,-1052 575,-1052 575,-1033 717,-1033 717,-1052"/>
 <text text-anchor="middle" x="646" y="-1040" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::saveScene</text>
 </a>

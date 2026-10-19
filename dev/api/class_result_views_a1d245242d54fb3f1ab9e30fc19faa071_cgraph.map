@@ -1,5 +1,5 @@
 <map id="ResultViews::showDelayDiagram" name="ResultViews::showDelayDiagram">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,357,244,383"/>
+<area shape="rect" id="Node000001" title="Opens ResultViewName::kDelays." alt="" coords="5,357,244,383"/>
 <area shape="rect" id="Node000002" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="331,29,498,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,356,142,302,173,222,195,178,221,136,253,97,290,64,317,50,319,55,294,68,257,101,226,139,199,181,178,224,147,303,131,358"/>
 <area shape="rect" id="Node000003" href="$_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" title="A provider that calls csv on the shared run with the visible train ids." alt="" coords="349,103,480,128"/>
@@ -24,7 +24,7 @@
 <area shape="poly" id="edge22_Node000001_Node000017" title=" " alt="" coords="135,382,158,419,194,470,240,525,294,573,322,590,353,604,351,608,320,595,290,577,236,528,189,473,154,422,131,384"/>
 <area shape="rect" id="Node000020" href="$class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" title="A click on a series selected this train." alt="" coords="303,660,526,685"/>
 <area shape="poly" id="edge28_Node000001_Node000020" title=" " alt="" coords="132,382,149,433,181,505,203,544,229,582,259,617,294,647,301,651,299,656,290,651,255,621,224,586,198,547,176,508,144,435,127,384"/>
-<area shape="rect" id="Node000022" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title=" " alt="" coords="317,733,513,759"/>
+<area shape="rect" id="Node000022" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="317,733,513,759"/>
 <area shape="poly" id="edge30_Node000001_Node000022" title=" " alt="" coords="131,382,147,438,179,522,200,568,227,614,258,658,294,696,318,713,346,726,343,731,315,718,290,700,254,661,222,617,196,571,174,524,142,440,126,383"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="370,31,360,21,365,11,384,5,415,3,455,7,466,12,469,18,464,21,462,16,454,12,415,8,385,10,369,15,366,20,374,27"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="370,104,360,94,365,84,384,78,415,76,455,80,466,85,469,92,464,94,462,89,454,85,415,81,385,83,369,88,366,94,374,101"/>

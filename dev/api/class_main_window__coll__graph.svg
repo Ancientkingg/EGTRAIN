@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_scene_session_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_scene_session_1_1_host.html" target="_top" xlink:title="What the session asks of the window, and the points at which it tells the window that the scene chang...">
 <polygon fill="white" stroke="#666666" points="138,-167 26,-167 26,-148 138,-148 138,-167"/>
 <text text-anchor="middle" x="82" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::Host</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_run_controller_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_run_controller_1_1_host.html" target="_top" xlink:title="What the controller asks of the window, and the points at which it tells the window that the run chan...">
 <polygon fill="white" stroke="#666666" points="138,-130 26,-130 26,-111 138,-111 138,-130"/>
 <text text-anchor="middle" x="82" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::Host</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_result_views_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_result_views_1_1_host.html" target="_top" xlink:title="What the views ask of the window.">
 <polygon fill="white" stroke="#666666" points="134.5,-56 29.5,-56 29.5,-37 134.5,-37 134.5,-56"/>
 <text text-anchor="middle" x="82" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::Host</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_run_results_dock_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_run_results_dock_1_1_host.html" target="_top" xlink:title="What the dock asks of the window.">
 <polygon fill="white" stroke="#666666" points="144.5,-19 19.5,-19 19.5,0 144.5,0 144.5,-19"/>
 <text text-anchor="middle" x="82" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">RunResultsDock::Host</text>
 </a>

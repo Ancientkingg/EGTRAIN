@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The delay baseline changed, so the Run Results dock and the diagram actions follow.">
 <polygon fill="#999999" stroke="#666666" points="134,-186.5 0,-186.5 0,-156.5 134,-156.5 134,-186.5"/>
 <text text-anchor="start" x="8" y="-174.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::Host</text>
 <text text-anchor="middle" x="67" y="-163.5" font-family="Helvetica,sans-Serif" font-size="10.00">::delayBaselineChanged</text>
@@ -30,7 +30,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_run_controller.html#a422f80f30d7d9367b06ee480568b3550" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_run_controller.html#a422f80f30d7d9367b06ee480568b3550" target="_top" xlink:title="A case was named when the program started or was opened by the system, so no case chooser opens.">
 <polygon fill="white" stroke="#666666" points="330.5,-340.5 183.5,-340.5 183.5,-310.5 330.5,-310.5 330.5,-340.5"/>
 <text text-anchor="start" x="191.5" y="-328.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::caseNamed</text>
 <text text-anchor="middle" x="257" y="-317.5" font-family="Helvetica,sans-Serif" font-size="10.00">AtStartup</text>
@@ -49,7 +49,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_run_controller.html#ad1af2bba150179f84d4ff04f369bba25" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_run_controller.html#ad1af2bba150179f84d4ff04f369bba25" target="_top" xlink:title="The duration that the command line gave, in seconds, which replaces the duration of the scene....">
 <polygon fill="white" stroke="#666666" points="343,-292 171,-292 171,-273 343,-273 343,-292"/>
 <text text-anchor="middle" x="257" y="-280" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::durationOverride</text>
 </a>
@@ -67,7 +67,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_run_controller.html#acebfbcf6eb2f5a76b501454948e826d2" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_run_controller.html#acebfbcf6eb2f5a76b501454948e826d2" target="_top" xlink:title="Records that a case has been named, so that no case chooser opens.">
 <polygon fill="white" stroke="#666666" points="344,-255 170,-255 170,-236 344,-236 344,-255"/>
 <text text-anchor="middle" x="257" y="-243" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::markCaseNamed</text>
 </a>
@@ -85,7 +85,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_run_controller.html#a75af0cce69697a4809854057a2420515" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_run_controller.html#a75af0cce69697a4809854057a2420515" target="_top" xlink:title="The next run shows the passengers at the platforms and in the trains.">
 <polygon fill="white" stroke="#666666" points="335,-218 179,-218 179,-199 335,-199 335,-218"/>
 <text text-anchor="middle" x="257" y="-206" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::passengerGui</text>
 </a>
@@ -103,7 +103,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_run_controller.html#a45912f425b5a82e3835b226a04540696" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_run_controller.html#a45912f425b5a82e3835b226a04540696" target="_top" xlink:title="The line of the status bar that tells that the case is ready, with its numbers of tracks and routes.">
 <polygon fill="white" stroke="#666666" points="337.5,-181 176.5,-181 176.5,-162 337.5,-162 337.5,-181"/>
 <text text-anchor="middle" x="257" y="-169" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::readyMessage</text>
 </a>
@@ -121,7 +121,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_run_controller.html#a7067864027cd0bacf4dd54dccee5d36d" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_run_controller.html#a7067864027cd0bacf4dd54dccee5d36d" target="_top" xlink:title="The name of the case that the settings describe.">
 <polygon fill="white" stroke="#666666" points="562,-158 380,-158 380,-139 562,-139 562,-158"/>
 <text text-anchor="middle" x="471" y="-146" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::settingsCaseName</text>
 </a>
@@ -157,7 +157,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title="The next run writes to the folder of the scene sceneName, unless the user chose a folder.">
 <polygon fill="white" stroke="#666666" points="331,-67.5 183,-67.5 183,-37.5 331,-37.5 331,-67.5"/>
 <text text-anchor="start" x="191" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::selectScene</text>
 <text text-anchor="middle" x="257" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">OutputFolder</text>
@@ -176,7 +176,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_run_controller.html#a2a96a681e6d790e2ffa4d2885d0133e8" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_run_controller.html#a2a96a681e6d790e2ffa4d2885d0133e8" target="_top" xlink:title="The next run starts with the passenger display on or off.">
 <polygon fill="white" stroke="#666666" points="342,-19 172,-19 172,0 342,0 342,-19"/>
 <text text-anchor="middle" x="257" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::setPassengerGui</text>
 </a>

@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" target="_top" xlink:title="Asks the run to stop. Returns whether a run existed.">
 <polygon fill="white" stroke="#666666" points="350,-67.5 202,-67.5 202,-48.5 350,-48.5 350,-67.5"/>
 <text text-anchor="middle" x="276" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::requestStop</text>
 </a>

@@ -1,6 +1,6 @@
 <map id="RunSelection::selectedCount" name="RunSelection::selectedCount">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,213,104"/>
-<area shape="rect" id="Node000002" href="$class_run_selection.html#a8cca816811ab5177645f08407fae64f4" title=" " alt="" coords="283,5,458,31"/>
+<area shape="rect" id="Node000001" title="How many occurrences over durationSeconds are selected." alt="" coords="5,79,213,104"/>
+<area shape="rect" id="Node000002" href="$class_run_selection.html#a8cca816811ab5177645f08407fae64f4" title="The occurrences that a run leaves out. All others are selected." alt="" coords="283,5,458,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,76,261,39,293,31,295,36,262,45,147,81"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="261,79,480,104"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,89,248,89,248,94,214,94"/>

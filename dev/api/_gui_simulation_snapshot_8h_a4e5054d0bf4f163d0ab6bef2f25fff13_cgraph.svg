@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" target="_top" xlink:title="level is a signalling level from 0 to 5.">
 <polygon fill="white" stroke="#666666" points="266,-19 159,-19 159,0 266,0 266,-19"/>
 <text text-anchor="middle" x="212.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">guiSignalHasLevel</text>
 </a>

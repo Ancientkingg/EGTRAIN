@@ -48,7 +48,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">
 <polygon fill="white" stroke="#666666" points="232.68,-1776 119.68,-1776 119.68,-1757 232.68,-1757 232.68,-1776"/>
 <text text-anchor="middle" x="176.18" y="-1764" font-family="Helvetica,sans-Serif" font-size="10.00">beginStartupTiming</text>
 </a>
@@ -66,7 +66,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;.">
 <polygon fill="white" stroke="#666666" points="456.68,-1748 332.68,-1748 332.68,-1729 456.68,-1729 456.68,-1748"/>
 <text text-anchor="middle" x="394.68" y="-1736" font-family="Helvetica,sans-Serif" font-size="10.00">startupTimingEnabled</text>
 </a>
@@ -139,7 +139,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_open_request_relay.html#a80bc61b0bccd00fdc832e1b22b915551" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_open_request_relay.html#a80bc61b0bccd00fdc832e1b22b915551" target="_top" xlink:title="The application folder of this process, in the form that requests name.">
 <polygon fill="white" stroke="#666666" points="250.68,-1355.5 101.68,-1355.5 101.68,-1325.5 250.68,-1325.5 250.68,-1355.5"/>
 <text text-anchor="start" x="109.68" y="-1343.5" font-family="Helvetica,sans-Serif" font-size="10.00">OpenRequestRelay::current</text>
 <text text-anchor="middle" x="176.18" y="-1332.5" font-family="Helvetica,sans-Serif" font-size="10.00">ApplicationDir</text>
@@ -158,7 +158,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_open_request_relay.html#ac60d0f970ced7d87bf8b9e5dd1e1b9c5" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_open_request_relay.html#ac60d0f970ced7d87bf8b9e5dd1e1b9c5" target="_top" xlink:title="The name of the local server of the current user: &quot;egtrain&#45;open&#45;&quot; and at most 32 characters that name...">
 <polygon fill="white" stroke="#666666" points="250.68,-1307.5 101.68,-1307.5 101.68,-1277.5 250.68,-1277.5 250.68,-1307.5"/>
 <text text-anchor="start" x="109.68" y="-1295.5" font-family="Helvetica,sans-Serif" font-size="10.00">OpenRequestRelay::default</text>
 <text text-anchor="middle" x="176.18" y="-1284.5" font-family="Helvetica,sans-Serif" font-size="10.00">ServerName</text>
@@ -340,7 +340,7 @@
 <!-- Node57 -->
 <g id="Node000057" class="node">
 <title>Node57</title>
-<g id="a_Node000057"><a xlink:href="class_main_window.html#a07d2c6f665c664cf1357596a70560615" target="_top" xlink:title=" ">
+<g id="a_Node000057"><a xlink:href="class_main_window.html#a07d2c6f665c664cf1357596a70560615" target="_top" xlink:title="Shows the window maximized, at most eight ninths of the screen when restored, and fits the view.">
 <polygon fill="#fff0f0" stroke="red" points="239.68,-791 112.68,-791 112.68,-772 239.68,-772 239.68,-791"/>
 <text text-anchor="middle" x="176.18" y="-779" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::openGUI</text>
 </a>
@@ -741,7 +741,7 @@
 <!-- Node214 -->
 <g id="Node000214" class="node">
 <title>Node214</title>
-<g id="a_Node000214"><a xlink:href="_main_window_8cpp.html#a63d91ad96a8a23ba52cc91ea2b8912f9" target="_top" xlink:title=" ">
+<g id="a_Node000214"><a xlink:href="_main_window_8cpp.html#a63d91ad96a8a23ba52cc91ea2b8912f9" target="_top" xlink:title="Nanoseconds since beginStartupTiming() started the clock.">
 <polygon fill="white" stroke="#666666" points="262.18,-19 90.18,-19 90.18,0 262.18,0 262.18,-19"/>
 <text text-anchor="middle" x="176.18" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">startupTimingNowNanoseconds</text>
 </a>

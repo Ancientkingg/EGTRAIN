@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" target="_top" xlink:title="The messages of the last validation of the scene.">
 <polygon fill="white" stroke="#666666" points="335,-24.5 190,-24.5 190,-5.5 335,-5.5 335,-24.5"/>
 <text text-anchor="middle" x="262.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::diagnostics</text>
 </a>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="requestOpenScene() as part of the telemetry operation operation.">
 <polygon fill="#999999" stroke="#666666" points="152,-1057.5 0,-1057.5 0,-1027.5 152,-1027.5 152,-1057.5"/>
 <text text-anchor="start" x="8" y="-1045.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::requestOpen</text>
 <text text-anchor="middle" x="76" y="-1034.5" font-family="Helvetica,sans-Serif" font-size="10.00">Scene</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title="Asks whether to save unsaved changes. Returns false when the user cancels or the save fails.">
 <polygon fill="white" stroke="#666666" points="364,-1052 188,-1052 188,-1033 364,-1033 364,-1052"/>
 <text text-anchor="middle" x="276" y="-1040" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::maybeSaveScene</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title="Save: saveSceneToCurrentDir().">
 <polygon fill="white" stroke="#666666" points="730,-1052 588,-1052 588,-1033 730,-1033 730,-1052"/>
 <text text-anchor="middle" x="659" y="-1040" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::saveScene</text>
 </a>

@@ -1,6 +1,6 @@
 <map id="ScenarioPanel::importScenario" name="ScenarioPanel::importScenario">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,254,225,279"/>
-<area shape="rect" id="Node000002" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="295,34,470,59"/>
+<area shape="rect" id="Node000002" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title="The message of the first error among the diagnostics, else of the first diagnostic,..." alt="" coords="295,34,470,59"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,252,141,216,174,166,218,114,244,90,272,70,286,62,289,67,275,74,247,94,222,117,179,169,146,218,125,255"/>
 <area shape="rect" id="Node000003" href="$_scene_writer_8cpp.html#aae8bfdfec6055624487397a2e164e593" title="Reads one scenario from a standalone scenario file." alt="" coords="316,107,449,133"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="127,252,186,199,227,168,272,143,302,132,304,136,274,148,230,173,190,203,131,256"/>

@@ -112,13 +112,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespacescene
   <div class="headertitle"><div class="title">scene_save_policy Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Path helpers of <a class="el" href="_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2">isInstalledScenePath()</a>.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aedd625aae76b1b1d7716d50d4c05956f" id="r_aedd625aae76b1b1d7716d50d4c05956f"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aedd625aae76b1b1d7716d50d4c05956f">resolvedPath</a> (QString path)</td></tr>
 <tr class="memitem:a803871a44577cb4b466b401a0cf2de79" id="r_a803871a44577cb4b466b401a0cf2de79"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a803871a44577cb4b466b401a0cf2de79">containsPath</a> (const QString &amp;root, const QString &amp;path)</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Path helpers of <a class="el" href="_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2">isInstalledScenePath()</a>. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a803871a44577cb4b466b401a0cf2de79" name="a803871a44577cb4b466b401a0cf2de79"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a803871a44577cb4b466b401a0cf2de79">&#9670;&#160;</a></span>containsPath()</h2>
 
@@ -145,6 +150,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p><span class="tt">path</span> is <span class="tt">root</span> or lies below it, ignoring letter case. Both are absolute paths with forward slashes. False when either is empty. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -175,6 +181,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Resolve the deepest existing ancestor, retaining any not-yet-created suffix. A dangling or unreadable existing entry has no resolved spelling. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Puts the absolute form of path first in the recent scenes, which keep at most 8.">
 <polygon fill="#999999" stroke="#666666" points="170,-38 0,-38 0,-19 170,-19 170,-38"/>
 <text text-anchor="middle" x="85" y="-26" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::addRecentScene</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" target="_top" xlink:title="Fills the Recent Scenes menu again from the settings.">
 <polygon fill="white" stroke="#666666" points="363,-86.5 206,-86.5 206,-56.5 363,-56.5 363,-86.5"/>
 <text text-anchor="start" x="214" y="-74.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::rebuildRecent</text>
 <text text-anchor="middle" x="284.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">ScenesMenu</text>
@@ -39,7 +39,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ...">
 <polygon fill="white" stroke="#666666" points="554,-38 399,-38 399,-19 554,-19 554,-38"/>
 <text text-anchor="middle" x="476.5" y="-26" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::recentScenes</text>
 </a>

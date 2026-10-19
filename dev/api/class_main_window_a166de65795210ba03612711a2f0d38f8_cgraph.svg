@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Enables the diagram entries and the Run Results dock while results exist; disabled entries tell how t...">
 <polygon fill="#999999" stroke="#666666" points="161,-30 0,-30 0,0 161,0 161,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::updateDiagram</text>
 <text text-anchor="middle" x="80.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Actions</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12" target="_top" xlink:title="Results of a completed run exist (RunController::hasRunResults()).">
 <polygon fill="white" stroke="#666666" points="354,-24.5 197,-24.5 197,-5.5 354,-5.5 354,-24.5"/>
 <text text-anchor="middle" x="275.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::hasRunResults</text>
 </a>

@@ -1,10 +1,10 @@
 <map id="UpdateTelemetryController::startTelemetryAfterInitialConsent" name="UpdateTelemetryController::startTelemetryAfterInitialConsent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,174,252,214"/>
+<area shape="rect" id="Node000001" title="Makes the consent and the sender when this build can send telemetry. Does nothing when there is a sen..." alt="" coords="5,174,252,214"/>
 <area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508" title=" " alt="" coords="301,29,512,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,172,213,118,254,88,299,64,317,56,319,61,301,68,257,93,216,122,152,176"/>
 <area shape="rect" id="Node000004" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title="True when packaged, enabled and interactive, with non&#45;empty terms and a valid exact HTTPS endpoint." alt="" coords="308,79,505,104"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="166,171,228,142,299,113,326,105,327,110,301,118,230,146,169,176"/>
-<area shape="rect" id="Node000005" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title=" " alt="" coords="319,152,494,177"/>
+<area shape="rect" id="Node000005" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="319,152,494,177"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="252,178,305,173,306,178,253,184"/>
 <area shape="rect" id="Node000006" href="$class_telemetry_consent.html#a1441ab8158feface13517d832495d246" title=" " alt="" coords="306,202,507,242"/>
 <area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="253,204,292,208,292,213,252,209"/>

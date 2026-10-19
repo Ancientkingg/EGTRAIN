@@ -129,23 +129,34 @@ Collaboration diagram for UpdateTelemetryController:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a7c10857b9e719084afa89294a9c6fdd2" id="r_a7c10857b9e719084afa89294a9c6fdd2"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a7c10857b9e719084afa89294a9c6fdd2">UpdateTelemetryController</a> (QWidget *window, std::function&lt; bool()&gt; askToSaveScene, std::function&lt; void()&gt; beforeQuit)</td></tr>
 <tr class="memitem:ade9525eeb0435c6b332b77745b3c9a81" id="r_ade9525eeb0435c6b332b77745b3c9a81"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ade9525eeb0435c6b332b77745b3c9a81">~UpdateTelemetryController</a> () override</td></tr>
+<tr class="memdesc:ade9525eeb0435c6b332b77745b3c9a81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the settings, the consent and the sender that the controller owns.  <br /></td></tr>
 <tr class="memitem:a138ffc7146cce2995fabc32ed6d61bfd" id="r_a138ffc7146cce2995fabc32ed6d61bfd"><td class="memItemLeft">QWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a138ffc7146cce2995fabc32ed6d61bfd">window</a> () const</td></tr>
+<tr class="memdesc:a138ffc7146cce2995fabc32ed6d61bfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window that the dialogs open over.  <br /></td></tr>
 <tr class="memitem:a6f6d72dd7bc2034e069cdcc80e91cf78" id="r_a6f6d72dd7bc2034e069cdcc80e91cf78"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6f6d72dd7bc2034e069cdcc80e91cf78">setupUpdateActions</a> (QMenu *helpMenu)</td></tr>
+<tr class="memdesc:a6f6d72dd7bc2034e069cdcc80e91cf78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the update entries to the Help menu. Without a menu, or when the environment suppresses updates, there are none.  <br /></td></tr>
 <tr class="memitem:aa28130c9ee032d8b9864f13b219a41bb" id="r_aa28130c9ee032d8b9864f13b219a41bb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa28130c9ee032d8b9864f13b219a41bb">showPrivacySettings</a> (bool initialPrompt)</td></tr>
+<tr class="memdesc:aa28130c9ee032d8b9864f13b219a41bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens the privacy dialog. The first prompt opens only when the consent is still to be given.  <br /></td></tr>
 <tr class="memitem:afa49ba6ca5e07e00890ba0d643fd15e0" id="r_afa49ba6ca5e07e00890ba0d643fd15e0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afa49ba6ca5e07e00890ba0d643fd15e0">startTelemetryAfterInitialConsent</a> ()</td></tr>
+<tr class="memdesc:afa49ba6ca5e07e00890ba0d643fd15e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the consent and the sender when this build can send telemetry. Does nothing when there is a sender already.  <br /></td></tr>
 <tr class="memitem:aba5ef84cb99929c97188f6418535a421" id="r_aba5ef84cb99929c97188f6418535a421"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aba5ef84cb99929c97188f6418535a421">maybePromptForUpdateChecks</a> ()</td></tr>
+<tr class="memdesc:aba5ef84cb99929c97188f6418535a421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asks once whether to check for updates automatically, and checks when the answer or the setting is yes.  <br /></td></tr>
 <tr class="memitem:a19bc2d57fb1f7df0388e9aa329bcff94" id="r_a19bc2d57fb1f7df0388e9aa329bcff94"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a19bc2d57fb1f7df0388e9aa329bcff94">startUpdateCheck</a> (bool manual)</td></tr>
 <tr class="memitem:aac2b0fdf1128dc0fdd1304a0708d7488" id="r_aac2b0fdf1128dc0fdd1304a0708d7488"><td class="memItemLeft"><a class="el" href="class_telemetry_consent.html">TelemetryConsent</a> *&#160;</td><td class="memItemRight"><a class="el" href="#aac2b0fdf1128dc0fdd1304a0708d7488">consent</a> () const</td></tr>
 <tr class="memdesc:aac2b0fdf1128dc0fdd1304a0708d7488"><td class="mdescLeft">&#160;</td><td class="mdescRight">The consent that the sender follows, or null while telemetry is off.  <br /></td></tr>
 <tr class="memitem:ada7c9bcb8eb7c7800900193a8e4baa59" id="r_ada7c9bcb8eb7c7800900193a8e4baa59"><td class="memItemLeft"><a class="el" href="classtelemetry_1_1_telemetry_sender.html">telemetry::TelemetrySender</a> *&#160;</td><td class="memItemRight"><a class="el" href="#ada7c9bcb8eb7c7800900193a8e4baa59">sender</a> () const</td></tr>
+<tr class="memdesc:ada7c9bcb8eb7c7800900193a8e4baa59"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sender, or null while telemetry is off.  <br /></td></tr>
 <tr class="memitem:a0424ffd6617ee1882729128bf7cf847f" id="r_a0424ffd6617ee1882729128bf7cf847f"><td class="memItemLeft"><a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0424ffd6617ee1882729128bf7cf847f">captureOperation</a> () const noexcept</td></tr>
+<tr class="memdesc:a0424ffd6617ee1882729128bf7cf847f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The observation of an operation that starts now. Its events are dropped while telemetry is off.  <br /></td></tr>
 <tr class="memitem:a886d76f8d7a3f2f72318b07910aa5ba3" id="r_a886d76f8d7a3f2f72318b07910aa5ba3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a886d76f8d7a3f2f72318b07910aa5ba3">stopTelemetry</a> ()</td></tr>
+<tr class="memdesc:a886d76f8d7a3f2f72318b07910aa5ba3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops the sender, if there is one.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a07d58747d59f49d1ff6b222687ecbf39" id="r_a07d58747d59f49d1ff6b222687ecbf39"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a07d58747d59f49d1ff6b222687ecbf39">MainWindowTestAccess</a></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The update checks and the self update, the consent and privacy dialogs, and the telemetry sender of the window. The dialogs open over the window. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a7c10857b9e719084afa89294a9c6fdd2" name="a7c10857b9e719084afa89294a9c6fdd2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7c10857b9e719084afa89294a9c6fdd2">&#9670;&#160;</a></span>UpdateTelemetryController()</h2>
 
@@ -169,6 +180,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>askToSaveScene asks about unsaved changes before an update starts and returns false when the user cancels. beforeQuit runs when an installed update ends the application. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -200,6 +212,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Deletes the settings, the consent and the sender that the controller owns. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -225,6 +239,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The observation of an operation that starts now. Its events are dropped while telemetry is off. </p>
 
 </div>
 </div>
@@ -269,6 +285,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Asks once whether to check for updates automatically, and checks when the answer or the setting is yes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -300,6 +318,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The sender, or null while telemetry is off. </p>
+
 </div>
 </div>
 <a id="a6f6d72dd7bc2034e069cdcc80e91cf78" name="a6f6d72dd7bc2034e069cdcc80e91cf78"></a>
@@ -316,6 +336,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Adds the update entries to the Help menu. Without a menu, or when the environment suppresses updates, there are none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -338,6 +360,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Opens the privacy dialog. The first prompt opens only when the consent is still to be given. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -360,6 +384,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Makes the consent and the sender when this build can send telemetry. Does nothing when there is a sender already. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -382,6 +408,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A manual check always runs. An automatic one runs only when the setting is on and no check is going. Nothing runs without update entries. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -404,6 +431,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stops the sender, if there is one. </p>
 
 </div>
 </div>
@@ -429,6 +458,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The window that the dialogs open over. </p>
 
 </div>
 </div>

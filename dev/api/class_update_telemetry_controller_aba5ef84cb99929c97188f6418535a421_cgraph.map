@@ -1,8 +1,8 @@
 <map id="UpdateTelemetryController::maybePromptForUpdateChecks" name="UpdateTelemetryController::maybePromptForUpdateChecks">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,204,241,244"/>
-<area shape="rect" id="Node000002" href="$namespaceupdate__prompt.html#a82c1c5be32beff8f5f711f66ff1f9334" title=" " alt="" coords="291,29,486,69"/>
+<area shape="rect" id="Node000001" title="Asks once whether to check for updates automatically, and checks when the answer or the setting is ye..." alt="" coords="5,204,241,244"/>
+<area shape="rect" id="Node000002" href="$namespaceupdate__prompt.html#a82c1c5be32beff8f5f711f66ff1f9334" title="Below the question: what the check does and where to change the answer." alt="" coords="291,29,486,69"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,202,203,142,244,108,288,79,301,72,303,77,291,84,247,113,206,146,145,206"/>
-<area shape="rect" id="Node000003" href="$namespaceupdate__prompt.html#a053138b81be5c78b193ab21cd54592c5" title=" " alt="" coords="291,117,486,157"/>
+<area shape="rect" id="Node000003" href="$namespaceupdate__prompt.html#a053138b81be5c78b193ab21cd54592c5" title="The question of the first message box, whether to check for updates automatically." alt="" coords="291,117,486,157"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="185,201,313,159,314,164,186,206"/>
 <area shape="rect" id="Node000004" href="$_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" title="The choice stored under &quot;updates/automaticCheck&quot;, or Unknown when none is stored." alt="" coords="575,166,747,191"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="241,211,561,184,561,190,242,217"/>

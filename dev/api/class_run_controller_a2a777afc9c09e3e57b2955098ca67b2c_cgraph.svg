@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The results of the run are kept or discarded, and the window follows.">
 <polygon fill="#999999" stroke="#666666" points="154,-245 0,-245 0,-215 154,-215 154,-245"/>
 <text text-anchor="start" x="8" y="-233" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::onSimulation</text>
 <text text-anchor="middle" x="77" y="-222" font-family="Helvetica,sans-Serif" font-size="10.00">Finished</text>
@@ -451,7 +451,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" target="_top" xlink:title="Asks the run to stop. Returns whether a run existed.">
 <polygon fill="white" stroke="#666666" points="545,-379.5 397,-379.5 397,-360.5 545,-360.5 545,-379.5"/>
 <text text-anchor="middle" x="471" y="-367.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::requestStop</text>
 </a>
@@ -561,7 +561,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" target="_top" xlink:title="An empty history that keeps at most budgetBytes bytes of accounted payload.">
 <polygon fill="white" stroke="#666666" points="550,-30 392,-30 392,0 550,0 550,-30"/>
 <text text-anchor="start" x="400" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::GuiReplay</text>
 <text text-anchor="middle" x="471" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">History</text>
@@ -580,7 +580,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" target="_top" xlink:title="The budget of accounted payload, in bytes.">
 <polygon fill="white" stroke="#666666" points="734.5,-30 593.5,-30 593.5,0 734.5,0 734.5,-30"/>
 <text text-anchor="start" x="601.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::budget</text>
 <text text-anchor="middle" x="664" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Bytes</text>

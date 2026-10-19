@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="startFolder() with the folder of this program, the Documents folder of the user when it exists,...">
 <polygon fill="#999999" stroke="#666666" points="144,-136.5 0,-136.5 0,-117.5 144,-117.5 144,-136.5"/>
 <text text-anchor="middle" x="72" y="-124.5" font-family="Helvetica,sans-Serif" font-size="10.00">dialog_folders::startFolder</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" target="_top" xlink:title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string.">
 <polygon fill="white" stroke="#666666" points="515,-164.5 360,-164.5 360,-145.5 515,-145.5 515,-164.5"/>
 <text text-anchor="middle" x="437.5" y="-152.5" font-family="Helvetica,sans-Serif" font-size="10.00">dialog_folders::folderOfCase</text>
 </a>

@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Shows the stops of the service with this id, or none when the id is empty or no service has it." alt="" coords="5,242,164,282"/>
 <area shape="rect" id="Node000002" href="$class_timetable_stops_panel.html#aea56081d583a2c4d0bc6f42ac12fee1f" title="Lists the stops of the service again." alt="" coords="212,242,371,282"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,259,198,259,198,265,164,265"/>
-<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="438,29,593,55"/>
+<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="438,29,593,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="297,241,313,203,339,155,373,106,394,83,417,64,426,58,429,63,420,68,398,87,377,109,343,157,318,205,302,243"/>
 <area shape="rect" id="Node000004" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="445,103,586,128"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="306,240,352,188,383,160,417,137,431,130,434,135,420,142,386,165,355,192,310,243"/>

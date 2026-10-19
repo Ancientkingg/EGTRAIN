@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_scene_se
 </div><!--header-->
 <div class="contents">
 
+<p>What the session asks of the window, and the points at which it tells the window that the scene changed.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_session_8h_source.html">app/SceneSession.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SceneSession::Host:</div>
@@ -124,20 +127,31 @@ Inheritance diagram for SceneSession::Host:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a557a3cfe513029776e481b1d3fac7900" id="r_a557a3cfe513029776e481b1d3fac7900"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#a557a3cfe513029776e481b1d3fac7900">~Host</a> ()=default</td></tr>
 <tr class="memitem:a59e8c11a0e58506f23597ed38405ec7d" id="r_a59e8c11a0e58506f23597ed38405ec7d"><td class="memItemLeft">virtual <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a>&#160;</td><td class="memItemRight"><a class="el" href="#a59e8c11a0e58506f23597ed38405ec7d">captureTelemetryOperation</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a59e8c11a0e58506f23597ed38405ec7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The operation that the action which starts now belongs to, for telemetry.  <br /></td></tr>
 <tr class="memitem:ad2174182245a3ec59a56c981a97b19f8" id="r_ad2174182245a3ec59a56c981a97b19f8"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#ad2174182245a3ec59a56c981a97b19f8">dialogsSuppressed</a> () const =0</td></tr>
+<tr class="memdesc:ad2174182245a3ec59a56c981a97b19f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">A scripted run has no user to answer a dialog.  <br /></td></tr>
 <tr class="memitem:a0d0924e3e7674e0e48bfb3e9cdf14768" id="r_a0d0924e3e7674e0e48bfb3e9cdf14768"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a0d0924e3e7674e0e48bfb3e9cdf14768">commitPendingEdits</a> ()=0</td></tr>
+<tr class="memdesc:a0d0924e3e7674e0e48bfb3e9cdf14768"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the text of the fields that are being edited into the document, as if the user had left the fields.  <br /></td></tr>
 <tr class="memitem:ad6d7739eecf3cef44832bef8eede650c" id="r_ad6d7739eecf3cef44832bef8eede650c"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#ad6d7739eecf3cef44832bef8eede650c">afterRunStopped</a> (std::function&lt; void()&gt; action)=0</td></tr>
 <tr class="memitem:a556ffacfce1bfa3e0fa054f567360b18" id="r_a556ffacfce1bfa3e0fa054f567360b18"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a556ffacfce1bfa3e0fa054f567360b18">bringToFront</a> ()=0</td></tr>
 <tr class="memitem:ad357e6c68b725f4d4e79f33bdcf8b1f5" id="r_ad357e6c68b725f4d4e79f33bdcf8b1f5"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ad357e6c68b725f4d4e79f33bdcf8b1f5">offerUpdateCheck</a> ()=0</td></tr>
+<tr class="memdesc:ad357e6c68b725f4d4e79f33bdcf8b1f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a check for a newer version at the request of the user.  <br /></td></tr>
 <tr class="memitem:af1e887440b754f79bbee90c154856cd6" id="r_af1e887440b754f79bbee90c154856cd6"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#af1e887440b754f79bbee90c154856cd6">sceneActionsChanged</a> ()=0</td></tr>
+<tr class="memdesc:af1e887440b754f79bbee90c154856cd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the actions of the window enable depends on the scene or on the recent scenes, and one of them changed.  <br /></td></tr>
 <tr class="memitem:a9cbce332a88179c824d788f2e5622b65" id="r_a9cbce332a88179c824d788f2e5622b65"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a9cbce332a88179c824d788f2e5622b65">recoveredSceneSource</a> () const =0</td></tr>
+<tr class="memdesc:a9cbce332a88179c824d788f2e5622b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path of the file that a recovered scene is a copy of, or an empty string.  <br /></td></tr>
 <tr class="memitem:af6ee830bb43819af1dc87fd7238b640e" id="r_af6ee830bb43819af1dc87fd7238b640e"><td class="memItemLeft">virtual <a class="el" href="struct_scene_load_result.html">SceneLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#af6ee830bb43819af1dc87fd7238b640e">readScene</a> (const QString &amp;path, bool &amp;identityOk)=0</td></tr>
 <tr class="memitem:aeb5b4b6f233da4a2919b97e897edbb87" id="r_aeb5b4b6f233da4a2919b97e897edbb87"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#aeb5b4b6f233da4a2919b97e897edbb87">sceneWillBeReplaced</a> ()=0</td></tr>
+<tr class="memdesc:aeb5b4b6f233da4a2919b97e897edbb87"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene in the document is about to be replaced by another. The run and what the canvas shows end.  <br /></td></tr>
 <tr class="memitem:ad08d182f761db4f44832d39f8e21b18b" id="r_ad08d182f761db4f44832d39f8e21b18b"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ad08d182f761db4f44832d39f8e21b18b">sceneCreated</a> (const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;operation)=0</td></tr>
+<tr class="memdesc:ad08d182f761db4f44832d39f8e21b18b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document holds a new scene that has no file. The session has no scene folder and no diagnostics.  <br /></td></tr>
 <tr class="memitem:a4f049bc423d18f29ec228abe83f78f17" id="r_a4f049bc423d18f29ec228abe83f78f17"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a4f049bc423d18f29ec228abe83f78f17">sceneOpened</a> (const <a class="el" href="struct_scene_session_1_1_opened_scene.html">OpenedScene</a> &amp;opened)=0</td></tr>
 <tr class="memitem:af1299a535dee48ae992e40d9a11eb145" id="r_af1299a535dee48ae992e40d9a11eb145"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#af1299a535dee48ae992e40d9a11eb145">sceneSaved</a> ()=0</td></tr>
+<tr class="memdesc:af1299a535dee48ae992e40d9a11eb145"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene was written. The session holds its new location and the record of what was written.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the session asks of the window, and the points at which it tells the window that the scene changed. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a557a3cfe513029776e481b1d3fac7900" name="a557a3cfe513029776e481b1d3fac7900"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a557a3cfe513029776e481b1d3fac7900">&#9670;&#160;</a></span>~Host()</h2>
 
@@ -186,6 +200,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>With a simulation running: asks it to stop, keeps <span class="tt">action</span> for the moment it has stopped and returns true. The last action replaces an earlier one. Without a simulation it returns false and the caller acts at once. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -216,6 +231,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Raises and activates the window, so that a question that the session asks next is not hidden behind the window of another program, such as the file manager that a scene was dropped from. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -247,6 +263,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The operation that the action which starts now belongs to, for telemetry. </p>
+
 </div>
 </div>
 <a id="a0d0924e3e7674e0e48bfb3e9cdf14768" name="a0d0924e3e7674e0e48bfb3e9cdf14768"></a>
@@ -271,6 +289,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the text of the fields that are being edited into the document, as if the user had left the fields. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -301,6 +321,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A scripted run has no user to answer a dialog. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -331,6 +353,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Starts a check for a newer version at the request of the user. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -365,6 +389,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Reads the scene at <span class="tt">path</span>. <span class="tt">identityOk</span> tells whether startup timing, when it is on, found the scene that it expects; it is true when startup timing is off. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -395,6 +420,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The path of the file that a recovered scene is a copy of, or an empty string. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -425,6 +452,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What the actions of the window enable depends on the scene or on the recent scenes, and one of them changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -455,6 +484,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The document holds a new scene that has no file. The session has no scene folder and no diagnostics. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -485,6 +516,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The document holds the scene that was read. Returns false when startup timing found that the scene changed, which makes the open fail. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -515,6 +547,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scene was written. The session holds its new location and the record of what was written. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -545,6 +579,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scene in the document is about to be replaced by another. The run and what the canvas shows end. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

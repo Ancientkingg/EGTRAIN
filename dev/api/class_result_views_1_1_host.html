@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_result_v
 </div><!--header-->
 <div class="contents">
 
+<p>What the views ask of the window.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_result_views_8h_source.html">app/ResultViews.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for ResultViews::Host:</div>
@@ -124,11 +127,17 @@ Inheritance diagram for ResultViews::Host:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a2b3609bec6f2a983d475fa16c68590ee" id="r_a2b3609bec6f2a983d475fa16c68590ee"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#a2b3609bec6f2a983d475fa16c68590ee">~Host</a> ()=default</td></tr>
 <tr class="memitem:a3efa4ef8d810300bbd14e833459aed0e" id="r_a3efa4ef8d810300bbd14e833459aed0e"><td class="memItemLeft">virtual <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3efa4ef8d810300bbd14e833459aed0e">captureTelemetryOperation</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a3efa4ef8d810300bbd14e833459aed0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The telemetry record of the user action that is going on, which the exports of the windows report to.  <br /></td></tr>
 <tr class="memitem:ab99218443839cb22410c93c61bcf18e0" id="r_ab99218443839cb22410c93c61bcf18e0"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#ab99218443839cb22410c93c61bcf18e0">dialogsSuppressed</a> () const =0</td></tr>
+<tr class="memdesc:ab99218443839cb22410c93c61bcf18e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A scripted run has no user to answer a dialog.  <br /></td></tr>
 <tr class="memitem:ae77554f23685ac9caf4bca52154c8192" id="r_ae77554f23685ac9caf4bca52154c8192"><td class="memItemLeft">virtual const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ae77554f23685ac9caf4bca52154c8192">sceneModel</a> () const =0</td></tr>
+<tr class="memdesc:ae77554f23685ac9caf4bca52154c8192"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene that the run was made from, which gives the colours of the services.  <br /></td></tr>
 <tr class="memitem:a3565417ab836f193b42d2b2d1988fd52" id="r_a3565417ab836f193b42d2b2d1988fd52"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a3565417ab836f193b42d2b2d1988fd52">resultMessage</a> (const QString &amp;text, int milliseconds)=0</td></tr>
+<tr class="memdesc:a3565417ab836f193b42d2b2d1988fd52"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows <span class="tt">text</span> in the status bar for <span class="tt">milliseconds</span>.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the views ask of the window. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2b3609bec6f2a983d475fa16c68590ee" name="a2b3609bec6f2a983d475fa16c68590ee"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2b3609bec6f2a983d475fa16c68590ee">&#9670;&#160;</a></span>~Host()</h2>
 
@@ -178,6 +187,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The telemetry record of the user action that is going on, which the exports of the windows report to. </p>
+
 </div>
 </div>
 <a id="ab99218443839cb22410c93c61bcf18e0" name="ab99218443839cb22410c93c61bcf18e0"></a>
@@ -202,6 +213,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A scripted run has no user to answer a dialog. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -236,6 +249,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Shows <span class="tt">text</span> in the status bar for <span class="tt">milliseconds</span>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -266,6 +281,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scene that the run was made from, which gives the colours of the services. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

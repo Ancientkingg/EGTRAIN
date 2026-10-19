@@ -1,6 +1,6 @@
 <map id="TimetableStopsPanel::refresh" name="TimetableStopsPanel::refresh">
 <area shape="rect" id="Node000001" title="Lists the stops of the service again." alt="" coords="5,242,164,282"/>
-<area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="231,29,386,55"/>
+<area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="231,29,386,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,241,107,203,132,155,166,106,187,83,210,64,219,58,222,63,214,68,191,87,171,109,137,157,112,205,96,243"/>
 <area shape="rect" id="Node000003" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="238,103,379,128"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="99,240,145,188,176,160,211,137,225,130,227,135,213,142,179,165,149,192,103,243"/>

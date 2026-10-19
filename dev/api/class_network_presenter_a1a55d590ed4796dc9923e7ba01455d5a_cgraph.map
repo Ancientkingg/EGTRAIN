@@ -6,7 +6,7 @@
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="100,924,107,821,127,658,145,564,170,467,202,371,243,281,275,235,312,198,316,202,279,238,248,283,207,373,175,469,150,565,132,659,112,821,106,925"/>
 <area shape="rect" id="Node000010" href="$_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57" title=" " alt="" coords="253,1235,448,1260"/>
 <area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="112,964,131,1008,160,1068,199,1132,247,1189,274,1210,304,1227,301,1231,271,1215,243,1193,194,1135,155,1070,126,1011,107,966"/>
-<area shape="rect" id="Node000011" href="$_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" title=" " alt="" coords="531,168,711,193"/>
+<area shape="rect" id="Node000011" href="$_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" title="The name of a train in lists and messages: its operating code, or its description when it has none." alt="" coords="531,168,711,193"/>
 <area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="103,924,116,848,142,734,183,604,211,538,243,477,299,387,351,322,414,267,503,210,537,195,539,200,505,215,417,272,355,325,303,390,248,479,215,541,188,605,147,736,121,849,108,925"/>
 <area shape="rect" id="Node000012" href="$class_network_presenter.html#a02e548dd03d75b02831dc9bc03ceecf6" title=" " alt="" coords="245,688,456,713"/>
 <area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="121,922,325,721,329,725,125,926"/>

@@ -1,5 +1,5 @@
 <map id="SceneSession::openSceneDialog" name="SceneSession::openSceneDialog">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,237,106"/>
+<area shape="rect" id="Node000001" title="Asks for a bundle file (.egscene) and opens it." alt="" coords="5,81,237,106"/>
 <area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d" title=" " alt="" coords="294,29,479,69"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,78,280,64,281,70,199,83"/>
 <area shape="rect" id="Node000003" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="285,117,488,157"/>

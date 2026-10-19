@@ -204,6 +204,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Asks for a path and writes CSV text atomically. A cancelled dialog or a failed write never leaves a partial file behind. provider gives the text, and artifactWriter writes it together with its provenance and returns whether it succeeded. Empty text writes nothing and says that there is no data. ".csv" is added to a path without it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

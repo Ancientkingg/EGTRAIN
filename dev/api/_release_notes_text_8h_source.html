@@ -119,9 +119,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_release_notes
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QMessageBox&gt;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;QStringList&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">// Release notes as the Markdown that a message box shows. Markdown joins the lines of a paragraph, so a line that is</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">// followed by another line gets a hard break, except inside a fenced block. GitHub gives the notes with CRLF line ends.</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span></div>
 <div class="foldopen" id="foldopen00011" data-start="{" data-end="}">
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="_release_notes_text_8h.html#accf1a980e35823345938ac3d43dd21d5">   11</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="_release_notes_text_8h.html#accf1a980e35823345938ac3d43dd21d5">releaseNotesMarkdown</a>(QString notes) {</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    notes.replace(QLatin1String(<span class="stringliteral">&quot;\r\n&quot;</span>), QLatin1String(<span class="stringliteral">&quot;\n&quot;</span>));</div>
@@ -141,9 +139,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_release_notes
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">return</span> lines.join(<span class="charliteral">&#39;\n&#39;</span>);</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>}</div>
 </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment">// Shows Markdown in the informative text of a message box. QMessageBox::setTextFormat reaches only the main text, so the</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="comment">// label of the informative text gets the format itself.</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span></div>
 <div class="foldopen" id="foldopen00031" data-start="{" data-end="}">
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="_release_notes_text_8h.html#a67dd6d6519097a505626643b25a4465b">   31</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="_release_notes_text_8h.html#a67dd6d6519097a505626643b25a4465b">setMarkdownInformativeText</a>(QMessageBox&amp; box, <span class="keyword">const</span> QString&amp; markdown) {</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    box.setInformativeText(markdown);</div>

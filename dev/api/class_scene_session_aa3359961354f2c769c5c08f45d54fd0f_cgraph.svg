@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Imports a legacy case, which the user chooses, as a scene and opens it.">
 <polygon fill="#999999" stroke="#666666" points="143,-1060.5 0,-1060.5 0,-1030.5 143,-1030.5 143,-1060.5"/>
 <text text-anchor="start" x="8" y="-1048.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::actionLoad</text>
 <text text-anchor="middle" x="71.5" y="-1037.5" font-family="Helvetica,sans-Serif" font-size="10.00">_Network</text>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" target="_top" xlink:title="The messages of the last validation of the scene.">
 <polygon fill="white" stroke="#666666" points="772,-2047 627,-2047 627,-2028 772,-2028 772,-2047"/>
 <text text-anchor="middle" x="699.5" y="-2035" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::diagnostics</text>
 </a>
@@ -130,7 +130,7 @@
 <!-- Node76 -->
 <g id="Node000076" class="node">
 <title>Node76</title>
-<g id="a_Node000076"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title=" ">
+<g id="a_Node000076"><a xlink:href="class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" target="_top" xlink:title="Asks whether to save unsaved changes. Returns false when the user cancels or the save fails.">
 <polygon fill="#fff0f0" stroke="red" points="577,-998 401,-998 401,-979 577,-979 577,-998"/>
 <text text-anchor="middle" x="489" y="-986" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::maybeSaveScene</text>
 </a>
@@ -148,7 +148,7 @@
 <!-- Node93 -->
 <g id="Node000093" class="node">
 <title>Node93</title>
-<g id="a_Node000093"><a xlink:href="class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" target="_top" xlink:title=" ">
+<g id="a_Node000093"><a xlink:href="class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" target="_top" xlink:title="Opens the scene folder or bundle at dir now. The scene stays as it was when this returns false.">
 <polygon fill="white" stroke="#666666" points="583,-943 395,-943 395,-924 583,-924 583,-943"/>
 <text text-anchor="middle" x="489" y="-931" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::openSceneDirectory</text>
 </a>

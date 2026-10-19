@@ -1,5 +1,5 @@
 <map id="ResultViews::showBlockingTimeDiagram" name="ResultViews::showBlockingTimeDiagram">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,1784,205,1824"/>
+<area shape="rect" id="Node000001" title="Asks for the scope and opens ResultViewName::kBlockingTime." alt="" coords="5,1784,205,1824"/>
 <area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" title="Empty when the scope has no reference route." alt="" coords="279,487,476,513"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,1783,163,1498,251,1062,367,526,373,527,256,1063,168,1499,113,1784"/>
 <area shape="rect" id="Node000025" href="$_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" title="What the scope dialog offers for the run: its routes, its trains and its length." alt="" coords="261,1261,494,1286"/>
@@ -38,7 +38,7 @@
 <area shape="poly" id="edge85_Node000001_Node000063" title=" " alt="" coords="112,1824,123,1890,147,1985,166,2036,190,2087,220,2135,255,2178,279,2196,306,2210,304,2214,276,2201,251,2182,215,2138,185,2090,161,2038,142,1986,118,1891,106,1825"/>
 <area shape="rect" id="Node000066" href="$class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" title="A click on a series selected this train." alt="" coords="266,2266,489,2291"/>
 <area shape="poly" id="edge87_Node000001_Node000066" title=" " alt="" coords="109,1824,114,1905,121,1960,133,2021,151,2085,177,2146,211,2204,255,2253,260,2257,257,2261,251,2257,207,2207,172,2149,146,2086,128,2023,116,1961,108,1905,104,1825"/>
-<area shape="rect" id="Node000068" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title=" " alt="" coords="279,2339,475,2365"/>
+<area shape="rect" id="Node000068" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="279,2339,475,2365"/>
 <area shape="poly" id="edge88_Node000001_Node000068" title=" " alt="" coords="109,1824,114,1910,121,1970,133,2037,151,2107,177,2177,211,2243,255,2302,276,2320,301,2332,299,2337,273,2324,251,2306,207,2246,172,2179,146,2109,128,2038,116,1971,108,1910,104,1824"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="334,489,324,479,329,469,347,463,377,461,416,465,427,470,431,476,426,478,423,474,415,470,377,466,348,468,332,473,329,478,337,485"/>
 <area shape="rect" id="Node000003" href="$struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" title="The value of series at a sample index, or empty when the series has no such sample." alt="" coords="591,414,768,439"/>

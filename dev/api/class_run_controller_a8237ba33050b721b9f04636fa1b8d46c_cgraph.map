@@ -1,5 +1,5 @@
 <map id="RunController::runReviewText" name="RunController::runReviewText">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,220,92"/>
+<area shape="rect" id="Node000001" title="The facts of the run review for the scene as it is now, as plain text with one fact per line." alt="" coords="5,67,220,92"/>
 <area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="340,29,475,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,64,326,50,326,55,214,69"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="268,103,547,128"/>

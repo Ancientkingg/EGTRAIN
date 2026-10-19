@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title="The message of the first error among the diagnostics, else of the first diagnostic,...">
 <polygon fill="white" stroke="#666666" points="348.5,-325 217.5,-325 217.5,-306 348.5,-306 348.5,-325"/>
 <text text-anchor="middle" x="283" y="-313" font-family="Helvetica,sans-Serif" font-size="10.00">firstDiagnosticMessage</text>
 </a>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Runs the scene that the window holds, if it is not running already.">
 <polygon fill="#999999" stroke="#666666" points="141,-356 0,-356 0,-337 141,-337 141,-356"/>
 <text text-anchor="middle" x="70.5" y="-344" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runCurrent</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" target="_top" xlink:title="Asks to review the run, prepares the scene, builds the canvas and starts the simulation.">
 <polygon fill="white" stroke="#666666" points="311,-356 177,-356 177,-337 311,-337 311,-356"/>
 <text text-anchor="middle" x="244" y="-344" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runScene</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" target="_top" xlink:title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day.">
 <polygon fill="white" stroke="#666666" points="487,-1186 371,-1186 371,-1167 487,-1167 487,-1186"/>
 <text text-anchor="middle" x="429" y="-1174" font-family="Helvetica,sans-Serif" font-size="10.00">baseTimeToSeconds</text>
 </a>
@@ -165,7 +165,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title="The message of the first error among the diagnostics, else of the first diagnostic,...">
 <polygon fill="white" stroke="#666666" points="494.5,-158 363.5,-158 363.5,-139 494.5,-139 494.5,-158"/>
 <text text-anchor="middle" x="429" y="-146" font-family="Helvetica,sans-Serif" font-size="10.00">firstDiagnosticMessage</text>
 </a>
@@ -220,7 +220,7 @@
 <!-- Node50 -->
 <g id="Node000050" class="node">
 <title>Node50</title>
-<g id="a_Node000050"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title=" ">
+<g id="a_Node000050"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title="The next run writes to the folder of the scene sceneName, unless the user chose a folder.">
 <polygon fill="white" stroke="#666666" points="503,-97.5 355,-97.5 355,-67.5 503,-67.5 503,-97.5"/>
 <text text-anchor="start" x="363" y="-85.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::selectScene</text>
 <text text-anchor="middle" x="429" y="-74.5" font-family="Helvetica,sans-Serif" font-size="10.00">OutputFolder</text>
@@ -239,7 +239,7 @@
 <!-- Node54 -->
 <g id="Node000054" class="node">
 <title>Node54</title>
-<g id="a_Node000054"><a xlink:href="class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" target="_top" xlink:title=" ">
+<g id="a_Node000054"><a xlink:href="class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" target="_top" xlink:title="Starts the run on a worker thread. The scene has to be prepared.">
 <polygon fill="white" stroke="#666666" points="511,-356 347,-356 347,-337 511,-337 511,-356"/>
 <text text-anchor="middle" x="429" y="-344" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::startSimulation</text>
 </a>
@@ -1078,7 +1078,7 @@
 <!-- Node58 -->
 <g id="Node000058" class="node">
 <title>Node58</title>
-<g id="a_Node000058"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000058"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="699,-161 568,-161 568,-142 699,-142 699,-161"/>
 <text text-anchor="middle" x="633.5" y="-149" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>
@@ -1096,7 +1096,7 @@
 <!-- Node59 -->
 <g id="Node000059" class="node">
 <title>Node59</title>
-<g id="a_Node000059"><a xlink:href="class_run_controller.html#a2a777afc9c09e3e57b2955098ca67b2c" target="_top" xlink:title=" ">
+<g id="a_Node000059"><a xlink:href="class_run_controller.html#a2a777afc9c09e3e57b2955098ca67b2c" target="_top" xlink:title="The results of the run are kept or discarded, and the window follows.">
 <polygon fill="#fff0f0" stroke="red" points="710.5,-551.5 556.5,-551.5 556.5,-521.5 710.5,-521.5 710.5,-551.5"/>
 <text text-anchor="start" x="564.5" y="-539.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::onSimulation</text>
 <text text-anchor="middle" x="633.5" y="-528.5" font-family="Helvetica,sans-Serif" font-size="10.00">Finished</text>
@@ -1171,7 +1171,7 @@
 <!-- Node84 -->
 <g id="Node000084" class="node">
 <title>Node84</title>
-<g id="a_Node000084"><a xlink:href="class_run_controller.html#a2890337e28bf728da886d2a4913fb2e6" target="_top" xlink:title=" ">
+<g id="a_Node000084"><a xlink:href="class_run_controller.html#a2890337e28bf728da886d2a4913fb2e6" target="_top" xlink:title="The worker of the run. Qt deletes it when its thread has finished; null while no run exists.">
 <polygon fill="white" stroke="#666666" points="694.5,-399 572.5,-399 572.5,-380 694.5,-380 694.5,-399"/>
 <text text-anchor="middle" x="633.5" y="-387" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::worker</text>
 </a>

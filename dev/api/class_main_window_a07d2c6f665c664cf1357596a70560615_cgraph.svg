@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Shows the window maximized, at most eight ninths of the screen when restored, and fits the view.">
 <polygon fill="#999999" stroke="#666666" points="127,-19 0,-19 0,0 127,0 127,-19"/>
 <text text-anchor="middle" x="63.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::openGUI</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_main_window.html#a2cfd0971aa8a2a72f60e7213ef421867" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_main_window.html#a2cfd0971aa8a2a72f60e7213ef421867" target="_top" xlink:title="Fits the canvas to the network, or to the preview bounds while a preview shows.">
 <polygon fill="white" stroke="#666666" points="282,-19 163,-19 163,0 282,0 282,-19"/>
 <text text-anchor="middle" x="222.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::fitView</text>
 </a>

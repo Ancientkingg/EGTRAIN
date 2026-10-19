@@ -1,6 +1,6 @@
 <map id="TimetableStopsPanel::editStop" name="TimetableStopsPanel::editStop">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,455,164,495"/>
-<area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="531,490,686,516"/>
+<area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="531,490,686,516"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,476,518,495,518,501,164,482"/>
 <area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="223,54,420,80"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="83,454,88,385,105,286,121,232,143,180,173,131,210,89,215,85,219,89,214,93,177,134,148,182,126,234,111,287,93,385,89,455"/>

@@ -101,7 +101,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_main_window.html#af6401b80180a8574e05f043fedea8bfb" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_main_window.html#af6401b80180a8574e05f043fedea8bfb" target="_top" xlink:title="Shows the About dialog.">
 <polygon fill="white" stroke="#666666" points="366,-807.5 197,-807.5 197,-788.5 366,-788.5 366,-807.5"/>
 <text text-anchor="middle" x="281.5" y="-795.5" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::handleHelpAbout</text>
 </a>
@@ -284,7 +284,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" target="_top" xlink:title=" ">
+<g id="a_Node000030"><a xlink:href="class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" target="_top" xlink:title="Runs the scene that the window holds, if it is not running already.">
 <polygon fill="white" stroke="#666666" points="352,-362.5 211,-362.5 211,-343.5 352,-343.5 352,-362.5"/>
 <text text-anchor="middle" x="281.5" y="-350.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runCurrent</text>
 </a>
@@ -302,7 +302,7 @@
 <!-- Node114 -->
 <g id="Node000114" class="node">
 <title>Node114</title>
-<g id="a_Node000114"><a xlink:href="class_main_window.html#a647da5369ac34e0cc68a7e6d9e7a410f" target="_top" xlink:title=" ">
+<g id="a_Node000114"><a xlink:href="class_main_window.html#a647da5369ac34e0cc68a7e6d9e7a410f" target="_top" xlink:title="The last choice of View &gt; Show Passengers, which the start uses when &#45;pax is not given.">
 <polygon fill="white" stroke="#666666" points="379,-325.5 184,-325.5 184,-306.5 379,-306.5 379,-325.5"/>
 <text text-anchor="middle" x="281.5" y="-313.5" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::savedShowPassengers</text>
 </a>
@@ -356,7 +356,7 @@
 <!-- Node118 -->
 <g id="Node000118" class="node">
 <title>Node118</title>
-<g id="a_Node000118"><a xlink:href="class_main_window.html#a02741c67604fffb2cb80ed21aab9cc12" target="_top" xlink:title=" ">
+<g id="a_Node000118"><a xlink:href="class_main_window.html#a02741c67604fffb2cb80ed21aab9cc12" target="_top" xlink:title="Creates the result views and the Run Results dock.">
 <polygon fill="white" stroke="#666666" points="377,-214.5 186,-214.5 186,-195.5 377,-195.5 377,-214.5"/>
 <text text-anchor="middle" x="281.5" y="-202.5" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::setupRunResultsDock</text>
 </a>
@@ -392,7 +392,7 @@
 <!-- Node263 -->
 <g id="Node000263" class="node">
 <title>Node263</title>
-<g id="a_Node000263"><a xlink:href="_main_window_support_8h.html#af34a68855c5c3448cbe4bc9b0b35086c" target="_top" xlink:title=" ">
+<g id="a_Node000263"><a xlink:href="_main_window_support_8h.html#af34a68855c5c3448cbe4bc9b0b35086c" target="_top" xlink:title="The delay between two steps, in milliseconds: how far sliderValue is from the fast end of the speed s...">
 <polygon fill="white" stroke="#666666" points="336,-104.5 227,-104.5 227,-85.5 336,-85.5 336,-104.5"/>
 <text text-anchor="middle" x="281.5" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">stepDelayForSlider</text>
 </a>
@@ -701,7 +701,7 @@
 <!-- Node31 -->
 <g id="Node000031" class="node">
 <title>Node31</title>
-<g id="a_Node000031"><a xlink:href="class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" target="_top" xlink:title=" ">
+<g id="a_Node000031"><a xlink:href="class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" target="_top" xlink:title="Asks to review the run, prepares the scene, builds the canvas and starts the simulation.">
 <polygon fill="#fff0f0" stroke="red" points="573,-346.5 439,-346.5 439,-327.5 573,-327.5 573,-346.5"/>
 <text text-anchor="middle" x="506" y="-334.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runScene</text>
 </a>
@@ -728,7 +728,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" target="_top" xlink:title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day.">
 <polygon fill="white" stroke="#666666" points="773,-542.5 657,-542.5 657,-523.5 773,-523.5 773,-542.5"/>
 <text text-anchor="middle" x="715" y="-530.5" font-family="Helvetica,sans-Serif" font-size="10.00">baseTimeToSeconds</text>
 </a>
@@ -837,7 +837,7 @@
 <!-- Node42 -->
 <g id="Node000042" class="node">
 <title>Node42</title>
-<g id="a_Node000042"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title=" ">
+<g id="a_Node000042"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title="The message of the first error among the diagnostics, else of the first diagnostic,...">
 <polygon fill="white" stroke="#666666" points="780.5,-254.5 649.5,-254.5 649.5,-235.5 780.5,-235.5 780.5,-254.5"/>
 <text text-anchor="middle" x="715" y="-242.5" font-family="Helvetica,sans-Serif" font-size="10.00">firstDiagnosticMessage</text>
 </a>
@@ -892,7 +892,7 @@
 <!-- Node78 -->
 <g id="Node000078" class="node">
 <title>Node78</title>
-<g id="a_Node000078"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title=" ">
+<g id="a_Node000078"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title="The next run writes to the folder of the scene sceneName, unless the user chose a folder.">
 <polygon fill="#fff0f0" stroke="red" points="789,-131 641,-131 641,-101 789,-101 789,-131"/>
 <text text-anchor="start" x="649" y="-119" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::selectScene</text>
 <text text-anchor="middle" x="715" y="-108" font-family="Helvetica,sans-Serif" font-size="10.00">OutputFolder</text>
@@ -911,7 +911,7 @@
 <!-- Node82 -->
 <g id="Node000082" class="node">
 <title>Node82</title>
-<g id="a_Node000082"><a xlink:href="class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" target="_top" xlink:title=" ">
+<g id="a_Node000082"><a xlink:href="class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" target="_top" xlink:title="Starts the run on a worker thread. The scene has to be prepared.">
 <polygon fill="#fff0f0" stroke="red" points="797,-82.5 633,-82.5 633,-63.5 797,-63.5 797,-82.5"/>
 <text text-anchor="middle" x="715" y="-70.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::startSimulation</text>
 </a>
@@ -992,7 +992,7 @@
 <!-- Node117 -->
 <g id="Node000117" class="node">
 <title>Node117</title>
-<g id="a_Node000117"><a xlink:href="class_scene_session.html#ae84d74862a356ef7781631f6a98c41cb" target="_top" xlink:title=" ">
+<g id="a_Node000117"><a xlink:href="class_scene_session.html#ae84d74862a356ef7781631f6a98c41cb" target="_top" xlink:title="Marks the entries of the menu whose scene is gone as unavailable, and the others as available.">
 <polygon fill="white" stroke="#666666" points="585,-297 427,-297 427,-267 585,-267 585,-297"/>
 <text text-anchor="start" x="435" y="-285" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::refreshRecent</text>
 <text text-anchor="middle" x="506" y="-274" font-family="Helvetica,sans-Serif" font-size="10.00">SceneAvailability</text>
@@ -1011,7 +1011,7 @@
 <!-- Node119 -->
 <g id="Node000119" class="node">
 <title>Node119</title>
-<g id="a_Node000119"><a xlink:href="class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b" target="_top" xlink:title=" ">
+<g id="a_Node000119"><a xlink:href="class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b" target="_top" xlink:title="The views are a child of window. They do not own runController or host, which have to outlive them.">
 <polygon fill="white" stroke="#666666" points="577.5,-248.5 434.5,-248.5 434.5,-229.5 577.5,-229.5 577.5,-248.5"/>
 <text text-anchor="middle" x="506" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::ResultViews</text>
 </a>
@@ -1047,7 +1047,7 @@
 <!-- Node156 -->
 <g id="Node000156" class="node">
 <title>Node156</title>
-<g id="a_Node000156"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title=" ">
+<g id="a_Node000156"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="579.5,-156.5 432.5,-156.5 432.5,-137.5 579.5,-137.5 579.5,-156.5"/>
 <text text-anchor="middle" x="506" y="-144.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>

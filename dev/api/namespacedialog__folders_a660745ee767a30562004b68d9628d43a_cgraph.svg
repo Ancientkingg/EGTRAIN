@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="openStartFolder() with the home folder of the user and, on macOS only, the example cases of this prog...">
 <polygon fill="#999999" stroke="#666666" points="139,-63 0,-63 0,-33 139,-33 139,-63"/>
 <text text-anchor="start" x="8" y="-51" font-family="Helvetica,sans-Serif" font-size="10.00">dialog_folders::openStart</text>
 <text text-anchor="middle" x="69.5" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00">Folder</text>

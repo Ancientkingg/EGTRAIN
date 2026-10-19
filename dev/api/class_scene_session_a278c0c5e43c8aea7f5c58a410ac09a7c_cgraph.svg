@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_session.html#abf37e45a81e8b8f2938a83397cdea400" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_session.html#abf37e45a81e8b8f2938a83397cdea400" target="_top" xlink:title="Puts the absolute form of path first in the recent scenes, which keep at most 8.">
 <polygon fill="white" stroke="#666666" points="363.5,-1074 193.5,-1074 193.5,-1055 363.5,-1055 363.5,-1074"/>
 <text text-anchor="middle" x="278.5" y="-1062" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::addRecentScene</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title="Save: saveSceneToCurrentDir().">
 <polygon fill="white" stroke="#666666" points="349.5,-886 207.5,-886 207.5,-867 349.5,-867 349.5,-886"/>
 <text text-anchor="middle" x="278.5" y="-874" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::saveScene</text>
 </a>
@@ -130,7 +130,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" target="_top" xlink:title="Fills the Recent Scenes menu again from the settings.">
 <polygon fill="white" stroke="#666666" points="570,-1101.5 413,-1101.5 413,-1071.5 570,-1071.5 570,-1101.5"/>
 <text text-anchor="start" x="421" y="-1089.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::rebuildRecent</text>
 <text text-anchor="middle" x="491.5" y="-1078.5" font-family="Helvetica,sans-Serif" font-size="10.00">ScenesMenu</text>
@@ -149,7 +149,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ...">
 <polygon fill="white" stroke="#666666" points="782,-1051 627,-1051 627,-1032 782,-1032 782,-1051"/>
 <text text-anchor="middle" x="704.5" y="-1039" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::recentScenes</text>
 </a>
@@ -1300,7 +1300,7 @@
 <!-- Node68 -->
 <g id="Node000068" class="node">
 <title>Node68</title>
-<g id="a_Node000068"><a xlink:href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" target="_top" xlink:title=" ">
+<g id="a_Node000068"><a xlink:href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" target="_top" xlink:title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string.">
 <polygon fill="white" stroke="#666666" points="569,-770 414,-770 414,-751 569,-751 569,-770"/>
 <text text-anchor="middle" x="491.5" y="-758" font-family="Helvetica,sans-Serif" font-size="10.00">dialog_folders::folderOfCase</text>
 </a>

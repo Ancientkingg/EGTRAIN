@@ -113,18 +113,27 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('structtelemetr
 </div><!--header-->
 <div class="contents">
 
+<p>What the scripted sender and the driver have seen.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_telemetry_smoke_support_8h_source.html">app/TelemetrySmokeSupport.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a28860380a973f187037c750f5421bca4" id="r_a28860380a973f187037c750f5421bca4"><td class="memItemLeft">std::atomic&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a28860380a973f187037c750f5421bca4">polls</a> {0}</td></tr>
+<tr class="memdesc:a28860380a973f187037c750f5421bca4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Polls of the sender.  <br /></td></tr>
 <tr class="memitem:a681c197232196ba3a3846e269869f059" id="r_a681c197232196ba3a3846e269869f059"><td class="memItemLeft">std::atomic&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a681c197232196ba3a3846e269869f059">posts</a> {0}</td></tr>
+<tr class="memdesc:a681c197232196ba3a3846e269869f059"><td class="mdescLeft">&#160;</td><td class="mdescRight">Posts that the sender made.  <br /></td></tr>
 <tr class="memitem:a971f1cac9eec8d752368ebddffc613f3" id="r_a971f1cac9eec8d752368ebddffc613f3"><td class="memItemLeft">std::atomic&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a971f1cac9eec8d752368ebddffc613f3">startedPosts</a> {0}</td></tr>
 <tr class="memitem:a4ea70fb20baba02fb555ddc4162d4d3d" id="r_a4ea70fb20baba02fb555ddc4162d4d3d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4ea70fb20baba02fb555ddc4162d4d3d">installFailurePoint</a> = -1</td></tr>
 <tr class="memitem:aa3fe3938b7067190f64ac0c5f4f7aefc" id="r_aa3fe3938b7067190f64ac0c5f4f7aefc"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa3fe3938b7067190f64ac0c5f4f7aefc">installFailures</a> = 0</td></tr>
+<tr class="memdesc:aa3fe3938b7067190f64ac0c5f4f7aefc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Failures that <a class="el" href="namespacetelemetry__smoke.html#a18f65fdfc1ed13a429b109490b72224f" title="Throws std::bad_alloc when point is the installFailurePoint of state, and counts the failure.">failObservationInstallation()</a> made.  <br /></td></tr>
 <tr class="memitem:af348673a093eea0ec9bf2f281ab0a24e" id="r_af348673a093eea0ec9bf2f281ab0a24e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af348673a093eea0ec9bf2f281ab0a24e">completedProbeRuns</a> = 0</td></tr>
+<tr class="memdesc:af348673a093eea0ec9bf2f281ab0a24e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runs of the installation probe that have completed.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the scripted sender and the driver have seen. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="af348673a093eea0ec9bf2f281ab0a24e" name="af348673a093eea0ec9bf2f281ab0a24e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af348673a093eea0ec9bf2f281ab0a24e">&#9670;&#160;</a></span>completedProbeRuns</h2>
 
@@ -136,6 +145,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Runs of the installation probe that have completed. </p>
 
 </div>
 </div>
@@ -150,6 +161,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The step of the run observation that <a class="el" href="namespacetelemetry__smoke.html#a18f65fdfc1ed13a429b109490b72224f" title="Throws std::bad_alloc when point is the installFailurePoint of state, and counts the failure.">failObservationInstallation()</a> makes fail, or -1 for none. GUI-thread test driver only. </p>
 
 </div>
 </div>
@@ -165,6 +177,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Failures that <a class="el" href="namespacetelemetry__smoke.html#a18f65fdfc1ed13a429b109490b72224f" title="Throws std::bad_alloc when point is the installFailurePoint of state, and counts the failure.">failObservationInstallation()</a> made. </p>
+
 </div>
 </div>
 <a id="a28860380a973f187037c750f5421bca4" name="a28860380a973f187037c750f5421bca4"></a>
@@ -178,6 +192,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Polls of the sender. </p>
 
 </div>
 </div>
@@ -193,6 +209,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Posts that the sender made. </p>
+
 </div>
 </div>
 <a id="a971f1cac9eec8d752368ebddffc613f3" name="a971f1cac9eec8d752368ebddffc613f3"></a>
@@ -206,6 +224,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Posts that hold a simulation.started event. </p>
 
 </div>
 </div>

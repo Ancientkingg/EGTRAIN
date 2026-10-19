@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Opens ResultViewName::kDelays.">
 <polygon fill="#999999" stroke="#666666" points="179,-301 0,-301 0,-282 179,-282 179,-301"/>
 <text text-anchor="middle" x="89.5" y="-289" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showDelayDiagram</text>
 </a>
@@ -237,7 +237,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="380.5,-19 233.5,-19 233.5,0 380.5,0 380.5,-19"/>
 <text text-anchor="middle" x="307" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>

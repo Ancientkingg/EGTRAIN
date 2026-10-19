@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Asks for the folder that the next runs write to. A run that is going on keeps its folder.">
 <polygon fill="#999999" stroke="#666666" points="157,-73 0,-73 0,-43 157,-43 157,-73"/>
 <text text-anchor="start" x="8" y="-61" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::chooseOutput</text>
 <text text-anchor="middle" x="78.5" y="-50" font-family="Helvetica,sans-Serif" font-size="10.00">Folder</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982" target="_top" xlink:title="The status bar text that names the output folder of the next runs.">
 <polygon fill="white" stroke="#666666" points="348,-67.5 193,-67.5 193,-48.5 348,-48.5 348,-67.5"/>
 <text text-anchor="middle" x="270.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">path_message::outputFolder</text>
 </a>

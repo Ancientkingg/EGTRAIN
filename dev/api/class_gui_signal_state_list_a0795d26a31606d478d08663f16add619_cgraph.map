@@ -1,6 +1,6 @@
 <map id="GuiSignalStateList::merge" name="GuiSignalStateList::merge">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,59,147,99"/>
-<area shape="rect" id="Node000002" href="$_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" title=" " alt="" coords="199,29,342,55"/>
+<area shape="rect" id="Node000002" href="$_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" title="level is a signalling level from 0 to 5." alt="" coords="199,29,342,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,63,190,55,191,60,148,68"/>
 <area shape="rect" id="Node000005" href="$_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69" title=" " alt="" coords="195,103,347,128"/>
 <area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="148,90,189,98,188,103,147,95"/>

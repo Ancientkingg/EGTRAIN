@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The facts of the run review for the scene as it is now, as plain text with one fact per line.">
 <polygon fill="#999999" stroke="#666666" points="161,-46 0,-46 0,-27 161,-27 161,-46"/>
 <text text-anchor="middle" x="80.5" y="-34" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runReviewText</text>
 </a>

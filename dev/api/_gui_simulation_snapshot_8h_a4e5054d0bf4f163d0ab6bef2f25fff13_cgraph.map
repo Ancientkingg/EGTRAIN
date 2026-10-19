@@ -1,7 +1,7 @@
 <map id="guiSignalDisplayCode" name="guiSignalDisplayCode">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,169,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="54,31,47,21,51,11,65,5,87,3,115,6,126,16,123,20,113,11,87,8,66,10,55,15,53,20,59,28"/>
-<area shape="rect" id="Node000002" href="$_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" title=" " alt="" coords="217,29,360,55"/>
+<area shape="rect" id="Node000002" href="$_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" title="level is a signalling level from 0 to 5." alt="" coords="217,29,360,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="169,39,203,39,203,45,169,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="256,31,249,21,252,11,266,5,289,3,317,6,328,16,324,20,314,11,289,8,267,10,256,15,254,20,260,28"/>
 <area shape="rect" id="Node000003" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="408,29,572,55"/>

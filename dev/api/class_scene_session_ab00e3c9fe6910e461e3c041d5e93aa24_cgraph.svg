@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="openSceneDirectory() as part of the telemetry operation operation, for a scene of the origin origin.">
 <polygon fill="#999999" stroke="#666666" points="188,-526 0,-526 0,-507 188,-507 188,-526"/>
 <text text-anchor="middle" x="94" y="-514" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::openSceneDirectory</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title="The message of the first error among the diagnostics, else of the first diagnostic,...">
 <polygon fill="white" stroke="#666666" points="383.5,-824 252.5,-824 252.5,-805 383.5,-805 383.5,-824"/>
 <text text-anchor="middle" x="318" y="-812" font-family="Helvetica,sans-Serif" font-size="10.00">firstDiagnosticMessage</text>
 </a>
@@ -111,7 +111,7 @@
 <!-- Node61 -->
 <g id="Node000061" class="node">
 <title>Node61</title>
-<g id="a_Node000061"><a xlink:href="class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" target="_top" xlink:title=" ">
+<g id="a_Node000061"><a xlink:href="class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" target="_top" xlink:title="Opens the scene folder or bundle at dir now. The scene stays as it was when this returns false.">
 <polygon fill="white" stroke="#666666" points="412,-563 224,-563 224,-544 412,-544 412,-563"/>
 <text text-anchor="middle" x="318" y="-551" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::openSceneDirectory</text>
 </a>
@@ -129,7 +129,7 @@
 <!-- Node62 -->
 <g id="Node000062" class="node">
 <title>Node62</title>
-<g id="a_Node000062"><a xlink:href="class_scene_session.html#ab8ac6f245e14a5e25c9e4d45e21ac7a7" target="_top" xlink:title=" ">
+<g id="a_Node000062"><a xlink:href="class_scene_session.html#ab8ac6f245e14a5e25c9e4d45e21ac7a7" target="_top" xlink:title="sceneDir() is a bundle file (.egscene), not a folder.">
 <polygon fill="white" stroke="#666666" points="398,-526 238,-526 238,-507 398,-507 398,-526"/>
 <text text-anchor="middle" x="318" y="-514" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::sceneIsBundle</text>
 </a>
@@ -221,7 +221,7 @@
 <!-- Node69 -->
 <g id="Node000069" class="node">
 <title>Node69</title>
-<g id="a_Node000069"><a xlink:href="namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c" target="_top" xlink:title=" ">
+<g id="a_Node000069"><a xlink:href="namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c" target="_top" xlink:title="The title of the message box.">
 <polygon fill="white" stroke="#666666" points="370,-264 266,-264 266,-245 370,-245 370,-264"/>
 <text text-anchor="middle" x="318" y="-252" font-family="Helvetica,sans-Serif" font-size="10.00">cannot_open::title</text>
 </a>

@@ -1,5 +1,5 @@
 <map id="ResultViews::showAreaCapacity" name="ResultViews::showAreaCapacity">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,176,236,201"/>
+<area shape="rect" id="Node000001" title="Opens ResultViewName::kCapacityByArea." alt="" coords="5,176,236,201"/>
 <area shape="rect" id="Node000002" href="$_area_capacity_window_8cpp.html#af9ee4fb47ba582bec2c7e4372be7bc64" title="Asks for the scope, analyses it and opens the window, which deletes itself on close...." alt="" coords="284,176,477,201"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,186,270,186,270,191,236,191"/>
 <area shape="poly" id="edge29_Node000002_Node000002" title=" " alt="" coords="342,178,333,168,338,158,354,152,381,149,414,153,427,163,424,167,412,158,381,155,355,157,341,162,339,167,346,174"/>

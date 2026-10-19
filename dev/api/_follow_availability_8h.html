@@ -131,7 +131,9 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:FollowAvailabilityInput" id="r_FollowAvailabilityInput"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_follow_availability_input.html">FollowAvailabilityInput</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the window knows about the selected train and the displayed frame.  <a href="struct_follow_availability_input.html#details">More...</a><br /></td></tr>
 <tr class="memitem:FollowAvailability" id="r_FollowAvailability"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_follow_availability.html">FollowAvailability</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the window offers and shows for Follow of the selected train.  <a href="struct_follow_availability.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -146,11 +148,13 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a99616537dc446631038d188e66fb7c64a495578a82a1b5d80a0b9d2f2e0c6d101">NotDrawable</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a99616537dc446631038d188e66fb7c64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where the selected train stands, as far as Follow is concerned.  <a href="#a99616537dc446631038d188e66fb7c64">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ac3c9513914945351da9cdb7fae14bcb2" id="r_ac3c9513914945351da9cdb7fae14bcb2"><td class="memItemLeft"><a class="el" href="#a99616537dc446631038d188e66fb7c64">FollowPhase</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac3c9513914945351da9cdb7fae14bcb2">followPhase</a> (const <a class="el" href="struct_follow_availability_input.html">FollowAvailabilityInput</a> &amp;in)</td></tr>
 <tr class="memitem:a381210ec852b85c9e15c5ac291126995" id="r_a381210ec852b85c9e15c5ac291126995"><td class="memItemLeft"><a class="el" href="struct_follow_availability.html">FollowAvailability</a>&#160;</td><td class="memItemRight"><a class="el" href="#a381210ec852b85c9e15c5ac291126995">followAvailability</a> (const <a class="el" href="struct_follow_availability_input.html">FollowAvailabilityInput</a> &amp;in)</td></tr>
+<tr class="memdesc:a381210ec852b85c9e15c5ac291126995"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the window offers and shows for Follow of the train of <span class="tt">in</span>.  <br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a99616537dc446631038d188e66fb7c64" name="a99616537dc446631038d188e66fb7c64"></a>
@@ -172,14 +176,23 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Where the selected train stands, as far as Follow is concerned. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a13efee4a9e0b58bfb14bb80e5f33ce4c" name="a99616537dc446631038d188e66fb7c64a13efee4a9e0b58bfb14bb80e5f33ce4c"></a>NoServices&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a848826576c97c4a20970e5ab56b29656" name="a99616537dc446631038d188e66fb7c64a848826576c97c4a20970e5ab56b29656"></a>NoRun&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a52611880720ac009259cc8416fdbcf91" name="a99616537dc446631038d188e66fb7c64a52611880720ac009259cc8416fdbcf91"></a>NotEntered&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a5bda814c4aedb126839228f1a3d92f09" name="a99616537dc446631038d188e66fb7c64a5bda814c4aedb126839228f1a3d92f09"></a>Running&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a8f3d10eb21bd36347c258679eba9e92b" name="a99616537dc446631038d188e66fb7c64a8f3d10eb21bd36347c258679eba9e92b"></a>Finished&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64ae769c6cc51fd4e1122b8ce0d96e016b8" name="a99616537dc446631038d188e66fb7c64ae769c6cc51fd4e1122b8ce0d96e016b8"></a>HiddenByLayer&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a495578a82a1b5d80a0b9d2f2e0c6d101" name="a99616537dc446631038d188e66fb7c64a495578a82a1b5d80a0b9d2f2e0c6d101"></a>NotDrawable&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a13efee4a9e0b58bfb14bb80e5f33ce4c" name="a99616537dc446631038d188e66fb7c64a13efee4a9e0b58bfb14bb80e5f33ce4c"></a>NoServices&#160;</td><td class="fielddoc"><p>the case defines no services </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a848826576c97c4a20970e5ab56b29656" name="a99616537dc446631038d188e66fb7c64a848826576c97c4a20970e5ab56b29656"></a>NoRun&#160;</td><td class="fielddoc"><p>the case has services but has not been run yet </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a52611880720ac009259cc8416fdbcf91" name="a99616537dc446631038d188e66fb7c64a52611880720ac009259cc8416fdbcf91"></a>NotEntered&#160;</td><td class="fielddoc"><p>the train has not entered the network at the displayed time </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a5bda814c4aedb126839228f1a3d92f09" name="a99616537dc446631038d188e66fb7c64a5bda814c4aedb126839228f1a3d92f09"></a>Running&#160;</td><td class="fielddoc"><p>the train is in the network and can be drawn </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a8f3d10eb21bd36347c258679eba9e92b" name="a99616537dc446631038d188e66fb7c64a8f3d10eb21bd36347c258679eba9e92b"></a>Finished&#160;</td><td class="fielddoc"><p>the train has left the network </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64ae769c6cc51fd4e1122b8ce0d96e016b8" name="a99616537dc446631038d188e66fb7c64ae769c6cc51fd4e1122b8ce0d96e016b8"></a>HiddenByLayer&#160;</td><td class="fielddoc"><p>the train is in the network but the Trains layer is off </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99616537dc446631038d188e66fb7c64a495578a82a1b5d80a0b9d2f2e0c6d101" name="a99616537dc446631038d188e66fb7c64a495578a82a1b5d80a0b9d2f2e0c6d101"></a>NotDrawable&#160;</td><td class="fielddoc"><p>the train is in the network but has no position on the map </p>
+</td></tr>
 </table>
 
 </div>
@@ -207,6 +220,8 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What the window offers and shows for Follow of the train of <span class="tt">in</span>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -237,6 +252,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Where the train of <span class="tt">in</span> stands. A train that is in the network but has no position at the displayed time counts as not entered. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

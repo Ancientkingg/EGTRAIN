@@ -119,9 +119,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_gui_sign
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0795d26a31606d478d08663f16add619" id="r_a0795d26a31606d478d08663f16add619"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0795d26a31606d478d08663f16add619">merge</a> (std::string_view id, bool reversed, int code, int level)</td></tr>
 <tr class="memitem:a084b6026f322fc993dddce0b2adde0e0" id="r_a084b6026f322fc993dddce0b2adde0e0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a084b6026f322fc993dddce0b2adde0e0">fail</a> (std::string_view id)</td></tr>
+<tr class="memdesc:a084b6026f322fc993dddce0b2adde0e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Marks the section as failed in both directions where it has an entry.  <br /></td></tr>
 <tr class="memitem:adebe1681fb55ca4be54f561d2ca1210f" id="r_adebe1681fb55ca4be54f561d2ca1210f"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_signal_state.html">GuiSignalState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#adebe1681fb55ca4be54f561d2ca1210f">take</a> ()</td></tr>
+<tr class="memdesc:adebe1681fb55ca4be54f561d2ca1210f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entries in the order of their first copy. The list is empty afterwards.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Collects the signal states of the route copies of every section. Copies of the same section ID and direction merge into one entry with the most restrictive code, whatever the order they arrive in. A copy without a level carries no signalling and never replaces one that has a level. Entries keep the order in which their section and direction first appeared. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a084b6026f322fc993dddce0b2adde0e0" name="a084b6026f322fc993dddce0b2adde0e0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a084b6026f322fc993dddce0b2adde0e0">&#9670;&#160;</a></span>fail()</h2>
 
@@ -144,6 +148,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Marks the section as failed in both directions where it has an entry. </p>
 
 </div>
 </div>
@@ -183,6 +189,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Adds the route copy of the section <span class="tt">id</span> in its direction, with its code and level. Any level outside 0 to 5 counts as no level. Of two copies with a level the entry keeps the lowest level. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -213,6 +220,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The entries in the order of their first copy. The list is empty afterwards. </p>
 
 </div>
 </div>

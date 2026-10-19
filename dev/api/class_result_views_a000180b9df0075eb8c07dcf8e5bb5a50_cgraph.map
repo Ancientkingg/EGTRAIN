@@ -1,5 +1,5 @@
 <map id="ResultViews::buildPerTrainDiagram" name="ResultViews::buildPerTrainDiagram">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,432,200,472"/>
+<area shape="rect" id="Node000001" title="Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance,..." alt="" coords="5,432,200,472"/>
 <area shape="rect" id="Node000002" href="$struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" title="The value of series at a sample index, or empty when the series has no such sample." alt="" coords="559,26,737,51"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,431,107,358,115,308,127,254,145,199,171,145,204,97,246,57,287,33,330,17,376,8,423,4,512,8,587,20,586,26,512,13,423,9,377,13,332,22,289,38,250,61,208,100,175,148,150,201,132,255,120,309,113,358,107,432"/>
 <area shape="rect" id="Node000003" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="287,169,454,194"/>
@@ -24,7 +24,7 @@
 <area shape="poly" id="edge21_Node000001_Node000017" title=" " alt="" coords="117,471,167,551,205,598,250,639,278,657,308,670,306,675,275,661,246,643,201,602,163,554,112,473"/>
 <area shape="rect" id="Node000020" href="$class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" title="A click on a series selected this train." alt="" coords="259,726,482,751"/>
 <area shape="poly" id="edge27_Node000001_Node000020" title=" " alt="" coords="111,472,127,522,154,588,172,622,194,656,220,686,250,713,257,717,254,722,246,717,216,690,190,659,167,625,149,590,121,523,106,473"/>
-<area shape="rect" id="Node000022" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title=" " alt="" coords="273,799,469,825"/>
+<area shape="rect" id="Node000022" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="273,799,469,825"/>
 <area shape="poly" id="edge29_Node000001_Node000022" title=" " alt="" coords="110,472,125,528,151,606,170,648,192,689,219,728,250,762,274,780,301,792,299,797,271,784,246,766,215,731,187,692,165,650,146,608,119,530,105,473"/>
 <area shape="rect" id="Node000023" href="$_run_exports_8cpp.html#aef3655f13c5de447c146b76cd0783430" title=" " alt="" coords="299,95,442,121"/>
 <area shape="poly" id="edge31_Node000001_Node000023" title=" " alt="" coords="104,431,116,371,141,289,159,245,183,203,212,164,246,130,265,119,285,111,287,116,267,123,250,134,216,167,187,206,164,248,146,291,121,372,109,432"/>

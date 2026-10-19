@@ -56,7 +56,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_result_views_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_result_views_1_1_host.html" target="_top" xlink:title="What the views ask of the window.">
 <polygon fill="white" stroke="#666666" points="134.5,-167 29.5,-167 29.5,-148 134.5,-148 134.5,-167"/>
 <text text-anchor="middle" x="82" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::Host</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_run_controller_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_run_controller_1_1_host.html" target="_top" xlink:title="What the controller asks of the window, and the points at which it tells the window that the run chan...">
 <polygon fill="white" stroke="#666666" points="138,-130 26,-130 26,-111 138,-111 138,-130"/>
 <text text-anchor="middle" x="82" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::Host</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_run_results_dock_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_run_results_dock_1_1_host.html" target="_top" xlink:title="What the dock asks of the window.">
 <polygon fill="white" stroke="#666666" points="144.5,-93 19.5,-93 19.5,-74 144.5,-74 144.5,-93"/>
 <text text-anchor="middle" x="82" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">RunResultsDock::Host</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_scene_session_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_scene_session_1_1_host.html" target="_top" xlink:title="What the session asks of the window, and the points at which it tells the window that the scene chang...">
 <polygon fill="white" stroke="#666666" points="138,-56 26,-56 26,-37 138,-37 138,-56"/>
 <text text-anchor="middle" x="82" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::Host</text>
 </a>

@@ -122,14 +122,10 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_dialog_folder
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;QFileInfo&gt;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;QStandardPaths&gt;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="comment">// The folder in which a file dialog starts. A dialog that is given only a file name starts in the working directory,</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="comment">// which is the installation folder when EGTRAIN is started from the Start Menu.</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span></div>
 <div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html">   14</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacedialog__folders.html">dialog_folders</a> {</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="comment">// The path with the slashes of Windows turned into forward slashes and the dots resolved, so a path that arrives</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="comment">// with backslashes compares in the same way as one that Qt spells with slashes.</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span></div>
 <div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">   18</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">normalized</a>(QString path) {</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    path.replace(<span class="charliteral">&#39;\\&#39;</span>, <span class="charliteral">&#39;/&#39;</span>);</div>
@@ -138,120 +134,109 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_dialog_folder
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <span class="keywordflow">return</span> path.isEmpty() ? path : QDir::cleanPath(path);</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>}</div>
 </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="foldopen" id="foldopen00025" data-start="{" data-end="}">
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">   25</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(<span class="keyword">const</span> QString&amp; normalizedPath) {</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keyword">const</span> <span class="keywordtype">bool</span> rooted = normalizedPath.startsWith(<span class="charliteral">&#39;/&#39;</span>)</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>        || (normalizedPath.size() &gt;= 3 &amp;&amp; normalizedPath[1] == <span class="charliteral">&#39;:&#39;</span> &amp;&amp; normalizedPath[2] == <span class="charliteral">&#39;/&#39;</span>);</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordflow">return</span> rooted ? normalizedPath : QDir::cleanPath(QFileInfo(normalizedPath).absoluteFilePath());</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span></div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">   27</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(<span class="keyword">const</span> QString&amp; normalizedPath) {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keyword">const</span> <span class="keywordtype">bool</span> rooted = normalizedPath.startsWith(<span class="charliteral">&#39;/&#39;</span>)</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>        || (normalizedPath.size() &gt;= 3 &amp;&amp; normalizedPath[1] == <span class="charliteral">&#39;:&#39;</span> &amp;&amp; normalizedPath[2] == <span class="charliteral">&#39;/&#39;</span>);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">return</span> rooted ? normalizedPath : QDir::cleanPath(QFileInfo(normalizedPath).absoluteFilePath());</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>}</div>
 </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment">// Whether the path is the installation folder, which holds the program and the example scenes, or lies inside it or</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="comment">// inside a folder of installed scenes. Letter case and the kind of slash do not matter.</span></div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="}">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">   33</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">inInstallation</a>(<span class="keyword">const</span> QString&amp; path, <span class="keyword">const</span> QString&amp; applicationDir) {</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keyword">const</span> QString file = <a class="code hl_function" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">normalized</a>(path);</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keyword">const</span> QString program = <a class="code hl_function" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">normalized</a>(applicationDir);</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keywordflow">if</span> (file.isEmpty() || program.isEmpty())</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79">scene_save_policy::containsPath</a>(<a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(program), <a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(file)) || <a class="code hl_function" href="_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2">isInstalledScenePath</a>(file, program);</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>}</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span></div>
+<div class="foldopen" id="foldopen00035" data-start="{" data-end="}">
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">   35</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">inInstallation</a>(<span class="keyword">const</span> QString&amp; path, <span class="keyword">const</span> QString&amp; applicationDir) {</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keyword">const</span> QString file = <a class="code hl_function" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">normalized</a>(path);</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">const</span> QString program = <a class="code hl_function" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">normalized</a>(applicationDir);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordflow">if</span> (file.isEmpty() || program.isEmpty())</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79">scene_save_policy::containsPath</a>(<a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(program), <a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(file)) || <a class="code hl_function" href="_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2">isInstalledScenePath</a>(file, program);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
 </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="comment">// The folder that holds the case at `casePath`, a scene folder or a bundle, or the empty string.</span></div>
-<div class="foldopen" id="foldopen00042" data-start="{" data-end="}">
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">   42</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">folderOfCase</a>(<span class="keyword">const</span> QString&amp; casePath) {</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keyword">const</span> QString file = <a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(<a class="code hl_function" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">normalized</a>(casePath));</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> slash = file.lastIndexOf(<span class="charliteral">&#39;/&#39;</span>);</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordflow">if</span> (slash &lt; 0)</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        <span class="keywordflow">return</span> {};</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">if</span> (slash == 0 || (slash == 2 &amp;&amp; file[1] == <span class="charliteral">&#39;:&#39;</span>))</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <span class="keywordflow">return</span> file.left(slash + 1);</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordflow">return</span> file.left(slash);</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>}</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span></div>
+<div class="foldopen" id="foldopen00044" data-start="{" data-end="}">
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">   44</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">folderOfCase</a>(<span class="keyword">const</span> QString&amp; casePath) {</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keyword">const</span> QString file = <a class="code hl_function" href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a>(<a class="code hl_function" href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">normalized</a>(casePath));</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> slash = file.lastIndexOf(<span class="charliteral">&#39;/&#39;</span>);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">if</span> (slash &lt; 0)</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <span class="keywordflow">return</span> {};</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordflow">if</span> (slash == 0 || (slash == 2 &amp;&amp; file[1] == <span class="charliteral">&#39;:&#39;</span>))</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordflow">return</span> file.left(slash + 1);</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keywordflow">return</span> file.left(slash);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>}</div>
 </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="comment">// The folder that holds the open case when that lies outside the installation, otherwise Documents, otherwise the</span></div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="comment">// home folder. `casePath` is empty when no case is open.</span></div>
-<div class="foldopen" id="foldopen00054" data-start="{" data-end="}">
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">   54</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(<span class="keyword">const</span> QString&amp; casePath, <span class="keyword">const</span> QString&amp; applicationDir, <span class="keyword">const</span> QString&amp; documentsDir, <span class="keyword">const</span> QString&amp; homeDir) {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordflow">if</span> (!casePath.isEmpty() &amp;&amp; !<a class="code hl_function" href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">inInstallation</a>(casePath, applicationDir)) {</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        <span class="keyword">const</span> QString folder = <a class="code hl_function" href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">folderOfCase</a>(casePath);</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keywordflow">if</span> (!folder.isEmpty())</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>            <span class="keywordflow">return</span> folder;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    }</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordflow">return</span> documentsDir.isEmpty() ? homeDir : documentsDir;</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>}</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span></div>
+<div class="foldopen" id="foldopen00056" data-start="{" data-end="}">
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">   56</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(<span class="keyword">const</span> QString&amp; casePath, <span class="keyword">const</span> QString&amp; applicationDir, <span class="keyword">const</span> QString&amp; documentsDir, <span class="keyword">const</span> QString&amp; homeDir) {</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordflow">if</span> (!casePath.isEmpty() &amp;&amp; !<a class="code hl_function" href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">inInstallation</a>(casePath, applicationDir)) {</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keyword">const</span> QString folder = <a class="code hl_function" href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">folderOfCase</a>(casePath);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordflow">if</span> (!folder.isEmpty())</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>            <span class="keywordflow">return</span> folder;</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    }</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keywordflow">return</span> documentsDir.isEmpty() ? homeDir : documentsDir;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>}</div>
 </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
-<div class="foldopen" id="foldopen00063" data-start="{" data-end="}">
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a67c6efa24fd00113d4923d693077c716">   63</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(<span class="keyword">const</span> QString&amp; casePath = QString()) {</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keyword">const</span> QString documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(casePath, QCoreApplication::applicationDirPath(), QDir(documents).exists() ? documents : QString(), QDir::homePath());</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>}</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span></div>
+<div class="foldopen" id="foldopen00066" data-start="{" data-end="}">
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a67c6efa24fd00113d4923d693077c716">   66</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(<span class="keyword">const</span> QString&amp; casePath = QString()) {</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keyword">const</span> QString documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(casePath, QCoreApplication::applicationDirPath(), QDir(documents).exists() ? documents : QString(), QDir::homePath());</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>}</div>
 </div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="comment">// The folder with the installed example cases, or the empty string when there is none.</span></div>
-<div class="foldopen" id="foldopen00069" data-start="{" data-end="}">
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">   69</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">installedScenesFolder</a>(<span class="keyword">const</span> QString&amp; applicationDir) {</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keyword">const</span> QDir app(applicationDir);</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> QString&amp; relative : {QStringLiteral(<span class="stringliteral">&quot;Scenes&quot;</span>), QStringLiteral(<span class="stringliteral">&quot;../Resources/Scenes&quot;</span>), QStringLiteral(<span class="stringliteral">&quot;../share/EGTRAIN/Scenes&quot;</span>)}) {</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        <span class="keyword">const</span> QString folder = QDir::cleanPath(app.absoluteFilePath(relative));</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        <span class="keywordflow">if</span> (QDir(folder).exists())</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>            <span class="keywordflow">return</span> folder;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    }</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordflow">return</span> {};</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>}</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span></div>
+<div class="foldopen" id="foldopen00073" data-start="{" data-end="}">
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">   73</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">installedScenesFolder</a>(<span class="keyword">const</span> QString&amp; applicationDir) {</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keyword">const</span> QDir app(applicationDir);</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> QString&amp; relative : {QStringLiteral(<span class="stringliteral">&quot;Scenes&quot;</span>), QStringLiteral(<span class="stringliteral">&quot;../Resources/Scenes&quot;</span>), QStringLiteral(<span class="stringliteral">&quot;../share/EGTRAIN/Scenes&quot;</span>)}) {</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <span class="keyword">const</span> QString folder = QDir::cleanPath(app.absoluteFilePath(relative));</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        <span class="keywordflow">if</span> (QDir(folder).exists())</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>            <span class="keywordflow">return</span> folder;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    }</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordflow">return</span> {};</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>}</div>
 </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="comment">// The folder in which the Open Case Study and Open Scene Folder dialogs start: the folder above the open case, or</span></div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="comment">// with no case open the example cases when `installedScenes` is given, otherwise the home folder. On macOS a native</span></div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="comment">// open dialog that started in the home folder made macOS ask for access to Desktop, Documents and Downloads before</span></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="comment">// it could be used; one that starts inside the application bundle asks nothing.</span></div>
-<div class="foldopen" id="foldopen00083" data-start="{" data-end="}">
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">   83</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder</a>(<span class="keyword">const</span> QString&amp; sceneDir, <span class="keyword">const</span> QString&amp; installedScenes, <span class="keyword">const</span> QString&amp; homeDir) {</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keywordflow">if</span> (!sceneDir.isEmpty())</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        <span class="keywordflow">return</span> QFileInfo(sceneDir).absolutePath();</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordflow">return</span> installedScenes.isEmpty() ? homeDir : installedScenes;</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span></div>
+<div class="foldopen" id="foldopen00087" data-start="{" data-end="}">
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">   87</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder</a>(<span class="keyword">const</span> QString&amp; sceneDir, <span class="keyword">const</span> QString&amp; installedScenes, <span class="keyword">const</span> QString&amp; homeDir) {</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordflow">if</span> (!sceneDir.isEmpty())</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        <span class="keywordflow">return</span> QFileInfo(sceneDir).absolutePath();</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <span class="keywordflow">return</span> installedScenes.isEmpty() ? homeDir : installedScenes;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>}</div>
 </div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
-<div class="foldopen" id="foldopen00089" data-start="{" data-end="}">
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a660745ee767a30562004b68d9628d43a">   89</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder</a>(<span class="keyword">const</span> QString&amp; sceneDir = QString()) {</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="preprocessor">#ifdef Q_OS_MACOS</span></div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keyword">const</span> QString installed = <a class="code hl_function" href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">installedScenesFolder</a>(QCoreApplication::applicationDirPath());</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keyword">const</span> QString installed;</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder</a>(sceneDir, installed, QDir::homePath());</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>}</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span></div>
+<div class="foldopen" id="foldopen00094" data-start="{" data-end="}">
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#a660745ee767a30562004b68d9628d43a">   94</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder</a>(<span class="keyword">const</span> QString&amp; sceneDir = QString()) {</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="preprocessor">#ifdef Q_OS_MACOS</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keyword">const</span> QString installed = <a class="code hl_function" href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">installedScenesFolder</a>(QCoreApplication::applicationDirPath());</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keyword">const</span> QString installed;</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder</a>(sceneDir, installed, QDir::homePath());</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>}</div>
 </div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="comment">// The start path for a save dialog: the start folder with the suggested file name in it.</span></div>
-<div class="foldopen" id="foldopen00099" data-start="{" data-end="}">
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8">   99</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8">suggestedPath</a>(<span class="keyword">const</span> QString&amp; fileName, <span class="keyword">const</span> QString&amp; casePath = QString()) {</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keyword">const</span> QString folder = <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(casePath);</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <span class="keywordflow">return</span> fileName.isEmpty() ? folder : QDir(folder).filePath(fileName);</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>}</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span></div>
+<div class="foldopen" id="foldopen00105" data-start="{" data-end="}">
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8">  105</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8">suggestedPath</a>(<span class="keyword">const</span> QString&amp; fileName, <span class="keyword">const</span> QString&amp; casePath = QString()) {</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keyword">const</span> QString folder = <a class="code hl_function" href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">startFolder</a>(casePath);</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <span class="keywordflow">return</span> fileName.isEmpty() ? folder : QDir(folder).filePath(fileName);</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>}</div>
 </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>}</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>}</div>
 </div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="a_scene_save_policy_8h_html"><div class="ttname"><a href="_scene_save_policy_8h.html">SceneSavePolicy.h</a></div></div>
-<div class="ttc" id="a_scene_save_policy_8h_html_a9a9a7226bd3f4dcae503800dae27fff2"><div class="ttname"><a href="_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2">isInstalledScenePath</a></div><div class="ttdeci">bool isInstalledScenePath(const QString &amp;path, const QString &amp;applicationDir)</div><div class="ttdef"><b>Definition</b> SceneSavePolicy.h:38</div></div>
+<div class="ttc" id="a_scene_save_policy_8h_html_a9a9a7226bd3f4dcae503800dae27fff2"><div class="ttname"><a href="_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2">isInstalledScenePath</a></div><div class="ttdeci">bool isInstalledScenePath(const QString &amp;path, const QString &amp;applicationDir)</div><div class="ttdef"><b>Definition</b> SceneSavePolicy.h:43</div></div>
 <div class="ttc" id="anamespacedialog__folders_html"><div class="ttname"><a href="namespacedialog__folders.html">dialog_folders</a></div><div class="ttdef"><b>Definition</b> DialogFolders.h:14</div></div>
-<div class="ttc" id="anamespacedialog__folders_html_a1f901052fcaaebd130bf771f02b270eb"><div class="ttname"><a href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">dialog_folders::folderOfCase</a></div><div class="ttdeci">QString folderOfCase(const QString &amp;casePath)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:42</div></div>
-<div class="ttc" id="anamespacedialog__folders_html_a4c2f846210d5f53a8896ee6ce164d79d"><div class="ttname"><a href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">dialog_folders::openStartFolder</a></div><div class="ttdeci">QString openStartFolder(const QString &amp;sceneDir, const QString &amp;installedScenes, const QString &amp;homeDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:83</div></div>
-<div class="ttc" id="anamespacedialog__folders_html_a743abe238a3901e58b6b21d034570fa3"><div class="ttname"><a href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">dialog_folders::startFolder</a></div><div class="ttdeci">QString startFolder(const QString &amp;casePath, const QString &amp;applicationDir, const QString &amp;documentsDir, const QString &amp;homeDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:54</div></div>
-<div class="ttc" id="anamespacedialog__folders_html_a89df3db14c75cb7ac0d4a9e999ccde1d"><div class="ttname"><a href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">dialog_folders::absolute</a></div><div class="ttdeci">QString absolute(const QString &amp;normalizedPath)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:25</div></div>
-<div class="ttc" id="anamespacedialog__folders_html_aa1f36163d18d6b6bdf0d453c5a410b03"><div class="ttname"><a href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">dialog_folders::installedScenesFolder</a></div><div class="ttdeci">QString installedScenesFolder(const QString &amp;applicationDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:69</div></div>
+<div class="ttc" id="anamespacedialog__folders_html_a1f901052fcaaebd130bf771f02b270eb"><div class="ttname"><a href="namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb">dialog_folders::folderOfCase</a></div><div class="ttdeci">QString folderOfCase(const QString &amp;casePath)</div><div class="ttdoc">The folder that holds the case at casePath, a scene folder or a bundle, or the empty string.</div><div class="ttdef"><b>Definition</b> DialogFolders.h:44</div></div>
+<div class="ttc" id="anamespacedialog__folders_html_a4c2f846210d5f53a8896ee6ce164d79d"><div class="ttname"><a href="namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d">dialog_folders::openStartFolder</a></div><div class="ttdeci">QString openStartFolder(const QString &amp;sceneDir, const QString &amp;installedScenes, const QString &amp;homeDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:87</div></div>
+<div class="ttc" id="anamespacedialog__folders_html_a743abe238a3901e58b6b21d034570fa3"><div class="ttname"><a href="namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3">dialog_folders::startFolder</a></div><div class="ttdeci">QString startFolder(const QString &amp;casePath, const QString &amp;applicationDir, const QString &amp;documentsDir, const QString &amp;homeDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:56</div></div>
+<div class="ttc" id="anamespacedialog__folders_html_a89df3db14c75cb7ac0d4a9e999ccde1d"><div class="ttname"><a href="namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d">dialog_folders::absolute</a></div><div class="ttdeci">QString absolute(const QString &amp;normalizedPath)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:27</div></div>
+<div class="ttc" id="anamespacedialog__folders_html_aa1f36163d18d6b6bdf0d453c5a410b03"><div class="ttname"><a href="namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03">dialog_folders::installedScenesFolder</a></div><div class="ttdeci">QString installedScenesFolder(const QString &amp;applicationDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:73</div></div>
 <div class="ttc" id="anamespacedialog__folders_html_ab86e736f34d54930599b38b2b6e4120e"><div class="ttname"><a href="namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e">dialog_folders::normalized</a></div><div class="ttdeci">QString normalized(QString path)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:18</div></div>
-<div class="ttc" id="anamespacedialog__folders_html_ad02cf64edfe889f9f3910239062b46b8"><div class="ttname"><a href="namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8">dialog_folders::suggestedPath</a></div><div class="ttdeci">QString suggestedPath(const QString &amp;fileName, const QString &amp;casePath=QString())</div><div class="ttdef"><b>Definition</b> DialogFolders.h:99</div></div>
-<div class="ttc" id="anamespacedialog__folders_html_ae19dff647096a30a99da1bb19ea46242"><div class="ttname"><a href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">dialog_folders::inInstallation</a></div><div class="ttdeci">bool inInstallation(const QString &amp;path, const QString &amp;applicationDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:33</div></div>
-<div class="ttc" id="anamespacescene__save__policy_html_a803871a44577cb4b466b401a0cf2de79"><div class="ttname"><a href="namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79">scene_save_policy::containsPath</a></div><div class="ttdeci">bool containsPath(const QString &amp;root, const QString &amp;path)</div><div class="ttdef"><b>Definition</b> SceneSavePolicy.h:29</div></div>
+<div class="ttc" id="anamespacedialog__folders_html_ad02cf64edfe889f9f3910239062b46b8"><div class="ttname"><a href="namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8">dialog_folders::suggestedPath</a></div><div class="ttdeci">QString suggestedPath(const QString &amp;fileName, const QString &amp;casePath=QString())</div><div class="ttdef"><b>Definition</b> DialogFolders.h:105</div></div>
+<div class="ttc" id="anamespacedialog__folders_html_ae19dff647096a30a99da1bb19ea46242"><div class="ttname"><a href="namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242">dialog_folders::inInstallation</a></div><div class="ttdeci">bool inInstallation(const QString &amp;path, const QString &amp;applicationDir)</div><div class="ttdef"><b>Definition</b> DialogFolders.h:35</div></div>
+<div class="ttc" id="anamespacescene__save__policy_html_a803871a44577cb4b466b401a0cf2de79"><div class="ttname"><a href="namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79">scene_save_policy::containsPath</a></div><div class="ttdeci">bool containsPath(const QString &amp;root, const QString &amp;path)</div><div class="ttdef"><b>Definition</b> SceneSavePolicy.h:32</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

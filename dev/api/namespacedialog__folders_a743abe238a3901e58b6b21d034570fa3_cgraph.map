@@ -1,7 +1,7 @@
 <map id="dialog_folders::startFolder" name="dialog_folders::startFolder">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,92,197,117"/>
 <area shape="poly" id="edge18_Node000001_Node000001" title=" " alt="" coords="62,94,53,84,57,74,74,68,101,65,136,69,146,74,150,80,145,83,142,78,135,74,101,71,75,73,61,78,58,83,65,90"/>
-<area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title=" " alt="" coords="245,55,452,80"/>
+<area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string." alt="" coords="245,55,452,80"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,89,250,79,251,85,186,95"/>
 <area shape="rect" id="Node000005" href="$namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242" title=" " alt="" coords="245,128,452,153"/>
 <area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="189,115,248,123,247,129,189,120"/>

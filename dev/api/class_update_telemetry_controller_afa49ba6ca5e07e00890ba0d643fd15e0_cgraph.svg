@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Makes the consent and the sender when this build can send telemetry. Does nothing when there is a sen...">
 <polygon fill="#999999" stroke="#666666" points="185,-137 0,-137 0,-107 185,-107 185,-137"/>
 <text text-anchor="start" x="8" y="-125" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateTelemetryController</text>
 <text text-anchor="middle" x="92.5" y="-114" font-family="Helvetica,sans-Serif" font-size="10.00">::startTelemetryAfterInitialConsent</text>
@@ -57,7 +57,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="366.5,-153.5 235.5,-153.5 235.5,-134.5 366.5,-134.5 366.5,-153.5"/>
 <text text-anchor="middle" x="301" y="-141.5" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Declared but not defined; nothing calls it.">
 <polygon fill="#999999" stroke="#666666" points="161,-428 0,-428 0,-409 161,-409 161,-428"/>
 <text text-anchor="middle" x="80.5" y="-416" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::stopLoadingGIF</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_main_window.html#a05fb9d72c044aa3bb7d187b994704e2f" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_main_window.html#a05fb9d72c044aa3bb7d187b994704e2f" target="_top" xlink:title="Asks about unsaved changes and stops a running simulation before the window closes.">
 <polygon fill="white" stroke="#666666" points="363.5,-726 225.5,-726 225.5,-707 363.5,-707 363.5,-726"/>
 <text text-anchor="middle" x="294.5" y="-714" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::closeEvent</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_main_window.html#a505572442d73419f3cab4afc8158621c" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_main_window.html#a505572442d73419f3cab4afc8158621c" target="_top" xlink:title="Accepts the drag of one scene file (SceneSession::dragEnter()).">
 <polygon fill="white" stroke="#666666" points="374.5,-689 214.5,-689 214.5,-670 374.5,-670 374.5,-689"/>
 <text text-anchor="middle" x="294.5" y="-677" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::dragEnterEvent</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_main_window.html#af809c2679376142b241371e36aedc279" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_main_window.html#af809c2679376142b241371e36aedc279" target="_top" xlink:title="Opens the scene file that was dropped (SceneSession::drop()).">
 <polygon fill="white" stroke="#666666" points="361.5,-652 227.5,-652 227.5,-633 361.5,-633 361.5,-652"/>
 <text text-anchor="middle" x="294.5" y="-640" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::dropEvent</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_main_window.html#a95f8adeed8bf39b58d6929f73e57487f" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_main_window.html#a95f8adeed8bf39b58d6929f73e57487f" target="_top" xlink:title="The Editors menu, which is created and put in the menu bar on the first call.">
 <polygon fill="white" stroke="#666666" points="367.5,-615 221.5,-615 221.5,-596 367.5,-596 367.5,-615"/>
 <text text-anchor="middle" x="294.5" y="-603" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::editorsMenu</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_main_window.html#a1d8ba7c48f7b0684a705cdff2b1a3fad" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_main_window.html#a1d8ba7c48f7b0684a705cdff2b1a3fad" target="_top" xlink:title="fitView() as a slot.">
 <polygon fill="white" stroke="#666666" points="359,-578 230,-578 230,-559 359,-559 359,-578"/>
 <text text-anchor="middle" x="294.5" y="-566" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::fitToView</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_main_window.html#a2cfd0971aa8a2a72f60e7213ef421867" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_main_window.html#a2cfd0971aa8a2a72f60e7213ef421867" target="_top" xlink:title="Fits the canvas to the network, or to the preview bounds while a preview shows.">
 <polygon fill="white" stroke="#666666" points="583,-1156 464,-1156 464,-1137 583,-1137 583,-1156"/>
 <text text-anchor="middle" x="523.5" y="-1144" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::fitView</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_main_window.html#af6401b80180a8574e05f043fedea8bfb" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_main_window.html#af6401b80180a8574e05f043fedea8bfb" target="_top" xlink:title="Shows the About dialog.">
 <polygon fill="white" stroke="#666666" points="379,-465 210,-465 210,-446 379,-446 379,-465"/>
 <text text-anchor="middle" x="294.5" y="-453" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::handleHelpAbout</text>
 </a>
@@ -146,7 +146,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12" target="_top" xlink:title="Results of a completed run exist (RunController::hasRunResults()).">
 <polygon fill="white" stroke="#666666" points="602,-19 445,-19 445,0 602,0 602,-19"/>
 <text text-anchor="middle" x="523.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::hasRunResults</text>
 </a>
@@ -164,7 +164,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_main_window.html#ab96f59ad0c19c14c1d01176eb629460a" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_main_window.html#ab96f59ad0c19c14c1d01176eb629460a" target="_top" xlink:title="Writes the Run Results table of the completed run and shows the dock.">
 <polygon fill="white" stroke="#666666" points="381.5,-161 207.5,-161 207.5,-142 381.5,-142 381.5,-161"/>
 <text text-anchor="middle" x="294.5" y="-149" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::refreshRunResults</text>
 </a>
@@ -182,7 +182,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_main_window.html#a647da5369ac34e0cc68a7e6d9e7a410f" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_main_window.html#a647da5369ac34e0cc68a7e6d9e7a410f" target="_top" xlink:title="The last choice of View &gt; Show Passengers, which the start uses when &#45;pax is not given.">
 <polygon fill="white" stroke="#666666" points="392,-124 197,-124 197,-105 392,-105 392,-124"/>
 <text text-anchor="middle" x="294.5" y="-112" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::savedShowPassengers</text>
 </a>
@@ -200,7 +200,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_main_window.html#a02741c67604fffb2cb80ed21aab9cc12" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_main_window.html#a02741c67604fffb2cb80ed21aab9cc12" target="_top" xlink:title="Creates the result views and the Run Results dock.">
 <polygon fill="white" stroke="#666666" points="390,-502 199,-502 199,-483 390,-483 390,-502"/>
 <text text-anchor="middle" x="294.5" y="-490" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::setupRunResultsDock</text>
 </a>
@@ -218,7 +218,7 @@
 <!-- Node167 -->
 <g id="Node000167" class="node">
 <title>Node167</title>
-<g id="a_Node000167"><a xlink:href="class_main_window.html#a42ada5bd809f34d0c4a46837eb440d80" target="_top" xlink:title=" ">
+<g id="a_Node000167"><a xlink:href="class_main_window.html#a42ada5bd809f34d0c4a46837eb440d80" target="_top" xlink:title="On the first show: offers recovery and the case chooser, then the privacy and update questions.">
 <polygon fill="white" stroke="#666666" points="363.5,-428 225.5,-428 225.5,-409 363.5,-409 363.5,-428"/>
 <text text-anchor="middle" x="294.5" y="-416" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::showEvent</text>
 </a>
@@ -236,7 +236,7 @@
 <!-- Node265 -->
 <g id="Node000265" class="node">
 <title>Node265</title>
-<g id="a_Node000265"><a xlink:href="class_main_window.html#ab6e67c46255d672001ef7fd04724892f" target="_top" xlink:title=" ">
+<g id="a_Node000265"><a xlink:href="class_main_window.html#ab6e67c46255d672001ef7fd04724892f" target="_top" xlink:title="Shows the case chooser with the bundled and the recent scenes, and acts on the choice.">
 <polygon fill="white" stroke="#666666" points="616,-390 431,-390 431,-371 616,-371 616,-390"/>
 <text text-anchor="middle" x="523.5" y="-378" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::showStartupChooser</text>
 </a>
@@ -254,7 +254,7 @@
 <!-- Node269 -->
 <g id="Node000269" class="node">
 <title>Node269</title>
-<g id="a_Node000269"><a xlink:href="class_main_window.html#a166de65795210ba03612711a2f0d38f8" target="_top" xlink:title=" ">
+<g id="a_Node000269"><a xlink:href="class_main_window.html#a166de65795210ba03612711a2f0d38f8" target="_top" xlink:title="Enables the diagram entries and the Run Results dock while results exist; disabled entries tell how t...">
 <polygon fill="white" stroke="#666666" points="375,-247.5 214,-247.5 214,-217.5 375,-217.5 375,-247.5"/>
 <text text-anchor="start" x="222" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::updateDiagram</text>
 <text text-anchor="middle" x="294.5" y="-224.5" font-family="Helvetica,sans-Serif" font-size="10.00">Actions</text>
@@ -291,7 +291,7 @@
 <!-- Node275 -->
 <g id="Node000275" class="node">
 <title>Node275</title>
-<g id="a_Node000275"><a xlink:href="class_main_window.html#aa13e39ece777521d3f176155899309a6" target="_top" xlink:title=" ">
+<g id="a_Node000275"><a xlink:href="class_main_window.html#aa13e39ece777521d3f176155899309a6" target="_top" xlink:title="Zooms the canvas in by a factor of 1.15.">
 <polygon fill="white" stroke="#666666" points="355,-87 234,-87 234,-68 355,-68 355,-87"/>
 <text text-anchor="middle" x="294.5" y="-75" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::zoomIn</text>
 </a>
@@ -309,7 +309,7 @@
 <!-- Node276 -->
 <g id="Node000276" class="node">
 <title>Node276</title>
-<g id="a_Node000276"><a xlink:href="class_main_window.html#a21d4700dd4bc51216443a4c788b85892" target="_top" xlink:title=" ">
+<g id="a_Node000276"><a xlink:href="class_main_window.html#a21d4700dd4bc51216443a4c788b85892" target="_top" xlink:title="Zooms the canvas out by a factor of 1.15.">
 <polygon fill="white" stroke="#666666" points="359,-50 230,-50 230,-31 359,-31 359,-50"/>
 <text text-anchor="middle" x="294.5" y="-38" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::zoomOut</text>
 </a>
@@ -381,7 +381,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b" target="_top" xlink:title="The views are a child of window. They do not own runController or host, which have to outlive them.">
 <polygon fill="white" stroke="#666666" points="595,-743 452,-743 452,-724 595,-724 595,-743"/>
 <text text-anchor="middle" x="523.5" y="-731" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::ResultViews</text>
 </a>
@@ -417,7 +417,7 @@
 <!-- Node59 -->
 <g id="Node000059" class="node">
 <title>Node59</title>
-<g id="a_Node000059"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title=" ">
+<g id="a_Node000059"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="1019,-1080 872,-1080 872,-1061 1019,-1061 1019,-1080"/>
 <text text-anchor="middle" x="945.5" y="-1068" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>
@@ -453,7 +453,7 @@
 <!-- Node29 -->
 <g id="Node000029" class="node">
 <title>Node29</title>
-<g id="a_Node000029"><a xlink:href="class_result_views.html#a6654ed2f9732984a4810179a9275addf" target="_top" xlink:title=" ">
+<g id="a_Node000029"><a xlink:href="class_result_views.html#a6654ed2f9732984a4810179a9275addf" target="_top" xlink:title="Asks for the reference route and opens ResultViewName::kTrainPaths.">
 <polygon fill="#fff0f0" stroke="red" points="816,-674.5 675,-674.5 675,-644.5 816,-644.5 816,-674.5"/>
 <text text-anchor="start" x="683" y="-662.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::displayTrain</text>
 <text text-anchor="middle" x="745.5" y="-651.5" font-family="Helvetica,sans-Serif" font-size="10.00">PathDiagrams</text>
@@ -508,7 +508,7 @@
 <!-- Node77 -->
 <g id="Node000077" class="node">
 <title>Node77</title>
-<g id="a_Node000077"><a xlink:href="class_run_controller.html#a9c387653b91bbef62aac81912369ca3b" target="_top" xlink:title=" ">
+<g id="a_Node000077"><a xlink:href="class_run_controller.html#a9c387653b91bbef62aac81912369ca3b" target="_top" xlink:title="Makes the completed run the delay baseline. It has to have no incidents and no entrance delays.">
 <polygon fill="#fff0f0" stroke="red" points="833,-571 658,-571 658,-552 833,-552 833,-571"/>
 <text text-anchor="middle" x="745.5" y="-559" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::setDelayBaseline</text>
 </a>
@@ -544,7 +544,7 @@
 <!-- Node83 -->
 <g id="Node000083" class="node">
 <title>Node83</title>
-<g id="a_Node000083"><a xlink:href="class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78" target="_top" xlink:title=" ">
+<g id="a_Node000083"><a xlink:href="class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78" target="_top" xlink:title="Opens ResultViewName::kCapacityByArea.">
 <polygon fill="#fff0f0" stroke="red" points="832,-988 659,-988 659,-969 832,-969 832,-988"/>
 <text text-anchor="middle" x="745.5" y="-976" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showAreaCapacity</text>
 </a>
@@ -562,7 +562,7 @@
 <!-- Node92 -->
 <g id="Node000092" class="node">
 <title>Node92</title>
-<g id="a_Node000092"><a xlink:href="class_result_views.html#aa9e252a043e4690bee758082e1f58722" target="_top" xlink:title=" ">
+<g id="a_Node000092"><a xlink:href="class_result_views.html#aa9e252a043e4690bee758082e1f58722" target="_top" xlink:title="Asks for the scope and opens ResultViewName::kBlockingTime.">
 <polygon fill="#fff0f0" stroke="red" points="820.5,-950.5 670.5,-950.5 670.5,-920.5 820.5,-920.5 820.5,-950.5"/>
 <text text-anchor="start" x="678.5" y="-938.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showBlocking</text>
 <text text-anchor="middle" x="745.5" y="-927.5" font-family="Helvetica,sans-Serif" font-size="10.00">TimeDiagram</text>
@@ -600,7 +600,7 @@
 <!-- Node142 -->
 <g id="Node000142" class="node">
 <title>Node142</title>
-<g id="a_Node000142"><a xlink:href="class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0" target="_top" xlink:title=" ">
+<g id="a_Node000142"><a xlink:href="class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0" target="_top" xlink:title="Opens ResultViewName::kDelayAnalysis through RunController::openDelayAnalysis().">
 <polygon fill="white" stroke="#666666" points="834.5,-902 656.5,-902 656.5,-883 834.5,-883 834.5,-902"/>
 <text text-anchor="middle" x="745.5" y="-890" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showDelayAnalysis</text>
 </a>
@@ -618,7 +618,7 @@
 <!-- Node143 -->
 <g id="Node000143" class="node">
 <title>Node143</title>
-<g id="a_Node000143"><a xlink:href="class_run_controller.html#a79232c79c291ccc00866c147ea876fc5" target="_top" xlink:title=" ">
+<g id="a_Node000143"><a xlink:href="class_run_controller.html#a79232c79c291ccc00866c147ea876fc5" target="_top" xlink:title="Opens the delay analysis on its baseline comparison.">
 <polygon fill="#fff0f0" stroke="red" points="817,-864.5 674,-864.5 674,-834.5 817,-834.5 817,-864.5"/>
 <text text-anchor="start" x="682" y="-852.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::showDelay</text>
 <text text-anchor="middle" x="745.5" y="-841.5" font-family="Helvetica,sans-Serif" font-size="10.00">Comparison</text>
@@ -637,7 +637,7 @@
 <!-- Node151 -->
 <g id="Node000151" class="node">
 <title>Node151</title>
-<g id="a_Node000151"><a xlink:href="class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071" target="_top" xlink:title=" ">
+<g id="a_Node000151"><a xlink:href="class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071" target="_top" xlink:title="Opens ResultViewName::kDelays.">
 <polygon fill="#fff0f0" stroke="red" points="835,-1080 656,-1080 656,-1061 835,-1061 835,-1080"/>
 <text text-anchor="middle" x="745.5" y="-1068" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showDelayDiagram</text>
 </a>
@@ -655,7 +655,7 @@
 <!-- Node155 -->
 <g id="Node000155" class="node">
 <title>Node155</title>
-<g id="a_Node000155"><a xlink:href="class_result_views.html#aac25495cbc2eeebd47d6343d7494868a" target="_top" xlink:title=" ">
+<g id="a_Node000155"><a xlink:href="class_result_views.html#aac25495cbc2eeebd47d6343d7494868a" target="_top" xlink:title="Opens ResultViewName::kSpeedDistance.">
 <polygon fill="#fff0f0" stroke="red" points="836,-816.5 655,-816.5 655,-786.5 836,-786.5 836,-816.5"/>
 <text text-anchor="start" x="663" y="-804.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showSpeedDistance</text>
 <text text-anchor="middle" x="745.5" y="-793.5" font-family="Helvetica,sans-Serif" font-size="10.00">Diagram</text>
@@ -746,7 +746,7 @@
 <!-- Node36 -->
 <g id="Node000036" class="node">
 <title>Node36</title>
-<g id="a_Node000036"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000036"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="1011,-422 880,-422 880,-403 1011,-403 1011,-422"/>
 <text text-anchor="middle" x="945.5" y="-410" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>
@@ -827,7 +827,7 @@
 <!-- Node171 -->
 <g id="Node000171" class="node">
 <title>Node171</title>
-<g id="a_Node000171"><a xlink:href="class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" target="_top" xlink:title=" ">
+<g id="a_Node000171"><a xlink:href="class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" target="_top" xlink:title="A file was asked to be opened. path is as the request named it.">
 <polygon fill="white" stroke="#666666" points="619,-537 428,-537 428,-518 619,-518 619,-537"/>
 <text text-anchor="middle" x="523.5" y="-525" font-family="Helvetica,sans-Serif" font-size="10.00">OpenRequestRelay::openRequested</text>
 </a>
@@ -881,7 +881,7 @@
 <!-- Node185 -->
 <g id="Node000185" class="node">
 <title>Node185</title>
-<g id="a_Node000185"><a xlink:href="class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" target="_top" xlink:title=" ">
+<g id="a_Node000185"><a xlink:href="class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" target="_top" xlink:title="Runs the scene that the window holds, if it is not running already.">
 <polygon fill="#fff0f0" stroke="red" points="594,-629 453,-629 453,-610 594,-610 594,-629"/>
 <text text-anchor="middle" x="523.5" y="-617" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runCurrent</text>
 </a>
@@ -981,7 +981,7 @@
 <!-- Node266 -->
 <g id="Node000266" class="node">
 <title>Node266</title>
-<g id="a_Node000266"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title=" ">
+<g id="a_Node000266"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ...">
 <polygon fill="#fff0f0" stroke="red" points="823,-409 668,-409 668,-390 823,-390 823,-409"/>
 <text text-anchor="middle" x="745.5" y="-397" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::recentScenes</text>
 </a>

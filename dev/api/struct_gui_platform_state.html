@@ -113,16 +113,24 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_gui_pla
 </div><!--header-->
 <div class="contents">
 
+<p>One station platform at one step.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa3a4f93004bf9dbaf0800aa72fdeb919" id="r_aa3a4f93004bf9dbaf0800aa72fdeb919"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa3a4f93004bf9dbaf0800aa72fdeb919">stationId</a></td></tr>
+<tr class="memdesc:aa3a4f93004bf9dbaf0800aa72fdeb919"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ID of the station.  <br /></td></tr>
 <tr class="memitem:a3089f0bef4d91a80eadb62f7a8167a6d" id="r_a3089f0bef4d91a80eadb62f7a8167a6d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3089f0bef4d91a80eadb62f7a8167a6d">platformId</a></td></tr>
+<tr class="memdesc:a3089f0bef4d91a80eadb62f7a8167a6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ID of the platform within the station.  <br /></td></tr>
 <tr class="memitem:ae8537a3c580e02c7a1a29972cd14c15d" id="r_ae8537a3c580e02c7a1a29972cd14c15d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae8537a3c580e02c7a1a29972cd14c15d">maxVolume</a> = 0</td></tr>
 <tr class="memitem:a70333a52c9b1f35749b82d5b7081a585" id="r_a70333a52c9b1f35749b82d5b7081a585"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a70333a52c9b1f35749b82d5b7081a585">passengerIds</a></td></tr>
+<tr class="memdesc:a70333a52c9b1f35749b82d5b7081a585"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers waiting on the platform, then those who left the network there in the last 5 seconds.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One station platform at one step. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ae8537a3c580e02c7a1a29972cd14c15d" name="ae8537a3c580e02c7a1a29972cd14c15d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae8537a3c580e02c7a1a29972cd14c15d">&#9670;&#160;</a></span>maxVolume</h2>
 
@@ -134,6 +142,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Passengers that the platform holds at most; -1 when the run does not set it. </p>
 
 </div>
 </div>
@@ -149,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The passengers waiting on the platform, then those who left the network there in the last 5 seconds. </p>
+
 </div>
 </div>
 <a id="a3089f0bef4d91a80eadb62f7a8167a6d" name="a3089f0bef4d91a80eadb62f7a8167a6d"></a>
@@ -163,6 +174,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The ID of the platform within the station. </p>
+
 </div>
 </div>
 <a id="aa3a4f93004bf9dbaf0800aa72fdeb919" name="aa3a4f93004bf9dbaf0800aa72fdeb919"></a>
@@ -176,6 +189,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The ID of the station. </p>
 
 </div>
 </div>

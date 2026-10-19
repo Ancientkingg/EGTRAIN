@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Not noexcept: the move of std::unordered_map may allocate in some standard libraries.">
 <polygon fill="#999999" stroke="#666666" points="158,-30 0,-30 0,0 158,0 158,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::GuiReplay</text>
 <text text-anchor="middle" x="79" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">History</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" target="_top" xlink:title="An empty history that keeps at most budgetBytes bytes of accounted payload.">
 <polygon fill="white" stroke="#666666" points="352,-30 194,-30 194,0 352,0 352,-30"/>
 <text text-anchor="start" x="202" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::GuiReplay</text>
 <text text-anchor="middle" x="273" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">History</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" target="_top" xlink:title="The budget of accounted payload, in bytes.">
 <polygon fill="white" stroke="#666666" points="529,-30 388,-30 388,0 529,0 529,-30"/>
 <text text-anchor="start" x="396" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">GuiReplayHistory::budget</text>
 <text text-anchor="middle" x="458.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Bytes</text>

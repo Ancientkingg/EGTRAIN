@@ -119,29 +119,51 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_run_sele
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a2c14443d9fc3d2899751ede640359fec" id="r_a2c14443d9fc3d2899751ede640359fec"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a2c14443d9fc3d2899751ede640359fec">scenarioId</a> () const</td></tr>
 <tr class="memitem:ab52c5a649c5038533dfa9f577df2532c" id="r_ab52c5a649c5038533dfa9f577df2532c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab52c5a649c5038533dfa9f577df2532c">selectScenario</a> (const std::string &amp;id)</td></tr>
+<tr class="memdesc:ab52c5a649c5038533dfa9f577df2532c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects the scenario with the id <span class="tt">id</span>.  <br /></td></tr>
 <tr class="memitem:a9a950b50afa3fc3e9b9aa78806a05b84" id="r_a9a950b50afa3fc3e9b9aa78806a05b84"><td class="memItemLeft"><a class="el" href="struct_scene_scenario.html">SceneScenario</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a9a950b50afa3fc3e9b9aa78806a05b84">selectedScenario</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model) const</td></tr>
 <tr class="memitem:a7e787eb4e3abe94b3768c2bf9c7cf394" id="r_a7e787eb4e3abe94b3768c2bf9c7cf394"><td class="memItemLeft">const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a7e787eb4e3abe94b3768c2bf9c7cf394">selectedScenario</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model) const</td></tr>
+<tr class="memdesc:a7e787eb4e3abe94b3768c2bf9c7cf394"><td class="mdescLeft">&#160;</td><td class="mdescRight">As the overload above, but null for a model without scenarios.  <br /></td></tr>
 <tr class="memitem:a37ab419cebb2ccbcc90e1651cb4553fc" id="r_a37ab419cebb2ccbcc90e1651cb4553fc"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a37ab419cebb2ccbcc90e1651cb4553fc">appliedScenarioId</a> () const</td></tr>
+<tr class="memdesc:a37ab419cebb2ccbcc90e1651cb4553fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario that the latest run used; empty while no run's results are kept.  <br /></td></tr>
 <tr class="memitem:a6a1ba84faa331c70743c2a2aa238557c" id="r_a6a1ba84faa331c70743c2a2aa238557c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6a1ba84faa331c70743c2a2aa238557c">applySelectedScenario</a> ()</td></tr>
+<tr class="memdesc:a6a1ba84faa331c70743c2a2aa238557c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run that is being prepared uses the selected scenario.  <br /></td></tr>
 <tr class="memitem:a620edc3279fdfda66a25feb6bc6dc878" id="r_a620edc3279fdfda66a25feb6bc6dc878"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a620edc3279fdfda66a25feb6bc6dc878">clearAppliedScenario</a> ()</td></tr>
+<tr class="memdesc:a620edc3279fdfda66a25feb6bc6dc878"><td class="mdescLeft">&#160;</td><td class="mdescRight">No run's results are kept.  <br /></td></tr>
 <tr class="memitem:ab27a4e51b2a951d194efa6a724229e77" id="r_ab27a4e51b2a951d194efa6a724229e77"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab27a4e51b2a951d194efa6a724229e77">scenarioRenamed</a> (const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:ab27a4e51b2a951d194efa6a724229e77"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario got another id: it stays selected, and the old id no longer counts as edited.  <br /></td></tr>
 <tr class="memitem:a30b5372bd8a5706cbda5b827422b2789" id="r_a30b5372bd8a5706cbda5b827422b2789"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a30b5372bd8a5706cbda5b827422b2789">scenarioDeleted</a> (const std::string &amp;deletedId, const std::string &amp;nextId)</td></tr>
+<tr class="memdesc:a30b5372bd8a5706cbda5b827422b2789"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario is gone and <span class="tt">nextId</span> is selected in its place.  <br /></td></tr>
 <tr class="memitem:a028b122d6097a640618a77541c0b7f72" id="r_a028b122d6097a640618a77541c0b7f72"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a028b122d6097a640618a77541c0b7f72">isScenarioModified</a> (const std::string &amp;id) const</td></tr>
+<tr class="memdesc:a028b122d6097a640618a77541c0b7f72"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario <span class="tt">id</span> was edited since the scene was saved.  <br /></td></tr>
 <tr class="memitem:a104ddc10eecabee462a9b33c7c4f7786" id="r_a104ddc10eecabee462a9b33c7c4f7786"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a104ddc10eecabee462a9b33c7c4f7786">markScenarioModified</a> (const std::string &amp;id)</td></tr>
+<tr class="memdesc:a104ddc10eecabee462a9b33c7c4f7786"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records that the scenario <span class="tt">id</span> was edited.  <br /></td></tr>
 <tr class="memitem:ad22ee931d645e919585e129f76f94ae5" id="r_ad22ee931d645e919585e129f76f94ae5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad22ee931d645e919585e129f76f94ae5">clearModifiedScenarios</a> ()</td></tr>
+<tr class="memdesc:ad22ee931d645e919585e129f76f94ae5"><td class="mdescLeft">&#160;</td><td class="mdescRight">No scenario counts as edited, as after a save.  <br /></td></tr>
 <tr class="memitem:a8cca816811ab5177645f08407fae64f4" id="r_a8cca816811ab5177645f08407fae64f4"><td class="memItemLeft">const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a8cca816811ab5177645f08407fae64f4">excluded</a> () const</td></tr>
+<tr class="memdesc:a8cca816811ab5177645f08407fae64f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrences that a run leaves out. All others are selected.  <br /></td></tr>
 <tr class="memitem:abe01062c0fb1296c56ff477039d5259c" id="r_abe01062c0fb1296c56ff477039d5259c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#abe01062c0fb1296c56ff477039d5259c">hasExclusions</a> () const</td></tr>
+<tr class="memdesc:abe01062c0fb1296c56ff477039d5259c"><td class="mdescLeft">&#160;</td><td class="mdescRight">At least one occurrence is left out.  <br /></td></tr>
 <tr class="memitem:abaec58a04e1aa529098fdc4e6433ddd4" id="r_abaec58a04e1aa529098fdc4e6433ddd4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#abaec58a04e1aa529098fdc4e6433ddd4">isExcluded</a> (const <a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a> &amp;occurrence) const</td></tr>
+<tr class="memdesc:abaec58a04e1aa529098fdc4e6433ddd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run leaves <span class="tt">occurrence</span> out.  <br /></td></tr>
 <tr class="memitem:a80775767bea52c61e5759b452e19411b" id="r_a80775767bea52c61e5759b452e19411b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a80775767bea52c61e5759b452e19411b">setExcluded</a> (const <a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a> &amp;occurrence, bool excluded)</td></tr>
+<tr class="memdesc:a80775767bea52c61e5759b452e19411b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaves <span class="tt">occurrence</span> out of the run or takes it in again.  <br /></td></tr>
 <tr class="memitem:afbafcaba84f27a6abd22d98255f275d3" id="r_afbafcaba84f27a6abd22d98255f275d3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afbafcaba84f27a6abd22d98255f275d3">includeAll</a> ()</td></tr>
+<tr class="memdesc:afbafcaba84f27a6abd22d98255f275d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects every occurrence.  <br /></td></tr>
 <tr class="memitem:a3d53bdde6173e14c5fc20e0a9851ece5" id="r_a3d53bdde6173e14c5fc20e0a9851ece5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3d53bdde6173e14c5fc20e0a9851ece5">excludeAll</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, double durationSeconds)</td></tr>
+<tr class="memdesc:a3d53bdde6173e14c5fc20e0a9851ece5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaves out every occurrence of the scene over <span class="tt">durationSeconds</span>.  <br /></td></tr>
 <tr class="memitem:a2b2574cfc3e68d492c2c7e54699ba534" id="r_a2b2574cfc3e68d492c2c7e54699ba534"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2b2574cfc3e68d492c2c7e54699ba534">pruneExcluded</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, double durationSeconds)</td></tr>
+<tr class="memdesc:a2b2574cfc3e68d492c2c7e54699ba534"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets exclusions of services that are gone and of occurrences beyond the count of their service.  <br /></td></tr>
 <tr class="memitem:a65a6b2ae345746e7a0cc79d4edee47cb" id="r_a65a6b2ae345746e7a0cc79d4edee47cb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a65a6b2ae345746e7a0cc79d4edee47cb">serviceRenamed</a> (const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:a65a6b2ae345746e7a0cc79d4edee47cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The exclusions of a service follow it to its new id.  <br /></td></tr>
 <tr class="memitem:ae187b0931733c170c2b0e481f177650f" id="r_ae187b0931733c170c2b0e481f177650f"><td class="memItemLeft"><a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae187b0931733c170c2b0e481f177650f">selectedOccurrences</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, double durationSeconds) const</td></tr>
 <tr class="memitem:a14f85e70459ddbe762b362fce0f50106" id="r_a14f85e70459ddbe762b362fce0f50106"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a14f85e70459ddbe762b362fce0f50106">selectedCount</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, double durationSeconds) const</td></tr>
+<tr class="memdesc:a14f85e70459ddbe762b362fce0f50106"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many occurrences over <span class="tt">durationSeconds</span> are selected.  <br /></td></tr>
 <tr class="memitem:aae52f093911598afa2bc3e77db764815" id="r_aae52f093911598afa2bc3e77db764815"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aae52f093911598afa2bc3e77db764815">selectedInPeriodCount</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, double durationSeconds) const</td></tr>
+<tr class="memdesc:aae52f093911598afa2bc3e77db764815"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many of the selected occurrences enter the simulation at or after second 0 and before <span class="tt">durationSeconds</span>.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the next run uses of the scene, apart from the scene itself: the scenario that is selected, the service occurrences that are left out, and the scenarios that have been edited since the scene was saved. It also keeps the scenario of the run whose results are shown. The editors change it, and run control reads it. Occurrences are numbered from 1 within their service, and a duration is in seconds from the base time of the scene. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a37ab419cebb2ccbcc90e1651cb4553fc" name="a37ab419cebb2ccbcc90e1651cb4553fc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a37ab419cebb2ccbcc90e1651cb4553fc">&#9670;&#160;</a></span>appliedScenarioId()</h2>
 
@@ -164,6 +186,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scenario that the latest run used; empty while no run's results are kept. </p>
 
 </div>
 </div>
@@ -190,6 +214,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The run that is being prepared uses the selected scenario. </p>
+
 </div>
 </div>
 <a id="a620edc3279fdfda66a25feb6bc6dc878" name="a620edc3279fdfda66a25feb6bc6dc878"></a>
@@ -214,6 +240,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>No run's results are kept. </p>
 
 </div>
 </div>
@@ -240,6 +268,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>No scenario counts as edited, as after a save. </p>
+
 </div>
 </div>
 <a id="a3d53bdde6173e14c5fc20e0a9851ece5" name="a3d53bdde6173e14c5fc20e0a9851ece5"></a>
@@ -260,6 +290,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Leaves out every occurrence of the scene over <span class="tt">durationSeconds</span>. </p>
 
 </div>
 </div>
@@ -286,6 +318,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The occurrences that a run leaves out. All others are selected. </p>
+
 </div>
 </div>
 <a id="abe01062c0fb1296c56ff477039d5259c" name="abe01062c0fb1296c56ff477039d5259c"></a>
@@ -310,6 +344,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>At least one occurrence is left out. </p>
 
 </div>
 </div>
@@ -336,6 +372,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Selects every occurrence. </p>
+
 </div>
 </div>
 <a id="abaec58a04e1aa529098fdc4e6433ddd4" name="abaec58a04e1aa529098fdc4e6433ddd4"></a>
@@ -360,6 +398,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The run leaves <span class="tt">occurrence</span> out. </p>
 
 </div>
 </div>
@@ -386,6 +426,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The scenario <span class="tt">id</span> was edited since the scene was saved. </p>
+
 </div>
 </div>
 <a id="a104ddc10eecabee462a9b33c7c4f7786" name="a104ddc10eecabee462a9b33c7c4f7786"></a>
@@ -411,6 +453,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Records that the scenario <span class="tt">id</span> was edited. </p>
+
 </div>
 </div>
 <a id="a2b2574cfc3e68d492c2c7e54699ba534" name="a2b2574cfc3e68d492c2c7e54699ba534"></a>
@@ -431,6 +475,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Forgets exclusions of services that are gone and of occurrences beyond the count of their service. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -458,6 +504,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The scenario is gone and <span class="tt">nextId</span> is selected in its place. </p>
+
 </div>
 </div>
 <a id="a2c14443d9fc3d2899751ede640359fec" name="a2c14443d9fc3d2899751ede640359fec"></a>
@@ -482,6 +530,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The id of the scenario that the editors show and the next run uses. It may be empty or name no scenario of the scene; <a class="el" href="#a9a950b50afa3fc3e9b9aa78806a05b84">selectedScenario()</a> then returns the default scenario. </p>
 
 </div>
 </div>
@@ -504,6 +553,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The scenario got another id: it stays selected, and the old id no longer counts as edited. </p>
+
 </div>
 </div>
 <a id="a14f85e70459ddbe762b362fce0f50106" name="a14f85e70459ddbe762b362fce0f50106"></a>
@@ -524,6 +575,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>How many occurrences over <span class="tt">durationSeconds</span> are selected. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -550,6 +603,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>How many of the selected occurrences enter the simulation at or after second 0 and before <span class="tt">durationSeconds</span>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -576,6 +631,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The occurrences that the run selects, as the scene builder takes them. The result is empty when nothing is left out and when the scene has more occurrences than a run can expand; the builder reads an empty selection as every occurrence. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -598,6 +654,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>As the overload above, but null for a model without scenarios. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -620,6 +678,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The selected scenario of <span class="tt">model</span>, or its default scenario when the model has none with the selected id. This overload adds the baseline scenario to a model without scenarios. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -651,6 +710,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Selects the scenario with the id <span class="tt">id</span>. </p>
+
 </div>
 </div>
 <a id="a65a6b2ae345746e7a0cc79d4edee47cb" name="a65a6b2ae345746e7a0cc79d4edee47cb"></a>
@@ -672,6 +733,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The exclusions of a service follow it to its new id. </p>
+
 </div>
 </div>
 <a id="a80775767bea52c61e5759b452e19411b" name="a80775767bea52c61e5759b452e19411b"></a>
@@ -692,6 +755,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Leaves <span class="tt">occurrence</span> out of the run or takes it in again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

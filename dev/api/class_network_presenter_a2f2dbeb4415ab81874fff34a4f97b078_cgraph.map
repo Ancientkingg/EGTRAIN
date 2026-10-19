@@ -26,7 +26,7 @@
 <area shape="poly" id="edge14_Node000010_Node000012" title=" " alt="" coords="426,708,493,722,491,728,425,713"/>
 <area shape="rect" id="Node000018" href="$_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57" title=" " alt="" coords="502,513,697,538"/>
 <area shape="poly" id="edge23_Node000010_Node000018" title=" " alt="" coords="346,669,398,608,434,576,475,548,493,540,495,545,477,553,437,580,402,612,350,672"/>
-<area shape="rect" id="Node000019" href="$_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" title=" " alt="" coords="798,549,978,574"/>
+<area shape="rect" id="Node000019" href="$_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" title="The name of a train in lists and messages: its operating code, or its description when it has none." alt="" coords="798,549,978,574"/>
 <area shape="poly" id="edge25_Node000010_Node000019" title=" " alt="" coords="428,701,496,704,572,700,649,685,686,673,721,656,737,642,745,626,753,608,769,591,798,576,800,581,772,595,757,611,750,628,741,646,724,661,688,678,651,691,573,705,496,710,428,707"/>
 <area shape="rect" id="Node000020" href="$class_network_presenter.html#a02e548dd03d75b02831dc9bc03ceecf6" title=" " alt="" coords="494,835,705,861"/>
 <area shape="poly" id="edge27_Node000010_Node000020" title=" " alt="" coords="366,709,477,778,564,826,561,831,475,782,363,713"/>

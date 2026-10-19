@@ -39,7 +39,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" target="_top" xlink:title="Save: saveSceneToCurrentDir().">
 <polygon fill="white" stroke="#666666" points="330,-1076 188,-1076 188,-1057 330,-1057 330,-1076"/>
 <text text-anchor="middle" x="259" y="-1064" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::saveScene</text>
 </a>

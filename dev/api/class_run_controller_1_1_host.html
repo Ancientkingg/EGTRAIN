@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_run_cont
 </div><!--header-->
 <div class="contents">
 
+<p>What the controller asks of the window, and the points at which it tells the window that the run changed.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_controller_8h_source.html">app/RunController.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for RunController::Host:</div>
@@ -124,45 +127,79 @@ Inheritance diagram for RunController::Host:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a78b59fc86b12c933c50ac6834368e1c4" id="r_a78b59fc86b12c933c50ac6834368e1c4"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#a78b59fc86b12c933c50ac6834368e1c4">~Host</a> ()=default</td></tr>
 <tr class="memitem:a569e501551dfaf659b09c5c39037ac5e" id="r_a569e501551dfaf659b09c5c39037ac5e"><td class="memItemLeft">virtual <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a>&#160;</td><td class="memItemRight"><a class="el" href="#a569e501551dfaf659b09c5c39037ac5e">captureTelemetryOperation</a> () const noexcept=0</td></tr>
+<tr class="memdesc:a569e501551dfaf659b09c5c39037ac5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The telemetry record of the user action that is going on. Its events are dropped when telemetry is off.  <br /></td></tr>
 <tr class="memitem:a678ceb4e368feb4e81313fc1ca10601f" id="r_a678ceb4e368feb4e81313fc1ca10601f"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a678ceb4e368feb4e81313fc1ca10601f">dialogsSuppressed</a> () const =0</td></tr>
+<tr class="memdesc:a678ceb4e368feb4e81313fc1ca10601f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A scripted run has no user to answer a dialog.  <br /></td></tr>
 <tr class="memitem:aebcdc61ae092171b512db918814597e1" id="r_aebcdc61ae092171b512db918814597e1"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aebcdc61ae092171b512db918814597e1">advancedDetailsEnabled</a> () const =0</td></tr>
 <tr class="memitem:a3853fc34b2fe489da51e590a75459365" id="r_a3853fc34b2fe489da51e590a75459365"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a3853fc34b2fe489da51e590a75459365">telemetryActive</a> () const =0</td></tr>
+<tr class="memdesc:a3853fc34b2fe489da51e590a75459365"><td class="mdescLeft">&#160;</td><td class="mdescRight">Telemetry is on, so the run is observed.  <br /></td></tr>
 <tr class="memitem:ac9d0e6f9fa32ea9b176780081e725c2e" id="r_ac9d0e6f9fa32ea9b176780081e725c2e"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="#ac9d0e6f9fa32ea9b176780081e725c2e">stepDelayMs</a> () const =0</td></tr>
+<tr class="memdesc:ac9d0e6f9fa32ea9b176780081e725c2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delay between two steps that the speed slider asks for, in milliseconds.  <br /></td></tr>
 <tr class="memitem:ac1ae47663c0866beef0e63b38490243b" id="r_ac1ae47663c0866beef0e63b38490243b"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#ac1ae47663c0866beef0e63b38490243b">serviceOccurrenceDuration</a> () const =0</td></tr>
 <tr class="memitem:ada37654b29b590493dfb0b84f1e29448" id="r_ada37654b29b590493dfb0b84f1e29448"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="#ada37654b29b590493dfb0b84f1e29448">totalServiceOccurrences</a> () const =0</td></tr>
+<tr class="memdesc:ada37654b29b590493dfb0b84f1e29448"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many service occurrences the scene has in all. 0 while no scene is loaded.  <br /></td></tr>
 <tr class="memitem:a1ad7ef3c9d319539b3e889f55a3ede87" id="r_a1ad7ef3c9d319539b3e889f55a3ede87"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="#a1ad7ef3c9d319539b3e889f55a3ede87">inPeriodServiceOccurrences</a> () const =0</td></tr>
 <tr class="memitem:a35b5ad71672ecfd7a99d37cf81e29395" id="r_a35b5ad71672ecfd7a99d37cf81e29395"><td class="memItemLeft">virtual const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a35b5ad71672ecfd7a99d37cf81e29395">selectedScenario</a> () const =0</td></tr>
+<tr class="memdesc:a35b5ad71672ecfd7a99d37cf81e29395"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario that the editors show. Null when no scene is loaded or the scene has no scenario to select.  <br /></td></tr>
 <tr class="memitem:ae6bca222c58d5f49afe7c6a3fc4b9d8c" id="r_ae6bca222c58d5f49afe7c6a3fc4b9d8c"><td class="memItemLeft">virtual const std::vector&lt; <a class="el" href="struct_scene_incident.html">SceneIncident</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ae6bca222c58d5f49afe7c6a3fc4b9d8c">selectedScenarioIncidents</a> () const =0</td></tr>
+<tr class="memdesc:ae6bca222c58d5f49afe7c6a3fc4b9d8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The incidents of <a class="el" href="#a35b5ad71672ecfd7a99d37cf81e29395" title="The scenario that the editors show. Null when no scene is loaded or the scene has no scenario to sele...">selectedScenario()</a>, or an empty list without one.  <br /></td></tr>
 <tr class="memitem:a9ea4d87189b93a9919aef32f1027a530" id="r_a9ea4d87189b93a9919aef32f1027a530"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a9ea4d87189b93a9919aef32f1027a530">scenarioContext</a> () const =0</td></tr>
+<tr class="memdesc:a9ea4d87189b93a9919aef32f1027a530"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the scenario of the latest run, else of the selected scenario, else "(none)".  <br /></td></tr>
 <tr class="memitem:ae120e2e986823c7807d71a4ad8c67702" id="r_ae120e2e986823c7807d71a4ad8c67702"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ae120e2e986823c7807d71a4ad8c67702">validateScene</a> ()=0</td></tr>
+<tr class="memdesc:ae120e2e986823c7807d71a4ad8c67702"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the text of the fields that are being edited into the document, then validates the scene.  <br /></td></tr>
 <tr class="memitem:a2cb2d90e2b0fe81c786f327267856175" id="r_a2cb2d90e2b0fe81c786f327267856175"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a2cb2d90e2b0fe81c786f327267856175">showLoadedData</a> ()=0</td></tr>
+<tr class="memdesc:a2cb2d90e2b0fe81c786f327267856175"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run review dialog sends the user to the loaded data.  <br /></td></tr>
 <tr class="memitem:a81400b4011c764073f0902d8636a423a" id="r_a81400b4011c764073f0902d8636a423a"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a81400b4011c764073f0902d8636a423a">showValidation</a> ()=0</td></tr>
+<tr class="memdesc:a81400b4011c764073f0902d8636a423a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run review dialog sends the user to the validation messages.  <br /></td></tr>
 <tr class="memitem:a173bff53e7d01f82c2945d7c805cd912" id="r_a173bff53e7d01f82c2945d7c805cd912"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a173bff53e7d01f82c2945d7c805cd912">runPreparing</a> ()=0</td></tr>
+<tr class="memdesc:a173bff53e7d01f82c2945d7c805cd912"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene is about to be prepared. The window shows that and lets the events through.  <br /></td></tr>
 <tr class="memitem:a3547ba101599694cb6feef98be7a42cb" id="r_a3547ba101599694cb6feef98be7a42cb"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a3547ba101599694cb6feef98be7a42cb">teardownForRun</a> ()=0</td></tr>
+<tr class="memdesc:a3547ba101599694cb6feef98be7a42cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene is about to be run: the canvas shows the preview or an earlier run, and ends that.  <br /></td></tr>
 <tr class="memitem:ad0f390c016b254ee43491bae90975d86" id="r_ad0f390c016b254ee43491bae90975d86"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ad0f390c016b254ee43491bae90975d86">invalidateRunResults</a> ()=0</td></tr>
+<tr class="memdesc:ad0f390c016b254ee43491bae90975d86"><td class="mdescLeft">&#160;</td><td class="mdescRight">The results and the status of the earlier run are discarded, and the window shows that.  <br /></td></tr>
 <tr class="memitem:aef774c94d872ca509590bb0277b9472b" id="r_aef774c94d872ca509590bb0277b9472b"><td class="memItemLeft">virtual std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aef774c94d872ca509590bb0277b9472b">timedPreparation</a> (const std::function&lt; std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;()&gt; &amp;prepare, bool &amp;identityOk)=0</td></tr>
 <tr class="memitem:a15a2106233cdc874c980abae696a6592" id="r_a15a2106233cdc874c980abae696a6592"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a15a2106233cdc874c980abae696a6592">sceneActionsChanged</a> ()=0</td></tr>
+<tr class="memdesc:a15a2106233cdc874c980abae696a6592"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the actions of the window enable depends on the scene or on the run, and one of them changed.  <br /></td></tr>
 <tr class="memitem:a270896bbc4c2d22d51942c8669e6d308" id="r_a270896bbc4c2d22d51942c8669e6d308"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a270896bbc4c2d22d51942c8669e6d308">loadedDataChanged</a> ()=0</td></tr>
+<tr class="memdesc:a270896bbc4c2d22d51942c8669e6d308"><td class="mdescLeft">&#160;</td><td class="mdescRight">The loaded data tree shows the status of the run.  <br /></td></tr>
 <tr class="memitem:a5e722fda74b6aa4bbb35408ae9840601" id="r_a5e722fda74b6aa4bbb35408ae9840601"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a5e722fda74b6aa4bbb35408ae9840601">caseLayersChanged</a> ()=0</td></tr>
+<tr class="memdesc:a5e722fda74b6aa4bbb35408ae9840601"><td class="mdescLeft">&#160;</td><td class="mdescRight">The case layers panel shows the case name and the clock time.  <br /></td></tr>
 <tr class="memitem:a4672f11a684489161119eeac1c3bdcd0" id="r_a4672f11a684489161119eeac1c3bdcd0"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a4672f11a684489161119eeac1c3bdcd0">buildRunCanvas</a> ()=0</td></tr>
+<tr class="memdesc:a4672f11a684489161119eeac1c3bdcd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window builds the canvas of the prepared run and fits the view.  <br /></td></tr>
 <tr class="memitem:a2c80cb2bd1017d74b16668184c444759" id="r_a2c80cb2bd1017d74b16668184c444759"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c80cb2bd1017d74b16668184c444759">startupTimingHoldsRun</a> (bool identityOk)=0</td></tr>
 <tr class="memitem:a36bd32d678f9da50e3ccc0ca9a90ecac" id="r_a36bd32d678f9da50e3ccc0ca9a90ecac"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a36bd32d678f9da50e3ccc0ca9a90ecac">setStartOffset</a> (long long seconds)=0</td></tr>
+<tr class="memdesc:a36bd32d678f9da50e3ccc0ca9a90ecac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the clock time at which the simulation starts, in seconds since midnight, and shows it in the train list.  <br /></td></tr>
 <tr class="memitem:a5b3ffb9c9c48d6e979b2f509b89fd40f" id="r_a5b3ffb9c9c48d6e979b2f509b89fd40f"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a5b3ffb9c9c48d6e979b2f509b89fd40f">runStarting</a> ()=0</td></tr>
+<tr class="memdesc:a5b3ffb9c9c48d6e979b2f509b89fd40f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run starts: the window ends the replay of an earlier run and shows the progress.  <br /></td></tr>
 <tr class="memitem:a6d1da25fd40bebcba006deba10966884" id="r_a6d1da25fd40bebcba006deba10966884"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a6d1da25fd40bebcba006deba10966884">workerReady</a> ()=0</td></tr>
+<tr class="memdesc:a6d1da25fd40bebcba006deba10966884"><td class="mdescLeft">&#160;</td><td class="mdescRight">The worker is set up and its thread starts next.  <br /></td></tr>
 <tr class="memitem:ae7a39b77513e161189205e9ec90a8ec9" id="r_ae7a39b77513e161189205e9ec90a8ec9"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ae7a39b77513e161189205e9ec90a8ec9">runPhaseChanged</a> (<a class="el" href="class_run_controller.html#a84d8e766e5645acf304a2da6c186d9e9">RunPhase</a> phase)=0</td></tr>
+<tr class="memdesc:ae7a39b77513e161189205e9ec90a8ec9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pause and Stop mean something while a run exists, and Output Folder only while none does.  <br /></td></tr>
 <tr class="memitem:a94b759a2b996672d9a83e1fbd3fc4cf7" id="r_a94b759a2b996672d9a83e1fbd3fc4cf7"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a94b759a2b996672d9a83e1fbd3fc4cf7">runPanelsChanged</a> ()=0</td></tr>
+<tr class="memdesc:a94b759a2b996672d9a83e1fbd3fc4cf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The editors, the infrastructure dock and the actions follow the run state.  <br /></td></tr>
 <tr class="memitem:a6be248ba5049d37456201ba77fe34c36" id="r_a6be248ba5049d37456201ba77fe34c36"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a6be248ba5049d37456201ba77fe34c36">playbackEnded</a> ()=0</td></tr>
+<tr class="memdesc:a6be248ba5049d37456201ba77fe34c36"><td class="mdescLeft">&#160;</td><td class="mdescRight">The worker is gone, so the transient states of the canvas end.  <br /></td></tr>
 <tr class="memitem:ac6a2b527747f2dbca31b5f8573c04984" id="r_ac6a2b527747f2dbca31b5f8573c04984"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#ac6a2b527747f2dbca31b5f8573c04984">endFollowing</a> ()=0</td></tr>
+<tr class="memdesc:ac6a2b527747f2dbca31b5f8573c04984"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops following a train. Returns whether a train was followed.  <br /></td></tr>
 <tr class="memitem:acc528508ac7eb2ea42df953ce44506eb" id="r_acc528508ac7eb2ea42df953ce44506eb"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#acc528508ac7eb2ea42df953ce44506eb">resultsKept</a> ()=0</td></tr>
+<tr class="memdesc:acc528508ac7eb2ea42df953ce44506eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run kept results, which the Run Results dock shows.  <br /></td></tr>
 <tr class="memitem:a90e2ce561d5339e23979249aab98bb65" id="r_a90e2ce561d5339e23979249aab98bb65"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a90e2ce561d5339e23979249aab98bb65">resultsDiscarded</a> (bool stoppedByUser, bool sceneChangedDuringRun)=0</td></tr>
+<tr class="memdesc:a90e2ce561d5339e23979249aab98bb65"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run kept no results. The Run Results dock says why and hides.  <br /></td></tr>
 <tr class="memitem:a26ed84c2238ba840be0f7738d0929e82" id="r_a26ed84c2238ba840be0f7738d0929e82"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a26ed84c2238ba840be0f7738d0929e82">runFinished</a> ()=0</td></tr>
 <tr class="memitem:aa2e82ae857deb94ecb4a17d336564637" id="r_aa2e82ae857deb94ecb4a17d336564637"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#aa2e82ae857deb94ecb4a17d336564637">runProgressEnded</a> ()=0</td></tr>
+<tr class="memdesc:aa2e82ae857deb94ecb4a17d336564637"><td class="mdescLeft">&#160;</td><td class="mdescRight">The progress of the run is no longer shown.  <br /></td></tr>
 <tr class="memitem:a996e770cb19194b829508996708ac9bc" id="r_a996e770cb19194b829508996708ac9bc"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a996e770cb19194b829508996708ac9bc">replayReady</a> (<a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> history)=0</td></tr>
+<tr class="memdesc:a996e770cb19194b829508996708ac9bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The history of the finished run, which the window can replay.  <br /></td></tr>
 <tr class="memitem:a7548c0377e50fd9998942b6ba3ff1b2d" id="r_a7548c0377e50fd9998942b6ba3ff1b2d"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a7548c0377e50fd9998942b6ba3ff1b2d">runEnded</a> ()=0</td></tr>
+<tr class="memdesc:a7548c0377e50fd9998942b6ba3ff1b2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window follows the trains of the finished run again and enables what the run disabled.  <br /></td></tr>
 <tr class="memitem:a7a881b11ef464a031fc29c59dd78c146" id="r_a7a881b11ef464a031fc29c59dd78c146"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a7a881b11ef464a031fc29c59dd78c146">runSettled</a> ()=0</td></tr>
+<tr class="memdesc:a7a881b11ef464a031fc29c59dd78c146"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window has done everything for the run.  <br /></td></tr>
 <tr class="memitem:ac379a041a7ece9d4b711e6acdd8c0a5c" id="r_ac379a041a7ece9d4b711e6acdd8c0a5c"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ac379a041a7ece9d4b711e6acdd8c0a5c">delayBaselineChanged</a> ()=0</td></tr>
+<tr class="memdesc:ac379a041a7ece9d4b711e6acdd8c0a5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delay baseline changed, so the Run Results dock and the diagram actions follow.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the controller asks of the window, and the points at which it tells the window that the run changed. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a78b59fc86b12c933c50ac6834368e1c4" name="a78b59fc86b12c933c50ac6834368e1c4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a78b59fc86b12c933c50ac6834368e1c4">&#9670;&#160;</a></span>~Host()</h2>
 
@@ -211,6 +248,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The user asked for advanced details: the run review shows the validation counts, the incident and entrance delay configuration, and the buttons to the loaded data and the validation messages. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -241,6 +279,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The window builds the canvas of the prepared run and fits the view. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -272,6 +312,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The telemetry record of the user action that is going on. Its events are dropped when telemetry is off. </p>
+
 </div>
 </div>
 <a id="a5e722fda74b6aa4bbb35408ae9840601" name="a5e722fda74b6aa4bbb35408ae9840601"></a>
@@ -296,6 +338,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The case layers panel shows the case name and the clock time. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -326,6 +370,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The delay baseline changed, so the Run Results dock and the diagram actions follow. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -356,6 +402,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A scripted run has no user to answer a dialog. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -386,6 +434,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Stops following a train. Returns whether a train was followed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -416,6 +466,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>How many service occurrences enter inside the period of <a class="el" href="#ac1ae47663c0866beef0e63b38490243b">serviceOccurrenceDuration()</a>. 0 while no scene is loaded. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -446,6 +497,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The results and the status of the earlier run are discarded, and the window shows that. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -476,6 +529,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The loaded data tree shows the status of the run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -506,6 +561,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The worker is gone, so the transient states of the canvas end. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -536,6 +593,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The history of the finished run, which the window can replay. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -570,6 +629,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The run kept no results. The Run Results dock says why and hides. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -600,6 +661,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The run kept results, which the Run Results dock shows. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -630,6 +693,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The window follows the trains of the finished run again and enables what the run disabled. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -660,6 +725,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The run is over and its results are kept or discarded. Returns true when a scripted run has ended the run for the window, which then does nothing more. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -690,6 +756,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The editors, the infrastructure dock and the actions follow the run state. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -720,6 +788,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Pause and Stop mean something while a run exists, and Output Folder only while none does. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -750,6 +820,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scene is about to be prepared. The window shows that and lets the events through. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -780,6 +852,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The progress of the run is no longer shown. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -810,6 +884,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The window has done everything for the run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -840,6 +916,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The run starts: the window ends the replay of an earlier run and shows the progress. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -870,6 +948,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The name of the scenario of the latest run, else of the selected scenario, else "(none)". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -900,6 +980,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What the actions of the window enable depends on the scene or on the run, and one of them changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -930,6 +1012,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scenario that the editors show. Null when no scene is loaded or the scene has no scenario to select. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -960,6 +1044,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The incidents of <a class="el" href="#a35b5ad71672ecfd7a99d37cf81e29395" title="The scenario that the editors show. Null when no scene is loaded or the scene has no scenario to sele...">selectedScenario()</a>, or an empty list without one. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -990,6 +1076,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The time over which the occurrences of the services are counted, in seconds: the duration of the command line, of the scene, or the horizon computed from the services. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1020,6 +1107,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Sets the clock time at which the simulation starts, in seconds since midnight, and shows it in the train list. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1050,6 +1139,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The run review dialog sends the user to the loaded data. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1080,6 +1171,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The run review dialog sends the user to the validation messages. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1110,6 +1203,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Startup timing, when it is on, takes the prepared run over: it returns true, and the run does not start. It returns false when startup timing is off. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1140,6 +1234,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The delay between two steps that the speed slider asks for, in milliseconds. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1170,6 +1266,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scene is about to be run: the canvas shows the preview or an earlier run, and ends that. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1200,6 +1298,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Telemetry is on, so the run is observed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1234,6 +1334,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Calls <span class="tt">prepare</span>, which builds the run of the scene in the simulation, and measures it when startup timing is on. <span class="tt">identityOk</span> tells whether startup timing found the scene that it expects before and after; it is true when startup timing is off. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1264,6 +1365,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>How many service occurrences the scene has in all. 0 while no scene is loaded. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1294,6 +1397,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the text of the fields that are being edited into the document, then validates the scene. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1324,6 +1429,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The worker is set up and its thread starts next. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

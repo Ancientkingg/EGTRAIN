@@ -1,5 +1,5 @@
 <map id="SceneSession::saveScene" name="SceneSession::saveScene">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,411,195,436"/>
+<area shape="rect" id="Node000001" title="Save: saveSceneToCurrentDir()." alt="" coords="5,411,195,436"/>
 <area shape="rect" id="Node000002" href="$class_scene_session.html#a205a27ef46c6c6a132d0fd9c790afd14" title=" " alt="" coords="243,403,445,443"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,429,229,430,229,435,195,435"/>
 <area shape="poly" id="edge8_Node000002_Node000001" title=" " alt="" coords="242,417,209,417,209,412,242,412"/>

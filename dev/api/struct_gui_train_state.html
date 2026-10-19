@@ -118,27 +118,42 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_gui_tra
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab60a6fca27bdec3cad19a9c32d15f377" id="r_ab60a6fca27bdec3cad19a9c32d15f377"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab60a6fca27bdec3cad19a9c32d15f377">index</a> = -1</td></tr>
+<tr class="memdesc:ab60a6fca27bdec3cad19a9c32d15f377"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the train in the trains of the run, from 0.  <br /></td></tr>
 <tr class="memitem:a456446466ea6fb3738265ae832b324e3" id="r_a456446466ea6fb3738265ae832b324e3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a456446466ea6fb3738265ae832b324e3">id</a> = 0.0</td></tr>
+<tr class="memdesc:a456446466ea6fb3738265ae832b324e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ID number of the train in the simulation.  <br /></td></tr>
 <tr class="memitem:a8c60725c4a81ac0108bf4b2998baaa77" id="r_a8c60725c4a81ac0108bf4b2998baaa77"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8c60725c4a81ac0108bf4b2998baaa77">type</a></td></tr>
 <tr class="memitem:a4fef031312c9e68b9353e56207cb4ed4" id="r_a4fef031312c9e68b9353e56207cb4ed4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4fef031312c9e68b9353e56207cb4ed4">description</a></td></tr>
 <tr class="memitem:af49938cbe2bbc385c02da2eb70066685" id="r_af49938cbe2bbc385c02da2eb70066685"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af49938cbe2bbc385c02da2eb70066685">operatingCode</a></td></tr>
+<tr class="memdesc:af49938cbe2bbc385c02da2eb70066685"><td class="mdescLeft">&#160;</td><td class="mdescRight">The operating code of the occurrence, or empty when it has none.  <br /></td></tr>
 <tr class="memitem:a5a13bed0009f4527060cd89f64090830" id="r_a5a13bed0009f4527060cd89f64090830"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a5a13bed0009f4527060cd89f64090830">serviceId</a></td></tr>
 <tr class="memitem:af1012b642ad69c34b3a6b61938493c8c" id="r_af1012b642ad69c34b3a6b61938493c8c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af1012b642ad69c34b3a6b61938493c8c">occurrence</a> = 1</td></tr>
+<tr class="memdesc:af1012b642ad69c34b3a6b61938493c8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrence of the service that this train runs, counted from 1.  <br /></td></tr>
 <tr class="memitem:a3f4fb8fb102552479d966a1fccb1a554" id="r_a3f4fb8fb102552479d966a1fccb1a554"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3f4fb8fb102552479d966a1fccb1a554">routeIndex</a> = -1</td></tr>
+<tr class="memdesc:a3f4fb8fb102552479d966a1fccb1a554"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the route of the run that the train drives, or -1.  <br /></td></tr>
 <tr class="memitem:ab50b689d7f31ee0513f13345812284dc" id="r_ab50b689d7f31ee0513f13345812284dc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab50b689d7f31ee0513f13345812284dc">reversedDirection</a> = false</td></tr>
+<tr class="memdesc:ab50b689d7f31ee0513f13345812284dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train drives its route against the direction in which it is defined.  <br /></td></tr>
 <tr class="memitem:a5ee1afb9e0d5bd0bc90f1c0e5caa240a" id="r_a5ee1afb9e0d5bd0bc90f1c0e5caa240a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a5ee1afb9e0d5bd0bc90f1c0e5caa240a">wagonCount</a> = 0</td></tr>
+<tr class="memdesc:a5ee1afb9e0d5bd0bc90f1c0e5caa240a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wagons behind the traction unit, which is not counted.  <br /></td></tr>
 <tr class="memitem:ad48e4f14c96c71c8b2015ea6b99eb2f4" id="r_ad48e4f14c96c71c8b2015ea6b99eb2f4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad48e4f14c96c71c8b2015ea6b99eb2f4">length</a> = 0.0</td></tr>
+<tr class="memdesc:ad48e4f14c96c71c8b2015ea6b99eb2f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the train, in metres.  <br /></td></tr>
 <tr class="memitem:a8836f6c87043f0a40cabd35ae26a14e4" id="r_a8836f6c87043f0a40cabd35ae26a14e4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8836f6c87043f0a40cabd35ae26a14e4">departureTime</a> = 0</td></tr>
+<tr class="memdesc:a8836f6c87043f0a40cabd35ae26a14e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Step at which the train may enter, in seconds.  <br /></td></tr>
 <tr class="memitem:aeae500dd776cdd09d319f20d97ded0f7" id="r_aeae500dd776cdd09d319f20d97ded0f7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aeae500dd776cdd09d319f20d97ded0f7">outOfSimulation</a> = false</td></tr>
 <tr class="memitem:a77ac848598e3d1fd14e40e24aa4d8ff9" id="r_a77ac848598e3d1fd14e40e24aa4d8ff9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a77ac848598e3d1fd14e40e24aa4d8ff9">routeAxisPosition</a> = -9999.0</td></tr>
 <tr class="memitem:a50001db89cfcc69616a24ea28efe2b7c" id="r_a50001db89cfcc69616a24ea28efe2b7c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a50001db89cfcc69616a24ea28efe2b7c">speedKmh</a> = 0.0</td></tr>
+<tr class="memdesc:a50001db89cfcc69616a24ea28efe2b7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed, in km/h.  <br /></td></tr>
 <tr class="memitem:a43a878047eb80daa6e10a592b9b25ca4" id="r_a43a878047eb80daa6e10a592b9b25ca4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a43a878047eb80daa6e10a592b9b25ca4">currentOnboardPassengers</a> = 0</td></tr>
+<tr class="memdesc:a43a878047eb80daa6e10a592b9b25ca4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Passengers on board.  <br /></td></tr>
 <tr class="memitem:a524fb5cd1d2e0da3b99e1df2b8a8704c" id="r_a524fb5cd1d2e0da3b99e1df2b8a8704c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a524fb5cd1d2e0da3b99e1df2b8a8704c">maxOnboardPassengers</a> = 0</td></tr>
 <tr class="memitem:aecd7fbec18cd663621cdad2247ddcea3" id="r_aecd7fbec18cd663621cdad2247ddcea3"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aecd7fbec18cd663621cdad2247ddcea3">wagonHeadPositions</a></td></tr>
 <tr class="memitem:a55c9942802ef1becb2a8f05e9d96bdf2" id="r_a55c9942802ef1becb2a8f05e9d96bdf2"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a55c9942802ef1becb2a8f05e9d96bdf2">wagonTailPositions</a></td></tr>
+<tr class="memdesc:a55c9942802ef1becb2a8f05e9d96bdf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The X coordinate of the rear of each vehicle, in the order and units of wagonHeadPositions.  <br /></td></tr>
 <tr class="memitem:ada804b44ecff9bd7f3741c44d240c737" id="r_ada804b44ecff9bd7f3741c44d240c737"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_occupied_arc.html">GuiOccupiedArc</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ada804b44ecff9bd7f3741c44d240c737">occupiedArcs</a></td></tr>
+<tr class="memdesc:ada804b44ecff9bd7f3741c44d240c737"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arcs of the block section that the train occupies. Empty once the train has left the simulation.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One train at one step, as the window, the replay and the live stream show it. Steps and times are seconds from the start of the run. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a43a878047eb80daa6e10a592b9b25ca4" name="a43a878047eb80daa6e10a592b9b25ca4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a43a878047eb80daa6e10a592b9b25ca4">&#9670;&#160;</a></span>currentOnboardPassengers</h2>
 
@@ -150,6 +165,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Passengers on board. </p>
 
 </div>
 </div>
@@ -165,6 +182,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Step at which the train may enter, in seconds. </p>
+
 </div>
 </div>
 <a id="a4fef031312c9e68b9353e56207cb4ed4" name="a4fef031312c9e68b9353e56207cb4ed4"></a>
@@ -178,6 +197,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The name of the train in the simulation, or "None" when unset. A run built from a scene uses the service ID and the occurrence, as "S1-2". </p>
 
 </div>
 </div>
@@ -193,6 +213,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The ID number of the train in the simulation. </p>
+
 </div>
 </div>
 <a id="ab60a6fca27bdec3cad19a9c32d15f377" name="ab60a6fca27bdec3cad19a9c32d15f377"></a>
@@ -206,6 +228,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Position of the train in the trains of the run, from 0. </p>
 
 </div>
 </div>
@@ -221,6 +245,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Length of the train, in metres. </p>
+
 </div>
 </div>
 <a id="a524fb5cd1d2e0da3b99e1df2b8a8704c" name="a524fb5cd1d2e0da3b99e1df2b8a8704c"></a>
@@ -234,6 +260,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Passengers that the train can carry. </p>
 
 </div>
 </div>
@@ -249,6 +276,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The arcs of the block section that the train occupies. Empty once the train has left the simulation. </p>
+
 </div>
 </div>
 <a id="af1012b642ad69c34b3a6b61938493c8c" name="af1012b642ad69c34b3a6b61938493c8c"></a>
@@ -262,6 +291,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Occurrence of the service that this train runs, counted from 1. </p>
 
 </div>
 </div>
@@ -277,6 +308,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The operating code of the occurrence, or empty when it has none. </p>
+
 </div>
 </div>
 <a id="aeae500dd776cdd09d319f20d97ded0f7" name="aeae500dd776cdd09d319f20d97ded0f7"></a>
@@ -290,6 +323,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The train has passed the end of its route and left the simulation. </p>
 
 </div>
 </div>
@@ -305,6 +339,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The train drives its route against the direction in which it is defined. </p>
+
 </div>
 </div>
 <a id="a77ac848598e3d1fd14e40e24aa4d8ff9" name="a77ac848598e3d1fd14e40e24aa4d8ff9"></a>
@@ -318,6 +354,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Position of the head along the route, in metres. -9999 at the step at which the train leaves the route; later steps are not written and hold 0, so test outOfSimulation instead. -9999 when there is no route or the step lies outside the trajectory. </p>
 
 </div>
 </div>
@@ -333,6 +370,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index of the route of the run that the train drives, or -1. </p>
+
 </div>
 </div>
 <a id="a5a13bed0009f4527060cd89f64090830" name="a5a13bed0009f4527060cd89f64090830"></a>
@@ -346,6 +385,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The ID of the service in the scene. </p>
 
 </div>
 </div>
@@ -361,6 +401,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Speed, in km/h. </p>
+
 </div>
 </div>
 <a id="a8c60725c4a81ac0108bf4b2998baaa77" name="a8c60725c4a81ac0108bf4b2998baaa77"></a>
@@ -374,6 +416,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The type of the train. A run built from a scene uses the service ID. </p>
 
 </div>
 </div>
@@ -389,6 +432,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Wagons behind the traction unit, which is not counted. </p>
+
 </div>
 </div>
 <a id="aecd7fbec18cd663621cdad2247ddcea3" name="aecd7fbec18cd663621cdad2247ddcea3"></a>
@@ -402,6 +447,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The X coordinate of the front of each vehicle, traction unit first, in kilometres. -1 for a front that is on no section of the route. Empty when there is no route or the step lies outside the trajectory. At the step at which the train leaves, every entry is -1. </p>
 
 </div>
 </div>
@@ -416,6 +462,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The X coordinate of the rear of each vehicle, in the order and units of wagonHeadPositions. </p>
 
 </div>
 </div>

@@ -1,6 +1,6 @@
 <map id="ResultViews::showTractiveEffortDistanceDiagram" name="ResultViews::showTractiveEffortDistanceDiagram">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,432,200,472"/>
-<area shape="rect" id="Node000002" href="$class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50" title=" " alt="" coords="248,432,443,472"/>
+<area shape="rect" id="Node000001" title="Opens ResultViewName::kTractiveEffortDistance." alt="" coords="5,432,200,472"/>
+<area shape="rect" id="Node000002" href="$class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50" title="Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance,..." alt="" coords="248,432,443,472"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,449,234,449,234,455,200,455"/>
 <area shape="rect" id="Node000003" href="$struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" title="The value of series at a sample index, or empty when the series has no such sample." alt="" coords="802,26,979,51"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="344,431,350,358,358,308,370,254,388,199,413,145,446,97,489,57,529,33,573,17,619,8,666,4,755,8,830,20,829,26,755,13,666,9,620,13,574,22,531,38,492,61,451,100,418,148,393,201,375,255,363,309,355,358,350,432"/>
@@ -26,7 +26,7 @@
 <area shape="poly" id="edge22_Node000002_Node000018" title=" " alt="" coords="359,471,410,551,448,598,492,639,521,657,551,670,549,675,518,661,489,643,444,602,406,554,355,473"/>
 <area shape="rect" id="Node000021" href="$class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" title="A click on a series selected this train." alt="" coords="502,726,725,751"/>
 <area shape="poly" id="edge28_Node000002_Node000021" title=" " alt="" coords="354,472,369,522,396,588,415,622,437,656,463,686,492,713,500,717,497,722,489,717,459,690,433,659,410,625,391,590,364,523,349,473"/>
-<area shape="rect" id="Node000023" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title=" " alt="" coords="515,799,711,825"/>
+<area shape="rect" id="Node000023" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="515,799,711,825"/>
 <area shape="poly" id="edge30_Node000002_Node000023" title=" " alt="" coords="353,472,367,528,394,606,412,648,435,689,461,728,492,762,516,780,544,792,541,797,514,784,489,766,457,731,430,692,407,650,389,608,362,530,348,473"/>
 <area shape="rect" id="Node000024" href="$_run_exports_8cpp.html#aef3655f13c5de447c146b76cd0783430" title=" " alt="" coords="542,95,685,121"/>
 <area shape="poly" id="edge32_Node000002_Node000024" title=" " alt="" coords="347,431,359,371,383,289,402,245,426,203,454,164,489,130,507,119,528,111,529,116,510,123,492,134,458,167,430,206,407,248,388,291,364,372,352,432"/>

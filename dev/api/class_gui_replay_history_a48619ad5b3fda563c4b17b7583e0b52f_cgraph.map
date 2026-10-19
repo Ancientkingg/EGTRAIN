@@ -1,14 +1,14 @@
 <map id="GuiReplayHistory::operator=" name="GuiReplayHistory::operator=">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,215,95"/>
-<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#a8e7c0b98d6d98890ee9569fcb94b8406" title=" " alt="" coords="531,70,706,95"/>
+<area shape="rect" id="Node000001" title="Not noexcept, as the move constructor." alt="" coords="5,70,215,95"/>
+<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#a8e7c0b98d6d98890ee9569fcb94b8406" title="Drops every frame and resets the truncated and oversize flags. The budget stays." alt="" coords="531,70,706,95"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,80,517,80,517,85,215,85"/>
-<area shape="rect" id="Node000003" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title=" " alt="" coords="263,5,473,45"/>
+<area shape="rect" id="Node000003" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title="An empty history that keeps at most budgetBytes bytes of accounted payload." alt="" coords="263,5,473,45"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,67,264,46,265,51,169,73"/>
 <area shape="rect" id="Node000005" href="$class_gui_replay_history.html#a9164eb444e4713ef8918f5e91619531a" title=" " alt="" coords="276,121,460,146"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="176,93,290,115,289,121,175,98"/>
-<area shape="rect" id="Node000004" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title=" " alt="" coords="525,5,713,45"/>
+<area shape="rect" id="Node000004" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes." alt="" coords="525,5,713,45"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="473,23,511,23,511,28,473,28"/>
 <area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="431,118,542,95,543,101,432,123"/>
-<area shape="rect" id="Node000006" href="$class_gui_replay_history.html#a8d9254b9de5abe7b8bf9702530e06a13" title=" " alt="" coords="521,120,716,160"/>
+<area shape="rect" id="Node000006" href="$class_gui_replay_history.html#a8d9254b9de5abe7b8bf9702530e06a13" title="Accounted payload of the frames, layouts and string table, in bytes." alt="" coords="521,120,716,160"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="460,133,507,134,507,140,460,138"/>
 </map>

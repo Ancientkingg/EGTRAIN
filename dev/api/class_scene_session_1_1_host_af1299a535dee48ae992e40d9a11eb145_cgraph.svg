@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The scene was written. The session holds its new location and the record of what was written.">
 <polygon fill="#999999" stroke="#666666" points="112,-30 0,-30 0,0 112,0 112,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::Host</text>
 <text text-anchor="middle" x="56" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::sceneSaved</text>
@@ -48,7 +48,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_scene_session.html#ae84d74862a356ef7781631f6a98c41cb" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_scene_session.html#ae84d74862a356ef7781631f6a98c41cb" target="_top" xlink:title="Marks the entries of the menu whose scene is gone as unavailable, and the others as available.">
 <polygon fill="white" stroke="#666666" points="498,-30 340,-30 340,0 498,0 498,-30"/>
 <text text-anchor="start" x="348" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::refreshRecent</text>
 <text text-anchor="middle" x="419" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneAvailability</text>

@@ -131,6 +131,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:scene_5Fsave_5Fpolicy" id="r_scene_5Fsave_5Fpolicy"><td class="memItemLeft">namespace &#160;</td><td class="memItemRight"><a class="el" href="namespacescene__save__policy.html">scene_save_policy</a></td></tr>
+<tr class="memdesc:namespacescene__save__policy"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path helpers of <a class="el" href="#a9a9a7226bd3f4dcae503800dae27fff2">isInstalledScenePath()</a>. <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -165,6 +166,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Whether <span class="tt">path</span> lies in a folder of installed scenes beside <span class="tt">applicationDir</span> (Scenes, ../Resources/Scenes or ../share/EGTRAIN/Scenes), where a scene must not be saved. Only application-relative installed namespaces are protected, not CWD/Scenes. Case-only siblings are deliberately protected even on case-sensitive volumes. An installed-root symlink also protects its target, including an aliased checkout. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

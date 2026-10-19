@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0" target="_top" xlink:title="Marks the section as failed in both directions where it has an entry.">
 <polygon fill="white" stroke="#666666" points="327.5,-341.5 221.5,-341.5 221.5,-311.5 327.5,-311.5 327.5,-341.5"/>
 <text text-anchor="start" x="229.5" y="-329.5" font-family="Helvetica,sans-Serif" font-size="10.00">GuiSignalStateList</text>
 <text text-anchor="middle" x="274.5" y="-318.5" font-family="Helvetica,sans-Serif" font-size="10.00">::fail</text>
@@ -67,7 +67,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_gui_simulation_snapshot_8h.html#aa8c73afe282056bcc3e3e43d7ec87539" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_gui_simulation_snapshot_8h.html#aa8c73afe282056bcc3e3e43d7ec87539" target="_top" xlink:title="A train in the simulation reports the arcs that it occupies; one that has left does not.">
 <polygon fill="white" stroke="#666666" points="358,-209 191,-209 191,-190 358,-190 358,-209"/>
 <text text-anchor="middle" x="274.5" y="-197" font-family="Helvetica,sans-Serif" font-size="10.00">guiTrainPublishesOccupiedArcs</text>
 </a>
@@ -122,7 +122,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f" target="_top" xlink:title="The entries in the order of their first copy. The list is empty afterwards.">
 <polygon fill="white" stroke="#666666" points="327.5,-85.5 221.5,-85.5 221.5,-55.5 327.5,-55.5 327.5,-85.5"/>
 <text text-anchor="start" x="229.5" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">GuiSignalStateList</text>
 <text text-anchor="middle" x="274.5" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">::take</text>
@@ -177,7 +177,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a" target="_top" xlink:title="level is a signalling level from 0 to 5.">
 <polygon fill="white" stroke="#666666" points="504.5,-193 397.5,-193 397.5,-174 504.5,-174 504.5,-193"/>
 <text text-anchor="middle" x="451" y="-181" font-family="Helvetica,sans-Serif" font-size="10.00">guiSignalHasLevel</text>
 </a>

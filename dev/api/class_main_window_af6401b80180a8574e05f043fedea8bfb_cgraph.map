@@ -1,5 +1,5 @@
 <map id="MainWindow::handleHelpAbout" name="MainWindow::handleHelpAbout">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,231,132"/>
+<area shape="rect" id="Node000001" title="Shows the About dialog." alt="" coords="5,107,231,132"/>
 <area shape="rect" id="Node000002" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title=" " alt="" coords="279,107,469,132"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,117,265,117,265,122,231,122"/>
 <area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="517,107,673,132"/>

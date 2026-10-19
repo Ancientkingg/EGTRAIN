@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Opens ResultViewName::kSpeedDistance.">
 <polygon fill="#999999" stroke="#666666" points="181,-349.5 0,-349.5 0,-319.5 181,-319.5 181,-349.5"/>
 <text text-anchor="start" x="8" y="-337.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::showSpeedDistance</text>
 <text text-anchor="middle" x="90.5" y="-326.5" font-family="Helvetica,sans-Serif" font-size="10.00">Diagram</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50" target="_top" xlink:title="Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance,...">
 <polygon fill="white" stroke="#666666" points="363,-349.5 217,-349.5 217,-319.5 363,-319.5 363,-349.5"/>
 <text text-anchor="start" x="225" y="-337.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::buildPerTrain</text>
 <text text-anchor="middle" x="290" y="-326.5" font-family="Helvetica,sans-Serif" font-size="10.00">Diagram</text>
@@ -257,7 +257,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="564.5,-74 417.5,-74 417.5,-55 564.5,-55 564.5,-74"/>
 <text text-anchor="middle" x="491" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>

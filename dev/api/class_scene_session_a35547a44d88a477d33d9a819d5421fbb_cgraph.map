@@ -1,12 +1,12 @@
 <map id="SceneSession::newScene" name="SceneSession::newScene">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,397,191,423"/>
-<area shape="rect" id="Node000002" href="$class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" title=" " alt="" coords="239,397,473,423"/>
+<area shape="rect" id="Node000001" title="Asks about unsaved changes, then replaces the scene with a new one." alt="" coords="5,397,191,423"/>
+<area shape="rect" id="Node000002" href="$class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" title="Asks whether to save unsaved changes. Returns false when the user cancels or the save fails." alt="" coords="239,397,473,423"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,407,225,407,225,413,191,413"/>
 <area shape="rect" id="Node000003" href="$class_scene_session.html#a205a27ef46c6c6a132d0fd9c790afd14" title=" " alt="" coords="521,390,724,430"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="474,407,508,407,508,413,474,413"/>
 <area shape="rect" id="Node000004" href="$_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2" title=" " alt="" coords="789,344,945,369"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="714,387,794,370,795,375,715,393"/>
-<area shape="rect" id="Node000007" href="$class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" title=" " alt="" coords="772,397,961,423"/>
+<area shape="rect" id="Node000007" href="$class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" title="Save: saveSceneToCurrentDir()." alt="" coords="772,397,961,423"/>
 <area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="724,416,758,416,758,422,724,422"/>
 <area shape="rect" id="Node000008" href="$_scene_bundle_8cpp.html#a77860ae8ab5ac8c3caaec90a7f78c47b" title=" " alt="" coords="798,476,935,501"/>
 <area shape="poly" id="edge11_Node000003_Node000008" title=" " alt="" coords="686,428,814,469,812,474,685,433"/>

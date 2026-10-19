@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Opens the dialog for a new stop after the selected one." alt="" coords="5,455,188,495"/>
 <area shape="rect" id="Node000002" href="$class_timetable_stops_panel.html#a941b09af5dd90dde75763d75499de31f" title=" " alt="" coords="236,455,395,495"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,472,222,472,222,478,188,478"/>
-<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="762,490,917,516"/>
+<area shape="rect" id="Node000003" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="762,490,917,516"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="395,476,748,495,748,501,395,482"/>
 <area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="453,54,651,80"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="314,454,319,385,336,286,352,232,374,180,403,131,441,89,446,85,449,89,445,93,408,134,379,182,357,234,341,287,324,385,319,455"/>

@@ -292,7 +292,7 @@
 <!-- Node39 -->
 <g id="Node000039" class="node">
 <title>Node39</title>
-<g id="a_Node000039"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000039"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="340.5,-375 209.5,-375 209.5,-356 340.5,-356 340.5,-375"/>
 <text text-anchor="middle" x="275" y="-363" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>
@@ -1381,7 +1381,7 @@
 <!-- Node57 -->
 <g id="Node000057" class="node">
 <title>Node57</title>
-<g id="a_Node000057"><a xlink:href="namespacepath__message.html#a2fa855a973b8110677b06dea96187af9" target="_top" xlink:title=" ">
+<g id="a_Node000057"><a xlink:href="namespacepath__message.html#a2fa855a973b8110677b06dea96187af9" target="_top" xlink:title="A write that failed. what completes &quot;Could not&quot;, for example &quot;write the image to&quot;.">
 <polygon fill="#fff0f0" stroke="red" points="567.5,-19 420.5,-19 420.5,0 567.5,0 567.5,-19"/>
 <text text-anchor="middle" x="494" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">path_message::writeFailed</text>
 </a>

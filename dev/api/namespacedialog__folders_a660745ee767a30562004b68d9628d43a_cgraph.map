@@ -1,5 +1,5 @@
 <map id="dialog_folders::openStartFolder" name="dialog_folders::openStartFolder">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,73,191,113"/>
+<area shape="rect" id="Node000001" title="openStartFolder() with the home folder of the user and, on macOS only, the example cases of this prog..." alt="" coords="5,73,191,113"/>
 <area shape="rect" id="Node000002" href="$namespacedialog__folders.html#aa1f36163d18d6b6bdf0d453c5a410b03" title=" " alt="" coords="242,29,421,69"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,73,228,66,229,71,192,78"/>
 <area shape="rect" id="Node000003" href="$namespacedialog__folders.html#a4c2f846210d5f53a8896ee6ce164d79d" title=" " alt="" coords="239,117,424,157"/>

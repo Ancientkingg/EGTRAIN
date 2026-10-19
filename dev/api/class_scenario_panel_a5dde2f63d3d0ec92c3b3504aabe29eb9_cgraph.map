@@ -59,7 +59,7 @@
 <area shape="rect" id="Node000019" href="$_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" title="An incident id that is free across all scenarios." alt="" coords="618,535,789,560"/>
 <area shape="poly" id="edge30_Node000018_Node000019" title=" " alt="" coords="492,498,632,529,631,534,491,503"/>
 <area shape="poly" id="edge31_Node000019_Node000019" title=" " alt="" coords="657,537,646,526,652,516,671,510,703,508,745,512,757,517,760,524,755,526,753,521,744,517,703,513,672,515,655,520,652,526,660,533"/>
-<area shape="rect" id="Node000021" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="616,869,791,895"/>
+<area shape="rect" id="Node000021" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title="The message of the first error among the diagnostics, else of the first diagnostic,..." alt="" coords="616,869,791,895"/>
 <area shape="poly" id="edge34_Node000020_Node000021" title=" " alt="" coords="510,879,603,879,603,885,510,885"/>
 <area shape="rect" id="Node000022" href="$_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" title="Writes one scenario as a standalone scenario file, replacing the file at filePath." alt="" coords="635,1065,771,1091"/>
 <area shape="poly" id="edge36_Node000020_Node000022" title=" " alt="" coords="512,890,538,905,552,920,559,936,564,967,568,998,574,1013,586,1028,608,1045,634,1058,632,1063,605,1050,582,1032,570,1016,563,999,559,967,554,937,547,923,534,909,509,895"/>
@@ -101,7 +101,7 @@
 <area shape="rect" id="Node000034" href="$namespacedialog__folders.html#a743abe238a3901e58b6b21d034570fa3" title=" " alt="" coords="899,940,1091,965"/>
 <area shape="poly" id="edge59_Node000033_Node000034" title=" " alt="" coords="775,989,909,965,910,970,776,995"/>
 <area shape="poly" id="edge64_Node000034_Node000034" title=" " alt="" coords="950,942,941,932,946,922,964,915,995,913,1034,917,1045,922,1048,928,1044,931,1041,926,1033,923,995,919,965,921,949,926,946,931,954,938"/>
-<area shape="rect" id="Node000035" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title=" " alt="" coords="1167,940,1373,965"/>
+<area shape="rect" id="Node000035" href="$namespacedialog__folders.html#a1f901052fcaaebd130bf771f02b270eb" title="The folder that holds the case at casePath, a scene folder or a bundle, or the empty string." alt="" coords="1167,940,1373,965"/>
 <area shape="poly" id="edge60_Node000034_Node000035" title=" " alt="" coords="1091,950,1153,950,1153,955,1091,955"/>
 <area shape="rect" id="Node000038" href="$namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242" title=" " alt="" coords="1167,867,1373,892"/>
 <area shape="poly" id="edge62_Node000034_Node000038" title=" " alt="" coords="1037,937,1166,901,1199,893,1200,898,1167,906,1039,942"/>

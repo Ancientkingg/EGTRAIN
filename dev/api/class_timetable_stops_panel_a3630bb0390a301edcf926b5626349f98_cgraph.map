@@ -21,7 +21,7 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,722,437,704,523,655,525,660,440,708,394,727"/>
 <area shape="rect" id="Node000027" href="$_stop_insertion_8cpp.html#ad83550cbe065ba3ce8e55ec06fc255b1" title=" " alt="" coords="703,603,902,628"/>
 <area shape="poly" id="edge66_Node000002_Node000027" title=" " alt="" coords="408,722,645,659,746,630,747,635,646,665,410,727"/>
-<area shape="rect" id="Node000004" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title=" " alt="" coords="1013,668,1167,693"/>
+<area shape="rect" id="Node000004" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="1013,668,1167,693"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="646,635,999,669,999,675,645,640"/>
 <area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="704,995,901,1020"/>
 <area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="577,649,648,840,658,880,663,913,672,943,695,973,714,987,711,991,691,977,667,945,658,915,653,881,643,841,572,651"/>

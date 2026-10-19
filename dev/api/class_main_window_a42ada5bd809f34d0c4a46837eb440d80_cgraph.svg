@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="On the first show: offers recovery and the case chooser, then the privacy and update questions.">
 <polygon fill="#999999" stroke="#666666" points="138,-614 0,-614 0,-595 138,-595 138,-614"/>
 <text text-anchor="middle" x="69" y="-602" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::showEvent</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="976,-547 845,-547 845,-528 976,-528 976,-547"/>
 <text text-anchor="middle" x="910.5" y="-535" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" target="_top" xlink:title="A file was asked to be opened. path is as the request named it.">
 <polygon fill="white" stroke="#666666" points="365,-539 174,-539 174,-520 365,-520 365,-539"/>
 <text text-anchor="middle" x="269.5" y="-527" font-family="Helvetica,sans-Serif" font-size="10.00">OpenRequestRelay::openRequested</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" target="_top" xlink:title="Runs the scene that the window holds, if it is not running already.">
 <polygon fill="white" stroke="#666666" points="340,-772 199,-772 199,-753 340,-753 340,-772"/>
 <text text-anchor="middle" x="269.5" y="-760" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runCurrent</text>
 </a>
@@ -146,7 +146,7 @@
 <!-- Node102 -->
 <g id="Node000102" class="node">
 <title>Node102</title>
-<g id="a_Node000102"><a xlink:href="class_main_window.html#ab6e67c46255d672001ef7fd04724892f" target="_top" xlink:title=" ">
+<g id="a_Node000102"><a xlink:href="class_main_window.html#ab6e67c46255d672001ef7fd04724892f" target="_top" xlink:title="Shows the case chooser with the bundled and the recent scenes, and acts on the choice.">
 <polygon fill="white" stroke="#666666" points="362,-576 177,-576 177,-557 362,-557 362,-576"/>
 <text text-anchor="middle" x="269.5" y="-564" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::showStartupChooser</text>
 </a>
@@ -597,7 +597,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" target="_top" xlink:title="Asks to review the run, prepares the scene, builds the canvas and starts the simulation.">
 <polygon fill="white" stroke="#666666" points="561.5,-889 427.5,-889 427.5,-870 561.5,-870 561.5,-889"/>
 <text text-anchor="middle" x="494.5" y="-877" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::runScene</text>
 </a>
@@ -633,7 +633,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" target="_top" xlink:title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day.">
 <polygon fill="white" stroke="#666666" points="764,-833 648,-833 648,-814 764,-814 764,-833"/>
 <text text-anchor="middle" x="706" y="-821" font-family="Helvetica,sans-Serif" font-size="10.00">baseTimeToSeconds</text>
 </a>
@@ -724,7 +724,7 @@
 <!-- Node31 -->
 <g id="Node000031" class="node">
 <title>Node31</title>
-<g id="a_Node000031"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title=" ">
+<g id="a_Node000031"><a xlink:href="_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" target="_top" xlink:title="The message of the first error among the diagnostics, else of the first diagnostic,...">
 <polygon fill="white" stroke="#666666" points="771.5,-1190 640.5,-1190 640.5,-1171 771.5,-1171 771.5,-1190"/>
 <text text-anchor="middle" x="706" y="-1178" font-family="Helvetica,sans-Serif" font-size="10.00">firstDiagnosticMessage</text>
 </a>
@@ -779,7 +779,7 @@
 <!-- Node67 -->
 <g id="Node000067" class="node">
 <title>Node67</title>
-<g id="a_Node000067"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title=" ">
+<g id="a_Node000067"><a xlink:href="class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" target="_top" xlink:title="The next run writes to the folder of the scene sceneName, unless the user chose a folder.">
 <polygon fill="white" stroke="#666666" points="780,-795.5 632,-795.5 632,-765.5 780,-765.5 780,-795.5"/>
 <text text-anchor="start" x="640" y="-783.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::selectScene</text>
 <text text-anchor="middle" x="706" y="-772.5" font-family="Helvetica,sans-Serif" font-size="10.00">OutputFolder</text>
@@ -798,7 +798,7 @@
 <!-- Node71 -->
 <g id="Node000071" class="node">
 <title>Node71</title>
-<g id="a_Node000071"><a xlink:href="class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" target="_top" xlink:title=" ">
+<g id="a_Node000071"><a xlink:href="class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" target="_top" xlink:title="Starts the run on a worker thread. The scene has to be prepared.">
 <polygon fill="#fff0f0" stroke="red" points="788,-707 624,-707 624,-688 788,-688 788,-707"/>
 <text text-anchor="middle" x="706" y="-695" font-family="Helvetica,sans-Serif" font-size="10.00">RunController::startSimulation</text>
 </a>
@@ -1255,7 +1255,7 @@
 <!-- Node103 -->
 <g id="Node000103" class="node">
 <title>Node103</title>
-<g id="a_Node000103"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title=" ">
+<g id="a_Node000103"><a xlink:href="class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" target="_top" xlink:title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ...">
 <polygon fill="white" stroke="#666666" points="572,-529 417,-529 417,-510 572,-510 572,-529"/>
 <text text-anchor="middle" x="494.5" y="-517" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::recentScenes</text>
 </a>

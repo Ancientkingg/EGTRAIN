@@ -1,6 +1,6 @@
 <map id="SceneSession::importLegacyCase" name="SceneSession::importLegacyCase">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,1415,245,1440"/>
-<area shape="rect" id="Node000002" href="$class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" title=" " alt="" coords="603,5,796,31"/>
+<area shape="rect" id="Node000002" href="$class_scene_session.html#a28dd1440e510aa147ff9f9aa0291de9d" title="The messages of the last validation of the scene." alt="" coords="603,5,796,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,1414,139,1227,170,907,193,733,221,569,253,430,271,373,291,329,322,274,351,230,382,193,414,162,449,134,489,107,591,48,624,33,626,38,593,52,492,112,452,138,417,166,385,196,356,233,326,277,296,331,276,375,258,431,226,570,198,734,176,908,144,1228,130,1415"/>
 <area shape="rect" id="Node000003" href="$_scene_importer_8cpp.html#a18f5a3a9059fe1b30f1dbcf15e252c09" title=" " alt="" coords="343,1385,494,1411"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="245,1413,329,1404,330,1410,246,1418"/>
@@ -10,9 +10,9 @@
 <area shape="poly" id="edge119_Node000001_Node000073" title=" " alt="" coords="159,1438,221,1461,294,1485,333,1492,368,1493,432,1489,461,1489,490,1495,518,1510,546,1536,561,1566,571,1614,577,1678,580,1754,580,1936,575,2139,569,2343,568,2526,575,2667,583,2716,594,2746,610,2762,630,2775,627,2779,606,2767,590,2749,577,2717,569,2668,562,2526,564,2343,570,2139,575,1936,575,1755,572,1678,565,1615,556,1568,542,1540,515,1514,488,1500,461,1495,432,1494,368,1499,332,1497,293,1490,219,1466,157,1443"/>
 <area shape="rect" id="Node000074" href="$class_scene_session.html#a60fb95c2ec11308fef83757ca7fb640c" title=" " alt="" coords="316,342,521,382"/>
 <area shape="poly" id="edge111_Node000001_Node000074" title=" " alt="" coords="127,1414,184,1144,233,936,291,721,351,535,402,394,407,395,356,537,296,723,239,937,189,1146,132,1415"/>
-<area shape="rect" id="Node000075" href="$class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" title=" " alt="" coords="301,1551,536,1576"/>
+<area shape="rect" id="Node000075" href="$class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" title="Asks whether to save unsaved changes. Returns false when the user cancels or the save fails." alt="" coords="301,1551,536,1576"/>
 <area shape="poly" id="edge114_Node000001_Node000075" title=" " alt="" coords="145,1438,208,1482,250,1507,294,1529,340,1545,339,1550,292,1534,248,1512,206,1487,142,1442"/>
-<area shape="rect" id="Node000092" href="$class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" title=" " alt="" coords="293,1624,544,1649"/>
+<area shape="rect" id="Node000092" href="$class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" title="Opens the scene folder or bundle at dir now. The scene stays as it was when this returns false." alt="" coords="293,1624,544,1649"/>
 <area shape="poly" id="edge115_Node000001_Node000092" title=" " alt="" coords="139,1438,201,1507,245,1548,295,1585,327,1603,361,1617,359,1622,325,1608,292,1590,242,1552,197,1510,135,1442"/>
 <area shape="rect" id="Node000093" href="$struct_scene_import_result.html#a9848e0b36b8807c64adb0cf0031b629f" title="True when wroteScene is set and no diagnostic is an error." alt="" coords="342,1435,495,1475"/>
 <area shape="poly" id="edge117_Node000001_Node000093" title=" " alt="" coords="246,1436,329,1444,328,1449,245,1441"/>

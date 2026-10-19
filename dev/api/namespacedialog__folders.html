@@ -119,14 +119,19 @@ Functions</h2></td></tr>
 <tr class="memitem:a89df3db14c75cb7ac0d4a9e999ccde1d" id="r_a89df3db14c75cb7ac0d4a9e999ccde1d"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a89df3db14c75cb7ac0d4a9e999ccde1d">absolute</a> (const QString &amp;normalizedPath)</td></tr>
 <tr class="memitem:ae19dff647096a30a99da1bb19ea46242" id="r_ae19dff647096a30a99da1bb19ea46242"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae19dff647096a30a99da1bb19ea46242">inInstallation</a> (const QString &amp;path, const QString &amp;applicationDir)</td></tr>
 <tr class="memitem:a1f901052fcaaebd130bf771f02b270eb" id="r_a1f901052fcaaebd130bf771f02b270eb"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a1f901052fcaaebd130bf771f02b270eb">folderOfCase</a> (const QString &amp;casePath)</td></tr>
+<tr class="memdesc:a1f901052fcaaebd130bf771f02b270eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The folder that holds the case at <span class="tt">casePath</span>, a scene folder or a bundle, or the empty string.  <br /></td></tr>
 <tr class="memitem:a743abe238a3901e58b6b21d034570fa3" id="r_a743abe238a3901e58b6b21d034570fa3"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a743abe238a3901e58b6b21d034570fa3">startFolder</a> (const QString &amp;casePath, const QString &amp;applicationDir, const QString &amp;documentsDir, const QString &amp;homeDir)</td></tr>
 <tr class="memitem:a67c6efa24fd00113d4923d693077c716" id="r_a67c6efa24fd00113d4923d693077c716"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a67c6efa24fd00113d4923d693077c716">startFolder</a> (const QString &amp;casePath=QString())</td></tr>
+<tr class="memdesc:a67c6efa24fd00113d4923d693077c716"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#a743abe238a3901e58b6b21d034570fa3">startFolder()</a> with the folder of this program, the Documents folder of the user when it exists, and the home folder.  <br /></td></tr>
 <tr class="memitem:aa1f36163d18d6b6bdf0d453c5a410b03" id="r_aa1f36163d18d6b6bdf0d453c5a410b03"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa1f36163d18d6b6bdf0d453c5a410b03">installedScenesFolder</a> (const QString &amp;applicationDir)</td></tr>
 <tr class="memitem:a4c2f846210d5f53a8896ee6ce164d79d" id="r_a4c2f846210d5f53a8896ee6ce164d79d"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder</a> (const QString &amp;sceneDir, const QString &amp;installedScenes, const QString &amp;homeDir)</td></tr>
 <tr class="memitem:a660745ee767a30562004b68d9628d43a" id="r_a660745ee767a30562004b68d9628d43a"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a660745ee767a30562004b68d9628d43a">openStartFolder</a> (const QString &amp;sceneDir=QString())</td></tr>
+<tr class="memdesc:a660745ee767a30562004b68d9628d43a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder()</a> with the home folder of the user and, on macOS only, the example cases of this program.  <br /></td></tr>
 <tr class="memitem:ad02cf64edfe889f9f3910239062b46b8" id="r_ad02cf64edfe889f9f3910239062b46b8"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad02cf64edfe889f9f3910239062b46b8">suggestedPath</a> (const QString &amp;fileName, const QString &amp;casePath=QString())</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The folder in which a file dialog starts. A dialog that is given only a file name starts in the working directory, which is the installation folder when EGTRAIN is started from the Start Menu. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a89df3db14c75cb7ac0d4a9e999ccde1d" name="a89df3db14c75cb7ac0d4a9e999ccde1d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a89df3db14c75cb7ac0d4a9e999ccde1d">&#9670;&#160;</a></span>absolute()</h2>
 
@@ -149,6 +154,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The absolute form of a path that <a class="el" href="#ab86e736f34d54930599b38b2b6e4120e">normalized()</a> gave. A path that starts with a slash or a drive letter stays as it is; any other is taken relative to the working directory. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -179,6 +185,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The folder that holds the case at <span class="tt">casePath</span>, a scene folder or a bundle, or the empty string. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -213,6 +221,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Whether the path is the installation folder, which holds the program and the example scenes, or lies inside it or inside a folder of installed scenes. Letter case and the kind of slash do not matter. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -243,6 +252,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The folder with the installed example cases, or the empty string when there is none. It looks in Scenes, ../Resources/Scenes and ../share/EGTRAIN/Scenes beside <span class="tt">applicationDir</span>, in this order. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -273,6 +283,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The path with the slashes of Windows turned into forward slashes and the dots resolved, so a path that arrives with backslashes compares in the same way as one that Qt spells with slashes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -312,6 +323,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The folder in which the Open Case Study and Open Scene Folder dialogs start: the folder above the open case, or with no case open the example cases when <span class="tt">installedScenes</span> is given, otherwise the home folder. On macOS a native open dialog that started in the home folder made macOS ask for access to Desktop, Documents and Downloads before it could be used; one that starts inside the application bundle asks nothing. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -342,6 +354,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="#a4c2f846210d5f53a8896ee6ce164d79d">openStartFolder()</a> with the home folder of the user and, on macOS only, the example cases of this program. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -386,6 +400,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The folder that holds the open case when that lies outside the installation, otherwise Documents, otherwise the home folder. <span class="tt">casePath</span> is empty when no case is open. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -416,6 +431,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="#a743abe238a3901e58b6b21d034570fa3">startFolder()</a> with the folder of this program, the Documents folder of the user when it exists, and the home folder. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -450,6 +467,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The start path for a save dialog: <a class="el" href="#a743abe238a3901e58b6b21d034570fa3">startFolder()</a> with the suggested file name in it, or the folder alone when <span class="tt">fileName</span> is empty. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -1,12 +1,12 @@
 <map id="SceneSession::requestOpenScene" name="SceneSession::requestOpenScene">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,390,208,430"/>
-<area shape="rect" id="Node000002" href="$class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" title=" " alt="" coords="256,397,491,423"/>
+<area shape="rect" id="Node000001" title="requestOpenScene() as part of the telemetry operation operation." alt="" coords="5,390,208,430"/>
+<area shape="rect" id="Node000002" href="$class_scene_session.html#a1670c6348436d746a13f02d8a1c488ba" title="Asks whether to save unsaved changes. Returns false when the user cancels or the save fails." alt="" coords="256,397,491,423"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,407,242,407,242,413,208,413"/>
 <area shape="rect" id="Node000003" href="$class_scene_session.html#a205a27ef46c6c6a132d0fd9c790afd14" title=" " alt="" coords="539,390,741,430"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="491,407,525,407,525,413,491,413"/>
 <area shape="rect" id="Node000004" href="$_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2" title=" " alt="" coords="806,344,962,369"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="731,387,812,370,813,375,732,393"/>
-<area shape="rect" id="Node000007" href="$class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" title=" " alt="" coords="789,397,979,423"/>
+<area shape="rect" id="Node000007" href="$class_scene_session.html#ad789e2f74a0b509076306e3eede54c80" title="Save: saveSceneToCurrentDir()." alt="" coords="789,397,979,423"/>
 <area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="742,416,776,416,776,422,742,422"/>
 <area shape="rect" id="Node000008" href="$_scene_bundle_8cpp.html#a77860ae8ab5ac8c3caaec90a7f78c47b" title=" " alt="" coords="815,476,953,501"/>
 <area shape="poly" id="edge11_Node000003_Node000008" title=" " alt="" coords="704,428,831,469,830,474,702,433"/>

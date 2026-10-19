@@ -113,20 +113,33 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_gui_sim
 </div><!--header-->
 <div class="contents">
 
+<p>The state of a run at one step: what the canvas, the panels, the replay and the live stream show.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1f762f2e92b76e4e309674e99748ecd4" id="r_a1f762f2e92b76e4e309674e99748ecd4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1f762f2e92b76e4e309674e99748ecd4">timestep</a> = 0</td></tr>
+<tr class="memdesc:a1f762f2e92b76e4e309674e99748ecd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The step, in seconds from the start of the run.  <br /></td></tr>
 <tr class="memitem:ad6ad88ed89d37e2cd4db2f3dfd599a0a" id="r_ad6ad88ed89d37e2cd4db2f3dfd599a0a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad6ad88ed89d37e2cd4db2f3dfd599a0a">totalTimesteps</a> = 0</td></tr>
+<tr class="memdesc:ad6ad88ed89d37e2cd4db2f3dfd599a0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of steps of the run, which is its duration in seconds.  <br /></td></tr>
 <tr class="memitem:a72b57fbb118f5b479088e8543565fe82" id="r_a72b57fbb118f5b479088e8543565fe82"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a72b57fbb118f5b479088e8543565fe82">trains</a></td></tr>
+<tr class="memdesc:a72b57fbb118f5b479088e8543565fe82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every train of the run, in the order of the run.  <br /></td></tr>
 <tr class="memitem:aa7f2b21aa3cc09fff44e394133303d34" id="r_aa7f2b21aa3cc09fff44e394133303d34"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_signal_state.html">GuiSignalState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa7f2b21aa3cc09fff44e394133303d34">signalStates</a></td></tr>
+<tr class="memdesc:aa7f2b21aa3cc09fff44e394133303d34"><td class="mdescLeft">&#160;</td><td class="mdescRight">One entry per section ID and direction.  <br /></td></tr>
 <tr class="memitem:a0fde0120f11f7ac6f708640a3b1a362d" id="r_a0fde0120f11f7ac6f708640a3b1a362d"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_section_state.html">GuiSectionState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0fde0120f11f7ac6f708640a3b1a362d">sectionStates</a></td></tr>
+<tr class="memdesc:a0fde0120f11f7ac6f708640a3b1a362d"><td class="mdescLeft">&#160;</td><td class="mdescRight">One entry per section ID, ordered by ID.  <br /></td></tr>
 <tr class="memitem:a00c152ab6525ebf6defc35a61588056b" id="r_a00c152ab6525ebf6defc35a61588056b"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_platform_state.html">GuiPlatformState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a00c152ab6525ebf6defc35a61588056b">platforms</a></td></tr>
+<tr class="memdesc:a00c152ab6525ebf6defc35a61588056b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every platform of the run.  <br /></td></tr>
 <tr class="memitem:ad52a590088cd49d39bd7d68b5f203743" id="r_ad52a590088cd49d39bd7d68b5f203743"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_passenger_state.html">GuiPassengerState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad52a590088cd49d39bd7d68b5f203743">passengers</a></td></tr>
+<tr class="memdesc:ad52a590088cd49d39bd7d68b5f203743"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every passenger of the run.  <br /></td></tr>
 <tr class="memitem:a712f9b19dc62f48a30f05f5f38118864" id="r_a712f9b19dc62f48a30f05f5f38118864"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_gui_virtual_coupling_state.html">GuiVirtualCouplingState</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a712f9b19dc62f48a30f05f5f38118864">virtualCouplingMessages</a></td></tr>
+<tr class="memdesc:a712f9b19dc62f48a30f05f5f38118864"><td class="mdescLeft">&#160;</td><td class="mdescRight">The messages of the last 40 seconds.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The state of a run at one step: what the canvas, the panels, the replay and the live stream show. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ad52a590088cd49d39bd7d68b5f203743" name="ad52a590088cd49d39bd7d68b5f203743"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad52a590088cd49d39bd7d68b5f203743">&#9670;&#160;</a></span>passengers</h2>
 
@@ -138,6 +151,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Every passenger of the run. </p>
 
 </div>
 </div>
@@ -153,6 +168,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Every platform of the run. </p>
+
 </div>
 </div>
 <a id="a0fde0120f11f7ac6f708640a3b1a362d" name="a0fde0120f11f7ac6f708640a3b1a362d"></a>
@@ -166,6 +183,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>One entry per section ID, ordered by ID. </p>
 
 </div>
 </div>
@@ -181,6 +200,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>One entry per section ID and direction. </p>
+
 </div>
 </div>
 <a id="a1f762f2e92b76e4e309674e99748ecd4" name="a1f762f2e92b76e4e309674e99748ecd4"></a>
@@ -194,6 +215,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The step, in seconds from the start of the run. </p>
 
 </div>
 </div>
@@ -209,6 +232,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The number of steps of the run, which is its duration in seconds. </p>
+
 </div>
 </div>
 <a id="a72b57fbb118f5b479088e8543565fe82" name="a72b57fbb118f5b479088e8543565fe82"></a>
@@ -223,6 +248,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Every train of the run, in the order of the run. </p>
+
 </div>
 </div>
 <a id="a712f9b19dc62f48a30f05f5f38118864" name="a712f9b19dc62f48a30f05f5f38118864"></a>
@@ -236,6 +263,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The messages of the last 40 seconds. </p>
 
 </div>
 </div>

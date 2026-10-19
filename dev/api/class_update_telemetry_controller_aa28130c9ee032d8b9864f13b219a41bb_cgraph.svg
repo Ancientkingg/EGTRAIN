@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Opens the privacy dialog. The first prompt opens only when the consent is still to be given.">
 <polygon fill="#999999" stroke="#666666" points="149,-149 0,-149 0,-119 149,-119 149,-149"/>
 <text text-anchor="start" x="8" y="-137" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateTelemetryController</text>
 <text text-anchor="middle" x="74.5" y="-126" font-family="Helvetica,sans-Serif" font-size="10.00">::showPrivacySettings</text>
@@ -94,7 +94,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" target="_top" xlink:title="The one set of hooks of the process: free functions read it, and main builds one MainWindow.">
 <polygon fill="white" stroke="#666666" points="329.5,-67.5 198.5,-67.5 198.5,-48.5 329.5,-48.5 329.5,-67.5"/>
 <text text-anchor="middle" x="264" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">mainWindowTestHooks</text>
 </a>

@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_main_window_support_8h.html#a706c77c6df51d8e708c3a2cef2831a7f" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_main_window_support_8h.html#a706c77c6df51d8e708c3a2cef2831a7f" target="_top" xlink:title="The incident IDs joined with &quot;;&quot;.">
 <polygon fill="white" stroke="#666666" points="264,-129 176,-129 176,-110 264,-110 264,-129"/>
 <text text-anchor="middle" x="220" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">joinIncidentIds</text>
 </a>

@@ -1,8 +1,8 @@
 <map id="SceneSession::openSceneDirectory" name="SceneSession::openSceneDirectory">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,969,256,994"/>
+<area shape="rect" id="Node000001" title="openSceneDirectory() as part of the telemetry operation operation, for a scene of the origin origin." alt="" coords="5,969,256,994"/>
 <area shape="rect" id="Node000002" href="$classtelemetry_1_1_operation_observation.html#a2db562cb6e4d6783eb276f421a01dc07" title=" " alt="" coords="311,1083,547,1123"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,992,220,1029,305,1068,328,1076,326,1081,303,1073,218,1034,152,997"/>
-<area shape="rect" id="Node000004" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="342,572,517,597"/>
+<area shape="rect" id="Node000004" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title="The message of the first error among the diagnostics, else of the first diagnostic,..." alt="" coords="342,572,517,597"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="131,968,143,903,173,804,195,750,224,697,259,648,302,606,327,592,330,597,306,610,263,651,228,700,200,752,178,806,149,904,136,969"/>
 <area shape="rect" id="Node000005" href="$_run_results_8cpp.html#ad21c06972d1d8dc61ccce5ecd60a423f" title="SHA&#45;256 in hex of a scene input snapshot, empty for an empty snapshot." alt="" coords="337,645,522,670"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="133,968,149,914,182,835,205,792,232,750,265,712,302,679,322,668,325,673,306,684,269,716,237,754,209,795,187,837,154,916,138,970"/>
@@ -10,9 +10,9 @@
 <area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="145,967,401,750,404,755,149,971"/>
 <area shape="rect" id="Node000030" href="$_scene_compatibility_8cpp.html#ac1955238f3fae287668574b442b6b074" title=" " alt="" coords="627,1144,814,1169"/>
 <area shape="poly" id="edge94_Node000001_Node000030" title=" " alt="" coords="147,967,219,920,269,892,326,868,386,850,446,844,475,846,504,853,531,864,556,881,579,906,589,932,590,959,587,986,583,1014,583,1042,589,1070,605,1099,629,1120,658,1136,656,1141,626,1125,601,1102,584,1072,577,1043,578,1014,582,985,585,958,583,933,574,908,553,885,528,869,502,858,475,851,446,849,387,856,328,873,272,897,221,924,150,971"/>
-<area shape="rect" id="Node000061" href="$class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" title=" " alt="" coords="304,920,555,945"/>
+<area shape="rect" id="Node000061" href="$class_scene_session.html#a5aca09d924911a518621bb1062d5bbe1" title="Opens the scene folder or bundle at dir now. The scene stays as it was when this returns false." alt="" coords="304,920,555,945"/>
 <area shape="poly" id="edge92_Node000001_Node000061" title=" " alt="" coords="208,966,338,945,339,950,209,972"/>
-<area shape="rect" id="Node000062" href="$class_scene_session.html#ab8ac6f245e14a5e25c9e4d45e21ac7a7" title=" " alt="" coords="323,969,536,994"/>
+<area shape="rect" id="Node000062" href="$class_scene_session.html#ab8ac6f245e14a5e25c9e4d45e21ac7a7" title="sceneDir() is a bundle file (.egscene), not a folder." alt="" coords="323,969,536,994"/>
 <area shape="poly" id="edge95_Node000001_Node000062" title=" " alt="" coords="256,979,309,979,309,984,256,984"/>
 <area shape="rect" id="Node000063" href="$classtelemetry_1_1_operation_observation.html#a196433a690210984c51b04907055a0bc" title="A scene was opened and installed for use." alt="" coords="311,1019,547,1059"/>
 <area shape="poly" id="edge96_Node000001_Node000063" title=" " alt="" coords="198,992,312,1014,311,1019,197,997"/>
@@ -22,7 +22,7 @@
 <area shape="poly" id="edge100_Node000001_Node000065" title=" " alt="" coords="145,993,210,1058,255,1097,305,1133,339,1150,374,1165,372,1170,337,1155,303,1137,252,1101,206,1062,141,996"/>
 <area shape="rect" id="Node000066" href="$namespacecannot__open.html#a205e5ea6c4bdc873c4200c4abbec104a" title=" " alt="" coords="360,1245,499,1270"/>
 <area shape="poly" id="edge102_Node000001_Node000066" title=" " alt="" coords="141,993,163,1033,200,1090,248,1152,276,1181,306,1206,335,1224,367,1238,365,1243,333,1229,302,1210,272,1184,244,1155,195,1093,159,1036,136,996"/>
-<area shape="rect" id="Node000069" href="$namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c" title=" " alt="" coords="360,1318,499,1344"/>
+<area shape="rect" id="Node000069" href="$namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c" title="The title of the message box." alt="" coords="360,1318,499,1344"/>
 <area shape="poly" id="edge108_Node000001_Node000069" title=" " alt="" coords="138,994,157,1046,191,1122,240,1206,271,1245,306,1280,333,1298,362,1311,360,1316,330,1303,302,1284,267,1248,236,1209,186,1124,152,1048,133,995"/>
 <area shape="rect" id="Node000070" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix." alt="" coords="374,1392,485,1417"/>
 <area shape="poly" id="edge110_Node000001_Node000070" title=" " alt="" coords="137,994,152,1057,183,1153,205,1206,233,1259,266,1309,306,1353,332,1372,362,1385,359,1390,329,1377,302,1357,262,1312,228,1262,200,1208,178,1155,146,1058,132,995"/>

@@ -113,17 +113,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_gui_pas
 </div><!--header-->
 <div class="contents">
 
+<p>One passenger at one step.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa0f23c144621eb569a946c612bde2581" id="r_aa0f23c144621eb569a946c612bde2581"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa0f23c144621eb569a946c612bde2581">id</a></td></tr>
+<tr class="memdesc:aa0f23c144621eb569a946c612bde2581"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ID of the passenger.  <br /></td></tr>
 <tr class="memitem:a529585fda3ee68d602cbc76861b5fe95" id="r_a529585fda3ee68d602cbc76861b5fe95"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a529585fda3ee68d602cbc76861b5fe95">status</a></td></tr>
+<tr class="memdesc:a529585fda3ee68d602cbc76861b5fe95"><td class="mdescLeft">&#160;</td><td class="mdescRight">"None", "OnPlatform" or "OnBoard".  <br /></td></tr>
 <tr class="memitem:aaebb2840e3e3ba17db1a80e49ea26b68" id="r_aaebb2840e3e3ba17db1a80e49ea26b68"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aaebb2840e3e3ba17db1a80e49ea26b68">waitingPlatform</a></td></tr>
+<tr class="memdesc:aaebb2840e3e3ba17db1a80e49ea26b68"><td class="mdescLeft">&#160;</td><td class="mdescRight">The platform on which the passenger waits, as the run records it.  <br /></td></tr>
 <tr class="memitem:af7224fa2b2a8f3cb98fedb304d520b08" id="r_af7224fa2b2a8f3cb98fedb304d520b08"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af7224fa2b2a8f3cb98fedb304d520b08">nextTrain</a></td></tr>
 <tr class="memitem:ac3e50e4ace86294a5d737da101ce8cab" id="r_ac3e50e4ace86294a5d737da101ce8cab"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac3e50e4ace86294a5d737da101ce8cab">nextDestination</a></td></tr>
+<tr class="memdesc:ac3e50e4ace86294a5d737da101ce8cab"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arrival station of the current trip of the passenger, or empty when the passenger has none.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One passenger at one step. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aa0f23c144621eb569a946c612bde2581" name="aa0f23c144621eb569a946c612bde2581"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa0f23c144621eb569a946c612bde2581">&#9670;&#160;</a></span>id</h2>
 
@@ -135,6 +144,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The ID of the passenger. </p>
 
 </div>
 </div>
@@ -150,6 +161,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The arrival station of the current trip of the passenger, or empty when the passenger has none. </p>
+
 </div>
 </div>
 <a id="af7224fa2b2a8f3cb98fedb304d520b08" name="af7224fa2b2a8f3cb98fedb304d520b08"></a>
@@ -163,6 +176,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The train that the passenger waits for, as the run records it. </p>
 
 </div>
 </div>
@@ -178,6 +192,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>"None", "OnPlatform" or "OnBoard". </p>
+
 </div>
 </div>
 <a id="aaebb2840e3e3ba17db1a80e49ea26b68" name="aaebb2840e3e3ba17db1a80e49ea26b68"></a>
@@ -191,6 +207,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The platform on which the passenger waits, as the run records it. </p>
 
 </div>
 </div>

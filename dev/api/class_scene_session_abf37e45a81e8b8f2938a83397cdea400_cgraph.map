@@ -1,8 +1,8 @@
 <map id="SceneSession::addRecentScene" name="SceneSession::addRecentScene">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,241,232,267"/>
-<area shape="rect" id="Node000002" href="$class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" title=" " alt="" coords="280,177,489,217"/>
+<area shape="rect" id="Node000001" title="Puts the absolute form of path first in the recent scenes, which keep at most 8." alt="" coords="5,241,232,267"/>
+<area shape="rect" id="Node000002" href="$class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" title="Fills the Recent Scenes menu again from the settings." alt="" coords="280,177,489,217"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,239,278,217,279,222,179,244"/>
-<area shape="rect" id="Node000005" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title=" " alt="" coords="537,241,744,267"/>
+<area shape="rect" id="Node000005" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="537,241,744,267"/>
 <area shape="poly" id="edge13_Node000001_Node000005" title=" " alt="" coords="232,251,523,251,523,257,232,257"/>
 <area shape="rect" id="Node000006" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="826,267,933,292"/>
 <area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="233,259,537,275,812,277,812,283,537,281,232,265"/>

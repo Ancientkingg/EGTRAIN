@@ -119,8 +119,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_gui_simu
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a5ce88a8283dc58030aa1326142951732" id="r_a5ce88a8283dc58030aa1326142951732"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5ce88a8283dc58030aa1326142951732">publish</a> (std::shared_ptr&lt; const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &gt; snapshot)</td></tr>
 <tr class="memitem:a919f0ffcfb5b2b6257864063eac7b0fc" id="r_a919f0ffcfb5b2b6257864063eac7b0fc"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a919f0ffcfb5b2b6257864063eac7b0fc">take</a> ()</td></tr>
+<tr class="memdesc:a919f0ffcfb5b2b6257864063eac7b0fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the snapshot out of the mailbox. Null when none was published since the last take.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Hands the latest snapshot from the thread that steps the run to the window. It holds one snapshot: a newer one replaces an older one that was not taken. Both functions may be called from any thread. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a5ce88a8283dc58030aa1326142951732" name="a5ce88a8283dc58030aa1326142951732"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5ce88a8283dc58030aa1326142951732">&#9670;&#160;</a></span>publish()</h2>
 
@@ -143,6 +146,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Puts <span class="tt">snapshot</span> in the mailbox. Returns true when the reader has to be told, false when it was told of an earlier snapshot that it has not taken yet. </p>
 
 </div>
 </div>
@@ -168,6 +172,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Takes the snapshot out of the mailbox. Null when none was published since the last take. </p>
 
 </div>
 </div>
