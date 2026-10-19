@@ -4,16 +4,21 @@
 #include <QLineF>
 #include <QPointF>
 
+/// The two heads of a signal, one for each direction, with their posts and bases, in scene coordinates.
+/// The reversed head is on the side opposite the normal, the forward head on the side of the normal.
 struct SignalGeometry {
-	QLineF reversedBase;
-	QLineF reversedPost;
-	QPointF reversedHead;
-	QLineF forwardBase;
-	QLineF forwardPost;
-	QPointF forwardHead;
+	QLineF reversedBase;  ///< The base of the reversed head, across the track.
+	QLineF reversedPost;  ///< The post of the reversed head, along the track towards before.
+	QPointF reversedHead; ///< The centre of the reversed head, at the end of its post.
+	QLineF forwardBase;	  ///< The base of the forward head, across the track.
+	QLineF forwardPost;	  ///< The post of the forward head, along the track towards after.
+	QPointF forwardHead;  ///< The centre of the forward head, at the end of its post.
 };
 
-// Coordinates come from the same authored track interpolation in preview and playback.
+/// The geometry of a signal at center on the track. before and after are the track points on either side of
+/// it, which the callers take 8 metres away, and normal is the unit normal of the track. separation is the
+/// distance in scene units between two display levels of track lines. Preview and playback take the points from
+/// the same authored track interpolation.
 inline SignalGeometry signalGeometry(const QPointF& center, const QPointF& before,
 	const QPointF& after, const QPointF& normal, qreal separation) {
 	SignalGeometry geometry;

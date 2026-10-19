@@ -10,24 +10,25 @@
 
 #include "simulation/Infrastructure.h"
 
+/// The dot of a node of a track line. It draws over track lines and connections. A transparent child of 3 by 3
+/// logical pixels at its centre keeps it clickable when the dot is smaller on screen.
 class NodeItem : public QGraphicsEllipseItem {
-	// Q_OBJECT
-
 public:
+	/// A dot in rect, in scene coordinates, without a node.
 	NodeItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~NodeItem() override;
 
-	// reimplemented functions
+	/// Draws the dot with the pen and the brush of the item.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-	// track to which Node belongs
+	/// The index of the track line of the node in the run; -1 in the preview.
 	int track;
 
-	// Node pointer
+	/// The node of the run, which belongs to the run; null in the preview.
 	Node* node;
 
-	// to allow cast
-	enum { Type = UserType + 2 };
+	enum { Type = UserType + 2 /**< The item type for qgraphicsitem_cast. */ };
+	/// Returns Type.
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;

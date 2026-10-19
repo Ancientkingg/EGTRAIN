@@ -11,7 +11,9 @@
 #include <utility>
 #include <vector>
 
-// Presentation vectors are independent of the station's semantic track/node anchor.
+/// The unit normal (dy, -dx) of the segment of a preview line that covers the position rawX in kilometres,
+/// where (dx, dy) is the direction of increasing position in scene coordinates. A position at a bend takes the
+/// segment that leaves the bend. Returns false when no segment of nonzero length covers rawX.
 inline bool annotationSignalNormal(const TrackPreviewLine& line, double rawX,
 	std::pair<double, double>& normal) {
 	if (!std::isfinite(rawX))
@@ -42,8 +44,8 @@ inline bool annotationSignalNormal(const TrackPreviewLine& line, double rawX,
 	return foundEndpoint;
 }
 
-// Reproduce the historical first/interior/last regional shift from ordered
-// geographic station views. Invalid or insufficient regions contribute no shift.
+/// The historical vertical offset of the name and the picture of a station by name, in historical presentation
+/// distances, positive downwards; 0 for any other name.
 inline double stationNamedYOffset(const std::string& name) {
 	if (name == "Koge"
 		|| name == "Olby"
@@ -133,6 +135,9 @@ inline double stationNamedYOffset(const std::string& name) {
 	return 0.0;
 }
 
+/// The historical regional shift of the name and the picture of a station, in historical presentation distances:
+/// 1200 against the mean bisector of its regions. Invalid or insufficient regions contribute no shift; without a
+/// valid region it is (0, 0).
 inline std::pair<double, double> annotationStationShift(
 	const std::vector<SceneStationView>& views, const std::string& stationId) {
 	struct Position {

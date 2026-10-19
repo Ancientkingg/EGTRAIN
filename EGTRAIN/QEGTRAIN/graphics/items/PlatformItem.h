@@ -11,28 +11,33 @@
 
 #include "graphics/items/PassengerItem.h"
 
+/// The bar of a platform next to a station node, with the icons of the passengers waiting on it. It draws over
+/// track lines, connections and nodes.
 class PlatformItem : public QGraphicsRectItem {
-	// Q_OBJECT
-
 public:
+	/// A bar in rect, in scene coordinates, without a platform.
 	PlatformItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~PlatformItem() override;
 
-	// reimplemented functions
+	/// Draws the bar with the pen and the brush of the item.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
+	/// The id of the station of the platform; empty when the run has no such platform and in the preview.
 	std::string stationId;
+	/// The id of the platform; empty when the run has no such platform and in the preview.
 	std::string platformId;
+	/// The passenger capacity of the platform, computed from its area; 0 when the run has no such platform and
+	/// in the preview.
 	int maxVolume;
 
-	// text item pointer
+	/// The label with the number of passengers on the platform, which the scene owns; null in the preview.
 	QGraphicsTextItem* textIcon;
 
-	// collection of passenger icons
+	/// The icon of each passenger on the platform, in the order of the snapshot. The scene owns them.
 	QList<PassengerItem*> passengerIcons;
 
-	// to allow cast
-	enum { Type = UserType + 9 };
+	enum { Type = UserType + 9 /**< The item type for qgraphicsitem_cast. */ };
+	/// Returns Type.
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;

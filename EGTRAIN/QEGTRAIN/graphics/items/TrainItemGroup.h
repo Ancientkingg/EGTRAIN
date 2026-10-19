@@ -7,47 +7,60 @@
 
 #include "graphics/items/TrainBodyItem.h"
 
+/// A train on the canvas: the group of the bodies of its wagons, with the data that the inspector and the
+/// passenger information read. It draws over the track, the signals, the stations, the platforms and the
+/// passengers.
 class TrainItemGroup : public QGraphicsItemGroup {
-	// Q_OBJECT
-
 public:
+	/// An empty group with train index -1 and no bodies.
 	TrainItemGroup(QGraphicsItem* parent = nullptr);
+	/// Deletes the list of bodies; the bodies are children and go with the group.
 	~TrainItemGroup() override;
 
-	// train index on list of trains (train ID is not unique, index is)
+	/// The index of the train in the run; -1 until it is set. A train ID is not unique, the index is.
 	int index;
+	/// The description of the train.
 	std::string trainDescription;
+	/// The type of the train.
 	std::string trainType;
-	// fill and outline of the train bodies; serviceId names the service that
-	// supplies a custom colour (empty for the default colour)
+	/// The fill of the bodies.
 	QColor fillColor;
+	/// The outline of the bodies.
 	QColor outlineColor;
+	/// The service that gives the bodies their colour; empty for the default colour.
 	std::string serviceId;
+	/// The ID of the train.
 	double trainId;
+	/// The length of the train in metres.
 	double trainLength;
+	/// The number of wagons; the group has one body more.
 	int wagonCount;
+	/// The number of passengers on board.
 	int currentOnboardPassengers;
+	/// The passenger capacity of the train, from its number of wagons.
 	int maxOnboardPassengers;
+	/// The train has left the network.
 	bool outOfSimulation;
 
-	// pax info group icon pointer
+	/// Not used: it stays null.
 	QGraphicsItemGroup* paxInfoItem;
 
-	// the body items of the train. The bodies are children of the group; the group owns
-	// the list and deletes it in its destructor. A caller that deletes the list itself
-	// sets this pointer to null first.
+	/// The body items of the train, from the head. The bodies are children of the group; the group owns
+	/// the list and deletes it in its destructor. A caller that deletes the list itself
+	/// sets this pointer to null first.
 	QList<TrainBodyItem*>* trainPolygonItemList;
 
-	// QGraphicsItemGroup caches its child bounds. Notify the scene before a
-	// train body polygon changes so the group's scene index remains current.
+	/// QGraphicsItemGroup caches its child bounds. Notify the scene before a
+	/// train body polygon changes so the group's scene index remains current.
 	void prepareForChildGeometryChange();
+	/// The bounds of the bodies as they are now.
 	QRectF boundingRect() const override;
 
-	// Gives every body its minimum size on screen for a view of viewScale pixels per scene unit.
+	/// Gives every body its minimum size on screen for a view of viewScale logical pixels per scene unit.
 	void applyViewScale(qreal viewScale);
 
-	// to allow cast
-	enum { Type = UserType + 8 };
+	enum { Type = UserType + 8 /**< The item type for qgraphicsitem_cast. */ };
+	/// Returns Type.
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
