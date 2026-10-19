@@ -669,7 +669,8 @@ def main() -> None:
         missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
     apt_installs = re.findall(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
     apt_packages = [package for install in apt_installs for package in install.replace("\\", " ").split()]
-    # The third install is the one of the Linux Qt 6 leg, which gets Qt from the action.
+    # The second install is the one of the Linux Qt 6 leg, which gets Qt from the action. The first and the last are the
+    # Qt 5 leg and the leak check.
     if len(apt_installs) != 3 or apt_installs[0] != apt_installs[-1]:
         missing.append("the same Linux packages in the build and leak check jobs")
     if not apt_packages or any(
@@ -712,8 +713,8 @@ def main() -> None:
         cache_legs != {"macOS": "ccache", "Windows": "sccache", "Linux": "ccache"}
         or "        uses: hendrikmuhs/ccache-action@v1.2\n" not in compiler_cache
         or "          variant: ${{ matrix.cache }}\n" not in compiler_cache
-        or f"          key: ${{{{ matrix.name }}}}{image_key}\n" not in compiler_cache
-        or "          restore-keys: |\n            ${{ matrix.name }}-\n" not in compiler_cache
+        or f"          key: ${{{{ matrix.cache-key || matrix.name }}}}{image_key}\n" not in compiler_cache
+        or "          restore-keys: |\n            ${{ matrix.cache-key || matrix.name }}\n" not in compiler_cache
         or re.findall(r"^        if: (.+)$", compiler_cache, re.MULTILINE) != ["needs.changes.outputs.build == 'true'"]
         or any(launcher_flags not in step_block(build_job, name) for name in configure_names)
         or "Set up compiler cache" not in build_step_names
@@ -760,7 +761,7 @@ def main() -> None:
         missing.append("Windows image size CTest")
     # The Qt 6 legs install Qt 6.8.3 with the action on every runner, keep Homebrew's qt@5 out of the macOS prefix and leave out
     # each test that fails with Qt 6 under a comment that names it. They do not fail the result job yet.
-    qt6_legs = re.findall(r"^ +- name: (\w+), Qt 6\n(?: +\w+: \S+\n)* +qt: 6$", build_job, re.MULTILINE)
+    qt6_legs = re.findall(r"^ +- name: (\w+), Qt 6\n(?: +[\w-]+: \S+\n)* +qt: 6$", build_job, re.MULTILINE)
     qt6_excluded = re.search(r" -E '\^\(([\w|]+)\)\$'\n", step_block(build_job, "Test (Qt 6)"))
     build_comments = "".join(re.findall(r"^ +# (.*)$", build_job, re.MULTILINE))
     if (

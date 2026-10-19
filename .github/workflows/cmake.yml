@@ -89,16 +89,19 @@ jobs:
             os: macos-latest
             jobs: 3
             cache: ccache
+            cache-key: Qt6-macOS
             qt: 6
           - name: Windows, Qt 6
             os: windows-latest
             jobs: 4
             cache: sccache
+            cache-key: Qt6-Windows
             qt: 6
           - name: Linux, Qt 6
             os: ubuntu-latest
             jobs: 4
             cache: ccache
+            cache-key: Qt6-Linux
             qt: 6
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.jobs }}
@@ -228,9 +231,9 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           variant: ${{ matrix.cache }}
-          key: ${{ matrix.name }}-${{ steps.image.outputs.id }}
+          key: ${{ matrix.cache-key || matrix.name }}-${{ steps.image.outputs.id }}
           restore-keys: |
-            ${{ matrix.name }}-
+            ${{ matrix.cache-key || matrix.name }}
 
       # The pull request checks build without interprocedural optimization (-DEGTRAIN_IPO=OFF). Linking with it generates the code of
       # the whole program again for every test executable, which a compiler cache cannot store. The package and release workflows
