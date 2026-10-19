@@ -11,7 +11,9 @@
 #include <utility>
 #include <vector>
 
-// Presentation vectors are independent of the station's semantic track/node anchor.
+/// The unit normal (dy, -dx) of the segment of a preview line that covers the position rawX in kilometres,
+/// where (dx, dy) is the direction of increasing position in scene coordinates. A position at a bend takes the
+/// segment that leaves the bend. Returns false when no segment of nonzero length covers rawX.
 inline bool annotationSignalNormal(const TrackPreviewLine& line, double rawX,
 	std::pair<double, double>& normal) {
 	if (!std::isfinite(rawX))
@@ -42,8 +44,9 @@ inline bool annotationSignalNormal(const TrackPreviewLine& line, double rawX,
 	return foundEndpoint;
 }
 
-// Reproduce the historical first/interior/last regional shift from ordered
-// geographic station views. Invalid or insufficient regions contribute no shift.
+/// The vertical offset of the name and the picture of a station that the historical renderer moved by name,
+/// in historical presentation distances, positive downwards: 900, -920, -2800, -3500 or -2200 for the names
+/// listed here, 0 for any other name.
 inline double stationNamedYOffset(const std::string& name) {
 	if (name == "Koge"
 		|| name == "Olby"
@@ -133,6 +136,12 @@ inline double stationNamedYOffset(const std::string& name) {
 	return 0.0;
 }
 
+/// Reproduces the historical first, interior and last regional shift of the name and the picture of a station
+/// from its ordered geographic station views. The shift is 1200 historical presentation distances against the
+/// mean, over the regions of the station, of the unit vector that bisects the angle at the station between its
+/// neighbours along the region. The first station takes the angle at the second and the last the angle at the
+/// one before it; in a region of two stations it is the normal of the line between them. Invalid or
+/// insufficient regions contribute no shift, and without a valid region the shift is (0, 0).
 inline std::pair<double, double> annotationStationShift(
 	const std::vector<SceneStationView>& views, const std::string& stationId) {
 	struct Position {

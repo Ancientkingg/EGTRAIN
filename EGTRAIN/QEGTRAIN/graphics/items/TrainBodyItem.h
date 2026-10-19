@@ -8,31 +8,33 @@
 #include <QPolygonF>
 #include <QtMath>
 
+/// The body of one wagon of a train, a polygon in scene coordinates.
 class TrainBodyItem : public QGraphicsPolygonItem {
-	// Q_OBJECT
-
 public:
+	/// A body with the shape of polygon and train index -1.
 	TrainBodyItem(const QPolygonF& polygon, QGraphicsItem* parent = nullptr);
 	~TrainBodyItem() override;
 
-	// Narrowest on-screen size, in logical pixels, of a body that is still drawn as a mark.
+	/// Narrowest on-screen size, in logical pixels, of a body that is still drawn as a mark.
 	static constexpr qreal MinPixels = 8.0;
 
-	// A body keeps its shape and fill at every zoom. When the view shows it, with its outline, thinner than
-	// MinPixels, it is stroked in its fill colour to that thickness, and the stroke is part of the bounding
-	// rect and the shape that a click hits. viewScale is the pixels per scene unit of the view.
+	/// A body keeps its shape and fill at every zoom. When the view shows it, with its outline, thinner than
+	/// MinPixels, it is stroked in its fill colour to that thickness, and the stroke is part of the bounding
+	/// rect and the shape that a click hits. viewScale is the logical pixels per scene unit of the view.
 	void setViewScale(qreal viewScale);
 
-	// reimplemented functions
+	/// The polygon, with the stroke of a body that is too thin on screen.
 	QRectF boundingRect() const override;
+	/// The polygon, with the stroke of a body that is too thin on screen.
 	QPainterPath shape() const override;
+	/// Draws the stroke of a body that is too thin on screen, then the polygon with the pen and the brush.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-	// train index on list of trains (train ID is not unique, index is)
+	/// The index of the train in the run; -1 until it is set. A train ID is not unique, the index is.
 	int index;
 
-	// to allow cast
-	enum { Type = UserType + 7 };
+	enum { Type = UserType + 7 /**< The item type for qgraphicsitem_cast. */ };
+	/// Returns Type.
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;

@@ -11,46 +11,65 @@
 #include <QPair>
 #include <QtMath>
 
+/// A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour and mark show
+/// the state of the aspect code. A transparent child of 12 by 12 logical pixels at its centre keeps it clickable
+/// when the head is smaller on screen.
 class SignalItem : public QGraphicsEllipseItem {
-	// Q_OBJECT
-
 public:
+	/// A head in rect with aspect code 180, on no track line and at no position.
 	SignalItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~SignalItem() override;
 
+	/// Sets the aspect code of the head, which gives the colour of its lamp through classifySignalAspect().
 	void setAspectCode(int code);
+	/// The aspect code of the head.
 	int aspectCode() const;
-	// A failed signal is a red lamp with a cross, whatever its code is.
+	/// A failed signal is a red lamp with a cross, whatever its code is.
 	void setFailed(bool failed);
+	/// The signal has failed.
 	bool failed() const { return m_failed; }
+	/// Sets the direction that the head is for.
 	void setReversedDirection(bool reversed);
+	/// Sets the aspect codes and directions of the heads grouped with this one. paint() does not draw them;
+	/// the window clears the list.
 	void setGroupedSignals(const QVector<QPair<int, bool>>& aspects);
+	/// The number of heads grouped with this one.
 	int groupedSignalCount() const { return m_groupedSignals.size(); }
+	/// Sets the text that names the head in its tooltip, the inspector and Find.
 	void setInspectionIdentity(const QString& identity) { m_inspectionIdentity = identity; }
+	/// That text, or without one a text of the track line, the position in kilometres and the sections ahead
+	/// and behind.
 	QString inspectionIdentity() const;
+	/// The head with a margin of 2 scene units.
 	QRectF boundingRect() const override;
 
-	// reimplemented functions
+	/// Draws the lamp, and a mark of the state when the head is at least 6 device pixels wide.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-	// trackline to which signal belongs
+	/// The index of the track line of the signal in the run; -1 in the preview.
 	int trackID;
 
-	// location of the signal on X axis
+	/// The position of the signal along its track line in kilometres; -1 until it is set.
 	double X;
 
+	/// The id of the block section ahead of the head in its direction; empty without one.
 	std::string sectionAheadId;
+	/// The id of the block section behind the head; empty without one.
 	std::string sectionBehindId;
+	/// The length of the section ahead as the run gives it, a difference of positions in kilometres; 0 without one.
 	double sectionAheadLength;
+	/// The length of the section behind, as for sectionAheadLength; 0 without one.
 	double sectionBehindLength;
+	/// The index of the track line of the section ahead; -1 without one.
 	int sectionAheadTrackId;
+	/// The index of the track line of the section behind; -1 without one.
 	int sectionBehindTrackId;
 
-	// distinguishes signals at same location (indicates for which direction this signal is used)
+	/// True for the head of the reversed direction. The two heads of a signal have the same X.
 	bool reversedDirection;
 
-	// to allow cast
-	enum { Type = UserType + 6 };
+	enum { Type = UserType + 6 /**< The item type for qgraphicsitem_cast. */ };
+	/// Returns Type.
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
@@ -64,7 +83,8 @@ private:
 	QString m_inspectionIdentity;
 };
 
-// The state of a signal head in tooltips, the inspector and the scripted runs.
+/// The state of a signal head in tooltips, the inspector and the scripted runs: "Failed", "Stop", "Caution",
+/// "Proceed" or "Unavailable".
 QString signalAspectLabel(const SignalItem* signal);
 
 #endif // SIGNALITEM_H
