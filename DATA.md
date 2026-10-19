@@ -1,6 +1,6 @@
 # Case study data
 
-The source code of EGTRAIN is under the GPL-3.0-only licence. The case studies in `EGTRAIN/QEGTRAIN/Scenes` have their own sources and terms, which this file records for each case that ships. Where something is not confirmed, it says so.
+The case studies in `EGTRAIN/QEGTRAIN/Scenes` have their own sources and terms, which this file records for each case that ships. Where something is not confirmed, it says so.
 
 Every scene also has one network-wide signalling area (level 0), added by project decision. It is not repeated below.
 

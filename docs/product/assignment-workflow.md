@@ -9,7 +9,7 @@ The application provides the complete authoring and analysis path. It does not
 invent the railway records. An instructor supplies authoritative infrastructure,
 signalling, and rolling-stock values and records the train-unit source references
 in the editor. The committed `Assignment_Gvc_Gdg_Ut` scene is a synthetic smoke
-fixture, not a distributable TU Delft case. Issues
+fixture; its sources and terms are in [DATA.md](../../DATA.md). Issues
 [#182](https://github.com/Ancientkingg/EGTRAIN/issues/182),
 [#228](https://github.com/Ancientkingg/EGTRAIN/issues/228), and
 [#181](https://github.com/Ancientkingg/EGTRAIN/issues/181) track optional project
