@@ -29,7 +29,7 @@ void writeFailedUpdateVersion(QSettings& settings, const SemanticVersion& versio
 bool shouldOfferRelease(const SemanticVersion& release, const std::optional<SemanticVersion>& failedVersion, bool manual);
 /// True for a scripted launch, which neither asks about update checks nor reaches the network: when
 /// QEGTRAIN_DISABLE_UPDATES or QEGTRAIN_AUTOSTART is set, QEGTRAIN_STARTUP_TIMING or
-/// QEGTRAIN_PLAYBACK_PROFILE is 1, or any QEGTRAIN_E2E_ variable is set.
+/// QEGTRAIN_PLAYBACK_PROFILE is 1, or a variable of the end-to-end tests is set.
 bool updatesSuppressedByEnvironment();
 
 #endif
