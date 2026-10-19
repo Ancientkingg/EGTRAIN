@@ -762,7 +762,9 @@ def main() -> None:
     # The Qt 6 legs install Qt 6.8.3 with the action on every runner, keep Homebrew's qt@5 out of the macOS prefix and leave out
     # each test that fails with Qt 6 under a comment that names it. They do not fail the result job yet.
     qt6_legs = re.findall(r"^ +- name: (\w+), Qt 6\n(?: +[\w-]+: \S+\n)* +qt: 6$", build_job, re.MULTILINE)
-    qt6_excluded = re.search(r" -E '\^\(([\w|]+)\)\$'\n", step_block(build_job, "Test (Qt 6)"))
+    qt6_excluded = re.search(
+        r" -E '\^\(([\w|]+)(?:\$\{\{ matrix\.qt6-extra-skip \}\})?\)\$'\n", step_block(build_job, "Test (Qt 6)"))
+    qt6_extra = re.findall(r"^ +qt6-extra-skip: '\|([\w|]+)'$", build_job, re.MULTILINE)
     build_comments = "".join(re.findall(r"^ +# (.*)$", build_job, re.MULTILINE))
     if (
         sorted(qt6_legs) != ["Linux", "Windows", "macOS"]
@@ -770,7 +772,7 @@ def main() -> None:
         or "          version: '6.8.3'\n          modules: qtcharts\n" not in step_block(build_job, "Install Qt 6")
         or "qt@5" in step_block(build_job, "Configure (macOS, Qt 6)")
         or not qt6_excluded
-        or any(name not in build_comments for name in qt6_excluded.group(1).split("|"))
+        or any(name not in build_comments for name in qt6_excluded.group(1).split("|") + "|".join(qt6_extra).split("|"))
     ):
         missing.append("Qt 6 legs on macOS, Windows and Linux that are not required yet, with every excluded test explained")
     package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
