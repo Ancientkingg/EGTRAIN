@@ -434,6 +434,33 @@ int main(int argc, char* argv[]) {
 		ok &= expect(context == &train, "painted train wins over covered signal for context menu");
 	}
 
+	// At Fit a train is a mark of at least MinPixels, and a click on the mark selects the train.
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.scale(0.05, 0.05);
+		TrainItemGroup group;
+		auto* body = new TrainBodyItem(QPolygonF(QRectF(-20.0, -6.0, 40.0, 12.0)));
+		body->setPen(QPen(Qt::black, 3.0));
+		group.addToGroup(body);
+		group.trainPolygonItemList = new QList<TrainBodyItem*>{body};
+		scene.addItem(&group);
+		const QRectF unscaled = body->boundingRect();
+		TrainBodyItem* clicked = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnTrain,
+			[&](TrainBodyItem* item) { clicked = item; });
+		const QPointF beside(20.0 + 3.0 / 0.05, 0.0); // 3 device pixels beside the polygon
+		sendLeftClick(scene, view, beside);
+		ok &= expect(!clicked, "click beside a train body before its mark is applied selects nothing");
+		group.applyViewScale(0.05);
+		sendLeftClick(scene, view, beside);
+		ok &= expect(clicked == body, "click beside a train mark at Fit selects the train");
+		ok &= expect(view.viewportTransform().mapRect(body->boundingRect()).height() >= TrainBodyItem::MinPixels,
+			"train mark is at least the minimum size on screen");
+		group.applyViewScale(5.0);
+		ok &= expect(body->boundingRect() == unscaled, "train body keeps its own size when zoomed in");
+	}
+
 	{
 		NetworkScene scene(nullptr);
 		QGraphicsView view(&scene);

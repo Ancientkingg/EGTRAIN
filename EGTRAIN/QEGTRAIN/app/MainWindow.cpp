@@ -3891,6 +3891,9 @@ void MainWindow::updateViewportOverlays() {
 	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
 			overlay->applyViewScale(viewScale);
+	for (TrainItemGroup* train : m_presenter->allTrains)
+		if (train)
+			train->applyViewScale(viewScale);
 	StationOverlayItem::resolveNameCollisions(m_presenter->m_stationOverlays, networkView->viewportTransform());
 	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay && overlay->nameItem())

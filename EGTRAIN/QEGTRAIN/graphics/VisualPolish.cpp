@@ -30,7 +30,7 @@ TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond) {
 	if (kmh >= 200.0)
 		return {QColor(30, 130, 210), 4};
 	if (kmh >= 120.0)
-		return {QColor(80, 80, 80), 3};
+		return {QColor(160, 160, 160), 3};
 	return {QColor(120, 120, 120), 2};
 }
 
