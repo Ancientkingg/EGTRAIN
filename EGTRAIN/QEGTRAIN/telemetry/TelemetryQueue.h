@@ -34,8 +34,8 @@ struct PreparedBatch {
 ///
 /// One worker owns this object and all methods. An unsuccessful storage operation fails closed; the
 /// caller must close ingress and abandon outstanding RAM work. It also tries to leave a disabled
-/// marker file, after which every later open() of the directory discards the queued events and
-/// returns Disabled.
+/// marker file, after which every later open() that takes owner.lock discards the queued events
+/// and returns Disabled.
 class TelemetryQueue {
 public:
 	/// Result of open().
