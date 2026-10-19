@@ -71,11 +71,15 @@ The counts are the numbers of entries in `infrastructure.json` (tracks), `statio
 
 ## Credits and research background
 
-EGTRAIN was originally developed by Prof. [Egidio Quaglietta](https://orcid.org/0000-0002-7936-5832) as a microscopic railway simulation model. Its foundations and early applications are described in his [doctoral thesis](https://doi.org/10.6092/unina/fedoa/8599).
+EGTRAIN was originally developed by Dr.ir. [Egidio Quaglietta](https://orcid.org/0000-0002-7936-5832) as a microscopic railway simulation model. Its foundations and early applications are described in his [doctoral thesis](https://doi.org/10.6092/unina/fedoa/8599).
 
 [Samuel Bruin](https://samuelbruin.com/) ([GitHub profile](https://github.com/Ancientkingg)) continues development and maintenance of the desktop application in this repository.
 
 The original EGTRAIN case-study inputs for the SORTEDMOBILITY research project are available from [4TU.ResearchData](https://doi.org/10.4121/e78d0dc2-3123-4510-a2c5-7ad017a02e33.v1).
+
+## How to cite
+
+To cite EGTRAIN, use **Cite this repository** in the sidebar of the [GitHub repository](https://github.com/Ancientkingg/EGTRAIN). It is built from [`CITATION.cff`](CITATION.cff).
 
 ## Documentation and development
 

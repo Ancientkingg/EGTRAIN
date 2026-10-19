@@ -40,6 +40,8 @@ archive carry it. Record that version; step 1 says where the entry is.
 
 A fix after a failed row needs a new candidate and a new record.
 
+Before a release, check that the authors in `CITATION.cff` are still correct.
+
 ## Automated release evidence
 
 The release is ready to rehearse only when the version, validation, sanitizer
