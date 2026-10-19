@@ -17,7 +17,7 @@ ends with _Exit(137): no destructor runs and no close event reaches the window. 
   unwritable  A folder for the copies that cannot be made does not stop the editing or a run, and the window reports it once.
   crash note  An uncaught exception after an autosave, and SIGSEGV without a copy, each leave one crash note. The next start names
               the note in the recovery prompt, or in a notice when there is no copy, and marks it reported, so the start after
-              that shows neither.
+              that does not name it again.
 """
 from __future__ import annotations
 
@@ -255,11 +255,6 @@ def require_reported(folder: Path, reported: Path, output: str) -> None:
     require(reported.is_file() and not list((folder / "crashes").glob("crash-*.txt")), "the start did not mark the note reported", output)
 
 
-def require_no_crash_dialog(output: str) -> None:
-    require("E2E_RECOVERY_CRASH_NOTE" not in output and "E2E_RECOVERY_CRASH_NOTICE" not in output,
-            "a start after the crash was reported told of it again", output)
-
-
 def scenario_crash_note(smoke: Smoke) -> None:
     folder = smoke.folder("crash_note")
     root = folder / "recovery"
@@ -273,9 +268,8 @@ def scenario_crash_note(smoke: Smoke) -> None:
     require(len(copies(root)) == 1, "the copy was not kept after Decide Later", output)
     require_reported(folder, reported, output)
 
-    output = smoke.run("start-again", SCENE, root, answer="discard")
-    require_no_crash_dialog(output)
-    require(not instance_folders(root), "Discard left the copy")
+    output = smoke.run("start-again", SCENE, root)
+    require("E2E_RECOVERY_CRASH_NOTE none" in output.splitlines(), "the next prompt named the reported crash note again", output)
 
     folder = smoke.folder("crash_notice")
     root = folder / "recovery"
@@ -284,8 +278,12 @@ def scenario_crash_note(smoke: Smoke) -> None:
 
     output = smoke.run("start-again", SCENE, root)
     require(f"E2E_RECOVERY_CRASH_NOTICE {reported}" in output.splitlines(), "the start has no notice that names the crash note", output)
-    require(fields(output, "E2E_RECOVERY_STATE")["prompted"] == "0", "a start without a copy offered one", output)
+    require("E2E_RECOVERY_CRASH_NOTE" not in output, "a start without a copy offered one", output)
     require_reported(folder, reported, output)
+
+    output = smoke.run("start-again", SCENE, root)
+    require("E2E_RECOVERY_CRASH_NOTE" not in output and "E2E_RECOVERY_CRASH_NOTICE" not in output,
+            "a start after the crash was reported told of it again", output)
     print("PASS a crash leaves one note, and the next start names it in the recovery prompt or a notice, once")
 
 

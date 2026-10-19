@@ -58,14 +58,9 @@ void printLine(const QString& text) {
 	std::_Exit(137);
 }
 
-// Ends the process with an exception that nothing catches, thrown on another thread as a failed run would throw it.
-void throwOnThread() {
-	printLine(QStringLiteral("E2E_RECOVERY_CRASH"));
-	std::thread([] { throw std::runtime_error("injected crash"); }).join();
-}
-
 // Prints and closes what the start shows about a crash of the last run: the notice, or the recovery prompt with the crash
-// note when QEGTRAIN_E2E_RECOVERY_ANSWER leaves the prompt open. The line printed ends with the path of the note.
+// note when QEGTRAIN_E2E_RECOVERY_ANSWER leaves the prompt open. The line printed ends with the path of the note, or none
+// for a prompt without one.
 void closeCrashDialogs() {
 	for (QWidget* widget : QApplication::topLevelWidgets()) {
 		if (!widget->isVisible())
@@ -76,7 +71,7 @@ void closeCrashDialogs() {
 			notice->button(QMessageBox::Ok)->click();
 		} else if (widget->objectName() == QLatin1String("recoveryPrompt")) {
 			const auto* note = widget->findChild<QLabel*>(QStringLiteral("recoveryCrashNote"));
-			printLine(QStringLiteral("E2E_RECOVERY_CRASH_NOTE ") + (note ? note->text().section(QLatin1Char('\n'), 1, 1) : QString()));
+			printLine(QStringLiteral("E2E_RECOVERY_CRASH_NOTE ") + (note ? note->text().section(QLatin1Char('\n'), 1, 1) : QStringLiteral("none")));
 			if (auto* later = widget->findChild<QPushButton*>(QStringLiteral("recoveryLaterButton")))
 				later->click();
 		}
@@ -162,8 +157,9 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 		if (!flushAutosave())
 			return QStringLiteral("the autosave did not write the copy");
 		printLine(QStringLiteral("E2E_RECOVERY_WRITTEN"));
+		// An exception that nothing catches, thrown on another thread as a failed run would throw it.
 		if (uncaught)
-			throwOnThread();
+			std::thread([] { throw std::runtime_error("injected crash"); }).join();
 		crash();
 	};
 
@@ -247,10 +243,9 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 		failure = crashAfterEdits(false, true);
 	else if (script == QLatin1String("new-then-crash"))
 		failure = crashAfterEdits(true, false);
-	else if (script == QLatin1String("open-then-segv")) {
-		printLine(QStringLiteral("E2E_RECOVERY_CRASH"));
+	else if (script == QLatin1String("open-then-segv"))
 		std::raise(SIGSEGV);
-	} else if (script == QLatin1String("close-after-discard"))
+	else if (script == QLatin1String("close-after-discard"))
 		failure = closeAfterDiscard();
 	else if (script == QLatin1String("start-again"))
 		failure = startAgain();
