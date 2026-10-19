@@ -57,9 +57,7 @@ StationMarkItem::StationMarkItem(StationClass cls, int size, QGraphicsItem* pare
 	setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
 }
 
-void StationMarkItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
-	Q_UNUSED(option);
-	Q_UNUSED(widget);
+void StationMarkItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
 	const qreal pixelsPerUnit = QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform());
 	if (pixelsPerUnit <= 0.0)
 		return;

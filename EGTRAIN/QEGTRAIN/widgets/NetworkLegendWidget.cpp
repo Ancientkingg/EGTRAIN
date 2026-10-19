@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -76,7 +77,7 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			stationMarkIcon(m_entry.stationClass).paint(&painter, QRect(15, 1, 16, 16));
+			paintStationMark(&painter, QRectF(15.0, 1.0, 16.0, 16.0), m_entry.stationClass, QColor(16, 26, 34), Qt::white, 1.0);
 			return;
 		}
 
@@ -324,16 +325,12 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 
 	m_entries += trainEntries(content.trains);
 
-	const auto hasStationClass = [&content](StationClass cls) {
-		return std::any_of(content.stationVisuals.cbegin(), content.stationVisuals.cend(),
-			[cls](const StationVisual& visual) { return visual.cls == cls; });
-	};
-	if (hasStationClass(StationClass::Major))
-		m_entries << stationEntry("Major station", StationClass::Major);
-	if (hasStationClass(StationClass::Station))
-		m_entries << stationEntry("Station", StationClass::Station);
-	if (hasStationClass(StationClass::Halt))
-		m_entries << stationEntry("Halt", StationClass::Halt);
+	for (const auto& row : {std::make_pair(StationClass::Major, "Major station"), std::make_pair(StationClass::Station, "Station"),
+			 std::make_pair(StationClass::Halt, "Halt")}) {
+		if (std::any_of(content.stationVisuals.cbegin(), content.stationVisuals.cend(),
+				[&row](const StationVisual& visual) { return visual.cls == row.first; }))
+			m_entries << stationEntry(row.second, row.first);
+	}
 
 	if (content.hasSignals) {
 		m_entries << signalEntry("Stop signal", 0)
