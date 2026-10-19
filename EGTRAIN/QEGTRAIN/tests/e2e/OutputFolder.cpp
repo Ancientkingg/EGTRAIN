@@ -3,16 +3,22 @@
 #include "app/DispatchController.h"
 #include "scene/SceneBundle.h"
 #include "simulation/SimulationWorker.h"
+#include <QAction>
 #include <QCoreApplication>
 #include <QDir>
+#include <QEventLoop>
+#include <QFile>
 #include <QLineEdit>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QTimer>
+#include <algorithm>
 #include <cstdio>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 namespace {
@@ -46,8 +52,9 @@ constexpr int kMaxPolls = 100;
 
 // The folder that a run writes to follows the scene that the window holds. It creates a new case and opens a
 // second scene in the window, renames that scene in Case Settings and runs it, then picks a folder as Choose
-// Output Folder does and opens a third scene, which must leave that folder in force. QEGTRAIN_OUTPUT_DIR names
-// the base folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
+// Output Folder does and opens a third scene, which must leave that folder in force. Then a run whose output folder is
+// a file and a run that an exception ends must fail and leave the third scene open and editable. QEGTRAIN_OUTPUT_DIR
+// names the base folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
 void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	if (scenarioStarted)
 		return;
@@ -149,6 +156,52 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	// The rename is not saved. Opening the next scene must not ask about it.
 	w.m_document->setDirty(false);
 
+	// Stops the run of the third scene, then runs it into the two failures.
+	const auto checkFailedRuns = [&w, run, fail]() {
+		const auto runEnded = [&w]() {
+			for (int i = 0; i < kMaxPolls && w.m_runController->m_worker; ++i) {
+				QEventLoop loop;
+				QTimer::singleShot(kPollMs, &loop, &QEventLoop::quit);
+				loop.exec();
+			}
+			return !w.m_runController->m_worker;
+		};
+		const auto caseUsable = [&w, run]() {
+			return w.m_document->isLoaded() && w.m_document->isEditable() && w.m_document->mutableModel().name == run->thirdName
+				&& w.m_runSceneAction->isEnabled() && w.m_runController->m_runtimeStatus == QStringLiteral("Failed");
+		};
+		w.m_runController->m_worker->requestStop();
+		if (!runEnded()) {
+			fail(QStringLiteral("the run of the third scene did not stop"));
+			return;
+		}
+		QFile blocker(run->temp.filePath(QStringLiteral("blocker")));
+		if (!blocker.open(QIODevice::WriteOnly))
+			fail(QStringLiteral("the file that blocks the output folder was not written"));
+		blocker.close();
+		simulation.setNextRunOutputFolder(blocker.fileName().toStdString());
+		w.m_runController->runScene();
+		const auto& diagnostics = w.m_runController->m_runtimeDiagnostics;
+		const bool reported = std::any_of(diagnostics.begin(), diagnostics.end(),
+			[](const SceneDiagnostic& diagnostic) { return diagnostic.code == "run.output.folder"; });
+		if (w.m_runController->m_worker || !reported || !caseUsable())
+			fail(QStringLiteral("a run whose output folder is a file did not fail with the case usable"));
+		simulation.setNextRunOutputFolder(run->chosen.toStdString());
+		// The condition keeps MSVC from warning about unreachable code after a slot that always throws.
+		const bool inject = reported;
+		const auto injected = QObject::connect(&simulation, &DispatchController::executionBegan, &simulation, [inject] {
+			if (inject)
+				throw std::runtime_error("injected"); }, Qt::DirectConnection);
+		w.m_runController->runScene();
+		const bool started = w.m_runController->m_worker;
+		const bool ended = runEnded();
+		QObject::disconnect(injected);
+		if (!started || !ended || simulation.lastRunError() != "injected" || !caseUsable())
+			fail(QStringLiteral("a run that an exception ended did not fail with the case usable"));
+		else if (w.statusBar()->currentMessage() != QStringLiteral("Simulation failed"))
+			fail(QStringLiteral("a run that an exception ended shows the status \"%1\"").arg(w.statusBar()->currentMessage()));
+	};
+
 	// The third scene opens once the run has stopped. The folder that was chosen stays in force.
 	const QString thirdFolder = outputFolderOf(run->base, run->thirdName);
 	simulation.setNextRunOutputFolder(run->chosen.toStdString());
@@ -158,7 +211,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		return;
 	}
 	auto* poll = new QTimer(&w);
-	QObject::connect(poll, &QTimer::timeout, &w, [&w, run, thirdFolder, fail, finish, poll]() {
+	QObject::connect(poll, &QTimer::timeout, &w, [&w, run, thirdFolder, fail, finish, checkFailedRuns, poll]() {
 		if (w.m_runController->m_worker || w.m_document->mutableModel().name != run->thirdName) {
 			if (++run->attempts < kMaxPolls)
 				return;
@@ -177,6 +230,8 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 			fail(QStringLiteral("the run of the third scene writes to %1, not %2").arg(currentOutputFolder(), run->chosen));
 		else if (!QDir(run->chosen + QStringLiteral("/TrainTrajectories")).exists())
 			fail(QStringLiteral("the run of the third scene prepared no files in %1").arg(run->chosen));
+		if (run->failures.isEmpty())
+			checkFailedRuns();
 		finish();
 	});
 	poll->start(kPollMs);

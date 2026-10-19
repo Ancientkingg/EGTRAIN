@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -61,6 +62,27 @@ def check_version_rejections(scene_tool: Path, root: Path) -> None:
             "scene.compatibility.newer", "schema 1, bundle layout 2", "reads schema 1, bundle layout 1")
 
 
+# A path that the file system refuses ends with a diagnostic and exit code 1, not with an abort.
+def check_unreadable_paths(scene_tool: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="scene-tool-unreadable-") as temp_name:
+        temp = Path(temp_name)
+        proc = run_tool(scene_tool, "validate", temp / ("x" * 300) / "scene")
+        if proc.returncode != 1 or "[scene.dir." not in proc.stdout:
+            raise SystemExit(f"validate of a 300-character name exited with {proc.returncode}:\n{proc.stdout}")
+        # A folder without permissions does not stop root, and Windows does not use the permission bits.
+        if os.name == "nt" or os.geteuid() == 0:
+            return
+        closed = temp / "closed"
+        (closed / "case").mkdir(parents=True)
+        closed.chmod(0)
+        try:
+            proc = run_tool(scene_tool, "import", closed / "case", temp / "scene")
+        finally:
+            closed.chmod(0o700)
+        if proc.returncode != 1 or "scene.import.missing" not in proc.stdout:
+            raise SystemExit(f"import from a folder that cannot be read exited with {proc.returncode}:\n{proc.stdout}")
+
+
 def main() -> None:
     root = Path(__file__).resolve().parents[2]
     scene_tool = Path(sys.argv[1])
@@ -107,6 +129,7 @@ def main() -> None:
         raise SystemExit("validate printed a run check")
 
     check_version_rejections(scene_tool, root)
+    check_unreadable_paths(scene_tool)
 
 
 if __name__ == "__main__":

@@ -36,6 +36,7 @@
 #include <QStatusBar>
 #include <QUrl>
 #include <algorithm>
+#include <exception>
 #include <iterator>
 
 namespace {
@@ -339,7 +340,15 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	const bool reloadingSameScene = !recovered && m_document->isLoaded()
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	bool timingIdentityOk = true;
-	auto result = m_host.readScene(scenePath, timingIdentityOk);
+	SceneLoadResult result;
+	try {
+		result = m_host.readScene(scenePath, timingIdentityOk);
+	} catch (const std::exception& error) {
+		SceneDiagnostic diagnostic;
+		diagnostic.code = "scene.read.exception";
+		diagnostic.message = std::string("Cannot read the scene: ") + error.what();
+		result.diagnostics.push_back(std::move(diagnostic));
+	}
 	int errorCount = errorDiagnosticCount(result.diagnostics);
 	if (errorCount > 0) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(result.diagnostics));

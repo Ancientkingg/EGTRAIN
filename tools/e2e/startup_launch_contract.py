@@ -188,7 +188,7 @@ def assert_deferred_success_path_resets() -> None:
     ]
     if prepare.index("beginScenePreparation();") > prepare.index("validateRunnableScene("):
         raise SystemExit("scene preparation does not clear lightweight state before validation")
-    if prepare.count("resetState();") != 3:
+    if prepare.count("resetState();") != 4:
         raise SystemExit("scene preparation failure paths do not all perform a full reset")
     # The scene is built into a run of its own, which replaces the run of the controller once it is complete: after the last failure
     # path, with the copy of the settings, which the reset of the run returns to the default.

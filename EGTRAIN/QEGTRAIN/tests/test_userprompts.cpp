@@ -10,6 +10,8 @@
 
 #include <functional>
 #include <iostream>
+#include <string>
+#include <vector>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -47,10 +49,17 @@ int main(int argc, char** argv) {
 	{
 		UserPrompts prompts([] { return true; });
 		int shown = 0;
+		std::vector<std::string> errors;
+		eglog::setSink([&errors](eglog::Category, eglog::Level level, const std::string& text) {
+			if (level == eglog::Level::Error)
+				errors.push_back(text);
+		});
 		answerDialog<QMessageBox>(shown, [](QMessageBox* box) { box->accept(); });
 		prompts.showError(nullptr, "Title", "Message");
 		waitFor(150);
+		eglog::setSink({});
 		ok &= expect(shown == 0, "a suppressed error opens no dialog");
+		ok &= expect(errors.size() == 1 && errors.front().find("Title: Message") != std::string::npos, "an error is logged once");
 	}
 	{
 		UserPrompts prompts;

@@ -49,7 +49,8 @@ public:
 	/// selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene,
 	/// or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of
 	/// initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files
-	/// that a run appends to. Returns the diagnostics of the validation and the builders.
+	/// that a run appends to. Returns the diagnostics of the validation and the builders, and the error run.output.folder
+	/// when the output folder cannot be made.
 	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId = {},
 		const SceneRunSelection& selectedOccurrences = {});
@@ -70,7 +71,8 @@ public:
 	/// Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics,
 	/// the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without
 	/// trains is not run: it emits executionRejected and logs an error. The control of the run is that of
-	/// SimulationWorker::active(), or a new one when there is no worker.
+	/// SimulationWorker::active(), or a new one when there is no worker. An exception ends the run: its text goes to
+	/// lastRunError() and the log, and executionFailed is emitted. The function itself does not throw.
 	void runSimulation();
 
 	/// The steps of a run, t from 0 while t < settings.times, each in seconds from the start of the run. v1, v2 and v3 go to
@@ -100,6 +102,8 @@ public:
 	GuiReplayHistory takeReplayCandidate() { return std::exchange(replayCandidate_, GuiReplayHistory()); }
 	/// True when the last run executed every stage, also if a stop arrived after its last check.
 	bool lastRunCompleted() const { return runCompleted_; }
+	/// Why the last run ended with an error, or empty when it did not. Read it after the run has returned.
+	const std::string& lastRunError() const { return runError_; }
 	/// The control of the run that started last, also when it has ended: the control of the window's
 	/// SimulationWorker, or the one that a run without a worker made for itself. Call this on the thread
 	/// that runs the simulation, or after the run has returned.
@@ -140,8 +144,13 @@ signals:
 	void executionReturned(qint64 elapsedMs, bool cancelled);
 	/// Execution-thread observation: the steps have ended and the stages after them start.
 	void executionPostprocessing();
+	/// Execution-thread observation: an exception ended the run. elapsedMs is the time since runSimulation started, in
+	/// milliseconds.
+	void executionFailed(qint64 elapsedMs);
 
 private:
+	// The body of runSimulation, which catches what it throws.
+	void runSimulationStages();
 	void beginScenePreparation();
 	void publishSimulationSnapshot(int timestep);
 
@@ -152,6 +161,7 @@ private:
 	std::string liveSceneName_;
 	bool snapshotsEnabled_ = true;
 	std::atomic<bool> runCompleted_{false};
+	std::string runError_;
 	std::shared_ptr<RunControl> runControl_ = std::make_shared<RunControl>();
 	std::string nextRunOutputFolder_;
 };

@@ -9,7 +9,7 @@
 
 /// The message for a case study that is damaged or is not a case study. The window and the start of the program show
 /// the same title and text; the internal error follows the plain sentence. A folder gets its own sentence, which names
-/// the scene.json that a scene folder holds.
+/// the scene.json that a scene folder holds. A path that cannot be found or read is not called damaged.
 namespace cannot_open {
 
 /// The title of the message box.
@@ -23,7 +23,9 @@ inline QString text(const QString& path, const QString& error) {
 	const QFileInfo info(path);
 	const QString name = info.fileName();
 	QString sentence = QStringLiteral("The file is damaged or is not an EGTRAIN case study.");
-	if (info.isDir()) {
+	if (!info.isReadable()) {
+		sentence = QStringLiteral("EGTRAIN could not read it.");
+	} else if (info.isDir()) {
 		sentence = QDir(path).exists(QStringLiteral("scene.json"))
 			? QStringLiteral("The folder holds a damaged or incomplete EGTRAIN scene.")
 			: QStringLiteral("The folder holds no EGTRAIN scene. A scene folder holds a scene.json file.");

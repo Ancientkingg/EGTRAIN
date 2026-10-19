@@ -16,6 +16,10 @@
 #include <utility>
 #include <vector>
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 namespace fs = std::filesystem;
 
 static bool expect(bool condition, const char* message) {
@@ -312,6 +316,31 @@ static bool testUnicodePaths(const SceneModel& scene, const fs::path& root) {
 	return ok;
 }
 
+// A scene path that the file system refuses gives an error and does not throw.
+static bool testUnreadablePaths(const fs::path& root) {
+	bool ok = true;
+	const SceneLoadResult tooLong = loadScenePath((root / std::string(300, 'x') / "scene").u8string());
+	ok &= expect(hasCode(tooLong.diagnostics, "scene.dir.unreadable") || hasCode(tooLong.diagnostics, "scene.dir.missing"),
+		"a path with a 300-character name gives an error");
+#ifndef _WIN32
+	// A folder without permissions does not stop root, so the case skips itself then.
+	const fs::path closed = root / "closed";
+	fs::create_directories(closed / "scene");
+	fs::permissions(closed, fs::perms::none, fs::perm_options::replace);
+	if (geteuid() != 0)
+		ok &= expect(hasCode(loadScenePath((closed / "scene").u8string()).diagnostics, "scene.dir.unreadable"),
+			"a scene under a folder that cannot be read gives scene.dir.unreadable");
+	fs::permissions(closed, fs::perms::owner_all, fs::perm_options::replace);
+	// A scene folder that cannot be read under a folder that can.
+	fs::permissions(closed / "scene", fs::perms::none, fs::perm_options::replace);
+	if (geteuid() != 0)
+		ok &= expect(hasErrors(loadScenePath((closed / "scene").u8string()).diagnostics),
+			"a scene folder that cannot be read gives an error");
+	fs::permissions(closed / "scene", fs::perms::owner_all, fs::perm_options::replace);
+#endif
+	return ok;
+}
+
 static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second, const fs::path& root) {
 	const fs::path firstDir = root / "first";
 	const fs::path secondDir = root / "second";
@@ -441,6 +470,7 @@ int main(int argc, char** argv) {
 	ok &= testSignallingAreaRoundTrip(temp.path);
 	if (!hasErrors(source.diagnostics))
 		ok &= testUnicodePaths(source.scene, temp.path / "unicode");
+	ok &= testUnreadablePaths(temp.path);
 	SceneModel categoryScene = source.scene;
 	if (!categoryScene.services.empty()) {
 		const fs::path categoryFolder = temp.path / "category";

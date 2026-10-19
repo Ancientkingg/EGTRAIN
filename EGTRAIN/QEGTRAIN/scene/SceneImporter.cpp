@@ -517,14 +517,16 @@ struct LegacyPassengerParseResult {
 
 static LegacyPassengerSources locateLegacyPassengerSources(const fs::path& root) {
 	LegacyPassengerSources result;
+	// A file or folder that cannot be checked counts as absent.
+	std::error_code ec;
 	result.directory = findChild(root, "Passengers");
-	if (result.directory.empty() || !fs::is_directory(result.directory))
+	if (result.directory.empty() || !fs::is_directory(result.directory, ec))
 		result.directory = root;
 
 	result.das = result.directory / "DAS_FrenchCaseStudy.csv";
 	result.routeChoice = result.directory / "RouteChoiceFC_EQ1.csv";
-	result.hasDas = fs::is_regular_file(result.das);
-	result.hasRouteChoice = fs::is_regular_file(result.routeChoice);
+	result.hasDas = fs::is_regular_file(result.das, ec);
+	result.hasRouteChoice = fs::is_regular_file(result.routeChoice, ec);
 	result.hasPair = result.hasDas && result.hasRouteChoice;
 	return result;
 }
@@ -937,8 +939,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			"Legacy directory and scene destination must be separate, non-overlapping directories", scenePath.u8string());
 		return result;
 	}
-	if (!fs::is_directory(legacyPath)) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Legacy directory missing or invalid", legacyPath.u8string());
+	std::error_code legacyError;
+	const fs::file_type legacyType = fs::status(legacyPath, legacyError).type();
+	if (legacyType != fs::file_type::directory) {
+		const bool unreadable = legacyError && legacyType != fs::file_type::not_found;
+		addDiag(SceneSeverity::Error, "scene.import.missing",
+			unreadable ? "Cannot read the legacy directory: " + legacyError.message() : std::string("Legacy directory missing or invalid"),
+			legacyPath.u8string());
 		return result;
 	}
 

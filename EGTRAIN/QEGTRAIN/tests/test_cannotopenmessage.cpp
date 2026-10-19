@@ -20,32 +20,37 @@ void requireText(const QString& actual, const QString& expected, const char* mes
 
 int main(int argc, char** argv) {
 	QCoreApplication app(argc, argv);
+	QTemporaryDir temp;
+	QFile broken(QDir(temp.path()).filePath("broken.egscene"));
+	if (!temp.isValid() || !QDir(temp.path()).mkdir("plain") || !QDir(temp.path()).mkdir("scene")
+		|| !broken.open(QIODevice::WriteOnly)) {
+		std::cerr << "failed: the test files could not be created\n";
+		return 1;
+	}
+	broken.close();
+	const QString brokenPath = broken.fileName();
 
 	// The file name and a plain sentence come first, the internal error after them.
 	requireText(cannot_open::title(), "Cannot Open Case Study", "title");
-	requireText(cannot_open::text("/data/cases/broken.egscene", "error [scene.bundle.archive] failed finding central directory"),
+	requireText(cannot_open::text(brokenPath, "error [scene.bundle.archive] failed finding central directory"),
 		"broken.egscene could not be opened.\nThe file is damaged or is not an EGTRAIN case study.\n\n"
 		"error [scene.bundle.archive] failed finding central directory",
 		"text with an error");
-	requireText(cannot_open::text("/data/cases/broken.egscene", {}),
+	requireText(cannot_open::text(brokenPath, {}),
 		"broken.egscene could not be opened.\nThe file is damaged or is not an EGTRAIN case study.", "text without an error");
-	if (cannot_open::text("/data/cases/broken.egscene", "x").contains("/data/cases")) {
+	if (cannot_open::text(brokenPath, "x").contains(temp.path())) {
 		std::cerr << "failed: the text shows the folder of the file\n";
 		return 1;
 	}
 
-	// A path without a file name is shown with the separators of the system.
+	// A path that cannot be found or read is not called damaged. A path without a file name is shown with the
+	// separators of the system.
 	display_path::separator() = QLatin1Char('\\');
-	requireText(cannot_open::text("/no/such/place/", {}), "\\no\\such\\place\\ could not be opened.\nThe file is damaged or is not an EGTRAIN case study.",
-		"text for a path without a file name");
+	requireText(cannot_open::text("/no/such/place/", {}), "\\no\\such\\place\\ could not be opened.\nEGTRAIN could not read it.",
+		"text for a path that does not exist");
 	display_path::separator() = QDir::separator();
 
 	// A folder is not a damaged file: the sentence says what a scene folder holds.
-	QTemporaryDir temp;
-	if (!temp.isValid() || !QDir(temp.path()).mkdir("plain") || !QDir(temp.path()).mkdir("scene")) {
-		std::cerr << "failed: the test folders could not be created\n";
-		return 1;
-	}
 	QFile sceneJson(QDir(temp.path()).filePath("scene/scene.json"));
 	if (!sceneJson.open(QIODevice::WriteOnly)) {
 		std::cerr << "failed: scene.json could not be created\n";

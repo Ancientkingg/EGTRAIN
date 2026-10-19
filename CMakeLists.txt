@@ -425,17 +425,19 @@ egtrain_target_warnings(egtrain_dispatch)
 #   egtrain_sim                     legacy code with 104 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
-#                                   app/main.cpp, app/UpdateTelemetryController.cpp, update/SelfUpdater.cpp,
-#                                   update/UpdateNotices.cpp, telemetry/TelemetryConsentDialog.cpp and
-#                                   widgets/SettingsDialog.cpp build here too; test_selfupdater builds SelfUpdater.cpp
+#                                   app/main.cpp, app/GuardedApplication.cpp, app/UpdateTelemetryController.cpp,
+#                                   update/SelfUpdater.cpp, update/UpdateNotices.cpp, telemetry/TelemetryConsentDialog.cpp
+#                                   and widgets/SettingsDialog.cpp build here too; test_selfupdater builds SelfUpdater.cpp
 #                                   with the flags, test_updatetelemetrycontroller builds UpdateTelemetryController.cpp
-#                                   with them and test_settingsdialog builds SettingsDialog.cpp with them
+#                                   with them, test_guardedapplication builds GuardedApplication.cpp with them and
+#                                   test_settingsdialog builds SettingsDialog.cpp with them
 # A test executable that uses the simulation has no flags either.
 
 # --- Sources ---
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/CrashNote.cpp
     ${SRC_DIR}/app/main.cpp
+    ${SRC_DIR}/app/GuardedApplication.cpp
     ${SRC_DIR}/app/MainWindow.cpp
     ${SRC_DIR}/app/ResultViews.cpp
     ${SRC_DIR}/app/RunController.cpp
@@ -458,6 +460,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
     ${SRC_DIR}/app/CrashNote.h
+    ${SRC_DIR}/app/GuardedApplication.h
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
     ${SRC_DIR}/app/ResultViews.h
@@ -1059,7 +1062,7 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_choicecombo PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_userprompts ${SRC_DIR}/tests/test_userprompts.cpp)
-    target_link_libraries(test_userprompts PRIVATE Qt::Core Qt::Gui Qt::Widgets)
+    target_link_libraries(test_userprompts PRIVATE egtrain_util Qt::Core Qt::Gui Qt::Widgets)
     add_test(NAME test_userprompts COMMAND test_userprompts)
     # The test answers real message boxes. Qt 5.15 crashes when a QMessageBox is shown on the offscreen platform
     # on Windows, so the test uses the native platform there.
@@ -1068,6 +1071,11 @@ if(EGTRAIN_BUILD_TESTS)
     else()
         set_tests_properties(test_userprompts PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     endif()
+
+    add_executable(test_guardedapplication ${SRC_DIR}/tests/test_guardedapplication.cpp ${SRC_DIR}/app/GuardedApplication.cpp)
+    target_link_libraries(test_guardedapplication PRIVATE egtrain_util Qt::Core Qt::Gui Qt::Widgets)
+    add_test(NAME test_guardedapplication COMMAND test_guardedapplication)
+    set_tests_properties(test_guardedapplication PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" SKIP_RETURN_CODE 77)
 
     add_executable(test_editor_casesettings ${SRC_DIR}/tests/test_editor_casesettings.cpp)
     target_link_libraries(test_editor_casesettings PRIVATE egtrain_editors Qt::Core Qt::Gui Qt::Widgets)
@@ -1391,7 +1399,8 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_output_folder PROPERTIES
 		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_E2E_OUTPUT_FOLDER=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/output-folder-test"
-		PASS_REGULAR_EXPRESSION "E2E_OUTPUT_FOLDER_OK"
+		# The run that an exception ends shows Simulation Failed, which a scripted run writes to stderr.
+		PASS_REGULAR_EXPRESSION "DIALOG_SUPPRESSED: Simulation Failed.*E2E_OUTPUT_FOLDER_OK;E2E_OUTPUT_FOLDER_OK.*DIALOG_SUPPRESSED: Simulation Failed"
 		TIMEOUT 120)
 	add_test(NAME test_native_startup_without_legacy
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
@@ -1657,7 +1666,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_manualwindow
-			test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
+			test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_guardedapplication test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
 			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_livecommand test_liveserver live_client)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
@@ -1690,7 +1699,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
-		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_manualwindow
+		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_guardedapplication test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_manualwindow
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_check_docs test_check_undocumented docs_check test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
 		test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_pathmessages test_updateprompttext test_releasenotes test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
@@ -1715,7 +1724,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_updatetelemetrycontroller test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas
-		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_manualwindow
+		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_guardedapplication test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_manualwindow
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract
