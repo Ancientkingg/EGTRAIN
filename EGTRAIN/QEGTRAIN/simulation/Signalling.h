@@ -14,11 +14,12 @@
 struct SceneModel;
 struct SimulationRun;
 
-// Build the infrastructure/signalling globals from an already loaded scene.
-// This path is filesystem-free and is the normal V1 runtime path.
+/// Builds the infrastructure, signalling and routes of a loaded scene into run.infra and the platforms of the run, and empties
+/// its final-station statistics. Reads no file. When the diagnostics hold an error, the run keeps the infrastructure, platforms
+/// and final-station statistics that it held before.
 std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(SimulationRun& run, const SceneModel& scene);
 
-// Release fixed-capacity native infrastructure state between scene runs.
+/// Empties run.infra, the platforms of the run and its final-station statistics.
 void resetNativeInfrastructureState(SimulationRun& run);
 
 // --- Incidents: Disruption events ---
@@ -306,7 +307,9 @@ public:
 	void adjustRouteAcrossDiffRegions();
 };
 
-// Set up all routes from canonical scene model.
+/// Replaces run.infra.routes by the routes of the scene, built from their block IDs. routeDirections[i] above 0 builds route i
+/// forward, below 0 reversed (Route::reversed_direction), and 0 or a missing entry builds it forward when it has one block or
+/// its first block starts at a lower X than its last. A route that the scene marks as reversed also gets reversed_direction.
 void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std::vector<int>& routeDirections = {});
 
 

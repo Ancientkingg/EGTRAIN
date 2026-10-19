@@ -39,18 +39,20 @@ extern InitialParameters initial_variables;
 
 struct SimulationRun;
 
-// Build rolling stock, timetable, selected-scenario incidents, entrance
-// delays, platforms, and passengers from an in-memory canonical scene.
-// The function is transactional: errors leave existing operation globals intact.
+/// Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of
+/// the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of
+/// DispatchController::prepareScene. The run's random generator is seeded from initial_variables.randomSeed first. When the
+/// diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables
+/// takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene.
 std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const SceneModel& scene,
 	const std::string& selectedScenarioId = {},
 	const SceneRunSelection& selectedOccurrences = {});
 
-// Returns the operations state of the run to that of a new run: the trains and their storage, platforms, passengers,
-// incidents and statistics.
+/// Returns the operations state of the run to that of a new run: the trains and their storage, platforms, passengers,
+/// incidents and statistics.
 void prepareNativeOperationsState(SimulationRun& run);
 
-// The reset between scene runs, which is the same as preparing a new run.
+/// The reset between scene runs, which is the same as preparing a new run.
 void resetNativeOperationsState(SimulationRun& run);
 
 // Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.
