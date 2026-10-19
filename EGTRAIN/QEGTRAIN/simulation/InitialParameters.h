@@ -40,11 +40,6 @@ public:
 	/// Folder that a run writes its output files to. prepareScene sets it to the folder chosen in the window, if any, and to
 	/// "Output" when it is empty.
 	std::string OutputMainFolder;
-	/// When not 0, the traffic state of every step is sent as JSON, with the XML text in its xml field, to tcp://127.0.0.1:5555 (-TSM, deprecated).
-	int TSM;
-	/// When not 0, the route choice requests of every step are sent as JSON, with the XML text in its xml field, to tcp://127.0.0.1:5556 (-RC, deprecated), and
-	/// prepareScene refuses a run without a passenger journey.
-	int RChoice;
 	/// True when the case was named on the command line (-n, --scene or a file to open), or later in the window. The window then
 	/// does not open the case chooser at startup.
 	bool nArgProvided = false;
@@ -69,7 +64,7 @@ public:
 	/// The stream also takes requests (--live-commands).
 	bool liveCommands = false;
 
-	/// Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with set_case.
+	/// Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case.
 	explicit InitialParameters(int caseStudy);
 	/// Sets name to that of case study caseStudy: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia,
 	/// 5 Assignment_Gvc_Gdg_Ut. Another number clears name and logs a warning.

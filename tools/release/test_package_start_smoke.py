@@ -709,8 +709,7 @@ class MainTests(unittest.TestCase):
                 self.assertEqual(command[command.index("--scene") + 1], str(self.package / "Scenes" / "Paimpol"))
                 self.assertEqual(command[command.index("-h") + 1], "8000")
                 self.assertEqual(command[command.index("-g") + 1], "1")
-                for option in ("-pax", "-TSM", "-RC"):
-                    self.assertEqual(command[command.index(option) + 1], "0")
+                self.assertEqual(command[command.index("-pax") + 1], "0")
                 self.assertEqual(launch["cwd"], self.package)
                 self.assertFalse("QT_PLUGIN_PATH" in launch["env"])
         directories = {launch["env"]["QEGTRAIN_OUTPUT_DIR"] for launch in self.launches.values()}

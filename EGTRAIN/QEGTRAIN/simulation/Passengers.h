@@ -3,7 +3,6 @@
 
 #include "simulation/Infrastructure.h"
 #include "simulation/RollingStock.h"
-#include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <vector>
 
@@ -183,7 +182,5 @@ private:
 void printCurrentPassengerStatus(int t, int StartSimulationTime, const std::list<Passenger>& ALLPAX, std::string MainFolder);
 
 void printPassengerTotalJourneyDelay(const std::list<Passenger>& ALLPAX, std::string MainFolder);
-
-nlohmann::json routeChoicePayload(const std::list<Passenger>& passengers, int timestep);
 
 #endif

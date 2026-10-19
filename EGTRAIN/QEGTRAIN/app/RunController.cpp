@@ -400,8 +400,6 @@ RunProvenance RunController::captureRunProvenance() const {
 	provenance.bufferSeconds = initial_variables.bufferTime;
 	provenance.recoveryPercent = initial_variables.recoveryTimePercentage;
 	provenance.paxMode = initial_variables.PAX_GUI ? 1 : 0;
-	provenance.tsmMode = initial_variables.TSM;
-	provenance.routeChoiceMode = initial_variables.RChoice;
 	provenance.randomSeed = initial_variables.randomSeed;
 	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, simulation.run().numTrains)));
 	for (int index = 0; index < simulation.run().numTrains; ++index) {
@@ -818,8 +816,6 @@ void RunController::runScene() {
 		config.durationMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DURATION_MS");
 		config.delayMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS");
 		config.passengerGui = initial_variables.PAX_GUI;
-		config.tsm = initial_variables.TSM != 0;
-		config.routeChoice = initial_variables.RChoice != 0;
 		config.horizon = static_cast<int>(initial_variables.times);
 		config.structural = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_STRUCTURAL") == QLatin1String("1");
 		PlaybackProfiler::instance().configure(config);

@@ -42,7 +42,7 @@ QEGTRAIN_E2E_SCENE_ALT="$ALT_SCENE" \
 QEGTRAIN_E2E_OUT="$OUT" \
 QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR" \
 QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
-"$APP" --scene "$SCENE" -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>"$SETTINGS_DIR/stderr.log"
+"$APP" --scene "$SCENE" -h 100 -g 1 -pax 0 >"$LOG" 2>"$SETTINGS_DIR/stderr.log"
 APP_EXIT=$?
 set -e
 cat "$SETTINGS_DIR/stderr.log" >>"$LOG"

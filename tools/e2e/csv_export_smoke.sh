@@ -61,7 +61,7 @@ QT_QPA_PLATFORM=offscreen \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_OUTPUT_DIR="${QEGTRAIN_OUTPUT_DIR:-$RUN_OUTPUT}" \
 QEGTRAIN_E2E_EXPORT_DIR="$OUTDIR" \
-"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
+"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 0 >"$LOG" 2>&1
 
 grep -q "E2E_CSV_EXPORT_OK" "$LOG"
 
@@ -70,14 +70,14 @@ QT_QPA_PLATFORM=offscreen \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_OUTPUT_DIR="${QEGTRAIN_OUTPUT_DIR:-$ASSIGNMENT_RUN_OUTPUT}" \
 QEGTRAIN_E2E_EXPORT_DIR="$ASSIGNMENT_OUTDIR" \
-"$APP" --scene "$ASSIGNMENT_SCENE" -h 800 -g 1 -pax 0 -TSM 0 -RC 0 >"$ASSIGNMENT_LOG" 2>&1
+"$APP" --scene "$ASSIGNMENT_SCENE" -h 800 -g 1 -pax 0 >"$ASSIGNMENT_LOG" 2>&1
 
 grep -q "E2E_CSV_EXPORT_OK" "$ASSIGNMENT_LOG"
 QT_QPA_PLATFORM=offscreen \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_OUTPUT_DIR="${QEGTRAIN_OUTPUT_DIR:-$UNRELATED_RUN_OUTPUT}" \
 QEGTRAIN_E2E_EXPORT_DIR="$UNRELATED_OUTDIR" \
-"$APP" --scene "$UNRELATED_SCENE" -h 800 -g 1 -pax 0 -TSM 0 -RC 0 >"$UNRELATED_LOG" 2>&1
+"$APP" --scene "$UNRELATED_SCENE" -h 800 -g 1 -pax 0 >"$UNRELATED_LOG" 2>&1
 
 grep -q "E2E_CSV_EXPORT_OK" "$UNRELATED_LOG"
 if [[ ! -s "$ASSIGNMENT_OUTDIR/blocking_time.csv" ]]; then
@@ -214,7 +214,7 @@ for name in artifacts:
     assert run["timestep_seconds"] == 1
     assert run["buffer_seconds"] == 0
     assert run["recovery_percent"] == 0
-    assert run["pax_mode"] == run["tsm_mode"] == run["route_choice_mode"] == 0
+    assert run["pax_mode"] == 0
     assert run["random_seed"] == 789350715
     snapshot = run["input"]
     assert snapshot["kind"] == "directory"

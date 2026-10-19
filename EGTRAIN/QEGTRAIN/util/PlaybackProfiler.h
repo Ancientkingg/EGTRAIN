@@ -35,8 +35,6 @@ public:
 		int durationMs = 0;			   ///< Length of the measurement window, in milliseconds.
 		int delayMs = 0;			   ///< Delay between simulation steps, in milliseconds.
 		bool passengerGui = false;	   ///< True when the main window shows passengers.
-		bool tsm = false;			   ///< True when the traffic-state channel (-TSM) is on.
-		bool routeChoice = false;	   ///< True when the route-choice channel (-RC) is on.
 		int horizon = 0;			   ///< Length of the run in steps of 1 s of simulation time.
 		bool structural = false;	   ///< True for a structural test, whose records have mode "structural".
 	};

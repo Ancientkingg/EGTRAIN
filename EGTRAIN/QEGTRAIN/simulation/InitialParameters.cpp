@@ -3,7 +3,7 @@
 
 InitialParameters::InitialParameters(int caseStudy)
 	: startingSimulationTime(0), GUI(true), times(0), numTrackLines(0), N_Routes(0),
-	  num_OrderLists(0), bufferTime(0), recoveryTimePercentage(0), TSM(0), RChoice(0) {
+	  num_OrderLists(0), bufferTime(0), recoveryTimePercentage(0) {
 	if (caseStudy > 0)
 		set_case(caseStudy);
 }

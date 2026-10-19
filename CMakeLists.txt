@@ -147,8 +147,6 @@ endfunction()
 # --- Model libraries ---
 # Each source below is compiled once. The libraries are static, so a target that links one gets
 # only the objects it references.
-add_library(egtrain_pugixml STATIC ${SRC_DIR}/io/third_party/pugixml.cpp)
-
 add_library(egtrain_util STATIC
     ${SRC_DIR}/util/CsvWriter.cpp
     ${SRC_DIR}/util/Log.cpp
@@ -205,13 +203,6 @@ add_library(egtrain_sim STATIC
 target_link_libraries(egtrain_sim
     PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
-# RttpXml.cpp uses `initial_variables`, which egtrain_sim or the target itself defines.
-# List egtrain_rttp before egtrain_sim.
-add_library(egtrain_rttp STATIC ${SRC_DIR}/io/RttpXml.cpp ${SRC_DIR}/io/ExternalState.cpp)
-target_link_libraries(egtrain_rttp
-    PUBLIC egtrain_pugixml nlohmann_json::nlohmann_json
-    PRIVATE cppzmq)
-
 # No Qt: the frames of the live contract, built from a GuiSimulationSnapshot, the checks on the requests of its clients,
 # and the server that publishes the frames and takes the requests.
 add_library(egtrain_live STATIC ${SRC_DIR}/io/LiveCommand.cpp ${SRC_DIR}/io/LiveFrame.cpp ${SRC_DIR}/io/LiveServer.cpp)
@@ -219,7 +210,7 @@ target_link_libraries(egtrain_live
     PUBLIC nlohmann_json::nlohmann_json
     PRIVATE egtrain_util cppzmq Threads::Threads)
 
-foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtrain_rttp egtrain_live)
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_sim egtrain_live)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
         AUTOMOC OFF AUTOUIC OFF AUTORCC OFF POSITION_INDEPENDENT_CODE ON)
@@ -371,7 +362,7 @@ add_library(egtrain_dispatch STATIC
     ${SRC_DIR}/simulation/RunControl.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp)
 target_link_libraries(egtrain_dispatch
-    PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_live egtrain_rttp egtrain_sim)
+    PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_live egtrain_sim)
 
 # DiagramWindow and TimetableTableWindow call telemetry::OperationObservation, whose symbols do
 # not depend on the hooks, so this library links no telemetry flavour. In the isolated telemetry
@@ -421,8 +412,8 @@ endforeach()
 # from the simulation headers.
 egtrain_target_warnings(egtrain_dispatch)
 # No flags:
-#   egtrain_pugixml, egtrain_miniz  vendored code
-#   egtrain_sim, egtrain_rttp       legacy code with 104 and 4 warning lines, see #453, #454 and #482
+#   egtrain_miniz                   vendored code
+#   egtrain_sim                     legacy code with 104 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
 #                                   app/main.cpp, app/UpdateTelemetryController.cpp, update/SelfUpdater.cpp,
@@ -456,8 +447,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/UserPrompts.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
-    ${SRC_DIR}/io/ExternalState.h
-    ${SRC_DIR}/io/RttpXml.h
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
     ${SRC_DIR}/app/ResultViews.h
@@ -562,7 +551,6 @@ target_link_libraries(QEGTRAIN PRIVATE
     egtrain_sceneopen
     egtrain_openrelay
     egtrain_recovery
-    egtrain_rttp
     egtrain_sim
     egtrain_runselection
     egtrain_scene
@@ -576,7 +564,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     Qt::Network
 )
 
-message(STATUS "ZeroMQ + nlohmann_json found - traffic-state sharing enabled")
+message(STATUS "ZeroMQ + nlohmann_json found - live stream enabled")
 
 add_executable(egtrain_update_helper
 	${SRC_DIR}/update/UpdateHelper.cpp)
@@ -615,7 +603,7 @@ endif()
 
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
-    set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_rttp egtrain_pugixml
+    set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim
         egtrain_graphics egtrain_widgets egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_dispatch egtrain_diagrams
         ${EGTRAIN_TELEMETRY_LIBS}
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
@@ -830,7 +818,7 @@ if(EGTRAIN_BUILD_TESTS)
 
     # Runs the line fixture in this process and compares the live frames of its snapshots with the golden files.
     add_executable(test_liveframe ${SRC_DIR}/tests/test_liveframe.cpp)
-    target_link_libraries(test_liveframe PRIVATE egtrain_live egtrain_dispatch egtrain_rttp egtrain_sim Qt::Core Qt::Gui Qt::Widgets)
+    target_link_libraries(test_liveframe PRIVATE egtrain_live egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets)
     add_test(NAME test_liveframe
         COMMAND test_liveframe
             --fixture ${SRC_DIR}/tests/fixtures/scenes/line
@@ -847,7 +835,7 @@ if(EGTRAIN_BUILD_TESTS)
     # Replays the commands of a live client against the line fixture in this process, and compares the results with
     # those of a run without commands.
     add_executable(test_livereplay ${SRC_DIR}/tests/test_livereplay.cpp)
-    target_link_libraries(test_livereplay PRIVATE egtrain_live egtrain_dispatch egtrain_rttp egtrain_sim cppzmq Qt::Core Qt::Gui Qt::Widgets)
+    target_link_libraries(test_livereplay PRIVATE egtrain_live egtrain_dispatch egtrain_sim cppzmq Qt::Core Qt::Gui Qt::Widgets)
     add_test(NAME test_livereplay
         COMMAND test_livereplay
             --fixture ${SRC_DIR}/tests/fixtures/scenes/line
@@ -900,7 +888,7 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_delayanalysiswindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_simulationworker ${SRC_DIR}/tests/test_simulationworker.cpp)
-    target_link_libraries(test_simulationworker PRIVATE egtrain_dispatch egtrain_rttp egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
+    target_link_libraries(test_simulationworker PRIVATE egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
     add_test(NAME test_simulationworker COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut)
 
     add_executable(test_blockingtimediagram ${SRC_DIR}/tests/test_blockingtimediagram.cpp)
@@ -1320,7 +1308,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Runs two committed scenes in this process, like the characterization tests.
 	add_executable(test_completedrun ${SRC_DIR}/tests/test_completedrun.cpp)
-	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_rttp egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
+	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
 	add_test(NAME test_completedrun
 		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
 	# The capacity dialog test closes a message box if a refusal opens one. Qt 5.15 crashes when a QMessageBox is
@@ -1333,7 +1321,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Runs a line fixture and Paimpol in this process, in the order that the test explains.
 	add_executable(test_simulationrun ${SRC_DIR}/tests/test_simulationrun.cpp)
-	target_link_libraries(test_simulationrun PRIVATE egtrain_dispatch egtrain_rttp egtrain_sim Qt::Core Qt::Gui Qt::Widgets)
+	target_link_libraries(test_simulationrun PRIVATE egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets)
 	add_test(NAME test_simulationrun
 		COMMAND test_simulationrun ${SRC_DIR}/tests/fixtures/scenes/line ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_simulationrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
@@ -1343,23 +1331,6 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Scripted GUI runs, compiled into QEGTRAIN when tests are built.
 	add_subdirectory(EGTRAIN/QEGTRAIN/tests/e2e)
-
-	add_executable(test_rttp ${SRC_DIR}/tests/test_rttp.cpp)
-	# The test defines initial_variables, so egtrain_sim's Infrastructure.cpp member must stay out of the link.
-	target_link_libraries(test_rttp PRIVATE egtrain_rttp egtrain_sim cppzmq nlohmann_json::nlohmann_json)
-	add_test(NAME test_rttp COMMAND test_rttp)
-	add_test(NAME test_route_choice_missing_data
-		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut
-			-g 0 -h 1 -TSM 0 -RC 1)
-	set_tests_properties(test_route_choice_missing_data PROPERTIES
-		PASS_REGULAR_EXPRESSION "scene.route_choice.passengers.none"
-		TIMEOUT 30)
-	add_test(NAME test_external_sharing_no_listener
-		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol
-			-g 0 -h 1 -TSM 1 -RC 1)
-	set_tests_properties(test_external_sharing_no_listener PROPERTIES
-		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/external-sharing-test"
-		TIMEOUT 30)
 
 	add_test(NAME test_headless_smoke_decode
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_headless_smoke_decode.py)
@@ -1701,14 +1672,14 @@ if(EGTRAIN_BUILD_TESTS)
 		test_app_icon_config test_check_docs test_check_undocumented docs_check test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
 		test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_pathmessages test_updateprompttext test_releasenotes test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
 		test_sceneversions
-		test_operationsbuilder test_completedrun test_simulationrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
+		test_operationsbuilder test_completedrun test_simulationrun test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_diagrams_no_sim_globals test_no_e2e_in_product test_scene_codec_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_linux_rehearsal test_make_dmg test_macos_build_paths)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases
-		test_route_choice_missing_data test_external_sharing_no_listener test_livereplay test_live_stream_smoke test_scene_tool_diagnostics
+		test_livereplay test_live_stream_smoke test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop test_output_folder
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke

@@ -50,7 +50,7 @@ def run_scene(scene_dir: Path, tmp: Path, tag: str) -> list[float | None]:
     output_root = tmp / f"output_{tag}"
     env = os.environ.copy()
     env["QEGTRAIN_OUTPUT_DIR"] = str(output_root)
-    command = [str(APP), "--scene", str(scene_dir), "-g", "0", "-TSM", "0", "-RC", "0"]
+    command = [str(APP), "--scene", str(scene_dir), "-g", "0"]
     with log.open("wb") as output:
         proc = subprocess.run(command, cwd=ROOT / "EGTRAIN/QEGTRAIN", env=env,
                               stdout=output, stderr=subprocess.STDOUT, timeout=300)

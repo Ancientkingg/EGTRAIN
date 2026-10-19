@@ -236,8 +236,7 @@ void PlaybackProfiler::emitRecords(bool cleanStop) {
 		{"scenario", m_config.scenario}, {"default_scenario", m_config.defaultScenario},
 		{"target_zoom", m_config.targetZoom}, {"actual_zoom", m_config.actualZoom},
 		{"duration_ms", m_config.durationMs}, {"delay_ms", m_config.delayMs},
-		{"passenger_gui", m_config.passengerGui}, {"tsm", m_config.tsm},
-		{"route_choice", m_config.routeChoice}, {"horizon", m_config.horizon},
+		{"passenger_gui", m_config.passengerGui}, {"horizon", m_config.horizon},
 		{"clock", "steady_clock_ns"}, {"scope", "post_startup_playback"},
 		{"mode", m_config.structural ? "structural" : "recorded"}});
 	std::vector<const Aggregate*> ordered;

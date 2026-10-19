@@ -602,9 +602,6 @@ public:
 	/** IndexCurrentBS is the index of the Block Section in the route of the train. SignallingType is "Conventional" or "ETCS2".*/
 	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, std::string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
 
-	/// The first step after EntryTime, up to t, at which the head has reached the start of section CurrentBS; 0 when there is none.
-	double ComputeLastOccupationTime_real_time(int t, std::string CurrentBS, int EntryTime);
-
 	/// Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually enters the network in the simulation)
 	void ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
 

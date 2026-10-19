@@ -50,10 +50,6 @@ def case_command(app: Path, scene_dir: Path) -> list[str]:
         str(scene_dir),
         "-g",
         "0",
-        "-TSM",
-        "0",
-        "-RC",
-        "0",
     ]
 
 

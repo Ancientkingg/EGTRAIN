@@ -107,7 +107,7 @@ phase_dpr1() {
 	QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$COMMAND_BAR_1024_SHOT" \
 	QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$COMMAND_BAR_1200_SHOT" \
 	QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$COMMAND_BAR_1440_SHOT" \
-		"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$OUT" 2>&1
+		"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 >"$OUT" 2>&1
 
 	grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
 	grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$OUT"
@@ -165,7 +165,7 @@ PY
 	QEGTRAIN_E2E_VISUAL_POLISH=1 \
 	QEGTRAIN_E2E_SCREENSHOT="$COLOR_SHOT" \
 	QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$COLOR_SCENE_DIR/context.png" \
-		"$APP" --scene "$COLOR_SCENE_DIR/scene" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$COLOR_OUT" 2>&1
+		"$APP" --scene "$COLOR_SCENE_DIR/scene" -h 8000 -g 1 -pax 1 >"$COLOR_OUT" 2>&1
 	grep -q "E2E_VISUAL_POLISH_OK" "$COLOR_OUT"
 	grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$COLOR_OUT"
 	test -s "$COLOR_SHOT"
@@ -188,7 +188,7 @@ phase_dpr2() {
 		QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$DPR2_COMMAND_BAR_1024_SHOT" \
 		QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$DPR2_COMMAND_BAR_1200_SHOT" \
 		QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$DPR2_COMMAND_BAR_1440_SHOT" \
-		"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$DPR2_OUT" 2>&1; then
+		"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 >"$DPR2_OUT" 2>&1; then
 		cat "$DPR2_OUT" >&2
 		exit 2
 	fi
@@ -217,7 +217,7 @@ phase_completion() {
 	QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
-		"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$completion_out" 2>&1
+		"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 >"$completion_out" 2>&1
 	grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$completion_out"
 	require_markers "$completion_out" "${FOLLOW_REPLAY_MARKERS[@]}" "${REPLAY_ROW_MARKERS[@]}"
 	echo "operational completion and rerun e2e passed"
@@ -232,7 +232,7 @@ replay_whole_run() {
 		QT_QPA_PLATFORM=offscreen \
 		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
-			"$APP" --scene "$SCENE_ROOT/$scene" -g 1 -pax 0 -TSM 0 -RC 0 >"$whole_out" 2>&1 || {
+			"$APP" --scene "$SCENE_ROOT/$scene" -g 1 -pax 0 >"$whole_out" 2>&1 || {
 			tail -5 "$whole_out" >&2
 			exit 1
 		}
@@ -277,14 +277,14 @@ PY
 		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_SIGNAL_HEADS="$signal_mode" \
 		QEGTRAIN_E2E_PAUSE_STEPS=100,500,900 \
-			"$APP" --scene "$SIGNAL_SCENE_DIR/$signal_mode" -h 1500 -g 1 -pax 0 -TSM 0 -RC 0 >"$signal_heads_out" 2>&1
+			"$APP" --scene "$SIGNAL_SCENE_DIR/$signal_mode" -h 1500 -g 1 -pax 0 >"$signal_heads_out" 2>&1
 		grep -q "E2E_SIGNAL_HEADS_OK mode=$signal_mode" "$signal_heads_out"
 	done
 	QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_SIGNAL_HEADS=levels \
 	QEGTRAIN_E2E_PAUSE_STEPS=100,300,500 \
-		"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 -TSM 0 -RC 0 >"$signal_heads_out" 2>&1
+		"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 >"$signal_heads_out" 2>&1
 	grep -q "E2E_SIGNAL_HEADS_OK mode=levels" "$signal_heads_out"
 	# Assignment has a level 0 area and heads that no route reaches. A
 	# scene without any signalling area is the "none" copy of the line fixture above.
@@ -293,7 +293,7 @@ PY
 		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_SIGNAL_HEADS="${signal_case#*:}" \
 		QEGTRAIN_E2E_PAUSE_STEPS=100,300 \
-			"$APP" --scene "$SCENE_ROOT/${signal_case%:*}" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$signal_heads_out" 2>&1
+			"$APP" --scene "$SCENE_ROOT/${signal_case%:*}" -h 600 -g 1 -pax 0 >"$signal_heads_out" 2>&1
 		grep -q "E2E_SIGNAL_HEADS_OK mode=${signal_case#*:}" "$signal_heads_out"
 	done
 	echo "signal heads e2e passed"
@@ -304,7 +304,7 @@ phase_discard() {
 	QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_OPERATIONAL_DISCARD=1 \
-		"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$discard_out" 2>&1
+		"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 >"$discard_out" 2>&1
 	grep -q "E2E_OPERATIONAL_DISCARD_OK" "$discard_out"
 	echo "discarded-run preview legend e2e passed"
 }
@@ -323,7 +323,7 @@ phase_stations() {
 		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_STATION_OVERLAYS=1 \
 		QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="$shot_base" \
-		"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
+		"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 >"$station_out" 2>&1
 		grep -q "E2E_STATION_OVERLAY_OK" "$station_out"
 		grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$station_out"
 		grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$station_out"
@@ -358,7 +358,7 @@ phase_stations() {
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_STATION_OVERLAYS=1 \
 	QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-Copenhagen-dpr2" \
-	"$APP" --scene "$SCENE_ROOT/Copenhagen" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$STATION_DPR2_OUT" 2>&1
+	"$APP" --scene "$SCENE_ROOT/Copenhagen" -h 8000 -g 1 -pax 0 >"$STATION_DPR2_OUT" 2>&1
 	grep -q "E2E_STATION_OVERLAY_OK" "$STATION_DPR2_OUT"
 	grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$STATION_DPR2_OUT"
 	grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$STATION_DPR2_OUT"

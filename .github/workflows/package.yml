@@ -262,7 +262,7 @@ jobs:
           cd "$RUN_DIR"
           set +e
           QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \
-          "$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          "$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1
           run_status=$?
           set -e
           if [ "$run_status" -ne 0 ]; then
@@ -431,7 +431,7 @@ jobs:
           cd "$RUN_DIR"
           set +e
           QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \
-          "$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          "$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1
           run_status=$?
           set -e
           if [ "$run_status" -ne 0 ]; then

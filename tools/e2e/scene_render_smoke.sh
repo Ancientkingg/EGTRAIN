@@ -27,7 +27,7 @@ QEGTRAIN_E2E_SCENE_RUN=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
 QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
 QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
-"$APP" --scene "$SCENE" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$OUT" 2>&1 &
+"$APP" --scene "$SCENE" -h 600 -g 1 -pax 0 >"$OUT" 2>&1 &
 APP_PID=$!
 
 # macOS has no timeout binary; a hung run must not block the caller

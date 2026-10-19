@@ -100,7 +100,7 @@ env -i HOME="$HOME_DIR" PATH="/usr/bin:/bin:/usr/sbin:/sbin" \
 	QEGTRAIN_E2E_SETTINGS_DIR="$HOME_DIR/settings" \
 	QEGTRAIN_E2E_TRACK_PREVIEW=1 \
 	QEGTRAIN_E2E_SCENE="$SCENE_COPY" \
-	"$APP/Contents/MacOS/QEGTRAIN" --scene "$SCENE" -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
+	"$APP/Contents/MacOS/QEGTRAIN" --scene "$SCENE" -h 100 -g 1 -pax 0 >"$LOG" 2>&1
 set -e
 for marker in E2E_TRACK_PREVIEW_OPEN_OK E2E_TRACK_PREVIEW_RUN_GATED_OK E2E_TRACK_PREVIEW_SAVE_RELOAD_OK; do
 	grep -q "$marker" "$LOG" || { echo "packaged app missing marker $marker; see $LOG" >&2; exit 1; }

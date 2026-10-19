@@ -12,7 +12,7 @@ Runs the application with a stream and reads it with live_client:
   * a headless run of a scene that repeats its services, so that the trains of a service are told apart by their occurrence;
   * a client that joins after the run has ended, and a run that is stopped (window runs);
   * with --second-run, a second run in the same process (scripted window run);
-  * the options that are refused, and the notice for the legacy -TSM and -RC options.
+  * the options that are refused, and the refusal of the removed -TSM and -RC options.
 
 The scripted window run of --second-run is checked on macOS only, so CMake passes the option there.
 """
@@ -59,7 +59,7 @@ class App:
     """One run of the application with its own folders and logs."""
 
     def __init__(self, app: Path, root: Path, scene: str, arguments: List[str], window: bool = False,
-                 extra_env: Optional[Dict[str, str]] = None, answers: str = ""):
+                 extra_env: Optional[Dict[str, str]] = None):
         self.root = root
         self.output = root / "output"
         self.output.mkdir(parents=True)
@@ -70,15 +70,10 @@ class App:
                     "QEGTRAIN_E2E_SETTINGS_DIR": str(root / "settings")})
         env.update(extra_env or {})
         command = [str(app), "--scene", str(SCENES / scene), "-g", "1" if window else "0"]
-        for legacy in ("-TSM", "-RC"):
-            if legacy not in arguments and "--interactive" not in arguments:
-                command += [legacy, "0"]
         command += arguments
-        (root / "answers.txt").write_text(answers, encoding="utf-8")
-        self.stdin = open(root / "answers.txt", "rb")
         self.stdout = open(self.stdout_path, "wb")
         self.stderr = open(self.stderr_path, "wb")
-        self.process = subprocess.Popen(command, cwd=root, env=env, stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
+        self.process = subprocess.Popen(command, cwd=root, env=env, stdin=subprocess.DEVNULL, stdout=self.stdout, stderr=self.stderr)
 
     def endpoint_file(self) -> Path:
         """The live-endpoint.json of the run, once the application has written all of it."""
@@ -117,7 +112,6 @@ class App:
         self.close()
 
     def close(self) -> None:
-        self.stdin.close()
         self.stdout.close()
         self.stderr.close()
 
@@ -358,6 +352,8 @@ def refused_options(app: Path, temp: Path) -> None:
         (["--live", "0", "--live-every", "0"], 1, "--live-every requires"),
         (["--live-every", "5"], 1, "need --live"),
         (["--live-commands"], 1, "need --live"),
+        (["-TSM", "0"], 1, "Use --live"),
+        (["-RC", "1"], 1, "Use --live"),
     ]
     for number, (arguments, status, message) in enumerate(cases):
         run = App(app, temp / ("refused-%d" % number), "Paimpol", ["-h", "10"] + arguments)
@@ -372,21 +368,6 @@ def refused_options(app: Path, temp: Path) -> None:
         text = run.stderr_path.read_text(encoding="utf-8", errors="replace")
         expect(code == 2 and "Cannot start the live stream" in text, "a port in use: exit %d:\n%s" % (code, text))
     print("PASS options that are not valid, or a port in use, stop the start before a run")
-
-
-def legacy_notice(app: Path, temp: Path) -> None:
-    """One line on standard error when -TSM or -RC is on, whether it comes from an option or from a question."""
-    # --interactive asks for -TSM and then -RC, because the call gives -n and -g.
-    cases = [("-TSM 1", ["-TSM", "1"], ""), ("-RC 1", ["-RC", "1"], ""), ("--interactive", ["--interactive", "-n", "2"], "1\n0\n")]
-    for number, (what, arguments, answers) in enumerate(cases):
-        run = App(app, temp / ("legacy-%d" % number), "Paimpol", ["-h", "1"] + arguments, answers=answers)
-        expect(run.wait() == 0, "the run with %s failed\n%s" % (what, tail(run.stdout_path)))
-        lines = [line for line in run.stderr_path.read_text(encoding="utf-8", errors="replace").splitlines() if "legacy options" in line]
-        expect(len(lines) == 1 and "--live" in lines[0], "%s did not give one line pointing to --live: %s" % (what, lines))
-    plain = App(app, temp / "no-legacy", "Paimpol", ["-h", "1"])
-    expect(plain.wait() == 0, "the run without -TSM and -RC failed\n%s" % tail(plain.stdout_path))
-    expect("legacy options" not in plain.stderr_path.read_text(encoding="utf-8", errors="replace"), "a run without -TSM and -RC gave the notice")
-    print("PASS -TSM 1, -RC 1 and the answers of --interactive print one line on standard error that points to --live")
 
 
 def main() -> None:
@@ -414,7 +395,6 @@ def main() -> None:
         if arguments.second_run:
             second_run(app, client, temp)
         refused_options(app, temp)
-        legacy_notice(app, temp)
     except Failure as failure:
         print("FAIL %s" % failure, file=sys.stderr)
         print("logs: %s" % temp, file=sys.stderr)

@@ -75,7 +75,7 @@ def run_service(app: Path, scene: Path, run_root: Path, logging_rules: str = "")
     )
     if logging_rules:
         env["EGTRAIN_LOG"] = logging_rules
-    command = [str(app), "--scene", str(scene), "-g", "0", "-TSM", "0", "-RC", "0"]
+    command = [str(app), "--scene", str(scene), "-g", "0"]
     try:
         process = subprocess.run(
             command,

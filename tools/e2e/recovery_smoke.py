@@ -27,7 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RUN_DIR = ROOT / "EGTRAIN" / "QEGTRAIN"
 SCENE = RUN_DIR / "Scenes" / "Assignment_Gvc_Gdg_Ut"
-APP_ARGUMENTS = ["-h", "100", "-g", "1", "-pax", "0", "-TSM", "0", "-RC", "0"]
+APP_ARGUMENTS = ["-h", "100", "-g", "1", "-pax", "0"]
 RUN_SECONDS = 300
 CRASH_CODE = 137
 EDITED_NAME = "Recovery smoke case"

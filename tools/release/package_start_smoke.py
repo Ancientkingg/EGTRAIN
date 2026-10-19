@@ -335,7 +335,7 @@ def run_export(what: str, hook: str, marker: str, check, executable: Path, scene
     env["QEGTRAIN_AUTOSTART"] = "1"
     env[hook] = str(files)
     text = launch([str(executable), "--scene", str(scene), "-h", EXPORT_HORIZON_SECONDS, "-g", "1",
-                   "-pax", "0", "-TSM", "0", "-RC", "0"], executable.parent, env, what, timeout=EXPORT_TIMEOUT_SECONDS)
+                   "-pax", "0"], executable.parent, env, what, timeout=EXPORT_TIMEOUT_SECONDS)
     if marker not in text:
         raise SystemExit(f"{what} printed no {marker}\n{text[-4000:]}")
     try:
@@ -368,7 +368,7 @@ def main() -> None:
         env = clean_environment()
         env["QEGTRAIN_OUTPUT_DIR"] = str(Path(temp) / "headless")
         text = launch([str(executable), "--scene", str(scene), "-h", HORIZON_SECONDS, "-g", "0",
-                       "-pax", "0", "-TSM", "0", "-RC", "0"], executable.parent, env, "headless run")
+                       "-pax", "0"], executable.parent, env, "headless run")
         if "End of Simulation" not in text:
             raise SystemExit(f"headless run printed no 'End of Simulation'\n{text[-4000:]}")
         energy = list((Path(temp) / "headless" / "Output").glob("*/EnergyConsumptionPerTrain.txt"))

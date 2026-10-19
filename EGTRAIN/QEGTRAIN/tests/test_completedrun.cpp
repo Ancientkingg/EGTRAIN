@@ -222,8 +222,6 @@ bool runScene(const std::string& sceneDir, const std::string& outputDir, Capture
 		return false;
 	}
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.PAX_GUI = false;
 	initial_variables.exportDetailedTrajectories = false;
 	initial_variables.OutputMainFolder = outputDir;

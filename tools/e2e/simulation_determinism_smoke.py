@@ -107,10 +107,6 @@ def main() -> None:
                 "1200",
                 "-g",
                 "0",
-                "-TSM",
-                "0",
-                "-RC",
-                "0",
             ]
             try:
                 process = subprocess.run(

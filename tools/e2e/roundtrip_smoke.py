@@ -198,7 +198,7 @@ def main() -> None:
         env = os.environ.copy()
         env["QEGTRAIN_OUTPUT_DIR"] = str(tmp_dir / "run")
         proc = subprocess.run(
-            [str(app), "--scene", str(reimported_dir), "-g", "0", "-TSM", "0", "-RC", "0"],
+            [str(app), "--scene", str(reimported_dir), "-g", "0"],
             cwd=tmp_dir,
             env=env,
             stdout=subprocess.PIPE,

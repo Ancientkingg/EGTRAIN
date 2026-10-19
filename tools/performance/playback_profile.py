@@ -68,8 +68,8 @@ PARENTS = {
 RUN_KEYS = {
     "type", "schema", "trial", "view", "platform", "architecture", "qt_platform",
     "build_type", "case", "requested_scenario", "scenario", "default_scenario",
-    "target_zoom", "actual_zoom", "duration_ms", "delay_ms", "passenger_gui", "tsm",
-    "route_choice", "horizon", "clock", "scope", "mode",
+    "target_zoom", "actual_zoom", "duration_ms", "delay_ms", "passenger_gui", "horizon",
+    "clock", "scope", "mode",
 }
 AGGREGATE_KEYS = {
     "type", "path", "lane", "parent", "calls", "total_ns", "min_ns", "median_ns", "p95_ns", "max_ns",
@@ -88,7 +88,7 @@ INTEGER_KEYS = {
     "median_ns", "p95_ns", "max_ns", "observed_ns", "start_timestep", "end_timestep",
     "timesteps", "deliveries", "rendered_updates", "paints", "post_freeze_records",
 }
-BOOLEAN_KEYS = {"passenger_gui", "tsm", "route_choice", "clean_stop"}
+BOOLEAN_KEYS = {"passenger_gui", "clean_stop"}
 FLOAT_KEYS = {"target_zoom", "actual_zoom"}
 STRING_KEYS = (RUN_KEYS | AGGREGATE_KEYS | COMPLETION_KEYS) - INTEGER_KEYS - BOOLEAN_KEYS - FLOAT_KEYS
 OPTIONAL_PATHS = {"gui/train_animation/value_changed"}
@@ -194,7 +194,7 @@ def validate_trial(records: list[dict], *, trial: int, view: str, duration_ms: i
         raise ValueError("Qt platform does not match the request")
     if run["build_type"] not in {"Debug", "Release", "RelWithDebInfo", "MinSizeRel"}:
         raise ValueError("unknown build type")
-    if not run["passenger_gui"] or run["tsm"] or run["route_choice"]:
+    if not run["passenger_gui"]:
         raise ValueError("recorded playback modes mismatch")
     if not structural:
         if platform.system() != "Darwin" or run["platform"] != "macOS" or run["qt_platform"] != "cocoa":
@@ -385,7 +385,7 @@ def main() -> None:
             with tempfile.TemporaryDirectory(prefix="qegtrain-playback-runtime-") as runtime_output:
                 env["QEGTRAIN_OUTPUT_DIR"] = runtime_output
                 command = [str(app), "--scene", str(scene), "-h", "8000", "-g", "1",
-                           "-pax", "1", "-TSM", "0", "-RC", "0"]
+                           "-pax", "1"]
                 completed = subprocess.run(command, cwd=app.parent, env=env, text=True,
                                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                            timeout=max(120, int(args.duration) + 90), check=False)
@@ -416,7 +416,7 @@ def main() -> None:
         f"Evidence status: {summary['evidence_status']}",
         f"Platform/build: {platform.system()} / records validated per trial",
         f"Settings: scenario={args.scenario}, views={','.join(args.views)}, duration={args.duration:g}s, "
-        f"delay={args.step_delay}ms, trials={args.trials}, passenger GUI on, TSM/route choice off, horizon=8000",
+        f"delay={args.step_delay}ms, trials={args.trials}, passenger GUI on, horizon=8000",
         "Reproduce: tools/performance/playback_profile.py --app <release-app> --scene <copenhagen-scene> "
         "--scenario default --views fit dense --duration 30 --step-delay 250 --trials 3 --output <new-output-dir>",
         "Decision rule: a path qualifies when it is its lane's largest self-time path in at least 2/3 "
