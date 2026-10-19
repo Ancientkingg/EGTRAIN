@@ -48,6 +48,13 @@ requests that made the change, or the issue where none did.
 - Presentation scale (#422). Symbol sizes, text and offsets are converted from
   the historical construction units by the factor `k` described under
   [Measured presentation units](#measured-presentation-units).
+- Mainline track grey (#822). Track of 120 km/h and above is (160,160,160) with
+  width 3. The reference draws it (80,80,80), a contrast of 2.18:1 against the
+  canvas, which is less than the 3:1 target and less than the local track
+  (3.99:1). The new grey has 6.73:1.
+- Train size on screen (#822). A body the view shows thinner than 8 logical px
+  is stroked to 8 px in its fill colour with round corners, and a click on the
+  mark selects the train. Signal heads keep their 6 px rule.
 - Station name spacing (issue #387). `StationOverlayItem::displayName` puts a
   space before a capital that follows a lowercase letter and before the capital
   that starts a word after an acronym. The reference put a space before every

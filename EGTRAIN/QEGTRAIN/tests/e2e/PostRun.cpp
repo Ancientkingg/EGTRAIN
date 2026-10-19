@@ -1235,6 +1235,29 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return fail(QStringLiteral("a whole run says '%1' and '%2' for the frame at %3 s")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text())
 				.arg(shown->timestep));
+	// At Fit the first visible train is at least the minimum size on screen, in the first frame that shows a train.
+	const auto firstVisible = [&w] {
+		return std::find_if(w.m_presenter->allTrains.cbegin(), w.m_presenter->allTrains.cend(),
+			[](const TrainItemGroup* item) { return item && item->isVisible() && item->trainPolygonItemList; });
+	};
+	for (int time = 0; time <= last && firstVisible() == w.m_presenter->allTrains.cend(); time += GuiReplayHistory::cadenceSeconds)
+		w.seekReplay(time);
+	w.fitView();
+	const QString sceneName = QString::fromStdString(w.m_document->model().name);
+	const auto train = firstVisible();
+	if (train == w.m_presenter->allTrains.cend())
+		return fail(QStringLiteral("%1: no train is visible at Fit in any frame").arg(sceneName));
+	for (const TrainBodyItem* body : *(*train)->trainPolygonItemList) {
+		if (!body || body->polygon().isEmpty())
+			continue;
+		const QRectF pixels = w.networkView->viewportTransform().mapRect(body->mapRectToScene(body->shape().boundingRect()));
+		if (qMin(pixels.width(), pixels.height()) < TrainBodyItem::MinPixels - 0.5)
+			return fail(QStringLiteral("%1: a train body is %2 x %3 logical pixels at Fit, less than %4")
+					.arg(sceneName)
+					.arg(pixels.width())
+					.arg(pixels.height())
+					.arg(TrainBodyItem::MinPixels));
+	}
 	w.m_replayStartButton->click();
 	if (w.m_replayRequestedTime != 0 || !w.m_snapshot || w.m_snapshot->timestep != 0 || w.m_replaySlider->value() != 0
 		|| w.m_replayLabel->text() != QStringLiteral("Replay at 0 s") || w.m_replayCoverageLabel->text() != whole)

@@ -1,5 +1,7 @@
 #include "graphics/items/TrainItemGroup.h"
 
+#include <cmath>
+
 TrainItemGroup::TrainItemGroup(QGraphicsItem* parent)
 	: QGraphicsItemGroup(parent) {
 	setZValue(4); // draw on top of everything
@@ -25,4 +27,15 @@ void TrainItemGroup::prepareForChildGeometryChange() {
 
 QRectF TrainItemGroup::boundingRect() const {
 	return childrenBoundingRect();
+}
+
+void TrainItemGroup::applyViewScale(qreal viewScale) {
+	viewScale = std::abs(viewScale);
+	if (!trainPolygonItemList || viewScale <= 0.0 || viewScale == m_appliedViewScale)
+		return;
+	m_appliedViewScale = viewScale;
+	prepareGeometryChange();
+	for (TrainBodyItem* body : *trainPolygonItemList)
+		if (body)
+			body->setViewScale(viewScale);
 }

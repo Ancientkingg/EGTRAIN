@@ -43,12 +43,18 @@ public:
 	void prepareForChildGeometryChange();
 	QRectF boundingRect() const override;
 
+	// Gives every body its minimum size on screen for a view of viewScale pixels per scene unit.
+	void applyViewScale(qreal viewScale);
+
 	// to allow cast
 	enum { Type = UserType + 8 };
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
+
+private:
+	qreal m_appliedViewScale = 0.0;
 };
 
 #endif // TRAINITEMGROUP_H

@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(classifyTrackSpeed(200.0 / 3.6).color == QColor(30, 130, 210)
 			&& classifyTrackSpeed(200.0 / 3.6).width == 4,
 		"historical high-speed boundary");
-	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(80, 80, 80)
+	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(160, 160, 160)
 			&& classifyTrackSpeed(120.0 / 3.6).width == 3,
 		"historical mainline boundary");
 	ok &= expect(classifyTrackSpeed(119.0 / 3.6).color == QColor(120, 120, 120), "historical local boundary");

@@ -1412,6 +1412,8 @@ void NetworkPresenter::paintTrain(const GuiTrainState& train, const SceneModel& 
 
 	// add train to scene
 	m_scene->addItem(trainPolygonGroup);
+	if (m_view)
+		trainPolygonGroup->applyViewScale(m_view->transform().m11());
 	trainPolygonGroup->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
 
 	// add train to allTrains list
