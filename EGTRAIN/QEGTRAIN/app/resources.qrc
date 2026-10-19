@@ -17,6 +17,7 @@
         <file alias="icons/check-mark.svg">../resources/icons/check-mark.svg</file>
         <file alias="icons/zoom-in.svg">../resources/icons/zoom-in.svg</file>
         <file alias="icons/zoom-out.svg">../resources/icons/zoom-out.svg</file>
+        <file alias="icons/follow.svg">../resources/icons/follow.svg</file>
         <file alias="app/egtrain-16.png">../resources/app/egtrain-16.png</file>
         <file alias="app/egtrain-32.png">../resources/app/egtrain-32.png</file>
         <file alias="app/egtrain-48.png">../resources/app/egtrain-48.png</file>

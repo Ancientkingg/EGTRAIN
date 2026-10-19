@@ -20,6 +20,7 @@ ENTITY_ASSETS = {
     "icons/signal-proceed.svg": "resources/icons/signal-proceed.svg",
 }
 ASSETS = dict(ENTITY_ASSETS)
+ASSETS["icons/follow.svg"] = "resources/icons/follow.svg"
 APP_ICON_SIZES = (16, 32, 48, 64, 128, 256, 512, 1024)
 for _size in APP_ICON_SIZES:
     ASSETS[f"app/egtrain-{_size}.png"] = f"resources/app/egtrain-{_size}.png"
