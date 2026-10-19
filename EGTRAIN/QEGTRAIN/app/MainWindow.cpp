@@ -475,12 +475,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_updateTelemetry->setupUpdateActions(ui->menuHelp);
 	if (ui->menuHelp) {
 		// The help key works in every window of the application and opens the section of the widget that has the focus.
+		// F1 also works on macOS, where the system takes Cmd+? to search the Help menu.
 		auto* manual = new QAction(QStringLiteral("EGTRAIN Manual"), this);
 		manual->setObjectName(QStringLiteral("actionManual"));
-		manual->setShortcut(QKeySequence::HelpContents);
+		QList<QKeySequence> helpKeys = QKeySequence::keyBindings(QKeySequence::HelpContents);
+		if (!helpKeys.contains(QKeySequence(Qt::Key_F1)))
+			helpKeys << QKeySequence(Qt::Key_F1);
+		manual->setShortcuts(helpKeys);
 		manual->setShortcutContext(Qt::ApplicationShortcut);
 		connect(manual, &QAction::triggered, this, [this] {
 			const QWidget* focus = QApplication::focusWidget() ? QApplication::focusWidget() : QApplication::activeWindow();
+			if (focus && qobject_cast<const ManualWindow*>(focus->window()))
+				return; // keeps the page that is being read
 			ManualWindow::open(this, ManualWindow::sectionOf(focus ? focus : this));
 		});
 		ui->menuHelp->insertAction(ui->actionAbout, manual);
