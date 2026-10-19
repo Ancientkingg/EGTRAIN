@@ -32,6 +32,12 @@ EXCEPTIONS = {
     ("SceneCompatibility.cpp", "saved_with_app_version"): "the compatibility probe reads the version before the loader reads the scene",
     ("SceneExporter.cpp", "signalling_areas"): "the area sidecar of a legacy folder holds the list under this key; encodeSignallingArea writes its items",
     ("SceneImporter.cpp", "signalling_areas"): "the importer reads the same sidecar; decodeSignallingArea reads its items",
+    ("SceneExporter.cpp", "base_time"): "the settings sidecar of a legacy folder holds the base time and the settings under the keys of scene.json; encodeSceneMetadata writes their values",
+    ("SceneImporter.cpp", "base_time"): "the importer reads the same sidecar",
+    ("SceneImporter.cpp", "simulation_settings"): "the importer reads the same sidecar",
+    ("SceneImporter.cpp", "duration_seconds"): "the importer reads the same sidecar",
+    ("SceneImporter.cpp", "buffer_time_seconds"): "the importer reads the same sidecar",
+    ("SceneImporter.cpp", "recovery_time_percent"): "the importer reads the same sidecar",
 }
 
 # A name in a string literal that can be a field of a JSON object.

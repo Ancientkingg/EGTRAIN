@@ -11,15 +11,15 @@ without guessing.
 
 | Legacy family | Classification | V1 handling and consumer evidence |
 | --- | --- | --- |
-| `InitialParameters` base time, duration, buffer, recovery | canonical | `SceneModel` and `SceneWriter` use `base_time` plus the three `simulation_settings` values. The native operations builder applies these values and derives service-line/station reporting maps; UI switches, output paths, and network flags remain runtime configuration. Numeric case shortcuts now choose scene directories, not compiled input-folder tables. |
+| `InitialParameters` base time, duration, buffer, recovery | canonical | `SceneModel` and `SceneWriter` use `base_time` plus the three `simulation_settings` values. The native operations builder applies these values and derives service-line/station reporting maps; UI switches, output paths, and network flags remain runtime configuration. Numeric case shortcuts now choose scene directories, not compiled input-folder tables. `scene_tool export` writes the base time and settings to `EGTRAINInitialParameters.json`, which `SceneImporter` reads before the compiled case table. |
 | `NodiCumPari`, `ArchiCumPari`, `BlockCumPari` | canonical | `SceneImporter` maps node coordinates, arc endpoints, curvature, gradient, speed, and block-row lengths to stable track-scoped node/arc IDs and runtime-compatible block IDs, including the UTF-16LE block files supplied by Lebanon. The normal runtime consumes only the resulting canonical model. |
 | `Connections.txt` | canonical | `SceneImporter` resolves track/coordinate endpoints and optional speed to canonical node IDs and reports zero or ambiguous matches instead of guessing. |
 | track-line `Stations.txt` | canonical | `SceneImporter` maps exact station coordinates to V1 station positions and platform-to-node references; unmatched coordinates remain reported. |
 | `Routes/Route<N>.txt` | canonical | `SceneImporter` converts ordered block and switch-transition tokens. The native scene builder consumes the resulting V1 route order and resolves services to stable route IDs. |
 | `GUI/caseStudyRouteCorridors.txt` | canonical | `SceneImporter` stores each route/corridor row on the corresponding V1 route; it is not treated as a second route definition. |
-| `GUI/caseStudyTrackData.txt` | canonical display metadata | `SceneImporter` preserves each known track's authored graphical level and non-negative region in `views.json`; the native preview and runtime consume it before using automatic fallback layout. |
-| `GUI/unusedTracks.txt` | canonical display metadata | `SceneImporter` preserves authored inactive tracks as `visible: false` view rows. Preview rendering omits those tracks and their connections without removing simulation infrastructure. |
-| `GUI/StationsCoord.txt` | canonical display metadata | `SceneImporter` resolves station rows to canonical station IDs and preserves finite coordinates, region positions, and optional corridors in `views.json`; the native runtime applies them before calculating screen geometry. |
+| `GUI/caseStudyTrackData.txt` | canonical display metadata | `SceneImporter` preserves each known track's authored graphical level and non-negative region in `views.json`; the native preview and runtime consume it before using automatic fallback layout. The exporter writes the level and region of each track view. |
+| `GUI/unusedTracks.txt` | canonical display metadata | `SceneImporter` preserves authored inactive tracks as `visible: false` view rows. Preview rendering omits those tracks and their connections without removing simulation infrastructure. The exporter lists the hidden track views. |
+| `GUI/StationsCoord.txt` | canonical display metadata | `SceneImporter` resolves station rows to canonical station IDs and preserves finite coordinates, region positions, and optional corridors in `views.json`; the native runtime applies them before calculating screen geometry. The exporter writes them from `views.json`. |
 | `RoutesToWrite/RoutesToJoin.txt` | canonical when populated | `SceneImporter` materializes each non-empty row as an appended route with concatenated blocks and `reversed` metadata. Committed files are empty, so they add no entities today. A row with `Reverse` over sections that run forward produces a route that validation rejects. |
 | ordinary block dependencies, signals, virtual signals, TDS | derived | `Signalling` derives these from blocks, routes, switches, and connections. They are documented derivations rather than duplicate authored inputs; the historical `signals` array remains load-compatible but is not runnable completeness. |
 | Copenhagen `5-B6` dependency exception | dead/inert | The hard-coded target names track `B30`, but the switch at `4.592/4.620` is generated from `B31` and `B7`. No runtime section has the hard-coded ID, so occupancy and node-connection scans never resolve it. V1 does not turn that stale string into an active dependency or guess a replacement by coordinates. |
@@ -45,7 +45,7 @@ without guessing.
 | Other GUI coordinate/display files | derived/output | The native GUI derives fallback layout from canonical node and station coordinates when the explicit `views.json` sources are absent. Historical virtual-link and HTML-template files are not a second infrastructure model and are no longer normal runtime input. |
 | RailML/XML | output/interoperability | `RttpXml` serializes traffic state and route choice for exchange; it does not import a V1 scene. |
 | `rand1.seed` | dead/inert | `NumberGenerator` does not read or write a seed file. The seed of the random draws is the run setting `--seed`, which defaults to 789350715 and is recorded as `random_seed` in result provenance. It is not case input and not a scene field. |
-| unknown-case compiled `InitialParameters` mapping | unresolved | The four canonical timing fields are known, but a folder/name outside the explicit case table cannot safely select a `set_case` branch. Import leaves them absent and records the unresolved mapping. |
+| unknown-case compiled `InitialParameters` mapping | unresolved | The four canonical timing fields are known, but a folder/name outside the explicit case table cannot safely select a `set_case` branch. Without an `EGTRAINInitialParameters.json` import leaves them absent and records the unresolved mapping. |
 
 ## Resolved source corrections and remaining ambiguities
 
@@ -77,7 +77,8 @@ without guessing.
   occurrence mapping explicit.
 - Legacy cases outside the compiled `InitialParameters` case table have no
   reliable timing association. Their V1 timing fields remain absent and the
-  import report records the unresolved mapping.
+  import report records the unresolved mapping, unless the folder holds the
+  `EGTRAINInitialParameters.json` that `scene_tool export` writes.
 
 The committed scenes no longer contain compatibility `legacy/` trees, and the
 obsolete committed `Input/` cases are removed after conversion parity. Their

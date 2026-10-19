@@ -56,7 +56,9 @@ An `import_report` row has `category`, `source_count`, `converted_count`,
 counts describe the conversion source, not simulation results.
 
 Counts, GUI switches, output paths, and network feature flags from legacy
-`InitialParameters` are not V1 scene keys.
+`InitialParameters` are not V1 scene keys. `scene_tool export` stores the base
+time and the simulation settings in `EGTRAINInitialParameters.json` with the keys
+of `scene.json`, and the legacy import reads that file.
 
 ## `infrastructure.json`
 
