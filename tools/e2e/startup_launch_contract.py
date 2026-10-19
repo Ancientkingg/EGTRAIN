@@ -587,8 +587,8 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
         raise SystemExit(f"{problem}\n{tail(text)}")
 
 
-# How the settings file spells a path: Qt writes a character outside ASCII as \x and its code.
-def ini_form(path: Path) -> str:
+# How Qt 5 spells a path in the settings file: a character outside ASCII as \x and its code.
+def ini_form(path: Path | str) -> str:
     return "".join(c if ord(c) < 128 else "\\x%x" % ord(c) for c in str(path))
 
 
@@ -601,8 +601,9 @@ def wait_until(condition, timeout: float, proc: subprocess.Popen) -> bool:
     return condition()
 
 
+# The settings file in the form that Qt 5 writes. Qt 6 writes the characters outside ASCII in UTF-8.
 def read_ini(ini: Path) -> str:
-    return ini.read_text(encoding="utf-8", errors="replace") if ini.is_file() else ""
+    return ini_form(ini.read_text(encoding="utf-8", errors="replace")) if ini.is_file() else ""
 
 
 # A launch that only names a file hands it to the window that runs and ends with 0, and the window
