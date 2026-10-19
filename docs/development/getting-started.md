@@ -47,14 +47,13 @@ cmake --build build --parallel 4
 ```
 
 Homebrew deprecated `qt@5` on 2026-05-19 and disables it on 2027-05-19
-([formula](https://formulae.brew.sh/formula/qt@5)). Until then `brew install qt@5` works with a warning; after it
-Homebrew refuses to install the formula. To keep building with Qt 5.15 after that date, install Qt 5.15 another way and
-point `CMAKE_PREFIX_PATH` at it, for example Qt 5.15.2 from the Qt online installer or from
-[aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html):
+([formula](https://formulae.brew.sh/formula/qt@5)). After that date, install Qt 5.15 another way and point
+`CMAKE_PREFIX_PATH` at it, for example Qt 5.15.2 from the Qt online installer or from
+[aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). On an Intel Mac:
 
 ```bash
-aqt install-qt mac desktop 5.15.2 clang_64 -m qtcharts
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$PWD/5.15.2/clang_64"
+aqt install-qt mac desktop 5.15.2 clang_64 -m qtcharts -O "$HOME/Qt"
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$HOME/Qt/5.15.2/clang_64"
 ```
 
 The macOS binaries of Qt 5.15.2 are for Intel only. On Apple silicon they need an Intel build with

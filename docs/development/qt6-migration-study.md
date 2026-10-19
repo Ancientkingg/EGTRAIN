@@ -32,8 +32,8 @@ cmake --build build-nodeprecated --parallel 2 -- -k 0
 ```
 
 All 696 build steps succeeded with 0 errors. 420 of the 421 compile commands carried the define; the other one is the
-C file of miniz. The 15 warnings in the log are not about Qt: duplicate libraries at link time and an implicit copy
-constructor of `TrainEvent`. In Qt 5.15 `QT_DEPRECATED_SINCE(5, 15)` is false when the define is `0x050F00`
+C file of miniz. The 15 warnings in the log are not about Qt: duplicate libraries at link time, an implicit copy
+constructor of `TrainEvent` and an ignored `nodiscard` result. In Qt 5.15 `QT_DEPRECATED_SINCE(5, 15)` is false when the define is `0x050F00`
 (`QtCore/qglobal.h`, line 339), so the APIs deprecated in 5.15 itself are removed too. A test file that called
 `qrand()` and `QString::SkipEmptyParts` compiled with warnings without the define and failed with it. Qt 6 names the
 same macro `QT_DISABLE_DEPRECATED_UP_TO` ([porting guide](https://doc.qt.io/qt-6/portingguide.html)).
@@ -47,38 +47,31 @@ without `io/third_party`.
 | --- | --- | --- |
 | `QRegExp`, `QStringRef` moved to Qt5Compat, `QTextCodec` removed from Qt Core ([Qt Core changes](https://doc.qt.io/qt-6/qtcore-changes-qt6.html)) | 0 | none |
 | Qt Charts has no `QtCharts` namespace ([Qt Charts changes](https://doc.qt.io/qt-6/qtcharts-changes-qt6.html)); `qchartglobal.h` of Qt 6.8 no longer defines `QT_CHARTS_USE_NAMESPACE` | 4: app 2 (`MainWindow.cpp:75`, `ResultViews.cpp:51`), diagrams 1 (`DiagramWindow.h:25`), tests 1 | compile error |
-| `QMouseEvent::pos()` and `localPos()` deprecated in 6.0 (`qevent.h` of Qt 6.8, lines 174 to 191) | 7: app 2 (`MainWindow.cpp:219`, `221`), diagrams 4 (`DiagramWindow.cpp:1188` to `1220`), graphics 1 (`NetworkView.cpp:257`) | warning |
-| Five-argument `QMouseEvent` constructor deprecated in 6.4, old `QNativeGestureEvent` constructor in 6.2 (`qevent.h`, lines 201 and 376) | tests: 15 and 2 | warning |
-| `QList` and `QString` sizes are `qsizetype`, not `int` ([Qt Core changes](https://doc.qt.io/qt-6/qtcore-changes-qt6.html)) | 28 declarations of the form `int x = list.size()` or `indexOf(...)`: tests 12, app 6, telemetry 5, graphics 2, widgets 1, update 1, simulation 1 | MSVC warning C4244 |
-| `QVariant::operator==` compares through `QMetaType::equals`, floating point exactly; `operator<` removed | no ordering comparison; equality through `findData` or `data() ==`: editors 21, app 3, diagrams 1, tests 68 | review |
+| `QNativeGestureEvent::localPos()` deprecated in 6.0; `QMouseEvent::pos()` is not (`qevent.h` of Qt 6.8, lines 220 and 403) | 2: diagrams 1 (`DiagramWindow.cpp:1220`), graphics 1 (`NetworkView.cpp:257`); Qt 5.15 has no `QNativeGestureEvent::position()` | warning |
+| Five-argument `QMouseEvent` constructor deprecated in 6.4, old `QNativeGestureEvent` constructor in 6.2 (`qevent.h`, lines 201 and 376) | tests: 20 and 2 | warning |
+| `QList` and `QString` sizes are `qsizetype`, not `int` ([Qt Core changes](https://doc.qt.io/qt-6/qtcore-changes-qt6.html)) | 27 declarations of the form `int x = list.size()` or `indexOf(...)`: tests 12, app 6, telemetry 5, graphics 2, widgets 1, update 1; one `std::min` of an `int` and a size (`telemetry/TelemetrySender.cpp:491`) | MSVC warning C4244; the `std::min` call fails to compile with every compiler |
+| `QVariant::operator==` compares through `QMetaType::equals`, floating point exactly, and no longer converts between different non-numeric types; `operator<` removed | no ordering comparison; equality through `findData` or `data() ==`: editors 21, app 3, diagrams 1, tests 68 | review |
 | A size-changing `QList` call invalidates references to its elements | not countable by search | review |
-| `QTextStream` encoding API changed; `QSettings` INI files | `QTextStream` only in 2 tests; one `QSettings::IniFormat` in `app/TelemetrySmokeSupport.cpp:44` | none expected |
 
 The warnings matter because CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON`
-([cmake.yml](../../.github/workflows/cmake.yml), lines 194 to 211) and the libraries and tests are strict targets
-([CMakeLists.txt](../../CMakeLists.txt), lines 413 to 417), so each warning above fails a Qt 6 CI build. The `qsizetype`
-count is a lower bound: it misses sizes passed as `int` arguments or returned from `int` functions, which MSVC at
-`/W4` reports too. Clang and GCC do not warn about them with `-Wall -Wextra`.
+([cmake.yml](../../.github/workflows/cmake.yml), lines 194 to 211) and the libraries other than the simulation, and
+most tests, are strict targets ([CMakeLists.txt](../../CMakeLists.txt), lines 413 to 417), so a warning in them fails a
+Qt 6 CI build. The `QEGTRAIN` target, which builds most of `app/`, and the tests that use the simulation get no warning
+flags (lines 421 to 430). The `qsizetype` count is a lower bound: it misses sizes passed as `int` arguments or returned
+from `int` functions, which MSVC at `/W4` reports too. Clang and GCC do not warn about these conversions with `-Wall
+-Wextra`.
 
 Outside the sources: [CMakeLists.txt](../../CMakeLists.txt) names Qt 5 on 97 lines (`find_package(Qt5 ...)` on line
 115, `Qt5::` targets, `Qt5::WinMain` on line 626). The MSVC forced include `util/QtMsvcCompat.h` was written for
 the Qt 5.15 headers. Ten files under `tools/` name Qt 5, among them `tools/tidy.py:70`,
 `tools/release/package_start_smoke.py:70` and `tools/e2e/test_qt_resources.py:62`.
 
-### One code base for both versions
-
-Qt 5.15 has versionless CMake targets such as `Qt::Core`, so one `CMakeLists.txt` can find Qt 6 and fall back to Qt
-5.15 ([Qt 5 and Qt 6 compatibility](https://doc.qt.io/qt-6/cmake-qt5-and-qt6-compatibility.html)). The source changes
-above all have forms that compile with both versions; the Qt Charts namespace line needs a `QT_VERSION` check while Qt 5
-is supported. A transition period with both versions is therefore cheap, and lets CI compare the two builds before the
-releases change. A clean switch saves the version checks but changes the build, the packages and the look in one step.
-
 ## Packaging
 
 | Platform | Today | With Qt 6 |
 | --- | --- | --- |
 | macOS | `macdeployqt` of Homebrew `qt@5`, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins ([package.yml](../../.github/workflows/package.yml), lines 109 to 127) | `macdeployqt` remains. Homebrew Qt 6 is split into formulae: `qtbase`, `qtcharts` and `qtsvg` are enough, and `qtcharts` depends on `qtdeclarative`. `qtbase` depends on `icu4c@78` and `openssl@4` and links OpenSSL (Homebrew `qtbase.rb`, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps. |
-| Windows | `windeployqt` with `--no-angle` and `--no-virtualkeyboard` ([cmake.yml](../../.github/workflows/cmake.yml), line 254; [package.yml](../../.github/workflows/package.yml), line 525); checks name `Qt5Core.dll` and others (lines 569 and 583) | The Qt 6 `windeployqt` has neither option ([Qt for Windows deployment](https://doc.qt.io/qt-6/windows-deployment.html)); `--skip-plugin-types` and `--exclude-plugins` replace them. The DLLs become `Qt6*.dll`. TLS is a plugin, `qschannelbackend` ([Qt SSL](https://doc.qt.io/qt-6/ssl.html)). |
+| Windows | `windeployqt` with `--no-angle` and `--no-virtualkeyboard` ([cmake.yml](../../.github/workflows/cmake.yml), line 254; [package.yml](../../.github/workflows/package.yml), line 525); checks name `Qt5Core.dll`, `styles/qwindowsvistastyle.dll` and others (lines 569, 575 and 583) | The Qt 6 `windeployqt` has neither option ([Qt for Windows deployment](https://doc.qt.io/qt-6/windows-deployment.html)); `--skip-plugin-types` and `--exclude-plugins` replace them. The DLLs become `Qt6*.dll`, and the style plugin of Qt 6.8.3 `win64_msvc2022_64` is `styles/qmodernwindowsstyle.dll`. TLS is a plugin, `qschannelbackend` ([Qt SSL](https://doc.qt.io/qt-6/ssl.html)). |
 | Linux | `linuxdeploy-plugin-qt` with the Ubuntu Qt 5 packages; the `QMAKE` fallback names `qmake-qt5` (line 1010); the checks look for `libQt5*.so` (lines 1033 to 1035) | The plugin supports Qt 5 and 6 ([README](https://github.com/linuxdeploy/linuxdeploy-plugin-qt)). The `QMAKE` line, the checks and `package_start_smoke.py` need the Qt 6 names. |
 
 Platform support compared with what the README promises:
@@ -125,8 +118,10 @@ Linux were not measured.
   ([High DPI](https://doc.qt.io/qt-6/highdpi.html)). EGTRAIN sets no Qt 5 high-DPI attribute (`app/main.cpp:435`), so
   today it does not scale on Windows and X11. On macOS both versions use whole ratios of 1 or 2.
 - Network view: the drawing already uses the device pixel ratio (`graphics/items/SignalItem.cpp:108`,
-  `graphics/items/StationOverlayItem.cpp:419`) for Retina screens, but fractional ratios were never tried: hairlines,
-  cached pixmaps and station pictograms need a look at 125 % and 150 %.
+  `graphics/items/StationOverlayItem.cpp:419`) for Retina screens. Fractional ratios were tried only on Linux with
+  `QT_SCALE_FACTOR=1.5` ([feature status](../product/feature-status.md), runs of 2026-10-17, which found #883 and
+  #889), not with Windows display scaling: hairlines, cached pixmaps and station pictograms need a look at 125 % and
+  150 %.
 - Diagrams: Qt Charts draws in a `QGraphicsView` like the network view, with the same check. The pixel tests run on
   the offscreen platform and read the ratio of each image, so they should not be affected.
 - Stylesheet: `resources/styles/egtrain.qss` (452 lines) gives sizes in `px`, which Qt 6 scales; 1 px borders at 1.5
@@ -140,7 +135,7 @@ Linux were not measured.
 
 | Module that would ship | Licence | With GPL-3.0-only |
 | --- | --- | --- |
-| Qt Core, Gui, Widgets, Network, Svg | LGPL-3.0, GPL-2.0 or GPL-3.0 (Homebrew `qtbase` and `qtsvg`) | compatible |
+| Qt Core, Gui, Widgets, Network, Svg, DBus (macOS, Linux), PrintSupport (macOS) | LGPL-3.0, GPL-2.0 or GPL-3.0 (Homebrew `qtbase` and `qtsvg`) | compatible |
 | Qt Charts | GPL-3.0 ([Qt Charts](https://doc.qt.io/qt-6/qtcharts-index.html)) | compatible, as today |
 | Qt Graphs, if it replaces Qt Charts | GPL-3.0 ([Qt Graphs](https://doc.qt.io/qt-6/qtgraphs-index.html)) | compatible |
 | ICU and OpenSSL, with Homebrew `qtbase` on macOS | Unicode licence; Apache-2.0 for OpenSSL 3 and later | compatible; add to `THIRD_PARTY_NOTICES.md` |
@@ -153,7 +148,7 @@ The third-party code inside Qt 6 is listed at [Licenses used in Qt](https://doc.
 | Area | Work | Estimate |
 | --- | --- | --- |
 | CMake | versionless targets, find Qt 6 or 5.15, `Qt::WinMain` | 0.5 day |
-| Sources | 4 namespace lines, 7 event calls, 17 test constructors, `qsizetype` warnings found by MSVC, `QVariant` equality review | 2 to 4 days; MSVC decides the upper end |
+| Sources | 4 namespace lines, 2 gesture calls, 22 test constructors, one `std::min` call, `qsizetype` warnings found by MSVC, `QVariant` equality review | 2 to 4 days; MSVC decides the upper end |
 | CI | Qt 6 on three platforms and `tidy.yml` | 1 day |
 | Packaging | `windeployqt` options and DLL names, macOS trimming, AppImage checks, `tools/release`, notices | 2 to 3 days |
 | High-DPI and look | Windows and Linux at 100 %, 125 % and 150 %, network view, diagrams, dialogs | 1 to 2 days |
@@ -167,19 +162,19 @@ included.
 - Qt Charts is deprecated since Qt 6.10 and Qt Graphs is named for new projects. Qt Graphs is a QML module, so it would
   likely bring back the Qt Quick and QML frameworks that #488 removed.
 - MSVC narrowing warnings are unknown until a Qt 6 Windows build runs; with warnings as errors they block CI.
-- In Qt 6 any call that changes the size or capacity of a `QList` may invalidate references to its elements
-  ([Qt Core changes](https://doc.qt.io/qt-6/qtcore-changes-qt6.html)). A search cannot find such code; the tests and
-  the simulation identity check have to.
-- Fractional scaling changes the look on Windows and Linux at display scales such as 125 % and 150 %.
-- The macOS bundle may grow and gain new libraries with Homebrew Qt 6.
-- The open-source Qt LTS policy means following new minor releases instead of staying on one LTS.
+- `QList` reference invalidation: only the tests and the simulation identity check can find it.
+- Fractional scaling on Windows and Linux.
+- A larger macOS bundle with Homebrew Qt 6.
+- Following new minor releases instead of one LTS.
 
 ## Recommended order of work
 
 1. **Build with versionless Qt targets.** Find Qt 6 or fall back to Qt 5.15 in `CMakeLists.txt` and use `Qt::`
-   targets. Qt 5 stays the default; no behaviour changes.
-2. **Make the sources compile with Qt 6.** Guard the Qt Charts namespace lines and use `position()` and the newer event
-   constructors in the code and tests. Every change also builds with Qt 5.15.
+   targets, which Qt 5.15 already has ([Qt 5 and Qt 6 compatibility](https://doc.qt.io/qt-6/cmake-qt5-and-qt6-compatibility.html)).
+   Qt 5 stays the default; no behaviour changes.
+2. **Make the sources compile with Qt 6.** Guard the Qt Charts namespace lines and the `QNativeGestureEvent` calls and
+   test constructors with a `QT_VERSION` check, use the six-argument `QMouseEvent` constructor in the tests and cast
+   the size in `TelemetrySender.cpp:491`. Every change also builds with Qt 5.15.
 3. **Add a Qt 6 build to CI.** One job per platform with Qt 6 next to the Qt 5 jobs, not required at first. Fix the
    MSVC `qsizetype` warnings it reports, then make it required.
 4. **Package with Qt 6.** Update `windeployqt` options, DLL names, the macOS trimming, the AppImage checks,
