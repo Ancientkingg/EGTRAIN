@@ -57,6 +57,10 @@ bool RunController::passengerGui() const {
 	return initial_variables.PAX_GUI;
 }
 
+void RunController::setPassengerGui(bool on) {
+	initial_variables.PAX_GUI = on;
+}
+
 std::optional<double> RunController::durationOverride() const {
 	return initial_variables.durationOverride ? std::optional<double>(initial_variables.times) : std::nullopt;
 }

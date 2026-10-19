@@ -767,8 +767,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_signalLayerCheck->setToolTip("Show signals and live aspects");
 	m_passengerLayerCheck = new QCheckBox("Passengers", caseLayersWidget);
 	m_passengerLayerCheck->setObjectName("layerPassengers");
-	m_passengerLayerCheck->setChecked(true);
-	m_passengerLayerCheck->setToolTip("Show passenger counts and icons");
+	// View > Show Passengers is the same switch as the check box: each follows the other.
+	m_showPassengersAction = new QAction("Show Passengers", this);
+	m_showPassengersAction->setObjectName("actionShowPassengers");
+	m_showPassengersAction->setCheckable(true);
+	const bool showPassengers = m_runController->passengerGui();
+	m_passengerLayerCheck->setChecked(showPassengers);
+	m_showPassengersAction->setChecked(showPassengers);
+	m_presenter->m_passengerLayerVisible = showPassengers;
+	connect(m_passengerLayerCheck, &QCheckBox::toggled, m_showPassengersAction, &QAction::setChecked);
+	connect(m_showPassengersAction, &QAction::toggled, m_passengerLayerCheck, &QCheckBox::setChecked);
 	caseLayersLayout->addWidget(m_stationLayerCheck);
 	caseLayersLayout->addWidget(m_stationNamesCheck);
 	caseLayersLayout->addWidget(m_trainLayerCheck);
@@ -787,6 +795,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		// zoom actions above, panel toggles below
 		ui->menuView->addSeparator();
 		ui->menuView->addAction(m_caseLayersDock->toggleViewAction());
+		ui->menuView->setToolTipsVisible(true);
+		ui->menuView->addAction(m_showPassengersAction);
 		m_showMapKeyAction = ui->menuView->addAction("Map key");
 		m_showMapKeyAction->setObjectName("actionShowMapKey");
 		connect(m_showMapKeyAction, &QAction::triggered, this, [this]() {
@@ -803,7 +813,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_presenter->m_stationLayerVisible = checked;
 		for (auto* item : m_presenter->m_stationDecorations)
 			if (item)
-				item->setVisible(checked);
+				item->setVisible(qgraphicsitem_cast<PlatformItem*>(item) ? m_presenter->platformBarsVisible() : checked);
 		for (auto* label : m_presenter->m_stationLabels)
 			if (label)
 				label->setVisible(checked && m_presenter->m_stationNamesVisible);
@@ -847,7 +857,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateViewportOverlays();
 	});
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
+		m_runController->setPassengerGui(checked);
+		QSettings().setValue(kShowPassengersKey, checked);
 		m_presenter->m_passengerLayerVisible = checked;
+		for (auto* item : m_presenter->m_stationDecorations)
+			if (qgraphicsitem_cast<PlatformItem*>(item))
+				item->setVisible(m_presenter->platformBarsVisible());
 		for (auto* platform : m_presenter->allPlatforms) {
 			if (!platform)
 				continue;
@@ -865,6 +880,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			m_presenter->updateTrainPaxInfo();
 			m_presenter->updatePaxIconInfo(m_snapshot.get(),
 				m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
+			// A run keeps the passengers of the platforms only when it starts with them on.
+			if (m_showingTrackPreview || !passengerGui())
+				statusBar()->showMessage("Passengers show from the next run", 8000);
 		}
 	});
 	updateCaseLayersPanel();
@@ -2139,6 +2157,10 @@ void MainWindow::updateSceneActions() {
 		recentScenesMenu->setEnabled(!SceneSession::recentScenes().isEmpty());
 }
 
+bool MainWindow::savedShowPassengers() {
+	return QSettings().value(kShowPassengersKey, false).toBool();
+}
+
 bool MainWindow::advancedDetailsEnabled() const {
 	if (m_advancedDetailsAction)
 		return m_advancedDetailsAction->isChecked();
@@ -2500,6 +2522,13 @@ void MainWindow::updateCaseLayersPanel() {
 		m_caseReadinessLabel->style()->unpolish(m_caseReadinessLabel);
 		m_caseReadinessLabel->style()->polish(m_caseReadinessLabel);
 	}
+	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
+	const QString passengerTip = hasPassengers ? QStringLiteral("Show passenger counts, icons and platform bars")
+											   : QStringLiteral("This case has no passengers");
+	m_passengerLayerCheck->setEnabled(hasPassengers);
+	m_passengerLayerCheck->setToolTip(passengerTip);
+	m_showPassengersAction->setEnabled(hasPassengers);
+	m_showPassengersAction->setToolTip(passengerTip);
 	updateNetworkLegend();
 }
 
@@ -3413,7 +3442,7 @@ int MainWindow::regionOfTrack(int track) const {
 }
 
 bool MainWindow::passengerGui() const {
-	return m_runController->passengerGui();
+	return simulation.run().settings.PAX_GUI;
 }
 
 bool MainWindow::replayActive() const {
@@ -3556,7 +3585,7 @@ void MainWindow::seekReplay(int requestedTime) {
 	renderSnapshot(true);
 	if (m_presenter->trainPaxItem && !replayTrainHasPosition(m_presenter->trainPaxItem->index))
 		m_presenter->removeTrainPaxInfoIcon();
-	else if (m_presenter->trainPaxItem && !m_presenter->trainPaxInfoItem && m_runController->passengerGui()
+	else if (m_presenter->trainPaxItem && !m_presenter->trainPaxInfoItem && passengerGui()
 		&& m_presenter->m_passengerLayerVisible)
 		m_presenter->paintTrainPassengerInfo(m_presenter->trainPaxItem);
 	updateViewportOverlays();
@@ -3677,7 +3706,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSignals = !preview && !m_presenter->allSignals.isEmpty();
 	if (preview)
 		content.hasSignals = m_presenter->m_previewHasSignals;
-	content.hasPassengers = !preview && m_runController->passengerGui();
+	content.hasPassengers = !preview && passengerGui();
 	m_networkLegendWidget->setCaseContent(content);
 }
 

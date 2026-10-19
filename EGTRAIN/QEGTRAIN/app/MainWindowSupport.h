@@ -31,6 +31,8 @@ constexpr int kFollowNameRole = Qt::UserRole + 1;
 constexpr int kFollowStatusMaxWidth = 640;
 // The key of the setting behind the Advanced Details switch.
 constexpr const char* kAdvancedDetailsKey = "advancedDetails";
+// The key of the setting that remembers View > Show Passengers.
+constexpr const char* kShowPassengersKey = "showPassengers";
 
 // Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
 inline int baseTimeToSeconds(const std::string& hhmmss) {

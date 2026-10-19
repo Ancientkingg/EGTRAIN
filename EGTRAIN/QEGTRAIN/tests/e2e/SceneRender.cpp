@@ -1,24 +1,32 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include <QAction>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QGraphicsScene>
 #include <QPixmap>
 #include <QRectF>
+#include <QSettings>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QThread>
 #include <QTimer>
 #include <QToolButton>
+#include <algorithm>
 #include <cstdio>
+#include "app/MainWindowSupport.h"
 #include "graphics/NetworkScene.h"
+#include "graphics/items/PlatformItem.h"
 #include "simulation/SimulationWorker.h"
 #include "widgets/ElidedLabel.h"
 
 // Opens the scene named by QEGTRAIN_E2E_SCENE if none is open, runs it, and checks that the network view
 // draws real geometry inside the viewport instead of a collapsed point. It runs again every 500 ms,
-// at most 40 times, until a train is drawn. QEGTRAIN_E2E_SCREENSHOT names a file for a picture of the view.
+// at most 40 times, until a train is drawn. QEGTRAIN_E2E_SCREENSHOT names a file for a picture of the view. A case without
+// passengers must have Show Passengers disabled, with a reason; for a case with passengers the run starts with them turned on,
+// and the check turns them off and on again with the two controls.
 void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	if (scenarioStarted)
 		return;
@@ -32,6 +40,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 			return;
 		}
 	}
+	const bool hasPassengers = !w.m_document->model().passengers.empty();
 	if (!w.m_runController->m_worker && w.m_presenter->allTrains.isEmpty()) {
 		// Before the first run Follow is off and its tooltip says why.
 		const bool services = !w.m_document->mutableModel().services.empty();
@@ -51,6 +60,26 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		}
 		std::fprintf(stdout, services ? "E2E_FOLLOW_NO_RUN_OK\n" : "E2E_FOLLOW_NO_SERVICES_OK\n");
 		std::fflush(stdout);
+		// Passengers are off at the start, and the controls are disabled, with the reason, when the case has none.
+		const bool controlsEnabled = w.m_showPassengersAction->isEnabled() && w.m_passengerLayerCheck->isEnabled();
+		const bool reasoned = hasPassengers
+			|| (w.m_showPassengersAction->toolTip().contains("no passengers") && w.m_passengerLayerCheck->toolTip().contains("no passengers"));
+		if (w.m_showPassengersAction->isChecked() || w.m_passengerLayerCheck->isChecked() || controlsEnabled != hasPassengers || !reasoned) {
+			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: Show Passengers is not off, or not disabled for a case without passengers\n");
+			std::fflush(stderr);
+			QCoreApplication::exit(2);
+			return;
+		}
+		if (hasPassengers) {
+			// The run starts with passengers on. The display data comes with the run, so a preview says so.
+			w.m_showPassengersAction->setChecked(true);
+			if (!w.m_passengerLayerCheck->isChecked() || !w.statusBar()->currentMessage().contains("next run")) {
+				std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: Show Passengers did not turn the check box on and say when it takes effect\n");
+				std::fflush(stderr);
+				QCoreApplication::exit(2);
+				return;
+			}
+		}
 		w.m_runController->runScene();
 		if (!w.m_runController->m_worker) {
 			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: scene run did not start\n");
@@ -78,6 +107,36 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	if (w.scene->items().size() < 10) {
 		ok = false;
 		failures << "scene has too few items";
+	}
+
+	// The platform bars and counters are the passenger items of the run. They exist only when the run started with passengers on.
+	const auto platformsShown = [&w](bool shown) {
+		const QList<PlatformItem*>& platforms = w.m_presenter->allPlatforms;
+		return !platforms.isEmpty() && std::all_of(platforms.cbegin(), platforms.cend(), [shown](const PlatformItem* platform) {
+			return platform->isVisible() == shown && (shown || !platform->textIcon->isVisible());
+		});
+	};
+	if (!hasPassengers) {
+		if (!w.m_presenter->allPlatforms.isEmpty()) {
+			ok = false;
+			failures << "platform bars without passengers turned on";
+		}
+	} else {
+		bool toggled = platformsShown(true);
+		w.m_passengerLayerCheck->setChecked(false);
+		toggled = toggled && !w.m_showPassengersAction->isChecked() && platformsShown(false)
+			&& !QSettings().value(kShowPassengersKey).toBool();
+		w.m_showPassengersAction->setChecked(true);
+		toggled = toggled && w.m_passengerLayerCheck->isChecked() && platformsShown(true)
+			&& QSettings().value(kShowPassengersKey).toBool();
+		if (!toggled) {
+			ok = false;
+			failures << "Show Passengers did not turn the passenger display off and on";
+		}
+	}
+	if (ok) {
+		std::fprintf(stdout, hasPassengers ? "E2E_PASSENGERS_TOGGLE_OK\n" : "E2E_PASSENGERS_DISABLED_OK\n");
+		std::fflush(stdout);
 	}
 
 	QRectF bounds = w.scene->itemsBoundingRect();
