@@ -100,7 +100,8 @@ QString referenceText(const CapacityAnalysisResult& chain, const std::string& id
 	return QString();
 }
 
-QTableWidget* makeTable(QWidget* parent, const QStringList& headers, const std::vector<QStringList>& rows) {
+// The cells of numericColumns are aligned to the right.
+QTableWidget* makeTable(QWidget* parent, const QStringList& headers, const std::vector<QStringList>& rows, const QList<int>& numericColumns = {}) {
 	auto* table = new QTableWidget(static_cast<int>(rows.size()), static_cast<int>(headers.size()), parent);
 	table->setHorizontalHeaderLabels(headers);
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -109,19 +110,12 @@ QTableWidget* makeTable(QWidget* parent, const QStringList& headers, const std::
 	table->horizontalHeader()->setStretchLastSection(true);
 	table->verticalHeader()->setVisible(false);
 	for (int row = 0; row < table->rowCount(); ++row)
-		for (int column = 0; column < headers.size(); ++column)
-			table->setItem(row, column, new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column)));
-	// A column of numbers, with "-" where a value is missing, is aligned to the right.
-	for (int column = 0; column < table->columnCount(); ++column) {
-		bool numeric = table->rowCount() > 0;
-		for (int row = 0; numeric && row < table->rowCount(); ++row) {
-			const QString text = table->item(row, column)->text();
-			text.toDouble(&numeric);
-			numeric = numeric || text == QStringLiteral("-");
+		for (int column = 0; column < headers.size(); ++column) {
+			auto* item = new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column));
+			if (numericColumns.contains(column))
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			table->setItem(row, column, item);
 		}
-		for (int row = 0; numeric && row < table->rowCount(); ++row)
-			table->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-	}
 	table->resizeColumnsToContents();
 	return table;
 }
@@ -153,7 +147,7 @@ QWidget* resourcesTab(const AreaCapacityResult& result, QWidget* parent) {
 			secondsText(resource.unionSeconds)});
 	}
 	QTableWidget* table = makeTable(page,
-		{"Resource", "Rate [% of period]", "Status", "Trains", "Occupations", "Occupation [s]", "Union [s]"}, rows);
+		{"Resource", "Rate [% of period]", "Status", "Trains", "Occupations", "Occupation [s]", "Union [s]"}, rows, {1, 3, 4, 5, 6});
 	table->setObjectName("areaCapacityResources");
 	for (int row = 0; row < table->rowCount(); ++row) {
 		if (!result.resources[static_cast<std::size_t>(row)].governing)
@@ -214,7 +208,7 @@ QWidget* chainTab(const AreaCapacityResult& result, QWidget* parent) {
 	QTableWidget* pairs = makeTable(page,
 		{"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway [s]", "Minimum headway [s]", "Buffer [s]",
 			"Governing resource evidence", "Reference (leader -> follower)"},
-		pairRows);
+		pairRows, {4, 5, 6});
 	pairs->setObjectName("areaCapacityPairs");
 	layout->addWidget(pairs, 1);
 
@@ -233,7 +227,7 @@ QWidget* chainTab(const AreaCapacityResult& result, QWidget* parent) {
 	QTableWidget* compression = makeTable(page,
 		{"Identity", "Operating code", "Original reference [s]", "Scheduled reference [s]", "Compressed reference [s]", "Shift [s]",
 			"Governing predecessor / resource evidence"},
-		compressionRows);
+		compressionRows, {2, 3, 4, 5});
 	compression->setObjectName("areaCapacityCompression");
 	layout->addWidget(compression, 1);
 
@@ -242,7 +236,7 @@ QWidget* chainTab(const AreaCapacityResult& result, QWidget* parent) {
 		criticalRows.push_back({QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
 			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId), secondsText(critical.gap)});
 	layout->addWidget(makeCaption(page, QString("Critical resources (%1)").arg(criticalRows.size())));
-	QTableWidget* critical = makeTable(page, {"Leader", "Follower", "Leader resource", "Follower resource", "Gap [s]"}, criticalRows);
+	QTableWidget* critical = makeTable(page, {"Leader", "Follower", "Leader resource", "Follower resource", "Gap [s]"}, criticalRows, {4});
 	critical->setObjectName("areaCapacityCritical");
 	layout->addWidget(critical, 1);
 	return page;

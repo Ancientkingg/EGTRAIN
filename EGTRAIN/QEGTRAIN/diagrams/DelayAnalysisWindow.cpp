@@ -156,22 +156,16 @@ QTableWidget* makeTable(QWidget* parent, const char* name, const QStringList& he
 	return table;
 }
 
-void fillTable(QTableWidget* table, const std::vector<QStringList>& rows) {
+// The cells of numericColumns are aligned to the right.
+void fillTable(QTableWidget* table, const std::vector<QStringList>& rows, const QList<int>& numericColumns = {}) {
 	table->setRowCount(static_cast<int>(rows.size()));
 	for (int row = 0; row < table->rowCount(); ++row) {
-		for (int column = 0; column < table->columnCount(); ++column)
-			table->setItem(row, column, new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column)));
-	}
-	// A column of numbers, with "-" where a value is missing, is aligned to the right.
-	for (int column = 0; column < table->columnCount(); ++column) {
-		bool numeric = table->rowCount() > 0;
-		for (int row = 0; numeric && row < table->rowCount(); ++row) {
-			const QString text = table->item(row, column)->text();
-			text.toDouble(&numeric);
-			numeric = numeric || text == QStringLiteral("-");
+		for (int column = 0; column < table->columnCount(); ++column) {
+			auto* item = new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column));
+			if (numericColumns.contains(column))
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			table->setItem(row, column, item);
 		}
-		for (int row = 0; numeric && row < table->rowCount(); ++row)
-			table->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	}
 	table->resizeColumnsToContents();
 }
@@ -648,7 +642,7 @@ void DelayAnalysisWindow::fillCalls() {
 	std::vector<QStringList> rows;
 	for (const DelayEvent& event : m_shownEvents)
 		rows.push_back(callRow(event));
-	fillTable(m_callsTable, rows);
+	fillTable(m_callsTable, rows, {1, 5, 6, 8, 9, 10});
 }
 
 void DelayAnalysisWindow::fillSummary() {
@@ -656,7 +650,10 @@ void DelayAnalysisWindow::fillSummary() {
 	for (const StationDelaySummary& station : m_shownSummary.stations)
 		rows.push_back(summaryRow(fromStd(station.stationId), station.statistics));
 	rows.push_back(summaryRow("All selected stations", m_shownSummary.network));
-	fillTable(m_summaryTable, rows);
+	QList<int> numericColumns;
+	for (int column = 1; column < m_summaryTable->columnCount(); ++column)
+		numericColumns << column;
+	fillTable(m_summaryTable, rows, numericColumns);
 }
 
 void DelayAnalysisWindow::fillBaseline() {
@@ -682,11 +679,11 @@ void DelayAnalysisWindow::fillBaseline() {
 	std::vector<QStringList> occurrenceRows;
 	for (const BaselineOccurrence& occurrence : m_shownBaseline.occurrences)
 		occurrenceRows.push_back(occurrenceRow(occurrence));
-	fillTable(m_baselineOccurrences, occurrenceRows);
+	fillTable(m_baselineOccurrences, occurrenceRows, {1, 4, 8, 9, 10, 12});
 	std::vector<QStringList> callRows;
 	for (const BaselineCall& call : m_shownBaseline.calls)
 		callRows.push_back(baselineCallRow(call));
-	fillTable(m_baselineCalls, callRows);
+	fillTable(m_baselineCalls, callRows, {1, 3, 4, 6, 7, 8, 10, 11, 12});
 }
 
 void DelayAnalysisWindow::updateExport() {
