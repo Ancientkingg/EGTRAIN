@@ -128,16 +128,24 @@ Collaboration diagram for ChoiceComboBox:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a8280dfc03486d6055079170bcdf8f539" id="r_a8280dfc03486d6055079170bcdf8f539"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a8280dfc03486d6055079170bcdf8f539">ChoiceComboBox</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a8280dfc03486d6055079170bcdf8f539"><td class="mdescLeft">&#160;</td><td class="mdescRight">A combo box that expands across its row and fits its size hint to its entries.  <br /></td></tr>
 <tr class="memitem:a30c6b7dd84eda2085cca64e355210f51" id="r_a30c6b7dd84eda2085cca64e355210f51"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a30c6b7dd84eda2085cca64e355210f51">displayText</a> () const</td></tr>
+<tr class="memdesc:a30c6b7dd84eda2085cca64e355210f51"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current text as the field draws it.  <br /></td></tr>
 <tr class="memitem:a2aa33621757974e588eb7fd695970af0" id="r_a2aa33621757974e588eb7fd695970af0"><td class="memItemLeft">QSize&#160;</td><td class="memItemRight"><a class="el" href="#a2aa33621757974e588eb7fd695970af0">minimumSizeHint</a> () const override</td></tr>
+<tr class="memdesc:a2aa33621757974e588eb7fd695970af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Room for about 12 characters, or the size hint when that is smaller.  <br /></td></tr>
 <tr class="memitem:aeb628e36249cb4b8645dfd61849249de" id="r_aeb628e36249cb4b8645dfd61849249de"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aeb628e36249cb4b8645dfd61849249de">showPopup</a> () override</td></tr>
+<tr class="memdesc:aeb628e36249cb4b8645dfd61849249de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens the list as wide as its widest entry, at most nine tenths of the screen width, and keeps it on the screen.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a922c40529211b3068bf0a78a254f45a5" id="r_a922c40529211b3068bf0a78a254f45a5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a922c40529211b3068bf0a78a254f45a5">event</a> (QEvent *event) override</td></tr>
+<tr class="memdesc:a922c40529211b3068bf0a78a254f45a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current text as the tooltip.  <br /></td></tr>
 <tr class="memitem:acd760dade2bc054a7c5251877fb10736" id="r_acd760dade2bc054a7c5251877fb10736"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd760dade2bc054a7c5251877fb10736">paintEvent</a> (QPaintEvent *) override</td></tr>
+<tr class="memdesc:acd760dade2bc054a7c5251877fb10736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the field with <a class="el" href="#a30c6b7dd84eda2085cca64e355210f51" title="The current text as the field draws it.">displayText()</a>.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Combo box for choice fields in dialogs whose entries can be long imported names. The field can shrink below its text so that a form never needs a horizontal scroll bar, while its size hint still lets the dialog grow to show the whole text. A text wider than the field is drawn with its middle elided. The tooltip is the current text, and the popup list is as wide as its widest entry within the screen. The wheel changes the choice only while the field has keyboard focus. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a8280dfc03486d6055079170bcdf8f539" name="a8280dfc03486d6055079170bcdf8f539"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8280dfc03486d6055079170bcdf8f539">&#9670;&#160;</a></span>ChoiceComboBox()</h2>
 
@@ -160,6 +168,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A combo box that expands across its row and fits its size hint to its entries. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -192,6 +202,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The current text as the field draws it. </p>
+
 </div>
 </div>
 <a id="a922c40529211b3068bf0a78a254f45a5" name="a922c40529211b3068bf0a78a254f45a5"></a>
@@ -216,6 +228,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Shows the current text as the tooltip. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -247,6 +261,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Room for about 12 characters, or the size hint when that is smaller. </p>
+
 </div>
 </div>
 <a id="acd760dade2bc054a7c5251877fb10736" name="acd760dade2bc054a7c5251877fb10736"></a>
@@ -271,6 +287,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Draws the field with <a class="el" href="#a30c6b7dd84eda2085cca64e355210f51" title="The current text as the field draws it.">displayText()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -301,6 +319,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Opens the list as wide as its widest entry, at most nine tenths of the screen width, and keeps it on the screen. </p>
 
 </div>
 </div>

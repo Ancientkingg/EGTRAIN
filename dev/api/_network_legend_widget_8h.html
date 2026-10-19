@@ -131,9 +131,13 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:NetworkLegendEntry" id="r_NetworkLegendEntry"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_legend_entry.html">NetworkLegendEntry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One row of the map key: a swatch and a label. Each kind reads only some of the fields.  <a href="struct_network_legend_entry.html#details">More...</a><br /></td></tr>
 <tr class="memitem:NetworkLegendTrain" id="r_NetworkLegendTrain"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_legend_train.html">NetworkLegendTrain</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One train on the canvas. serviceId is empty for a train without a service.  <a href="struct_network_legend_train.html#details">More...</a><br /></td></tr>
 <tr class="memitem:NetworkLegendContent" id="r_NetworkLegendContent"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_legend_content.html">NetworkLegendContent</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the canvas of the case shows, which decides the rows of the map key.  <a href="struct_network_legend_content.html#details">More...</a><br /></td></tr>
 <tr class="memitem:NetworkLegendWidget" id="r_NetworkLegendWidget"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_network_legend_widget.html">NetworkLegendWidget</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The map key of the canvas: a "Map key" button that folds a list of rows, each a swatch and a label.  <a href="class_network_legend_widget.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -146,10 +150,12 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="#a33fd463d91044936a5c3082d2d9c4549abf2528a296adb62d041a7519aa77f248">Passenger</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a33fd463d91044936a5c3082d2d9c4549"><td class="mdescLeft">&#160;</td><td class="mdescRight">What a row of the map key stands for, which decides how its swatch is drawn.  <a href="#a33fd463d91044936a5c3082d2d9c4549">More...</a><br /></td></tr>
 <tr class="memitem:a5270fc6f1fa25f4d19ac98d6c9eb3408" id="r_a5270fc6f1fa25f4d19ac98d6c9eb3408"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a5270fc6f1fa25f4d19ac98d6c9eb3408">NetworkLegendSignalLook</a> { <a class="el" href="#a5270fc6f1fa25f4d19ac98d6c9eb3408a5331717d33d4e634fd3c5ec209f475d2">Lamp</a>
 , <a class="el" href="#a5270fc6f1fa25f4d19ac98d6c9eb3408a453e6aa38d87b28ccae545967c53004f">Unavailable</a>
 , <a class="el" href="#a5270fc6f1fa25f4d19ac98d6c9eb3408ad7c8c85bf79bbe1b7188497c32c3b0ca">Failed</a>
  }</td></tr>
+<tr class="memdesc:a5270fc6f1fa25f4d19ac98d6c9eb3408"><td class="mdescLeft">&#160;</td><td class="mdescRight">How a signal row draws its head: a lit lamp, an empty ring or a crossed lamp.  <a href="#a5270fc6f1fa25f4d19ac98d6c9eb3408">More...</a><br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a33fd463d91044936a5c3082d2d9c4549" name="a33fd463d91044936a5c3082d2d9c4549"></a>
@@ -171,11 +177,17 @@ Enumerations</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What a row of the map key stands for, which decides how its swatch is drawn. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549a92ea731d3af6677905303c88689f5d55" name="a33fd463d91044936a5c3082d2d9c4549a92ea731d3af6677905303c88689f5d55"></a>Track&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549ae41273f43af504714d85465294f1f369" name="a33fd463d91044936a5c3082d2d9c4549ae41273f43af504714d85465294f1f369"></a>Train&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549a394a844cc3d6d99eb45b4e71afde2c99" name="a33fd463d91044936a5c3082d2d9c4549a394a844cc3d6d99eb45b4e71afde2c99"></a>Station&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549a085fea7abdc5d904fe69a3081efd7398" name="a33fd463d91044936a5c3082d2d9c4549a085fea7abdc5d904fe69a3081efd7398"></a>Signal&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549a92ea731d3af6677905303c88689f5d55" name="a33fd463d91044936a5c3082d2d9c4549a92ea731d3af6677905303c88689f5d55"></a>Track&#160;</td><td class="fielddoc"><p>A line in the colour and style of a track. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549ae41273f43af504714d85465294f1f369" name="a33fd463d91044936a5c3082d2d9c4549ae41273f43af504714d85465294f1f369"></a>Train&#160;</td><td class="fielddoc"><p>A train body in its fill and outline. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549a394a844cc3d6d99eb45b4e71afde2c99" name="a33fd463d91044936a5c3082d2d9c4549a394a844cc3d6d99eb45b4e71afde2c99"></a>Station&#160;</td><td class="fielddoc"><p>The mark of a station class. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549a085fea7abdc5d904fe69a3081efd7398" name="a33fd463d91044936a5c3082d2d9c4549a085fea7abdc5d904fe69a3081efd7398"></a>Signal&#160;</td><td class="fielddoc"><p>A signal head. </p>
+</td></tr>
 <tr><td class="fieldname"><a id="a33fd463d91044936a5c3082d2d9c4549abf2528a296adb62d041a7519aa77f248" name="a33fd463d91044936a5c3082d2d9c4549abf2528a296adb62d041a7519aa77f248"></a>Passenger&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
@@ -200,9 +212,13 @@ Enumerations</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>How a signal row draws its head: a lit lamp, an empty ring or a crossed lamp. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a5270fc6f1fa25f4d19ac98d6c9eb3408a5331717d33d4e634fd3c5ec209f475d2" name="a5270fc6f1fa25f4d19ac98d6c9eb3408a5331717d33d4e634fd3c5ec209f475d2"></a>Lamp&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a5270fc6f1fa25f4d19ac98d6c9eb3408a453e6aa38d87b28ccae545967c53004f" name="a5270fc6f1fa25f4d19ac98d6c9eb3408a453e6aa38d87b28ccae545967c53004f"></a>Unavailable&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a5270fc6f1fa25f4d19ac98d6c9eb3408a5331717d33d4e634fd3c5ec209f475d2" name="a5270fc6f1fa25f4d19ac98d6c9eb3408a5331717d33d4e634fd3c5ec209f475d2"></a>Lamp&#160;</td><td class="fielddoc"><p>A lamp filled with color, with the mark of signalCue. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5270fc6f1fa25f4d19ac98d6c9eb3408a453e6aa38d87b28ccae545967c53004f" name="a5270fc6f1fa25f4d19ac98d6c9eb3408a453e6aa38d87b28ccae545967c53004f"></a>Unavailable&#160;</td><td class="fielddoc"><p>An empty ring with a dash. </p>
+</td></tr>
 <tr><td class="fieldname"><a id="a5270fc6f1fa25f4d19ac98d6c9eb3408ad7c8c85bf79bbe1b7188497c32c3b0ca" name="a5270fc6f1fa25f4d19ac98d6c9eb3408ad7c8c85bf79bbe1b7188497c32c3b0ca"></a>Failed&#160;</td><td class="fielddoc"></td></tr>
 </table>
 

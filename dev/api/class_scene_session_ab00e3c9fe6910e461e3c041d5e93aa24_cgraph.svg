@@ -1386,7 +1386,7 @@
 <!-- Node67 -->
 <g id="Node000067" class="node">
 <title>Node67</title>
-<g id="a_Node000067"><a xlink:href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" target="_top" xlink:title=" ">
+<g id="a_Node000067"><a xlink:href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" target="_top" xlink:title="path with every slash replaced by separator().">
 <polygon fill="white" stroke="#666666" points="595.5,-291 477.5,-291 477.5,-272 595.5,-272 595.5,-291"/>
 <text text-anchor="middle" x="536.5" y="-279" font-family="Helvetica,sans-Serif" font-size="10.00">display_path::format</text>
 </a>
@@ -1413,7 +1413,7 @@
 <!-- Node68 -->
 <g id="Node000068" class="node">
 <title>Node68</title>
-<g id="a_Node000068"><a xlink:href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" target="_top" xlink:title=" ">
+<g id="a_Node000068"><a xlink:href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" target="_top" xlink:title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst...">
 <polygon fill="white" stroke="#666666" points="799,-291 668,-291 668,-272 799,-272 799,-291"/>
 <text text-anchor="middle" x="733.5" y="-279" font-family="Helvetica,sans-Serif" font-size="10.00">display_path::separator</text>
 </a>

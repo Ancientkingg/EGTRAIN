@@ -128,6 +128,7 @@ Collaboration diagram for TimeProgressBar:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a203db15ba1769e7868a4505f0f57afbe" id="r_a203db15ba1769e7868a4505f0f57afbe"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a203db15ba1769e7868a4505f0f57afbe">TimeProgressBar</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a203db15ba1769e7868a4505f0f57afbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">A bar 28 pixels high in the fixed-width system font, without keyboard focus.  <br /></td></tr>
 <tr class="memitem:a3bd46aab70d9411d1ff44ca425f6bc8f" id="r_a3bd46aab70d9411d1ff44ca425f6bc8f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a3bd46aab70d9411d1ff44ca425f6bc8f">~TimeProgressBar</a> () override</td></tr>
 <tr class="memitem:a56ba7072d1a5f2dfae6f6b19ab6a8308" id="r_a56ba7072d1a5f2dfae6f6b19ab6a8308"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a56ba7072d1a5f2dfae6f6b19ab6a8308">setProgress</a> (int timestep, int totalSteps, long long startOffsetSeconds)</td></tr>
 </table><table class="memberdecls">
@@ -136,7 +137,9 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a232f0e0910a4203d374fe25d0c722ecb" id="r_a232f0e0910a4203d374fe25d0c722ecb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a232f0e0910a4203d374fe25d0c722ecb">paintEvent</a> (QPaintEvent *event) override</td></tr>
 <tr class="memdesc:a232f0e0910a4203d374fe25d0c722ecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the bar, then the filled part again with its text in the highlighted text colour.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The progress bar of a run under the network: how far the run is, as the clock time, the step and the end time. It ignores mouse and wheel input, so it shows the run and does not scrub it. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a203db15ba1769e7868a4505f0f57afbe" name="a203db15ba1769e7868a4505f0f57afbe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a203db15ba1769e7868a4505f0f57afbe">&#9670;&#160;</a></span>TimeProgressBar()</h2>
 
@@ -151,6 +154,8 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A bar 28 pixels high in the fixed-width system font, without keyboard focus. </p>
 
 </div>
 </div>
@@ -230,6 +235,8 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Shows step <span class="tt"><a class="el" href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa" title="The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...">timestep</a></span> (from 0) of a run of <span class="tt">totalSteps</span> steps, clamped to the run, as "&lt;clock&gt; | Step &lt;n&gt; of
+&lt;total&gt; | Ends &lt;clock&gt;". The clock times take one step as one second after <span class="tt">startOffsetSeconds</span>, the base time of the run in seconds since midnight. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

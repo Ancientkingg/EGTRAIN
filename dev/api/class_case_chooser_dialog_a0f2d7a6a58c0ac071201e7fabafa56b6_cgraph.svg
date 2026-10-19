@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Fills the list and selects its first case that can be opened.">
 <polygon fill="#999999" stroke="#666666" points="118,-90 0,-90 0,-60 118,-60 118,-90"/>
 <text text-anchor="start" x="8" y="-78" font-family="Helvetica,sans-Serif" font-size="10.00">CaseChooserDialog::</text>
 <text text-anchor="middle" x="59" y="-67" font-family="Helvetica,sans-Serif" font-size="10.00">CaseChooserDialog</text>
@@ -39,7 +39,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_case_chooser_dialog.html#aaee34ec1d3e01474c06fa787addbee54" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_case_chooser_dialog.html#aaee34ec1d3e01474c06fa787addbee54" target="_top" xlink:title="The path of the current row; empty for a heading or an unavailable case. The status label names the r...">
 <polygon fill="white" stroke="#666666" points="279.5,-90 161.5,-90 161.5,-60 279.5,-60 279.5,-90"/>
 <text text-anchor="start" x="169.5" y="-78" font-family="Helvetica,sans-Serif" font-size="10.00">CaseChooserDialog::</text>
 <text text-anchor="middle" x="220.5" y="-67" font-family="Helvetica,sans-Serif" font-size="10.00">selectedPath</text>
@@ -85,7 +85,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" target="_top" xlink:title="Guards every combo box, spin box and slider inside root.">
 <polygon fill="white" stroke="#666666" points="445,-127.5 323,-127.5 323,-108.5 445,-108.5 445,-127.5"/>
 <text text-anchor="middle" x="384" y="-115.5" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guardAll</text>
 </a>
@@ -131,7 +131,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title="Guards box: gives it strong focus and installs a Filter, once.">
 <polygon fill="white" stroke="#666666" points="605.5,-181.5 496.5,-181.5 496.5,-162.5 605.5,-162.5 605.5,-181.5"/>
 <text text-anchor="middle" x="551" y="-169.5" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guard</text>
 </a>
@@ -149,7 +149,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" target="_top" xlink:title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ...">
 <polygon fill="white" stroke="#666666" points="621,-126.5 481,-126.5 481,-107.5 621,-107.5 621,-126.5"/>
 <text text-anchor="middle" x="551" y="-114.5" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::isValueField</text>
 </a>

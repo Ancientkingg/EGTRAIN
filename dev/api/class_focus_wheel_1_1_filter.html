@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_focus_wh
 </div><!--header-->
 <div class="contents">
 
+<p>The event filter that guard installs; the box owns it.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_focus_wheel_8h_source.html">widgets/FocusWheel.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for FocusWheel::Filter:</div>
@@ -128,8 +131,11 @@ Collaboration diagram for FocusWheel::Filter:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a1a60beba61276306e647907db4dd9994" id="r_a1a60beba61276306e647907db4dd9994"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1a60beba61276306e647907db4dd9994">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
+<tr class="memdesc:a1a60beba61276306e647907db4dd9994"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ignores a wheel event of a box without focus, so that it passes to the parent.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The event filter that guard installs; the box owns it. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a1a60beba61276306e647907db4dd9994" name="a1a60beba61276306e647907db4dd9994"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1a60beba61276306e647907db4dd9994">&#9670;&#160;</a></span>eventFilter()</h2>
 
@@ -156,6 +162,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Ignores a wheel event of a box without focus, so that it passes to the parent. </p>
 
 </div>
 </div>

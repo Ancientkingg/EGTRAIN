@@ -141,7 +141,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" target="_top" xlink:title="A combo box that expands across its row and fits its size hint to its entries.">
 <polygon fill="white" stroke="#666666" points="958,-270.5 763,-270.5 763,-251.5 958,-251.5 958,-270.5"/>
 <text text-anchor="middle" x="860.5" y="-258.5" font-family="Helvetica,sans-Serif" font-size="10.00">ChoiceComboBox::ChoiceComboBox</text>
 </a>
@@ -260,7 +260,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title="Guards box: gives it strong focus and installs a Filter, once.">
 <polygon fill="white" stroke="#666666" points="1118.5,-242.5 1009.5,-242.5 1009.5,-223.5 1118.5,-223.5 1118.5,-242.5"/>
 <text text-anchor="middle" x="1064" y="-230.5" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guard</text>
 </a>
@@ -341,7 +341,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" target="_top" xlink:title="Guards every combo box, spin box and slider inside root.">
 <polygon fill="white" stroke="#666666" points="921.5,-160.5 799.5,-160.5 799.5,-141.5 921.5,-141.5 921.5,-160.5"/>
 <text text-anchor="middle" x="860.5" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guardAll</text>
 </a>
@@ -396,7 +396,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" target="_top" xlink:title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ...">
 <polygon fill="white" stroke="#666666" points="1134,-160.5 994,-160.5 994,-141.5 1134,-141.5 1134,-160.5"/>
 <text text-anchor="middle" x="1064" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::isValueField</text>
 </a>

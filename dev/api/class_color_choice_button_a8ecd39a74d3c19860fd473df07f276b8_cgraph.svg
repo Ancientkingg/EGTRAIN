@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Starts at the default colour.">
 <polygon fill="#999999" stroke="#666666" points="113,-51 0,-51 0,-21 113,-21 113,-51"/>
 <text text-anchor="start" x="8" y="-39" font-family="Helvetica,sans-Serif" font-size="10.00">ColorChoiceButton::</text>
 <text text-anchor="middle" x="56.5" y="-28" font-family="Helvetica,sans-Serif" font-size="10.00">ColorChoiceButton</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_color_choice_button.html#a9b7e1ed1fe63b1bee32c4cabc2391937" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_color_choice_button.html#a9b7e1ed1fe63b1bee32c4cabc2391937" target="_top" xlink:title="Removes the colour; does nothing when no colour is set.">
 <polygon fill="white" stroke="#666666" points="262,-73 149,-73 149,-43 262,-43 262,-73"/>
 <text text-anchor="start" x="157" y="-61" font-family="Helvetica,sans-Serif" font-size="10.00">ColorChoiceButton::</text>
 <text text-anchor="middle" x="205.5" y="-50" font-family="Helvetica,sans-Serif" font-size="10.00">resetColor</text>
@@ -40,7 +40,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d" target="_top" xlink:title="Shows the stored text without changing it; never emits colorChanged.">
 <polygon fill="white" stroke="#666666" points="411,-30 298,-30 298,0 411,0 411,-30"/>
 <text text-anchor="start" x="306" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">ColorChoiceButton::</text>
 <text text-anchor="middle" x="354.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">setColor</text>

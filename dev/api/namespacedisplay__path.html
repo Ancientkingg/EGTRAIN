@@ -116,9 +116,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespacedispl
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a2ff02b6c3e6b5a032f944fdb7b91c131" id="r_a2ff02b6c3e6b5a032f944fdb7b91c131"><td class="memItemLeft">QChar &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a2ff02b6c3e6b5a032f944fdb7b91c131">separator</a> ()</td></tr>
+<tr class="memdesc:a2ff02b6c3e6b5a032f944fdb7b91c131"><td class="mdescLeft">&#160;</td><td class="mdescRight">The separator that format writes. Only a test sets another one, to check the Windows form on any system.  <br /></td></tr>
 <tr class="memitem:aba9b38249ecd028f1f15735be87377a6" id="r_aba9b38249ecd028f1f15735be87377a6"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aba9b38249ecd028f1f15735be87377a6">format</a> (QString path)</td></tr>
+<tr class="memdesc:aba9b38249ecd028f1f15735be87377a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">path with every slash replaced by <a class="el" href="#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst...">separator()</a>.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A path as the person types and reads it on this system, with backslashes on Windows. It does what QDir::toNativeSeparators does. Show every path in a tooltip or a text with it and keep the stored path unchanged. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aba9b38249ecd028f1f15735be87377a6" name="aba9b38249ecd028f1f15735be87377a6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aba9b38249ecd028f1f15735be87377a6">&#9670;&#160;</a></span>format()</h2>
 
@@ -141,6 +145,8 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>path with every slash replaced by <a class="el" href="#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst...">separator()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -171,6 +177,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The separator that format writes. Only a test sets another one, to check the Windows form on any system. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

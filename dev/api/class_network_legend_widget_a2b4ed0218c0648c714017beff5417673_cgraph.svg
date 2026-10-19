@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Replaces the rows with the ones that content calls for.">
 <polygon fill="#999999" stroke="#666666" points="128,-1019.5 0,-1019.5 0,-989.5 128,-989.5 128,-1019.5"/>
 <text text-anchor="start" x="8" y="-1007.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkLegendWidget</text>
 <text text-anchor="middle" x="64" y="-996.5" font-family="Helvetica,sans-Serif" font-size="10.00">::setCaseContent</text>

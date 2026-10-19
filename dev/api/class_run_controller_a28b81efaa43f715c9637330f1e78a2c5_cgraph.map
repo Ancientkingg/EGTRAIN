@@ -11,7 +11,7 @@
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="577,31,568,21,573,11,591,5,621,3,659,7,670,12,673,18,669,20,666,16,658,12,621,8,592,10,576,15,573,20,581,27"/>
 <area shape="rect" id="Node000005" href="$_delay_analysis_8cpp.html#a36d28ae11255f792bc410c0819aed184" title=" " alt="" coords="553,103,689,128"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="368,256,425,201,463,171,504,145,541,130,543,135,507,150,466,175,429,205,372,260"/>
-<area shape="rect" id="Node000006" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="784,155,1044,180"/>
+<area shape="rect" id="Node000006" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="784,155,1044,180"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="377,256,433,220,468,202,505,189,571,173,640,164,770,157,771,163,640,169,572,178,506,194,470,207,436,224,379,260"/>
 <area shape="rect" id="Node000008" href="$_delay_analysis_8cpp.html#acb545fe8bb0a8c7be03694784d1d9009" title=" " alt="" coords="529,228,713,253"/>
 <area shape="poly" id="edge10_Node000004_Node000008" title=" " alt="" coords="437,263,515,253,516,258,438,269"/>
@@ -24,7 +24,7 @@
 <area shape="rect" id="Node000016" href="$class_train_filter_button.html#a63cb6ba918cf5701ce73849f4a366252" title=" " alt="" coords="552,475,689,515"/>
 <area shape="poly" id="edge26_Node000004_Node000016" title=" " alt="" coords="439,295,459,309,474,328,481,347,484,384,487,420,494,437,507,455,522,467,540,476,538,481,520,471,503,459,489,440,482,421,479,384,476,348,469,331,455,313,436,299"/>
 <area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="577,104,568,94,573,84,591,78,621,76,659,80,670,85,673,91,669,94,666,89,658,85,621,81,592,83,576,88,573,94,581,101"/>
-<area shape="rect" id="Node000007" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="1113,192,1258,217"/>
+<area shape="rect" id="Node000007" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="1113,192,1258,217"/>
 <area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="1007,177,1100,190,1099,196,1006,183"/>
 <area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="1142,194,1132,184,1137,174,1155,167,1185,165,1224,169,1234,174,1238,180,1234,183,1231,178,1222,175,1185,171,1156,173,1141,178,1138,183,1146,190"/>
 <area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="577,230,568,220,573,210,591,203,621,201,659,205,670,210,673,216,669,219,666,214,658,211,621,207,592,209,576,214,573,219,581,226"/>
@@ -33,13 +33,13 @@
 <area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="871,230,861,220,866,210,884,203,914,201,953,205,963,210,967,216,962,219,960,214,951,211,914,207,885,209,869,214,866,219,874,226"/>
 <area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="577,303,568,293,573,283,591,277,621,275,659,279,670,284,673,290,669,292,666,288,658,284,621,280,592,282,576,287,573,292,581,299"/>
 <area shape="poly" id="edge24_Node000011_Node000011" title=" " alt="" coords="577,376,568,366,573,356,591,350,621,348,659,352,670,357,673,363,669,366,666,361,658,357,621,353,592,355,576,360,573,366,581,373"/>
-<area shape="rect" id="Node000012" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title=" " alt="" coords="833,301,995,327"/>
+<area shape="rect" id="Node000012" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="833,301,995,327"/>
 <area shape="poly" id="edge17_Node000011_Node000012" title=" " alt="" coords="660,372,783,337,828,327,829,332,785,342,662,377"/>
 <area shape="rect" id="Node000014" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="837,375,991,415"/>
 <area shape="poly" id="edge22_Node000011_Node000014" title=" " alt="" coords="699,387,823,390,823,396,699,392"/>
 <area shape="poly" id="edge18_Node000012_Node000007" title=" " alt="" coords="949,299,1043,262,1142,220,1144,225,1045,267,951,304"/>
 <area shape="poly" id="edge19_Node000012_Node000012" title=" " alt="" coords="871,303,861,293,866,283,884,277,914,275,953,279,963,284,967,290,962,292,960,288,951,284,914,280,885,282,869,287,866,292,874,299"/>
-<area shape="rect" id="Node000013" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title=" " alt="" coords="1092,301,1279,327"/>
+<area shape="rect" id="Node000013" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="1092,301,1279,327"/>
 <area shape="poly" id="edge20_Node000012_Node000013" title=" " alt="" coords="996,311,1079,311,1079,317,996,317"/>
 <area shape="poly" id="edge21_Node000013_Node000013" title=" " alt="" coords="1142,303,1132,293,1137,283,1155,277,1185,275,1224,279,1234,284,1238,290,1234,292,1231,288,1222,284,1185,280,1156,282,1141,287,1138,292,1146,299"/>
 <area shape="poly" id="edge23_Node000014_Node000014" title=" " alt="" coords="864,376,861,366,869,356,887,351,914,349,945,351,962,359,960,364,944,357,914,354,888,356,872,361,866,367,869,374"/>

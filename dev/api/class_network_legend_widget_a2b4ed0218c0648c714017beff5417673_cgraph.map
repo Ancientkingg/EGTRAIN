@@ -1,5 +1,5 @@
 <map id="NetworkLegendWidget::setCaseContent" name="NetworkLegendWidget::setCaseContent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,1153,176,1193"/>
+<area shape="rect" id="Node000001" title="Replaces the rows with the ones that content calls for." alt="" coords="5,1153,176,1193"/>
 <area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a9029f888d43bb9214a40cebfe2302111" title=" " alt="" coords="226,1087,371,1113"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,1151,223,1121,243,1115,245,1120,225,1127,145,1156"/>
 <area shape="rect" id="Node000003" href="$_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82" title="The one colour of the selection cue. No built&#45;in track, signal or default train colour uses it; a ser..." alt="" coords="224,1161,373,1186"/>

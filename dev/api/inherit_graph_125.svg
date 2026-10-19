@@ -38,7 +38,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_legend_widget.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_legend_widget.html" target="_top" xlink:title="The map key of the canvas: a &quot;Map key&quot; button that folds a list of rows, each a swatch and a label.">
 <polygon fill="white" stroke="#666666" points="223,-222 95,-222 95,-203 223,-203 223,-222"/>
 <text text-anchor="middle" x="159" y="-210" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkLegendWidget</text>
 </a>

@@ -6,7 +6,7 @@
 <area shape="poly" id="edge51_Node000001_Node000004" title=" " alt="" coords="86,358,94,302,115,227,131,187,152,149,179,116,212,88,247,68,279,55,310,48,340,46,371,50,403,59,475,88,517,115,553,150,583,188,604,221,600,224,578,191,549,154,514,119,472,93,401,64,370,56,340,52,311,53,281,60,249,73,215,93,183,120,157,152,136,189,120,228,99,303,91,359"/>
 <area shape="rect" id="Node000006" href="$class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81" title="Shows the fields of the selected delay again." alt="" coords="785,207,937,247"/>
 <area shape="poly" id="edge53_Node000001_Node000006" title=" " alt="" coords="85,358,91,295,109,209,125,164,147,121,176,82,212,50,251,28,292,13,335,5,379,3,423,6,468,14,555,41,638,78,713,120,777,161,824,196,821,200,774,165,711,125,636,83,553,46,466,19,422,12,379,8,336,10,294,18,253,32,215,54,180,85,152,123,130,166,114,211,96,296,90,359"/>
-<area shape="rect" id="Node000014" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="213,615,473,641"/>
+<area shape="rect" id="Node000014" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="213,615,473,641"/>
 <area shape="poly" id="edge21_Node000001_Node000014" title=" " alt="" coords="94,398,109,441,133,497,168,553,190,579,215,600,225,607,223,612,212,605,186,583,163,557,128,499,104,443,89,400"/>
 <area shape="rect" id="Node000016" href="$class_entrance_delay_panel.html#a08697c3bb62f317c1a172a1ab12ea242" title="Takes the occurrence from its field." alt="" coords="267,359,420,399"/>
 <area shape="poly" id="edge24_Node000001_Node000016" title=" " alt="" coords="165,376,253,376,253,381,165,381"/>
@@ -16,7 +16,7 @@
 <area shape="poly" id="edge32_Node000001_Node000019" title=" " alt="" coords="109,397,156,435,215,472,255,487,253,492,212,477,152,440,106,401"/>
 <area shape="rect" id="Node000020" href="$class_entrance_delay_panel.html#a380e44076e412c89da9227f5f659bb98" title="Takes the station at index of the station combo." alt="" coords="267,295,419,335"/>
 <area shape="poly" id="edge36_Node000001_Node000020" title=" " alt="" coords="165,356,213,344,254,334,255,339,214,349,166,361"/>
-<area shape="rect" id="Node000021" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title=" " alt="" coords="250,551,437,591"/>
+<area shape="rect" id="Node000021" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="250,551,437,591"/>
 <area shape="poly" id="edge40_Node000001_Node000021" title=" " alt="" coords="99,397,143,466,176,504,215,536,239,549,236,553,212,541,172,508,139,470,95,400"/>
 <area shape="rect" id="Node000022" href="$class_entrance_delay_panel.html#aaa5c655c6b6cdd6194780b1000538022" title="Deletes the selected delay after the user has confirmed it." alt="" coords="260,167,427,207"/>
 <area shape="poly" id="edge42_Node000001_Node000022" title=" " alt="" coords="95,357,139,288,172,249,212,216,246,200,248,205,215,221,176,253,143,291,99,360"/>
@@ -54,7 +54,7 @@
 <area shape="rect" id="Node000013" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="1833,341,1987,381"/>
 <area shape="poly" id="edge18_Node000012_Node000013" title=" " alt="" coords="1786,359,1820,359,1820,364,1786,364"/>
 <area shape="poly" id="edge19_Node000013_Node000013" title=" " alt="" coords="1870,342,1868,332,1874,322,1888,317,1910,315,1935,317,1949,325,1946,329,1933,323,1910,320,1890,322,1877,327,1873,333,1875,340"/>
-<area shape="rect" id="Node000015" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="547,586,693,611"/>
+<area shape="rect" id="Node000015" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="547,586,693,611"/>
 <area shape="poly" id="edge22_Node000014_Node000015" title=" " alt="" coords="463,613,533,605,534,610,464,618"/>
 <area shape="poly" id="edge23_Node000015_Node000015" title=" " alt="" coords="581,588,573,578,577,568,593,561,620,559,654,563,667,573,663,577,652,568,620,565,594,567,581,571,578,577,585,584"/>
 <area shape="poly" id="edge25_Node000016_Node000003" title=" " alt="" coords="420,358,551,328,552,333,421,364"/>

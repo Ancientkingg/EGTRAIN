@@ -40,7 +40,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" target="_top" xlink:title="A spin box whose wheel is guarded by FocusWheel.">
 <polygon fill="white" stroke="#666666" points="301,-187 161,-187 161,-157 301,-157 301,-187"/>
 <text text-anchor="start" x="169" y="-175" font-family="Helvetica,sans-Serif" font-size="10.00">CompactDoubleSpinBox</text>
 <text text-anchor="middle" x="231" y="-164" font-family="Helvetica,sans-Serif" font-size="10.00">::CompactDoubleSpinBox</text>
@@ -152,7 +152,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title="Guards box: gives it strong focus and installs a Filter, once.">
 <polygon fill="white" stroke="#666666" points="477.5,-177.5 368.5,-177.5 368.5,-158.5 477.5,-158.5 477.5,-177.5"/>
 <text text-anchor="middle" x="423" y="-165.5" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guard</text>
 </a>

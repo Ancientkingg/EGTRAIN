@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000000" href="$class_network_presenter_1_1_frame_host.html" title=" " alt="" coords="5,5,224,31"/>
 <area shape="rect" id="Node000001" href="$class_main_window.html" title=" " alt="" coords="272,153,379,179"/>
 <area shape="poly" id="edge3_Node000000_Node000001" title=" " alt="" coords="214,34,225,40,258,66,285,97,320,152,315,155,281,100,254,70,223,44,212,38"/>
-<area shape="rect" id="Node000002" href="$class_inspector_panel_1_1_host.html" title=" " alt="" coords="37,55,192,80"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel_1_1_host.html" title="What the panel asks of the window." alt="" coords="37,55,192,80"/>
 <area shape="poly" id="edge4_Node000002_Node000001" title=" " alt="" coords="206,82,225,89,275,119,312,151,309,155,272,124,223,94,205,87"/>
 <area shape="rect" id="Node000003" href="$class_result_views_1_1_host.html" title="What the views ask of the window." alt="" coords="45,104,185,129"/>
 <area shape="poly" id="edge5_Node000003_Node000001" title=" " alt="" coords="189,130,225,138,275,151,274,156,223,143,188,135"/>

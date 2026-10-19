@@ -24,7 +24,7 @@
 <area shape="poly" id="edge50_Node000001_Node000024" title=" " alt="" coords="109,482,124,433,152,362,172,323,195,285,223,249,256,219,262,214,266,218,259,223,227,253,200,288,176,325,157,364,129,434,114,483"/>
 <area shape="rect" id="Node000025" href="$class_incident_panel.html#a43b973587863c82bd9e5a72feafa1320" title=" " alt="" coords="275,55,472,80"/>
 <area shape="poly" id="edge53_Node000001_Node000025" title=" " alt="" coords="107,482,113,413,122,363,135,307,154,248,179,191,213,137,256,91,263,85,266,89,259,95,217,140,184,193,159,250,140,308,127,364,119,414,112,483"/>
-<area shape="rect" id="Node000026" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title=" " alt="" coords="280,855,467,895"/>
+<area shape="rect" id="Node000026" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="280,855,467,895"/>
 <area shape="poly" id="edge57_Node000001_Node000026" title=" " alt="" coords="113,508,125,567,150,654,169,703,194,751,223,795,259,835,275,846,272,851,256,839,219,799,189,753,165,705,145,656,119,568,108,509"/>
 <area shape="rect" id="Node000028" href="$class_incident_panel.html#a1917aff18f1a9554c46c66e2315b2d82" title="Deletes the selected incident after the user has confirmed it." alt="" coords="268,604,479,629"/>
 <area shape="poly" id="edge60_Node000001_Node000028" title=" " alt="" coords="126,506,182,547,219,570,258,589,284,598,282,603,256,594,217,574,179,551,123,510"/>
@@ -92,7 +92,7 @@
 <area shape="poly" id="edge54_Node000025_Node000003" title=" " alt="" coords="473,78,491,91,509,113,517,137,519,160,518,183,518,229,524,252,539,275,559,292,582,304,579,309,556,296,535,278,520,254,513,229,513,182,514,160,512,138,504,116,487,95,470,82"/>
 <area shape="poly" id="edge56_Node000025_Node000005" title=" " alt="" coords="473,70,541,80,617,97,694,126,730,144,763,167,790,190,815,218,855,278,884,337,903,383,898,385,879,339,850,281,810,221,786,194,760,171,727,149,691,130,616,102,540,85,472,75"/>
 <area shape="poly" id="edge55_Node000025_Node000017" title=" " alt="" coords="460,78,491,90,536,121,576,158,633,227,629,230,572,162,532,125,488,95,458,82"/>
-<area shape="rect" id="Node000027" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="577,880,722,905"/>
+<area shape="rect" id="Node000027" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="577,880,722,905"/>
 <area shape="poly" id="edge58_Node000026_Node000027" title=" " alt="" coords="467,879,563,885,563,890,467,884"/>
 <area shape="poly" id="edge59_Node000027_Node000027" title=" " alt="" coords="608,882,598,872,603,862,620,855,649,853,686,857,696,862,700,868,696,871,693,866,684,862,649,859,622,861,607,866,604,871,611,878"/>
 <area shape="poly" id="edge61_Node000028_Node000003" title=" " alt="" coords="465,602,487,589,631,348,636,350,491,593,467,606"/>

@@ -1,6 +1,6 @@
 <map id="InspectorPanel::displayTrainInfo" name="InspectorPanel::displayTrainInfo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,119,233,144"/>
-<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a7a5fe31a4b6297e89acad9fe507f0e30" title=" " alt="" coords="281,111,484,151"/>
+<area shape="rect" id="Node000001" title="Shows the train and follows it." alt="" coords="5,119,233,144"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a7a5fe31a4b6297e89acad9fe507f0e30" title="Shows the train and, when changeFollowMode is set, follows it." alt="" coords="281,111,484,151"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,129,267,129,267,134,233,134"/>
 <area shape="rect" id="Node000003" href="$_gui_simulation_snapshot_8h.html#a9d3587a1b79afd5c277b880adabbf418" title=" " alt="" coords="569,29,701,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,109,531,65,562,56,563,61,533,70,426,114"/>
@@ -8,7 +8,7 @@
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="484,116,518,111,519,117,485,121"/>
 <area shape="rect" id="Node000005" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="542,143,727,183"/>
 <area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="485,142,529,147,528,153,484,147"/>
-<area shape="rect" id="Node000006" href="$class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" title=" " alt="" coords="565,207,704,247"/>
+<area shape="rect" id="Node000006" href="$class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="565,207,704,247"/>
 <area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="429,149,533,193,554,200,553,205,531,198,427,154"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="594,31,585,21,590,11,607,5,635,3,670,7,680,11,684,17,679,20,677,15,669,12,635,8,608,10,593,15,591,20,598,27"/>
 </map>

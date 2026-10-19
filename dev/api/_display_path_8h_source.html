@@ -117,31 +117,28 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_display_path_
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;QChar&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QDir&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="comment">// A path as the person types and reads it on this system, with backslashes on Windows. It does what</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">// QDir::toNativeSeparators does. Show every path in a tooltip or a text with it and keep the stored path unchanged.</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span></div>
 <div class="foldopen" id="foldopen00009" data-start="{" data-end="}">
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="namespacedisplay__path.html">    9</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacedisplay__path.html">display_path</a> {</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="comment">// The separator that format writes. Only a test sets another one, to check the Windows form on any system.</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span></div>
 <div class="foldopen" id="foldopen00012" data-start="{" data-end="}">
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131">   12</a></span><span class="keyword">inline</span> QChar&amp; <a class="code hl_function" href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131">separator</a>() {</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <span class="keyword">static</span> QChar value = QDir::separator();</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <span class="keywordflow">return</span> value;</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>}</div>
 </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6">   17</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6">format</a>(QString path) {</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <span class="keywordflow">return</span> path.replace(QLatin1Char(<span class="charliteral">&#39;/&#39;</span>), <a class="code hl_function" href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131">separator</a>());</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>}</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span></div>
+<div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6">   18</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6">format</a>(QString path) {</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">return</span> path.replace(QLatin1Char(<span class="charliteral">&#39;/&#39;</span>), <a class="code hl_function" href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131">separator</a>());</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>}</div>
 </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>} <span class="comment">// namespace display_path</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>} <span class="comment">// namespace display_path</span></div>
 </div>
 <div class="ttc" id="anamespacedisplay__path_html"><div class="ttname"><a href="namespacedisplay__path.html">display_path</a></div><div class="ttdef"><b>Definition</b> DisplayPath.h:9</div></div>
-<div class="ttc" id="anamespacedisplay__path_html_a2ff02b6c3e6b5a032f944fdb7b91c131"><div class="ttname"><a href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131">display_path::separator</a></div><div class="ttdeci">QChar &amp; separator()</div><div class="ttdef"><b>Definition</b> DisplayPath.h:12</div></div>
-<div class="ttc" id="anamespacedisplay__path_html_aba9b38249ecd028f1f15735be87377a6"><div class="ttname"><a href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6">display_path::format</a></div><div class="ttdeci">QString format(QString path)</div><div class="ttdef"><b>Definition</b> DisplayPath.h:17</div></div>
+<div class="ttc" id="anamespacedisplay__path_html_a2ff02b6c3e6b5a032f944fdb7b91c131"><div class="ttname"><a href="namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131">display_path::separator</a></div><div class="ttdeci">QChar &amp; separator()</div><div class="ttdoc">The separator that format writes. Only a test sets another one, to check the Windows form on any syst...</div><div class="ttdef"><b>Definition</b> DisplayPath.h:12</div></div>
+<div class="ttc" id="anamespacedisplay__path_html_aba9b38249ecd028f1f15735be87377a6"><div class="ttname"><a href="namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6">display_path::format</a></div><div class="ttdeci">QString format(QString path)</div><div class="ttdoc">path with every slash replaced by separator().</div><div class="ttdef"><b>Definition</b> DisplayPath.h:18</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

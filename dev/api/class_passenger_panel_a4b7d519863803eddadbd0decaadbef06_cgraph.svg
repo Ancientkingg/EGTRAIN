@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" target="_top" xlink:title="A combo box that expands across its row and fits its size hint to its entries.">
 <polygon fill="white" stroke="#666666" points="379,-209 184,-209 184,-190 379,-190 379,-209"/>
 <text text-anchor="middle" x="281.5" y="-197" font-family="Helvetica,sans-Serif" font-size="10.00">ChoiceComboBox::ChoiceComboBox</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" target="_top" xlink:title="A spin box whose wheel is guarded by FocusWheel.">
 <polygon fill="white" stroke="#666666" points="351.5,-171.5 211.5,-171.5 211.5,-141.5 351.5,-141.5 351.5,-171.5"/>
 <text text-anchor="start" x="219.5" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompactDoubleSpinBox</text>
 <text text-anchor="middle" x="281.5" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00">::CompactDoubleSpinBox</text>
@@ -113,7 +113,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title="Guards box: gives it strong focus and installs a Filter, once.">
 <polygon fill="white" stroke="#666666" points="547,-201 438,-201 438,-182 547,-182 547,-201"/>
 <text text-anchor="middle" x="492.5" y="-189" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guard</text>
 </a>

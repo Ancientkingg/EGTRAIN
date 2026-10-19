@@ -128,14 +128,20 @@ Collaboration diagram for ElidedLabel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acbacffeeff11ee0f3c9900c1511ee3f9" id="r_acbacffeeff11ee0f3c9900c1511ee3f9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#acbacffeeff11ee0f3c9900c1511ee3f9">ElidedLabel</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:acbacffeeff11ee0f3c9900c1511ee3f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A label for plain text.  <br /></td></tr>
 <tr class="memitem:aff9efc20019dd99f50d94704e7ea97bb" id="r_aff9efc20019dd99f50d94704e7ea97bb"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aff9efc20019dd99f50d94704e7ea97bb">displayText</a> () const</td></tr>
+<tr class="memdesc:aff9efc20019dd99f50d94704e7ea97bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The text as the label draws it.  <br /></td></tr>
 <tr class="memitem:a5107e80ee2ea2bd15fec229a4e21e74d" id="r_a5107e80ee2ea2bd15fec229a4e21e74d"><td class="memItemLeft">QSize&#160;</td><td class="memItemRight"><a class="el" href="#a5107e80ee2ea2bd15fec229a4e21e74d">minimumSizeHint</a> () const override</td></tr>
+<tr class="memdesc:a5107e80ee2ea2bd15fec229a4e21e74d"><td class="mdescLeft">&#160;</td><td class="mdescRight">No minimum width; the height of a QLabel.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a499d8a696635da809447ee3c376b117d" id="r_a499d8a696635da809447ee3c376b117d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a499d8a696635da809447ee3c376b117d">paintEvent</a> (QPaintEvent *) override</td></tr>
+<tr class="memdesc:a499d8a696635da809447ee3c376b117d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws <a class="el" href="#aff9efc20019dd99f50d94704e7ea97bb" title="The text as the label draws it.">displayText()</a> with the alignment and palette of the label.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Label for one sentence in a status bar. It can shrink below its text, so that a long sentence never widens the window, while its size hint still shows the whole text. A text wider than the label is drawn with its end elided; text() stays the whole sentence. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="acbacffeeff11ee0f3c9900c1511ee3f9" name="acbacffeeff11ee0f3c9900c1511ee3f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acbacffeeff11ee0f3c9900c1511ee3f9">&#9670;&#160;</a></span>ElidedLabel()</h2>
 
@@ -158,6 +164,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A label for plain text. </p>
 
 </div>
 </div>
@@ -185,6 +193,8 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The text as the label draws it. </p>
+
 </div>
 </div>
 <a id="a5107e80ee2ea2bd15fec229a4e21e74d" name="a5107e80ee2ea2bd15fec229a4e21e74d"></a>
@@ -210,6 +220,8 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>No minimum width; the height of a QLabel. </p>
+
 </div>
 </div>
 <a id="a499d8a696635da809447ee3c376b117d" name="a499d8a696635da809447ee3c376b117d"></a>
@@ -234,6 +246,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Draws <a class="el" href="#aff9efc20019dd99f50d94704e7ea97bb" title="The text as the label draws it.">displayText()</a> with the alignment and palette of the label. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

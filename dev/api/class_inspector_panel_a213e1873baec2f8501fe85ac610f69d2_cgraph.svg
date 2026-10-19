@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" target="_top" xlink:title="The dock is about to close.">
 <polygon fill="white" stroke="#666666" points="318,-171 186,-171 186,-152 318,-152 318,-171"/>
 <text text-anchor="middle" x="252" y="-159" font-family="Helvetica,sans-Serif" font-size="10.00">InfoDockWidget::closed</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816" target="_top" xlink:title="A dock with this window title.">
 <polygon fill="white" stroke="#666666" points="324,-85.5 180,-85.5 180,-55.5 324,-55.5 324,-85.5"/>
 <text text-anchor="start" x="188" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">InfoDockWidget::InfoDock</text>
 <text text-anchor="middle" x="252" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">Widget</text>

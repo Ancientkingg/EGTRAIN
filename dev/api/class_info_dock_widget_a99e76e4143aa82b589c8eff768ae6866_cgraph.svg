@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Emits closed() and then closes the dock.">
 <polygon fill="#999999" stroke="#666666" points="154,-19 0,-19 0,0 154,0 154,-19"/>
 <text text-anchor="middle" x="77" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">InfoDockWidget::closeEvent</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" target="_top" xlink:title="The dock is about to close.">
 <polygon fill="white" stroke="#666666" points="322,-19 190,-19 190,0 322,0 322,-19"/>
 <text text-anchor="middle" x="256" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">InfoDockWidget::closed</text>
 </a>

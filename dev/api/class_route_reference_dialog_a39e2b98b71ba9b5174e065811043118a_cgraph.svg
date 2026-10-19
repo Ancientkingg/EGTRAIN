@@ -131,7 +131,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" target="_top" xlink:title="Guards every combo box, spin box and slider inside root.">
 <polygon fill="white" stroke="#666666" points="467,-74 345,-74 345,-55 467,-55 467,-74"/>
 <text text-anchor="middle" x="406" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guardAll</text>
 </a>
@@ -158,7 +158,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" target="_top" xlink:title="Guards box: gives it strong focus and installs a Filter, once.">
 <polygon fill="white" stroke="#666666" points="632.5,-101 523.5,-101 523.5,-82 632.5,-82 632.5,-101"/>
 <text text-anchor="middle" x="578" y="-89" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::guard</text>
 </a>
@@ -176,7 +176,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" target="_top" xlink:title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ...">
 <polygon fill="white" stroke="#666666" points="648,-46 508,-46 508,-27 648,-27 648,-46"/>
 <text text-anchor="middle" x="578" y="-34" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::isValueField</text>
 </a>

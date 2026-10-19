@@ -112,6 +112,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespace_edit
   <div class="headertitle"><div class="title">EditorLayout Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Labels and scroll areas for the panels of the editor docks.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -125,7 +128,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a8aeab0ef1896c245802221520b549af0" id="r_a8aeab0ef1896c245802221520b549af0"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a8aeab0ef1896c245802221520b549af0">sectionHeading</a> (const QString &amp;title, QWidget *parent)</td></tr>
 <tr class="memitem:a10e8ca3d606ad57832120603f5cd67ac" id="r_a10e8ca3d606ad57832120603f5cd67ac"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a10e8ca3d606ad57832120603f5cd67ac">breakableName</a> (QString name)</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Labels and scroll areas for the panels of the editor docks. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a10e8ca3d606ad57832120603f5cd67ac" name="a10e8ca3d606ad57832120603f5cd67ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a10e8ca3d606ad57832120603f5cd67ac">&#9670;&#160;</a></span>breakableName()</h2>
 
@@ -148,6 +153,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The name with a zero-width space after each underscore. A wrapped label breaks a line at a space only, so a name such as Amsterdam_Hilversum_Student would be clipped at the edge of its panel. With the added characters it wraps between its parts. The characters are not drawn. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -178,6 +184,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Label for the message of an editor panel that has nothing to show yet, for example when no entity is selected. The label is hidden and has the help role. Show a message with DialogLayout::setHelp(label, text), also after the panel is shown, and hide it again with an empty text. The caller adds it to a layout. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -212,6 +219,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Heading for a group of fields: bold and two points larger than the font of the parent when the heading is made, or three pixels larger when that font is given in pixels. The text is plain and wraps as in wrappedLabel. The caller adds it to a layout and sets any object name. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -246,6 +254,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Label for data and sentences in an editor panel, such as a path, an id or an explanation. The text is plain and wraps at spaces. Layouts ignore the width hints of the label, so a word wider than the width its layout gives it is clipped at the right edge instead of widening the panel. The label has no role and stays visible when its text is empty. The caller adds it to a layout. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

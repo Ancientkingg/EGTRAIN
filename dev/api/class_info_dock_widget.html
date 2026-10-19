@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_info_doc
 </div><!--header-->
 <div class="contents">
 
+<p>The dock of the inspector, which tells when the user closes it.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_info_dock_widget_8h_source.html">widgets/InfoDockWidget.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for InfoDockWidget:</div>
@@ -128,14 +131,19 @@ Collaboration diagram for InfoDockWidget:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:aef6ebf64e4e2d72b80e4c8250c69e7f4" id="r_aef6ebf64e4e2d72b80e4c8250c69e7f4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aef6ebf64e4e2d72b80e4c8250c69e7f4">closed</a> ()</td></tr>
+<tr class="memdesc:aef6ebf64e4e2d72b80e4c8250c69e7f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The dock is about to close.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac27adee9004df5d97b994806f3f2f816" id="r_ac27adee9004df5d97b994806f3f2f816"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget</a> (const QString &amp;title, QWidget *parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags())</td></tr>
+<tr class="memdesc:ac27adee9004df5d97b994806f3f2f816"><td class="mdescLeft">&#160;</td><td class="mdescRight">A dock with this window title.  <br /></td></tr>
 <tr class="memitem:ab032dafce234d7b94ec180663dfe24df" id="r_ab032dafce234d7b94ec180663dfe24df"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ab032dafce234d7b94ec180663dfe24df">~InfoDockWidget</a> () override</td></tr>
 <tr class="memitem:a99e76e4143aa82b589c8eff768ae6866" id="r_a99e76e4143aa82b589c8eff768ae6866"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a99e76e4143aa82b589c8eff768ae6866">closeEvent</a> (QCloseEvent *event) override</td></tr>
+<tr class="memdesc:a99e76e4143aa82b589c8eff768ae6866"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emits <a class="el" href="#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close.">closed()</a> and then closes the dock.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The dock of the inspector, which tells when the user closes it. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac27adee9004df5d97b994806f3f2f816" name="ac27adee9004df5d97b994806f3f2f816"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac27adee9004df5d97b994806f3f2f816">&#9670;&#160;</a></span>InfoDockWidget()</h2>
 
@@ -159,6 +167,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A dock with this window title. </p>
 
 </div>
 </div>
@@ -211,6 +221,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The dock is about to close. </p>
+
 </div>
 </div>
 <a id="a99e76e4143aa82b589c8eff768ae6866" name="a99e76e4143aa82b589c8eff768ae6866"></a>
@@ -235,6 +247,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Emits <a class="el" href="#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close.">closed()</a> and then closes the dock. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The map key of the canvas: a &quot;Map key&quot; button that folds a list of rows, each a swatch and a label.">
 <polygon fill="#999999" stroke="#666666" points="128,-19 0,-19 0,0 128,0 128,-19"/>
 <text text-anchor="middle" x="64" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkLegendWidget</text>
 </a>

@@ -6,7 +6,7 @@
 <area shape="poly" id="edge13_Node000001_Node000005" title=" " alt="" coords="232,251,523,251,523,257,232,257"/>
 <area shape="rect" id="Node000006" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="826,267,933,292"/>
 <area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="233,259,537,275,812,277,812,283,537,281,232,265"/>
-<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title=" " alt="" coords="562,29,719,55"/>
+<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="562,29,719,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="402,174,458,120,495,90,536,65,556,57,558,61,539,70,499,94,462,124,406,178"/>
 <area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="475,214,571,236,570,241,474,219"/>
 <area shape="rect" id="Node000007" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="539,103,742,143"/>
@@ -14,7 +14,7 @@
 <area shape="rect" id="Node000008" href="$_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2" title=" " alt="" coords="567,192,715,217"/>
 <area shape="poly" id="edge11_Node000002_Node000008" title=" " alt="" coords="489,197,553,199,553,205,489,203"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="602,31,594,21,598,11,614,5,641,3,674,7,687,16,683,20,672,11,641,8,615,10,602,15,599,20,606,27"/>
-<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title=" " alt="" coords="792,29,967,55"/>
+<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="792,29,967,55"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="720,39,778,39,778,45,720,45"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="841,31,832,21,837,11,853,5,879,3,913,7,925,16,922,20,911,11,879,8,854,10,840,15,838,20,845,27"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="744,262,813,270,812,275,744,268"/>

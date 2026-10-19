@@ -38,7 +38,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_info_dock_widget.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_info_dock_widget.html" target="_top" xlink:title="The dock of the inspector, which tells when the user closes it.">
 <polygon fill="white" stroke="#666666" points="214,-19 119,-19 119,0 214,0 214,-19"/>
 <text text-anchor="middle" x="166.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">InfoDockWidget</text>
 </a>

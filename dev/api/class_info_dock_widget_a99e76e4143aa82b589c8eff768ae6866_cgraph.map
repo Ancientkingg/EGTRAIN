@@ -1,5 +1,5 @@
 <map id="InfoDockWidget::closeEvent" name="InfoDockWidget::closeEvent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,211,31"/>
-<area shape="rect" id="Node000002" href="$class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" title=" " alt="" coords="259,5,435,31"/>
+<area shape="rect" id="Node000001" title="Emits closed() and then closes the dock." alt="" coords="5,5,211,31"/>
+<area shape="rect" id="Node000002" href="$class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close." alt="" coords="259,5,435,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,15,245,15,245,21,211,21"/>
 </map>

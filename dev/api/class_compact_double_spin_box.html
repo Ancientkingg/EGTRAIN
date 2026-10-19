@@ -128,16 +128,22 @@ Collaboration diagram for CompactDoubleSpinBox:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a649387d186d6bddf6fb9c519bc1e0dfe" id="r_a649387d186d6bddf6fb9c519bc1e0dfe"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a649387d186d6bddf6fb9c519bc1e0dfe">CompactDoubleSpinBox</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a649387d186d6bddf6fb9c519bc1e0dfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">A spin box whose wheel is guarded by <a class="el" href="namespace_focus_wheel.html">FocusWheel</a>.  <br /></td></tr>
 <tr class="memitem:a1c8813bf88e11a6be72528529cb3d672" id="r_a1c8813bf88e11a6be72528529cb3d672"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a1c8813bf88e11a6be72528529cb3d672">textFromValue</a> (double value) const override</td></tr>
+<tr class="memdesc:a1c8813bf88e11a6be72528529cb3d672"><td class="mdescLeft">&#160;</td><td class="mdescRight">The full text, with up to 17 significant digits, while the field has focus, else the compact text.  <br /></td></tr>
 <tr class="memitem:ad5aa1a83412eea311a0fb1f4d4cfbe08" id="r_ad5aa1a83412eea311a0fb1f4d4cfbe08"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad5aa1a83412eea311a0fb1f4d4cfbe08">valueFromText</a> (const QString &amp;text) const override</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a3d5bdfeb808b1f6a613234788d5f7676" id="r_a3d5bdfeb808b1f6a613234788d5f7676"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3d5bdfeb808b1f6a613234788d5f7676">event</a> (QEvent *event) override</td></tr>
 <tr class="memitem:a28aae7116f7888c2c385fde2443e0cca" id="r_a28aae7116f7888c2c385fde2443e0cca"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a28aae7116f7888c2c385fde2443e0cca">focusInEvent</a> (QFocusEvent *focusEvent) override</td></tr>
+<tr class="memdesc:a28aae7116f7888c2c385fde2443e0cca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replaces an unedited compact text with the full text.  <br /></td></tr>
 <tr class="memitem:a094db923e96cbb9b8b9d2baacca0cf26" id="r_a094db923e96cbb9b8b9d2baacca0cf26"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a094db923e96cbb9b8b9d2baacca0cf26">focusOutEvent</a> (QFocusEvent *focusEvent) override</td></tr>
+<tr class="memdesc:a094db923e96cbb9b8b9d2baacca0cf26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the compact text again.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Compact when browsing, full precision when editing. Merely visiting a field must not commit its rounded display representation to the canonical model. The wheel changes the value only while the field has keyboard focus. The compact text has six significant digits, except that a value from 1e6 up to 1e15 shows all its integer digits without exponent. While the field is not focused, the tooltip shows the value with its fewest exact digits, after the tooltip of the field, when the compact text is not it. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a649387d186d6bddf6fb9c519bc1e0dfe" name="a649387d186d6bddf6fb9c519bc1e0dfe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a649387d186d6bddf6fb9c519bc1e0dfe">&#9670;&#160;</a></span>CompactDoubleSpinBox()</h2>
 
@@ -160,6 +166,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A spin box whose wheel is guarded by <a class="el" href="namespace_focus_wheel.html">FocusWheel</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -191,6 +199,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>While the field is not focused and shows a text other than the shortest exact text of the value, shows that text after the tooltip of the field. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -222,6 +231,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Replaces an unedited compact text with the full text. </p>
+
 </div>
 </div>
 <a id="a094db923e96cbb9b8b9d2baacca0cf26" name="a094db923e96cbb9b8b9d2baacca0cf26"></a>
@@ -246,6 +257,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Shows the compact text again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -277,6 +290,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The full text, with up to 17 significant digits, while the field has focus, else the compact text. </p>
+
 </div>
 </div>
 <a id="ad5aa1a83412eea311a0fb1f4d4cfbe08" name="ad5aa1a83412eea311a0fb1f4d4cfbe08"></a>
@@ -301,6 +316,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The current value while the text is the unedited compact or full text of it, so that visiting the field does not round the value; otherwise the value that the text reads as. </p>
 
 </div>
 </div>

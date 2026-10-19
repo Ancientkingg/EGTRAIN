@@ -1,8 +1,8 @@
 <map id="ColorChoiceButton::ColorChoiceButton" name="ColorChoiceButton::ColorChoiceButton">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,65,156,105"/>
-<area shape="rect" id="Node000002" href="$class_color_choice_button.html#a9b7e1ed1fe63b1bee32c4cabc2391937" title=" " alt="" coords="204,36,355,76"/>
+<area shape="rect" id="Node000001" title="Starts at the default colour." alt="" coords="5,65,156,105"/>
+<area shape="rect" id="Node000002" href="$class_color_choice_button.html#a9b7e1ed1fe63b1bee32c4cabc2391937" title="Removes the colour; does nothing when no colour is set." alt="" coords="204,36,355,76"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,72,190,66,191,72,156,77"/>
-<area shape="rect" id="Node000004" href="$class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d" title=" " alt="" coords="403,93,553,133"/>
+<area shape="rect" id="Node000004" href="$class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d" title="Shows the stored text without changing it; never emits colorChanged." alt="" coords="403,93,553,133"/>
 <area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="156,88,389,104,389,110,156,93"/>
 <area shape="rect" id="Node000003" href="$class_color_choice_button.html#a6ed77f3215c493d7e5f0a7063e0a101f" title=" " alt="" coords="403,5,553,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="354,42,389,36,390,42,355,47"/>

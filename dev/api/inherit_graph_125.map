@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000000" title=" " alt="" coords="5,179,84,204"/>
 <area shape="rect" id="Node000001" href="$class_color_choice_button.html" title=" " alt="" coords="146,129,289,155"/>
 <area shape="poly" id="edge72_Node000000_Node000001" title=" " alt="" coords="96,174,131,163,170,152,172,157,133,169,98,179"/>
-<area shape="rect" id="Node000002" href="$class_network_legend_widget.html" title=" " alt="" coords="132,179,303,204"/>
+<area shape="rect" id="Node000002" href="$class_network_legend_widget.html" title="The map key of the canvas: a &quot;Map key&quot; button that folds a list of rows, each a swatch and a label." alt="" coords="132,179,303,204"/>
 <area shape="poly" id="edge73_Node000000_Node000002" title=" " alt="" coords="98,189,132,189,132,194,98,194"/>
 <area shape="rect" id="Node000003" href="$class_scene_editor_panel.html" title=" " alt="" coords="150,228,285,253"/>
 <area shape="poly" id="edge74_Node000000_Node000003" title=" " alt="" coords="98,204,173,225,171,230,97,209"/>

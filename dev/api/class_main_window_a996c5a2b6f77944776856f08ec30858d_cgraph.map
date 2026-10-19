@@ -43,7 +43,7 @@
 <area shape="poly" id="edge63_Node000001_Node000262" title=" " alt="" coords="109,740,117,807,139,911,157,969,182,1026,213,1080,253,1128,275,1145,301,1158,299,1163,272,1150,249,1132,209,1083,177,1028,152,970,134,912,112,808,104,740"/>
 <area shape="rect" id="Node000263" href="$_main_window_support_8h.html#af34a68855c5c3448cbe4bc9b0b35086c" title="The delay between two steps, in milliseconds: how far sliderValue is from the fast end of the speed s..." alt="" coords="308,1239,453,1264"/>
 <area shape="poly" id="edge65_Node000001_Node000263" title=" " alt="" coords="108,740,112,818,119,876,131,941,149,1010,174,1079,208,1144,253,1201,274,1219,300,1232,297,1236,271,1223,249,1205,204,1147,169,1081,144,1012,126,942,114,877,107,819,103,741"/>
-<area shape="rect" id="Node000264" href="$class_time_progress_bar.html#a203db15ba1769e7868a4505f0f57afbe" title=" " alt="" coords="255,1288,507,1313"/>
+<area shape="rect" id="Node000264" href="$class_time_progress_bar.html#a203db15ba1769e7868a4505f0f57afbe" title="A bar 28 pixels high in the fixed&#45;width system font, without keyboard focus." alt="" coords="255,1288,507,1313"/>
 <area shape="poly" id="edge67_Node000001_Node000264" title=" " alt="" coords="110,740,124,845,154,1007,174,1092,197,1170,223,1233,238,1257,253,1275,256,1278,253,1282,249,1279,233,1260,219,1236,192,1172,168,1094,148,1008,119,846,104,741"/>
 <area shape="rect" id="Node000265" href="$class_network_view.html#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call." alt="" coords="285,1338,476,1378"/>
 <area shape="poly" id="edge68_Node000001_Node000265" title=" " alt="" coords="109,740,123,853,152,1029,172,1122,195,1208,222,1278,237,1304,253,1324,274,1340,271,1344,249,1328,233,1307,217,1280,190,1209,166,1124,146,1030,118,853,104,741"/>
@@ -56,16 +56,16 @@
 <area shape="rect" id="Node000007" href="$class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" title="One step of the glide. The timer calls it; tests call it with a clock set by setClock()." alt="" coords="607,128,753,153"/>
 <area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="458,175,593,152,594,158,459,180"/>
 <area shape="poly" id="edge9_Node000005_Node000008" title=" " alt="" coords="489,187,551,187,551,193,489,193"/>
-<area shape="rect" id="Node000010" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title=" " alt="" coords="585,227,775,252"/>
+<area shape="rect" id="Node000010" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title="Takes the icon from parent, or from the application when there is no parent." alt="" coords="585,227,775,252"/>
 <area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="422,299,558,261,596,252,597,257,559,266,424,304"/>
 <area shape="rect" id="Node000011" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="881,227,1037,252"/>
 <area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="776,237,867,237,867,242,776,242"/>
 <area shape="poly" id="edge13_Node000011_Node000011" title=" " alt="" coords="918,228,909,218,914,208,931,202,959,200,994,204,1004,209,1008,214,1003,217,1001,213,993,209,959,205,932,207,917,212,915,218,922,225"/>
-<area shape="rect" id="Node000017" href="$class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" title=" " alt="" coords="592,276,768,301"/>
+<area shape="rect" id="Node000017" href="$class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close." alt="" coords="592,276,768,301"/>
 <area shape="poly" id="edge15_Node000016_Node000017" title=" " alt="" coords="459,353,510,336,533,323,558,312,590,302,591,307,560,316,536,328,512,340,460,358"/>
 <area shape="rect" id="Node000018" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="577,326,783,366"/>
 <area shape="poly" id="edge16_Node000016_Node000018" title=" " alt="" coords="473,364,563,355,564,360,474,369"/>
-<area shape="rect" id="Node000019" href="$class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816" title=" " alt="" coords="584,390,776,430"/>
+<area shape="rect" id="Node000019" href="$class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816" title="A dock with this window title." alt="" coords="584,390,776,430"/>
 <area shape="poly" id="edge17_Node000016_Node000019" title=" " alt="" coords="474,383,571,395,570,400,473,389"/>
 <area shape="rect" id="Node000020" href="$_plain_tool_tip_8h.html#af52b32a95e15749255a0578bd8a4a8d2" title=" " alt="" coords="630,479,730,504"/>
 <area shape="poly" id="edge18_Node000016_Node000020" title=" " alt="" coords="461,393,512,412,536,425,560,440,632,471,630,476,557,444,534,430,510,416,459,398"/>

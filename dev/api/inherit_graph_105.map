@@ -1,6 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
 <area shape="rect" id="Node000000" title=" " alt="" coords="5,277,80,303"/>
-<area shape="rect" id="Node000001" href="$class_about_dialog.html" title=" " alt="" coords="172,5,275,31"/>
+<area shape="rect" id="Node000001" href="$class_about_dialog.html" title="The &quot;About EGTRAIN&quot; dialog: the version, the authors and links to their pages and to the project." alt="" coords="172,5,275,31"/>
 <area shape="poly" id="edge12_Node000000_Node000001" title=" " alt="" coords="42,263,48,215,61,155,86,93,104,65,126,40,147,26,171,19,172,24,150,31,130,44,108,68,91,96,66,157,53,216,48,263"/>
 <area shape="rect" id="Node000002" href="$class_area_capacity_scope_dialog.html" title=" " alt="" coords="128,55,319,80"/>
 <area shape="poly" id="edge13_Node000000_Node000002" title=" " alt="" coords="45,263,53,225,68,178,92,130,108,108,126,89,144,78,147,82,130,93,112,112,96,133,73,180,58,226,50,264"/>

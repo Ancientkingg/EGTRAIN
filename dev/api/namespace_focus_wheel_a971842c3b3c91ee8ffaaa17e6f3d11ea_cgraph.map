@@ -1,9 +1,9 @@
 <map id="FocusWheel::guardAll" name="FocusWheel::guardAll">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,168,92"/>
+<area shape="rect" id="Node000001" title="Guards every combo box, spin box and slider inside root." alt="" coords="5,67,168,92"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="51,68,43,58,47,48,62,42,87,40,117,44,130,53,126,57,115,49,87,45,63,47,50,52,48,58,55,65"/>
-<area shape="rect" id="Node000002" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="237,29,382,55"/>
+<area shape="rect" id="Node000002" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="237,29,382,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,64,223,54,224,59,164,69"/>
-<area shape="rect" id="Node000003" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title=" " alt="" coords="216,103,403,128"/>
+<area shape="rect" id="Node000003" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="216,103,403,128"/>
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="166,89,217,98,216,103,165,95"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="273,31,265,21,269,11,284,5,309,3,340,6,352,15,349,20,338,11,309,8,286,10,273,15,271,20,277,28"/>
 <area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="273,104,265,94,269,84,284,78,309,76,340,80,352,89,349,93,338,85,309,81,286,83,273,88,271,94,277,101"/>

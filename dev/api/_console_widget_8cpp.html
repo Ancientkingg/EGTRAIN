@@ -154,6 +154,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The sink of the application. It passes the message to the installed <a class="el" href="class_console_streambuf.html">ConsoleStreambuf</a>, which writes the text to the original std::cout and shows it in the dock with level and category. Without one (a run without a window, or a window without the dock) it writes the text as given to std::cerr for app.ui and to std::cout for every other category. The same text, with level and category in front, is appended to the log file when installConsoleLogging opened one; the file, like the dock, starts a message on a line of its own. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -185,6 +186,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The text of a message as the dock and the log file show it: the level and the category in front of the first character that is not a line break ("warning app.ui: text"). The rest of the text is unchanged, and a text of line breaks only is returned as it is. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -207,6 +209,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Installs consoleLogSink and qtMessageToLog, configures the logging core from EGTRAIN_LOG and opens the file named by EGTRAIN_LOG_FILE, or closes the file of an earlier call when the variable is unset. Call it once, before other threads log. Returns the lines to print on std::cerr for a malformed rule in EGTRAIN_LOG or a log file that cannot be opened, and an empty string when both are fine. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -238,6 +241,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The Qt message handler of the application: passes the message of Qt to the logging core as app.ui, at the level of its type, with the text Qt's own handler prints (qFormatLogMessage). EGTRAIN_LOG can switch a level of app.ui off, except for qFatal, which always passes and is flushed. Qt ends the program after the handler returns. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

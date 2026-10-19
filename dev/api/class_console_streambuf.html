@@ -132,8 +132,10 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4871bc5b10f432d52b72b6e9891d298e" id="r_a4871bc5b10f432d52b72b6e9891d298e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4871bc5b10f432d52b72b6e9891d298e">ConsoleStreambuf</a> (std::function&lt; void(QString)&gt; callback)</td></tr>
+<tr class="memdesc:a4871bc5b10f432d52b72b6e9891d298e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A buffer that passes the lines of text to callback. It is not installed yet.  <br /></td></tr>
 <tr class="memitem:a0a28f85171a0c0dff1c5a1cbb3a35aaa" id="r_a0a28f85171a0c0dff1c5a1cbb3a35aaa"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a0a28f85171a0c0dff1c5a1cbb3a35aaa">~ConsoleStreambuf</a> () override</td></tr>
 <tr class="memitem:aca646099d8e78cced7a04428cee24e5c" id="r_aca646099d8e78cced7a04428cee24e5c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aca646099d8e78cced7a04428cee24e5c">setMessageCallback</a> (<a class="el" href="#a59574d93c639dfd37f08fc99d6a88c3d">MessageCallback</a> callback)</td></tr>
+<tr class="memdesc:aca646099d8e78cced7a04428cee24e5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the callback that <a class="el" href="#ac487dbb4d9f8f856ddee7c5b9dae7921">deliver()</a> uses. Set it before <a class="el" href="#ad82121e4c588b5f248caa959fe2bc5e2">install()</a>.  <br /></td></tr>
 <tr class="memitem:ad82121e4c588b5f248caa959fe2bc5e2" id="r_ad82121e4c588b5f248caa959fe2bc5e2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad82121e4c588b5f248caa959fe2bc5e2">install</a> ()</td></tr>
 <tr class="memitem:ac6ad8aca0753a5c893520bcb2b1e0df7" id="r_ac6ad8aca0753a5c893520bcb2b1e0df7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac6ad8aca0753a5c893520bcb2b1e0df7">restore</a> ()</td></tr>
 </table><table class="memberdecls">
@@ -144,10 +146,15 @@ Static Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:af64781d1cfc34e4ad90b2f48973ced13" id="r_af64781d1cfc34e4ad90b2f48973ced13"><td class="memItemLeft">int_type&#160;</td><td class="memItemRight"><a class="el" href="#af64781d1cfc34e4ad90b2f48973ced13">overflow</a> (int_type c) override</td></tr>
+<tr class="memdesc:af64781d1cfc34e4ad90b2f48973ced13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes one character as std::cout would.  <br /></td></tr>
 <tr class="memitem:a506abfab9948ec233647516bc6401305" id="r_a506abfab9948ec233647516bc6401305"><td class="memItemLeft">std::streamsize&#160;</td><td class="memItemRight"><a class="el" href="#a506abfab9948ec233647516bc6401305">xsputn</a> (const char *s, std::streamsize n) override</td></tr>
+<tr class="memdesc:a506abfab9948ec233647516bc6401305"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes n characters as std::cout would.  <br /></td></tr>
 <tr class="memitem:ac44be2269b38a922f9816b3f923f49e7" id="r_ac44be2269b38a922f9816b3f923f49e7"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac44be2269b38a922f9816b3f923f49e7">sync</a> () override</td></tr>
+<tr class="memdesc:ac44be2269b38a922f9816b3f923f49e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes the original std::cout and passes an unfinished line to the callback.  <br /></td></tr>
 </table>
-<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Stream buffer that takes the place of the buffers of std::cout and std::cerr while it is installed. Text written to either stream reaches the original stream, and each complete line is passed to the callback on the thread that wrote it. Thread-safe. </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a59574d93c639dfd37f08fc99d6a88c3d" name="a59574d93c639dfd37f08fc99d6a88c3d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a59574d93c639dfd37f08fc99d6a88c3d">&#9670;&#160;</a></span>MessageCallback</h2>
 
@@ -159,6 +166,7 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Receives a message of the logging core with its category and level, in the order of the text that reaches the plain callback. </p>
 
 </div>
 </div>
@@ -185,6 +193,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A buffer that passes the lines of text to callback. It is not installed yet. </p>
 
 </div>
 </div>
@@ -250,6 +260,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Hands a message of the logging core to the installed instance and returns true, or returns false when none is installed. The text reaches the original std::cout exactly as given. An instance with a message callback passes the message to it and not to the plain callback; one without writes the text as std::cout would. </p>
 
 </div>
 </div>
@@ -267,6 +278,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Puts this buffer in place of the buffers of std::cout and std::cerr and makes it the one that <a class="el" href="#ac487dbb4d9f8f856ddee7c5b9dae7921">deliver()</a> writes to. Does nothing when it is installed already. </p>
 
 </div>
 </div>
@@ -292,6 +304,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Writes one character as std::cout would. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -314,6 +328,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Puts the original buffers back and passes an unfinished last line to the callback. Does nothing when it is not installed. The destructor calls it. </p>
 
 </div>
 </div>
@@ -331,6 +346,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the callback that <a class="el" href="#ac487dbb4d9f8f856ddee7c5b9dae7921">deliver()</a> uses. Set it before <a class="el" href="#ad82121e4c588b5f248caa959fe2bc5e2">install()</a>. </p>
 
 </div>
 </div>
@@ -356,6 +373,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Flushes the original std::cout and passes an unfinished line to the callback. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -390,6 +409,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Writes n characters as std::cout would. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

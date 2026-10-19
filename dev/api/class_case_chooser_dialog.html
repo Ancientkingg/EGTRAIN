@@ -128,6 +128,7 @@ Collaboration diagram for CaseChooserDialog:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:Options" id="r_Options"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_case_chooser_dialog_1_1_options.html">Options</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the dialog lists and where it opens.  <a href="struct_case_chooser_dialog_1_1_options.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -140,19 +141,30 @@ Public Types</h2></td></tr>
 &#160;&#160;<a class="el" href="#a780b44e946d7556c0277e51559b11a00a88cfa8543febb100fb680cbab7a1b5e2">NewCase</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a780b44e946d7556c0277e51559b11a00"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the person chose.  <a href="#a780b44e946d7556c0277e51559b11a00">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0f2d7a6a58c0ac071201e7fabafa56b6" id="r_a0f2d7a6a58c0ac071201e7fabafa56b6"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a0f2d7a6a58c0ac071201e7fabafa56b6">CaseChooserDialog</a> (const <a class="el" href="struct_case_chooser_dialog_1_1_options.html">Options</a> &amp;options, QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a0f2d7a6a58c0ac071201e7fabafa56b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills the list and selects its first case that can be opened.  <br /></td></tr>
 <tr class="memitem:a3a60f4c8b321754e51e9dca706a41d3e" id="r_a3a60f4c8b321754e51e9dca706a41d3e"><td class="memItemLeft"><a class="el" href="#a780b44e946d7556c0277e51559b11a00">Outcome</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3a60f4c8b321754e51e9dca706a41d3e">outcome</a> () const</td></tr>
+<tr class="memdesc:a3a60f4c8b321754e51e9dca706a41d3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the person chose; Continue until a choice is made.  <br /></td></tr>
 <tr class="memitem:aab725818f60651007eec78444756db27" id="r_aab725818f60651007eec78444756db27"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aab725818f60651007eec78444756db27">chosenPath</a> () const</td></tr>
+<tr class="memdesc:aab725818f60651007eec78444756db27"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene path when <a class="el" href="#a3a60f4c8b321754e51e9dca706a41d3e" title="What the person chose; Continue until a choice is made.">outcome()</a> is OpenSelected, otherwise empty.  <br /></td></tr>
 <tr class="memitem:aaee34ec1d3e01474c06fa787addbee54" id="r_aaee34ec1d3e01474c06fa787addbee54"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aaee34ec1d3e01474c06fa787addbee54">selectedPath</a> () const</td></tr>
+<tr class="memdesc:aaee34ec1d3e01474c06fa787addbee54"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path of the current row; empty for a heading or an unavailable case. The status label names the reason.  <br /></td></tr>
 <tr class="memitem:a495f8d2188b1778807e3e5be0fd5d89d" id="r_a495f8d2188b1778807e3e5be0fd5d89d"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a495f8d2188b1778807e3e5be0fd5d89d">list</a> () const</td></tr>
+<tr class="memdesc:a495f8d2188b1778807e3e5be0fd5d89d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The list of cases, for tests. The dialog owns it and the widgets below.  <br /></td></tr>
 <tr class="memitem:a4bdefba20019b85560054da85b43f5f7" id="r_a4bdefba20019b85560054da85b43f5f7"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a4bdefba20019b85560054da85b43f5f7">openButton</a> () const</td></tr>
+<tr class="memdesc:a4bdefba20019b85560054da85b43f5f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Open button, enabled while a case that can be opened is selected.  <br /></td></tr>
 <tr class="memitem:a0b637be0767562fe0652cc134ba97b6d" id="r_a0b637be0767562fe0652cc134ba97b6d"><td class="memItemLeft">QPushButton *&#160;</td><td class="memItemRight"><a class="el" href="#a0b637be0767562fe0652cc134ba97b6d">continueButton</a> () const</td></tr>
+<tr class="memdesc:a0b637be0767562fe0652cc134ba97b6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Continue button, or Cancel when no case is loaded.  <br /></td></tr>
 <tr class="memitem:a74240772156ae63ff6ac404869bb5f15" id="r_a74240772156ae63ff6ac404869bb5f15"><td class="memItemLeft">QMenu *&#160;</td><td class="memItemRight"><a class="el" href="#a74240772156ae63ff6ac404869bb5f15">otherMenu</a> () const</td></tr>
+<tr class="memdesc:a74240772156ae63ff6ac404869bb5f15"><td class="mdescLeft">&#160;</td><td class="mdescRight">The menu of the "Other ways to open..." button.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The "Open a Case" dialog: bundled and recent cases in one list, and a menu with the other ways to open. It records what the person chose and changes nothing else; the caller acts on <a class="el" href="#a3a60f4c8b321754e51e9dca706a41d3e" title="What the person chose; Continue until a choice is made.">outcome()</a> after exec() returns. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a780b44e946d7556c0277e51559b11a00" name="a780b44e946d7556c0277e51559b11a00"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a780b44e946d7556c0277e51559b11a00">&#9670;&#160;</a></span>Outcome</h2>
 
@@ -172,12 +184,19 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What the person chose. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe" name="a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe"></a>Continue&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00a2c331a209142bd8ee854073934b3c6b4" name="a780b44e946d7556c0277e51559b11a00a2c331a209142bd8ee854073934b3c6b4"></a>OpenSelected&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552" name="a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552"></a>BrowseFolder&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00aac73bdda2e34d002305d920ce6044529" name="a780b44e946d7556c0277e51559b11a00aac73bdda2e34d002305d920ce6044529"></a>ImportLegacy&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00a88cfa8543febb100fb680cbab7a1b5e2" name="a780b44e946d7556c0277e51559b11a00a88cfa8543febb100fb680cbab7a1b5e2"></a>NewCase&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe" name="a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe"></a>Continue&#160;</td><td class="fielddoc"><p>Continue, Cancel or the close button of the window. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00a2c331a209142bd8ee854073934b3c6b4" name="a780b44e946d7556c0277e51559b11a00a2c331a209142bd8ee854073934b3c6b4"></a>OpenSelected&#160;</td><td class="fielddoc"><p>Open, or a double click on a case; <a class="el" href="#aab725818f60651007eec78444756db27" title="The scene path when outcome() is OpenSelected, otherwise empty.">chosenPath()</a> names it. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552" name="a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552"></a>BrowseFolder&#160;</td><td class="fielddoc"><p>"Open Scene Folder..." in the menu. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00aac73bdda2e34d002305d920ce6044529" name="a780b44e946d7556c0277e51559b11a00aac73bdda2e34d002305d920ce6044529"></a>ImportLegacy&#160;</td><td class="fielddoc"><p>"Import Legacy Case..." in the menu, confirmed in a question box. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a780b44e946d7556c0277e51559b11a00a88cfa8543febb100fb680cbab7a1b5e2" name="a780b44e946d7556c0277e51559b11a00a88cfa8543febb100fb680cbab7a1b5e2"></a>NewCase&#160;</td><td class="fielddoc"><p>"New Case Study..." in the menu. </p>
+</td></tr>
 </table>
 
 </div>
@@ -209,6 +228,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Fills the list and selects its first case that can be opened. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -241,6 +262,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The scene path when <a class="el" href="#a3a60f4c8b321754e51e9dca706a41d3e" title="What the person chose; Continue until a choice is made.">outcome()</a> is OpenSelected, otherwise empty. </p>
+
 </div>
 </div>
 <a id="a0b637be0767562fe0652cc134ba97b6d" name="a0b637be0767562fe0652cc134ba97b6d"></a>
@@ -265,6 +288,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The Continue button, or Cancel when no case is loaded. </p>
 
 </div>
 </div>
@@ -291,6 +316,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The list of cases, for tests. The dialog owns it and the widgets below. </p>
+
 </div>
 </div>
 <a id="a4bdefba20019b85560054da85b43f5f7" name="a4bdefba20019b85560054da85b43f5f7"></a>
@@ -315,6 +342,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The Open button, enabled while a case that can be opened is selected. </p>
 
 </div>
 </div>
@@ -341,6 +370,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The menu of the "Other ways to open..." button. </p>
+
 </div>
 </div>
 <a id="a3a60f4c8b321754e51e9dca706a41d3e" name="a3a60f4c8b321754e51e9dca706a41d3e"></a>
@@ -366,6 +397,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>What the person chose; Continue until a choice is made. </p>
+
 </div>
 </div>
 <a id="aaee34ec1d3e01474c06fa787addbee54" name="aaee34ec1d3e01474c06fa787addbee54"></a>
@@ -382,6 +415,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The path of the current row; empty for a heading or an unavailable case. The status label names the reason. </p>
 
 </div>
 </div>

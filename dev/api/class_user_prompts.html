@@ -121,10 +121,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7b5b9416946bfd5ad56a6a8c066d0cd9" id="r_a7b5b9416946bfd5ad56a6a8c066d0cd9"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#a7b5b9416946bfd5ad56a6a8c066d0cd9">~UserPrompts</a> ()=default</td></tr>
 <tr class="memitem:a577030d596229c409a5bd863b50327f4" id="r_a577030d596229c409a5bd863b50327f4"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a577030d596229c409a5bd863b50327f4">showError</a> (QWidget *parent, const QString &amp;title, const QString &amp;message, bool warningIcon=false)</td></tr>
 <tr class="memitem:a291a8f1c4f80fb446f22c09a97f9885f" id="r_a291a8f1c4f80fb446f22c09a97f9885f"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a291a8f1c4f80fb446f22c09a97f9885f">showInfo</a> (QWidget *parent, const QString &amp;title, const QString &amp;message)</td></tr>
+<tr class="memdesc:a291a8f1c4f80fb446f22c09a97f9885f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then.  <br /></td></tr>
 <tr class="memitem:aa74a16f2f04874e3e7910b1e8d422407" id="r_aa74a16f2f04874e3e7910b1e8d422407"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aa74a16f2f04874e3e7910b1e8d422407">confirm</a> (QWidget *parent, const QString &amp;title, const QString &amp;question)</td></tr>
+<tr class="memdesc:aa74a16f2f04874e3e7910b1e8d422407"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Yes or No question whose default answer is No; true for Yes. It asks also in a suppressed run.  <br /></td></tr>
 <tr class="memitem:a00d1b9ed44839b3770d89613eef3edd9" id="r_a00d1b9ed44839b3770d89613eef3edd9"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a> (QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The messages and questions that the editors put to the user. A panel gets one from the window, and a test replaces the virtual functions to answer without a dialog. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a845441069b8fabe4f8d8dfff13c90888" name="a845441069b8fabe4f8d8dfff13c90888"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a845441069b8fabe4f8d8dfff13c90888">&#9670;&#160;</a></span>UserPrompts()</h2>
 
@@ -147,6 +151,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p><span class="tt">suppressed</span> tells whether a scripted run has no user to answer. Modal boxes would deadlock such a run, so showError then writes the message to stderr instead. An empty function never suppresses. </p>
 
 </div>
 </div>
@@ -212,6 +217,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>One of <span class="tt">items</span>, for example the id of a rolling stock unit; empty when the user cancels. It asks also in a suppressed run. </p>
 
 </div>
 </div>
@@ -246,6 +252,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A Yes or No question whose default answer is No; true for Yes. It asks also in a suppressed run. </p>
 
 </div>
 </div>
@@ -285,6 +293,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>An error message in a modal box, with a warning icon instead of the critical one when warningIcon is set. In a suppressed run it writes "QEGTRAIN_DIALOG_SUPPRESSED: title: message" to stderr instead. </p>
 
 </div>
 </div>
@@ -319,6 +328,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then. </p>
 
 </div>
 </div>

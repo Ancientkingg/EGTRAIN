@@ -22,10 +22,10 @@
 <area shape="rect" id="Node000010" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="401,323,651,348"/>
 <area shape="poly" id="edge18_Node000005_Node000010" title=" " alt="" coords="320,272,469,316,468,321,319,277"/>
 <area shape="poly" id="edge15_Node000006_Node000006" title=" " alt="" coords="485,178,477,168,481,158,498,152,526,149,561,153,571,158,575,164,571,167,568,162,560,158,526,155,499,157,485,162,482,167,489,174"/>
-<area shape="rect" id="Node000007" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title=" " alt="" coords="699,176,856,201"/>
+<area shape="rect" id="Node000007" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="699,176,856,201"/>
 <area shape="poly" id="edge11_Node000006_Node000007" title=" " alt="" coords="596,186,685,186,685,191,596,191"/>
 <area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="742,178,735,168,739,158,753,152,777,149,807,153,819,162,816,166,805,158,777,155,755,157,743,162,740,167,747,174"/>
-<area shape="rect" id="Node000008" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title=" " alt="" coords="904,176,1079,201"/>
+<area shape="rect" id="Node000008" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="904,176,1079,201"/>
 <area shape="poly" id="edge13_Node000007_Node000008" title=" " alt="" coords="856,186,890,186,890,191,856,191"/>
 <area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="956,178,949,168,953,158,967,152,991,149,1021,153,1033,162,1030,166,1019,158,991,155,969,157,957,162,954,167,961,174"/>
 <area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="485,251,477,241,481,231,498,225,526,223,561,227,571,231,575,237,571,240,568,235,560,232,526,228,499,230,485,235,482,240,489,247"/>

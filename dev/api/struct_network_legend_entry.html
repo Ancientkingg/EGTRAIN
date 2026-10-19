@@ -113,24 +113,40 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_network
 </div><!--header-->
 <div class="contents">
 
+<p>One row of the map key: a swatch and a label. Each kind reads only some of the fields.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_network_legend_widget_8h_source.html">widgets/NetworkLegendWidget.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad4b821d6e7935d2c1e8dac2be099d1bd" id="r_ad4b821d6e7935d2c1e8dac2be099d1bd"><td class="memItemLeft"><a class="el" href="_network_legend_widget_8h.html#a33fd463d91044936a5c3082d2d9c4549">NetworkLegendEntryKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad4b821d6e7935d2c1e8dac2be099d1bd">kind</a> = <a class="el" href="_network_legend_widget_8h.html#a33fd463d91044936a5c3082d2d9c4549a92ea731d3af6677905303c88689f5d55">NetworkLegendEntryKind::Track</a></td></tr>
+<tr class="memdesc:ad4b821d6e7935d2c1e8dac2be099d1bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the row stands for.  <br /></td></tr>
 <tr class="memitem:abcf0a73bfc11434d87f41eb6ff3ffa21" id="r_abcf0a73bfc11434d87f41eb6ff3ffa21"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#abcf0a73bfc11434d87f41eb6ff3ffa21">label</a></td></tr>
+<tr class="memdesc:abcf0a73bfc11434d87f41eb6ff3ffa21"><td class="mdescLeft">&#160;</td><td class="mdescRight">The text of the row.  <br /></td></tr>
 <tr class="memitem:ab0c6c369e67e715a8695ed2188b79eda" id="r_ab0c6c369e67e715a8695ed2188b79eda"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ab0c6c369e67e715a8695ed2188b79eda">toolTip</a></td></tr>
+<tr class="memdesc:ab0c6c369e67e715a8695ed2188b79eda"><td class="mdescLeft">&#160;</td><td class="mdescRight">The tooltip of the row; empty shows the label.  <br /></td></tr>
 <tr class="memitem:a3163b034e9c1e8d4df31417c6cb9ade3" id="r_a3163b034e9c1e8d4df31417c6cb9ade3"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#a3163b034e9c1e8d4df31417c6cb9ade3">color</a></td></tr>
+<tr class="memdesc:a3163b034e9c1e8d4df31417c6cb9ade3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The line of a track, the fill of a train or the lamp of a signal.  <br /></td></tr>
 <tr class="memitem:ac4fc72c8ba5289de5299d5f721ce6bab" id="r_ac4fc72c8ba5289de5299d5f721ce6bab"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#ac4fc72c8ba5289de5299d5f721ce6bab">outlineColor</a></td></tr>
+<tr class="memdesc:ac4fc72c8ba5289de5299d5f721ce6bab"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outline of a train.  <br /></td></tr>
 <tr class="memitem:aade2872f9dcf07fd1d2e8506035f096c" id="r_aade2872f9dcf07fd1d2e8506035f096c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aade2872f9dcf07fd1d2e8506035f096c">lineWidth</a> = 0</td></tr>
+<tr class="memdesc:aade2872f9dcf07fd1d2e8506035f096c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width of a track line in pixels; the swatch draws at least 2.  <br /></td></tr>
 <tr class="memitem:a8346e12d5b870d079927fc339d4c69fa" id="r_a8346e12d5b870d079927fc339d4c69fa"><td class="memItemLeft">Qt::PenStyle&#160;</td><td class="memItemRight"><a class="el" href="#a8346e12d5b870d079927fc339d4c69fa">penStyle</a> = Qt::NoPen</td></tr>
 <tr class="memitem:a8ea4d15f1e3cdb1eb972c61b71f45622" id="r_a8ea4d15f1e3cdb1eb972c61b71f45622"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8ea4d15f1e3cdb1eb972c61b71f45622">trackState</a> = <a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594">TrackOperationalState::Free</a></td></tr>
+<tr class="memdesc:a8ea4d15f1e3cdb1eb972c61b71f45622"><td class="mdescLeft">&#160;</td><td class="mdescRight">The operational state of a track. A state other than Free also draws the line of a free track.  <br /></td></tr>
 <tr class="memitem:a7327f2f12c8d2951ccfc4dd08a791d9c" id="r_a7327f2f12c8d2951ccfc4dd08a791d9c"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a26df8324994d4726d94931837161a573">SignalCueKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7327f2f12c8d2951ccfc4dd08a791d9c">signalCue</a> = <a class="el" href="_visual_polish_8h.html#a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01">SignalCueKind::Neutral</a></td></tr>
+<tr class="memdesc:a7327f2f12c8d2951ccfc4dd08a791d9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark in a lit signal lamp: a bar for Stop, a dot for Caution.  <br /></td></tr>
 <tr class="memitem:a5009593f44cade2fc4766b621553dfac" id="r_a5009593f44cade2fc4766b621553dfac"><td class="memItemLeft"><a class="el" href="_network_legend_widget_8h.html#a5270fc6f1fa25f4d19ac98d6c9eb3408">NetworkLegendSignalLook</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5009593f44cade2fc4766b621553dfac">signalLook</a> = <a class="el" href="_network_legend_widget_8h.html#a5270fc6f1fa25f4d19ac98d6c9eb3408a5331717d33d4e634fd3c5ec209f475d2">NetworkLegendSignalLook::Lamp</a></td></tr>
+<tr class="memdesc:a5009593f44cade2fc4766b621553dfac"><td class="mdescLeft">&#160;</td><td class="mdescRight">How a signal head is drawn.  <br /></td></tr>
 <tr class="memitem:ab9470604e1a7803124e2a0f61f183886" id="r_ab9470604e1a7803124e2a0f61f183886"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab9470604e1a7803124e2a0f61f183886">stationClass</a> = <a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99">StationClass::Station</a></td></tr>
+<tr class="memdesc:ab9470604e1a7803124e2a0f61f183886"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark of a station.  <br /></td></tr>
 <tr class="memitem:a3abcd35bbf4313aefb62cc34a0278d1f" id="r_a3abcd35bbf4313aefb62cc34a0278d1f"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a3abcd35bbf4313aefb62cc34a0278d1f">iconResource</a></td></tr>
+<tr class="memdesc:a3abcd35bbf4313aefb62cc34a0278d1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Qt resource path of the icon of a passenger row; empty for none.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One row of the map key: a swatch and a label. Each kind reads only some of the fields. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a3163b034e9c1e8d4df31417c6cb9ade3" name="a3163b034e9c1e8d4df31417c6cb9ade3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3163b034e9c1e8d4df31417c6cb9ade3">&#9670;&#160;</a></span>color</h2>
 
@@ -142,6 +158,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The line of a track, the fill of a train or the lamp of a signal. </p>
 
 </div>
 </div>
@@ -157,6 +175,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The Qt resource path of the icon of a passenger row; empty for none. </p>
+
 </div>
 </div>
 <a id="ad4b821d6e7935d2c1e8dac2be099d1bd" name="ad4b821d6e7935d2c1e8dac2be099d1bd"></a>
@@ -170,6 +190,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>What the row stands for. </p>
 
 </div>
 </div>
@@ -185,6 +207,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The text of the row. </p>
+
 </div>
 </div>
 <a id="aade2872f9dcf07fd1d2e8506035f096c" name="aade2872f9dcf07fd1d2e8506035f096c"></a>
@@ -198,6 +222,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The width of a track line in pixels; the swatch draws at least 2. </p>
 
 </div>
 </div>
@@ -213,6 +239,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The outline of a train. </p>
+
 </div>
 </div>
 <a id="a8346e12d5b870d079927fc339d4c69fa" name="a8346e12d5b870d079927fc339d4c69fa"></a>
@@ -226,6 +254,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The line style of a track. </p>
 
 </div>
 </div>
@@ -241,6 +270,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The mark in a lit signal lamp: a bar for Stop, a dot for Caution. </p>
+
 </div>
 </div>
 <a id="a5009593f44cade2fc4766b621553dfac" name="a5009593f44cade2fc4766b621553dfac"></a>
@@ -254,6 +285,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>How a signal head is drawn. </p>
 
 </div>
 </div>
@@ -269,6 +302,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The mark of a station. </p>
+
 </div>
 </div>
 <a id="ab0c6c369e67e715a8695ed2188b79eda" name="ab0c6c369e67e715a8695ed2188b79eda"></a>
@@ -283,6 +318,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The tooltip of the row; empty shows the label. </p>
+
 </div>
 </div>
 <a id="a8ea4d15f1e3cdb1eb972c61b71f45622" name="a8ea4d15f1e3cdb1eb972c61b71f45622"></a>
@@ -296,6 +333,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The operational state of a track. A state other than Free also draws the line of a free track. </p>
 
 </div>
 </div>

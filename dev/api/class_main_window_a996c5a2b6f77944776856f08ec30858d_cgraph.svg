@@ -410,7 +410,7 @@
 <!-- Node264 -->
 <g id="Node000264" class="node">
 <title>Node264</title>
-<g id="a_Node000264"><a xlink:href="class_time_progress_bar.html#a203db15ba1769e7868a4505f0f57afbe" target="_top" xlink:title=" ">
+<g id="a_Node000264"><a xlink:href="class_time_progress_bar.html#a203db15ba1769e7868a4505f0f57afbe" target="_top" xlink:title="A bar 28 pixels high in the fixed&#45;width system font, without keyboard focus.">
 <polygon fill="white" stroke="#666666" points="376,-67.5 187,-67.5 187,-48.5 376,-48.5 376,-67.5"/>
 <text text-anchor="middle" x="281.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">TimeProgressBar::TimeProgressBar</text>
 </a>
@@ -528,7 +528,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" target="_top" xlink:title="Takes the icon from parent, or from the application when there is no parent.">
 <polygon fill="white" stroke="#666666" points="577.5,-863.5 434.5,-863.5 434.5,-844.5 577.5,-844.5 577.5,-863.5"/>
 <text text-anchor="middle" x="506" y="-851.5" font-family="Helvetica,sans-Serif" font-size="10.00">AboutDialog::AboutDialog</text>
 </a>
@@ -573,7 +573,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" target="_top" xlink:title="The dock is about to close.">
 <polygon fill="white" stroke="#666666" points="572,-826.5 440,-826.5 440,-807.5 572,-807.5 572,-826.5"/>
 <text text-anchor="middle" x="506" y="-814.5" font-family="Helvetica,sans-Serif" font-size="10.00">InfoDockWidget::closed</text>
 </a>
@@ -610,7 +610,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816" target="_top" xlink:title="A dock with this window title.">
 <polygon fill="white" stroke="#666666" points="578,-741 434,-741 434,-711 578,-711 578,-741"/>
 <text text-anchor="start" x="442" y="-729" font-family="Helvetica,sans-Serif" font-size="10.00">InfoDockWidget::InfoDock</text>
 <text text-anchor="middle" x="506" y="-718" font-family="Helvetica,sans-Serif" font-size="10.00">Widget</text>

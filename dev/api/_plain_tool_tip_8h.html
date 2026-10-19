@@ -156,6 +156,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The tooltip that shows <span class="tt">text</span> as typed. Qt reads a tooltip as rich text when it looks like markup, so a path or an identifier with a tag name or "&amp;lt;" in it would lose characters. Converting it to rich text by hand removes the guess. Spaces stay breakable, and so does a long run without one. An empty text gives no tooltip. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -186,6 +187,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p><span class="tt">text</span> with a zero-width space after every 32 characters of a run without a space or a line break. A tooltip wraps at a space only, so an identifier of 300 characters would be one line wider than the screen. The added characters are not drawn. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

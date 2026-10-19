@@ -117,10 +117,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_plain_tool_ti
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;QChar&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QTextDocument&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="comment">// `text` with a zero-width space after every 32 characters of a run without a space or a line break. A tooltip</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">// wraps at a space only, so an identifier of 300 characters would be one line wider than the screen. The added</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">// characters are not drawn.</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span></div>
 <div class="foldopen" id="foldopen00010" data-start="{" data-end="}">
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315">   10</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315">withBreakOpportunities</a>(<span class="keyword">const</span> QString&amp; text) {</div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    <span class="keyword">constexpr</span> <span class="keywordtype">int</span> runLength = 32;</div>
@@ -140,11 +137,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_plain_tool_ti
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="keywordflow">return</span> result;</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>}</div>
 </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="comment">// The tooltip that shows `text` as typed. Qt reads a tooltip as rich text when it looks like markup, so a</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment">// path or an identifier with a tag name or &quot;&amp;lt;&quot; in it would lose characters. Converting it to rich text</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="comment">// by hand removes the guess. Spaces stay breakable, and so does a long run without one. An empty text gives</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment">// no tooltip.</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span></div>
 <div class="foldopen" id="foldopen00032" data-start="{" data-end="}">
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="_plain_tool_tip_8h.html#af52b32a95e15749255a0578bd8a4a8d2">   32</a></span><span class="keyword">inline</span> QString <a class="code hl_function" href="_plain_tool_tip_8h.html#af52b32a95e15749255a0578bd8a4a8d2">plainToolTip</a>(<span class="keyword">const</span> QString&amp; text) {</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordflow">return</span> text.isEmpty() ? QString() : Qt::convertFromPlainText(<a class="code hl_function" href="_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315">withBreakOpportunities</a>(text), Qt::WhiteSpaceNormal);</div>

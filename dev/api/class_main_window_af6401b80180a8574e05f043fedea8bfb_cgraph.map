@@ -1,18 +1,18 @@
 <map id="MainWindow::handleHelpAbout" name="MainWindow::handleHelpAbout">
 <area shape="rect" id="Node000001" title="Shows the About dialog." alt="" coords="5,107,231,132"/>
-<area shape="rect" id="Node000002" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title=" " alt="" coords="279,107,469,132"/>
+<area shape="rect" id="Node000002" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title="Takes the icon from parent, or from the application when there is no parent." alt="" coords="279,107,469,132"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,117,265,117,265,122,231,122"/>
 <area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="517,107,673,132"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="469,117,504,117,504,122,469,122"/>
 <area shape="poly" id="edge11_Node000003_Node000003" title=" " alt="" coords="562,108,554,98,558,88,572,82,595,80,624,84,635,93,632,97,622,89,595,85,573,87,562,92,560,98,566,105"/>
-<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title=" " alt="" coords="721,65,884,91"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="721,65,884,91"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="659,104,725,91,726,96,660,109"/>
 <area shape="rect" id="Node000007" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="726,139,879,179"/>
 <area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="662,129,713,139,712,145,661,135"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="769,67,762,57,765,47,779,41,803,39,831,42,843,51,839,56,829,47,803,44,781,46,769,51,767,56,773,64"/>
-<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="953,29,1098,55"/>
+<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="953,29,1098,55"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="881,63,939,53,940,59,882,68"/>
-<area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title=" " alt="" coords="932,103,1119,128"/>
+<area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="932,103,1119,128"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="880,88,936,98,935,103,879,93"/>
 <area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="989,31,981,21,985,11,1000,5,1025,3,1056,6,1068,15,1065,20,1054,11,1025,8,1002,10,989,15,987,20,993,28"/>
 <area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="989,104,981,94,985,84,1000,78,1025,76,1056,80,1068,89,1065,93,1054,85,1025,81,1002,83,989,88,987,94,993,101"/>

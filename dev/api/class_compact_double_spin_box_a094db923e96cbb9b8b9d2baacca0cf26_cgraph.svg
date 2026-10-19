@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Shows the compact text again.">
 <polygon fill="#999999" stroke="#666666" points="134,-30 0,-30 0,0 134,0 134,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">CompactDoubleSpinBox</text>
 <text text-anchor="middle" x="67" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::focusOutEvent</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_compact_double_spin_box.html#a1c8813bf88e11a6be72528529cb3d672" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_compact_double_spin_box.html#a1c8813bf88e11a6be72528529cb3d672" target="_top" xlink:title="The full text, with up to 17 significant digits, while the field has focus, else the compact text.">
 <polygon fill="white" stroke="#666666" points="304,-30 170,-30 170,0 304,0 304,-30"/>
 <text text-anchor="start" x="178" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">CompactDoubleSpinBox</text>
 <text text-anchor="middle" x="237" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::textFromValue</text>

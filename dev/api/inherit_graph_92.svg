@@ -38,7 +38,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_inspector_panel_1_1_host.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_inspector_panel_1_1_host.html" target="_top" xlink:title="What the panel asks of the window.">
 <polygon fill="white" stroke="#666666" points="140,-204 24,-204 24,-185 140,-185 140,-204"/>
 <text text-anchor="middle" x="82" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::Host</text>
 </a>

@@ -118,39 +118,35 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_elided_label_
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QLabel&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QPainter&gt;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;QStyle&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">// Label for one sentence in a status bar. It can shrink below its text, so that a long</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">// sentence never widens the window, while its size hint still shows the whole text. A text</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">// wider than the label is drawn with its end elided; text() stays the whole sentence.</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span></div>
 <div class="foldopen" id="foldopen00011" data-start="{" data-end="};">
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="class_elided_label.html">   11</a></span><span class="keyword">class </span><a class="code hl_function" href="class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9">ElidedLabel</a> : <span class="keyword">public</span> QLabel {</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">public</span>:</div>
-<div class="foldopen" id="foldopen00013" data-start="{" data-end="}">
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9">   13</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9">ElidedLabel</a>(QWidget* parent = <span class="keyword">nullptr</span>)</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>        : QLabel(parent) {</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>        setTextFormat(Qt::PlainText);</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    }</div>
+<div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9">   14</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9">ElidedLabel</a>(QWidget* parent = <span class="keyword">nullptr</span>)</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>        : QLabel(parent) {</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>        setTextFormat(Qt::PlainText);</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    }</div>
 </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <span class="comment">// The text as the label draws it.</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">   19</a></span>    QString <a class="code hl_function" href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">displayText</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> fontMetrics().elidedText(text(), Qt::ElideRight, contentsRect().width()); }</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="class_elided_label.html#a5107e80ee2ea2bd15fec229a4e21e74d">   21</a></span>    QSize <a class="code hl_function" href="class_elided_label.html#a5107e80ee2ea2bd15fec229a4e21e74d">minimumSizeHint</a>()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> QSize(0, QLabel::minimumSizeHint().height()); }</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">protected</span>:</div>
-<div class="foldopen" id="foldopen00024" data-start="{" data-end="}">
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="class_elided_label.html#a499d8a696635da809447ee3c376b117d">   24</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_elided_label.html#a499d8a696635da809447ee3c376b117d">paintEvent</a>(QPaintEvent*)<span class="keyword"> override </span>{</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>        QPainter painter(<span class="keyword">this</span>);</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>        style()-&gt;drawItemText(&amp;painter, contentsRect(), QStyle::visualAlignment(layoutDirection(), alignment()), palette(),</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>            isEnabled(), <a class="code hl_function" href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">displayText</a>(), foregroundRole());</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    }</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">   20</a></span>    QString <a class="code hl_function" href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">displayText</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> fontMetrics().elidedText(text(), Qt::ElideRight, contentsRect().width()); }</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="class_elided_label.html#a5107e80ee2ea2bd15fec229a4e21e74d">   23</a></span>    QSize <a class="code hl_function" href="class_elided_label.html#a5107e80ee2ea2bd15fec229a4e21e74d">minimumSizeHint</a>()<span class="keyword"> const override </span>{ <span class="keywordflow">return</span> QSize(0, QLabel::minimumSizeHint().height()); }</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">protected</span>:</div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="class_elided_label.html#a499d8a696635da809447ee3c376b117d">   27</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_elided_label.html#a499d8a696635da809447ee3c376b117d">paintEvent</a>(QPaintEvent*)<span class="keyword"> override </span>{</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>        QPainter painter(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>        style()-&gt;drawItemText(&amp;painter, contentsRect(), QStyle::visualAlignment(layoutDirection(), alignment()), palette(),</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>            isEnabled(), <a class="code hl_function" href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">displayText</a>(), foregroundRole());</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    }</div>
 </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>};</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>};</div>
 </div>
-<div class="ttc" id="aclass_elided_label_html_a499d8a696635da809447ee3c376b117d"><div class="ttname"><a href="class_elided_label.html#a499d8a696635da809447ee3c376b117d">ElidedLabel::paintEvent</a></div><div class="ttdeci">void paintEvent(QPaintEvent *) override</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:24</div></div>
-<div class="ttc" id="aclass_elided_label_html_a5107e80ee2ea2bd15fec229a4e21e74d"><div class="ttname"><a href="class_elided_label.html#a5107e80ee2ea2bd15fec229a4e21e74d">ElidedLabel::minimumSizeHint</a></div><div class="ttdeci">QSize minimumSizeHint() const override</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:21</div></div>
-<div class="ttc" id="aclass_elided_label_html_acbacffeeff11ee0f3c9900c1511ee3f9"><div class="ttname"><a href="class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9">ElidedLabel::ElidedLabel</a></div><div class="ttdeci">ElidedLabel(QWidget *parent=nullptr)</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:13</div></div>
-<div class="ttc" id="aclass_elided_label_html_aff9efc20019dd99f50d94704e7ea97bb"><div class="ttname"><a href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">ElidedLabel::displayText</a></div><div class="ttdeci">QString displayText() const</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:19</div></div>
+<div class="ttc" id="aclass_elided_label_html_a499d8a696635da809447ee3c376b117d"><div class="ttname"><a href="class_elided_label.html#a499d8a696635da809447ee3c376b117d">ElidedLabel::paintEvent</a></div><div class="ttdeci">void paintEvent(QPaintEvent *) override</div><div class="ttdoc">Draws displayText() with the alignment and palette of the label.</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:27</div></div>
+<div class="ttc" id="aclass_elided_label_html_a5107e80ee2ea2bd15fec229a4e21e74d"><div class="ttname"><a href="class_elided_label.html#a5107e80ee2ea2bd15fec229a4e21e74d">ElidedLabel::minimumSizeHint</a></div><div class="ttdeci">QSize minimumSizeHint() const override</div><div class="ttdoc">No minimum width; the height of a QLabel.</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:23</div></div>
+<div class="ttc" id="aclass_elided_label_html_acbacffeeff11ee0f3c9900c1511ee3f9"><div class="ttname"><a href="class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9">ElidedLabel::ElidedLabel</a></div><div class="ttdeci">ElidedLabel(QWidget *parent=nullptr)</div><div class="ttdoc">A label for plain text.</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:14</div></div>
+<div class="ttc" id="aclass_elided_label_html_aff9efc20019dd99f50d94704e7ea97bb"><div class="ttname"><a href="class_elided_label.html#aff9efc20019dd99f50d94704e7ea97bb">ElidedLabel::displayText</a></div><div class="ttdeci">QString displayText() const</div><div class="ttdoc">The text as the label draws it.</div><div class="ttdef"><b>Definition</b> ElidedLabel.h:20</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_case_ch
 </div><!--header-->
 <div class="contents">
 
+<p>What the dialog lists and where it opens.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_case_chooser_dialog_8h_source.html">widgets/CaseChooserDialog.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -120,9 +123,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a717d7a14f73af415a3170b32cdd82a52" id="r_a717d7a14f73af415a3170b32cdd82a52"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a717d7a14f73af415a3170b32cdd82a52">currentCaseName</a></td></tr>
 <tr class="memitem:abd33b5f0ea54d4801b2c4dfa83065f57" id="r_abd33b5f0ea54d4801b2c4dfa83065f57"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#abd33b5f0ea54d4801b2c4dfa83065f57">sceneRoots</a></td></tr>
 <tr class="memitem:a877d0ff6822c93b80917d03e394bd851" id="r_a877d0ff6822c93b80917d03e394bd851"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a877d0ff6822c93b80917d03e394bd851">recentPaths</a></td></tr>
+<tr class="memdesc:a877d0ff6822c93b80917d03e394bd851"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recent scene paths, listed in the order given. A path with the same sceneListKey as an earlier one is left out.  <br /></td></tr>
 <tr class="memitem:a63464bb952e1aedbc0c05aa1358c40b7" id="r_a63464bb952e1aedbc0c05aa1358c40b7"><td class="memItemLeft">QRect&#160;</td><td class="memItemRight"><a class="el" href="#a63464bb952e1aedbc0c05aa1358c40b7">availableGeometry</a></td></tr>
+<tr class="memdesc:a63464bb952e1aedbc0c05aa1358c40b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The screen area that the dialog has to fit in. The current screen when empty.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the dialog lists and where it opens. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a63464bb952e1aedbc0c05aa1358c40b7" name="a63464bb952e1aedbc0c05aa1358c40b7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63464bb952e1aedbc0c05aa1358c40b7">&#9670;&#160;</a></span>availableGeometry</h2>
 
@@ -134,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The screen area that the dialog has to fit in. The current screen when empty. </p>
 
 </div>
 </div>
@@ -148,6 +157,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The name of the loaded case, shown in the context line; empty when no case is loaded, and the Continue button is then called Cancel. </p>
 
 </div>
 </div>
@@ -163,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Recent scene paths, listed in the order given. A path with the same sceneListKey as an earlier one is left out. </p>
+
 </div>
 </div>
 <a id="abd33b5f0ea54d4801b2c4dfa83065f57" name="abd33b5f0ea54d4801b2c4dfa83065f57"></a>
@@ -176,6 +188,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Folders searched for bundled scene folders and .egscene files. A name found in an earlier folder hides the same name in a later one. </p>
 
 </div>
 </div>

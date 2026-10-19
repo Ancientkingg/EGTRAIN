@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="An expanded key without rows.">
 <polygon fill="#999999" stroke="#666666" points="134,-30 0,-30 0,0 134,0 134,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkLegendWidget</text>
 <text text-anchor="middle" x="67" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::NetworkLegendWidget</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_legend_widget.html#a6459b6aad43ab743797df0dfe3bcd3b3" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_legend_widget.html#a6459b6aad43ab743797df0dfe3bcd3b3" target="_top" xlink:title="Shows or hides the rows and sets the arrow and tooltip of the button to match.">
 <polygon fill="white" stroke="#666666" points="298,-30 170,-30 170,0 298,0 298,-30"/>
 <text text-anchor="start" x="178" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkLegendWidget</text>
 <text text-anchor="middle" x="234" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::setExpanded</text>

@@ -128,12 +128,16 @@ Collaboration diagram for FocusWheel::Watcher:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad00a11590e72d270d94ebc39456eaea2" id="r_ad00a11590e72d270d94ebc39456eaea2"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad00a11590e72d270d94ebc39456eaea2">Watcher</a> (QWidget *root)</td></tr>
+<tr class="memdesc:ad00a11590e72d270d94ebc39456eaea2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Guards the fields of root and watches it and its descendants. root owns the watcher.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:abfbc241e708def263953461e816352e0" id="r_abfbc241e708def263953461e816352e0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#abfbc241e708def263953461e816352e0">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
+<tr class="memdesc:abfbc241e708def263953461e816352e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Guards and watches a child widget when it is polished.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Keeps every field of root guarded, also the fields that a table, a tab or a later refresh adds after the call. A new widget is guarded when it is polished, before it can be shown and meet the wheel. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad00a11590e72d270d94ebc39456eaea2" name="ad00a11590e72d270d94ebc39456eaea2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad00a11590e72d270d94ebc39456eaea2">&#9670;&#160;</a></span>Watcher()</h2>
 
@@ -156,6 +160,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Guards the fields of root and watches it and its descendants. root owns the watcher. </p>
 
 </div>
 </div>
@@ -186,6 +192,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Guards and watches a child widget when it is polished. </p>
 
 </div>
 </div>

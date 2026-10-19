@@ -1,6 +1,6 @@
 <map id="SceneSession::rebuildRecentScenesMenu" name="SceneSession::rebuildRecentScenesMenu">
 <area shape="rect" id="Node000001" title="Fills the Recent Scenes menu again from the settings." alt="" coords="5,130,215,170"/>
-<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title=" " alt="" coords="287,35,445,60"/>
+<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="287,35,445,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,127,262,82,314,62,316,67,264,87,157,132"/>
 <area shape="rect" id="Node000004" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="263,96,469,121"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="214,130,273,121,274,126,215,136"/>
@@ -9,7 +9,7 @@
 <area shape="rect" id="Node000007" href="$_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2" title=" " alt="" coords="292,259,440,284"/>
 <area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="154,168,327,250,325,255,152,172"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="327,36,319,26,323,16,339,10,366,8,399,12,412,21,409,26,397,17,366,13,341,15,327,20,324,26,331,33"/>
-<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title=" " alt="" coords="517,29,692,55"/>
+<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="517,29,692,55"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="445,43,504,42,504,47,445,48"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="566,31,558,21,562,11,578,5,605,3,638,7,651,16,647,20,636,11,605,8,579,10,566,15,563,20,570,27"/>
 <area shape="rect" id="Node000005" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="551,103,658,128"/>

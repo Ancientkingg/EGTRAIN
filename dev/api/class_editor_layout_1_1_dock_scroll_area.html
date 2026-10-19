@@ -128,10 +128,15 @@ Collaboration diagram for EditorLayout::DockScrollArea:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aecc7c9d4155dbb5d09d67515ca78b022" id="r_aecc7c9d4155dbb5d09d67515ca78b022"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aecc7c9d4155dbb5d09d67515ca78b022">DockScrollArea</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aecc7c9d4155dbb5d09d67515ca78b022"><td class="mdescLeft">&#160;</td><td class="mdescRight">An area like a QScrollArea, with the size hint described above.  <br /></td></tr>
 <tr class="memitem:a5446c7758f47c8cf2b6c37c802397ecd" id="r_a5446c7758f47c8cf2b6c37c802397ecd"><td class="memItemLeft">QSize&#160;</td><td class="memItemRight"><a class="el" href="#a5446c7758f47c8cf2b6c37c802397ecd">sizeHint</a> () const override</td></tr>
+<tr class="memdesc:a5446c7758f47c8cf2b6c37c802397ecd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width that the panel needs now, within the limits described above.  <br /></td></tr>
 <tr class="memitem:ad6a8d9132c37137b92cfe8224b598d77" id="r_ad6a8d9132c37137b92cfe8224b598d77"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad6a8d9132c37137b92cfe8224b598d77">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
+<tr class="memdesc:ad6a8d9132c37137b92cfe8224b598d77"><td class="mdescLeft">&#160;</td><td class="mdescRight">A layout change of the panel changes the size hint of this area, which a dock keeps until told, so it updates the geometry.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Scroll area for the panel of an editor dock. QScrollArea keeps the size hint of the panel from the first time it was asked, which can be before the panel shows its tabs and tables, so the hint of this area is at least the width that the panel needs now, with the vertical scroll bar. As in QScrollArea the hint is at most 36 line heights wide. While the dock is docked in a main window, the hint is also at most five eighths of the width that the docks on the left of the window leave, but not under 12 line heights. A dock with large text then opens narrower than its panel, which scrolls inside it, and the network canvas keeps the rest. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aecc7c9d4155dbb5d09d67515ca78b022" name="aecc7c9d4155dbb5d09d67515ca78b022"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aecc7c9d4155dbb5d09d67515ca78b022">&#9670;&#160;</a></span>DockScrollArea()</h2>
 
@@ -154,6 +159,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>An area like a QScrollArea, with the size hint described above. </p>
 
 </div>
 </div>
@@ -185,6 +192,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>A layout change of the panel changes the size hint of this area, which a dock keeps until told, so it updates the geometry. </p>
+
 </div>
 </div>
 <a id="a5446c7758f47c8cf2b6c37c802397ecd" name="a5446c7758f47c8cf2b6c37c802397ecd"></a>
@@ -209,6 +218,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The width that the panel needs now, within the limits described above. </p>
 
 </div>
 </div>

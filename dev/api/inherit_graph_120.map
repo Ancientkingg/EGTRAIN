@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000000" title=" " alt="" coords="5,499,80,524"/>
 <area shape="rect" id="Node000001" href="$class_dispatch_controller.html" title=" " alt="" coords="156,5,299,31"/>
 <area shape="poly" id="edge46_Node000000_Node000001" title=" " alt="" coords="42,485,48,387,63,254,73,187,87,125,105,75,126,40,139,29,155,22,157,27,142,34,130,44,109,77,92,127,79,188,68,255,54,387,48,485"/>
-<area shape="rect" id="Node000002" href="$class_focus_wheel_1_1_filter.html" title=" " alt="" coords="157,55,298,80"/>
+<area shape="rect" id="Node000002" href="$class_focus_wheel_1_1_filter.html" title="The event filter that guard installs; the box owns it." alt="" coords="157,55,298,80"/>
 <area shape="poly" id="edge47_Node000000_Node000002" title=" " alt="" coords="43,485,51,396,66,278,90,165,107,120,126,90,140,79,155,72,158,76,143,83,130,93,111,122,95,166,71,279,56,397,48,485"/>
 <area shape="rect" id="Node000003" href="$class_focus_wheel_1_1_watcher.html" title=" " alt="" coords="147,104,308,129"/>
 <area shape="poly" id="edge48_Node000000_Node000003" title=" " alt="" coords="44,484,53,405,69,302,93,204,108,165,126,139,145,126,148,130,130,143,113,168,98,205,74,303,58,406,49,485"/>

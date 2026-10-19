@@ -9,14 +9,14 @@
 <area shape="rect" id="Node000009" href="$class_telemetry_consent.html#a2f45cd3533669ee127bddc15b9bfd85b" title=" " alt="" coords="244,221,483,247"/>
 <area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="145,166,245,206,280,216,278,221,243,211,143,171"/>
 <area shape="poly" id="edge11_Node000003_Node000003" title=" " alt="" coords="323,108,314,98,319,88,336,82,363,80,398,84,408,89,412,94,408,97,405,93,397,89,363,85,337,87,323,92,320,98,327,105"/>
-<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title=" " alt="" coords="531,65,693,91"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="531,65,693,91"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="440,104,521,90,522,96,441,109"/>
 <area shape="rect" id="Node000007" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="535,139,689,179"/>
 <area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="442,129,522,142,521,148,441,134"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="576,67,568,57,572,47,587,41,612,39,643,42,655,51,652,56,641,47,612,44,588,46,576,51,573,56,580,64"/>
-<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="762,29,907,55"/>
+<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="762,29,907,55"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="690,63,748,53,749,59,691,68"/>
-<area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title=" " alt="" coords="741,103,928,128"/>
+<area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="741,103,928,128"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="689,88,746,98,745,103,688,93"/>
 <area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="799,31,791,21,795,11,810,5,835,3,865,6,878,15,874,20,863,11,835,8,811,10,798,15,796,20,803,28"/>
 <area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="799,104,791,94,795,84,810,78,835,76,865,80,878,89,874,93,863,85,835,81,811,83,798,88,796,94,803,101"/>

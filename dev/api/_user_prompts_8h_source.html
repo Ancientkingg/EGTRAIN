@@ -124,69 +124,62 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_user_prompts_
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;cstdio&gt;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="comment">// The messages and questions that the editors put to the user. A panel gets one from the window, and a test replaces</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="comment">// the virtual functions to answer without a dialog.</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span></div>
 <div class="foldopen" id="foldopen00016" data-start="{" data-end="};">
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="class_user_prompts.html">   16</a></span><span class="keyword">class </span><a class="code hl_function" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a> {</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <span class="comment">// `suppressed` tells whether a scripted run has no user to answer. Modal boxes would deadlock such a run, so</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="comment">// showError then writes the message to stderr instead.</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">   20</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a>(std::function&lt;<span class="keywordtype">bool</span>()&gt; suppressed = {}) : m_suppressed(std::move(suppressed)) {}</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">   21</a></span>    <span class="keyword">virtual</span> <a class="code hl_function" href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">~UserPrompts</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">   23</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">showError</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message, <span class="keywordtype">bool</span> warningIcon = <span class="keyword">false</span>) {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed()) {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>            std::fprintf(stderr, <span class="stringliteral">&quot;QEGTRAIN_DIALOG_SUPPRESSED: %s: %s\n&quot;</span>, title.toStdString().c_str(), message.toStdString().c_str());</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>            std::fflush(stderr);</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>            <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>        }</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>        <span class="keywordflow">if</span> (warningIcon)</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>            QMessageBox::warning(parent, title, message);</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>            QMessageBox::critical(parent, title, message);</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    }</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span></div>
+<div class="foldopen" id="foldopen00025" data-start="{" data-end="}">
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">   25</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">showError</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message, <span class="keywordtype">bool</span> warningIcon = <span class="keyword">false</span>) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed()) {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>            std::fprintf(stderr, <span class="stringliteral">&quot;QEGTRAIN_DIALOG_SUPPRESSED: %s: %s\n&quot;</span>, title.toStdString().c_str(), message.toStdString().c_str());</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>            std::fflush(stderr);</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>            <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>        }</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        <span class="keywordflow">if</span> (warningIcon)</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>            QMessageBox::warning(parent, title, message);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>            QMessageBox::critical(parent, title, message);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    }</div>
 </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="comment">// A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then.</span></div>
-<div class="foldopen" id="foldopen00036" data-start="{" data-end="}">
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">   36</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">showInfo</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed())</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>            <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        QMessageBox::information(parent, title, message);</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    }</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span></div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="}">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">   38</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">showInfo</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message) {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed())</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>            <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        QMessageBox::information(parent, title, message);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    }</div>
 </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="comment">// A Yes or No question whose default answer is No.</span></div>
-<div class="foldopen" id="foldopen00043" data-start="{" data-end="}">
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">   43</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">confirm</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; question) {</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        <span class="keywordflow">return</span> QMessageBox::question(parent, title, question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>            == QMessageBox::Yes;</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    }</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span></div>
+<div class="foldopen" id="foldopen00045" data-start="{" data-end="}">
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">   45</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">confirm</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; question) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        <span class="keywordflow">return</span> QMessageBox::question(parent, title, question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>            == QMessageBox::Yes;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    }</div>
 </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="comment">// One of `items`, for example the id of a rolling stock unit; empty when the user cancels.</span></div>
-<div class="foldopen" id="foldopen00049" data-start="{" data-end="}">
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">   49</a></span>    <span class="keyword">virtual</span> QString <a class="code hl_function" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; label, <span class="keyword">const</span> QStringList&amp; items) {</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordtype">bool</span> accepted = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="keyword">const</span> QString chosen = QInputDialog::getItem(parent, title, label, items, 0, <span class="keyword">false</span>, &amp;accepted);</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <span class="keywordflow">return</span> accepted ? chosen : QString();</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    }</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span></div>
+<div class="foldopen" id="foldopen00052" data-start="{" data-end="}">
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">   52</a></span>    <span class="keyword">virtual</span> QString <a class="code hl_function" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; label, <span class="keyword">const</span> QStringList&amp; items) {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keywordtype">bool</span> accepted = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="keyword">const</span> QString chosen = QInputDialog::getItem(parent, title, label, items, 0, <span class="keyword">false</span>, &amp;accepted);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordflow">return</span> accepted ? chosen : QString();</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    }</div>
 </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    std::function&lt;bool()&gt; m_suppressed;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>};</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    std::function&lt;bool()&gt; m_suppressed;</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>};</div>
 </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="preprocessor">#endif </span><span class="comment">// USERPROMPTS_H</span></div>
-<div class="ttc" id="aclass_user_prompts_html_a00d1b9ed44839b3770d89613eef3edd9"><div class="ttname"><a href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">UserPrompts::chooseItem</a></div><div class="ttdeci">virtual QString chooseItem(QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:49</div></div>
-<div class="ttc" id="aclass_user_prompts_html_a291a8f1c4f80fb446f22c09a97f9885f"><div class="ttname"><a href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">UserPrompts::showInfo</a></div><div class="ttdeci">virtual void showInfo(QWidget *parent, const QString &amp;title, const QString &amp;message)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:36</div></div>
-<div class="ttc" id="aclass_user_prompts_html_a577030d596229c409a5bd863b50327f4"><div class="ttname"><a href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">UserPrompts::showError</a></div><div class="ttdeci">virtual void showError(QWidget *parent, const QString &amp;title, const QString &amp;message, bool warningIcon=false)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:23</div></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#endif </span><span class="comment">// USERPROMPTS_H</span></div>
+<div class="ttc" id="aclass_user_prompts_html_a00d1b9ed44839b3770d89613eef3edd9"><div class="ttname"><a href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">UserPrompts::chooseItem</a></div><div class="ttdeci">virtual QString chooseItem(QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:52</div></div>
+<div class="ttc" id="aclass_user_prompts_html_a291a8f1c4f80fb446f22c09a97f9885f"><div class="ttname"><a href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">UserPrompts::showInfo</a></div><div class="ttdeci">virtual void showInfo(QWidget *parent, const QString &amp;title, const QString &amp;message)</div><div class="ttdoc">A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then...</div><div class="ttdef"><b>Definition</b> UserPrompts.h:38</div></div>
+<div class="ttc" id="aclass_user_prompts_html_a577030d596229c409a5bd863b50327f4"><div class="ttname"><a href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">UserPrompts::showError</a></div><div class="ttdeci">virtual void showError(QWidget *parent, const QString &amp;title, const QString &amp;message, bool warningIcon=false)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:25</div></div>
 <div class="ttc" id="aclass_user_prompts_html_a7b5b9416946bfd5ad56a6a8c066d0cd9"><div class="ttname"><a href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">UserPrompts::~UserPrompts</a></div><div class="ttdeci">virtual ~UserPrompts()=default</div></div>
 <div class="ttc" id="aclass_user_prompts_html_a845441069b8fabe4f8d8dfff13c90888"><div class="ttname"><a href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts::UserPrompts</a></div><div class="ttdeci">UserPrompts(std::function&lt; bool()&gt; suppressed={})</div><div class="ttdef"><b>Definition</b> UserPrompts.h:20</div></div>
-<div class="ttc" id="aclass_user_prompts_html_aa74a16f2f04874e3e7910b1e8d422407"><div class="ttname"><a href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">UserPrompts::confirm</a></div><div class="ttdeci">virtual bool confirm(QWidget *parent, const QString &amp;title, const QString &amp;question)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:43</div></div>
+<div class="ttc" id="aclass_user_prompts_html_aa74a16f2f04874e3e7910b1e8d422407"><div class="ttname"><a href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">UserPrompts::confirm</a></div><div class="ttdeci">virtual bool confirm(QWidget *parent, const QString &amp;title, const QString &amp;question)</div><div class="ttdoc">A Yes or No question whose default answer is No; true for Yes. It asks also in a suppressed run.</div><div class="ttdef"><b>Definition</b> UserPrompts.h:45</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

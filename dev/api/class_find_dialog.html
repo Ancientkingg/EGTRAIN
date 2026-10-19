@@ -128,17 +128,23 @@ Collaboration diagram for FindDialog:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a0292e354306d41db3cee14c9b78b008f" id="r_a0292e354306d41db3cee14c9b78b008f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0292e354306d41db3cee14c9b78b008f">chosen</a> (const QString &amp;label)</td></tr>
+<tr class="memdesc:a0292e354306d41db3cee14c9b78b008f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name the user chose, emitted after the dialog is accepted.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa5ec2e3278ccf89baeb33dc396ea1f79" id="r_aa5ec2e3278ccf89baeb33dc396ea1f79"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa5ec2e3278ccf89baeb33dc396ea1f79">FindDialog</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:aa5ec2e3278ccf89baeb33dc396ea1f79"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty dialog; setLabels gives it the names.  <br /></td></tr>
 <tr class="memitem:aee3f775d406703a7883046a612e93b69" id="r_aee3f775d406703a7883046a612e93b69"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aee3f775d406703a7883046a612e93b69">setLabels</a> (const QStringList &amp;labels)</td></tr>
+<tr class="memdesc:aee3f775d406703a7883046a612e93b69"><td class="mdescLeft">&#160;</td><td class="mdescRight">The names to search; the field and the list start empty.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:aab94ad10a8c557a3a24d1e046c7819e4" id="r_aab94ad10a8c557a3a24d1e046c7819e4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aab94ad10a8c557a3a24d1e046c7819e4">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
+<tr class="memdesc:aab94ad10a8c557a3a24d1e046c7819e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Passes Up and Down from the field to the list, and chooses the current name on Enter in the list.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A search field over the names of the items on the canvas. The list shows the names that contain every word of the field, ignoring case; Up and Down choose one, and Enter or a double click hands it back and closes the dialog. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa5ec2e3278ccf89baeb33dc396ea1f79" name="aa5ec2e3278ccf89baeb33dc396ea1f79"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa5ec2e3278ccf89baeb33dc396ea1f79">&#9670;&#160;</a></span>FindDialog()</h2>
 
@@ -161,6 +167,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>An empty dialog; setLabels gives it the names. </p>
 
 </div>
 </div>
@@ -187,6 +195,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The name the user chose, emitted after the dialog is accepted. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -222,6 +232,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Passes Up and Down from the field to the list, and chooses the current name on Enter in the list. </p>
+
 </div>
 </div>
 <a id="aee3f775d406703a7883046a612e93b69" name="aee3f775d406703a7883046a612e93b69"></a>
@@ -238,6 +250,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The names to search; the field and the list start empty. </p>
 
 </div>
 </div>

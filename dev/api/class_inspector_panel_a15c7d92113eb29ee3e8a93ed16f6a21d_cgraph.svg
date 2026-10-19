@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Shows the form of a node of the run, with its coordinates in metres.">
 <polygon fill="#999999" stroke="#666666" points="173,-72.5 0,-72.5 0,-53.5 173,-53.5 173,-72.5"/>
 <text text-anchor="middle" x="86.5" y="-60.5" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::displayNodeInfo</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" target="_top" xlink:title="The value in fixed notation with precision digits after the decimal point.">
 <polygon fill="white" stroke="#666666" points="338,-30 234,-30 234,0 338,0 338,-30"/>
 <text text-anchor="start" x="242" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::to</text>
 <text text-anchor="middle" x="286" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">_string_precision</text>

@@ -1,6 +1,6 @@
 <map id="ChoiceComboBox::ChoiceComboBox" name="ChoiceComboBox::ChoiceComboBox">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,265,55"/>
-<area shape="rect" id="Node000002" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title=" " alt="" coords="313,29,459,55"/>
+<area shape="rect" id="Node000001" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="5,29,265,55"/>
+<area shape="rect" id="Node000002" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="313,29,459,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="265,39,299,39,299,45,265,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="345,31,337,21,341,11,358,5,386,3,421,7,431,11,435,17,431,20,428,15,420,12,386,8,359,10,345,15,342,20,349,27"/>
 </map>

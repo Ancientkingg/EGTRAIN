@@ -18,7 +18,7 @@
 <area shape="poly" id="edge14_Node000002_Node000006" title=" " alt="" coords="490,277,828,296,827,301,490,283"/>
 <area shape="rect" id="Node000007" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="1154,197,1261,223"/>
 <area shape="poly" id="edge15_Node000002_Node000007" title=" " alt="" coords="403,259,475,226,578,185,699,145,763,128,826,115,893,104,946,98,998,101,1063,115,1098,129,1131,148,1184,186,1180,191,1128,152,1096,134,1062,121,998,106,946,103,893,109,827,121,764,133,701,150,579,190,477,231,406,264"/>
-<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title=" " alt="" coords="866,29,1023,55"/>
+<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="866,29,1023,55"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="686,222,825,116,910,60,913,64,828,120,689,226"/>
 <area shape="poly" id="edge7_Node000003_Node000006" title=" " alt="" coords="757,262,871,286,870,292,756,267"/>
 <area shape="rect" id="Node000008" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="843,154,1046,194"/>
@@ -26,7 +26,7 @@
 <area shape="rect" id="Node000009" href="$_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2" title=" " alt="" coords="871,243,1019,268"/>
 <area shape="poly" id="edge12_Node000003_Node000009" title=" " alt="" coords="766,246,857,249,857,255,765,251"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="902,31,893,21,898,11,915,5,945,3,982,7,992,12,996,18,991,20,989,16,981,12,945,8,917,10,902,15,899,20,906,27"/>
-<area shape="rect" id="Node000005" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title=" " alt="" coords="1120,29,1295,55"/>
+<area shape="rect" id="Node000005" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="1120,29,1295,55"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="1024,39,1106,39,1106,45,1024,45"/>
 <area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="1168,31,1159,21,1163,11,1180,5,1207,3,1242,7,1252,11,1256,17,1251,20,1248,15,1241,12,1207,8,1181,10,1167,15,1164,20,1171,27"/>
 <area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="1017,289,1062,277,1120,253,1171,227,1173,232,1122,258,1064,282,1018,294"/>

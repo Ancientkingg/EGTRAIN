@@ -128,7 +128,9 @@ Collaboration diagram for ColorChoiceButton:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-slots" class="groupheader"><a id="pub-slots" name="pub-slots"></a>
 Public Slots</h2></td></tr>
 <tr class="memitem:af24633bee1c796d8f71dc82d804b1661" id="r_af24633bee1c796d8f71dc82d804b1661"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af24633bee1c796d8f71dc82d804b1661">chooseColor</a> (const QColor &amp;color)</td></tr>
+<tr class="memdesc:af24633bee1c796d8f71dc82d804b1661"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the colour dialog result goes through. An invalid colour is ignored.  <br /></td></tr>
 <tr class="memitem:a9b7e1ed1fe63b1bee32c4cabc2391937" id="r_a9b7e1ed1fe63b1bee32c4cabc2391937"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9b7e1ed1fe63b1bee32c4cabc2391937">resetColor</a> ()</td></tr>
+<tr class="memdesc:a9b7e1ed1fe63b1bee32c4cabc2391937"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the colour; does nothing when no colour is set.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
@@ -137,11 +139,17 @@ Signals</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a8ecd39a74d3c19860fd473df07f276b8" id="r_a8ecd39a74d3c19860fd473df07f276b8"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a8ecd39a74d3c19860fd473df07f276b8">ColorChoiceButton</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a8ecd39a74d3c19860fd473df07f276b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts at the default colour.  <br /></td></tr>
 <tr class="memitem:a00930b3201d01d063825235f0fd25d4d" id="r_a00930b3201d01d063825235f0fd25d4d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a00930b3201d01d063825235f0fd25d4d">setColor</a> (const std::string &amp;text)</td></tr>
+<tr class="memdesc:a00930b3201d01d063825235f0fd25d4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the stored text without changing it; never emits colorChanged.  <br /></td></tr>
 <tr class="memitem:a7e06a983e7d73eec1539af24dcd7b47c" id="r_a7e06a983e7d73eec1539af24dcd7b47c"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#a7e06a983e7d73eec1539af24dcd7b47c">swatchColor</a> () const</td></tr>
+<tr class="memdesc:a7e06a983e7d73eec1539af24dcd7b47c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The colour of the swatch; invalid for the default and for an invalid text.  <br /></td></tr>
 <tr class="memitem:a086d45c115db1003a0ff99b360dcf622" id="r_a086d45c115db1003a0ff99b360dcf622"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a086d45c115db1003a0ff99b360dcf622">valueText</a> () const</td></tr>
+<tr class="memdesc:a086d45c115db1003a0ff99b360dcf622"><td class="mdescLeft">&#160;</td><td class="mdescRight">The text beside the swatch: the stored colour text, "Default", or "Invalid: " and the stored text.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Edits an optional "#RRGGBB" colour text: a swatch, a Choose button that opens the colour dialog and a Default button that removes the colour. An empty text means the default. A stored text that is not a colour is shown as it is and kept until the user chooses a colour or presses Default. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a8ecd39a74d3c19860fd473df07f276b8" name="a8ecd39a74d3c19860fd473df07f276b8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8ecd39a74d3c19860fd473df07f276b8">&#9670;&#160;</a></span>ColorChoiceButton()</h2>
 
@@ -164,6 +172,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Starts at the default colour. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -195,6 +205,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What the colour dialog result goes through. An invalid colour is ignored. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -225,6 +237,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Emitted once per user action with the lower-case "#rrggbb" text, or an empty text for the default. </p>
 
 </div>
 </div>
@@ -250,6 +263,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Removes the colour; does nothing when no colour is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -272,6 +287,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Shows the stored text without changing it; never emits colorChanged. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -303,6 +320,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The colour of the swatch; invalid for the default and for an invalid text. </p>
+
 </div>
 </div>
 <a id="a086d45c115db1003a0ff99b360dcf622" name="a086d45c115db1003a0ff99b360dcf622"></a>
@@ -319,6 +338,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The text beside the swatch: the stored colour text, "Default", or "Invalid: " and the stored text. </p>
 
 </div>
 </div>

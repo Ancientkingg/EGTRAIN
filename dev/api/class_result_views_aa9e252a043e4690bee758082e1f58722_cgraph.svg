@@ -1016,7 +1016,7 @@
 <!-- Node39 -->
 <g id="Node000039" class="node">
 <title>Node39</title>
-<g id="a_Node000039"><a xlink:href="class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" target="_top" xlink:title=" ">
+<g id="a_Node000039"><a xlink:href="class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" target="_top" xlink:title="A combo box that expands across its row and fits its size hint to its entries.">
 <polygon fill="#fff0f0" stroke="red" points="603,-501 408,-501 408,-482 603,-482 603,-501"/>
 <text text-anchor="middle" x="505.5" y="-489" font-family="Helvetica,sans-Serif" font-size="10.00">ChoiceComboBox::ChoiceComboBox</text>
 </a>

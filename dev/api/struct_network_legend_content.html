@@ -113,19 +113,30 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_network
 </div><!--header-->
 <div class="contents">
 
+<p>What the canvas of the case shows, which decides the rows of the map key.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_network_legend_widget_8h_source.html">widgets/NetworkLegendWidget.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:af1b4ce9a6e5c071b9150ac09d6d6205c" id="r_af1b4ce9a6e5c071b9150ac09d6d6205c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af1b4ce9a6e5c071b9150ac09d6d6205c">hasTracks</a> = false</td></tr>
 <tr class="memitem:ac7e286f2dbeb0e6ab0998bdfae1d2892" id="r_ac7e286f2dbeb0e6ab0998bdfae1d2892"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac7e286f2dbeb0e6ab0998bdfae1d2892">showOperationalTrackStates</a> = true</td></tr>
+<tr class="memdesc:ac7e286f2dbeb0e6ab0998bdfae1d2892"><td class="mdescLeft">&#160;</td><td class="mdescRight">False for the track preview. setCaseContent does not read it.  <br /></td></tr>
 <tr class="memitem:a5ba856f093161794004d63145a28d825" id="r_a5ba856f093161794004d63145a28d825"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5ba856f093161794004d63145a28d825">hasSelectedTrack</a> = false</td></tr>
+<tr class="memdesc:a5ba856f093161794004d63145a28d825"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a row for the selected track, when hasTracks is set.  <br /></td></tr>
 <tr class="memitem:a67d747a3d6ab47ad0fcba9865d287147" id="r_a67d747a3d6ab47ad0fcba9865d287147"><td class="memItemLeft">QVector&lt; <a class="el" href="struct_network_legend_train.html">NetworkLegendTrain</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a67d747a3d6ab47ad0fcba9865d287147">trains</a></td></tr>
+<tr class="memdesc:a67d747a3d6ab47ad0fcba9865d287147"><td class="mdescLeft">&#160;</td><td class="mdescRight">One row for the default colour and one per other colour.  <br /></td></tr>
 <tr class="memitem:a7df3f76f400708b03443494cd79f173f" id="r_a7df3f76f400708b03443494cd79f173f"><td class="memItemLeft">QVector&lt; <a class="el" href="struct_station_visual.html">StationVisual</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7df3f76f400708b03443494cd79f173f">stationVisuals</a></td></tr>
+<tr class="memdesc:a7df3f76f400708b03443494cd79f173f"><td class="mdescLeft">&#160;</td><td class="mdescRight">One row per station class that occurs.  <br /></td></tr>
 <tr class="memitem:aa5ca6c4549837edad2c8210214b3c430" id="r_aa5ca6c4549837edad2c8210214b3c430"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa5ca6c4549837edad2c8210214b3c430">hasSignals</a> = false</td></tr>
+<tr class="memdesc:aa5ca6c4549837edad2c8210214b3c430"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the rows of the stop, caution, proceed, unavailable and failed signal.  <br /></td></tr>
 <tr class="memitem:a07f55b5908d2becd67e3f5b1d55b391c" id="r_a07f55b5908d2becd67e3f5b1d55b391c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a07f55b5908d2becd67e3f5b1d55b391c">hasPassengers</a> = false</td></tr>
+<tr class="memdesc:a07f55b5908d2becd67e3f5b1d55b391c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the passenger count row.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the canvas of the case shows, which decides the rows of the map key. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a07f55b5908d2becd67e3f5b1d55b391c" name="a07f55b5908d2becd67e3f5b1d55b391c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a07f55b5908d2becd67e3f5b1d55b391c">&#9670;&#160;</a></span>hasPassengers</h2>
 
@@ -137,6 +148,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Adds the passenger count row. </p>
 
 </div>
 </div>
@@ -152,6 +165,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Adds a row for the selected track, when hasTracks is set. </p>
+
 </div>
 </div>
 <a id="aa5ca6c4549837edad2c8210214b3c430" name="aa5ca6c4549837edad2c8210214b3c430"></a>
@@ -166,6 +181,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Adds the rows of the stop, caution, proceed, unavailable and failed signal. </p>
+
 </div>
 </div>
 <a id="af1b4ce9a6e5c071b9150ac09d6d6205c" name="af1b4ce9a6e5c071b9150ac09d6d6205c"></a>
@@ -179,6 +196,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Adds the rows of the high speed, mainline and local tracks. </p>
 
 </div>
 </div>
@@ -194,6 +212,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>False for the track preview. setCaseContent does not read it. </p>
+
 </div>
 </div>
 <a id="a7df3f76f400708b03443494cd79f173f" name="a7df3f76f400708b03443494cd79f173f"></a>
@@ -208,6 +228,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>One row per station class that occurs. </p>
+
 </div>
 </div>
 <a id="a67d747a3d6ab47ad0fcba9865d287147" name="a67d747a3d6ab47ad0fcba9865d287147"></a>
@@ -221,6 +243,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>One row for the default colour and one per other colour. </p>
 
 </div>
 </div>

@@ -116,27 +116,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_info_dock_wid
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define INFODOCKWIDGET_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QDockWidget&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="foldopen" id="foldopen00006" data-start="{" data-end="};">
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno"><a class="line" href="class_info_dock_widget.html">    6</a></span><span class="keyword">class </span><a class="code hl_function" href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget</a> : <span class="keyword">public</span> QDockWidget {</div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span>    Q_OBJECT</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>    <a class="code hl_function" href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget</a>(<span class="keyword">const</span> QString&amp; title, QWidget* parent = <span class="keyword">nullptr</span>, Qt::WindowFlags flags = Qt::WindowFlags());</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    <a class="code hl_function" href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">~InfoDockWidget</a>() <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <span class="comment">// reimplemented function</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_info_dock_widget.html#a99e76e4143aa82b589c8eff768ae6866">closeEvent</a>(QCloseEvent* event) <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>signals:</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">   17</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">closed</a>();</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>};</div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span></div>
+<div class="foldopen" id="foldopen00007" data-start="{" data-end="};">
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno"><a class="line" href="class_info_dock_widget.html">    7</a></span><span class="keyword">class </span><a class="code hl_function" href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget</a> : <span class="keyword">public</span> QDockWidget {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>    Q_OBJECT</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    <a class="code hl_function" href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget</a>(<span class="keyword">const</span> QString&amp; title, QWidget* parent = <span class="keyword">nullptr</span>, Qt::WindowFlags flags = Qt::WindowFlags());</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <a class="code hl_function" href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">~InfoDockWidget</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_info_dock_widget.html#a99e76e4143aa82b589c8eff768ae6866">closeEvent</a>(QCloseEvent* event) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>signals:</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">   20</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">closed</a>();</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>};</div>
 </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#endif </span><span class="comment">// INFODOCKWIDGET_H</span></div>
-<div class="ttc" id="aclass_info_dock_widget_html_a99e76e4143aa82b589c8eff768ae6866"><div class="ttname"><a href="class_info_dock_widget.html#a99e76e4143aa82b589c8eff768ae6866">InfoDockWidget::closeEvent</a></div><div class="ttdeci">void closeEvent(QCloseEvent *event) override</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:12</div></div>
-<div class="ttc" id="aclass_info_dock_widget_html_ac27adee9004df5d97b994806f3f2f816"><div class="ttname"><a href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget::InfoDockWidget</a></div><div class="ttdeci">InfoDockWidget(const QString &amp;title, QWidget *parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags())</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:3</div></div>
-<div class="ttc" id="aclass_info_dock_widget_html_aef6ebf64e4e2d72b80e4c8250c69e7f4"><div class="ttname"><a href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">InfoDockWidget::closed</a></div><div class="ttdeci">void closed()</div></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#endif </span><span class="comment">// INFODOCKWIDGET_H</span></div>
+<div class="ttc" id="aclass_info_dock_widget_html_a99e76e4143aa82b589c8eff768ae6866"><div class="ttname"><a href="class_info_dock_widget.html#a99e76e4143aa82b589c8eff768ae6866">InfoDockWidget::closeEvent</a></div><div class="ttdeci">void closeEvent(QCloseEvent *event) override</div><div class="ttdoc">Emits closed() and then closes the dock.</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:12</div></div>
+<div class="ttc" id="aclass_info_dock_widget_html_ac27adee9004df5d97b994806f3f2f816"><div class="ttname"><a href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget::InfoDockWidget</a></div><div class="ttdeci">InfoDockWidget(const QString &amp;title, QWidget *parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags())</div><div class="ttdoc">A dock with this window title.</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:3</div></div>
+<div class="ttc" id="aclass_info_dock_widget_html_aef6ebf64e4e2d72b80e4c8250c69e7f4"><div class="ttname"><a href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">InfoDockWidget::closed</a></div><div class="ttdeci">void closed()</div><div class="ttdoc">The dock is about to close.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

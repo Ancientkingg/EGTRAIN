@@ -1,10 +1,10 @@
 <map id="cannot_open::text" name="cannot_open::text">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,144,55"/>
 <area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="43,31,36,21,39,11,53,5,75,3,101,6,113,15,109,19,99,11,75,8,54,10,43,15,41,20,47,28"/>
-<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title=" " alt="" coords="192,29,349,55"/>
+<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="192,29,349,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,39,178,39,178,45,144,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="239,31,232,21,235,11,249,5,271,3,297,6,309,15,305,19,295,11,271,8,250,10,239,15,237,20,243,28"/>
-<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title=" " alt="" coords="397,29,572,55"/>
+<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="397,29,572,55"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="349,39,384,39,384,45,349,45"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="450,31,442,21,446,11,461,5,485,3,514,6,526,15,523,20,512,11,485,8,462,10,450,15,447,20,454,28"/>
 </map>

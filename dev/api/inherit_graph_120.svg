@@ -38,7 +38,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_focus_wheel_1_1_filter.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_focus_wheel_1_1_filter.html" target="_top" xlink:title="The event filter that guard installs; the box owns it.">
 <polygon fill="white" stroke="#666666" points="219.5,-722 113.5,-722 113.5,-703 219.5,-703 219.5,-722"/>
 <text text-anchor="middle" x="166.5" y="-710" font-family="Helvetica,sans-Serif" font-size="10.00">FocusWheel::Filter</text>
 </a>

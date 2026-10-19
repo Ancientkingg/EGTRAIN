@@ -128,9 +128,13 @@ Collaboration diagram for EditorLayout::VerticalScrollArea:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a486c3d3653896eb58e53c23821228941" id="r_a486c3d3653896eb58e53c23821228941"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a486c3d3653896eb58e53c23821228941">VerticalScrollArea</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:a486c3d3653896eb58e53c23821228941"><td class="mdescLeft">&#160;</td><td class="mdescRight">An area without frame or horizontal scroll bar that resizes its panel.  <br /></td></tr>
 <tr class="memitem:aecb71595e09ceca9feb86ec935d01393" id="r_aecb71595e09ceca9feb86ec935d01393"><td class="memItemLeft">QSize&#160;</td><td class="memItemRight"><a class="el" href="#aecb71595e09ceca9feb86ec935d01393">minimumSizeHint</a> () const override</td></tr>
+<tr class="memdesc:aecb71595e09ceca9feb86ec935d01393"><td class="mdescLeft">&#160;</td><td class="mdescRight">The minimum width of the panel plus the vertical scroll bar and the frame.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Scroll area for the panel of a narrow rail dock. It scrolls up and down and never shows a horizontal scroll bar. Its minimum width is the minimum width of the panel plus the vertical scroll bar, so the dock cannot be made narrower than the panel needs and the scroll bar does not take room from the fields of the panel. The panel is resized with the area and has no frame. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a486c3d3653896eb58e53c23821228941" name="a486c3d3653896eb58e53c23821228941"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a486c3d3653896eb58e53c23821228941">&#9670;&#160;</a></span>VerticalScrollArea()</h2>
 
@@ -153,6 +157,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>An area without frame or horizontal scroll bar that resizes its panel. </p>
 
 </div>
 </div>
@@ -179,6 +185,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The minimum width of the panel plus the vertical scroll bar and the frame. </p>
 
 </div>
 </div>
