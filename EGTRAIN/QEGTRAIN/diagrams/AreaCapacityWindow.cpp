@@ -715,6 +715,7 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	  m_areaLabel(areaLabel),
 	  m_provenance(std::move(provenance)) {
 	setModal(false);
+	setProperty("manualSection", QStringLiteral("capacity-by-area"));
 	setWindowTitle("Capacity by area");
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);

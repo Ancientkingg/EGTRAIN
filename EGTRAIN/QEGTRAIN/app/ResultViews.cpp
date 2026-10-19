@@ -278,6 +278,7 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setProperty("manualSection", QStringLiteral("train-diagram"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setPresentation(heading, QString("Run: %1").arg(completedRunContext(run->provenance)), QString());
@@ -352,6 +353,7 @@ void ResultViews::showDelayDiagram() {
 	}
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setProperty("manualSection", QStringLiteral("timetable-results"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setPresentation(heading, QString("Run: %1").arg(completedRunContext(run->provenance)), QString());
@@ -451,6 +453,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setProperty("manualSection", QStringLiteral("train-paths"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	if (stationAxis) win->setStationAxis(stationAxis, std::move(stationTicks));
@@ -572,6 +575,7 @@ void ResultViews::showBlockingTimeDiagram() {
 	axisY->setRange(diagram->timeRange.first, diagram->timeRange.second);
 
 	DiagramWindow* win = new DiagramWindow(ResultViewName::kBlockingTime, m_window);
+	win->setProperty("manualSection", QStringLiteral("blocking-time"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setBlockSections(extents, QString::fromStdString(referencePath.id));
@@ -654,6 +658,7 @@ void ResultViews::showCapacityAnalysis() {
 	QDialog* dialog = new QDialog(m_window);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	dialog->setWindowTitle(ResultViewName::kCapacity);
+	dialog->setProperty("manualSection", QStringLiteral("capacity"));
 	dialog->setModal(false);
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
@@ -845,6 +850,7 @@ void ResultViews::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult
 	axisY->setReverse(true);
 	axisY->setRange(minimumTime, maximumTime);
 	DiagramWindow* window = new DiagramWindow("Compressed blocking-time diagram", m_window);
+	window->setProperty("manualSection", QStringLiteral("capacity"));
 	window->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	window->setChart(chart);
 	window->setBlockSections(extents, referenceId);

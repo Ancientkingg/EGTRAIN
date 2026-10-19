@@ -468,6 +468,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	  m_scenario(std::move(scenario)),
 	  m_baseline(std::move(baseline)) {
 	setModal(false);
+	setProperty("manualSection", QStringLiteral("delay-analysis"));
 	setWindowTitle("Delay analysis");
 	m_events = buildDelayEvents(m_scenario.timetable, m_scenario.run);
 	if (m_baseline)

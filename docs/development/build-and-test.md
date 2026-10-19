@@ -2441,3 +2441,12 @@ A page links to a class with the address of the published reference, such as
 works on GitHub. The site build points such a link to the reference next to the page.
 `build/docs-venv/bin/python tools/docs/check_undocumented.py main` lists the undocumented classes
 and members that your branch adds since it forked from `main`, as the pull request check does.
+
+The same environment builds the manual of the application. When `build/docs-venv` holds Sphinx at
+configure time, the build runs Sphinx's `qthelp` builder with `-t manual` on `docs/index.md` and
+`docs/guides/`, then `qhelpgenerator`, and copies `EGTRAIN.qch` next to the program, or into
+`Contents/Resources` of the macOS app. The configure output says whether it does.
+**Help > EGTRAIN Manual** and F1 open the section of the window that has the focus: a window or
+dock names its section in the property `manualSection`, and `widgets/ManualWindow.cpp` maps each
+section to a page. Without `EGTRAIN.qch` the application opens that page of the published guides
+in the web browser. The package jobs build the manual and fail when a package lacks it.

@@ -124,6 +124,8 @@ The Windows entry follows the rule of Qt for the application data folder. **File
 
 ## Next
 
+This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its contents and search, and F1 opens the section about the window you are in when the manual has one, otherwise its start page.
+
 - [How-to](how-to.md): recipes for opening and saving, editing a timetable, scenarios and baselines, canvas navigation, results and legacy cases.
 - [Opening an `.egscene` case study](opening-a-case-study.md): bundles, version checks and opening by double-click.
 - [Using EGTRAIN and authoring scenes](scenes-and-application.md): what the docks and windows show, and the scene files.
