@@ -66,6 +66,25 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 	return paddedNode ? static_cast<QGraphicsItem*>(paddedNode) : nearestSignal;
 }
 
+void NetworkScene::select(QGraphicsItem* item) {
+	if (item && item->data(PreviewGraphics::Kind).isValid())
+		emit MousePressedOnPreview(item);
+	else if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
+		emit MousePressedOnNode(node);
+	else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item))
+		emit MousePressedOnStationNode(stationNode);
+	else if (TrackLineItem* arc = qgraphicsitem_cast<TrackLineItem*>(item))
+		emit MousePressedOnArc(arc);
+	else if (ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(item))
+		emit MousePressedOnConnection(connection);
+	else if (SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item))
+		emit MousePressedOnSignal(signal);
+	else if (TrainBodyItem* train = qgraphicsitem_cast<TrainBodyItem*>(item))
+		emit MousePressedOnTrain(train);
+	else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item))
+		emit MousePressedOnPassenger(passenger);
+}
+
 // handles the click on graphical items
 void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsItem* item = nullptr;
@@ -77,23 +96,7 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsScene::mousePressEvent(mouseEvent);
 
 	if (mouseEvent->button() == Qt::LeftButton) {
-		if (item && item->data(PreviewGraphics::Kind).isValid())
-			emit MousePressedOnPreview(item);
-		else if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
-			emit MousePressedOnNode(node);
-		else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item))
-			emit MousePressedOnStationNode(stationNode);
-		else if (TrackLineItem* arc = qgraphicsitem_cast<TrackLineItem*>(item))
-			emit MousePressedOnArc(arc);
-		else if (ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(item))
-			emit MousePressedOnConnection(connection);
-		else if (SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item))
-			emit MousePressedOnSignal(signal);
-		else if (TrainBodyItem* train = qgraphicsitem_cast<TrainBodyItem*>(item))
-			emit MousePressedOnTrain(train);
-		else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item))
-			emit MousePressedOnPassenger(passenger);
-
+		select(item);
 		m_pressedOnEmptyCanvas = !item;
 	}
 

@@ -29,6 +29,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/ElidedLabel.h"
+#include "widgets/FindDialog.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include <QAbstractAnimation>
@@ -55,6 +56,7 @@
 #include <QLineEdit>
 #include <QLineF>
 #include <QList>
+#include <QListWidget>
 #include <QMenu>
 #include <QMetaObject>
 #include <QMouseEvent>
@@ -2959,6 +2961,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 
+	if (w.networkView) {
+		QString findFailure;
+		if (checkFind(w, true, findFailure)) {
+			std::fprintf(stdout, "E2E_FIND_OK\n");
+			std::fflush(stdout);
+		} else {
+			ok = false;
+			failures << findFailure;
+		}
+	}
+
 	// Exercise the real Stop/completion lifecycle after the rendering checks.
 	// Keep a selected operational track so clearing transient states cannot
 	// accidentally clear independent graphics selection. Re-enable delivery
@@ -3106,4 +3119,81 @@ void MainWindowTestAccess::updateTrainPosition(MainWindow& w, int t) {
 void MainWindowTestAccess::visualPolishFrame(MainWindow& w, bool historical) {
 	if (!historical && !scenarioStarted && !w.m_presenter->allTrains.isEmpty())
 		runVisualPolish(w);
+}
+
+// Finds a station, a signal and, with expectTrain, a train: Ctrl+F or the Edit menu action, the kind set in the field,
+// Down to the second match, and Enter in the field or, for the signal, in the result list. The view must then show that
+// item at the detail zoom and the item must carry the selection ring. Esc closes the dialog. The view is fitted and nothing is selected or followed after.
+bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& failure) {
+	const auto key = [](QObject* receiver, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
+		QKeyEvent press(QEvent::KeyPress, code, modifiers);
+		QKeyEvent release(QEvent::KeyRelease, code, modifiers);
+		QApplication::sendEvent(receiver, &press);
+		QApplication::sendEvent(receiver, &release);
+		QApplication::processEvents();
+	};
+	const auto targetLabelled = [&w](const QString& prefix) {
+		const QList<NetworkPresenter::FindTarget> targets = w.m_presenter->findTargets();
+		const auto found = std::find_if(targets.cbegin(), targets.cend(),
+			[&prefix](const NetworkPresenter::FindTarget& target) { return target.label.startsWith(prefix); });
+		return found == targets.cend() ? NetworkPresenter::FindTarget{QString(), nullptr, QPointF()} : *found;
+	};
+	bool viaShortcut = true;
+	for (const QString& kind : {QStringLiteral("Station: "), QStringLiteral("Signal: "), QStringLiteral("Train: ")}) {
+		const NetworkPresenter::FindTarget target = targetLabelled(kind);
+		if (!target.item) {
+			if (kind != QStringLiteral("Train: ") || expectTrain) {
+				failure = QStringLiteral("Find offers no %1").arg(kind.trimmed());
+				return false;
+			}
+			continue;
+		}
+		w.m_inspector->handleDisableHighlight();
+		if (viaShortcut)
+			key(&w, Qt::Key_F, Qt::ControlModifier);
+		else
+			w.m_findAction->trigger();
+		viaShortcut = false;
+		auto* field = w.m_findDialog ? w.m_findDialog->findChild<QLineEdit*>() : nullptr;
+		auto* results = w.m_findDialog ? w.m_findDialog->findChild<QListWidget*>() : nullptr;
+		if (!field || !results || !w.m_findDialog->isVisible()) {
+			failure = QStringLiteral("Find did not open");
+			return false;
+		}
+		field->setText(kind.trimmed());
+		key(field, Qt::Key_Down);
+		if (!results->currentItem() || results->currentRow() != std::min(1, results->count() - 1)) {
+			failure = QStringLiteral("Down left row %1 of %2 current for \"%3\"").arg(results->currentRow()).arg(results->count()).arg(kind.trimmed());
+			return false;
+		}
+		const QString label = results->currentItem()->text();
+		key(kind == QStringLiteral("Signal: ") ? static_cast<QObject*>(results) : field, Qt::Key_Return);
+		const NetworkPresenter::FindTarget shown = targetLabelled(label);
+		const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
+		// The ring of a train is on its group.
+		auto* body = qgraphicsitem_cast<TrainBodyItem*>(shown.item);
+		const QGraphicsItem* ringed = body && body->parentItem() ? body->parentItem() : shown.item;
+		const bool selected = w.m_presenter->effect && ringed && ringed->graphicsEffect() == w.m_presenter->effect
+			&& w.m_inspector->dock()->isVisible() && (!body || w.m_inspector->selectedTrainIndex() == body->index);
+		if (w.m_findDialog->isVisible() || !shown.item || w.networkView->zoomRatio() < TrainBadgeItem::detailedZoomThreshold() - 1e-5
+			|| !visible.contains(shown.center) || !selected) {
+			failure = QStringLiteral("finding \"%1\" left the dialog open %2, zoom %3, centre shown %4, selected %5")
+						  .arg(label)
+						  .arg(w.m_findDialog->isVisible())
+						  .arg(w.networkView->zoomRatio())
+						  .arg(shown.item && visible.contains(shown.center))
+						  .arg(selected);
+			return false;
+		}
+	}
+	w.m_findAction->trigger();
+	key(w.m_findDialog->findChild<QLineEdit*>(), Qt::Key_Escape);
+	const bool closed = !w.m_findDialog->isVisible();
+	w.setFollowTrain(-1);
+	w.networkView->fitToTopology();
+	w.m_inspector->handleDisableHighlight();
+	QApplication::processEvents();
+	if (!closed)
+		failure = QStringLiteral("Esc did not close Find");
+	return closed;
 }

@@ -85,6 +85,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/ElidedLabel.h"
+#include "widgets/FindDialog.h"
 #include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
@@ -2274,6 +2275,47 @@ void MainWindow::setupEditMenu() {
 	}
 	connect(m_undoAction, &QAction::triggered, this, &MainWindow::undoScene);
 	connect(m_redoAction, &QAction::triggered, this, &MainWindow::redoScene);
+
+	// Find only reads the canvas, so it stays enabled during a run.
+	ui->menuEdit->addSeparator();
+	m_findAction = new QAction(QStringLiteral("Find..."), this);
+	m_findAction->setObjectName(QStringLiteral("actionFind"));
+	m_findAction->setShortcut(QKeySequence::Find);
+	ui->menuEdit->addAction(m_findAction);
+	connect(m_findAction, &QAction::triggered, this, &MainWindow::showFind);
+}
+
+void MainWindow::showFind() {
+	QStringList labels;
+	for (const NetworkPresenter::FindTarget& target : m_presenter->findTargets())
+		labels.append(target.label);
+	if (labels.isEmpty()) {
+		statusBar()->showMessage("Nothing to find: open a case first", 5000);
+		return;
+	}
+	if (!m_findDialog) {
+		m_findDialog = new FindDialog(this);
+		connect(m_findDialog, &FindDialog::chosen, this, &MainWindow::goToFound);
+	}
+	m_findDialog->setLabels(labels);
+	m_findDialog->open();
+}
+
+// The items are looked up again, because the scene can change while the dialog is open.
+void MainWindow::goToFound(const QString& label) {
+	const QList<NetworkPresenter::FindTarget> targets = m_presenter->findTargets();
+	const auto found = std::find_if(targets.cbegin(), targets.cend(),
+		[&label](const NetworkPresenter::FindTarget& target) { return target.label == label; });
+	if (found == targets.cend() || !networkView)
+		return;
+	// The follow camera would pull the view back to the followed train; a train that is found is followed instead.
+	if (!qgraphicsitem_cast<TrainBodyItem*>(found->item))
+		setFollowTrain(-1);
+	const qreal detail = TrainBadgeItem::detailedZoomThreshold();
+	if (networkView->zoomRatio() < detail)
+		networkView->zoomBy(detail / networkView->zoomRatio());
+	networkView->centerOn(found->center);
+	scene->select(found->item);
 }
 
 void MainWindow::updateUndoRedoActions() {

@@ -35,6 +35,8 @@ public:
 	// The checks of the preview that the creator acceptance scenario makes, defined with it.
 	static bool checkPreviewInfrastructure(MainWindow& w, QString& failure);
 	static bool checkPreviewRuntimeParity(MainWindow& w, QString& failure, bool measuredPresentation = false);
+	// Finds a station, a signal and, with expectTrain, a train through Edit > Find, defined in VisualPolish.cpp.
+	static bool checkFind(MainWindow& w, bool expectTrain, QString& failure);
 
 	// The autostart and the checks of a run and of what follows it, defined in PostRun.cpp.
 	static void autostart(MainWindow& w);
