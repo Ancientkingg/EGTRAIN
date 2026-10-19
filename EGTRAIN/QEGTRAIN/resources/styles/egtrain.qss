@@ -409,6 +409,11 @@ QProgressBar::chunk {
     background: #315a70;
 }
 
+/* The weight is on the header itself, not on its sections, so that Qt sizes the sections with the font it paints. */
+QHeaderView {
+    font-weight: 600;
+}
+
 QHeaderView::section, QTableCornerButton::section {
     background: #e3eaee;
     color: #24313a;
@@ -416,7 +421,6 @@ QHeaderView::section, QTableCornerButton::section {
     border-right: 1px solid #c9d3db;
     border-bottom: 1px solid #c9d3db;
     padding: 4px 8px;
-    font-weight: 600;
 }
 
 QAbstractItemView {
