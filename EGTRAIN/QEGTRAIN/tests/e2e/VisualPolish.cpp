@@ -3122,8 +3122,8 @@ void MainWindowTestAccess::visualPolishFrame(MainWindow& w, bool historical) {
 }
 
 // Finds a station, a signal and, with expectTrain, a train with the keyboard alone: Ctrl+F or the Edit menu action, the
-// label typed into the field, Down until the list shows it, and Enter. The view must then show the item at the detail
-// zoom and the item must be selected. Esc closes the dialog. The view is fitted and nothing is selected or followed after.
+// kind typed into the field, Down to the second match, and Enter. The view must then show that item at the detail zoom
+// and the item must carry the selection ring. Esc closes the dialog. The view is fitted and nothing is selected or followed after.
 bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& failure) {
 	const auto key = [](QObject* receiver, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
 		QKeyEvent press(QEvent::KeyPress, code, modifiers);
@@ -3160,21 +3160,25 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 			failure = QStringLiteral("Find did not open");
 			return false;
 		}
-		field->setText(target.label);
-		for (int row = 0; row < results->count() && results->currentItem() && results->currentItem()->text() != target.label; ++row)
-			key(field, Qt::Key_Down);
+		field->setText(kind.trimmed());
+		key(field, Qt::Key_Down);
+		if (!results->currentItem() || results->currentRow() != std::min(1, results->count() - 1)) {
+			failure = QStringLiteral("Down left row %1 of %2 current for \"%3\"").arg(results->currentRow()).arg(results->count()).arg(kind.trimmed());
+			return false;
+		}
+		const QString label = results->currentItem()->text();
 		key(field, Qt::Key_Return);
-		const NetworkPresenter::FindTarget shown = targetLabelled(target.label);
+		const NetworkPresenter::FindTarget shown = targetLabelled(label);
 		const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
+		// The ring of a train is on its group.
 		auto* body = qgraphicsitem_cast<TrainBodyItem*>(shown.item);
-		auto* signal = qgraphicsitem_cast<SignalItem*>(shown.item);
-		const bool selected = w.m_presenter->effect && w.m_inspector->dock()->isVisible()
-			&& (!body || w.m_inspector->selectedTrainIndex() == body->index)
-			&& (!signal || signal->data(PreviewGraphics::Kind).isValid() || w.m_presenter->m_inspectedSignal == signal);
+		const QGraphicsItem* ringed = body && body->parentItem() ? body->parentItem() : shown.item;
+		const bool selected = w.m_presenter->effect && ringed && ringed->graphicsEffect() == w.m_presenter->effect
+			&& w.m_inspector->dock()->isVisible() && (!body || w.m_inspector->selectedTrainIndex() == body->index);
 		if (w.m_findDialog->isVisible() || !shown.item || w.networkView->zoomRatio() < TrainBadgeItem::detailedZoomThreshold() - 1e-5
 			|| !visible.contains(shown.center) || !selected) {
 			failure = QStringLiteral("finding \"%1\" left the dialog open %2, zoom %3, centre shown %4, selected %5")
-						  .arg(target.label)
+						  .arg(label)
 						  .arg(w.m_findDialog->isVisible())
 						  .arg(w.networkView->zoomRatio())
 						  .arg(shown.item && visible.contains(shown.center))
