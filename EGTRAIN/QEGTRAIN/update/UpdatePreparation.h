@@ -40,8 +40,8 @@ bool verifyDownloadedPackageHash(const QString& packagePath,
 
 /// Stages a package after download verification has succeeded, and returns the staged path: the
 /// QEGTRAIN.app bundle on macOS, the QEGTRAIN folder on Windows and ready.AppImage on Linux, in
-/// stagingRoot, or the package itself for an installer. Returns an empty path, and sets error when it
-/// is given, on failure.
+/// stagingRoot, or the package itself for an installer. Returns an empty path on failure and may set
+/// error, when it is given.
 QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error = nullptr);
 
 /// The text shown when the downloaded package could not be unpacked: what failed, that the

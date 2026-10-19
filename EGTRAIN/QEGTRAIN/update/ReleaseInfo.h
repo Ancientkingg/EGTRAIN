@@ -38,7 +38,7 @@ struct UpdateManifest {
 	QString distribution; ///< The distribution key of the entry, such as "windows-x64".
 	QString assetName;	  ///< The file name of the package.
 	QString sha256;		  ///< The SHA-256 of the package as 64 lowercase hexadecimal digits.
-	qint64 assetSize = 0; ///< The size of the package in bytes, from 1 to 2 GiB.
+	qint64 assetSize = 0; ///< The size of the package in bytes, from 1 byte to 2 GiB.
 	/// The files the package contains, as relative paths with forward slashes. Empty when the entry has
 	/// no list; a list always names QEGTRAIN.exe.
 	QStringList files;

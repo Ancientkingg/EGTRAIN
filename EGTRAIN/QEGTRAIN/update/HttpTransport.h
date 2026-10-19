@@ -21,14 +21,7 @@ struct HttpRequest {
 	QByteArray extraRootPem;
 };
 
-/// The response of one request.
-///   readAll()        returns the bytes received since the last call.
-///   failed()         is true for a transport error, a cancelled request and an HTTP error status (4xx and 5xx).
-///   statusCode()     is 0 when no response arrived.
-///   contentLength()  is 0 when the response states none.
-///   header(name)     returns the value of a response header, or an empty array when the response has none.
-///   finished()       is emitted once, also after abort().
-/// A redirect of a get() is followed, but never from https to http.
+/// The response of one request. A redirect of a get() is followed, but never from https to http.
 class HttpReply : public QObject {
 	Q_OBJECT
 

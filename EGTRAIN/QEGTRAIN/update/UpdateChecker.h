@@ -22,8 +22,7 @@ class UpdateChecker : public QObject {
 public:
 	/// Uses the transport of the application and a timeout of 10 seconds.
 	explicit UpdateChecker(QObject* parent = nullptr);
-	/// For tests: uses a transport that the caller owns and the given timeout.
-	/// timeoutMs is in milliseconds.
+	/// For tests: uses a transport that the caller owns and a timeout of timeoutMs milliseconds.
 	UpdateChecker(HttpTransport* transport, int timeoutMs, QObject* parent = nullptr);
 
 	/// Fetches releasesUrl() and emits finished() once, also when the request fails or times out. A check

@@ -51,8 +51,8 @@ public:
 	/// Waits for a preparation that is running to end.
 	~SelfUpdater() override;
 
-	/// Checks whether this is a packaged release build that runs from a complete, writable installation
-	/// with its update helper.
+	/// Checks whether this is a packaged release build that runs from a writable installation with its
+	/// update helper. On macOS it also requires a complete QEGTRAIN.app outside a read-only location.
 	static SelfUpdateCapability capability();
 	/// Removes staging folders that an earlier update left next to the installation.
 	static void cleanupStaleStaging();
@@ -68,8 +68,8 @@ public:
 	/// Stops a download. Does nothing when no update runs or while the package is prepared.
 	void cancel();
 	/// Starts the update helper of an update that is ready. The helper waits for this process to end,
-	/// installs the update and starts the application again. Returns false, and removes the staged
-	/// update, when no update is ready or the helper could not be started.
+	/// installs the update and starts the application again. Returns false when no update is ready.
+	/// Returns false and removes the staged update when the helper could not be started.
 	bool restart();
 
 #ifdef EGTRAIN_UPDATE_TEST_HOOK
