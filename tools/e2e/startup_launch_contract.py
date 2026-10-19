@@ -588,7 +588,7 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
 
 
 # How Qt 5 spells a path in the settings file: a character outside ASCII as \x and its code.
-def ini_form(path: Path | str) -> str:
+def ini_form(path) -> str:
     return "".join(c if ord(c) < 128 else "\\x%x" % ord(c) for c in str(path))
 
 

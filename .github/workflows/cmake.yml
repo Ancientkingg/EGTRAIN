@@ -162,8 +162,6 @@ jobs:
           modules: qtcharts
           cache: true
 
-      # The action picks the host and the architecture of the runner, win64_msvc2022_64 on Windows, and on Linux it
-      # installs the system packages that Qt needs.
       - name: Install Qt 6
         if: needs.changes.outputs.build == 'true' && matrix.qt == 6
         uses: jurplel/install-qt-action@v4

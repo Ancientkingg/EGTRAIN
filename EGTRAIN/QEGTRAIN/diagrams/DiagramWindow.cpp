@@ -1061,11 +1061,7 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	for (auto* series : chart->series()) {
 		auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy || !xy->isVisible()) continue;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		const auto points = xy->points();
-#else
-		const auto points = xy->pointsVector();
-#endif
 		bool inside = false;
 		if (xy->property("inspectionFilled").toBool() && points.size() >= 4
 			&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {
