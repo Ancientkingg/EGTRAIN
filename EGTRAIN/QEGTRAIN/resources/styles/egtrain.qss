@@ -67,11 +67,6 @@ QToolButton:disabled {
     color: #64717a;
 }
 
-QToolButton:checked {
-    background: #315a70;
-    color: #ffffff;
-}
-
 QToolBar QToolButton {
     background: #ffffff;
     border-color: #7b8b96;
@@ -82,7 +77,7 @@ QToolBar QToolButton:disabled {
     border-color: #c9d3db;
 }
 
-QToolBar QToolButton:checked {
+QToolButton:checked, QToolBar QToolButton:checked {
     background: #315a70;
     color: #ffffff;
 }
@@ -95,6 +90,7 @@ QToolButton#actionFollowButton:checked {
 
 QToolButton#actionFollowButton:checked:hover, QToolButton#actionFollowButton:checked:focus {
     background: #bcd2df;
+    border-color: #24313a;
 }
 
 QDockWidget {
