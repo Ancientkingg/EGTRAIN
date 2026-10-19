@@ -170,6 +170,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		ok = false;
 		failures << "missing speed controls";
 	} else {
+		if (!w.m_speedSlider->toolTip().contains("right is faster")) {
+			ok = false;
+			failures << "speed slider startup tooltip does not name its direction";
+		}
 		w.m_speedSlider->setValue(250);
 		QApplication::processEvents();
 		if (!w.m_speedLabel->text().contains("4.0x")) {
