@@ -172,12 +172,7 @@ std::string penText(const QPen& pen) {
 		+ std::to_string(static_cast<int>(pen.style()));
 }
 
-std::string pointsText(const QXYSeries* series) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	const auto points = series->points();
-#else
-	const auto points = series->pointsVector();
-#endif
+std::string pointsText(const QList<QPointF>& points) {
 	std::string text;
 	for (const QPointF& point : points)
 		text += exactNumber(point.x()) + "," + exactNumber(point.y()) + "\n";
@@ -206,13 +201,13 @@ std::string chartDump(const DiagramWindow& window) {
 		for (const QByteArray& name : series->dynamicPropertyNames())
 			text += "  " + name.toStdString() + "=" + propertyText(series->property(name.constData())) + "\n";
 		if (const auto* line = qobject_cast<const QXYSeries*>(series)) {
-			text += "  pen " + penText(line->pen()) + "\n" + pointsText(line);
+			text += "  pen " + penText(line->pen()) + "\n" + pointsText(line->points());
 		} else if (const auto* area = qobject_cast<const QAreaSeries*>(series)) {
 			text += "  pen " + penText(area->pen()) + " fill " + area->brush().color().name(QColor::HexArgb).toStdString() + "\n";
 			if (area->upperSeries())
-				text += "  upper\n" + pointsText(area->upperSeries());
+				text += "  upper\n" + pointsText(area->upperSeries()->points());
 			if (area->lowerSeries())
-				text += "  lower\n" + pointsText(area->lowerSeries());
+				text += "  lower\n" + pointsText(area->lowerSeries()->points());
 		}
 	}
 	return text;
