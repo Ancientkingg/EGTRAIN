@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Asks for the scope, analyses it and opens the window, which deletes itself on close....">
 <polygon fill="#999999" stroke="#666666" points="145,-137.5 0,-137.5 0,-118.5 145,-118.5 145,-137.5"/>
 <text text-anchor="middle" x="72.5" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">openAreaCapacityWindow</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_area_capacity_8cpp.html#ad7a62b2ddfb9e5af716ae1744dc9933a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_area_capacity_8cpp.html#ad7a62b2ddfb9e5af716ae1744dc9933a" target="_top" xlink:title="Occupation rates of the resources, the envelope and the chain of the selected trains.">
 <polygon fill="white" stroke="#666666" points="312.5,-247.5 192.5,-247.5 192.5,-228.5 312.5,-228.5 312.5,-247.5"/>
 <text text-anchor="middle" x="252.5" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">analyzeAreaCapacity</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_area_capacity_window_8cpp.html#a8fd0e895bcf5a4af24039d1ac7b077bc" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_area_capacity_window_8cpp.html#a8fd0e895bcf5a4af24039d1ac7b077bc" target="_top" xlink:title="The route and block range of the scope, as the window and the export name the area.">
 <polygon fill="white" stroke="#666666" points="306,-137.5 199,-137.5 199,-118.5 306,-118.5 306,-137.5"/>
 <text text-anchor="middle" x="252.5" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">areaCapacityLabel</text>
 </a>
@@ -83,7 +83,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_area_capacity_window.html#a12ee086c1c889cef03f9b78f4343b454" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_area_capacity_window.html#a12ee086c1c889cef03f9b78f4343b454" target="_top" xlink:title="Shows result for the area named areaLabel. provenance goes into the export sidecar.">
 <polygon fill="white" stroke="#666666" points="316,-100 189,-100 189,-70 316,-70 316,-100"/>
 <text text-anchor="start" x="197" y="-88" font-family="Helvetica,sans-Serif" font-size="10.00">AreaCapacityWindow</text>
 <text text-anchor="middle" x="252.5" y="-77" font-family="Helvetica,sans-Serif" font-size="10.00">::AreaCapacityWindow</text>
@@ -102,7 +102,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_area_capacity_scope_dialog.html#a11ef54b034b103da361fc0b6d05ac3e4" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_area_capacity_scope_dialog.html#a11ef54b034b103da361fc0b6d05ac3e4" target="_top" xlink:title="The scope that the widgets hold now.">
 <polygon fill="white" stroke="#666666" points="324,-52 181,-52 181,-22 324,-22 324,-52"/>
 <text text-anchor="start" x="189" y="-40" font-family="Helvetica,sans-Serif" font-size="10.00">AreaCapacityScopeDialog</text>
 <text text-anchor="middle" x="252.5" y="-29" font-family="Helvetica,sans-Serif" font-size="10.00">::scope</text>
@@ -148,7 +148,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" target="_top" xlink:title="&quot;route / corridor / first block to last block&quot; without the parts the scope lacks, or &quot;no selected rou...">
 <polygon fill="white" stroke="#666666" points="498,-168.5 360,-168.5 360,-149.5 498,-149.5 498,-168.5"/>
 <text text-anchor="middle" x="429" y="-156.5" font-family="Helvetica,sans-Serif" font-size="10.00">capacityScopeLabelFrom</text>
 </a>
@@ -175,7 +175,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title="True when routeIndex indexes routes.">
 <polygon fill="white" stroke="#666666" points="698,-178.5 534,-178.5 534,-159.5 698,-159.5 698,-178.5"/>
 <text text-anchor="middle" x="616" y="-166.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunData::hasRoute</text>
 </a>

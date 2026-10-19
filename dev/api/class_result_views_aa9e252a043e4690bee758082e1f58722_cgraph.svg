@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" target="_top" xlink:title="Empty when the scope has no reference route.">
 <polygon fill="white" stroke="#666666" points="353,-1408 205,-1408 205,-1389 353,-1389 353,-1408"/>
 <text text-anchor="middle" x="279" y="-1396" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeDiagramData</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" target="_top" xlink:title="What the scope dialog offers for the run: its routes, its trains and its length.">
 <polygon fill="white" stroke="#666666" points="366.5,-828 191.5,-828 191.5,-809 366.5,-809 366.5,-828"/>
 <text text-anchor="middle" x="279" y="-816" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeScopeChoicesFrom</text>
 </a>
@@ -147,7 +147,7 @@
 <!-- Node47 -->
 <g id="Node000047" class="node">
 <title>Node47</title>
-<g id="a_Node000047"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title=" ">
+<g id="a_Node000047"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title="The scope of the whole run.">
 <polygon fill="white" stroke="#666666" points="365,-770 193,-770 193,-751 365,-751 365,-770"/>
 <text text-anchor="middle" x="279" y="-758" font-family="Helvetica,sans-Serif" font-size="10.00">defaultBlockingTimeScopeFrom</text>
 </a>
@@ -165,7 +165,7 @@
 <!-- Node49 -->
 <g id="Node000049" class="node">
 <title>Node49</title>
-<g id="a_Node000049"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title=" ">
+<g id="a_Node000049"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title="An empty window with the given title.">
 <polygon fill="white" stroke="#666666" points="371,-504 187,-504 187,-485 371,-485 371,-504"/>
 <text text-anchor="middle" x="279" y="-492" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::DiagramWindow</text>
 </a>
@@ -273,7 +273,7 @@
 <!-- Node60 -->
 <g id="Node000060" class="node">
 <title>Node60</title>
-<g id="a_Node000060"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title=" ">
+<g id="a_Node000060"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title="Sets the function that gives the telemetry observation of an export; empty for none.">
 <polygon fill="white" stroke="#666666" points="362.5,-263.5 195.5,-263.5 195.5,-233.5 362.5,-233.5 362.5,-263.5"/>
 <text text-anchor="start" x="203.5" y="-251.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTelemetry</text>
 <text text-anchor="middle" x="279" y="-240.5" font-family="Helvetica,sans-Serif" font-size="10.00">Capture</text>
@@ -347,7 +347,7 @@
 <!-- Node66 -->
 <g id="Node000066" class="node">
 <title>Node66</title>
-<g id="a_Node000066"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title=" ">
+<g id="a_Node000066"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title="A click on a series selected this train.">
 <polygon fill="#fff0f0" stroke="red" points="362.5,-74 195.5,-74 195.5,-55 362.5,-55 362.5,-74"/>
 <text text-anchor="middle" x="279" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::trainSelected</text>
 </a>
@@ -392,7 +392,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title="The value of series at a sample index, or empty when the series has no such sample.">
 <polygon fill="white" stroke="#666666" points="572,-1463 439,-1463 439,-1444 572,-1444 572,-1463"/>
 <text text-anchor="middle" x="505.5" y="-1451" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedTrajectory::at</text>
 </a>
@@ -410,7 +410,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_run_exports_8cpp.html#a3f71bcbe035affebd92825d3958dfab8" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_run_exports_8cpp.html#a3f71bcbe035affebd92825d3958dfab8" target="_top" xlink:title="Every train&#39;s blocking&#45;time segments, classified against the other trains.">
 <polygon fill="#fff0f0" stroke="red" points="554.5,-1408 456.5,-1408 456.5,-1389 554.5,-1389 554.5,-1408"/>
 <text text-anchor="middle" x="505.5" y="-1396" font-family="Helvetica,sans-Serif" font-size="10.00">blockTimesFrom</text>
 </a>
@@ -520,7 +520,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title="True when routeIndex indexes routes.">
 <polygon fill="white" stroke="#666666" points="803,-1347 639,-1347 639,-1328 803,-1328 803,-1347"/>
 <text text-anchor="middle" x="721" y="-1335" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunData::hasRoute</text>
 </a>
@@ -781,7 +781,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" target="_top" xlink:title="Length of the run in seconds.">
 <polygon fill="white" stroke="#666666" points="569.5,-836.5 441.5,-836.5 441.5,-806.5 569.5,-806.5 569.5,-836.5"/>
 <text text-anchor="start" x="449.5" y="-824.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunSettings</text>
 <text text-anchor="middle" x="505.5" y="-813.5" font-family="Helvetica,sans-Serif" font-size="10.00">::horizonSeconds</text>
@@ -1208,7 +1208,7 @@
 <!-- Node55 -->
 <g id="Node000055" class="node">
 <title>Node55</title>
-<g id="a_Node000055"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title=" ">
+<g id="a_Node000055"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title="True for a chart of rolling stock input, which has no trains: hides the train filter and the selectio...">
 <polygon fill="white" stroke="#666666" points="581.5,-377.5 429.5,-377.5 429.5,-347.5 581.5,-347.5 581.5,-377.5"/>
 <text text-anchor="start" x="437.5" y="-365.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setRolling</text>
 <text text-anchor="middle" x="505.5" y="-354.5" font-family="Helvetica,sans-Serif" font-size="10.00">StockSubject</text>

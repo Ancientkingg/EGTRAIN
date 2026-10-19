@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_run_res
 </div><!--header-->
 <div class="contents">
 
+<p>The Run Results table: one row for each train and the totals of the network.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for RunResults:</div>
@@ -123,15 +126,25 @@ Collaboration diagram for RunResults:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aaf98a9a41d4d8a961082bdfd5ef364e9" id="r_aaf98a9a41d4d8a961082bdfd5ef364e9"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_train_run_result.html">TrainRunResult</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaf98a9a41d4d8a961082bdfd5ef364e9">trains</a></td></tr>
+<tr class="memdesc:aaf98a9a41d4d8a961082bdfd5ef364e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">In run order.  <br /></td></tr>
 <tr class="memitem:aadc30751a69385c4ed3e5577d8f75826" id="r_aadc30751a69385c4ed3e5577d8f75826"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#aadc30751a69385c4ed3e5577d8f75826">networkStartSeconds</a></td></tr>
+<tr class="memdesc:aadc30751a69385c4ed3e5577d8f75826"><td class="mdescLeft">&#160;</td><td class="mdescRight">Earliest startSeconds; unavailable unless every train has its times.  <br /></td></tr>
 <tr class="memitem:af84070eae26546103d9463d88601c318" id="r_af84070eae26546103d9463d88601c318"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#af84070eae26546103d9463d88601c318">networkEndSeconds</a></td></tr>
+<tr class="memdesc:af84070eae26546103d9463d88601c318"><td class="mdescLeft">&#160;</td><td class="mdescRight">Latest endSeconds; unavailable unless every train has its times.  <br /></td></tr>
 <tr class="memitem:ac66389ca2da883fde4099d00e4fa0310" id="r_ac66389ca2da883fde4099d00e4fa0310"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac66389ca2da883fde4099d00e4fa0310">networkTravelSeconds</a></td></tr>
+<tr class="memdesc:ac66389ca2da883fde4099d00e4fa0310"><td class="mdescLeft">&#160;</td><td class="mdescRight">networkEndSeconds minus networkStartSeconds  <br /></td></tr>
 <tr class="memitem:ac7ca236430492597841272465718320f" id="r_ac7ca236430492597841272465718320f"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac7ca236430492597841272465718320f">energyConsumedKWh</a></td></tr>
+<tr class="memdesc:ac7ca236430492597841272465718320f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum over the trains in kWh; unavailable unless every train has it.  <br /></td></tr>
 <tr class="memitem:a71b97fc6ae7364774e876422cf1a4c35" id="r_a71b97fc6ae7364774e876422cf1a4c35"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a71b97fc6ae7364774e876422cf1a4c35">energyWithRegenKWh</a></td></tr>
+<tr class="memdesc:a71b97fc6ae7364774e876422cf1a4c35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum over the trains in kWh; unavailable unless every train has it.  <br /></td></tr>
 <tr class="memitem:a6ad9a8e6d91b828ee28555693910631a" id="r_a6ad9a8e6d91b828ee28555693910631a"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a6ad9a8e6d91b828ee28555693910631a">substationKWh</a></td></tr>
+<tr class="memdesc:a6ad9a8e6d91b828ee28555693910631a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum over the trains in kWh; unavailable unless every train has it.  <br /></td></tr>
 <tr class="memitem:a61b2e1ddcb90f606dea8dc86bc437064" id="r_a61b2e1ddcb90f606dea8dc86bc437064"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a61b2e1ddcb90f606dea8dc86bc437064">substationWithRegenKWh</a></td></tr>
+<tr class="memdesc:a61b2e1ddcb90f606dea8dc86bc437064"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum over the trains in kWh; unavailable unless every train has it.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The Run Results table: one row for each train and the totals of the network. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ac7ca236430492597841272465718320f" name="ac7ca236430492597841272465718320f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac7ca236430492597841272465718320f">&#9670;&#160;</a></span>energyConsumedKWh</h2>
 
@@ -143,6 +156,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sum over the trains in kWh; unavailable unless every train has it. </p>
 
 </div>
 </div>
@@ -158,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Sum over the trains in kWh; unavailable unless every train has it. </p>
+
 </div>
 </div>
 <a id="af84070eae26546103d9463d88601c318" name="af84070eae26546103d9463d88601c318"></a>
@@ -171,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Latest endSeconds; unavailable unless every train has its times. </p>
 
 </div>
 </div>
@@ -186,6 +205,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Earliest startSeconds; unavailable unless every train has its times. </p>
+
 </div>
 </div>
 <a id="ac66389ca2da883fde4099d00e4fa0310" name="ac66389ca2da883fde4099d00e4fa0310"></a>
@@ -199,6 +220,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>networkEndSeconds minus networkStartSeconds </p>
 
 </div>
 </div>
@@ -214,6 +237,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Sum over the trains in kWh; unavailable unless every train has it. </p>
+
 </div>
 </div>
 <a id="a61b2e1ddcb90f606dea8dc86bc437064" name="a61b2e1ddcb90f606dea8dc86bc437064"></a>
@@ -228,6 +253,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Sum over the trains in kWh; unavailable unless every train has it. </p>
+
 </div>
 </div>
 <a id="aaf98a9a41d4d8a961082bdfd5ef364e9" name="aaf98a9a41d4d8a961082bdfd5ef364e9"></a>
@@ -241,6 +268,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In run order. </p>
 
 </div>
 </div>

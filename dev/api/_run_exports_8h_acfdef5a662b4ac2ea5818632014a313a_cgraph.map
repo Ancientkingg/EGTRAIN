@@ -1,15 +1,15 @@
 <map id="capacityCsvFrom" name="capacityCsvFrom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,286,140,311"/>
+<area shape="rect" id="Node000001" title="Empty when the scope has an issue or the occurrences do not form a chain." alt="" coords="5,286,140,311"/>
 <area shape="poly" id="edge20_Node000001_Node000001" title=" " alt="" coords="39,288,32,278,35,268,49,262,73,259,101,263,113,272,109,276,99,268,73,265,51,267,39,271,37,277,43,284"/>
 <area shape="rect" id="Node000002" href="$_capacity_analysis_8cpp.html#aa2d628e9a6d19056454846df4785c094" title=" " alt="" coords="464,110,595,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,283,233,219,324,180,419,145,451,136,453,141,421,151,326,185,235,224,100,288"/>
 <area shape="rect" id="Node000005" href="$_run_exports_8cpp.html#ab420be6557579b41e9121557671bc2f5" title=" " alt="" coords="202,494,358,519"/>
 <area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="88,310,190,418,257,483,253,487,186,422,84,313"/>
-<area shape="rect" id="Node000011" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title=" " alt="" coords="205,65,355,90"/>
+<area shape="rect" id="Node000011" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title="The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given." alt="" coords="205,65,355,90"/>
 <area shape="poly" id="edge21_Node000001_Node000011" title=" " alt="" coords="80,284,123,223,186,147,247,96,250,100,190,151,127,226,84,287"/>
-<area shape="rect" id="Node000013" href="$_capacity_scope_8cpp.html#ae772795361eed14e636e3f0f7ad92b6b" title=" " alt="" coords="189,286,371,311"/>
+<area shape="rect" id="Node000013" href="$_capacity_scope_8cpp.html#ae772795361eed14e636e3f0f7ad92b6b" title="Why the scope cannot be analysed, empty when it can or has no route or block." alt="" coords="189,286,371,311"/>
 <area shape="poly" id="edge27_Node000001_Node000013" title=" " alt="" coords="140,296,175,296,175,301,140,301"/>
-<area shape="rect" id="Node000019" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title=" " alt="" coords="188,383,372,409"/>
+<area shape="rect" id="Node000019" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title="&quot;route / corridor / first block to last block&quot; without the parts the scope lacks, or &quot;no selected rou..." alt="" coords="188,383,372,409"/>
 <area shape="poly" id="edge39_Node000001_Node000019" title=" " alt="" coords="102,309,241,375,238,380,100,314"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="489,112,480,102,485,92,502,86,529,83,564,87,574,92,578,98,574,101,571,96,563,92,529,89,503,91,489,96,486,101,493,108"/>
 <area shape="rect" id="Node000003" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="687,118,893,143"/>
@@ -19,7 +19,7 @@
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="755,120,748,110,751,100,766,94,790,91,820,95,831,104,828,108,818,100,790,97,767,99,755,104,753,109,759,116"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="750,30,748,20,754,10,768,5,790,3,815,6,829,13,826,18,813,11,790,8,770,10,757,15,753,21,755,28"/>
 <area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="246,496,239,486,243,476,257,470,280,467,309,471,320,480,317,484,306,476,280,473,258,475,247,479,244,485,250,492"/>
-<area shape="rect" id="Node000006" href="$_run_exports_8cpp.html#a554f241b4d09d5f8402f9c33981e7b16" title=" " alt="" coords="448,469,611,494"/>
+<area shape="rect" id="Node000006" href="$_run_exports_8cpp.html#a554f241b4d09d5f8402f9c33981e7b16" title="The evidence as text, &quot;leader/follower (leader=… s; follower=… s; candidate=… s)&quot;,..." alt="" coords="448,469,611,494"/>
 <area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="358,496,434,488,435,494,358,501"/>
 <area shape="rect" id="Node000007" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="719,494,861,519"/>
 <area shape="poly" id="edge13_Node000005_Node000007" title=" " alt="" coords="358,504,705,504,705,509,358,509"/>
@@ -36,7 +36,7 @@
 <area shape="poly" id="edge17_Node000009_Node000010" title=" " alt="" coords="848,604,928,604,928,609,848,609"/>
 <area shape="poly" id="edge18_Node000010_Node000010" title=" " alt="" coords="970,596,963,586,967,576,981,570,1005,567,1035,571,1047,580,1044,584,1033,576,1005,573,983,575,971,580,968,585,975,592"/>
 <area shape="poly" id="edge26_Node000011_Node000011" title=" " alt="" coords="246,66,239,56,243,46,257,40,280,38,309,42,320,51,317,55,306,47,280,43,258,45,247,50,244,56,250,63"/>
-<area shape="rect" id="Node000012" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title=" " alt="" coords="458,37,601,62"/>
+<area shape="rect" id="Node000012" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title="The occupations of one train in the scope, with the reference time that the capacity analysis uses." alt="" coords="458,37,601,62"/>
 <area shape="poly" id="edge22_Node000011_Node000012" title=" " alt="" coords="355,66,444,56,445,61,356,72"/>
 <area shape="poly" id="edge24_Node000012_Node000003" title=" " alt="" coords="596,59,639,71,748,110,746,115,638,76,594,65"/>
 <area shape="poly" id="edge25_Node000012_Node000004" title=" " alt="" coords="601,47,677,47,677,52,601,52"/>
@@ -48,7 +48,7 @@
 <area shape="poly" id="edge30_Node000013_Node000015" title=" " alt="" coords="306,283,419,234,441,226,443,231,421,238,308,288"/>
 <area shape="rect" id="Node000017" href="$_blocking_time_diagram_8cpp.html#a2e3ec7df5ff5d122f18686e97790e774" title=" " alt="" coords="436,346,623,371"/>
 <area shape="poly" id="edge35_Node000013_Node000017" title=" " alt="" coords="334,309,463,340,462,345,333,314"/>
-<area shape="rect" id="Node000018" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title=" " alt="" coords="420,395,639,421"/>
+<area shape="rect" id="Node000018" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="420,395,639,421"/>
 <area shape="poly" id="edge38_Node000013_Node000018" title=" " alt="" coords="309,309,373,344,397,364,421,380,443,389,441,394,419,385,394,368,371,349,307,314"/>
 <area shape="poly" id="edge29_Node000014_Node000014" title=" " alt="" coords="489,274,480,264,485,254,502,248,529,246,564,250,574,255,578,260,574,263,571,259,563,255,529,251,503,253,489,258,486,264,493,271"/>
 <area shape="poly" id="edge34_Node000015_Node000003" title=" " alt="" coords="590,181,686,152,717,144,719,149,687,157,591,187"/>

@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_delay_s
 </div><!--header-->
 <div class="contents">
 
+<p>The statistics of the selected events, for each station and for the network.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_delay_analysis_8h_source.html">diagrams/DelayAnalysis.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for DelaySummary:</div>
@@ -123,9 +126,13 @@ Collaboration diagram for DelaySummary:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a2643cd9a9fddfebd0b73edaacbae8219" id="r_a2643cd9a9fddfebd0b73edaacbae8219"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_station_delay_summary.html">StationDelaySummary</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2643cd9a9fddfebd0b73edaacbae8219">stations</a></td></tr>
+<tr class="memdesc:a2643cd9a9fddfebd0b73edaacbae8219"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of first appearance in the events. Every call of a repeated station counts for the same station.  <br /></td></tr>
 <tr class="memitem:ad190ab302bac5f22299b8aede6c2b654" id="r_ad190ab302bac5f22299b8aede6c2b654"><td class="memItemLeft"><a class="el" href="struct_delay_statistics.html">DelayStatistics</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad190ab302bac5f22299b8aede6c2b654">network</a></td></tr>
+<tr class="memdesc:ad190ab302bac5f22299b8aede6c2b654"><td class="mdescLeft">&#160;</td><td class="mdescRight">All selected events together; it is not a mean of the station means.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The statistics of the selected events, for each station and for the network. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ad190ab302bac5f22299b8aede6c2b654" name="ad190ab302bac5f22299b8aede6c2b654"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad190ab302bac5f22299b8aede6c2b654">&#9670;&#160;</a></span>network</h2>
 
@@ -137,6 +144,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>All selected events together; it is not a mean of the station means. </p>
 
 </div>
 </div>
@@ -151,6 +160,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In the order of first appearance in the events. Every call of a repeated station counts for the same station. </p>
 
 </div>
 </div>

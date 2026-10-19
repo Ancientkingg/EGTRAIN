@@ -131,10 +131,14 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:AreaCapacityTrain" id="r_AreaCapacityTrain"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_area_capacity_train.html">AreaCapacityTrain</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One train of the run with the direction of its route.  <a href="struct_area_capacity_train.html#details">More...</a><br /></td></tr>
 <tr class="memitem:AreaCapacityInput" id="r_AreaCapacityInput"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_area_capacity_input.html">AreaCapacityInput</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What analyzeAreaCapacity analyses.  <a href="struct_area_capacity_input.html#details">More...</a><br /></td></tr>
 <tr class="memitem:AreaCapacityResource" id="r_AreaCapacityResource"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_area_capacity_resource.html">AreaCapacityResource</a></td></tr>
 <tr class="memitem:AreaCapacityNote" id="r_AreaCapacityNote"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_area_capacity_note.html">AreaCapacityNote</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One finding of the calculation.  <a href="struct_area_capacity_note.html#details">More...</a><br /></td></tr>
 <tr class="memitem:AreaCapacityResult" id="r_AreaCapacityResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_area_capacity_result.html">AreaCapacityResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of analyzeAreaCapacity.  <a href="struct_area_capacity_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -159,6 +163,7 @@ Enumerations</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ad7a62b2ddfb9e5af716ae1744dc9933a" id="r_ad7a62b2ddfb9e5af716ae1744dc9933a"><td class="memItemLeft"><a class="el" href="struct_area_capacity_result.html">AreaCapacityResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad7a62b2ddfb9e5af716ae1744dc9933a">analyzeAreaCapacity</a> (const <a class="el" href="struct_area_capacity_input.html">AreaCapacityInput</a> &amp;input)</td></tr>
+<tr class="memdesc:ad7a62b2ddfb9e5af716ae1744dc9933a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occupation rates of the resources, the envelope and the chain of the selected trains.  <br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="ab6015ecca101bd676809ab10e59392d0" name="ab6015ecca101bd676809ab10e59392d0"></a>
@@ -180,19 +185,32 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>What a note reports. Each kind names the ids that it fills in <a class="el" href="struct_area_capacity_note.html" title="One finding of the calculation.">AreaCapacityNote</a>; the other ids are empty. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ad7e9a91d0b6c6a9c29c151d1d034a7cf" name="ab6015ecca101bd676809ab10e59392d0ad7e9a91d0b6c6a9c29c151d1d034a7cf"></a>EmptyScope&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ac00abb3cf139f54f82a8872ed40bb8cd" name="ab6015ecca101bd676809ab10e59392d0ac00abb3cf139f54f82a8872ed40bb8cd"></a>InvalidPeriod&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a1faa6cebeea868f75d6ea33fdd8e3aca" name="ab6015ecca101bd676809ab10e59392d0a1faa6cebeea868f75d6ea33fdd8e3aca"></a>DuplicateIdentity&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ad3d524ff89fef586b09ad2ee0c078a97" name="ab6015ecca101bd676809ab10e59392d0ad3d524ff89fef586b09ad2ee0c078a97"></a>NoSelectedTraffic&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a3d4173814129c7ee35ef5b5f0b8d1f72" name="ab6015ecca101bd676809ab10e59392d0a3d4173814129c7ee35ef5b5f0b8d1f72"></a>IncompleteOccupation&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a6cc55f26aa167be6d11d09d3ef2faa51" name="ab6015ecca101bd676809ab10e59392d0a6cc55f26aa167be6d11d09d3ef2faa51"></a>RepeatedResource&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a85b9ae7f3ddf17509296e46f631608ae" name="ab6015ecca101bd676809ab10e59392d0a85b9ae7f3ddf17509296e46f631608ae"></a>OpposingTrain&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ab2ba30e6874f76cf1fc4bb8587fece3c" name="ab6015ecca101bd676809ab10e59392d0ab2ba30e6874f76cf1fc4bb8587fece3c"></a>InvalidReference&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a71aa765389b3b82745076b9d37a0052d" name="ab6015ecca101bd676809ab10e59392d0a71aa765389b3b82745076b9d37a0052d"></a>FewerThanTwoTrains&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a288098aed4ca053b26e1f801eb604f92" name="ab6015ecca101bd676809ab10e59392d0a288098aed4ca053b26e1f801eb604f92"></a>NoSharedResource&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a388bd84ad20aae62663236b8467cea0c" name="ab6015ecca101bd676809ab10e59392d0a388bd84ad20aae62663236b8467cea0c"></a>ChainConflict&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a89e03ebb79629f122da35dbd43ac590d" name="ab6015ecca101bd676809ab10e59392d0a89e03ebb79629f122da35dbd43ac590d"></a>UnselectedTraffic&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ad7e9a91d0b6c6a9c29c151d1d034a7cf" name="ab6015ecca101bd676809ab10e59392d0ad7e9a91d0b6c6a9c29c151d1d034a7cf"></a>EmptyScope&#160;</td><td class="fielddoc"><p>No resource id is left. Nothing else is computed. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ac00abb3cf139f54f82a8872ed40bb8cd" name="ab6015ecca101bd676809ab10e59392d0ac00abb3cf139f54f82a8872ed40bb8cd"></a>InvalidPeriod&#160;</td><td class="fielddoc"><p>The period is not finite or not above 0. Every percentage is -1.0. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a1faa6cebeea868f75d6ea33fdd8e3aca" name="ab6015ecca101bd676809ab10e59392d0a1faa6cebeea868f75d6ea33fdd8e3aca"></a>DuplicateIdentity&#160;</td><td class="fielddoc"><p>trainId repeats the runtimeId of an earlier entry of selected or otherTraffic. The repeating entry is ignored. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ad3d524ff89fef586b09ad2ee0c078a97" name="ab6015ecca101bd676809ab10e59392d0ad3d524ff89fef586b09ad2ee0c078a97"></a>NoSelectedTraffic&#160;</td><td class="fielddoc"><p>No selected train is left. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a3d4173814129c7ee35ef5b5f0b8d1f72" name="ab6015ecca101bd676809ab10e59392d0a3d4173814129c7ee35ef5b5f0b8d1f72"></a>IncompleteOccupation&#160;</td><td class="fielddoc"><p>trainId has an occupation on resourceId that fails validBlockingTimeDiagramInput. It is used nowhere else. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a6cc55f26aa167be6d11d09d3ef2faa51" name="ab6015ecca101bd676809ab10e59392d0a6cc55f26aa167be6d11d09d3ef2faa51"></a>RepeatedResource&#160;</td><td class="fielddoc"><p>trainId has two or more usable occupations on resourceId. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a85b9ae7f3ddf17509296e46f631608ae" name="ab6015ecca101bd676809ab10e59392d0a85b9ae7f3ddf17509296e46f631608ae"></a>OpposingTrain&#160;</td><td class="fielddoc"><p>trainId has another reversedDirection than the first selected train. It is left out of the chain and still counts in the rows and the envelope. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0ab2ba30e6874f76cf1fc4bb8587fece3c" name="ab6015ecca101bd676809ab10e59392d0ab2ba30e6874f76cf1fc4bb8587fece3c"></a>InvalidReference&#160;</td><td class="fielddoc"><p>trainId, a train of the chain, has a profile reference that is not finite or is below 0. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a71aa765389b3b82745076b9d37a0052d" name="ab6015ecca101bd676809ab10e59392d0a71aa765389b3b82745076b9d37a0052d"></a>FewerThanTwoTrains&#160;</td><td class="fielddoc"><p>The chain holds exactly one train. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a288098aed4ca053b26e1f801eb604f92" name="ab6015ecca101bd676809ab10e59392d0a288098aed4ca053b26e1f801eb604f92"></a>NoSharedResource&#160;</td><td class="fielddoc"><p>The adjacent chain trains trainId and otherTrainId share no resource. Not reported when one of them has an invalid reference. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a388bd84ad20aae62663236b8467cea0c" name="ab6015ecca101bd676809ab10e59392d0a388bd84ad20aae62663236b8467cea0c"></a>ChainConflict&#160;</td><td class="fielddoc"><p>The chain holds at least two trains and its compressed occupations overlap. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ab6015ecca101bd676809ab10e59392d0a89e03ebb79629f122da35dbd43ac590d" name="ab6015ecca101bd676809ab10e59392d0a89e03ebb79629f122da35dbd43ac590d"></a>UnselectedTraffic&#160;</td><td class="fielddoc"><p>trainId is in otherTraffic and has an occupation in the area, usable or not. </p>
+</td></tr>
 </table>
 
 </div>
@@ -212,6 +230,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Occupation rates of the resources, the envelope and the chain of the selected trains. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

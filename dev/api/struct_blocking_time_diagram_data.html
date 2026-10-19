@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_blockin
 </div><!--header-->
 <div class="contents">
 
+<p>What the blocking-time diagram of a scope shows and exports.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_exports_8h_source.html">diagrams/RunExports.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for BlockingTimeDiagramData:</div>
@@ -123,17 +126,27 @@ Collaboration diagram for BlockingTimeDiagramData:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aed5d75e7638bfd362ad4bf68f64f366d" id="r_aed5d75e7638bfd362ad4bf68f64f366d"><td class="memItemLeft"><a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a>&#160;</td><td class="memItemRight"><a class="el" href="#aed5d75e7638bfd362ad4bf68f64f366d">referencePath</a></td></tr>
+<tr class="memdesc:aed5d75e7638bfd362ad4bf68f64f366d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The reference route.  <br /></td></tr>
 <tr class="memitem:a08e9a9798dd54be419fd5ce02c02166a" id="r_a08e9a9798dd54be419fd5ce02c02166a"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a08e9a9798dd54be419fd5ce02c02166a">segments</a></td></tr>
+<tr class="memdesc:a08e9a9798dd54be419fd5ce02c02166a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Projected onto the reference route and inside the scope.  <br /></td></tr>
 <tr class="memitem:a78e01c0559c467c1fce72e6abd3f6ac0" id="r_a78e01c0559c467c1fce72e6abd3f6ac0"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a78e01c0559c467c1fce72e6abd3f6ac0">unmapped</a></td></tr>
+<tr class="memdesc:a78e01c0559c467c1fce72e6abd3f6ac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Could not be projected.  <br /></td></tr>
 <tr class="memitem:aa308e64921030b2c12f70594c08e5724" id="r_aa308e64921030b2c12f70594c08e5724"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa308e64921030b2c12f70594c08e5724">extents</a></td></tr>
 <tr class="memitem:a564370d9c527495bc5c264a0dcba47e6" id="r_a564370d9c527495bc5c264a0dcba47e6"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a564370d9c527495bc5c264a0dcba47e6">plannedReferences</a></td></tr>
+<tr class="memdesc:a564370d9c527495bc5c264a0dcba47e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned stop events inside the time range.  <br /></td></tr>
 <tr class="memitem:ac09b3fa31ed1b52180305482a96c3c2f" id="r_ac09b3fa31ed1b52180305482a96c3c2f"><td class="memItemLeft">std::vector&lt; std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac09b3fa31ed1b52180305482a96c3c2f">plannedLines</a></td></tr>
+<tr class="memdesc:ac09b3fa31ed1b52180305482a96c3c2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clipped to the scope, for the chart.  <br /></td></tr>
 <tr class="memitem:a6d67e63b924312daad1bbda42adf3861" id="r_a6d67e63b924312daad1bbda42adf3861"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_trajectory.html">BlockingTimeTrajectory</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6d67e63b924312daad1bbda42adf3861">trajectories</a></td></tr>
+<tr class="memdesc:a6d67e63b924312daad1bbda42adf3861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recorded samples that lie inside an envelope of their train.  <br /></td></tr>
 <tr class="memitem:a0ce7ad9d3b1e3b5dbceffc5a70b7bab9" id="r_a0ce7ad9d3b1e3b5dbceffc5a70b7bab9"><td class="memItemLeft">std::vector&lt; std::vector&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0ce7ad9d3b1e3b5dbceffc5a70b7bab9">trajectoryRows</a></td></tr>
 <tr class="memitem:a1b70af28b923e32fd73b8f18d56da7bf" id="r_a1b70af28b923e32fd73b8f18d56da7bf"><td class="memItemLeft">std::pair&lt; double, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1b70af28b923e32fd73b8f18d56da7bf">timeRange</a></td></tr>
+<tr class="memdesc:a1b70af28b923e32fd73b8f18d56da7bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Elapsed seconds that the chart spans: the interval of the scope, at least 1 s.  <br /></td></tr>
 <tr class="memitem:a4c95afc0f6c3e4e2f1e72a98bda997d8" id="r_a4c95afc0f6c3e4e2f1e72a98bda997d8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c95afc0f6c3e4e2f1e72a98bda997d8">omitted</a> = 0</td></tr>
+<tr class="memdesc:a4c95afc0f6c3e4e2f1e72a98bda997d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Endpoints and events that could not be projected.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the blocking-time diagram of a scope shows and exports. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aa308e64921030b2c12f70594c08e5724" name="aa308e64921030b2c12f70594c08e5724"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa308e64921030b2c12f70594c08e5724">&#9670;&#160;</a></span>extents</h2>
 
@@ -145,6 +158,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The sections of the scope </p>
 
 </div>
 </div>
@@ -160,6 +174,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Endpoints and events that could not be projected. </p>
+
 </div>
 </div>
 <a id="ac09b3fa31ed1b52180305482a96c3c2f" name="ac09b3fa31ed1b52180305482a96c3c2f"></a>
@@ -173,6 +189,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Clipped to the scope, for the chart. </p>
 
 </div>
 </div>
@@ -188,6 +206,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Planned stop events inside the time range. </p>
+
 </div>
 </div>
 <a id="aed5d75e7638bfd362ad4bf68f64f366d" name="aed5d75e7638bfd362ad4bf68f64f366d"></a>
@@ -201,6 +221,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The reference route. </p>
 
 </div>
 </div>
@@ -216,6 +238,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Projected onto the reference route and inside the scope. </p>
+
 </div>
 </div>
 <a id="a1b70af28b923e32fd73b8f18d56da7bf" name="a1b70af28b923e32fd73b8f18d56da7bf"></a>
@@ -229,6 +253,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Elapsed seconds that the chart spans: the interval of the scope, at least 1 s. </p>
 
 </div>
 </div>
@@ -244,6 +270,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Recorded samples that lie inside an envelope of their train. </p>
+
 </div>
 </div>
 <a id="a0ce7ad9d3b1e3b5dbceffc5a70b7bab9" name="a0ce7ad9d3b1e3b5dbceffc5a70b7bab9"></a>
@@ -257,6 +285,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The export rows of the trajectories </p>
 
 </div>
 </div>
@@ -271,6 +300,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Could not be projected. </p>
 
 </div>
 </div>

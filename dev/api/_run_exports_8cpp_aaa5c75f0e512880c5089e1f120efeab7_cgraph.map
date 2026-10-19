@@ -1,9 +1,9 @@
 <map id="defaultBlockingTimeScopeFrom" name="defaultBlockingTimeScopeFrom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,235,84"/>
+<area shape="rect" id="Node000001" title="The scope of the whole run." alt="" coords="5,59,235,84"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="78,60,69,50,74,40,91,34,120,32,157,36,167,41,171,46,166,49,163,45,155,41,120,37,92,39,77,44,74,50,82,57"/>
 <area shape="rect" id="Node000002" href="$_blocking_time_scope_8cpp.html#aae61caecea312e72d118f1c729b4a2c9" title=" " alt="" coords="283,29,479,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,56,269,52,269,57,233,61"/>
-<area shape="rect" id="Node000003" href="$struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" title=" " alt="" coords="295,79,466,119"/>
+<area shape="rect" id="Node000003" href="$struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" title="Length of the run in seconds." alt="" coords="295,79,466,119"/>
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="235,81,282,86,282,91,235,86"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="339,31,330,21,334,11,352,5,381,3,417,7,427,11,431,17,427,20,424,15,416,12,381,8,353,10,338,15,335,20,343,27"/>
 </map>

@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title="The CSV field of a value: the number, or an empty field when it is unavailable.">
 <polygon fill="white" stroke="#666666" points="228,-168 168,-168 168,-149 228,-149 228,-168"/>
 <text text-anchor="middle" x="198" y="-156" font-family="Helvetica,sans-Serif" font-size="10.00">csvValue</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_delay_analysis_window_8cpp.html#ac2e80583b573f9ae72959bef697a0259" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_delay_analysis_window_8cpp.html#ac2e80583b573f9ae72959bef697a0259" target="_top" xlink:title="The words of the window and of delay_analysis.csv for a change against the baseline,...">
 <polygon fill="white" stroke="#666666" points="248.5,-74 147.5,-74 147.5,-55 248.5,-55 248.5,-74"/>
 <text text-anchor="middle" x="198" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">delayChangeText</text>
 </a>

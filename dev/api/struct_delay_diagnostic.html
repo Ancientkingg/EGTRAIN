@@ -113,15 +113,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_delay_d
 </div><!--header-->
 <div class="contents">
 
+<p>One reason why two runs cannot be compared.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_delay_analysis_8h_source.html">diagrams/DelayAnalysis.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a74a92dc3cd058e4e3336215d67f5a9dd" id="r_a74a92dc3cd058e4e3336215d67f5a9dd"><td class="memItemLeft"><a class="el" href="_delay_analysis_8h.html#ab222e5d6efd74d15502936212ee68f60">DelayDiagnosticKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#a74a92dc3cd058e4e3336215d67f5a9dd">kind</a> = <a class="el" href="_delay_analysis_8h.html#ab222e5d6efd74d15502936212ee68f60a1320f7ec10b6798d679e11a2dd257b91">DelayDiagnosticKind::ScenarioIdMissing</a></td></tr>
 <tr class="memitem:a168f99298610e5c626806ed483dcb42a" id="r_a168f99298610e5c626806ed483dcb42a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a168f99298610e5c626806ed483dcb42a">serviceId</a></td></tr>
+<tr class="memdesc:a168f99298610e5c626806ed483dcb42a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Service of the occurrence for the occurrence kinds, or the train id when the run has no service id; else empty.  <br /></td></tr>
 <tr class="memitem:ad19ab8b0e72e4a9f24e935bb2f69e16d" id="r_ad19ab8b0e72e4a9f24e935bb2f69e16d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad19ab8b0e72e4a9f24e935bb2f69e16d">occurrence</a> = 0</td></tr>
+<tr class="memdesc:ad19ab8b0e72e4a9f24e935bb2f69e16d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrence of the service, from 1; 0 for the other kinds.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One reason why two runs cannot be compared. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a74a92dc3cd058e4e3336215d67f5a9dd" name="a74a92dc3cd058e4e3336215d67f5a9dd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a74a92dc3cd058e4e3336215d67f5a9dd">&#9670;&#160;</a></span>kind</h2>
 
@@ -133,6 +140,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The reason </p>
 
 </div>
 </div>
@@ -148,6 +156,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Occurrence of the service, from 1; 0 for the other kinds. </p>
+
 </div>
 </div>
 <a id="a168f99298610e5c626806ed483dcb42a" name="a168f99298610e5c626806ed483dcb42a"></a>
@@ -161,6 +171,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Service of the occurrence for the occurrence kinds, or the train id when the run has no service id; else empty. </p>
 
 </div>
 </div>

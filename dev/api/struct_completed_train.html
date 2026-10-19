@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_complet
 </div><!--header-->
 <div class="contents">
 
+<p>One train of the run: its identity, blocking times, stops and recorded samples.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_completed_run_data_8h_source.html">diagrams/CompletedRunData.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for CompletedTrain:</div>
@@ -123,18 +126,29 @@ Collaboration diagram for CompletedTrain:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1b485a17ca85247166de41c2f5ec68ce" id="r_a1b485a17ca85247166de41c2f5ec68ce"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1b485a17ca85247166de41c2f5ec68ce">trainId</a></td></tr>
+<tr class="memdesc:a1b485a17ca85247166de41c2f5ec68ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the train in the run.  <br /></td></tr>
 <tr class="memitem:ac1a42580594f586aeaefdeb080894cb7" id="r_ac1a42580594f586aeaefdeb080894cb7"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac1a42580594f586aeaefdeb080894cb7">operatingCode</a></td></tr>
+<tr class="memdesc:ac1a42580594f586aeaefdeb080894cb7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating code of the service.  <br /></td></tr>
 <tr class="memitem:afde401a9bc9ca5732d840bdaa6c69b67" id="r_afde401a9bc9ca5732d840bdaa6c69b67"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#afde401a9bc9ca5732d840bdaa6c69b67">serviceId</a></td></tr>
+<tr class="memdesc:afde401a9bc9ca5732d840bdaa6c69b67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene service that the train runs.  <br /></td></tr>
 <tr class="memitem:a464335990027a562a4010b743ac7fcfe" id="r_a464335990027a562a4010b743ac7fcfe"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a464335990027a562a4010b743ac7fcfe">serviceOccurrence</a> = 1</td></tr>
+<tr class="memdesc:a464335990027a562a4010b743ac7fcfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrence of the service, from 1.  <br /></td></tr>
 <tr class="memitem:a065d7078f2ba2ec6fb7f042c6015b82b" id="r_a065d7078f2ba2ec6fb7f042c6015b82b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a065d7078f2ba2ec6fb7f042c6015b82b">routeIndex</a> = -1</td></tr>
+<tr class="memdesc:a065d7078f2ba2ec6fb7f042c6015b82b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>, or out of range.  <br /></td></tr>
 <tr class="memitem:ac179c4509c472cc03cb9aabe6dc5bef6" id="r_ac179c4509c472cc03cb9aabe6dc5bef6"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac179c4509c472cc03cb9aabe6dc5bef6">routeId</a></td></tr>
+<tr class="memdesc:ac179c4509c472cc03cb9aabe6dc5bef6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the route of the train.  <br /></td></tr>
 <tr class="memitem:a2f9b65ec334160ac9f66205e58bde36e" id="r_a2f9b65ec334160ac9f66205e58bde36e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2f9b65ec334160ac9f66205e58bde36e">scheduledDepartureTime</a> = 0.0</td></tr>
 <tr class="memitem:ad9ec4f68b31222a24b13bd6e2301342d" id="r_ad9ec4f68b31222a24b13bd6e2301342d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad9ec4f68b31222a24b13bd6e2301342d">runStartTime</a> = 0</td></tr>
 <tr class="memitem:a13187451bd17ac908df4c3df88db7e5d" id="r_a13187451bd17ac908df4c3df88db7e5d"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_input.html">BlockingTimeDiagramInput</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a13187451bd17ac908df4c3df88db7e5d">blockTimes</a></td></tr>
+<tr class="memdesc:a13187451bd17ac908df4c3df88db7e5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Blocking times of the train, as <a class="el" href="class_train.html#a207882ffae8d66449972414dea9b4112">Train::BlockTime</a> holds them.  <br /></td></tr>
 <tr class="memitem:a4ab95037812b825ae41364d8f50fd51a" id="r_a4ab95037812b825ae41364d8f50fd51a"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_completed_stop.html">CompletedStop</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4ab95037812b825ae41364d8f50fd51a">stops</a></td></tr>
+<tr class="memdesc:a4ab95037812b825ae41364d8f50fd51a"><td class="mdescLeft">&#160;</td><td class="mdescRight">In service order.  <br /></td></tr>
 <tr class="memitem:ab1bd6c302afa4af43392761370ed9804" id="r_ab1bd6c302afa4af43392761370ed9804"><td class="memItemLeft"><a class="el" href="struct_completed_trajectory.html">CompletedTrajectory</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab1bd6c302afa4af43392761370ed9804">trajectory</a></td></tr>
+<tr class="memdesc:ab1bd6c302afa4af43392761370ed9804"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recorded samples.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One train of the run: its identity, blocking times, stops and recorded samples. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a13187451bd17ac908df4c3df88db7e5d" name="a13187451bd17ac908df4c3df88db7e5d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a13187451bd17ac908df4c3df88db7e5d">&#9670;&#160;</a></span>blockTimes</h2>
 
@@ -146,6 +160,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Blocking times of the train, as <a class="el" href="class_train.html#a207882ffae8d66449972414dea9b4112">Train::BlockTime</a> holds them. </p>
 
 </div>
 </div>
@@ -161,6 +177,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Operating code of the service. </p>
+
 </div>
 </div>
 <a id="ac179c4509c472cc03cb9aabe6dc5bef6" name="ac179c4509c472cc03cb9aabe6dc5bef6"></a>
@@ -174,6 +192,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Id of the route of the train. </p>
 
 </div>
 </div>
@@ -189,6 +209,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>, or out of range. </p>
+
 </div>
 </div>
 <a id="ad9ec4f68b31222a24b13bd6e2301342d" name="ad9ec4f68b31222a24b13bd6e2301342d"></a>
@@ -202,6 +224,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Step before the first step in which the train moves, in seconds of the run. 0 when the blocking-time stage has not set it. </p>
 
 </div>
 </div>
@@ -216,6 +239,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Scheduled entry of the service occurrence, in seconds of the run </p>
 
 </div>
 </div>
@@ -231,6 +255,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Scene service that the train runs. </p>
+
 </div>
 </div>
 <a id="a464335990027a562a4010b743ac7fcfe" name="a464335990027a562a4010b743ac7fcfe"></a>
@@ -244,6 +270,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Occurrence of the service, from 1. </p>
 
 </div>
 </div>
@@ -259,6 +287,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>In service order. </p>
+
 </div>
 </div>
 <a id="a1b485a17ca85247166de41c2f5ec68ce" name="a1b485a17ca85247166de41c2f5ec68ce"></a>
@@ -273,6 +303,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Name of the train in the run. </p>
+
 </div>
 </div>
 <a id="ab1bd6c302afa4af43392761370ed9804" name="ab1bd6c302afa4af43392761370ed9804"></a>
@@ -286,6 +318,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Recorded samples. </p>
 
 </div>
 </div>

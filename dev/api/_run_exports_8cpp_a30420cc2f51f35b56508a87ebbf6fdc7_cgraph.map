@@ -1,5 +1,5 @@
 <map id="csvValue" name="csvValue">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,85,55"/>
+<area shape="rect" id="Node000001" title="The CSV field of a value: the number, or an empty field when it is unavailable." alt="" coords="5,29,85,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="19,31,13,21,16,11,27,5,45,3,67,6,76,15,73,19,65,11,45,8,29,10,20,15,19,20,23,28"/>
 <area shape="rect" id="Node000002" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="133,29,275,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="86,39,120,39,120,45,86,45"/>

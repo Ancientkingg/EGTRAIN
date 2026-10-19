@@ -11,7 +11,7 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_capacity_compression_evidence.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="struct_capacity_compression_evidence.html" target="_top" xlink:title="An earlier train that fixes the compressed reference of a later one.">
 <polygon fill="white" stroke="#666666" points="167,-19 0,-19 0,0 167,0 167,-19"/>
 <text text-anchor="middle" x="83.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">CapacityCompressionEvidence</text>
 </a>

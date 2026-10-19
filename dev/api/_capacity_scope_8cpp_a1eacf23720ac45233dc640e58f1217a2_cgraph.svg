@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The occupations of one train in the scope, with the reference time that the capacity analysis uses.">
 <polygon fill="#999999" stroke="#666666" points="107,-54.5 0,-54.5 0,-35.5 107,-35.5 107,-54.5"/>
 <text text-anchor="middle" x="53.5" y="-42.5" font-family="Helvetica,sans-Serif" font-size="10.00">capacityInputFrom</text>
 </a>

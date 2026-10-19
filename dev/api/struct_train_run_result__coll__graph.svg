@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="One row of the Run Results table: one train.">
 <polygon fill="#999999" stroke="#666666" points="91,-19 2,-19 2,0 91,0 91,-19"/>
 <text text-anchor="middle" x="46.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainRunResult</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_run_result_value.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_run_result_value.html" target="_top" xlink:title="A result that may not exist. An unavailable value is shown as empty or &quot;&#45;&quot;, never as 0.">
 <polygon fill="white" stroke="#666666" points="93,-211 0,-211 0,-192 93,-192 93,-211"/>
 <text text-anchor="middle" x="46.5" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00">RunResultValue</text>
 </a>

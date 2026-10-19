@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Every train&#39;s blocking&#45;time segments, classified against the other trains.">
 <polygon fill="#999999" stroke="#666666" points="98,-54.5 0,-54.5 0,-35.5 98,-35.5 98,-54.5"/>
 <text text-anchor="middle" x="49" y="-42.5" font-family="Helvetica,sans-Serif" font-size="10.00">blockTimesFrom</text>
 </a>

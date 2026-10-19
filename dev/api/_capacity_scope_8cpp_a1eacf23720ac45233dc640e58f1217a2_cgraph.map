@@ -1,5 +1,5 @@
 <map id="capacityInputFrom" name="capacityInputFrom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,148,96"/>
+<area shape="rect" id="Node000001" title="The occupations of one train in the scope, with the reference time that the capacity analysis uses." alt="" coords="5,71,148,96"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="41,72,33,62,37,52,52,46,77,44,107,48,120,57,116,61,105,53,77,49,53,51,40,56,38,62,45,69"/>
 <area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="196,29,403,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="145,68,216,55,217,60,146,73"/>

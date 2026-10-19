@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_area_ca
 </div><!--header-->
 <div class="contents">
 
+<p>The result of analyzeAreaCapacity.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_area_capacity_8h_source.html">diagrams/AreaCapacity.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for AreaCapacityResult:</div>
@@ -123,14 +126,21 @@ Collaboration diagram for AreaCapacityResult:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a5c348d3467b1b264b6346700064f1f71" id="r_a5c348d3467b1b264b6346700064f1f71"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5c348d3467b1b264b6346700064f1f71">periodSeconds</a> = -1.0</td></tr>
+<tr class="memdesc:a5c348d3467b1b264b6346700064f1f71"><td class="mdescLeft">&#160;</td><td class="mdescRight">The period of the input when it is valid, else -1.0.  <br /></td></tr>
 <tr class="memitem:ad42dc69fa36a0a2078e1b5f2c7a15581" id="r_ad42dc69fa36a0a2078e1b5f2c7a15581"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_area_capacity_resource.html">AreaCapacityResource</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad42dc69fa36a0a2078e1b5f2c7a15581">resources</a></td></tr>
+<tr class="memdesc:ad42dc69fa36a0a2078e1b5f2c7a15581"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of <a class="el" href="struct_area_capacity_input.html#ad5c2a5754a6b40a82affcea0c24bf8cf" title="Empty ids, &quot;None&quot; and ids that repeat an earlier entry are ignored.">AreaCapacityInput::resourceIds</a>.  <br /></td></tr>
 <tr class="memitem:a28b4aca0b5854d8fd032d042b932204e" id="r_a28b4aca0b5854d8fd032d042b932204e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a28b4aca0b5854d8fd032d042b932204e">envelopeSeconds</a> = -1.0</td></tr>
 <tr class="memitem:a2d0b5ca9389aca0aef9a5889c6639ed6" id="r_a2d0b5ca9389aca0aef9a5889c6639ed6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2d0b5ca9389aca0aef9a5889c6639ed6">envelopePercentage</a> = -1.0</td></tr>
+<tr class="memdesc:a2d0b5ca9389aca0aef9a5889c6639ed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">envelopeSeconds / period * 100; -1.0 without a value or a valid period.  <br /></td></tr>
 <tr class="memitem:a77ffe93a3941003e1b95bf19c741c895" id="r_a77ffe93a3941003e1b95bf19c741c895"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a77ffe93a3941003e1b95bf19c741c895">chain</a></td></tr>
+<tr class="memdesc:a77ffe93a3941003e1b95bf19c741c895"><td class="mdescLeft">&#160;</td><td class="mdescRight">analyzeCapacity for the selected trains that run in the direction of the first one.  <br /></td></tr>
 <tr class="memitem:aa54747e0c696c20b6079f7d025420b4a" id="r_aa54747e0c696c20b6079f7d025420b4a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa54747e0c696c20b6079f7d025420b4a">complete</a> = false</td></tr>
 <tr class="memitem:a5fe57fc811da75f3d89329beb603da56" id="r_a5fe57fc811da75f3d89329beb603da56"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_area_capacity_note.html">AreaCapacityNote</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5fe57fc811da75f3d89329beb603da56">notes</a></td></tr>
+<tr class="memdesc:a5fe57fc811da75f3d89329beb603da56"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of the steps of the calculation.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The result of analyzeAreaCapacity. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a77ffe93a3941003e1b95bf19c741c895" name="a77ffe93a3941003e1b95bf19c741c895"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a77ffe93a3941003e1b95bf19c741c895">&#9670;&#160;</a></span>chain</h2>
 
@@ -142,6 +152,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>analyzeCapacity for the selected trains that run in the direction of the first one. </p>
 
 </div>
 </div>
@@ -156,6 +168,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when some row has trainCount above 0 and no note of the kinds UnselectedTraffic, IncompleteOccupation or DuplicateIdentity exists. It says only that no train of the supplied lists that touches the area is missing from the selection and that no occupation in the area is unusable. When it is false the figures count only the selected traffic. </p>
 
 </div>
 </div>
@@ -171,6 +184,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>envelopeSeconds / period * 100; -1.0 without a value or a valid period. </p>
+
 </div>
 </div>
 <a id="a28b4aca0b5854d8fd032d042b932204e" name="a28b4aca0b5854d8fd032d042b932204e"></a>
@@ -184,6 +199,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Latest endOccTime minus earliest startOccTime over all usable occupations of the selected trains, idle gaps included; -1.0 without such an occupation. This legacy envelope is reported for comparison only. </p>
 
 </div>
 </div>
@@ -199,6 +215,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>In the order of the steps of the calculation. </p>
+
 </div>
 </div>
 <a id="a5c348d3467b1b264b6346700064f1f71" name="a5c348d3467b1b264b6346700064f1f71"></a>
@@ -213,6 +231,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The period of the input when it is valid, else -1.0. </p>
+
 </div>
 </div>
 <a id="ad42dc69fa36a0a2078e1b5f2c7a15581" name="ad42dc69fa36a0a2078e1b5f2c7a15581"></a>
@@ -226,6 +246,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In the order of <a class="el" href="struct_area_capacity_input.html#ad5c2a5754a6b40a82affcea0c24bf8cf" title="Empty ids, &quot;None&quot; and ids that repeat an earlier entry are ignored.">AreaCapacityInput::resourceIds</a>. </p>
 
 </div>
 </div>

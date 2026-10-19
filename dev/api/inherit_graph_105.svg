@@ -56,7 +56,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_area_capacity_window.html" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_area_capacity_window.html" target="_top" xlink:title="The result window. Not modal. It holds the result and the run identity, not the run,...">
 <polygon fill="white" stroke="#666666" points="224,-352 103,-352 103,-333 224,-333 224,-352"/>
 <text text-anchor="middle" x="163.5" y="-340" font-family="Helvetica,sans-Serif" font-size="10.00">AreaCapacityWindow</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_delay_analysis_window.html" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_delay_analysis_window.html" target="_top" xlink:title="The result window. Not modal. It holds the runs as values, so it can outlive them.">
 <polygon fill="white" stroke="#666666" points="226,-278 101,-278 101,-259 226,-259 226,-278"/>
 <text text-anchor="middle" x="163.5" y="-266" font-family="Helvetica,sans-Serif" font-size="10.00">DelayAnalysisWindow</text>
 </a>

@@ -85,7 +85,7 @@
 <!-- Node42 -->
 <g id="Node000042" class="node">
 <title>Node42</title>
-<g id="a_Node000042"><a xlink:href="_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6" target="_top" xlink:title=" ">
+<g id="a_Node000042"><a xlink:href="_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6" target="_top" xlink:title="The whole table as an image: every row and column at its natural size, with no scroll bars.">
 <polygon fill="white" stroke="#666666" points="514,-444 425,-444 425,-425 514,-425 514,-444"/>
 <text text-anchor="middle" x="469.5" y="-432" font-family="Helvetica,sans-Serif" font-size="10.00">fullTableImage</text>
 </a>
@@ -463,7 +463,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title="The CSV field of a value: the number, or an empty field when it is unavailable.">
 <polygon fill="white" stroke="#666666" points="934,-1445 874,-1445 874,-1426 934,-1426 934,-1445"/>
 <text text-anchor="middle" x="904" y="-1433" font-family="Helvetica,sans-Serif" font-size="10.00">csvValue</text>
 </a>
@@ -643,7 +643,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title="An empty window with the given title.">
 <polygon fill="#fff0f0" stroke="red" points="996,-967 812,-967 812,-948 996,-948 996,-967"/>
 <text text-anchor="middle" x="904" y="-955" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::DiagramWindow</text>
 </a>
@@ -715,7 +715,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title="Sets the function that gives the telemetry observation of an export; empty for none.">
 <polygon fill="white" stroke="#666666" points="987.5,-855.5 820.5,-855.5 820.5,-825.5 987.5,-825.5 987.5,-855.5"/>
 <text text-anchor="start" x="828.5" y="-843.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTelemetry</text>
 <text text-anchor="middle" x="904" y="-832.5" font-family="Helvetica,sans-Serif" font-size="10.00">Capture</text>
@@ -899,7 +899,7 @@
 <!-- Node67 -->
 <g id="Node000067" class="node">
 <title>Node67</title>
-<g id="a_Node000067"><a xlink:href="_area_capacity_window_8cpp.html#af9ee4fb47ba582bec2c7e4372be7bc64" target="_top" xlink:title=" ">
+<g id="a_Node000067"><a xlink:href="_area_capacity_window_8cpp.html#af9ee4fb47ba582bec2c7e4372be7bc64" target="_top" xlink:title="Asks for the scope, analyses it and opens the window, which deletes itself on close....">
 <polygon fill="#fff0f0" stroke="red" points="758,-340 613,-340 613,-321 758,-321 758,-340"/>
 <text text-anchor="middle" x="685.5" y="-328" font-family="Helvetica,sans-Serif" font-size="10.00">openAreaCapacityWindow</text>
 </a>
@@ -989,7 +989,7 @@
 <!-- Node80 -->
 <g id="Node000080" class="node">
 <title>Node80</title>
-<g id="a_Node000080"><a xlink:href="_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" target="_top" xlink:title=" ">
+<g id="a_Node000080"><a xlink:href="_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" target="_top" xlink:title="Empty when the scope has no reference route.">
 <polygon fill="#fff0f0" stroke="red" points="978,-1078 830,-1078 830,-1059 978,-1059 978,-1078"/>
 <text text-anchor="middle" x="904" y="-1066" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeDiagramData</text>
 </a>
@@ -1007,7 +1007,7 @@
 <!-- Node98 -->
 <g id="Node000098" class="node">
 <title>Node98</title>
-<g id="a_Node000098"><a xlink:href="_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" target="_top" xlink:title=" ">
+<g id="a_Node000098"><a xlink:href="_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" target="_top" xlink:title="What the scope dialog offers for the run: its routes, its trains and its length.">
 <polygon fill="#fff0f0" stroke="red" points="991.5,-1243 816.5,-1243 816.5,-1224 991.5,-1224 991.5,-1243"/>
 <text text-anchor="middle" x="904" y="-1231" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeScopeChoicesFrom</text>
 </a>
@@ -1097,7 +1097,7 @@
 <!-- Node110 -->
 <g id="Node000110" class="node">
 <title>Node110</title>
-<g id="a_Node000110"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title=" ">
+<g id="a_Node000110"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title="The scope of the whole run.">
 <polygon fill="#fff0f0" stroke="red" points="990,-1390 818,-1390 818,-1371 990,-1371 990,-1390"/>
 <text text-anchor="middle" x="904" y="-1378" font-family="Helvetica,sans-Serif" font-size="10.00">defaultBlockingTimeScopeFrom</text>
 </a>

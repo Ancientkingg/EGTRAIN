@@ -717,7 +717,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" target="_top" xlink:title="An energy in MJ as kWh, with kEnergyMJToKWh.">
 <polygon fill="white" stroke="#666666" points="524,-1069 440,-1069 440,-1050 524,-1050 524,-1069"/>
 <text text-anchor="middle" x="482" y="-1057" font-family="Helvetica,sans-Serif" font-size="10.00">energyMJKWh</text>
 </a>

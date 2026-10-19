@@ -118,24 +118,37 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_complet
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a3e58f0c4baaaf37ad6dcea1a1a642e72" id="r_a3e58f0c4baaaf37ad6dcea1a1a642e72"><td class="memItemLeft">std::optional&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3e58f0c4baaaf37ad6dcea1a1a642e72">at</a> (const std::vector&lt; double &gt; &amp;series, int sample) const</td></tr>
+<tr class="memdesc:a3e58f0c4baaaf37ad6dcea1a1a642e72"><td class="mdescLeft">&#160;</td><td class="mdescRight">The value of <span class="tt">series</span> at a sample index, or empty when the series has no such sample.  <br /></td></tr>
 <tr class="memitem:a9bb023bc844c92e2c7449e037b717f30" id="r_a9bb023bc844c92e2c7449e037b717f30"><td class="memItemLeft">std::uint32_t&#160;</td><td class="memItemRight"><a class="el" href="#a9bb023bc844c92e2c7449e037b717f30">blockAt</a> (int sample) const</td></tr>
+<tr class="memdesc:a9bb023bc844c92e2c7449e037b717f30"><td class="mdescLeft">&#160;</td><td class="mdescRight">The block index at a sample index, or kNoBlock when there is none.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac20160136d65f555e7b1be3ad120fd7a" id="r_ac20160136d65f555e7b1be3ad120fd7a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac20160136d65f555e7b1be3ad120fd7a">firstSample</a> = 0</td></tr>
+<tr class="memdesc:ac20160136d65f555e7b1be3ad120fd7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sample index (step of the run) of the first element of every series.  <br /></td></tr>
 <tr class="memitem:a0ea59247c03b5d92a0999be2b58f8aea" id="r_a0ea59247c03b5d92a0999be2b58f8aea"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0ea59247c03b5d92a0999be2b58f8aea">position</a></td></tr>
+<tr class="memdesc:a0ea59247c03b5d92a0999be2b58f8aea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Head position along the route of the train, in m.  <br /></td></tr>
 <tr class="memitem:a2cc8b15107aa83d7457f5006a56babea" id="r_a2cc8b15107aa83d7457f5006a56babea"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2cc8b15107aa83d7457f5006a56babea">speed</a></td></tr>
+<tr class="memdesc:a2cc8b15107aa83d7457f5006a56babea"><td class="mdescLeft">&#160;</td><td class="mdescRight">m/s  <br /></td></tr>
 <tr class="memitem:aedc9cb315d6e216221f481b58d4b5b61" id="r_aedc9cb315d6e216221f481b58d4b5b61"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aedc9cb315d6e216221f481b58d4b5b61">power</a></td></tr>
+<tr class="memdesc:aedc9cb315d6e216221f481b58d4b5b61"><td class="mdescLeft">&#160;</td><td class="mdescRight">W.  <br /></td></tr>
 <tr class="memitem:a18c1f905983652fe0b58f235bebff17e" id="r_a18c1f905983652fe0b58f235bebff17e"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a18c1f905983652fe0b58f235bebff17e">energy</a></td></tr>
+<tr class="memdesc:a18c1f905983652fe0b58f235bebff17e"><td class="mdescLeft">&#160;</td><td class="mdescRight">MJ.  <br /></td></tr>
 <tr class="memitem:aa8dadd4141e09f55a3d40b0780c6e9bd" id="r_aa8dadd4141e09f55a3d40b0780c6e9bd"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa8dadd4141e09f55a3d40b0780c6e9bd">effort</a></td></tr>
+<tr class="memdesc:aa8dadd4141e09f55a3d40b0780c6e9bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tractive effort at the wheel, in N.  <br /></td></tr>
 <tr class="memitem:a226e6bfe52d5462831eb28f6c2b3c509" id="r_a226e6bfe52d5462831eb28f6c2b3c509"><td class="memItemLeft">std::vector&lt; std::uint32_t &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a226e6bfe52d5462831eb28f6c2b3c509">block</a></td></tr>
+<tr class="memdesc:a226e6bfe52d5462831eb28f6c2b3c509"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_completed_run_data.html#a46d1f3fd824f1b082ac38bfa857ffd31" title="Names of the blocks that the trajectories refer to.">CompletedRunData::blockNames</a>, or kNoBlock.  <br /></td></tr>
 <tr class="memitem:ad95630d345a5d457d71d7099a948d500" id="r_ad95630d345a5d457d71d7099a948d500"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_trajectory_segment.html">TrajectorySegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad95630d345a5d457d71d7099a948d500">segments</a></td></tr>
+<tr class="memdesc:ad95630d345a5d457d71d7099a948d500"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runs of valid position samples, as sample indices.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a5997274fdf6008323774706b597b9382" id="r_a5997274fdf6008323774706b597b9382"><td class="memItemLeft">static constexpr std::uint32_t&#160;</td><td class="memItemRight"><a class="el" href="#a5997274fdf6008323774706b597b9382">kNoBlock</a> = 0xFFFFFFFFu</td></tr>
+<tr class="memdesc:a5997274fdf6008323774706b597b9382"><td class="mdescLeft">&#160;</td><td class="mdescRight">What blockAt returns for a sample with no recorded block entry.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The samples of one train over its active range. A series holds the samples from firstSample on and ends where the train's own series ended, so a sample the train did not record is absent, not zero. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a3e58f0c4baaaf37ad6dcea1a1a642e72" name="a3e58f0c4baaaf37ad6dcea1a1a642e72"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3e58f0c4baaaf37ad6dcea1a1a642e72">&#9670;&#160;</a></span>at()</h2>
 
@@ -163,6 +176,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The value of <span class="tt">series</span> at a sample index, or empty when the series has no such sample. </p>
+
 </div>
 </div>
 <a id="a9bb023bc844c92e2c7449e037b717f30" name="a9bb023bc844c92e2c7449e037b717f30"></a>
@@ -188,6 +203,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The block index at a sample index, or kNoBlock when there is none. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -203,6 +220,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index into <a class="el" href="struct_completed_run_data.html#a46d1f3fd824f1b082ac38bfa857ffd31" title="Names of the blocks that the trajectories refer to.">CompletedRunData::blockNames</a>, or kNoBlock. </p>
+
 </div>
 </div>
 <a id="aa8dadd4141e09f55a3d40b0780c6e9bd" name="aa8dadd4141e09f55a3d40b0780c6e9bd"></a>
@@ -216,6 +235,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Tractive effort at the wheel, in N. </p>
 
 </div>
 </div>
@@ -231,6 +252,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>MJ. </p>
+
 </div>
 </div>
 <a id="ac20160136d65f555e7b1be3ad120fd7a" name="ac20160136d65f555e7b1be3ad120fd7a"></a>
@@ -244,6 +267,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sample index (step of the run) of the first element of every series. </p>
 
 </div>
 </div>
@@ -267,6 +292,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>What blockAt returns for a sample with no recorded block entry. </p>
+
 </div>
 </div>
 <a id="a0ea59247c03b5d92a0999be2b58f8aea" name="a0ea59247c03b5d92a0999be2b58f8aea"></a>
@@ -280,6 +307,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Head position along the route of the train, in m. </p>
 
 </div>
 </div>
@@ -295,6 +324,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>W. </p>
+
 </div>
 </div>
 <a id="ad95630d345a5d457d71d7099a948d500" name="ad95630d345a5d457d71d7099a948d500"></a>
@@ -309,6 +340,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Runs of valid position samples, as sample indices. </p>
+
 </div>
 </div>
 <a id="a2cc8b15107aa83d7457f5006a56babea" name="a2cc8b15107aa83d7457f5006a56babea"></a>
@@ -322,6 +355,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>m/s </p>
 
 </div>
 </div>

@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title="The value of series at a sample index, or empty when the series has no such sample.">
 <polygon fill="white" stroke="#666666" points="276,-123 143,-123 143,-104 276,-104 276,-123"/>
 <text text-anchor="middle" x="209.5" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedTrajectory::at</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a9bb023bc844c92e2c7449e037b717f30" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a9bb023bc844c92e2c7449e037b717f30" target="_top" xlink:title="The block index at a sample index, or kNoBlock when there is none.">
 <polygon fill="white" stroke="#666666" points="268.5,-85.5 150.5,-85.5 150.5,-55.5 268.5,-55.5 268.5,-85.5"/>
 <text text-anchor="start" x="158.5" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedTrajectory</text>
 <text text-anchor="middle" x="209.5" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">::blockAt</text>

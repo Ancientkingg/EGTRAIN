@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Empty when the scope has no reference route.">
 <polygon fill="#999999" stroke="#666666" points="148,-392 0,-392 0,-373 148,-373 148,-392"/>
 <text text-anchor="middle" x="74" y="-380" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeDiagramData</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title="The value of series at a sample index, or empty when the series has no such sample.">
 <polygon fill="white" stroke="#666666" points="347.5,-744 214.5,-744 214.5,-725 347.5,-725 347.5,-744"/>
 <text text-anchor="middle" x="281" y="-732" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedTrajectory::at</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_run_exports_8cpp.html#a3f71bcbe035affebd92825d3958dfab8" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_run_exports_8cpp.html#a3f71bcbe035affebd92825d3958dfab8" target="_top" xlink:title="Every train&#39;s blocking&#45;time segments, classified against the other trains.">
 <polygon fill="white" stroke="#666666" points="330,-689 232,-689 232,-670 330,-670 330,-689"/>
 <text text-anchor="middle" x="281" y="-677" font-family="Helvetica,sans-Serif" font-size="10.00">blockTimesFrom</text>
 </a>
@@ -157,7 +157,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title="True when routeIndex indexes routes.">
 <polygon fill="white" stroke="#666666" points="578,-536 414,-536 414,-517 578,-517 578,-536"/>
 <text text-anchor="middle" x="496" y="-524" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunData::hasRoute</text>
 </a>
@@ -503,7 +503,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="struct_completed_stop.html#aba59bf8f781112bcb7bf26b80d7499b1" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="struct_completed_stop.html#aba59bf8f781112bcb7bf26b80d7499b1" target="_top" xlink:title="Whether the station lies on the route, within the allowed block sections when any are given.">
 <polygon fill="white" stroke="#666666" points="565,-444 427,-444 427,-425 565,-425 565,-444"/>
 <text text-anchor="middle" x="496" y="-432" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedStop::onRoute</text>
 </a>

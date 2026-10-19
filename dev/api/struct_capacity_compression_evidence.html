@@ -113,15 +113,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 </div><!--header-->
 <div class="contents">
 
+<p>An earlier train that fixes the compressed reference of a later one.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a85438ebb53bb53b45e0a91e3f0082e96" id="r_a85438ebb53bb53b45e0a91e3f0082e96"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a85438ebb53bb53b45e0a91e3f0082e96">predecessorIdentity</a></td></tr>
+<tr class="memdesc:a85438ebb53bb53b45e0a91e3f0082e96"><td class="mdescLeft">&#160;</td><td class="mdescRight">runtimeId of the earlier train  <br /></td></tr>
 <tr class="memitem:acc2a2a0996bdb945320cd9bda84b465a" id="r_acc2a2a0996bdb945320cd9bda84b465a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#acc2a2a0996bdb945320cd9bda84b465a">minimumHeadway</a> = 0.0</td></tr>
+<tr class="memdesc:acc2a2a0996bdb945320cd9bda84b465a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Minimum headway of the pair.  <br /></td></tr>
 <tr class="memitem:a23cc8c57a4e30f494c99387d44f38ad1" id="r_a23cc8c57a4e30f494c99387d44f38ad1"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_capacity_headway_evidence.html">CapacityHeadwayEvidence</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a23cc8c57a4e30f494c99387d44f38ad1">governingEvidence</a></td></tr>
+<tr class="memdesc:a23cc8c57a4e30f494c99387d44f38ad1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The governing pairs (see <a class="el" href="struct_capacity_pair_row.html#aa2dd6cad91e321f347323c456d2aaefa" title="The occupation pairs whose candidate headway is within kBlockingTimeToleranceSeconds of the largest.">CapacityPairRow::governingEvidence</a>).  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>An earlier train that fixes the compressed reference of a later one. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a23cc8c57a4e30f494c99387d44f38ad1" name="a23cc8c57a4e30f494c99387d44f38ad1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a23cc8c57a4e30f494c99387d44f38ad1">&#9670;&#160;</a></span>governingEvidence</h2>
 
@@ -133,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The governing pairs (see <a class="el" href="struct_capacity_pair_row.html#aa2dd6cad91e321f347323c456d2aaefa" title="The occupation pairs whose candidate headway is within kBlockingTimeToleranceSeconds of the largest.">CapacityPairRow::governingEvidence</a>). </p>
 
 </div>
 </div>
@@ -148,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Minimum headway of the pair. </p>
+
 </div>
 </div>
 <a id="a85438ebb53bb53b45e0a91e3f0082e96" name="a85438ebb53bb53b45e0a91e3f0082e96"></a>
@@ -161,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>runtimeId of the earlier train </p>
 
 </div>
 </div>

@@ -1,9 +1,9 @@
 <map id="areaCapacityLabel" name="areaCapacityLabel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,148,55"/>
+<area shape="rect" id="Node000001" title="The route and block range of the scope, as the window and the export name the area." alt="" coords="5,29,148,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="42,31,35,21,39,11,53,5,77,3,106,6,118,15,114,20,104,11,77,8,54,10,42,15,40,20,46,28"/>
-<area shape="rect" id="Node000002" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title=" " alt="" coords="196,29,380,55"/>
+<area shape="rect" id="Node000002" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title="&quot;route / corridor / first block to last block&quot; without the parts the scope lacks, or &quot;no selected rou..." alt="" coords="196,29,380,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="148,39,182,39,182,45,148,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="253,31,246,21,250,11,264,5,288,3,317,6,329,15,326,20,315,11,288,8,266,10,254,15,251,20,258,28"/>
-<area shape="rect" id="Node000003" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title=" " alt="" coords="428,29,647,55"/>
+<area shape="rect" id="Node000003" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="428,29,647,55"/>
 <area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="380,39,414,39,414,45,380,45"/>
 </map>

@@ -119,13 +119,20 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_area_ca
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad623a65a08e5739ce6d60cadc2919fce" id="r_ad623a65a08e5739ce6d60cadc2919fce"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad623a65a08e5739ce6d60cadc2919fce">resourceId</a></td></tr>
 <tr class="memitem:a776c8f2c8a620115a777edc1105a1286" id="r_a776c8f2c8a620115a777edc1105a1286"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a776c8f2c8a620115a777edc1105a1286">trainCount</a> = 0</td></tr>
+<tr class="memdesc:a776c8f2c8a620115a777edc1105a1286"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selected trains with at least one such occupation.  <br /></td></tr>
 <tr class="memitem:a2a7def27160158799fd53d319c87e01c" id="r_a2a7def27160158799fd53d319c87e01c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a2a7def27160158799fd53d319c87e01c">occupationCount</a> = 0</td></tr>
+<tr class="memdesc:a2a7def27160158799fd53d319c87e01c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Such occupations; a repeat on the same resource counts again.  <br /></td></tr>
 <tr class="memitem:a8d57d0175458a49667cb60622a4b3fe6" id="r_a8d57d0175458a49667cb60622a4b3fe6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8d57d0175458a49667cb60622a4b3fe6">occupationSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a8d57d0175458a49667cb60622a4b3fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum of endOccTime minus startOccTime over those occupations.  <br /></td></tr>
 <tr class="memitem:a7e4c2bf983f6fe5f9aea29c8ae5ff839" id="r_a7e4c2bf983f6fe5f9aea29c8ae5ff839"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7e4c2bf983f6fe5f9aea29c8ae5ff839">unionSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a7e4c2bf983f6fe5f9aea29c8ae5ff839"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the union of those occupations; overlapping or touching ones count once.  <br /></td></tr>
 <tr class="memitem:ad9f9263fa50152619e8e90087c01ff02" id="r_ad9f9263fa50152619e8e90087c01ff02"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad9f9263fa50152619e8e90087c01ff02">occupationPercentage</a> = -1.0</td></tr>
+<tr class="memdesc:ad9f9263fa50152619e8e90087c01ff02"><td class="mdescLeft">&#160;</td><td class="mdescRight">occupationSeconds / period * 100; -1.0 without a valid period.  <br /></td></tr>
 <tr class="memitem:a64390649625cb3e82129c54835181a94" id="r_a64390649625cb3e82129c54835181a94"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a64390649625cb3e82129c54835181a94">governing</a> = false</td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One row per resource of the area, computed from the usable occupations of the selected trains that belong to the resource. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a64390649625cb3e82129c54835181a94" name="a64390649625cb3e82129c54835181a94"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a64390649625cb3e82129c54835181a94">&#9670;&#160;</a></span>governing</h2>
 
@@ -137,6 +144,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True for the rows whose occupationSeconds is the largest (within kBlockingTimeToleranceSeconds, ties all count) and above 0. </p>
 
 </div>
 </div>
@@ -152,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Such occupations; a repeat on the same resource counts again. </p>
+
 </div>
 </div>
 <a id="ad9f9263fa50152619e8e90087c01ff02" name="ad9f9263fa50152619e8e90087c01ff02"></a>
@@ -165,6 +175,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>occupationSeconds / period * 100; -1.0 without a valid period. </p>
 
 </div>
 </div>
@@ -180,6 +192,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Sum of endOccTime minus startOccTime over those occupations. </p>
+
 </div>
 </div>
 <a id="ad623a65a08e5739ce6d60cadc2919fce" name="ad623a65a08e5739ce6d60cadc2919fce"></a>
@@ -193,6 +207,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A resource id of the input </p>
 
 </div>
 </div>
@@ -208,6 +223,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Selected trains with at least one such occupation. </p>
+
 </div>
 </div>
 <a id="a7e4c2bf983f6fe5f9aea29c8ae5ff839" name="a7e4c2bf983f6fe5f9aea29c8ae5ff839"></a>
@@ -221,6 +238,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Length of the union of those occupations; overlapping or touching ones count once. </p>
 
 </div>
 </div>

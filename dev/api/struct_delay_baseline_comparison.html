@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_delay_b
 </div><!--header-->
 <div class="contents">
 
+<p>The comparison of a scenario run with a baseline run.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_delay_analysis_8h_source.html">diagrams/DelayAnalysis.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for DelayBaselineComparison:</div>
@@ -123,12 +126,19 @@ Collaboration diagram for DelayBaselineComparison:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a084dcab650fd7978bddac2d5f14cf460" id="r_a084dcab650fd7978bddac2d5f14cf460"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a084dcab650fd7978bddac2d5f14cf460">compatible</a> = false</td></tr>
+<tr class="memdesc:a084dcab650fd7978bddac2d5f14cf460"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when <span class="tt"><a class="el" href="#a29cb233cbca05b8dd8c1dd18bd9a4f76" title="Every incompatibility, in a fixed order.">diagnostics</a></span> is empty. Otherwise <span class="tt"><a class="el" href="#aaf51ff3fdb875d3da9c55d3c000d17cf" title="In the order of the scenario run.">occurrences</a></span> and <span class="tt"><a class="el" href="#a588df2cff6347f48ba1573a228363e2f" title="An occurrence after another, each in journey order.">calls</a></span> are empty and the totals are unavailable.  <br /></td></tr>
 <tr class="memitem:a29cb233cbca05b8dd8c1dd18bd9a4f76" id="r_a29cb233cbca05b8dd8c1dd18bd9a4f76"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_delay_diagnostic.html">DelayDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a29cb233cbca05b8dd8c1dd18bd9a4f76">diagnostics</a></td></tr>
+<tr class="memdesc:a29cb233cbca05b8dd8c1dd18bd9a4f76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every incompatibility, in a fixed order.  <br /></td></tr>
 <tr class="memitem:aaf51ff3fdb875d3da9c55d3c000d17cf" id="r_aaf51ff3fdb875d3da9c55d3c000d17cf"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_baseline_occurrence.html">BaselineOccurrence</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaf51ff3fdb875d3da9c55d3c000d17cf">occurrences</a></td></tr>
+<tr class="memdesc:aaf51ff3fdb875d3da9c55d3c000d17cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of the scenario run.  <br /></td></tr>
 <tr class="memitem:a588df2cff6347f48ba1573a228363e2f" id="r_a588df2cff6347f48ba1573a228363e2f"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_baseline_call.html">BaselineCall</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a588df2cff6347f48ba1573a228363e2f">calls</a></td></tr>
+<tr class="memdesc:a588df2cff6347f48ba1573a228363e2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">An occurrence after another, each in journey order.  <br /></td></tr>
 <tr class="memitem:a8793a49675d7bf6cc27280d5825603a2" id="r_a8793a49675d7bf6cc27280d5825603a2"><td class="memItemLeft"><a class="el" href="struct_baseline_totals.html">BaselineTotals</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8793a49675d7bf6cc27280d5825603a2">totals</a></td></tr>
+<tr class="memdesc:a8793a49675d7bf6cc27280d5825603a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Over the final arrivals of the occurrences.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The comparison of a scenario run with a baseline run. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a588df2cff6347f48ba1573a228363e2f" name="a588df2cff6347f48ba1573a228363e2f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a588df2cff6347f48ba1573a228363e2f">&#9670;&#160;</a></span>calls</h2>
 
@@ -140,6 +150,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>An occurrence after another, each in journey order. </p>
 
 </div>
 </div>
@@ -155,6 +167,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when <span class="tt"><a class="el" href="#a29cb233cbca05b8dd8c1dd18bd9a4f76" title="Every incompatibility, in a fixed order.">diagnostics</a></span> is empty. Otherwise <span class="tt"><a class="el" href="#aaf51ff3fdb875d3da9c55d3c000d17cf" title="In the order of the scenario run.">occurrences</a></span> and <span class="tt"><a class="el" href="#a588df2cff6347f48ba1573a228363e2f" title="An occurrence after another, each in journey order.">calls</a></span> are empty and the totals are unavailable. </p>
+
 </div>
 </div>
 <a id="a29cb233cbca05b8dd8c1dd18bd9a4f76" name="a29cb233cbca05b8dd8c1dd18bd9a4f76"></a>
@@ -168,6 +182,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Every incompatibility, in a fixed order. </p>
 
 </div>
 </div>
@@ -183,6 +199,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>In the order of the scenario run. </p>
+
 </div>
 </div>
 <a id="a8793a49675d7bf6cc27280d5825603a2" name="a8793a49675d7bf6cc27280d5825603a2"></a>
@@ -196,6 +214,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Over the final arrivals of the occurrences. </p>
 
 </div>
 </div>

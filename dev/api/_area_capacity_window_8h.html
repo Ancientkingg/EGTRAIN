@@ -139,15 +139,20 @@ Classes</h2></td></tr>
 <tr class="memitem:AreaCapacityScope" id="r_AreaCapacityScope"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_area_capacity_scope.html">AreaCapacityScope</a></td></tr>
 <tr class="memitem:AreaCapacityScopeDialog" id="r_AreaCapacityScopeDialog"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_area_capacity_scope_dialog.html">AreaCapacityScopeDialog</a></td></tr>
 <tr class="memitem:AreaCapacityWindow" id="r_AreaCapacityWindow"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_area_capacity_window.html">AreaCapacityWindow</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result window. Not modal. It holds the result and the run identity, not the run, so it can outlive the run.  <a href="class_area_capacity_window.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a971ddcd31b6dd8485cb12b52f3e41012" id="r_a971ddcd31b6dd8485cb12b52f3e41012"><td class="memItemLeft"><a class="el" href="struct_area_capacity_input.html">AreaCapacityInput</a>&#160;</td><td class="memItemRight"><a class="el" href="#a971ddcd31b6dd8485cb12b52f3e41012">areaCapacityInputFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_area_capacity_scope.html">AreaCapacityScope</a> &amp;scope)</td></tr>
 <tr class="memitem:a8fd0e895bcf5a4af24039d1ac7b077bc" id="r_a8fd0e895bcf5a4af24039d1ac7b077bc"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a8fd0e895bcf5a4af24039d1ac7b077bc">areaCapacityLabel</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_area_capacity_scope.html">AreaCapacityScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:a8fd0e895bcf5a4af24039d1ac7b077bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The route and block range of the scope, as the window and the export name the area.  <br /></td></tr>
 <tr class="memitem:a30c14fdd0a08eef42a9d07bb94db095b" id="r_a30c14fdd0a08eef42a9d07bb94db095b"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a30c14fdd0a08eef42a9d07bb94db095b">areaCapacityStatusName</a> (<a class="el" href="_area_capacity_8h.html#ab6015ecca101bd676809ab10e59392d0">AreaCapacityNoteKind</a> kind)</td></tr>
+<tr class="memdesc:a30c14fdd0a08eef42a9d07bb94db095b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The words of the window and of area_capacity.csv for a note: a short name of the kind, such as "Invalid period".  <br /></td></tr>
 <tr class="memitem:a2613ffd852b0d0562deddc75df0a5bb3" id="r_a2613ffd852b0d0562deddc75df0a5bb3"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a2613ffd852b0d0562deddc75df0a5bb3">areaCapacityStatusText</a> (const <a class="el" href="struct_area_capacity_note.html">AreaCapacityNote</a> &amp;note)</td></tr>
+<tr class="memdesc:a2613ffd852b0d0562deddc75df0a5bb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The words of the window and of area_capacity.csv for a note: a sentence that names its trains and resource.  <br /></td></tr>
 <tr class="memitem:aff8399b3104bcfb224d0f7299d1a66c8" id="r_aff8399b3104bcfb224d0f7299d1a66c8"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aff8399b3104bcfb224d0f7299d1a66c8">areaCapacityCsv</a> (const <a class="el" href="struct_area_capacity_result.html">AreaCapacityResult</a> &amp;result, const QString &amp;areaLabel)</td></tr>
 <tr class="memitem:aa9902b53bd578d05441cf70f15c141d0" id="r_aa9902b53bd578d05441cf70f15c141d0"><td class="memItemLeft"><a class="el" href="class_area_capacity_window.html">AreaCapacityWindow</a> *&#160;</td><td class="memItemRight"><a class="el" href="#aa9902b53bd578d05441cf70f15c141d0">openAreaCapacityWindow</a> (QWidget *parent, const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, <a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture={})</td></tr>
+<tr class="memdesc:aa9902b53bd578d05441cf70f15c141d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asks for the scope, analyses it and opens the window, which deletes itself on close. Null when the person cancels.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aff8399b3104bcfb224d0f7299d1a66c8" name="aff8399b3104bcfb224d0f7299d1a66c8"></a>
@@ -168,6 +173,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The text of area_capacity.csv. Every record has the area and whether the traffic is complete. The record types are summary (period, the cycle of the chain, the legacy envelope; the leader and follower columns hold the first and the cycle-closing train of the chain), resource (one for each resource of the area), pair (one for each pair of adjacent trains of the chain) and note (one for each note). A figure that is not available is an empty field. Empty when the result has no resource row. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -194,6 +200,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The input of analyzeAreaCapacity for the scope: the selected trains in the order of the scope and every other train of the run as other traffic. Occupations are passed as the run holds them, so that the analysis reports the unusable ones. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -220,6 +227,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The route and block range of the scope, as the window and the export name the area. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -242,6 +251,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The words of the window and of area_capacity.csv for a note: a short name of the kind, such as "Invalid period". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -264,6 +275,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The words of the window and of area_capacity.csv for a note: a sentence that names its trains and resource. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -295,6 +308,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Asks for the scope, analyses it and opens the window, which deletes itself on close. Null when the person cancels. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

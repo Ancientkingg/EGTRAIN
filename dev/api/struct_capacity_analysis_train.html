@@ -113,19 +113,29 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 </div><!--header-->
 <div class="contents">
 
+<p>One train of the chain: its occupations and the reference time they are shifted by.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a30292457028e91e838a2447d20e605f9" id="r_a30292457028e91e838a2447d20e605f9"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a30292457028e91e838a2447d20e605f9">runtimeId</a></td></tr>
+<tr class="memdesc:a30292457028e91e838a2447d20e605f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime occurrence identity, not a canonical service/timetable key.  <br /></td></tr>
 <tr class="memitem:ac654d1f8fd0431ef608d9905de71e3e0" id="r_ac654d1f8fd0431ef608d9905de71e3e0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac654d1f8fd0431ef608d9905de71e3e0">operatingCode</a></td></tr>
 <tr class="memitem:ab7464cfcf6f80dffad75600ca49e9b06" id="r_ab7464cfcf6f80dffad75600ca49e9b06"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab7464cfcf6f80dffad75600ca49e9b06">profileReferenceTime</a> = -1.0</td></tr>
 <tr class="memitem:adc8c5e3b16104d36b64341570815fb67" id="r_adc8c5e3b16104d36b64341570815fb67"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adc8c5e3b16104d36b64341570815fb67">scheduledReferenceTime</a> = -1.0</td></tr>
+<tr class="memdesc:adc8c5e3b16104d36b64341570815fb67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned time of the reference. Below 0 or not finite: profileReferenceTime is used.  <br /></td></tr>
 <tr class="memitem:a852f7c2950d124f14c597b0441b1d2ef" id="r_a852f7c2950d124f14c597b0441b1d2ef"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a852f7c2950d124f14c597b0441b1d2ef">referenceLabel</a></td></tr>
+<tr class="memdesc:a852f7c2950d124f14c597b0441b1d2ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where the reference lies, for the export.  <br /></td></tr>
 <tr class="memitem:a30c177b4278d41aaa6b89b36bb7936d2" id="r_a30c177b4278d41aaa6b89b36bb7936d2"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a30c177b4278d41aaa6b89b36bb7936d2">referenceSource</a></td></tr>
+<tr class="memdesc:a30c177b4278d41aaa6b89b36bb7936d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where scheduledReferenceTime came from, for the export.  <br /></td></tr>
 <tr class="memitem:ab6a761e15b566bb6efd43b06f8387bd3" id="r_ab6a761e15b566bb6efd43b06f8387bd3"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_input.html">BlockingTimeDiagramInput</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab6a761e15b566bb6efd43b06f8387bd3">occupations</a></td></tr>
+<tr class="memdesc:ab6a761e15b566bb6efd43b06f8387bd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occupations of the analysed resources.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One train of the chain: its occupations and the reference time they are shifted by. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ab6a761e15b566bb6efd43b06f8387bd3" name="ab6a761e15b566bb6efd43b06f8387bd3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab6a761e15b566bb6efd43b06f8387bd3">&#9670;&#160;</a></span>occupations</h2>
 
@@ -137,6 +147,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The occupations of the analysed resources. </p>
 
 </div>
 </div>
@@ -151,6 +163,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Operating code of the service </p>
 
 </div>
 </div>
@@ -165,6 +178,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Profile reference is the selected section entry (normally BlockTime's StartRunTime); malformed or unavailable references make the result invalid. </p>
 
 </div>
 </div>
@@ -180,6 +194,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Where the reference lies, for the export. </p>
+
 </div>
 </div>
 <a id="a30c177b4278d41aaa6b89b36bb7936d2" name="a30c177b4278d41aaa6b89b36bb7936d2"></a>
@@ -193,6 +209,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Where scheduledReferenceTime came from, for the export. </p>
 
 </div>
 </div>
@@ -208,6 +226,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Runtime occurrence identity, not a canonical service/timetable key. </p>
+
 </div>
 </div>
 <a id="adc8c5e3b16104d36b64341570815fb67" name="adc8c5e3b16104d36b64341570815fb67"></a>
@@ -221,6 +241,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Planned time of the reference. Below 0 or not finite: profileReferenceTime is used. </p>
 
 </div>
 </div>

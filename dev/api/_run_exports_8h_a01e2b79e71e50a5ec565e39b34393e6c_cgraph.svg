@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="What the scope dialog offers for the run: its routes, its trains and its length.">
 <polygon fill="#999999" stroke="#666666" points="175,-24.5 0,-24.5 0,-5.5 175,-5.5 175,-24.5"/>
 <text text-anchor="middle" x="87.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeScopeChoicesFrom</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" target="_top" xlink:title="Length of the run in seconds.">
 <polygon fill="white" stroke="#666666" points="339,-30 211,-30 211,0 339,0 339,-30"/>
 <text text-anchor="start" x="219" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunSettings</text>
 <text text-anchor="middle" x="275" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::horizonSeconds</text>

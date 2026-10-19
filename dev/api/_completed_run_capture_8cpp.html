@@ -130,7 +130,9 @@ Include dependency graph for CompletedRunCapture.cpp:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ac6fa406b949ce6e982f46610520698ef" id="r_ac6fa406b949ce6e982f46610520698ef"><td class="memItemLeft"><a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac6fa406b949ce6e982f46610520698ef">routeDiagramPath</a> (const <a class="el" href="class_route.html">Route</a> &amp;route, const <a class="el" href="struct_scene_model.html">SceneModel</a> *scene)</td></tr>
+<tr class="memdesc:ac6fa406b949ce6e982f46610520698ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The route as the nodes of its path, with the stations of the scene when it is given.  <br /></td></tr>
 <tr class="memitem:a0d3cef7ef4d61dfb162e57d4952ff1ca" id="r_a0d3cef7ef4d61dfb162e57d4952ff1ca"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_block_section_input.html">BlockSectionInput</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0d3cef7ef4d61dfb162e57d4952ff1ca">blockSectionInputsForRoute</a> (const <a class="el" href="class_route.html">Route</a> &amp;route)</td></tr>
+<tr class="memdesc:a0d3cef7ef4d61dfb162e57d4952ff1ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">The block sections of the route in route order, with their ends in km.  <br /></td></tr>
 <tr class="memitem:a28ef20b66f910d15773edc1894e07444" id="r_a28ef20b66f910d15773edc1894e07444"><td class="memItemLeft"><a class="el" href="struct_completed_run_data.html">CompletedRunData</a>&#160;</td><td class="memItemRight"><a class="el" href="#a28ef20b66f910d15773edc1894e07444">captureCompletedRun</a> (const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="struct_scene_model.html">SceneModel</a> *scene, long long startOffsetSeconds, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;provenance)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -148,6 +150,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The block sections of the route in route order, with their ends in km. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -184,6 +188,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Copies the finished run out of the simulation. The scene gives the route nodes their station names and may be null. <span class="tt">startOffsetSeconds</span> is the clock time of second 0, in seconds since midnight. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -210,6 +215,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The route as the nodes of its path, with the stations of the scene when it is given. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

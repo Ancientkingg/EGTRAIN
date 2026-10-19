@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" target="_top" xlink:title="The totals over the final arrival of each of the occurrences.">
 <polygon fill="white" stroke="#666666" points="260,-19 174,-19 174,0 260,0 260,-19"/>
 <text text-anchor="middle" x="217" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">baselineTotals</text>
 </a>

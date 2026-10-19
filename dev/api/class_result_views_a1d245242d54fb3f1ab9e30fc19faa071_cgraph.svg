@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title="A provider that calls csv on the shared run with the visible train ids.">
 <polygon fill="white" stroke="#666666" points="356,-492 258,-492 258,-473 356,-473 356,-492"/>
 <text text-anchor="middle" x="307" y="-480" font-family="Helvetica,sans-Serif" font-size="10.00">csvProviderFrom</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title="An empty window with the given title.">
 <polygon fill="white" stroke="#666666" points="399,-455 215,-455 215,-436 399,-436 399,-455"/>
 <text text-anchor="middle" x="307" y="-443" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::DiagramWindow</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title="Sets the function that gives the telemetry observation of an export; empty for none.">
 <polygon fill="white" stroke="#666666" points="390.5,-306.5 223.5,-306.5 223.5,-276.5 390.5,-276.5 390.5,-306.5"/>
 <text text-anchor="start" x="231.5" y="-294.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTelemetry</text>
 <text text-anchor="middle" x="307" y="-283.5" font-family="Helvetica,sans-Serif" font-size="10.00">Capture</text>
@@ -147,7 +147,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" target="_top" xlink:title="As setTimeAxisY, for the X axis.">
 <polygon fill="white" stroke="#666666" points="392,-258 222,-258 222,-239 392,-239 392,-258"/>
 <text text-anchor="middle" x="307" y="-246" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTimeAxisX</text>
 </a>
@@ -183,7 +183,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="_run_exports_8cpp.html#a51e23926b07af75724be1c3bff22f587" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="_run_exports_8cpp.html#a51e23926b07af75724be1c3bff22f587" target="_top" xlink:title="The planned and simulated times and the delays of every stop, in seconds.">
 <polygon fill="white" stroke="#666666" points="360.5,-166 253.5,-166 253.5,-147 360.5,-147 360.5,-166"/>
 <text text-anchor="middle" x="307" y="-154" font-family="Helvetica,sans-Serif" font-size="10.00">timetableCsvFrom</text>
 </a>
@@ -219,7 +219,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title="A click on a series selected this train.">
 <polygon fill="white" stroke="#666666" points="390.5,-74 223.5,-74 223.5,-55 390.5,-55 390.5,-74"/>
 <text text-anchor="middle" x="307" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::trainSelected</text>
 </a>
@@ -320,7 +320,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title="True for a chart of rolling stock input, which has no trains: hides the train filter and the selectio...">
 <polygon fill="white" stroke="#666666" points="591,-412.5 439,-412.5 439,-382.5 591,-382.5 591,-412.5"/>
 <text text-anchor="start" x="447" y="-400.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setRolling</text>
 <text text-anchor="middle" x="515" y="-389.5" font-family="Helvetica,sans-Serif" font-size="10.00">StockSubject</text>
@@ -466,7 +466,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" target="_top" xlink:title="Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view.">
 <polygon fill="white" stroke="#666666" points="592.5,-68 437.5,-68 437.5,-49 592.5,-49 592.5,-68"/>
 <text text-anchor="middle" x="515" y="-56" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::eventFilter</text>
 </a>

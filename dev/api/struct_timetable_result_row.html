@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_timetab
 </div><!--header-->
 <div class="contents">
 
+<p>Planned and simulated times of one stop of one train.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for TimetableResultRow:</div>
@@ -123,22 +126,38 @@ Collaboration diagram for TimetableResultRow:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a347d7f172004e643db83c13befcb4a90" id="r_a347d7f172004e643db83c13befcb4a90"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a347d7f172004e643db83c13befcb4a90">trainId</a></td></tr>
+<tr class="memdesc:a347d7f172004e643db83c13befcb4a90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the train in the run.  <br /></td></tr>
 <tr class="memitem:a2a015781dbabcc92d76d486dbd10b64a" id="r_a2a015781dbabcc92d76d486dbd10b64a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2a015781dbabcc92d76d486dbd10b64a">operatingCode</a></td></tr>
+<tr class="memdesc:a2a015781dbabcc92d76d486dbd10b64a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating code of the service.  <br /></td></tr>
 <tr class="memitem:af5ef3aa22987f6d99bf5f58dd458ea67" id="r_af5ef3aa22987f6d99bf5f58dd458ea67"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af5ef3aa22987f6d99bf5f58dd458ea67">serviceId</a></td></tr>
+<tr class="memdesc:af5ef3aa22987f6d99bf5f58dd458ea67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene service of the train.  <br /></td></tr>
 <tr class="memitem:a5713506bb8f95f5feefd5435392a519e" id="r_a5713506bb8f95f5feefd5435392a519e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a5713506bb8f95f5feefd5435392a519e">occurrence</a> = 1</td></tr>
+<tr class="memdesc:a5713506bb8f95f5feefd5435392a519e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrence of the service, from 1.  <br /></td></tr>
 <tr class="memitem:a02e08dea7d4f2f9743f96fc2b1180721" id="r_a02e08dea7d4f2f9743f96fc2b1180721"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a02e08dea7d4f2f9743f96fc2b1180721">stationId</a></td></tr>
+<tr class="memdesc:a02e08dea7d4f2f9743f96fc2b1180721"><td class="mdescLeft">&#160;</td><td class="mdescRight">Station name used by the arrival statistics.  <br /></td></tr>
 <tr class="memitem:a348d27a3ebbbd7c1b5078a9059521261" id="r_a348d27a3ebbbd7c1b5078a9059521261"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a348d27a3ebbbd7c1b5078a9059521261">journeyIndex</a> = 0</td></tr>
+<tr class="memdesc:a348d27a3ebbbd7c1b5078a9059521261"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the stop in the stops of the train, from 1.  <br /></td></tr>
 <tr class="memitem:ab07b977bd4bcb97df9051fca09e3e6b1" id="r_ab07b977bd4bcb97df9051fca09e3e6b1"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab07b977bd4bcb97df9051fca09e3e6b1">callIndex</a> = 0</td></tr>
+<tr class="memdesc:ab07b977bd4bcb97df9051fca09e3e6b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of the call at this station within the journey, from 1.  <br /></td></tr>
 <tr class="memitem:a5c67b36210b3174b1921629f67418b7b" id="r_a5c67b36210b3174b1921629f67418b7b"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5c67b36210b3174b1921629f67418b7b">plannedArrivalSeconds</a></td></tr>
+<tr class="memdesc:a5c67b36210b3174b1921629f67418b7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">In seconds of the run.  <br /></td></tr>
 <tr class="memitem:a291c39f79217662dab79d76a9f4f1e76" id="r_a291c39f79217662dab79d76a9f4f1e76"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a291c39f79217662dab79d76a9f4f1e76">plannedDepartureSeconds</a></td></tr>
+<tr class="memdesc:a291c39f79217662dab79d76a9f4f1e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">In seconds of the run.  <br /></td></tr>
 <tr class="memitem:a732735ffcb96ef6a0477ff5295135d59" id="r_a732735ffcb96ef6a0477ff5295135d59"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a732735ffcb96ef6a0477ff5295135d59">simulatedArrivalSeconds</a></td></tr>
+<tr class="memdesc:a732735ffcb96ef6a0477ff5295135d59"><td class="mdescLeft">&#160;</td><td class="mdescRight">In seconds of the run.  <br /></td></tr>
 <tr class="memitem:a5e4e13cb9fcb0448cb8be6fa9688d0cd" id="r_a5e4e13cb9fcb0448cb8be6fa9688d0cd"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5e4e13cb9fcb0448cb8be6fa9688d0cd">simulatedDepartureSeconds</a></td></tr>
+<tr class="memdesc:a5e4e13cb9fcb0448cb8be6fa9688d0cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">In seconds of the run; unavailable when the train stays to the end.  <br /></td></tr>
 <tr class="memitem:ae2ad2bbc156f8676a692570a0c0852e4" id="r_ae2ad2bbc156f8676a692570a0c0852e4"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae2ad2bbc156f8676a692570a0c0852e4">arrivalDelaySeconds</a></td></tr>
+<tr class="memdesc:ae2ad2bbc156f8676a692570a0c0852e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simulated minus planned arrival, in seconds.  <br /></td></tr>
 <tr class="memitem:a4e545f8cc77aa1bddec847eb154e52cd" id="r_a4e545f8cc77aa1bddec847eb154e52cd"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a4e545f8cc77aa1bddec847eb154e52cd">departureDelaySeconds</a></td></tr>
 <tr class="memitem:a96b3a2ecc4671ae57ad588a4a0f9f340" id="r_a96b3a2ecc4671ae57ad588a4a0f9f340"><td class="memItemLeft"><a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09af">TimetableValueStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#a96b3a2ecc4671ae57ad588a4a0f9f340">arrivalStatus</a> = <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa37d469e00c73d64a59b6889a48998e1e">TimetableValueStatus::NoPlanAndNotReached</a></td></tr>
+<tr class="memdesc:a96b3a2ecc4671ae57ad588a4a0f9f340"><td class="mdescLeft">&#160;</td><td class="mdescRight">Which arrival times exist.  <br /></td></tr>
 <tr class="memitem:aea78ac11b118673ef2dba8d65ea5e6fc" id="r_aea78ac11b118673ef2dba8d65ea5e6fc"><td class="memItemLeft"><a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09af">TimetableValueStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#aea78ac11b118673ef2dba8d65ea5e6fc">departureStatus</a> = <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa37d469e00c73d64a59b6889a48998e1e">TimetableValueStatus::NoPlanAndNotReached</a></td></tr>
+<tr class="memdesc:aea78ac11b118673ef2dba8d65ea5e6fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Which departure times exist.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Planned and simulated times of one stop of one train. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ae2ad2bbc156f8676a692570a0c0852e4" name="ae2ad2bbc156f8676a692570a0c0852e4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae2ad2bbc156f8676a692570a0c0852e4">&#9670;&#160;</a></span>arrivalDelaySeconds</h2>
 
@@ -150,6 +169,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Simulated minus planned arrival, in seconds. </p>
 
 </div>
 </div>
@@ -165,6 +186,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Which arrival times exist. </p>
+
 </div>
 </div>
 <a id="ab07b977bd4bcb97df9051fca09e3e6b1" name="ab07b977bd4bcb97df9051fca09e3e6b1"></a>
@@ -179,6 +202,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of the call at this station within the journey, from 1. </p>
+
 </div>
 </div>
 <a id="a4e545f8cc77aa1bddec847eb154e52cd" name="a4e545f8cc77aa1bddec847eb154e52cd"></a>
@@ -192,6 +217,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Simulated minus planned departure, in seconds </p>
 
 </div>
 </div>
@@ -207,6 +233,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Which departure times exist. </p>
+
 </div>
 </div>
 <a id="a348d27a3ebbbd7c1b5078a9059521261" name="a348d27a3ebbbd7c1b5078a9059521261"></a>
@@ -220,6 +248,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Position of the stop in the stops of the train, from 1. </p>
 
 </div>
 </div>
@@ -235,6 +265,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Occurrence of the service, from 1. </p>
+
 </div>
 </div>
 <a id="a2a015781dbabcc92d76d486dbd10b64a" name="a2a015781dbabcc92d76d486dbd10b64a"></a>
@@ -248,6 +280,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Operating code of the service. </p>
 
 </div>
 </div>
@@ -263,6 +297,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>In seconds of the run. </p>
+
 </div>
 </div>
 <a id="a291c39f79217662dab79d76a9f4f1e76" name="a291c39f79217662dab79d76a9f4f1e76"></a>
@@ -276,6 +312,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In seconds of the run. </p>
 
 </div>
 </div>
@@ -291,6 +329,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Scene service of the train. </p>
+
 </div>
 </div>
 <a id="a732735ffcb96ef6a0477ff5295135d59" name="a732735ffcb96ef6a0477ff5295135d59"></a>
@@ -304,6 +344,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In seconds of the run. </p>
 
 </div>
 </div>
@@ -319,6 +361,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>In seconds of the run; unavailable when the train stays to the end. </p>
+
 </div>
 </div>
 <a id="a02e08dea7d4f2f9743f96fc2b1180721" name="a02e08dea7d4f2f9743f96fc2b1180721"></a>
@@ -333,6 +377,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Station name used by the arrival statistics. </p>
+
 </div>
 </div>
 <a id="a347d7f172004e643db83c13befcb4a90" name="a347d7f172004e643db83c13befcb4a90"></a>
@@ -346,6 +392,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Name of the train in the run. </p>
 
 </div>
 </div>

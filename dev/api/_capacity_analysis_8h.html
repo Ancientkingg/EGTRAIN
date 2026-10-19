@@ -131,12 +131,19 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:CapacityAnalysisTrain" id="r_CapacityAnalysisTrain"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One train of the chain: its occupations and the reference time they are shifted by.  <a href="struct_capacity_analysis_train.html#details">More...</a><br /></td></tr>
 <tr class="memitem:CapacityHeadwayEvidence" id="r_CapacityHeadwayEvidence"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_headway_evidence.html">CapacityHeadwayEvidence</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One pair of occupations that bounds the headway of two trains.  <a href="struct_capacity_headway_evidence.html#details">More...</a><br /></td></tr>
 <tr class="memitem:CapacityPairRow" id="r_CapacityPairRow"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_pair_row.html">CapacityPairRow</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The headway of a leader and a later follower.  <a href="struct_capacity_pair_row.html#details">More...</a><br /></td></tr>
 <tr class="memitem:CapacityCompressionEvidence" id="r_CapacityCompressionEvidence"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_compression_evidence.html">CapacityCompressionEvidence</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An earlier train that fixes the compressed reference of a later one.  <a href="struct_capacity_compression_evidence.html#details">More...</a><br /></td></tr>
 <tr class="memitem:CapacityCompressionRow" id="r_CapacityCompressionRow"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_compression_row.html">CapacityCompressionRow</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One train of the compressed chain.  <a href="struct_capacity_compression_row.html#details">More...</a><br /></td></tr>
 <tr class="memitem:CapacityCriticalBlock" id="r_CapacityCriticalBlock"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_critical_block.html">CapacityCriticalBlock</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Two compressed occupations of a train and a governing predecessor that touch.  <a href="struct_capacity_critical_block.html#details">More...</a><br /></td></tr>
 <tr class="memitem:CapacityAnalysisResult" id="r_CapacityAnalysisResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of analyzeCapacity.  <a href="struct_capacity_analysis_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -166,6 +173,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Ordered, deterministic capacity chain for one explicit sequence. Inputs are copied; neither train occupations nor canonical timetable data are changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

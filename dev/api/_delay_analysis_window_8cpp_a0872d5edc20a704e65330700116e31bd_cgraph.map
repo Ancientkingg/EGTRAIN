@@ -1,11 +1,11 @@
 <map id="delayCallsCsv" name="delayCallsCsv">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,140,120,165"/>
+<area shape="rect" id="Node000001" title="The CSV text of the Calls tab: one record for each event." alt="" coords="5,140,120,165"/>
 <area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="33,141,26,132,30,122,42,116,63,113,88,117,98,126,95,130,85,122,63,119,44,121,34,125,31,131,37,138"/>
-<area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" title=" " alt="" coords="205,29,285,55"/>
+<area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" title="The CSV field of a value: the number, or an empty field when it is unavailable." alt="" coords="205,29,285,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,138,113,101,167,64,191,53,193,58,169,68,117,105,78,142"/>
-<area shape="rect" id="Node000004" href="$_delay_analysis_window_8cpp.html#acd80f3866cca0943025b11153c495ee7" title=" " alt="" coords="185,103,305,128"/>
+<area shape="rect" id="Node000004" href="$_delay_analysis_window_8cpp.html#acd80f3866cca0943025b11153c495ee7" title="The words of the window and of delay_analysis.csv for a delay class, such as &quot;On time&quot;." alt="" coords="185,103,305,128"/>
 <area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="120,138,171,128,172,133,121,144"/>
-<area shape="rect" id="Node000005" href="$_delay_analysis_window_8cpp.html#a4d085b34f0709ffd7a7c8eec749f8573" title=" " alt="" coords="182,176,309,201"/>
+<area shape="rect" id="Node000005" href="$_delay_analysis_window_8cpp.html#a4d085b34f0709ffd7a7c8eec749f8573" title="The words of the window and of delay_analysis.csv for a status, such as &quot;Not reached&quot;." alt="" coords="182,176,309,201"/>
 <area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="121,161,169,171,168,176,120,167"/>
 <area shape="rect" id="Node000006" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="168,249,323,275"/>
 <area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="86,163,213,240,210,245,84,168"/>

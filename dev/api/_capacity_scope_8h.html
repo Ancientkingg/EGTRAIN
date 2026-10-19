@@ -133,14 +133,19 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:CapacityAnalysisScope" id="r_CapacityAnalysisScope"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The route, blocks, trains and period of a capacity analysis.  <a href="struct_capacity_analysis_scope.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a1eacf23720ac45233dc640e58f1217a2" id="r_a1eacf23720ac45233dc640e58f1217a2"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1eacf23720ac45233dc640e58f1217a2">capacityInputFrom</a> (const <a class="el" href="struct_completed_train.html">CompletedTrain</a> &amp;train, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:a1eacf23720ac45233dc640e58f1217a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occupations of one train in the scope, with the reference time that the capacity analysis uses.  <br /></td></tr>
 <tr class="memitem:a9221478d65742500cad2597b5f521d2c" id="r_a9221478d65742500cad2597b5f521d2c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9221478d65742500cad2597b5f521d2c">capacityInputsFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:a9221478d65742500cad2597b5f521d2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given.  <br /></td></tr>
 <tr class="memitem:ae772795361eed14e636e3f0f7ad92b6b" id="r_ae772795361eed14e636e3f0f7ad92b6b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae772795361eed14e636e3f0f7ad92b6b">capacityScopeIssueFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:ae772795361eed14e636e3f0f7ad92b6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the scope cannot be analysed, empty when it can or has no route or block.  <br /></td></tr>
 <tr class="memitem:aef5487a731116924537c202f04406798" id="r_aef5487a731116924537c202f04406798"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#aef5487a731116924537c202f04406798">firstCapacityScopeWithPairFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memitem:aa88001510e05548edcb57449cb5cfa18" id="r_aa88001510e05548edcb57449cb5cfa18"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa88001510e05548edcb57449cb5cfa18">capacityScopeLabelFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:aa88001510e05548edcb57449cb5cfa18"><td class="mdescLeft">&#160;</td><td class="mdescRight">"route / corridor / first block to last block" without the parts the scope lacks, or "no selected route".  <br /></td></tr>
 <tr class="memitem:a4f64e5cefd15be361bdc4d1bb39727cf" id="r_a4f64e5cefd15be361bdc4d1bb39727cf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4f64e5cefd15be361bdc4d1bb39727cf">chooseCapacityAnalysisScope</a> (QWidget *parent, const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;run, <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -162,6 +167,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The occupations of one train in the scope, with the reference time that the capacity analysis uses. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -188,6 +195,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -214,6 +223,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Why the scope cannot be analysed, empty when it can or has no route or block. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -240,6 +251,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>"route / corridor / first block to last block" without the parts the scope lacks, or "no selected route". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -271,6 +284,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Asks for a route, a range of its blocks, a period, the occurrences to analyse in order and the occurrence that closes the cycle. On accept the scope holds the choice. False when the dialog is cancelled or the run has no route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -293,6 +307,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The first block, in route and block order, that at least two trains occupy, with those trains selected. A scope without a route when there is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

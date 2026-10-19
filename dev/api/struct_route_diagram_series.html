@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_route_d
 </div><!--header-->
 <div class="contents">
 
+<p>One line of the route diagram. A line ends where a point is missing or cannot be projected.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_exports_8h_source.html">diagrams/RunExports.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -121,18 +124,28 @@ Public Types</h2></td></tr>
 , <a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7aa4ecfc70574394990cf17bd83df499f7">Event</a>
 , <a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12">Dwell</a>
  }</td></tr>
+<tr class="memdesc:a99f1439d0db3191ec5ff7ad0ce45b2a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the line shows.  <a href="#a99f1439d0db3191ec5ff7ad0ce45b2a7">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad929dd1cb41383cd82fbe18e0361e694" id="r_ad929dd1cb41383cd82fbe18e0361e694"><td class="memItemLeft"><a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7">Kind</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad929dd1cb41383cd82fbe18e0361e694">kind</a> = <a class="el" href="#a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc">Kind::Trajectory</a></td></tr>
+<tr class="memdesc:ad929dd1cb41383cd82fbe18e0361e694"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the line shows.  <br /></td></tr>
 <tr class="memitem:afd1ac71304019de522ad715bc88884ea" id="r_afd1ac71304019de522ad715bc88884ea"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#afd1ac71304019de522ad715bc88884ea">trainId</a></td></tr>
+<tr class="memdesc:afd1ac71304019de522ad715bc88884ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the train in the run.  <br /></td></tr>
 <tr class="memitem:a74cdea5039364e043e6c301e24233bc6" id="r_a74cdea5039364e043e6c301e24233bc6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a74cdea5039364e043e6c301e24233bc6">trainIndex</a> = 0</td></tr>
+<tr class="memdesc:a74cdea5039364e043e6c301e24233bc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the train in the run.  <br /></td></tr>
 <tr class="memitem:acfc0388524acbf312dafacdc4373950c" id="r_acfc0388524acbf312dafacdc4373950c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#acfc0388524acbf312dafacdc4373950c">event</a></td></tr>
+<tr class="memdesc:acfc0388524acbf312dafacdc4373950c"><td class="mdescLeft">&#160;</td><td class="mdescRight">"planned arrival", "simulated dwell" and so on; empty for a trajectory  <br /></td></tr>
 <tr class="memitem:af94af1edb1ccdc14352115008232d787" id="r_af94af1edb1ccdc14352115008232d787"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af94af1edb1ccdc14352115008232d787">planned</a> = false</td></tr>
+<tr class="memdesc:af94af1edb1ccdc14352115008232d787"><td class="mdescLeft">&#160;</td><td class="mdescRight">Of the timetable, not of the simulation.  <br /></td></tr>
 <tr class="memitem:a1c41f2104a0fa493256ba47acaa5009b" id="r_a1c41f2104a0fa493256ba47acaa5009b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1c41f2104a0fa493256ba47acaa5009b">routeId</a></td></tr>
+<tr class="memdesc:a1c41f2104a0fa493256ba47acaa5009b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> of the train; trajectories only.  <br /></td></tr>
 <tr class="memitem:ac4a4e8861c89ab8ee560614c13dec8fb" id="r_ac4a4e8861c89ab8ee560614c13dec8fb"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_route_diagram_point.html">RouteDiagramPoint</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac4a4e8861c89ab8ee560614c13dec8fb">points</a></td></tr>
+<tr class="memdesc:ac4a4e8861c89ab8ee560614c13dec8fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">In sample or stop order.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One line of the route diagram. A line ends where a point is missing or cannot be projected. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a99f1439d0db3191ec5ff7ad0ce45b2a7" name="a99f1439d0db3191ec5ff7ad0ce45b2a7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a99f1439d0db3191ec5ff7ad0ce45b2a7">&#9670;&#160;</a></span>Kind</h2>
 
@@ -152,10 +165,15 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What the line shows. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc" name="a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc"></a>Trajectory&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99f1439d0db3191ec5ff7ad0ce45b2a7aa4ecfc70574394990cf17bd83df499f7" name="a99f1439d0db3191ec5ff7ad0ce45b2a7aa4ecfc70574394990cf17bd83df499f7"></a>Event&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12" name="a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12"></a>Dwell&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc" name="a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc"></a>Trajectory&#160;</td><td class="fielddoc"><p>Recorded positions of the train. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99f1439d0db3191ec5ff7ad0ce45b2a7aa4ecfc70574394990cf17bd83df499f7" name="a99f1439d0db3191ec5ff7ad0ce45b2a7aa4ecfc70574394990cf17bd83df499f7"></a>Event&#160;</td><td class="fielddoc"><p>One kind of planned or simulated stop event, over the stops of the train </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12" name="a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12"></a>Dwell&#160;</td><td class="fielddoc"><p>A stop, from its arrival to its departure at one position. </p>
+</td></tr>
 </table>
 
 </div>
@@ -173,6 +191,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>"planned arrival", "simulated dwell" and so on; empty for a trajectory </p>
+
 </div>
 </div>
 <a id="ad929dd1cb41383cd82fbe18e0361e694" name="ad929dd1cb41383cd82fbe18e0361e694"></a>
@@ -186,6 +206,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>What the line shows. </p>
 
 </div>
 </div>
@@ -201,6 +223,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Of the timetable, not of the simulation. </p>
+
 </div>
 </div>
 <a id="ac4a4e8861c89ab8ee560614c13dec8fb" name="ac4a4e8861c89ab8ee560614c13dec8fb"></a>
@@ -214,6 +238,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In sample or stop order. </p>
 
 </div>
 </div>
@@ -229,6 +255,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_route.html">Route</a> of the train; trajectories only. </p>
+
 </div>
 </div>
 <a id="afd1ac71304019de522ad715bc88884ea" name="afd1ac71304019de522ad715bc88884ea"></a>
@@ -243,6 +271,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Name of the train in the run. </p>
+
 </div>
 </div>
 <a id="a74cdea5039364e043e6c301e24233bc6" name="a74cdea5039364e043e6c301e24233bc6"></a>
@@ -256,6 +286,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Position of the train in the run. </p>
 
 </div>
 </div>

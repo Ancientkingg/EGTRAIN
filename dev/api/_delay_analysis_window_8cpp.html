@@ -144,10 +144,15 @@ Include dependency graph for DelayAnalysisWindow.cpp:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a4d085b34f0709ffd7a7c8eec749f8573" id="r_a4d085b34f0709ffd7a7c8eec749f8573"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a4d085b34f0709ffd7a7c8eec749f8573">delayStatusText</a> (<a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09af">TimetableValueStatus</a> status)</td></tr>
+<tr class="memdesc:a4d085b34f0709ffd7a7c8eec749f8573"><td class="mdescLeft">&#160;</td><td class="mdescRight">The words of the window and of delay_analysis.csv for a status, such as "Not reached".  <br /></td></tr>
 <tr class="memitem:acd80f3866cca0943025b11153c495ee7" id="r_acd80f3866cca0943025b11153c495ee7"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#acd80f3866cca0943025b11153c495ee7">delayClassText</a> (<a class="el" href="_delay_analysis_8h.html#afe53c7e8b1bb1e80283aca935ee2c1c7">DelayClass</a> delayClass)</td></tr>
+<tr class="memdesc:acd80f3866cca0943025b11153c495ee7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The words of the window and of delay_analysis.csv for a delay class, such as "On time".  <br /></td></tr>
 <tr class="memitem:ac2e80583b573f9ae72959bef697a0259" id="r_ac2e80583b573f9ae72959bef697a0259"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ac2e80583b573f9ae72959bef697a0259">delayChangeText</a> (<a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014a">DelayChange</a> change)</td></tr>
+<tr class="memdesc:ac2e80583b573f9ae72959bef697a0259"><td class="mdescLeft">&#160;</td><td class="mdescRight">The words of the window and of delay_analysis.csv for a change against the baseline, such as "Later".  <br /></td></tr>
 <tr class="memitem:af5e0ccade70745b9d0016cdfb022c18b" id="r_af5e0ccade70745b9d0016cdfb022c18b"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#af5e0ccade70745b9d0016cdfb022c18b">delayDiagnosticText</a> (const <a class="el" href="struct_delay_diagnostic.html">DelayDiagnostic</a> &amp;diagnostic)</td></tr>
+<tr class="memdesc:af5e0ccade70745b9d0016cdfb022c18b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why a baseline cannot be used, in a sentence. The diagnostic names the occurrence for the occurrence kinds.  <br /></td></tr>
 <tr class="memitem:a0872d5edc20a704e65330700116e31bd" id="r_a0872d5edc20a704e65330700116e31bd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a0872d5edc20a704e65330700116e31bd">delayCallsCsv</a> (const std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt; &amp;events)</td></tr>
+<tr class="memdesc:a0872d5edc20a704e65330700116e31bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The CSV text of the Calls tab: one record for each event.  <br /></td></tr>
 <tr class="memitem:a4769d7cd8c2d15ebcaa158460a195466" id="r_a4769d7cd8c2d15ebcaa158460a195466"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4769d7cd8c2d15ebcaa158460a195466">delaySummaryCsv</a> (const <a class="el" href="struct_delay_summary.html">DelaySummary</a> &amp;summary, <a class="el" href="_delay_analysis_8h.html#a8adddb4c8e2295552bc026a9d5973024">DelayEventKind</a> kind)</td></tr>
 <tr class="memitem:a65142327add13df2eb78b6df7769d277" id="r_a65142327add13df2eb78b6df7769d277"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a65142327add13df2eb78b6df7769d277">delayBaselineCsv</a> (const <a class="el" href="struct_delay_baseline_comparison.html">DelayBaselineComparison</a> &amp;comparison)</td></tr>
 </table>
@@ -166,6 +171,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The CSV text of the Against baseline tab: an occurrence record for each occurrence (the final arrival, the input delay, the evidence and the secondary delay), a call record for each call and one total record. Empty when the comparison is not compatible. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -188,6 +194,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The CSV text of the Calls tab: one record for each event. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -210,6 +218,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The words of the window and of delay_analysis.csv for a change against the baseline, such as "Later". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -232,6 +242,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The words of the window and of delay_analysis.csv for a delay class, such as "On time". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -254,6 +266,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Why a baseline cannot be used, in a sentence. The diagnostic names the occurrence for the occurrence kinds. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -276,6 +290,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The words of the window and of delay_analysis.csv for a status, such as "Not reached". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -302,6 +318,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The CSV text of the Summary tab: one station record for each station and one network record. The share columns come in pairs, the count and the percentage, for each threshold of the summary. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

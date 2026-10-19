@@ -3,13 +3,13 @@
 <area shape="poly" id="edge14_Node000001_Node000001" title=" " alt="" coords="72,294,62,284,67,274,85,267,115,265,153,269,163,274,167,280,162,283,160,278,151,275,115,271,86,273,71,278,68,283,75,290"/>
 <area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a0415bf2e4f4f3533261f04d38c69bfc4" title=" " alt="" coords="285,68,477,93"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,291,140,253,172,202,216,148,242,123,271,102,282,96,284,101,273,107,246,127,220,151,177,205,144,256,124,293"/>
-<area shape="rect" id="Node000003" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title=" " alt="" coords="306,141,457,167"/>
+<area shape="rect" id="Node000003" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title="The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given." alt="" coords="306,141,457,167"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="128,290,187,239,227,209,271,184,309,168,311,173,273,188,230,214,190,243,131,294"/>
 <area shape="rect" id="Node000007" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="539,192,799,217"/>
 <area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="135,290,194,257,232,240,271,227,335,214,400,205,525,198,525,203,401,210,336,219,273,233,234,245,197,262,137,294"/>
 <area shape="rect" id="Node000009" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="859,390,1041,430"/>
 <area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="151,315,207,334,273,350,384,365,538,380,845,401,845,407,538,385,384,371,271,355,206,339,149,320"/>
-<area shape="rect" id="Node000011" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title=" " alt="" coords="272,316,491,341"/>
+<area shape="rect" id="Node000011" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="272,316,491,341"/>
 <area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="224,312,259,315,258,320,224,317"/>
 <area shape="rect" id="Node000012" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="303,267,459,292"/>
 <area shape="poly" id="edge20_Node000001_Node000012" title=" " alt="" coords="224,292,289,285,290,291,224,297"/>
@@ -19,7 +19,7 @@
 <area shape="poly" id="edge33_Node000001_Node000017" title=" " alt="" coords="127,316,183,390,226,436,274,477,301,494,329,507,327,512,298,499,270,481,222,440,179,394,123,319"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="338,70,329,60,334,50,352,43,381,41,420,45,430,50,434,56,429,59,426,54,418,51,381,47,353,49,337,54,334,59,342,66"/>
 <area shape="poly" id="edge10_Node000003_Node000003" title=" " alt="" coords="338,143,329,133,334,123,352,117,381,115,420,119,430,124,434,130,429,132,426,128,418,124,381,120,353,122,337,127,334,132,342,139"/>
-<area shape="rect" id="Node000004" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title=" " alt="" coords="597,111,740,136"/>
+<area shape="rect" id="Node000004" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title="The occupations of one train in the scope, with the reference time that the capacity analysis uses." alt="" coords="597,111,740,136"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="456,143,583,130,584,135,457,149"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="624,112,614,102,619,92,637,86,669,84,709,88,720,93,724,100,719,102,716,97,708,93,669,89,638,91,622,96,619,102,627,109"/>
 <area shape="rect" id="Node000005" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="847,29,1053,55"/>

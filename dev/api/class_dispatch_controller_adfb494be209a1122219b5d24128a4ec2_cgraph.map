@@ -75,7 +75,7 @@
 <area shape="rect" id="Node000019" href="$class_train.html#a5973ff2a8a15d46b4b625f7b2e60270c" title=" " alt="" coords="537,779,759,819"/>
 <area shape="poly" id="edge29_Node000018_Node000019" title=" " alt="" coords="441,820,523,810,523,816,442,825"/>
 <area shape="poly" id="edge31_Node000021_Node000021" title=" " alt="" coords="294,905,284,895,289,885,306,879,335,877,372,881,382,885,386,891,382,894,379,889,370,886,335,882,308,884,293,889,290,894,297,901"/>
-<area shape="rect" id="Node000022" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title=" " alt="" coords="592,867,704,893"/>
+<area shape="rect" id="Node000022" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="592,867,704,893"/>
 <area shape="poly" id="edge32_Node000021_Node000022" title=" " alt="" coords="446,901,578,885,579,891,446,906"/>
 <area shape="poly" id="edge33_Node000022_Node000022" title=" " alt="" coords="612,869,605,859,609,849,623,843,648,841,678,844,690,853,687,858,676,849,648,846,625,848,612,853,610,858,616,866"/>
 <area shape="rect" id="Node000029" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title=" " alt="" coords="821,954,915,979"/>

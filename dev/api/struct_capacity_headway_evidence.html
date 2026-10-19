@@ -113,17 +113,27 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 </div><!--header-->
 <div class="contents">
 
+<p>One pair of occupations that bounds the headway of two trains.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a60a0900ee457b95a9df2ccb43b85e3e3" id="r_a60a0900ee457b95a9df2ccb43b85e3e3"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a60a0900ee457b95a9df2ccb43b85e3e3">leaderBlockId</a></td></tr>
+<tr class="memdesc:a60a0900ee457b95a9df2ccb43b85e3e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block of the leader's occupation.  <br /></td></tr>
 <tr class="memitem:a264b3c18462581c44b5b7136bc4399a4" id="r_a264b3c18462581c44b5b7136bc4399a4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a264b3c18462581c44b5b7136bc4399a4">followerBlockId</a></td></tr>
+<tr class="memdesc:a264b3c18462581c44b5b7136bc4399a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block of the follower's occupation, which shares a resource with it.  <br /></td></tr>
 <tr class="memitem:a1e0adbe92b6e062fd28ccc5b32520464" id="r_a1e0adbe92b6e062fd28ccc5b32520464"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1e0adbe92b6e062fd28ccc5b32520464">leaderOffset</a> = 0.0</td></tr>
+<tr class="memdesc:a1e0adbe92b6e062fd28ccc5b32520464"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leader's end of occupation minus its profile reference.  <br /></td></tr>
 <tr class="memitem:aa1844699e44e37ce964c191206cce862" id="r_aa1844699e44e37ce964c191206cce862"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa1844699e44e37ce964c191206cce862">followerOffset</a> = 0.0</td></tr>
+<tr class="memdesc:aa1844699e44e37ce964c191206cce862"><td class="mdescLeft">&#160;</td><td class="mdescRight">Follower's start of occupation minus its profile reference.  <br /></td></tr>
 <tr class="memitem:a04ad614dac0072a6b2d9f44b9ee7493b" id="r_a04ad614dac0072a6b2d9f44b9ee7493b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a04ad614dac0072a6b2d9f44b9ee7493b">candidateHeadway</a> = 0.0</td></tr>
+<tr class="memdesc:a04ad614dac0072a6b2d9f44b9ee7493b"><td class="mdescLeft">&#160;</td><td class="mdescRight">leaderOffset minus followerOffset  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One pair of occupations that bounds the headway of two trains. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a04ad614dac0072a6b2d9f44b9ee7493b" name="a04ad614dac0072a6b2d9f44b9ee7493b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a04ad614dac0072a6b2d9f44b9ee7493b">&#9670;&#160;</a></span>candidateHeadway</h2>
 
@@ -135,6 +145,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>leaderOffset minus followerOffset </p>
 
 </div>
 </div>
@@ -150,6 +162,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Block of the follower's occupation, which shares a resource with it. </p>
+
 </div>
 </div>
 <a id="aa1844699e44e37ce964c191206cce862" name="aa1844699e44e37ce964c191206cce862"></a>
@@ -163,6 +177,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Follower's start of occupation minus its profile reference. </p>
 
 </div>
 </div>
@@ -178,6 +194,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Block of the leader's occupation. </p>
+
 </div>
 </div>
 <a id="a1e0adbe92b6e062fd28ccc5b32520464" name="a1e0adbe92b6e062fd28ccc5b32520464"></a>
@@ -191,6 +209,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Leader's end of occupation minus its profile reference. </p>
 
 </div>
 </div>

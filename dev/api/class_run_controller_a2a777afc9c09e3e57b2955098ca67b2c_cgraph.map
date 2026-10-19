@@ -21,17 +21,17 @@
 <area shape="rect" id="Node000024" href="$class_dispatch_controller.html#ae26ebb03ac460fe3fc1dcf139eee8328" title=" " alt="" coords="285,793,454,833"/>
 <area shape="poly" id="edge36_Node000001_Node000024" title=" " alt="" coords="118,545,135,593,165,656,206,722,232,752,260,779,274,787,271,792,257,783,228,756,202,725,160,659,130,595,113,547"/>
 <area shape="poly" id="edge17_Node000002_Node000002" title=" " alt="" coords="327,206,318,196,323,186,340,179,369,177,407,181,417,186,421,192,416,195,413,190,405,187,369,183,341,185,326,190,323,195,331,202"/>
-<area shape="rect" id="Node000003" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title=" " alt="" coords="532,57,735,83"/>
+<area shape="rect" id="Node000003" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title="The block sections of the route in route order, with their ends in km." alt="" coords="532,57,735,83"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,202,441,148,482,118,527,92,544,84,546,89,529,96,485,122,444,152,385,206"/>
-<area shape="rect" id="Node000004" href="$_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" title=" " alt="" coords="570,131,697,156"/>
+<area shape="rect" id="Node000004" href="$_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="570,131,697,156"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="408,201,527,165,560,157,561,162,529,170,409,206"/>
 <area shape="rect" id="Node000009" href="$_run_results_8cpp.html#a9ae7edc4c23c80417d0baa9f06fc052f" title=" " alt="" coords="549,204,717,229"/>
 <area shape="poly" id="edge14_Node000002_Node000009" title=" " alt="" coords="453,214,536,214,536,219,453,219"/>
-<area shape="rect" id="Node000011" href="$_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" title=" " alt="" coords="563,277,703,303"/>
+<area shape="rect" id="Node000011" href="$_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" title="The route as the nodes of its path, with the stations of the scene when it is given." alt="" coords="563,277,703,303"/>
 <area shape="poly" id="edge18_Node000002_Node000011" title=" " alt="" coords="417,227,574,271,573,276,415,232"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="592,59,583,49,588,39,605,33,633,31,669,35,680,39,684,45,679,48,676,43,668,40,633,36,606,38,591,43,588,48,596,55"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="592,132,583,122,588,112,605,106,633,104,669,108,680,113,684,118,679,121,676,117,668,113,633,109,606,111,591,116,588,122,596,129"/>
-<area shape="rect" id="Node000005" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title=" " alt="" coords="835,29,947,55"/>
+<area shape="rect" id="Node000005" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="835,29,947,55"/>
 <area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="662,128,737,92,761,77,786,64,821,52,822,57,788,68,764,81,740,96,664,133"/>
 <area shape="rect" id="Node000006" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="805,103,977,128"/>
 <area shape="poly" id="edge8_Node000004_Node000006" title=" " alt="" coords="697,134,791,123,792,129,697,139"/>

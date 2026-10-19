@@ -2,13 +2,13 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,210,216,250"/>
 <area shape="rect" id="Node000002" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="295,29,462,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,208,145,176,177,136,217,97,263,64,281,55,284,60,265,68,220,101,181,140,149,179,127,211"/>
-<area shape="rect" id="Node000003" href="$_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" title=" " alt="" coords="313,103,444,128"/>
+<area shape="rect" id="Node000003" href="$_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" title="A provider that calls csv on the shared run with the visible train ids." alt="" coords="313,103,444,128"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="139,207,195,172,263,138,299,127,300,132,265,143,197,177,142,212"/>
-<area shape="rect" id="Node000004" href="$class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" title=" " alt="" coords="267,153,490,193"/>
+<area shape="rect" id="Node000004" href="$class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" title="Sets the function that gives the telemetry observation of an export; empty for none." alt="" coords="267,153,490,193"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="204,207,271,193,272,198,205,213"/>
 <area shape="rect" id="Node000005" href="$class_diagram_window.html#ae62313eba188517867e611dfa3a6f3b2" title=" " alt="" coords="264,217,493,243"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="216,227,250,227,250,233,216,233"/>
-<area shape="rect" id="Node000006" href="$_run_exports_8cpp.html#a51e23926b07af75724be1c3bff22f587" title=" " alt="" coords="307,291,450,316"/>
+<area shape="rect" id="Node000006" href="$_run_exports_8cpp.html#a51e23926b07af75724be1c3bff22f587" title="The planned and simulated times and the delays of every stop, in seconds." alt="" coords="307,291,450,316"/>
 <area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="185,247,319,284,318,290,184,253"/>
 <area shape="rect" id="Node000007" href="$class_timetable_table_window.html#a505633277a4e552d1b0890a565e4b4dc" title=" " alt="" coords="287,341,470,381"/>
 <area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="140,248,196,286,265,325,286,333,284,338,263,330,193,291,137,252"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The CSV text of the Calls tab: one record for each event.">
 <polygon fill="#999999" stroke="#666666" points="86,-101 0,-101 0,-82 86,-82 86,-101"/>
 <text text-anchor="middle" x="43" y="-89" font-family="Helvetica,sans-Serif" font-size="10.00">delayCallsCsv</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title="The CSV field of a value: the number, or an empty field when it is unavailable.">
 <polygon fill="white" stroke="#666666" points="210,-184 150,-184 150,-165 210,-165 210,-184"/>
 <text text-anchor="middle" x="180" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">csvValue</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_delay_analysis_window_8cpp.html#acd80f3866cca0943025b11153c495ee7" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_delay_analysis_window_8cpp.html#acd80f3866cca0943025b11153c495ee7" target="_top" xlink:title="The words of the window and of delay_analysis.csv for a delay class, such as &quot;On time&quot;.">
 <polygon fill="white" stroke="#666666" points="225,-129 135,-129 135,-110 225,-110 225,-129"/>
 <text text-anchor="middle" x="180" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">delayClassText</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_delay_analysis_window_8cpp.html#a4d085b34f0709ffd7a7c8eec749f8573" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_delay_analysis_window_8cpp.html#a4d085b34f0709ffd7a7c8eec749f8573" target="_top" xlink:title="The words of the window and of delay_analysis.csv for a status, such as &quot;Not reached&quot;.">
 <polygon fill="white" stroke="#666666" points="227.5,-74 132.5,-74 132.5,-55 227.5,-55 227.5,-74"/>
 <text text-anchor="middle" x="180" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">delayStatusText</text>
 </a>

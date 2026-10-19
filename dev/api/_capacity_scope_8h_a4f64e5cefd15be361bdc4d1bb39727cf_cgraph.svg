@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" target="_top" xlink:title="The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given.">
 <polygon fill="white" stroke="#666666" points="338.5,-299 225.5,-299 225.5,-280 338.5,-280 338.5,-299"/>
 <text text-anchor="middle" x="282" y="-287" font-family="Helvetica,sans-Serif" font-size="10.00">capacityInputsFrom</text>
 </a>
@@ -102,7 +102,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title="True when routeIndex indexes routes.">
 <polygon fill="white" stroke="#666666" points="364,-168 200,-168 200,-149 364,-149 364,-168"/>
 <text text-anchor="middle" x="282" y="-156" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunData::hasRoute</text>
 </a>
@@ -192,7 +192,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" target="_top" xlink:title="The occupations of one train in the scope, with the reference time that the capacity analysis uses.">
 <polygon fill="white" stroke="#666666" points="551,-322 444,-322 444,-303 551,-303 551,-322"/>
 <text text-anchor="middle" x="497.5" y="-310" font-family="Helvetica,sans-Serif" font-size="10.00">capacityInputFrom</text>
 </a>

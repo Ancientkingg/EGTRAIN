@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Writes area_capacity.csv and the provenance sidecar. False when the result has no resource row or a w...">
 <polygon fill="#999999" stroke="#666666" points="121,-78.5 0,-78.5 0,-48.5 121,-48.5 121,-78.5"/>
 <text text-anchor="start" x="8" y="-66.5" font-family="Helvetica,sans-Serif" font-size="10.00">AreaCapacityWindow</text>
 <text text-anchor="middle" x="60.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">::exportCsvTo</text>
@@ -66,7 +66,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_area_capacity_window_8cpp.html#a30c14fdd0a08eef42a9d07bb94db095b" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_area_capacity_window_8cpp.html#a30c14fdd0a08eef42a9d07bb94db095b" target="_top" xlink:title="The words of the window and of area_capacity.csv for a note: a short name of the kind,...">
 <polygon fill="white" stroke="#666666" points="510,-184 369,-184 369,-165 510,-165 510,-184"/>
 <text text-anchor="middle" x="439.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">areaCapacityStatusName</text>
 </a>
@@ -84,7 +84,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_area_capacity_window_8cpp.html#a2613ffd852b0d0562deddc75df0a5bb3" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_area_capacity_window_8cpp.html#a2613ffd852b0d0562deddc75df0a5bb3" target="_top" xlink:title="The words of the window and of area_capacity.csv for a note: a sentence that names its trains and res...">
 <polygon fill="white" stroke="#666666" points="505.5,-129 373.5,-129 373.5,-110 505.5,-110 505.5,-129"/>
 <text text-anchor="middle" x="439.5" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">areaCapacityStatusText</text>
 </a>

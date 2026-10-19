@@ -4,11 +4,11 @@
 <area shape="poly" id="edge12_Node000000_Node000001" title=" " alt="" coords="42,263,48,215,61,155,86,93,104,65,126,40,147,26,171,19,172,24,150,31,130,44,108,68,91,96,66,157,53,216,48,263"/>
 <area shape="rect" id="Node000002" href="$class_area_capacity_scope_dialog.html" title=" " alt="" coords="128,55,319,80"/>
 <area shape="poly" id="edge13_Node000000_Node000002" title=" " alt="" coords="45,263,53,225,68,178,92,130,108,108,126,89,144,78,147,82,130,93,112,112,96,133,73,180,58,226,50,264"/>
-<area shape="rect" id="Node000003" href="$class_area_capacity_window.html" title=" " alt="" coords="143,104,304,129"/>
+<area shape="rect" id="Node000003" href="$class_area_capacity_window.html" title="The result window. Not modal. It holds the result and the run identity, not the run,..." alt="" coords="143,104,304,129"/>
 <area shape="poly" id="edge14_Node000000_Node000003" title=" " alt="" coords="49,263,76,200,98,167,126,139,146,127,149,132,130,143,102,170,81,203,54,265"/>
 <area shape="rect" id="Node000004" href="$class_case_chooser_dialog.html" title=" " alt="" coords="149,153,298,179"/>
 <area shape="poly" id="edge15_Node000000_Node000004" title=" " alt="" coords="56,264,85,225,105,205,127,188,151,176,153,181,129,192,108,209,89,228,60,267"/>
-<area shape="rect" id="Node000005" href="$class_delay_analysis_window.html" title=" " alt="" coords="140,203,307,228"/>
+<area shape="rect" id="Node000005" href="$class_delay_analysis_window.html" title="The result window. Not modal. It holds the runs as values, so it can outlive them." alt="" coords="140,203,307,228"/>
 <area shape="poly" id="edge16_Node000000_Node000005" title=" " alt="" coords="72,267,127,237,160,226,162,231,129,242,75,272"/>
 <area shape="rect" id="Node000006" href="$class_diagram_window.html" title=" " alt="" coords="158,252,289,277"/>
 <area shape="poly" id="edge17_Node000000_Node000006" title=" " alt="" coords="93,280,158,271,158,276,94,286"/>

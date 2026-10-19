@@ -1,5 +1,5 @@
 <map id="blockTimesFrom" name="blockTimesFrom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,136,96"/>
+<area shape="rect" id="Node000001" title="Every train&#39;s blocking&#45;time segments, classified against the other trains." alt="" coords="5,71,136,96"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="36,72,29,62,33,52,47,46,71,44,100,48,112,57,108,61,98,53,71,49,48,51,36,56,34,62,40,69"/>
 <area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a8550c0c61fd18522ddfaa73bba1454c4" title=" " alt="" coords="184,63,383,103"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="136,81,170,81,170,86,136,86"/>

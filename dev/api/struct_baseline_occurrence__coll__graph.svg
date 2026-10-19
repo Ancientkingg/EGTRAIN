@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="One occurrence in both runs, judged at its final arrival.">
 <polygon fill="#999999" stroke="#666666" points="136,-19 23,-19 23,0 136,0 136,-19"/>
 <text text-anchor="middle" x="79.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">BaselineOccurrence</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_delay_difference.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_delay_difference.html" target="_top" xlink:title="The simulated time of one event in the baseline and in the scenario run.">
 <polygon fill="white" stroke="#666666" points="241,-91 146,-91 146,-72 241,-72 241,-91"/>
 <text text-anchor="middle" x="193.5" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">DelayDifference</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="struct_run_result_value.html" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="struct_run_result_value.html" target="_top" xlink:title="A result that may not exist. An unavailable value is shown as empty or &quot;&#45;&quot;, never as 0.">
 <polygon fill="white" stroke="#666666" points="93,-193 0,-193 0,-174 93,-174 93,-193"/>
 <text text-anchor="middle" x="46.5" y="-181" font-family="Helvetica,sans-Serif" font-size="10.00">RunResultValue</text>
 </a>

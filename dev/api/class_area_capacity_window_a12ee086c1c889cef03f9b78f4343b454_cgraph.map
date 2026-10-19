@@ -1,5 +1,5 @@
 <map id="AreaCapacityWindow::AreaCapacityWindow" name="AreaCapacityWindow::AreaCapacityWindow">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,187,175,227"/>
+<area shape="rect" id="Node000001" title="Shows result for the area named areaLabel. provenance goes into the export sidecar." alt="" coords="5,187,175,227"/>
 <area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="233,153,389,179"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,189,229,179,230,184,176,194"/>
 <area shape="rect" id="Node000007" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="223,231,400,256"/>

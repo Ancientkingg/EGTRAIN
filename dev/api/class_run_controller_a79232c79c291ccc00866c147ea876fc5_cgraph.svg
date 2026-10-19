@@ -59,7 +59,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_delay_analysis_window.html#ac0db7191dc2b43d97527f7ad778f109f" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_delay_analysis_window.html#ac0db7191dc2b43d97527f7ad778f109f" target="_top" xlink:title="baseline is the baseline run when one is set. The Against baseline tab compares it with scenario.">
 <polygon fill="white" stroke="#666666" points="503,-193 372,-193 372,-163 503,-163 503,-193"/>
 <text text-anchor="start" x="380" y="-181" font-family="Helvetica,sans-Serif" font-size="10.00">DelayAnalysisWindow</text>
 <text text-anchor="middle" x="437.5" y="-170" font-family="Helvetica,sans-Serif" font-size="10.00">::DelayAnalysisWindow</text>
@@ -296,7 +296,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" target="_top" xlink:title="The totals over the final arrival of each of the occurrences.">
 <polygon fill="white" stroke="#666666" points="903.5,-215.5 817.5,-215.5 817.5,-196.5 903.5,-196.5 903.5,-215.5"/>
 <text text-anchor="middle" x="860.5" y="-203.5" font-family="Helvetica,sans-Serif" font-size="10.00">baselineTotals</text>
 </a>

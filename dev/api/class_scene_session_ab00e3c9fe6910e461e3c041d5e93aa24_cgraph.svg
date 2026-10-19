@@ -57,7 +57,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_run_results_8cpp.html#ad21c06972d1d8dc61ccce5ecd60a423f" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_run_results_8cpp.html#ad21c06972d1d8dc61ccce5ecd60a423f" target="_top" xlink:title="SHA&#45;256 in hex of a scene input snapshot, empty for an empty snapshot.">
 <polygon fill="white" stroke="#666666" points="387.5,-769 248.5,-769 248.5,-750 387.5,-750 387.5,-769"/>
 <text text-anchor="middle" x="318" y="-757" font-family="Helvetica,sans-Serif" font-size="10.00">hashSceneInputSnapshot</text>
 </a>

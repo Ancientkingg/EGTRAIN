@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_delay_r
 </div><!--header-->
 <div class="contents">
 
+<p>One completed run as values for the delay analysis. It holds no pointer into the simulation, so it outlives the run.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for DelayRunSnapshot:</div>
@@ -123,17 +126,29 @@ Collaboration diagram for DelayRunSnapshot:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad9d0b958e141a40e15b970ab14681c8b" id="r_ad9d0b958e141a40e15b970ab14681c8b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad9d0b958e141a40e15b970ab14681c8b">caseRevision</a></td></tr>
+<tr class="memdesc:ad9d0b958e141a40e15b970ab14681c8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Revision of the scene document at the run, as text.  <br /></td></tr>
 <tr class="memitem:ac3405e5e7595bf5f8b614b997ffd5843" id="r_ac3405e5e7595bf5f8b614b997ffd5843"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac3405e5e7595bf5f8b614b997ffd5843">scenarioId</a></td></tr>
+<tr class="memdesc:ac3405e5e7595bf5f8b614b997ffd5843"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the applied scenario, empty for none.  <br /></td></tr>
 <tr class="memitem:a7c8f1f8e99c41e37ab680fd90f54f9a7" id="r_a7c8f1f8e99c41e37ab680fd90f54f9a7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7c8f1f8e99c41e37ab680fd90f54f9a7">baseTimeSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a7c8f1f8e99c41e37ab680fd90f54f9a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base time of the scene, in seconds since midnight.  <br /></td></tr>
 <tr class="memitem:a8a484e412f344d6b6dcae7adab280bb3" id="r_a8a484e412f344d6b6dcae7adab280bb3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8a484e412f344d6b6dcae7adab280bb3">durationSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a8a484e412f344d6b6dcae7adab280bb3"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="struct_completed_run_settings.html#ad5c1d1176f62ef97d97a09f50c6fd826" title="Number of timesteps of the run.">CompletedRunSettings::horizonSteps</a>; seconds with the 1 s timestep.  <br /></td></tr>
 <tr class="memitem:ad64871a273ca721421abc08937fb534c" id="r_ad64871a273ca721421abc08937fb534c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad64871a273ca721421abc08937fb534c">timestep</a> = 0.0</td></tr>
+<tr class="memdesc:ad64871a273ca721421abc08937fb534c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of one step in seconds.  <br /></td></tr>
 <tr class="memitem:a29ef3d818ea51bebc9b71c1f79109eb6" id="r_a29ef3d818ea51bebc9b71c1f79109eb6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a29ef3d818ea51bebc9b71c1f79109eb6">hasIncidents</a> = false</td></tr>
+<tr class="memdesc:a29ef3d818ea51bebc9b71c1f79109eb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the applied scenario has an incident.  <br /></td></tr>
 <tr class="memitem:a3b88ea99332d8726dd1104d8f4fc5c71" id="r_a3b88ea99332d8726dd1104d8f4fc5c71"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3b88ea99332d8726dd1104d8f4fc5c71">hasEntranceDelays</a> = false</td></tr>
+<tr class="memdesc:a3b88ea99332d8726dd1104d8f4fc5c71"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the applied scenario has an entrance delay.  <br /></td></tr>
 <tr class="memitem:a76f667297695ee282c4a9f6e71aa912d" id="r_a76f667297695ee282c4a9f6e71aa912d"><td class="memItemLeft"><a class="el" href="struct_run_provenance.html">RunProvenance</a>&#160;</td><td class="memItemRight"><a class="el" href="#a76f667297695ee282c4a9f6e71aa912d">provenance</a></td></tr>
+<tr class="memdesc:a76f667297695ee282c4a9f6e71aa912d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inputs and settings of the run.  <br /></td></tr>
 <tr class="memitem:a35c9dd91a4b9ea6b60f5f0e4c6ea842f" id="r_a35c9dd91a4b9ea6b60f5f0e4c6ea842f"><td class="memItemLeft"><a class="el" href="struct_run_results.html">RunResults</a>&#160;</td><td class="memItemRight"><a class="el" href="#a35c9dd91a4b9ea6b60f5f0e4c6ea842f">run</a></td></tr>
+<tr class="memdesc:a35c9dd91a4b9ea6b60f5f0e4c6ea842f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run Results of the run.  <br /></td></tr>
 <tr class="memitem:a2a36c603c22dd968591883a09f97d6ba" id="r_a2a36c603c22dd968591883a09f97d6ba"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_timetable_result_row.html">TimetableResultRow</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2a36c603c22dd968591883a09f97d6ba">timetable</a></td></tr>
+<tr class="memdesc:a2a36c603c22dd968591883a09f97d6ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned and simulated times of the run.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One completed run as values for the delay analysis. It holds no pointer into the simulation, so it outlives the run. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a7c8f1f8e99c41e37ab680fd90f54f9a7" name="a7c8f1f8e99c41e37ab680fd90f54f9a7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7c8f1f8e99c41e37ab680fd90f54f9a7">&#9670;&#160;</a></span>baseTimeSeconds</h2>
 
@@ -145,6 +160,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Base time of the scene, in seconds since midnight. </p>
 
 </div>
 </div>
@@ -160,6 +177,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Revision of the scene document at the run, as text. </p>
+
 </div>
 </div>
 <a id="a8a484e412f344d6b6dcae7adab280bb3" name="a8a484e412f344d6b6dcae7adab280bb3"></a>
@@ -173,6 +192,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="struct_completed_run_settings.html#ad5c1d1176f62ef97d97a09f50c6fd826" title="Number of timesteps of the run.">CompletedRunSettings::horizonSteps</a>; seconds with the 1 s timestep. </p>
 
 </div>
 </div>
@@ -188,6 +209,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the applied scenario has an entrance delay. </p>
+
 </div>
 </div>
 <a id="a29ef3d818ea51bebc9b71c1f79109eb6" name="a29ef3d818ea51bebc9b71c1f79109eb6"></a>
@@ -201,6 +224,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the applied scenario has an incident. </p>
 
 </div>
 </div>
@@ -216,6 +241,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Inputs and settings of the run. </p>
+
 </div>
 </div>
 <a id="a35c9dd91a4b9ea6b60f5f0e4c6ea842f" name="a35c9dd91a4b9ea6b60f5f0e4c6ea842f"></a>
@@ -229,6 +256,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Run Results of the run. </p>
 
 </div>
 </div>
@@ -244,6 +273,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Id of the applied scenario, empty for none. </p>
+
 </div>
 </div>
 <a id="ad64871a273ca721421abc08937fb534c" name="ad64871a273ca721421abc08937fb534c"></a>
@@ -258,6 +289,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Length of one step in seconds. </p>
+
 </div>
 </div>
 <a id="a2a36c603c22dd968591883a09f97d6ba" name="a2a36c603c22dd968591883a09f97d6ba"></a>
@@ -271,6 +304,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Planned and simulated times of the run. </p>
 
 </div>
 </div>

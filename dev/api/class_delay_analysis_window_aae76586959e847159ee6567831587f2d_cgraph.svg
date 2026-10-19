@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_run_results_8cpp.html#a689f181d06a78f826fe918f82aa990f8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_run_results_8cpp.html#a689f181d06a78f826fe918f82aa990f8" target="_top" xlink:title="As writeRunArtifactWithProvenance, with the provenance of both runs of a delay comparison in the side...">
 <polygon fill="white" stroke="#666666" points="346,-74 161,-74 161,-55 346,-55 346,-74"/>
 <text text-anchor="middle" x="253.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">writeDelayArtifactWithProvenance</text>
 </a>

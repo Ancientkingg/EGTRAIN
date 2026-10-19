@@ -113,17 +113,27 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_route_d
 </div><!--header-->
 <div class="contents">
 
+<p>One point of a route diagram line.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_run_exports_8h_source.html">diagrams/RunExports.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a98cf6167453d2a9bf99b8f371701acf2" id="r_a98cf6167453d2a9bf99b8f371701acf2"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a98cf6167453d2a9bf99b8f371701acf2">positionKm</a> = 0.0</td></tr>
+<tr class="memdesc:a98cf6167453d2a9bf99b8f371701acf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">On the reference route.  <br /></td></tr>
 <tr class="memitem:a328c6b6a6bf922eb908927cf0121b54a" id="r_a328c6b6a6bf922eb908927cf0121b54a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a328c6b6a6bf922eb908927cf0121b54a">seconds</a> = 0.0</td></tr>
+<tr class="memdesc:a328c6b6a6bf922eb908927cf0121b54a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time of the point, in seconds of the run.  <br /></td></tr>
 <tr class="memitem:a37a5bed3ff9dffe63f9343314c958be2" id="r_a37a5bed3ff9dffe63f9343314c958be2"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a37a5bed3ff9dffe63f9343314c958be2">station</a></td></tr>
+<tr class="memdesc:a37a5bed3ff9dffe63f9343314c958be2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Timetable series only.  <br /></td></tr>
 <tr class="memitem:aa83a0f9a6cf7aa9db6127c38f6935d95" id="r_aa83a0f9a6cf7aa9db6127c38f6935d95"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa83a0f9a6cf7aa9db6127c38f6935d95">journey</a> = 0</td></tr>
+<tr class="memdesc:aa83a0f9a6cf7aa9db6127c38f6935d95"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="struct_timetable_result_row.html#a348d27a3ebbbd7c1b5078a9059521261" title="Position of the stop in the stops of the train, from 1.">TimetableResultRow::journeyIndex</a>; 0 for a trajectory.  <br /></td></tr>
 <tr class="memitem:a428f25295ede6f4130b33ac877202ff8" id="r_a428f25295ede6f4130b33ac877202ff8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a428f25295ede6f4130b33ac877202ff8">call</a> = 0</td></tr>
+<tr class="memdesc:a428f25295ede6f4130b33ac877202ff8"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="struct_timetable_result_row.html#ab07b977bd4bcb97df9051fca09e3e6b1" title="Number of the call at this station within the journey, from 1.">TimetableResultRow::callIndex</a>; 0 for a trajectory.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One point of a route diagram line. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a428f25295ede6f4130b33ac877202ff8" name="a428f25295ede6f4130b33ac877202ff8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a428f25295ede6f4130b33ac877202ff8">&#9670;&#160;</a></span>call</h2>
 
@@ -135,6 +145,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="struct_timetable_result_row.html#ab07b977bd4bcb97df9051fca09e3e6b1" title="Number of the call at this station within the journey, from 1.">TimetableResultRow::callIndex</a>; 0 for a trajectory. </p>
 
 </div>
 </div>
@@ -150,6 +162,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="struct_timetable_result_row.html#a348d27a3ebbbd7c1b5078a9059521261" title="Position of the stop in the stops of the train, from 1.">TimetableResultRow::journeyIndex</a>; 0 for a trajectory. </p>
+
 </div>
 </div>
 <a id="a98cf6167453d2a9bf99b8f371701acf2" name="a98cf6167453d2a9bf99b8f371701acf2"></a>
@@ -163,6 +177,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>On the reference route. </p>
 
 </div>
 </div>
@@ -178,6 +194,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Time of the point, in seconds of the run. </p>
+
 </div>
 </div>
 <a id="a37a5bed3ff9dffe63f9343314c958be2" name="a37a5bed3ff9dffe63f9343314c958be2"></a>
@@ -191,6 +209,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Timetable series only. </p>
 
 </div>
 </div>

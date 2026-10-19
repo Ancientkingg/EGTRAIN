@@ -113,18 +113,29 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 </div><!--header-->
 <div class="contents">
 
+<p>The route, blocks, trains and period of a capacity analysis.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_capacity_scope_8h_source.html">diagrams/CapacityScope.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:af48c07ffcfcfddd1faf073a7c2747531" id="r_af48c07ffcfcfddd1faf073a7c2747531"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af48c07ffcfcfddd1faf073a7c2747531">routeIndex</a> = -1</td></tr>
+<tr class="memdesc:af48c07ffcfcfddd1faf073a7c2747531"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>, -1 for none.  <br /></td></tr>
 <tr class="memitem:a7cd4bcf09530fe99be2902a7f14a6b96" id="r_a7cd4bcf09530fe99be2902a7f14a6b96"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7cd4bcf09530fe99be2902a7f14a6b96">blockIds</a></td></tr>
+<tr class="memdesc:a7cd4bcf09530fe99be2902a7f14a6b96"><td class="mdescLeft">&#160;</td><td class="mdescRight">In route order; the first is the reference of every train.  <br /></td></tr>
 <tr class="memitem:a8b08aeffde34d6972e3ab6ce4a9cf0d9" id="r_a8b08aeffde34d6972e3ab6ce4a9cf0d9"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8b08aeffde34d6972e3ab6ce4a9cf0d9">sectionIndices</a></td></tr>
+<tr class="memdesc:a8b08aeffde34d6972e3ab6ce4a9cf0d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Positions of those blocks in the route, from 0.  <br /></td></tr>
 <tr class="memitem:a9f4b77a20d02a7fcdbb6985f9e5e3793" id="r_a9f4b77a20d02a7fcdbb6985f9e5e3793"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9f4b77a20d02a7fcdbb6985f9e5e3793">occurrenceIds</a></td></tr>
+<tr class="memdesc:a9f4b77a20d02a7fcdbb6985f9e5e3793"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_train.html">Train</a> ids in chain order; empty for every train with occupations.  <br /></td></tr>
 <tr class="memitem:ab9f9b770bf1b0a49e5785b511b520e3e" id="r_ab9f9b770bf1b0a49e5785b511b520e3e"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab9f9b770bf1b0a49e5785b511b520e3e">cycleEndOccurrenceId</a></td></tr>
+<tr class="memdesc:ab9f9b770bf1b0a49e5785b511b520e3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train that closes the cycle, empty for none.  <br /></td></tr>
 <tr class="memitem:a2714699baf4443ce76cf1e2c92728389" id="r_a2714699baf4443ce76cf1e2c92728389"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2714699baf4443ce76cf1e2c92728389">periodSeconds</a> = 3600.0</td></tr>
+<tr class="memdesc:a2714699baf4443ce76cf1e2c92728389"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analysis period in seconds.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The route, blocks, trains and period of a capacity analysis. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a7cd4bcf09530fe99be2902a7f14a6b96" name="a7cd4bcf09530fe99be2902a7f14a6b96"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7cd4bcf09530fe99be2902a7f14a6b96">&#9670;&#160;</a></span>blockIds</h2>
 
@@ -136,6 +147,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In route order; the first is the reference of every train. </p>
 
 </div>
 </div>
@@ -151,6 +164,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The train that closes the cycle, empty for none. </p>
+
 </div>
 </div>
 <a id="a9f4b77a20d02a7fcdbb6985f9e5e3793" name="a9f4b77a20d02a7fcdbb6985f9e5e3793"></a>
@@ -164,6 +179,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_train.html">Train</a> ids in chain order; empty for every train with occupations. </p>
 
 </div>
 </div>
@@ -179,6 +196,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Analysis period in seconds. </p>
+
 </div>
 </div>
 <a id="af48c07ffcfcfddd1faf073a7c2747531" name="af48c07ffcfcfddd1faf073a7c2747531"></a>
@@ -193,6 +212,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>, -1 for none. </p>
+
 </div>
 </div>
 <a id="a8b08aeffde34d6972e3ab6ce4a9cf0d9" name="a8b08aeffde34d6972e3ab6ce4a9cf0d9"></a>
@@ -206,6 +227,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Positions of those blocks in the route, from 0. </p>
 
 </div>
 </div>

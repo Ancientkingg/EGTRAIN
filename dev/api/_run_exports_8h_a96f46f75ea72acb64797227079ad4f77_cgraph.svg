@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The whole run, the first route that a train runs on as reference, no recorded trajectories.">
 <polygon fill="#999999" stroke="#666666" points="125,-291.5 0,-291.5 0,-272.5 125,-272.5 125,-291.5"/>
 <text text-anchor="middle" x="62.5" y="-279.5" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeCsvFrom</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a3f71bcbe035affebd92825d3958dfab8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_run_exports_8cpp.html#a3f71bcbe035affebd92825d3958dfab8" target="_top" xlink:title="Every train&#39;s blocking&#45;time segments, classified against the other trains.">
 <polygon fill="white" stroke="#666666" points="305,-779.5 207,-779.5 207,-760.5 305,-760.5 305,-779.5"/>
 <text text-anchor="middle" x="256" y="-767.5" font-family="Helvetica,sans-Serif" font-size="10.00">blockTimesFrom</text>
 </a>
@@ -83,7 +83,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title="The scope of the whole run.">
 <polygon fill="white" stroke="#666666" points="342,-236.5 170,-236.5 170,-217.5 342,-217.5 342,-236.5"/>
 <text text-anchor="middle" x="256" y="-224.5" font-family="Helvetica,sans-Serif" font-size="10.00">defaultBlockingTimeScopeFrom</text>
 </a>
@@ -537,7 +537,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="struct_completed_run_settings.html#a153e7bfe4196089fb8e532f261ef95c8" target="_top" xlink:title="Length of the run in seconds.">
 <polygon fill="white" stroke="#666666" points="533,-30 405,-30 405,0 533,0 533,-30"/>
 <text text-anchor="start" x="413" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunSettings</text>
 <text text-anchor="middle" x="469" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::horizonSeconds</text>
@@ -657,7 +657,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title=" ">
+<g id="a_Node000024"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title="True when routeIndex indexes routes.">
 <polygon fill="white" stroke="#666666" points="551,-324.5 387,-324.5 387,-305.5 551,-305.5 551,-324.5"/>
 <text text-anchor="middle" x="469" y="-312.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunData::hasRoute</text>
 </a>
@@ -675,7 +675,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="struct_completed_stop.html#aba59bf8f781112bcb7bf26b80d7499b1" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="struct_completed_stop.html#aba59bf8f781112bcb7bf26b80d7499b1" target="_top" xlink:title="Whether the station lies on the route, within the allowed block sections when any are given.">
 <polygon fill="white" stroke="#666666" points="538,-287.5 400,-287.5 400,-268.5 538,-268.5 538,-287.5"/>
 <text text-anchor="middle" x="469" y="-275.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedStop::onRoute</text>
 </a>

@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title="The value of series at a sample index, or empty when the series has no such sample.">
 <polygon fill="white" stroke="#666666" points="747.5,-654 614.5,-654 614.5,-635 747.5,-635 747.5,-654"/>
 <text text-anchor="middle" x="681" y="-642" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedTrajectory::at</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title="A provider that calls csv on the shared run with the visible train ids.">
 <polygon fill="white" stroke="#666666" points="522,-492 424,-492 424,-473 522,-473 522,-492"/>
 <text text-anchor="middle" x="473" y="-480" font-family="Helvetica,sans-Serif" font-size="10.00">csvProviderFrom</text>
 </a>
@@ -94,7 +94,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title="An empty window with the given title.">
 <polygon fill="white" stroke="#666666" points="565,-455 381,-455 381,-436 565,-436 565,-455"/>
 <text text-anchor="middle" x="473" y="-443" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::DiagramWindow</text>
 </a>
@@ -166,7 +166,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title="Sets the function that gives the telemetry observation of an export; empty for none.">
 <polygon fill="white" stroke="#666666" points="556.5,-306.5 389.5,-306.5 389.5,-276.5 556.5,-276.5 556.5,-306.5"/>
 <text text-anchor="start" x="397.5" y="-294.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTelemetry</text>
 <text text-anchor="middle" x="473" y="-283.5" font-family="Helvetica,sans-Serif" font-size="10.00">Capture</text>
@@ -185,7 +185,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" target="_top" xlink:title="As setTimeAxisY, for the X axis.">
 <polygon fill="white" stroke="#666666" points="558,-258 388,-258 388,-239 558,-239 558,-258"/>
 <text text-anchor="middle" x="473" y="-246" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTimeAxisX</text>
 </a>
@@ -239,7 +239,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title="A click on a series selected this train.">
 <polygon fill="white" stroke="#666666" points="556.5,-129 389.5,-129 389.5,-110 556.5,-110 556.5,-129"/>
 <text text-anchor="middle" x="473" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::trainSelected</text>
 </a>
@@ -376,7 +376,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title="True for a chart of rolling stock input, which has no trains: hides the train filter and the selectio...">
 <polygon fill="white" stroke="#666666" points="757,-412.5 605,-412.5 605,-382.5 757,-382.5 757,-412.5"/>
 <text text-anchor="start" x="613" y="-400.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setRolling</text>
 <text text-anchor="middle" x="681" y="-389.5" font-family="Helvetica,sans-Serif" font-size="10.00">StockSubject</text>
@@ -513,7 +513,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" target="_top" xlink:title="Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view.">
 <polygon fill="white" stroke="#666666" points="758.5,-123 603.5,-123 603.5,-104 758.5,-104 758.5,-123"/>
 <text text-anchor="middle" x="681" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::eventFilter</text>
 </a>
@@ -558,7 +558,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="struct_completed_trajectory.html#a9bb023bc844c92e2c7449e037b717f30" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="struct_completed_trajectory.html#a9bb023bc844c92e2c7449e037b717f30" target="_top" xlink:title="The block index at a sample index, or kNoBlock when there is none.">
 <polygon fill="white" stroke="#666666" points="740,-610.5 622,-610.5 622,-580.5 740,-580.5 740,-610.5"/>
 <text text-anchor="start" x="630" y="-598.5" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedTrajectory</text>
 <text text-anchor="middle" x="681" y="-587.5" font-family="Helvetica,sans-Serif" font-size="10.00">::blockAt</text>

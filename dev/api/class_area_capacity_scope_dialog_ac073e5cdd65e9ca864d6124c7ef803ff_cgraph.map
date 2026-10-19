@@ -1,5 +1,5 @@
 <map id="AreaCapacityScopeDialog::AreaCapacityScopeDialog" name="AreaCapacityScopeDialog::AreaCapacityScopeDialog">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,134,204,174"/>
+<area shape="rect" id="Node000001" title="Builds the dialog for the routes and trains of data." alt="" coords="5,134,204,174"/>
 <area shape="rect" id="Node000002" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="467,29,727,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,131,251,102,376,74,492,54,493,59,377,80,253,107,160,136"/>
 <area shape="rect" id="Node000004" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="257,141,413,167"/>

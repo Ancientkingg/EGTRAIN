@@ -1,5 +1,5 @@
 <map id="DiagramWindow::trainSelected" name="DiagramWindow::trainSelected">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,228,31"/>
-<area shape="rect" id="Node000002" href="$class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" title=" " alt="" coords="276,5,483,31"/>
+<area shape="rect" id="Node000001" title="A click on a series selected this train." alt="" coords="5,5,228,31"/>
+<area shape="rect" id="Node000002" href="$class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" title="Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view." alt="" coords="276,5,483,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,15,262,15,262,21,228,21"/>
 </map>

@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,992,220,1029,305,1068,328,1076,326,1081,303,1073,218,1034,152,997"/>
 <area shape="rect" id="Node000004" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="342,572,517,597"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="131,968,143,903,173,804,195,750,224,697,259,648,302,606,327,592,330,597,306,610,263,651,228,700,200,752,178,806,149,904,136,969"/>
-<area shape="rect" id="Node000005" href="$_run_results_8cpp.html#ad21c06972d1d8dc61ccce5ecd60a423f" title=" " alt="" coords="337,645,522,670"/>
+<area shape="rect" id="Node000005" href="$_run_results_8cpp.html#ad21c06972d1d8dc61ccce5ecd60a423f" title="SHA&#45;256 in hex of a scene input snapshot, empty for an empty snapshot." alt="" coords="337,645,522,670"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="133,968,149,914,182,835,205,792,232,750,265,712,302,679,322,668,325,673,306,684,269,716,237,754,209,795,187,837,154,916,138,970"/>
 <area shape="rect" id="Node000006" href="$_scene_migration_8cpp.html#a0ac9751495b63363426b6a5c517d1a3f" title=" " alt="" coords="357,718,502,744"/>
 <area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="145,967,401,750,404,755,149,971"/>

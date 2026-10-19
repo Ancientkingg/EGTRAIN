@@ -113,17 +113,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_capacit
 </div><!--header-->
 <div class="contents">
 
+<p>Two compressed occupations of a train and a governing predecessor that touch.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a88191021b6f7f5975bb96bc7a297ca2d" id="r_a88191021b6f7f5975bb96bc7a297ca2d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a88191021b6f7f5975bb96bc7a297ca2d">leaderIdentity</a></td></tr>
+<tr class="memdesc:a88191021b6f7f5975bb96bc7a297ca2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">runtimeId of the predecessor  <br /></td></tr>
 <tr class="memitem:ac2fa393e8cde127b7e539d207351b21b" id="r_ac2fa393e8cde127b7e539d207351b21b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac2fa393e8cde127b7e539d207351b21b">followerIdentity</a></td></tr>
+<tr class="memdesc:ac2fa393e8cde127b7e539d207351b21b"><td class="mdescLeft">&#160;</td><td class="mdescRight">runtimeId of the follower  <br /></td></tr>
 <tr class="memitem:a271d8aced75dd49c47d7e388577f16c5" id="r_a271d8aced75dd49c47d7e388577f16c5"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a271d8aced75dd49c47d7e388577f16c5">leaderBlockId</a></td></tr>
+<tr class="memdesc:a271d8aced75dd49c47d7e388577f16c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block of the predecessor's occupation.  <br /></td></tr>
 <tr class="memitem:aa38987fe0a92b8e0f24b0da9f89aa26f" id="r_aa38987fe0a92b8e0f24b0da9f89aa26f"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa38987fe0a92b8e0f24b0da9f89aa26f">followerBlockId</a></td></tr>
 <tr class="memitem:a219e48075922aef361e8d912a62d4004" id="r_a219e48075922aef361e8d912a62d4004"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a219e48075922aef361e8d912a62d4004">gap</a> = 0.0</td></tr>
+<tr class="memdesc:a219e48075922aef361e8d912a62d4004"><td class="mdescLeft">&#160;</td><td class="mdescRight">Follower's start minus the predecessor's end; within kBlockingTimeToleranceSeconds of 0.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Two compressed occupations of a train and a governing predecessor that touch. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aa38987fe0a92b8e0f24b0da9f89aa26f" name="aa38987fe0a92b8e0f24b0da9f89aa26f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa38987fe0a92b8e0f24b0da9f89aa26f">&#9670;&#160;</a></span>followerBlockId</h2>
 
@@ -135,6 +144,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Block of the follower's occupation </p>
 
 </div>
 </div>
@@ -150,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>runtimeId of the follower </p>
+
 </div>
 </div>
 <a id="a219e48075922aef361e8d912a62d4004" name="a219e48075922aef361e8d912a62d4004"></a>
@@ -163,6 +175,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Follower's start minus the predecessor's end; within kBlockingTimeToleranceSeconds of 0. </p>
 
 </div>
 </div>
@@ -178,6 +192,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Block of the predecessor's occupation. </p>
+
 </div>
 </div>
 <a id="a88191021b6f7f5975bb96bc7a297ca2d" name="a88191021b6f7f5975bb96bc7a297ca2d"></a>
@@ -191,6 +207,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>runtimeId of the predecessor </p>
 
 </div>
 </div>

@@ -112,7 +112,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="_run_exports_8cpp.html#a554f241b4d09d5f8402f9c33981e7b16" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="_run_exports_8cpp.html#a554f241b4d09d5f8402f9c33981e7b16" target="_top" xlink:title="The evidence as text, &quot;leader/follower (leader=… s; follower=… s; candidate=… s)&quot;,...">
 <polygon fill="white" stroke="#666666" points="555,-953 433,-953 433,-934 555,-934 555,-953"/>
 <text text-anchor="middle" x="494" y="-941" font-family="Helvetica,sans-Serif" font-size="10.00">capacityEvidenceText</text>
 </a>
@@ -148,7 +148,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" target="_top" xlink:title="The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given.">
 <polygon fill="white" stroke="#666666" points="550.5,-859 437.5,-859 437.5,-840 550.5,-840 550.5,-859"/>
 <text text-anchor="middle" x="494" y="-847" font-family="Helvetica,sans-Serif" font-size="10.00">capacityInputsFrom</text>
 </a>
@@ -166,7 +166,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="_capacity_scope_8cpp.html#ae772795361eed14e636e3f0f7ad92b6b" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="_capacity_scope_8cpp.html#ae772795361eed14e636e3f0f7ad92b6b" target="_top" xlink:title="Why the scope cannot be analysed, empty when it can or has no route or block.">
 <polygon fill="white" stroke="#666666" points="343.5,-689 206.5,-689 206.5,-670 343.5,-670 343.5,-689"/>
 <text text-anchor="middle" x="275" y="-677" font-family="Helvetica,sans-Serif" font-size="10.00">capacityScopeIssueFrom</text>
 </a>
@@ -202,7 +202,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" target="_top" xlink:title=" ">
+<g id="a_Node000024"><a xlink:href="_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" target="_top" xlink:title="&quot;route / corridor / first block to last block&quot; without the parts the scope lacks, or &quot;no selected rou...">
 <polygon fill="white" stroke="#666666" points="344,-634 206,-634 206,-615 344,-615 344,-634"/>
 <text text-anchor="middle" x="275" y="-622" font-family="Helvetica,sans-Serif" font-size="10.00">capacityScopeLabelFrom</text>
 </a>
@@ -365,7 +365,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="_run_exports_8cpp.html#acf0d34dc7c2f174ee9b5c532cfd59426" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="_run_exports_8cpp.html#acf0d34dc7c2f174ee9b5c532cfd59426" target="_top" xlink:title="The projection of the route of each train onto a reference route, by train id.">
 <polygon fill="white" stroke="#666666" points="341,-159 209,-159 209,-140 341,-140 341,-159"/>
 <text text-anchor="middle" x="275" y="-147" font-family="Helvetica,sans-Serif" font-size="10.00">routeProjectionsByTrain</text>
 </a>
@@ -710,7 +710,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" target="_top" xlink:title="The occupations of one train in the scope, with the reference time that the capacity analysis uses.">
 <polygon fill="white" stroke="#666666" points="776,-887 669,-887 669,-868 776,-868 776,-887"/>
 <text text-anchor="middle" x="722.5" y="-875" font-family="Helvetica,sans-Serif" font-size="10.00">capacityInputFrom</text>
 </a>
@@ -810,7 +810,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" target="_top" xlink:title="True when routeIndex indexes routes.">
 <polygon fill="white" stroke="#666666" points="576,-606 412,-606 412,-587 576,-587 576,-606"/>
 <text text-anchor="middle" x="494" y="-594" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedRunData::hasRoute</text>
 </a>

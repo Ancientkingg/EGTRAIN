@@ -129,9 +129,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a36d28ae11255f792bc410c0819aed184" id="r_a36d28ae11255f792bc410c0819aed184"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a36d28ae11255f792bc410c0819aed184">buildDelayEvents</a> (const std::vector&lt; <a class="el" href="struct_timetable_result_row.html">TimetableResultRow</a> &gt; &amp;rows, const <a class="el" href="struct_run_results.html">RunResults</a> &amp;run)</td></tr>
 <tr class="memitem:ad8491edb84439158fe447805bae82f55" id="r_ad8491edb84439158fe447805bae82f55"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad8491edb84439158fe447805bae82f55">defaultDelayThresholdsSeconds</a> ()</td></tr>
 <tr class="memitem:a99630ebda94acb5e22bb0d43fc907e6a" id="r_a99630ebda94acb5e22bb0d43fc907e6a"><td class="memItemLeft"><a class="el" href="struct_delay_summary.html">DelaySummary</a>&#160;</td><td class="memItemRight"><a class="el" href="#a99630ebda94acb5e22bb0d43fc907e6a">summarizeDelays</a> (const std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt; &amp;events, const <a class="el" href="struct_delay_filter.html">DelayFilter</a> &amp;filter, const std::vector&lt; double &gt; &amp;thresholdsSeconds)</td></tr>
+<tr class="memdesc:a99630ebda94acb5e22bb0d43fc907e6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The statistics of the events that the filter selects, with one share for each finite threshold in seconds.  <br /></td></tr>
 <tr class="memitem:a1f9eca401d0a3e572b4e7a63d8682e2c" id="r_a1f9eca401d0a3e572b4e7a63d8682e2c"><td class="memItemLeft"><a class="el" href="struct_baseline_totals.html">BaselineTotals</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1f9eca401d0a3e572b4e7a63d8682e2c">baselineTotals</a> (const std::vector&lt; <a class="el" href="struct_baseline_occurrence.html">BaselineOccurrence</a> &gt; &amp;occurrences)</td></tr>
+<tr class="memdesc:a1f9eca401d0a3e572b4e7a63d8682e2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The totals over the final arrival of each of the occurrences.  <br /></td></tr>
 <tr class="memitem:acb545fe8bb0a8c7be03694784d1d9009" id="r_acb545fe8bb0a8c7be03694784d1d9009"><td class="memItemLeft"><a class="el" href="struct_delay_baseline_comparison.html">DelayBaselineComparison</a>&#160;</td><td class="memItemRight"><a class="el" href="#acb545fe8bb0a8c7be03694784d1d9009">compareAgainstBaseline</a> (const <a class="el" href="struct_delay_run_snapshot.html">DelayRunSnapshot</a> &amp;baseline, const <a class="el" href="struct_delay_run_snapshot.html">DelayRunSnapshot</a> &amp;scenario)</td></tr>
 <tr class="memitem:a97182d2fe96662af16156a111973b86c" id="r_a97182d2fe96662af16156a111973b86c"><td class="memItemLeft">const char *&#160;</td><td class="memItemRight"><a class="el" href="#a97182d2fe96662af16156a111973b86c">delayDiagnosticCode</a> (<a class="el" href="_delay_analysis_8h.html#ab222e5d6efd74d15502936212ee68f60">DelayDiagnosticKind</a> kind)</td></tr>
+<tr class="memdesc:a97182d2fe96662af16156a111973b86c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A fixed identifier of the kind, such as "scene_revision_differs".  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a1f9eca401d0a3e572b4e7a63d8682e2c" name="a1f9eca401d0a3e572b4e7a63d8682e2c"></a>
@@ -148,6 +151,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The totals over the final arrival of each of the occurrences. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -174,6 +179,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Two events per row, the arrival first. <span class="tt">run</span> supplies the entrance delay of each occurrence; an occurrence that <span class="tt">run</span> does not list keeps the planned times of its rows. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -200,6 +206,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Compares two completed runs of the same case. The baseline has no incident and no entrance delay. The scenario may have either. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -222,6 +229,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The thresholds of the summary: 0, 60, 180 and 300 s. An event is later than a threshold only when its delay is strictly greater. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -244,6 +252,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A fixed identifier of the kind, such as "scene_revision_differs". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -275,6 +285,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The statistics of the events that the filter selects, with one share for each finite threshold in seconds. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -143,10 +143,15 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:BlockingTimeTrajectory" id="r_BlockingTimeTrajectory"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_blocking_time_trajectory.html">BlockingTimeTrajectory</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A recorded trajectory inside the scope, as points of reference route X in km and elapsed seconds.  <a href="struct_blocking_time_trajectory.html#details">More...</a><br /></td></tr>
 <tr class="memitem:BlockingTimeDiagramData" id="r_BlockingTimeDiagramData"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the blocking-time diagram of a scope shows and exports.  <a href="struct_blocking_time_diagram_data.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RouteDiagramPoint" id="r_RouteDiagramPoint"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_route_diagram_point.html">RouteDiagramPoint</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One point of a route diagram line.  <a href="struct_route_diagram_point.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RouteDiagramSeries" id="r_RouteDiagramSeries"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_route_diagram_series.html">RouteDiagramSeries</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One line of the route diagram. A line ends where a point is missing or cannot be projected.  <a href="struct_route_diagram_series.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RouteDiagramData" id="r_RouteDiagramData"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the route diagram shows and exports.  <a href="struct_route_diagram_data.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -155,24 +160,39 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a30420cc2f51f35b56508a87ebbf6fdc7" id="r_a30420cc2f51f35b56508a87ebbf6fdc7"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a30420cc2f51f35b56508a87ebbf6fdc7">csvValue</a> (const <a class="el" href="struct_run_result_value.html">RunResultValue</a> &amp;value)</td></tr>
+<tr class="memdesc:a30420cc2f51f35b56508a87ebbf6fdc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The CSV field of a value: the number, or an empty field when it is unavailable.  <br /></td></tr>
 <tr class="memitem:af4427af0200906891a03bce3aff863b6" id="r_af4427af0200906891a03bce3aff863b6"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#af4427af0200906891a03bce3aff863b6">fullTableImage</a> (const QTableView &amp;table)</td></tr>
+<tr class="memdesc:af4427af0200906891a03bce3aff863b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole table as an image: every row and column at its natural size, with no scroll bars.  <br /></td></tr>
 <tr class="memitem:a587c3daade1504ca9e5d8fd12410f04d" id="r_a587c3daade1504ca9e5d8fd12410f04d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a587c3daade1504ca9e5d8fd12410f04d">buildBlockingTimeCsv</a> (const QStringList &amp;visibleTrainIds, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &amp;plannedReferences, const std::vector&lt; std::vector&lt; std::string &gt; &gt; &amp;trajectories={}, const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents={}, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;unmapped={})</td></tr>
 <tr class="memitem:a3321c0b0748f2b3f568225db8bd70ca2" id="r_a3321c0b0748f2b3f568225db8bd70ca2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3321c0b0748f2b3f568225db8bd70ca2">writeCsvFileWithProvenance</a> (const QString &amp;path, const std::string &amp;content, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;provenance)</td></tr>
+<tr class="memdesc:a3321c0b0748f2b3f568225db8bd70ca2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a CSV export and its provenance sidecar. False when a write fails.  <br /></td></tr>
 <tr class="memitem:acc9e721df4c93951d7c998c7b3851059" id="r_acc9e721df4c93951d7c998c7b3851059"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#acc9e721df4c93951d7c998c7b3851059">trainIdsFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
+<tr class="memdesc:acc9e721df4c93951d7c998c7b3851059"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ids of the trains of the run, in run order.  <br /></td></tr>
 <tr class="memitem:aef3655f13c5de447c146b76cd0783430" id="r_aef3655f13c5de447c146b76cd0783430"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aef3655f13c5de447c146b76cd0783430">trajectoryCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const QStringList &amp;visibleTrainIds)</td></tr>
 <tr class="memitem:a51e23926b07af75724be1c3bff22f587" id="r_a51e23926b07af75724be1c3bff22f587"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a51e23926b07af75724be1c3bff22f587">timetableCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const QStringList &amp;visibleTrainIds)</td></tr>
+<tr class="memdesc:a51e23926b07af75724be1c3bff22f587"><td class="mdescLeft">&#160;</td><td class="mdescRight">The planned and simulated times and the delays of every stop, in seconds.  <br /></td></tr>
 <tr class="memitem:a0fe35063db3c59420e10e14614f7889e" id="r_a0fe35063db3c59420e10e14614f7889e"><td class="memItemLeft">std::function&lt; std::string(const QStringList &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0fe35063db3c59420e10e14614f7889e">csvProviderFrom</a> (std::shared_ptr&lt; const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &gt; run, <a class="el" href="#a682c21128ac2148b789ee06a690d2194">CompletedRunCsv</a> csv)</td></tr>
+<tr class="memdesc:a0fe35063db3c59420e10e14614f7889e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A provider that calls <span class="tt"><a class="el" href="namespacecsv.html">csv</a></span> on the shared run with the visible train ids.  <br /></td></tr>
 <tr class="memitem:a96f46f75ea72acb64797227079ad4f77" id="r_a96f46f75ea72acb64797227079ad4f77"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a96f46f75ea72acb64797227079ad4f77">blockingTimeCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const QStringList &amp;visibleTrainIds)</td></tr>
+<tr class="memdesc:a96f46f75ea72acb64797227079ad4f77"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole run, the first route that a train runs on as reference, no recorded trajectories.  <br /></td></tr>
 <tr class="memitem:a3f71bcbe035affebd92825d3958dfab8" id="r_a3f71bcbe035affebd92825d3958dfab8"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3f71bcbe035affebd92825d3958dfab8">blockTimesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
+<tr class="memdesc:a3f71bcbe035affebd92825d3958dfab8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every train's blocking-time segments, classified against the other trains.  <br /></td></tr>
 <tr class="memitem:aaa5c75f0e512880c5089e1f120efeab7" id="r_aaa5c75f0e512880c5089e1f120efeab7"><td class="memItemLeft"><a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#aaa5c75f0e512880c5089e1f120efeab7">defaultBlockingTimeScopeFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
+<tr class="memdesc:aaa5c75f0e512880c5089e1f120efeab7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scope of the whole run.  <br /></td></tr>
 <tr class="memitem:a01e2b79e71e50a5ec565e39b34393e6c" id="r_a01e2b79e71e50a5ec565e39b34393e6c"><td class="memItemLeft"><a class="el" href="struct_blocking_time_scope_choices.html">BlockingTimeScopeChoices</a>&#160;</td><td class="memItemRight"><a class="el" href="#a01e2b79e71e50a5ec565e39b34393e6c">blockingTimeScopeChoicesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
+<tr class="memdesc:a01e2b79e71e50a5ec565e39b34393e6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the scope dialog offers for the run: its routes, its trains and its length.  <br /></td></tr>
 <tr class="memitem:a9148389f3aa3e0447e3687e3223e39d2" id="r_a9148389f3aa3e0447e3687e3223e39d2"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9148389f3aa3e0447e3687e3223e39d2">plannedReferencesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;scope, const std::map&lt; int, <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &gt; &amp;paths, const std::map&lt; int, <a class="el" href="struct_route_diagram_projection.html">RouteDiagramProjection</a> &gt; &amp;projections, int &amp;omitted)</td></tr>
 <tr class="memitem:a409140b657b52e1822517ded4f3d9678" id="r_a409140b657b52e1822517ded4f3d9678"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a409140b657b52e1822517ded4f3d9678">blockingTimeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:a409140b657b52e1822517ded4f3d9678"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when the scope has no reference route.  <br /></td></tr>
 <tr class="memitem:a554f241b4d09d5f8402f9c33981e7b16" id="r_a554f241b4d09d5f8402f9c33981e7b16"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a554f241b4d09d5f8402f9c33981e7b16">capacityEvidenceText</a> (const std::vector&lt; <a class="el" href="struct_capacity_headway_evidence.html">CapacityHeadwayEvidence</a> &gt; &amp;evidence)</td></tr>
+<tr class="memdesc:a554f241b4d09d5f8402f9c33981e7b16"><td class="mdescLeft">&#160;</td><td class="mdescRight">The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ".  <br /></td></tr>
 <tr class="memitem:ab420be6557579b41e9121557671bc2f5" id="r_ab420be6557579b41e9121557671bc2f5"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab420be6557579b41e9121557671bc2f5">capacityAnalysisCsv</a> (const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result, const QString &amp;sectionLabel)</td></tr>
 <tr class="memitem:acfdef5a662b4ac2ea5818632014a313a" id="r_acfdef5a662b4ac2ea5818632014a313a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#acfdef5a662b4ac2ea5818632014a313a">capacityCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:acfdef5a662b4ac2ea5818632014a313a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when the scope has an issue or the occurrences do not form a chain.  <br /></td></tr>
 <tr class="memitem:acf0d34dc7c2f174ee9b5c532cfd59426" id="r_acf0d34dc7c2f174ee9b5c532cfd59426"><td class="memItemLeft">std::map&lt; std::string, <a class="el" href="struct_route_diagram_projection.html">RouteDiagramProjection</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acf0d34dc7c2f174ee9b5c532cfd59426">routeProjectionsByTrain</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &amp;reference)</td></tr>
+<tr class="memdesc:acf0d34dc7c2f174ee9b5c532cfd59426"><td class="mdescLeft">&#160;</td><td class="mdescRight">The projection of the route of each train onto a reference route, by train id.  <br /></td></tr>
 <tr class="memitem:a23cc6d8743ea6132e2b4601ffaeb5449" id="r_a23cc6d8743ea6132e2b4601ffaeb5449"><td class="memItemLeft">std::vector&lt; std::pair&lt; int, std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a23cc6d8743ea6132e2b4601ffaeb5449">usedRouteReferencesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
+<tr class="memdesc:a23cc6d8743ea6132e2b4601ffaeb5449"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes that trains run on, as (route index, route id) in order of first use.  <br /></td></tr>
 <tr class="memitem:a9e66592dd211190d72140e97499e0152" id="r_a9e66592dd211190d72140e97499e0152"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9e66592dd211190d72140e97499e0152">routeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, bool timetable, int referenceIndex)</td></tr>
 </table>
 <a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
@@ -187,6 +207,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The CSV provider of a result window: it shares the run and gives one export of it for the trains that the window shows, whatever the simulation holds by then. </p>
 
 </div>
 </div>
@@ -209,6 +230,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The whole run, the first route that a train runs on as reference, no recorded trajectories. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -235,6 +258,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Empty when the scope has no reference route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -257,6 +282,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>What the scope dialog offers for the run: its routes, its trains and its length. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -279,6 +306,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Every train's blocking-time segments, classified against the other trains. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -325,6 +354,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The blocking-time CSV: the envelopes of the visible trains in <span class="tt">segments</span>, their planned stop references, the recorded trajectory rows, the envelopes that could not be projected and one row for each section in <span class="tt">extents</span>. Every row has the columns of <a class="el" href="_blocking_time_diagram_8cpp.html#a88c7774ff8abc2790f37548811ba11a8">blockingTimeCsvHeader()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -351,6 +381,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The capacity CSV of the result, with times in seconds and the cycle share in percent. Empty when the result cannot be analysed or has no cycle time or no cycle share. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -377,6 +408,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Empty when the scope has an issue or the occurrences do not form a chain. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -399,6 +432,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -425,6 +460,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A provider that calls <span class="tt"><a class="el" href="namespacecsv.html">csv</a></span> on the shared run with the visible train ids. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -447,6 +484,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The CSV field of a value: the number, or an empty field when it is unavailable. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -469,6 +508,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scope of the whole run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -491,6 +532,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The whole table as an image: every row and column at its natural size, with no scroll bars. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -532,6 +575,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The planned arrivals and departures of the trains of the scope at the stops on the scope's blocks, at their position on the reference route. A reference with a NaN time breaks the line where a stop cannot be projected or lies outside the selected sections. <span class="tt">paths</span> and <span class="tt">projections</span> are keyed by route index. Adds the stops that cannot be projected to <span class="tt">omitted</span>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -563,6 +607,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The train paths, or the timetable graph when <span class="tt">timetable</span> is set, on the reference route with the given index. Empty when the route does not exist or has no nodes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -589,6 +634,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The projection of the route of each train onto a reference route, by train id. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -615,6 +662,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The planned and simulated times and the delays of every stop, in seconds. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -637,6 +686,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The ids of the trains of the run, in run order. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -663,6 +714,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The recorded samples: time in s, position in m, speed in m/s, power in kW, tractive effort in kN, energy in kWh and the block, one row for each valid sample. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -685,6 +737,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The routes that trains run on, as (route index, route id) in order of first use. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -716,6 +770,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Writes a CSV export and its provenance sidecar. False when a write fails. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

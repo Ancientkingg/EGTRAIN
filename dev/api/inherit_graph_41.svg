@@ -11,7 +11,7 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_delay_baseline_comparison.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="struct_delay_baseline_comparison.html" target="_top" xlink:title="The comparison of a scenario run with a baseline run.">
 <polygon fill="white" stroke="#666666" points="146,-19 0,-19 0,0 146,0 146,-19"/>
 <text text-anchor="middle" x="73" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">DelayBaselineComparison</text>
 </a>

@@ -1,5 +1,5 @@
 <map id="DelayAnalysisWindow::DelayAnalysisWindow" name="DelayAnalysisWindow::DelayAnalysisWindow">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,221,180,261"/>
+<area shape="rect" id="Node000001" title="baseline is the baseline run when one is set. The Against baseline tab compares it with scenario." alt="" coords="5,221,180,261"/>
 <area shape="rect" id="Node000002" href="$_delay_analysis_8cpp.html#a36d28ae11255f792bc410c0819aed184" title=" " alt="" coords="275,29,411,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,219,150,147,185,106,227,72,261,55,263,60,229,76,189,110,154,150,107,222"/>
 <area shape="rect" id="Node000003" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title=" " alt="" coords="507,81,767,107"/>
@@ -19,7 +19,7 @@
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="730,104,822,117,821,122,729,109"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="865,120,855,110,860,100,878,94,908,92,947,96,957,101,961,107,956,110,954,105,945,101,908,97,879,99,863,104,860,110,868,117"/>
 <area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="303,156,294,146,298,136,315,130,343,128,379,132,389,137,393,142,388,145,385,141,377,137,343,133,316,135,302,140,299,146,307,153"/>
-<area shape="rect" id="Node000006" href="$_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" title=" " alt="" coords="579,155,694,180"/>
+<area shape="rect" id="Node000006" href="$_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" title="The totals over the final arrival of each of the occurrences." alt="" coords="579,155,694,180"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="435,165,566,165,566,170,435,170"/>
 <area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="593,156,584,146,589,136,607,130,637,128,675,132,686,137,689,143,685,146,682,141,674,137,637,133,608,135,592,140,589,146,597,153"/>
 <area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="303,230,294,220,298,210,315,204,343,201,379,205,389,210,393,216,388,219,385,214,377,210,343,207,316,209,302,214,299,219,307,226"/>

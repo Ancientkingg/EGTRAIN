@@ -113,23 +113,36 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_complet
 </div><!--header-->
 <div class="contents">
 
+<p>One stop of a train, in service order.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_completed_run_data_8h_source.html">diagrams/CompletedRunData.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aba59bf8f781112bcb7bf26b80d7499b1" id="r_aba59bf8f781112bcb7bf26b80d7499b1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aba59bf8f781112bcb7bf26b80d7499b1">onRoute</a> (const std::vector&lt; std::string &gt; &amp;allowedBlockIds={}) const</td></tr>
+<tr class="memdesc:aba59bf8f781112bcb7bf26b80d7499b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the station lies on the route, within the allowed block sections when any are given.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ae2066b1698dd4707d8b72ebfd2dd576f" id="r_ae2066b1698dd4707d8b72ebfd2dd576f"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae2066b1698dd4707d8b72ebfd2dd576f">station</a></td></tr>
+<tr class="memdesc:ae2066b1698dd4707d8b72ebfd2dd576f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name used by the arrival statistics.  <br /></td></tr>
 <tr class="memitem:ac3c464cce0d757cd2bba1a08bff1fb97" id="r_ac3c464cce0d757cd2bba1a08bff1fb97"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac3c464cce0d757cd2bba1a08bff1fb97">nodeId</a></td></tr>
+<tr class="memdesc:ac3c464cce0d757cd2bba1a08bff1fb97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene node of the stop.  <br /></td></tr>
 <tr class="memitem:a875228e22929eccfcdaf11a333ba54d1" id="r_a875228e22929eccfcdaf11a333ba54d1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a875228e22929eccfcdaf11a333ba54d1">routeX</a> = 0.0</td></tr>
+<tr class="memdesc:a875228e22929eccfcdaf11a333ba54d1"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> abscissa of the stop node in km.  <br /></td></tr>
 <tr class="memitem:a353965e8278861e901708507c34c5e03" id="r_a353965e8278861e901708507c34c5e03"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a353965e8278861e901708507c34c5e03">routePositionMeters</a> = -1.0</td></tr>
+<tr class="memdesc:a353965e8278861e901708507c34c5e03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position on the route in m, -1 when the station is not on the route.  <br /></td></tr>
 <tr class="memitem:abd78aea645bfc8e80c06c60e4c25365d" id="r_abd78aea645bfc8e80c06c60e4c25365d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abd78aea645bfc8e80c06c60e4c25365d">scheduledArrival</a> = 0.0</td></tr>
+<tr class="memdesc:abd78aea645bfc8e80c06c60e4c25365d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned arrival in seconds of the run, negative when the stop has none.  <br /></td></tr>
 <tr class="memitem:a52f8c045e81d41069c80e40550733564" id="r_a52f8c045e81d41069c80e40550733564"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a52f8c045e81d41069c80e40550733564">scheduledDeparture</a> = 0.0</td></tr>
+<tr class="memdesc:a52f8c045e81d41069c80e40550733564"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned departure in seconds of the run, negative when the stop has none.  <br /></td></tr>
 <tr class="memitem:aa5b308f137bd9457fb25fa879e1f13e5" id="r_aa5b308f137bd9457fb25fa879e1f13e5"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa5b308f137bd9457fb25fa879e1f13e5">routeBlockIds</a></td></tr>
+<tr class="memdesc:aa5b308f137bd9457fb25fa879e1f13e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ids of the route's block sections that hold the station.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One stop of a train, in service order. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="aba59bf8f781112bcb7bf26b80d7499b1" name="aba59bf8f781112bcb7bf26b80d7499b1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aba59bf8f781112bcb7bf26b80d7499b1">&#9670;&#160;</a></span>onRoute()</h2>
 
@@ -153,6 +166,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Whether the station lies on the route, within the allowed block sections when any are given. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -168,6 +183,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Scene node of the stop. </p>
+
 </div>
 </div>
 <a id="aa5b308f137bd9457fb25fa879e1f13e5" name="aa5b308f137bd9457fb25fa879e1f13e5"></a>
@@ -181,6 +198,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Ids of the route's block sections that hold the station. </p>
 
 </div>
 </div>
@@ -196,6 +215,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Position on the route in m, -1 when the station is not on the route. </p>
+
 </div>
 </div>
 <a id="a875228e22929eccfcdaf11a333ba54d1" name="a875228e22929eccfcdaf11a333ba54d1"></a>
@@ -209,6 +230,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_route.html">Route</a> abscissa of the stop node in km. </p>
 
 </div>
 </div>
@@ -224,6 +247,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Planned arrival in seconds of the run, negative when the stop has none. </p>
+
 </div>
 </div>
 <a id="a52f8c045e81d41069c80e40550733564" name="a52f8c045e81d41069c80e40550733564"></a>
@@ -238,6 +263,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Planned departure in seconds of the run, negative when the stop has none. </p>
+
 </div>
 </div>
 <a id="ae2066b1698dd4707d8b72ebfd2dd576f" name="ae2066b1698dd4707d8b72ebfd2dd576f"></a>
@@ -251,6 +278,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Name used by the arrival statistics. </p>
 
 </div>
 </div>

@@ -1,11 +1,11 @@
 <map id="DelayRunSnapshot" name="DelayRunSnapshot">
-<area shape="rect" id="Node000001" title=" " alt="" coords="84,317,229,343"/>
-<area shape="rect" id="Node000002" href="$struct_run_provenance.html" title=" " alt="" coords="30,221,153,247"/>
+<area shape="rect" id="Node000001" title="One completed run as values for the delay analysis. It holds no pointer into the simulation,..." alt="" coords="84,317,229,343"/>
+<area shape="rect" id="Node000002" href="$struct_run_provenance.html" title="The inputs and settings of a run, written next to every export as a provenance sidecar." alt="" coords="30,221,153,247"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,259,115,292,140,315,136,319,111,295,95,261"/>
-<area shape="rect" id="Node000003" href="$struct_run_input_provenance.html" title=" " alt="" coords="5,5,161,31"/>
+<area shape="rect" id="Node000003" href="$struct_run_input_provenance.html" title="The scene input of a run and whether it can be loaded again as it was run." alt="" coords="5,5,161,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,44,94,221,88,221,82,44"/>
-<area shape="rect" id="Node000004" href="$struct_run_results.html" title=" " alt="" coords="192,221,287,247"/>
+<area shape="rect" id="Node000004" href="$struct_run_results.html" title="The Run Results table: one row for each train and the totals of the network." alt="" coords="192,221,287,247"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="227,260,200,295,174,319,170,315,196,292,223,257"/>
-<area shape="rect" id="Node000005" href="$struct_run_result_value.html" title=" " alt="" coords="185,5,309,31"/>
+<area shape="rect" id="Node000005" href="$struct_run_result_value.html" title="A result that may not exist. An unavailable value is shown as empty or &quot;&#45;&quot;, never as 0." alt="" coords="185,5,309,31"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="249,44,242,221,237,221,244,44"/>
 </map>

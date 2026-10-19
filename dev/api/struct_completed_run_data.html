@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_complet
 </div><!--header-->
 <div class="contents">
 
+<p>The finished run that the result windows show and export.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_completed_run_data_8h_source.html">diagrams/CompletedRunData.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for CompletedRunData:</div>
@@ -123,18 +126,28 @@ Collaboration diagram for CompletedRunData:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae3d16e992a1da1e83865b70b4027f0e8" id="r_ae3d16e992a1da1e83865b70b4027f0e8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae3d16e992a1da1e83865b70b4027f0e8">hasRoute</a> (int routeIndex) const</td></tr>
+<tr class="memdesc:ae3d16e992a1da1e83865b70b4027f0e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when routeIndex indexes routes.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a62bae0c1c4711277105b222ee69db891" id="r_a62bae0c1c4711277105b222ee69db891"><td class="memItemLeft"><a class="el" href="struct_completed_run_settings.html">CompletedRunSettings</a>&#160;</td><td class="memItemRight"><a class="el" href="#a62bae0c1c4711277105b222ee69db891">settings</a></td></tr>
+<tr class="memdesc:a62bae0c1c4711277105b222ee69db891"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time frame of the run.  <br /></td></tr>
 <tr class="memitem:a46d1f3fd824f1b082ac38bfa857ffd31" id="r_a46d1f3fd824f1b082ac38bfa857ffd31"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a46d1f3fd824f1b082ac38bfa857ffd31">blockNames</a></td></tr>
+<tr class="memdesc:a46d1f3fd824f1b082ac38bfa857ffd31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Names of the blocks that the trajectories refer to.  <br /></td></tr>
 <tr class="memitem:a2ff32c15858a84963a3de52544d07eb9" id="r_a2ff32c15858a84963a3de52544d07eb9"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_completed_train.html">CompletedTrain</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2ff32c15858a84963a3de52544d07eb9">trains</a></td></tr>
+<tr class="memdesc:a2ff32c15858a84963a3de52544d07eb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">In run order.  <br /></td></tr>
 <tr class="memitem:a9a547516bc17d291896b61deb5466dfb" id="r_a9a547516bc17d291896b61deb5466dfb"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_completed_route.html">CompletedRoute</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9a547516bc17d291896b61deb5466dfb">routes</a></td></tr>
+<tr class="memdesc:a9a547516bc17d291896b61deb5466dfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of the simulation's routes.  <br /></td></tr>
 <tr class="memitem:a9afb192f3a4bd2353134181ec20dfc1d" id="r_a9afb192f3a4bd2353134181ec20dfc1d"><td class="memItemLeft"><a class="el" href="struct_run_results.html">RunResults</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9afb192f3a4bd2353134181ec20dfc1d">results</a></td></tr>
+<tr class="memdesc:a9afb192f3a4bd2353134181ec20dfc1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run Results table.  <br /></td></tr>
 <tr class="memitem:aabc7a1bd7a2f535b1cdce16f2d237f8b" id="r_aabc7a1bd7a2f535b1cdce16f2d237f8b"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_timetable_result_row.html">TimetableResultRow</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aabc7a1bd7a2f535b1cdce16f2d237f8b">timetable</a></td></tr>
+<tr class="memdesc:aabc7a1bd7a2f535b1cdce16f2d237f8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Planned and simulated times of every stop.  <br /></td></tr>
 <tr class="memitem:ad5968077c4da30d0036692ac5a1c017b" id="r_ad5968077c4da30d0036692ac5a1c017b"><td class="memItemLeft"><a class="el" href="struct_run_provenance.html">RunProvenance</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad5968077c4da30d0036692ac5a1c017b">provenance</a></td></tr>
+<tr class="memdesc:ad5968077c4da30d0036692ac5a1c017b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inputs and settings of the run, for the export sidecars.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The finished run that the result windows show and export. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="ae3d16e992a1da1e83865b70b4027f0e8" name="ae3d16e992a1da1e83865b70b4027f0e8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3d16e992a1da1e83865b70b4027f0e8">&#9670;&#160;</a></span>hasRoute()</h2>
 
@@ -158,6 +171,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>True when routeIndex indexes routes. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -173,6 +188,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Names of the blocks that the trajectories refer to. </p>
+
 </div>
 </div>
 <a id="ad5968077c4da30d0036692ac5a1c017b" name="ad5968077c4da30d0036692ac5a1c017b"></a>
@@ -186,6 +203,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Inputs and settings of the run, for the export sidecars. </p>
 
 </div>
 </div>
@@ -201,6 +220,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Run Results table. </p>
+
 </div>
 </div>
 <a id="a9a547516bc17d291896b61deb5466dfb" name="a9a547516bc17d291896b61deb5466dfb"></a>
@@ -214,6 +235,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In the order of the simulation's routes. </p>
 
 </div>
 </div>
@@ -229,6 +252,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Time frame of the run. </p>
+
 </div>
 </div>
 <a id="aabc7a1bd7a2f535b1cdce16f2d237f8b" name="aabc7a1bd7a2f535b1cdce16f2d237f8b"></a>
@@ -243,6 +268,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Planned and simulated times of every stop. </p>
+
 </div>
 </div>
 <a id="a2ff32c15858a84963a3de52544d07eb9" name="a2ff32c15858a84963a3de52544d07eb9"></a>
@@ -256,6 +283,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In run order. </p>
 
 </div>
 </div>

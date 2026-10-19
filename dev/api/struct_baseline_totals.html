@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_baselin
 </div><!--header-->
 <div class="contents">
 
+<p>The totals are over the final arrival of each occurrence.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_delay_analysis_8h_source.html">diagrams/DelayAnalysis.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for BaselineTotals:</div>
@@ -123,15 +126,22 @@ Collaboration diagram for BaselineTotals:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a650b35fce08e5a62078b87e6aed45076" id="r_a650b35fce08e5a62078b87e6aed45076"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a650b35fce08e5a62078b87e6aed45076">occurrences</a> = 0</td></tr>
+<tr class="memdesc:a650b35fce08e5a62078b87e6aed45076"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrences compared.  <br /></td></tr>
 <tr class="memitem:a2609e15240b8b565289a73a4f6c3c2bf" id="r_a2609e15240b8b565289a73a4f6c3c2bf"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a2609e15240b8b565289a73a4f6c3c2bf">later</a> = 0</td></tr>
+<tr class="memdesc:a2609e15240b8b565289a73a4f6c3c2bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrences with <a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014aa61057a0c84605444201929bdd72014f0" title="Additional delay above 0.">DelayChange::Later</a>.  <br /></td></tr>
 <tr class="memitem:a6a17c6177f244c9437d40f8178281a0e" id="r_a6a17c6177f244c9437d40f8178281a0e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6a17c6177f244c9437d40f8178281a0e">same</a> = 0</td></tr>
+<tr class="memdesc:a6a17c6177f244c9437d40f8178281a0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrences with <a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014aac90a13d8ec8fe53c6bb33fe10af6f2fe" title="Additional delay exactly 0.">DelayChange::Same</a>.  <br /></td></tr>
 <tr class="memitem:aa33be39c7e327650893641c584e64da2" id="r_aa33be39c7e327650893641c584e64da2"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa33be39c7e327650893641c584e64da2">earlier</a> = 0</td></tr>
+<tr class="memdesc:aa33be39c7e327650893641c584e64da2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Occurrences with <a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014aaaa015f12f13825d65f5567adceb48e23" title="Additional delay below 0.">DelayChange::Earlier</a>.  <br /></td></tr>
 <tr class="memitem:aaa7c4628523bc01c232917cdff6e4c83" id="r_aaa7c4628523bc01c232917cdff6e4c83"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aaa7c4628523bc01c232917cdff6e4c83">notAvailable</a> = 0</td></tr>
 <tr class="memitem:a251659d6bcd4f603e82580111c16ce06" id="r_a251659d6bcd4f603e82580111c16ce06"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a251659d6bcd4f603e82580111c16ce06">positiveSeconds</a></td></tr>
 <tr class="memitem:a25576128c034f05bbb3069702ea32376" id="r_a25576128c034f05bbb3069702ea32376"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a25576128c034f05bbb3069702ea32376">netSeconds</a></td></tr>
 <tr class="memitem:a5a6945903be201b91bb82591a119af41" id="r_a5a6945903be201b91bb82591a119af41"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5a6945903be201b91bb82591a119af41">complete</a> = false</td></tr>
+<tr class="memdesc:a5a6945903be201b91bb82591a119af41"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when there is an occurrence and every one has a difference.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The totals are over the final arrival of each occurrence. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a5a6945903be201b91bb82591a119af41" name="a5a6945903be201b91bb82591a119af41"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5a6945903be201b91bb82591a119af41">&#9670;&#160;</a></span>complete</h2>
 
@@ -143,6 +153,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when there is an occurrence and every one has a difference. </p>
 
 </div>
 </div>
@@ -158,6 +170,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Occurrences with <a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014aaaa015f12f13825d65f5567adceb48e23" title="Additional delay below 0.">DelayChange::Earlier</a>. </p>
+
 </div>
 </div>
 <a id="a2609e15240b8b565289a73a4f6c3c2bf" name="a2609e15240b8b565289a73a4f6c3c2bf"></a>
@@ -172,6 +186,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Occurrences with <a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014aa61057a0c84605444201929bdd72014f0" title="Additional delay above 0.">DelayChange::Later</a>. </p>
+
 </div>
 </div>
 <a id="a25576128c034f05bbb3069702ea32376" name="a25576128c034f05bbb3069702ea32376"></a>
@@ -185,6 +201,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sum of all additional delays, in seconds </p>
 
 </div>
 </div>
@@ -199,6 +216,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Occurrences with <a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014aa534ceac854da4ba59c4dc41b7ab732dc" title="One of the two times is missing.">DelayChange::NotAvailable</a> </p>
 
 </div>
 </div>
@@ -214,6 +232,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Occurrences compared. </p>
+
 </div>
 </div>
 <a id="a251659d6bcd4f603e82580111c16ce06" name="a251659d6bcd4f603e82580111c16ce06"></a>
@@ -227,6 +247,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sum of the positive additional delays in seconds. It and netSeconds are unavailable when no occurrence has a difference, and they leave out the occurrences that have none. </p>
 
 </div>
 </div>
@@ -241,6 +262,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Occurrences with <a class="el" href="_delay_analysis_8h.html#af59a4be4e4f32fad17812b9ba450014aac90a13d8ec8fe53c6bb33fe10af6f2fe" title="Additional delay exactly 0.">DelayChange::Same</a>. </p>
 
 </div>
 </div>

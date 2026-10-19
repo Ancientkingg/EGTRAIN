@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" target="_top" xlink:title="The block sections of the route in route order, with their ends in km.">
 <polygon fill="white" stroke="#666666" points="313,-184 161,-184 161,-165 313,-165 313,-184"/>
 <text text-anchor="middle" x="237" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">blockSectionInputsForRoute</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" target="_top" xlink:title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski...">
 <polygon fill="white" stroke="#666666" points="284.5,-129 189.5,-129 189.5,-110 284.5,-110 284.5,-129"/>
 <text text-anchor="middle" x="237" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">buildRunResults</text>
 </a>
@@ -83,7 +83,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" target="_top" xlink:title="The route as the nodes of its path, with the stations of the scene when it is given.">
 <polygon fill="white" stroke="#666666" points="289.5,-19 184.5,-19 184.5,0 289.5,0 289.5,-19"/>
 <text text-anchor="middle" x="237" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">routeDiagramPath</text>
 </a>
@@ -119,7 +119,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" target="_top" xlink:title="An energy in MJ as kWh, with kEnergyMJToKWh.">
 <polygon fill="white" stroke="#666666" points="469,-206 385,-206 385,-187 469,-187 469,-206"/>
 <text text-anchor="middle" x="427" y="-194" font-family="Helvetica,sans-Serif" font-size="10.00">energyMJKWh</text>
 </a>

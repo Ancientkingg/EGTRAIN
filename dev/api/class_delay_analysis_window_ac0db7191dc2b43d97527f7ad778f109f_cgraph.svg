@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="baseline is the baseline run when one is set. The Against baseline tab compares it with scenario.">
 <polygon fill="#999999" stroke="#666666" points="131,-166 0,-166 0,-136 131,-136 131,-166"/>
 <text text-anchor="start" x="8" y="-154" font-family="Helvetica,sans-Serif" font-size="10.00">DelayAnalysisWindow</text>
 <text text-anchor="middle" x="65.5" y="-143" font-family="Helvetica,sans-Serif" font-size="10.00">::DelayAnalysisWindow</text>
@@ -194,7 +194,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" target="_top" xlink:title="The totals over the final arrival of each of the occurrences.">
 <polygon fill="white" stroke="#666666" points="516.5,-215.5 430.5,-215.5 430.5,-196.5 516.5,-196.5 516.5,-215.5"/>
 <text text-anchor="middle" x="473.5" y="-203.5" font-family="Helvetica,sans-Serif" font-size="10.00">baselineTotals</text>
 </a>

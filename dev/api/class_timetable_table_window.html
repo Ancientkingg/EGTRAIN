@@ -129,11 +129,16 @@ Collaboration diagram for TimetableTableWindow:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a505633277a4e552d1b0890a565e4b4dc" id="r_a505633277a4e552d1b0890a565e4b4dc"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a505633277a4e552d1b0890a565e4b4dc">TimetableTableWindow</a> (std::vector&lt; <a class="el" href="struct_timetable_result_row.html">TimetableResultRow</a> &gt; rows, long long startOffsetSeconds, std::function&lt; std::string(const QStringList &amp;)&gt; csvProvider, QWidget *parent=nullptr)</td></tr>
 <tr class="memitem:a325a1f61f0e4006b7dbbfae26e0891c5" id="r_a325a1f61f0e4006b7dbbfae26e0891c5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a325a1f61f0e4006b7dbbfae26e0891c5">setRunProvenance</a> (<a class="el" href="struct_run_provenance.html">RunProvenance</a> provenance)</td></tr>
+<tr class="memdesc:a325a1f61f0e4006b7dbbfae26e0891c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes <span class="tt">provenance</span> as a sidecar with every export and shows its case and scenario as the context.  <br /></td></tr>
 <tr class="memitem:a0c2e12aacca56a4eac3d960b67658ccc" id="r_a0c2e12aacca56a4eac3d960b67658ccc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0c2e12aacca56a4eac3d960b67658ccc">setPresentation</a> (const QString &amp;heading, const QString &amp;context)</td></tr>
+<tr class="memdesc:a0c2e12aacca56a4eac3d960b67658ccc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the window title to <span class="tt">heading</span> and shows <span class="tt">context</span> in a label; an empty context hides the label.  <br /></td></tr>
 <tr class="memitem:aebc64c6a1a2e22b532b860361b7c9d9e" id="r_aebc64c6a1a2e22b532b860361b7c9d9e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aebc64c6a1a2e22b532b860361b7c9d9e">setTrainColors</a> (const QHash&lt; QString, QColor &gt; &amp;colors)</td></tr>
 <tr class="memitem:a08dc8f78a2a7117b38953f311f85d1a3" id="r_a08dc8f78a2a7117b38953f311f85d1a3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a08dc8f78a2a7117b38953f311f85d1a3">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
+<tr class="memdesc:a08dc8f78a2a7117b38953f311f85d1a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Planned versus simulated timetable as a filterable, sortable table with the same train dropdown and export pair the chart windows use. The CSV button is shown only when the constructor gets a CSV provider. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a505633277a4e552d1b0890a565e4b4dc" name="a505633277a4e552d1b0890a565e4b4dc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a505633277a4e552d1b0890a565e4b4dc">&#9670;&#160;</a></span>TimetableTableWindow()</h2>
 
@@ -162,6 +167,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Shows <span class="tt">rows</span> with their times as clock times: second 0 is <span class="tt">startOffsetSeconds</span> after midnight. <span class="tt">csvProvider</span> gives the CSV for the visible train ids; empty for no CSV export. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -189,6 +195,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the window title to <span class="tt">heading</span> and shows <span class="tt">context</span> in a label; an empty context hides the label. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -211,6 +219,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Writes <span class="tt">provenance</span> as a sidecar with every export and shows its case and scenario as the context. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -242,6 +252,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Sets the function that gives the telemetry observation of an export; empty for none. </p>
+
 </div>
 </div>
 <a id="aebc64c6a1a2e22b532b860361b7c9d9e" name="aebc64c6a1a2e22b532b860361b7c9d9e"></a>
@@ -258,6 +270,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Shows a swatch of the given colour next to each listed train in the train filter; trains without an entry, or with an invalid colour, have none. Resets the filter to all trains visible. </p>
 
 </div>
 </div>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski...">
 <polygon fill="#999999" stroke="#666666" points="95,-74 0,-74 0,-55 95,-55 95,-74"/>
 <text text-anchor="middle" x="47.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">buildRunResults</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" target="_top" xlink:title="An energy in MJ as kWh, with kEnergyMJToKWh.">
 <polygon fill="white" stroke="#666666" points="241.5,-129 157.5,-129 157.5,-110 241.5,-110 241.5,-129"/>
 <text text-anchor="middle" x="199.5" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">energyMJKWh</text>
 </a>

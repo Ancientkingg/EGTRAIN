@@ -310,7 +310,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" target="_top" xlink:title="The value of series at a sample index, or empty when the series has no such sample.">
 <polygon fill="white" stroke="#666666" points="934,-1057 801,-1057 801,-1038 934,-1038 934,-1057"/>
 <text text-anchor="middle" x="867.5" y="-1045" font-family="Helvetica,sans-Serif" font-size="10.00">CompletedTrajectory::at</text>
 </a>
@@ -346,7 +346,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title="A provider that calls csv on the shared run with the visible train ids.">
 <polygon fill="white" stroke="#666666" points="721,-1571 623,-1571 623,-1552 721,-1552 721,-1571"/>
 <text text-anchor="middle" x="672" y="-1559" font-family="Helvetica,sans-Serif" font-size="10.00">csvProviderFrom</text>
 </a>
@@ -364,7 +364,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" target="_top" xlink:title="An empty window with the given title.">
 <polygon fill="#fff0f0" stroke="red" points="764,-1152 580,-1152 580,-1133 764,-1133 764,-1152"/>
 <text text-anchor="middle" x="672" y="-1140" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::DiagramWindow</text>
 </a>
@@ -436,7 +436,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title="Sets the function that gives the telemetry observation of an export; empty for none.">
 <polygon fill="white" stroke="#666666" points="755.5,-1255.5 588.5,-1255.5 588.5,-1225.5 755.5,-1225.5 755.5,-1255.5"/>
 <text text-anchor="start" x="596.5" y="-1243.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTelemetry</text>
 <text text-anchor="middle" x="672" y="-1232.5" font-family="Helvetica,sans-Serif" font-size="10.00">Capture</text>
@@ -455,7 +455,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" target="_top" xlink:title="As setTimeAxisY, for the X axis.">
 <polygon fill="white" stroke="#666666" points="757,-1385 587,-1385 587,-1366 757,-1366 757,-1385"/>
 <text text-anchor="middle" x="672" y="-1373" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTimeAxisX</text>
 </a>
@@ -509,7 +509,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" target="_top" xlink:title="A click on a series selected this train.">
 <polygon fill="#fff0f0" stroke="red" points="755.5,-1004 588.5,-1004 588.5,-985 755.5,-985 755.5,-1004"/>
 <text text-anchor="middle" x="672" y="-992" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::trainSelected</text>
 </a>
@@ -842,7 +842,7 @@
 <!-- Node41 -->
 <g id="Node000041" class="node">
 <title>Node41</title>
-<g id="a_Node000041"><a xlink:href="_run_exports_8cpp.html#acc9e721df4c93951d7c998c7b3851059" target="_top" xlink:title=" ">
+<g id="a_Node000041"><a xlink:href="_run_exports_8cpp.html#acc9e721df4c93951d7c998c7b3851059" target="_top" xlink:title="The ids of the trains of the run, in run order.">
 <polygon fill="white" stroke="#666666" points="711,-802 633,-802 633,-783 711,-783 711,-802"/>
 <text text-anchor="middle" x="672" y="-790" font-family="Helvetica,sans-Serif" font-size="10.00">trainIdsFrom</text>
 </a>
@@ -923,7 +923,7 @@
 <!-- Node45 -->
 <g id="Node000045" class="node">
 <title>Node45</title>
-<g id="a_Node000045"><a xlink:href="_area_capacity_window_8cpp.html#af9ee4fb47ba582bec2c7e4372be7bc64" target="_top" xlink:title=" ">
+<g id="a_Node000045"><a xlink:href="_area_capacity_window_8cpp.html#af9ee4fb47ba582bec2c7e4372be7bc64" target="_top" xlink:title="Asks for the scope, analyses it and opens the window, which deletes itself on close....">
 <polygon fill="#fff0f0" stroke="red" points="526,-331 381,-331 381,-312 526,-312 526,-331"/>
 <text text-anchor="middle" x="453.5" y="-319" font-family="Helvetica,sans-Serif" font-size="10.00">openAreaCapacityWindow</text>
 </a>
@@ -1040,7 +1040,7 @@
 <!-- Node61 -->
 <g id="Node000061" class="node">
 <title>Node61</title>
-<g id="a_Node000061"><a xlink:href="_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" target="_top" xlink:title=" ">
+<g id="a_Node000061"><a xlink:href="_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" target="_top" xlink:title="Empty when the scope has no reference route.">
 <polygon fill="#fff0f0" stroke="red" points="746,-600 598,-600 598,-581 746,-581 746,-600"/>
 <text text-anchor="middle" x="672" y="-588" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeDiagramData</text>
 </a>
@@ -1058,7 +1058,7 @@
 <!-- Node79 -->
 <g id="Node000079" class="node">
 <title>Node79</title>
-<g id="a_Node000079"><a xlink:href="_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" target="_top" xlink:title=" ">
+<g id="a_Node000079"><a xlink:href="_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" target="_top" xlink:title="What the scope dialog offers for the run: its routes, its trains and its length.">
 <polygon fill="#fff0f0" stroke="red" points="759.5,-545 584.5,-545 584.5,-526 759.5,-526 759.5,-545"/>
 <text text-anchor="middle" x="672" y="-533" font-family="Helvetica,sans-Serif" font-size="10.00">blockingTimeScopeChoicesFrom</text>
 </a>
@@ -1148,7 +1148,7 @@
 <!-- Node91 -->
 <g id="Node000091" class="node">
 <title>Node91</title>
-<g id="a_Node000091"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title=" ">
+<g id="a_Node000091"><a xlink:href="_run_exports_8cpp.html#aaa5c75f0e512880c5089e1f120efeab7" target="_top" xlink:title="The scope of the whole run.">
 <polygon fill="#fff0f0" stroke="red" points="758,-325 586,-325 586,-306 758,-306 758,-325"/>
 <text text-anchor="middle" x="672" y="-313" font-family="Helvetica,sans-Serif" font-size="10.00">defaultBlockingTimeScopeFrom</text>
 </a>

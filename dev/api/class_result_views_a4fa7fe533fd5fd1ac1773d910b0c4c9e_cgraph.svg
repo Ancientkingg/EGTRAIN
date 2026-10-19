@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" target="_top" xlink:title="A provider that calls csv on the shared run with the visible train ids.">
 <polygon fill="white" stroke="#666666" points="329,-330.5 231,-330.5 231,-311.5 329,-311.5 329,-330.5"/>
 <text text-anchor="middle" x="280" y="-318.5" font-family="Helvetica,sans-Serif" font-size="10.00">csvProviderFrom</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" target="_top" xlink:title="Sets the function that gives the telemetry observation of an export; empty for none.">
 <polygon fill="white" stroke="#666666" points="363.5,-293 196.5,-293 196.5,-263 363.5,-263 363.5,-293"/>
 <text text-anchor="start" x="204.5" y="-281" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setTelemetry</text>
 <text text-anchor="middle" x="280" y="-270" font-family="Helvetica,sans-Serif" font-size="10.00">Capture</text>
@@ -94,7 +94,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_run_exports_8cpp.html#a51e23926b07af75724be1c3bff22f587" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_run_exports_8cpp.html#a51e23926b07af75724be1c3bff22f587" target="_top" xlink:title="The planned and simulated times and the delays of every stop, in seconds.">
 <polygon fill="white" stroke="#666666" points="333.5,-189.5 226.5,-189.5 226.5,-170.5 333.5,-170.5 333.5,-189.5"/>
 <text text-anchor="middle" x="280" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">timetableCsvFrom</text>
 </a>

@@ -113,17 +113,27 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_area_ca
 </div><!--header-->
 <div class="contents">
 
+<p>What analyzeAreaCapacity analyses.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_area_capacity_8h_source.html">diagrams/AreaCapacity.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad5c2a5754a6b40a82affcea0c24bf8cf" id="r_ad5c2a5754a6b40a82affcea0c24bf8cf"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad5c2a5754a6b40a82affcea0c24bf8cf">resourceIds</a></td></tr>
+<tr class="memdesc:ad5c2a5754a6b40a82affcea0c24bf8cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty ids, "None" and ids that repeat an earlier entry are ignored.  <br /></td></tr>
 <tr class="memitem:a5c3f6af9d086d0bb4e471297ae91ec76" id="r_a5c3f6af9d086d0bb4e471297ae91ec76"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_area_capacity_train.html">AreaCapacityTrain</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5c3f6af9d086d0bb4e471297ae91ec76">selected</a></td></tr>
+<tr class="memdesc:a5c3f6af9d086d0bb4e471297ae91ec76"><td class="mdescLeft">&#160;</td><td class="mdescRight">The trains of the analysis in chain order. The module never reorders them.  <br /></td></tr>
 <tr class="memitem:a16f00238417c9c152f5ad722b3372577" id="r_a16f00238417c9c152f5ad722b3372577"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_area_capacity_train.html">AreaCapacityTrain</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a16f00238417c9c152f5ad722b3372577">otherTraffic</a></td></tr>
+<tr class="memdesc:a16f00238417c9c152f5ad722b3372577"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every other train of the run. It may hold trains that touch nothing of the area.  <br /></td></tr>
 <tr class="memitem:a603f1bc5119583eebcc13f49e0b29b7f" id="r_a603f1bc5119583eebcc13f49e0b29b7f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a603f1bc5119583eebcc13f49e0b29b7f">periodSeconds</a> = -1.0</td></tr>
+<tr class="memdesc:a603f1bc5119583eebcc13f49e0b29b7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analysis period in seconds. Valid when it is finite and above 0.  <br /></td></tr>
 <tr class="memitem:aa7c06c8ec8bca026bbf6ce735b2ae336" id="r_aa7c06c8ec8bca026bbf6ce735b2ae336"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa7c06c8ec8bca026bbf6ce735b2ae336">cycleEndIdentity</a></td></tr>
+<tr class="memdesc:aa7c06c8ec8bca026bbf6ce735b2ae336"><td class="mdescLeft">&#160;</td><td class="mdescRight">The cycle-closing occurrence of the chain, as for analyzeCapacity.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What analyzeAreaCapacity analyses. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aa7c06c8ec8bca026bbf6ce735b2ae336" name="aa7c06c8ec8bca026bbf6ce735b2ae336"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa7c06c8ec8bca026bbf6ce735b2ae336">&#9670;&#160;</a></span>cycleEndIdentity</h2>
 
@@ -135,6 +145,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The cycle-closing occurrence of the chain, as for analyzeCapacity. </p>
 
 </div>
 </div>
@@ -150,6 +162,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Every other train of the run. It may hold trains that touch nothing of the area. </p>
+
 </div>
 </div>
 <a id="a603f1bc5119583eebcc13f49e0b29b7f" name="a603f1bc5119583eebcc13f49e0b29b7f"></a>
@@ -163,6 +177,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Analysis period in seconds. Valid when it is finite and above 0. </p>
 
 </div>
 </div>
@@ -178,6 +194,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Empty ids, "None" and ids that repeat an earlier entry are ignored. </p>
+
 </div>
 </div>
 <a id="a5c3f6af9d086d0bb4e471297ae91ec76" name="a5c3f6af9d086d0bb4e471297ae91ec76"></a>
@@ -191,6 +209,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The trains of the analysis in chain order. The module never reorders them. </p>
 
 </div>
 </div>

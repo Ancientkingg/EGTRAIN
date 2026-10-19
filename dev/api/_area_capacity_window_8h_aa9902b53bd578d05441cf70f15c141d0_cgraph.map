@@ -1,23 +1,23 @@
 <map id="openAreaCapacityWindow" name="openAreaCapacityWindow">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,176,199,201"/>
+<area shape="rect" id="Node000001" title="Asks for the scope, analyses it and opens the window, which deletes itself on close...." alt="" coords="5,176,199,201"/>
 <area shape="poly" id="edge28_Node000001_Node000001" title=" " alt="" coords="63,178,55,168,59,158,75,152,102,149,136,153,149,163,145,167,134,158,102,155,76,157,63,162,60,167,67,174"/>
-<area shape="rect" id="Node000002" href="$_area_capacity_8cpp.html#ad7a62b2ddfb9e5af716ae1744dc9933a" title=" " alt="" coords="262,29,422,55"/>
+<area shape="rect" id="Node000002" href="$_area_capacity_8cpp.html#ad7a62b2ddfb9e5af716ae1744dc9933a" title="Occupation rates of the resources, the envelope and the chain of the selected trains." alt="" coords="262,29,422,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,174,166,120,204,90,245,64,260,57,263,62,248,68,207,94,170,124,116,178"/>
 <area shape="rect" id="Node000003" href="$_area_capacity_window_8cpp.html#a971ddcd31b6dd8485cb12b52f3e41012" title=" " alt="" coords="255,103,429,128"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="137,173,246,137,274,129,275,134,247,142,139,178"/>
-<area shape="rect" id="Node000004" href="$_area_capacity_window_8cpp.html#a8fd0e895bcf5a4af24039d1ac7b077bc" title=" " alt="" coords="271,176,413,201"/>
+<area shape="rect" id="Node000004" href="$_area_capacity_window_8cpp.html#a8fd0e895bcf5a4af24039d1ac7b077bc" title="The route and block range of the scope, as the window and the export name the area." alt="" coords="271,176,413,201"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="199,186,257,186,257,191,199,191"/>
-<area shape="rect" id="Node000007" href="$class_area_capacity_window.html#a12ee086c1c889cef03f9b78f4343b454" title=" " alt="" coords="257,226,427,266"/>
+<area shape="rect" id="Node000007" href="$class_area_capacity_window.html#a12ee086c1c889cef03f9b78f4343b454" title="Shows result for the area named areaLabel. provenance goes into the export sidecar." alt="" coords="257,226,427,266"/>
 <area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="157,199,245,220,244,225,155,204"/>
-<area shape="rect" id="Node000016" href="$class_area_capacity_scope_dialog.html#a11ef54b034b103da361fc0b6d05ac3e4" title=" " alt="" coords="247,290,437,330"/>
+<area shape="rect" id="Node000016" href="$class_area_capacity_scope_dialog.html#a11ef54b034b103da361fc0b6d05ac3e4" title="The scope that the widgets hold now." alt="" coords="247,290,437,330"/>
 <area shape="poly" id="edge29_Node000001_Node000016" title=" " alt="" coords="123,199,177,236,248,276,264,282,261,287,245,280,175,241,120,204"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="304,31,296,21,300,11,316,5,342,3,375,7,388,16,384,20,373,11,342,8,317,10,303,15,301,20,308,27"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="304,104,296,94,300,84,316,78,342,76,375,80,388,89,384,94,373,85,342,81,317,83,303,88,301,94,308,101"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="304,178,296,168,300,158,316,152,342,149,375,153,388,163,384,167,373,158,342,155,317,157,303,162,301,167,308,174"/>
-<area shape="rect" id="Node000005" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title=" " alt="" coords="485,135,669,160"/>
+<area shape="rect" id="Node000005" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title="&quot;route / corridor / first block to last block&quot; without the parts the scope lacks, or &quot;no selected rou..." alt="" coords="485,135,669,160"/>
 <area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="413,174,491,160,492,165,414,179"/>
 <area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="539,136,531,126,535,116,551,110,577,108,610,112,623,121,620,126,608,117,577,113,552,115,539,120,536,126,543,133"/>
-<area shape="rect" id="Node000006" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title=" " alt="" coords="717,121,936,147"/>
+<area shape="rect" id="Node000006" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="717,121,936,147"/>
 <area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="669,140,704,138,704,143,670,145"/>
 <area shape="rect" id="Node000008" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="499,233,655,259"/>
 <area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="427,243,485,243,485,249,427,249"/>

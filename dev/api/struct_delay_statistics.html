@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_delay_s
 </div><!--header-->
 <div class="contents">
 
+<p>Counts and figures of a set of events.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_delay_analysis_8h_source.html">diagrams/DelayAnalysis.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for DelayStatistics:</div>
@@ -123,20 +126,31 @@ Collaboration diagram for DelayStatistics:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3185a329a0c51080f9ffaa327e329be2" id="r_a3185a329a0c51080f9ffaa327e329be2"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3185a329a0c51080f9ffaa327e329be2">calls</a> = 0</td></tr>
+<tr class="memdesc:a3185a329a0c51080f9ffaa327e329be2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events that the filter selects. The next four counts add up to it, one count for each status.  <br /></td></tr>
 <tr class="memitem:a5db86bb809677830bf07bf8fcd3d1274" id="r_a5db86bb809677830bf07bf8fcd3d1274"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a5db86bb809677830bf07bf8fcd3d1274">available</a> = 0</td></tr>
+<tr class="memdesc:a5db86bb809677830bf07bf8fcd3d1274"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa78945de8de090e90045d299651a68a9b" title="Both times exist.">TimetableValueStatus::Available</a>.  <br /></td></tr>
 <tr class="memitem:a4f22315e3bf27ccebe015d07dec80e5c" id="r_a4f22315e3bf27ccebe015d07dec80e5c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4f22315e3bf27ccebe015d07dec80e5c">noPlan</a> = 0</td></tr>
+<tr class="memdesc:a4f22315e3bf27ccebe015d07dec80e5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa789ca2faf1850a5752f9645689bdaf41" title="Only the simulated time exists.">TimetableValueStatus::NoPlan</a>.  <br /></td></tr>
 <tr class="memitem:a71f1226cd148e22e77e5606b23baf293" id="r_a71f1226cd148e22e77e5606b23baf293"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a71f1226cd148e22e77e5606b23baf293">notReached</a> = 0</td></tr>
+<tr class="memdesc:a71f1226cd148e22e77e5606b23baf293"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afac606976c0e541053f63da2bc59f10476" title="Only the planned time exists.">TimetableValueStatus::NotReached</a>.  <br /></td></tr>
 <tr class="memitem:a72b47c6ebe987a52880923621f6c9c4f" id="r_a72b47c6ebe987a52880923621f6c9c4f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a72b47c6ebe987a52880923621f6c9c4f">noPlanAndNotReached</a> = 0</td></tr>
 <tr class="memitem:a50a440c02e5d0a28218e042c62ee849b" id="r_a50a440c02e5d0a28218e042c62ee849b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a50a440c02e5d0a28218e042c62ee849b">early</a> = 0</td></tr>
+<tr class="memdesc:a50a440c02e5d0a28218e042c62ee849b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with a delay below 0. It, onTime and late add up to <span class="tt"><a class="el" href="#a5db86bb809677830bf07bf8fcd3d1274" title="Events with TimetableValueStatus::Available.">available</a></span>.  <br /></td></tr>
 <tr class="memitem:a00a2ed5d0f09f7de9b1783e73ea99c2d" id="r_a00a2ed5d0f09f7de9b1783e73ea99c2d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a00a2ed5d0f09f7de9b1783e73ea99c2d">onTime</a> = 0</td></tr>
+<tr class="memdesc:a00a2ed5d0f09f7de9b1783e73ea99c2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events with a delay of exactly 0.  <br /></td></tr>
 <tr class="memitem:ae2211978447832de0e9ddc6e5f646b22" id="r_ae2211978447832de0e9ddc6e5f646b22"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae2211978447832de0e9ddc6e5f646b22">late</a> = 0</td></tr>
 <tr class="memitem:ac94d9bb4f9819d731cf7fe0658a82d92" id="r_ac94d9bb4f9819d731cf7fe0658a82d92"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac94d9bb4f9819d731cf7fe0658a82d92">sumSeconds</a></td></tr>
 <tr class="memitem:a249be534510bfa55f05f5f9fb0b77e63" id="r_a249be534510bfa55f05f5f9fb0b77e63"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a249be534510bfa55f05f5f9fb0b77e63">meanSeconds</a></td></tr>
+<tr class="memdesc:a249be534510bfa55f05f5f9fb0b77e63"><td class="mdescLeft">&#160;</td><td class="mdescRight">sumSeconds / available  <br /></td></tr>
 <tr class="memitem:ace1c4cfabb129b7af0ac117301c53ac9" id="r_ace1c4cfabb129b7af0ac117301c53ac9"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#ace1c4cfabb129b7af0ac117301c53ac9">minimumSeconds</a></td></tr>
+<tr class="memdesc:ace1c4cfabb129b7af0ac117301c53ac9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Smallest delay in seconds.  <br /></td></tr>
 <tr class="memitem:a8bd62919da301912c0df391d1834a640" id="r_a8bd62919da301912c0df391d1834a640"><td class="memItemLeft"><a class="el" href="struct_run_result_value.html">RunResultValue</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8bd62919da301912c0df391d1834a640">maximumSeconds</a></td></tr>
 <tr class="memitem:a92e8ab0906dc31952efc58ea18f53dba" id="r_a92e8ab0906dc31952efc58ea18f53dba"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_delay_share.html">DelayShare</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a92e8ab0906dc31952efc58ea18f53dba">shares</a></td></tr>
+<tr class="memdesc:a92e8ab0906dc31952efc58ea18f53dba"><td class="mdescLeft">&#160;</td><td class="mdescRight">One entry for each finite threshold, in the order given.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Counts and figures of a set of events. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a5db86bb809677830bf07bf8fcd3d1274" name="a5db86bb809677830bf07bf8fcd3d1274"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5db86bb809677830bf07bf8fcd3d1274">&#9670;&#160;</a></span>available</h2>
 
@@ -148,6 +162,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa78945de8de090e90045d299651a68a9b" title="Both times exist.">TimetableValueStatus::Available</a>. </p>
 
 </div>
 </div>
@@ -163,6 +179,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Events that the filter selects. The next four counts add up to it, one count for each status. </p>
+
 </div>
 </div>
 <a id="a50a440c02e5d0a28218e042c62ee849b" name="a50a440c02e5d0a28218e042c62ee849b"></a>
@@ -177,6 +195,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Events with a delay below 0. It, onTime and late add up to <span class="tt"><a class="el" href="#a5db86bb809677830bf07bf8fcd3d1274" title="Events with TimetableValueStatus::Available.">available</a></span>. </p>
+
 </div>
 </div>
 <a id="ae2211978447832de0e9ddc6e5f646b22" name="ae2211978447832de0e9ddc6e5f646b22"></a>
@@ -190,6 +210,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Events with a delay above 0 </p>
 
 </div>
 </div>
@@ -204,6 +225,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Largest delay in seconds </p>
 
 </div>
 </div>
@@ -219,6 +241,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>sumSeconds / available </p>
+
 </div>
 </div>
 <a id="ace1c4cfabb129b7af0ac117301c53ac9" name="ace1c4cfabb129b7af0ac117301c53ac9"></a>
@@ -232,6 +256,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Smallest delay in seconds. </p>
 
 </div>
 </div>
@@ -247,6 +273,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa789ca2faf1850a5752f9645689bdaf41" title="Only the simulated time exists.">TimetableValueStatus::NoPlan</a>. </p>
+
 </div>
 </div>
 <a id="a72b47c6ebe987a52880923621f6c9c4f" name="a72b47c6ebe987a52880923621f6c9c4f"></a>
@@ -260,6 +288,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afa37d469e00c73d64a59b6889a48998e1e" title="Neither time exists.">TimetableValueStatus::NoPlanAndNotReached</a> </p>
 
 </div>
 </div>
@@ -275,6 +304,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Events with <a class="el" href="_run_results_8h.html#a4c538708eecaf4490545aa3463dd09afac606976c0e541053f63da2bc59f10476" title="Only the planned time exists.">TimetableValueStatus::NotReached</a>. </p>
+
 </div>
 </div>
 <a id="a00a2ed5d0f09f7de9b1783e73ea99c2d" name="a00a2ed5d0f09f7de9b1783e73ea99c2d"></a>
@@ -288,6 +319,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Events with a delay of exactly 0. </p>
 
 </div>
 </div>
@@ -303,6 +336,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>One entry for each finite threshold, in the order given. </p>
+
 </div>
 </div>
 <a id="ac94d9bb4f9819d731cf7fe0658a82d92" name="ac94d9bb4f9819d731cf7fe0658a82d92"></a>
@@ -316,6 +351,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sum of the delays in seconds. It and the next three are over the available events and unavailable when there are none. </p>
 
 </div>
 </div>
