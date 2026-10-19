@@ -64,7 +64,7 @@ The cost is four pinned Python packages and Doxygen, against none for plain Mark
 - Only the publish job depends on GitHub Pages. It builds each release tag into `<version>/`, keeps `latest/`, and writes a root page that lists the versions.
 - Moving to another host needs a new publish step and, for each old path, a stub page that redirects with a meta refresh.
 - The app's `.qch` is built from the same tag, so the manual in the app matches its version (`EGTRAIN_VERSION` in `CMakeLists.txt`).
-- If Qt Help cannot be packaged on a platform, #917 falls back to opening the shipped HTML in the system browser. That loses the in-app contents and search.
+- Without the `.qch`, as in a build without Sphinx, the app opens the same section of the published guides in the web browser. That needs a network and loses the in-app contents and search.
 
 ## Local build and preview
 
@@ -172,5 +172,5 @@ Each new check gets one case in `tools/docs/test_check_docs.py`. Prose style is 
 
 - How a Markdown page links to a generated C++ reference page. MyST does not resolve `../api/classFoo.html` as a document. To settle in #918.
 - Whether Sphinx search works from `file://`. The index is a script, but result summaries are fetched, which some browsers block from disk. To settle in #918.
-- Whether QtHelp, `qhelpgenerator` and Qt's SQLite plugin are in the Windows Qt install of CI (it installs only `qtcharts` as an extra module) and in the AppImage. To settle in #917.
+- Whether the packages open the manual. The package jobs deploy Qt Help and its SQLite driver and fail when either or the `.qch` is missing, but no package check opens the manual.
 - Furo's last release is from 2025-12-19 and sphinx-autobuild's from 2025-08-25. Both can be replaced: Sphinx's own `alabaster` theme, and a plain web server.

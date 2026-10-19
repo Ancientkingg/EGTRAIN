@@ -18,7 +18,7 @@ var searchData=
   ['onlyknownoptions_15',['onlyKnownOptions',['../main_8cpp.html#a0e22c903a39d60235031cba17ec26836',1,'main.cpp']]],
   ['onroute_16',['onRoute',['../struct_completed_stop.html#aba59bf8f781112bcb7bf26b80d7499b1',1,'CompletedStop']]],
   ['onsimulationfinished_17',['onSimulationFinished',['../class_run_controller.html#a2a777afc9c09e3e57b2955098ca67b2c',1,'RunController']]],
-  ['open_18',['open',['../class_recovery_store.html#a15fe37a2bbd99ce5624da036d81dff22',1,'RecoveryStore::open()'],['../classtelemetry_1_1_telemetry_queue.html#ad2e0b52372cacd0ec50134db2b7f8ce5',1,'telemetry::TelemetryQueue::open()']]],
+  ['open_18',['open',['../class_recovery_store.html#a15fe37a2bbd99ce5624da036d81dff22',1,'RecoveryStore::open()'],['../classtelemetry_1_1_telemetry_queue.html#ad2e0b52372cacd0ec50134db2b7f8ce5',1,'telemetry::TelemetryQueue::open()'],['../class_manual_window.html#a3227ea8d95d1556a38589f1d9f60658a',1,'ManualWindow::open()']]],
   ['openareacapacitywindow_19',['openAreaCapacityWindow',['../_area_capacity_window_8cpp.html#af9ee4fb47ba582bec2c7e4372be7bc64',1,'openAreaCapacityWindow(QWidget *parent, const CompletedRunData &amp;data, telemetry::CaptureOperation capture):&#160;AreaCapacityWindow.cpp'],['../_area_capacity_window_8h.html#aa9902b53bd578d05441cf70f15c141d0',1,'openAreaCapacityWindow(QWidget *parent, const CompletedRunData &amp;data, telemetry::CaptureOperation capture={}):&#160;AreaCapacityWindow.cpp']]],
   ['openbutton_20',['openButton',['../class_case_chooser_dialog.html#a4bdefba20019b85560054da85b43f5f7',1,'CaseChooserDialog']]],
   ['opendelayanalysis_21',['openDelayAnalysis',['../class_run_controller.html#a28b81efaa43f715c9637330f1e78a2c5',1,'RunController']]],

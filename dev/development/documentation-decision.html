@@ -430,7 +430,7 @@
 <li><p>Only the publish job depends on GitHub Pages. It builds each release tag into <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;/</span></code>, keeps <code class="docutils literal notranslate"><span class="pre">latest/</span></code>, and writes a root page that lists the versions.</p></li>
 <li><p>Moving to another host needs a new publish step and, for each old path, a stub page that redirects with a meta refresh.</p></li>
 <li><p>The app’s <code class="docutils literal notranslate"><span class="pre">.qch</span></code> is built from the same tag, so the manual in the app matches its version (<code class="docutils literal notranslate"><span class="pre">EGTRAIN_VERSION</span></code> in <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>).</p></li>
-<li><p>If Qt Help cannot be packaged on a platform, #917 falls back to opening the shipped HTML in the system browser. That loses the in-app contents and search.</p></li>
+<li><p>Without the <code class="docutils literal notranslate"><span class="pre">.qch</span></code>, as in a build without Sphinx, the app opens the same section of the published guides in the web browser. That needs a network and loses the in-app contents and search.</p></li>
 </ul>
 </section>
 <section id="local-build-and-preview">
@@ -571,7 +571,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
 <ul class="simple">
 <li><p>How a Markdown page links to a generated C++ reference page. MyST does not resolve <code class="docutils literal notranslate"><span class="pre">../api/classFoo.html</span></code> as a document. To settle in #918.</p></li>
 <li><p>Whether Sphinx search works from <code class="docutils literal notranslate"><span class="pre">file://</span></code>. The index is a script, but result summaries are fetched, which some browsers block from disk. To settle in #918.</p></li>
-<li><p>Whether QtHelp, <code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> and Qt’s SQLite plugin are in the Windows Qt install of CI (it installs only <code class="docutils literal notranslate"><span class="pre">qtcharts</span></code> as an extra module) and in the AppImage. To settle in #917.</p></li>
+<li><p>Whether the packages open the manual. The package jobs deploy Qt Help and its SQLite driver and fail when either or the <code class="docutils literal notranslate"><span class="pre">.qch</span></code> is missing, but no package check opens the manual.</p></li>
 <li><p>Furo’s last release is from 2025-12-19 and sphinx-autobuild’s from 2025-08-25. Both can be replaced: Sphinx’s own <code class="docutils literal notranslate"><span class="pre">alabaster</span></code> theme, and a plain web server.</p></li>
 </ul>
 </section>

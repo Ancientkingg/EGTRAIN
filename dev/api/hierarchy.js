@@ -244,6 +244,7 @@ var hierarchy =
     ] ],
     [ "QWidget", null, [
       [ "ColorChoiceButton", "class_color_choice_button.html", null ],
+      [ "ManualWindow", "class_manual_window.html", null ],
       [ "NetworkLegendWidget", "class_network_legend_widget.html", null ],
       [ "SceneEditorPanel", "class_scene_editor_panel.html", [
         [ "CaseSettingsPanel", "class_case_settings_panel.html", null ],

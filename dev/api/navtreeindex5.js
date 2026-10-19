@@ -1,5 +1,8 @@
 var NAVTREEINDEX5 =
 {
+"_signalling_8cpp.html#add254d8783b745234ccb86b0f6fdbfbb":[2,0,7,21,20],
+"_signalling_8cpp.html#ae506dd708d608f1c83bc0e790570a987":[2,0,7,21,22],
+"_signalling_8cpp.html#ae849c33a59e0fc1bcb45ce9052c72962":[2,0,7,21,6],
 "_signalling_8cpp.html#ae8e290910dab299b27108b5b6cf61fe9":[2,0,7,21,25],
 "_signalling_8cpp.html#af0021f3af4d1429c3739cfb0b0342e2f":[2,0,7,21,41],
 "_signalling_8cpp.html#affa856d1d9c57c41d8ea849a67decbf2":[2,0,7,21,5],
@@ -192,9 +195,9 @@ var NAVTREEINDEX5 =
 "_time_format_8h.html#abfecdb21c2afbc9681bb64649bc5bdc2":[2,0,10,11,1],
 "_time_format_8h.html#ae37221af5c7e50cf7e842f24fd601c04":[2,0,10,11,2],
 "_time_format_8h_source.html":[2,0,10,11],
-"_time_progress_bar_8cpp.html":[2,0,11,26],
-"_time_progress_bar_8h.html":[2,0,11,27],
-"_time_progress_bar_8h_source.html":[2,0,11,27],
+"_time_progress_bar_8cpp.html":[2,0,11,28],
+"_time_progress_bar_8h.html":[2,0,11,29],
+"_time_progress_bar_8h_source.html":[2,0,11,29],
 "_timetable_stops_panel_8cpp.html":[2,0,2,20],
 "_timetable_stops_panel_8h.html":[2,0,2,21],
 "_timetable_stops_panel_8h_source.html":[2,0,2,21],
@@ -246,8 +249,5 @@ var NAVTREEINDEX5 =
 "_train_item_group_8h_source.html":[2,0,3,0,27],
 "_train_unit_panel_8cpp.html":[2,0,2,22],
 "_train_unit_panel_8h.html":[2,0,2,23],
-"_train_unit_panel_8h_source.html":[2,0,2,23],
-"_train_unit_source_linker_8cpp.html":[2,0,2,24],
-"_train_unit_source_linker_8h.html":[2,0,2,25],
-"_train_unit_source_linker_8h_source.html":[2,0,2,25]
+"_train_unit_panel_8h_source.html":[2,0,2,23]
 };

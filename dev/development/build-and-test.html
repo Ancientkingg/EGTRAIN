@@ -2938,6 +2938,14 @@ reference, so run <code class="docutils literal notranslate"><span class="pre">d
 works on GitHub. The site build points such a link to the reference next to the page.
 <code class="docutils literal notranslate"><span class="pre">build/docs-venv/bin/python</span> <span class="pre">tools/docs/check_undocumented.py</span> <span class="pre">main</span></code> lists the undocumented classes
 and members that your branch adds since it forked from <code class="docutils literal notranslate"><span class="pre">main</span></code>, as the pull request check does.</p>
+<p>The same environment builds the manual of the application. When <code class="docutils literal notranslate"><span class="pre">build/docs-venv</span></code> holds Sphinx at
+configure time, the build runs Sphinx’s <code class="docutils literal notranslate"><span class="pre">qthelp</span></code> builder with <code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">manual</span></code> on <code class="docutils literal notranslate"><span class="pre">docs/index.md</span></code> and
+<code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code>, then <code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code>, and copies <code class="docutils literal notranslate"><span class="pre">EGTRAIN.qch</span></code> next to the program, or into
+<code class="docutils literal notranslate"><span class="pre">Contents/Resources</span></code> of the macOS app. The configure output says whether it does.
+<strong>Help &gt; EGTRAIN Manual</strong> and F1 open the section of the window that has the focus: a window or
+dock names its section in the property <code class="docutils literal notranslate"><span class="pre">manualSection</span></code>, and <code class="docutils literal notranslate"><span class="pre">widgets/ManualWindow.cpp</span></code> maps each
+section to a page. Without <code class="docutils literal notranslate"><span class="pre">EGTRAIN.qch</span></code> the application opens that page of the published guides
+in the web browser. The package jobs build the manual and fail when a package lacks it.</p>
 </section>
 </section>
 </section>

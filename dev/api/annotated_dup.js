@@ -141,6 +141,7 @@ var annotated_dup =
     [ "Location", "class_location.html", "class_location" ],
     [ "MainWindow", "class_main_window.html", "class_main_window" ],
     [ "MainWindowTestHooks", "struct_main_window_test_hooks.html", "struct_main_window_test_hooks" ],
+    [ "ManualWindow", "class_manual_window.html", "class_manual_window" ],
     [ "MovementAuthority", "class_movement_authority.html", "class_movement_authority" ],
     [ "NetworkLegendContent", "struct_network_legend_content.html", "struct_network_legend_content" ],
     [ "NetworkLegendEntry", "struct_network_legend_entry.html", "struct_network_legend_entry" ],

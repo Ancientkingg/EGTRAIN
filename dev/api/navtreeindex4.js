@@ -1,5 +1,8 @@
 var NAVTREEINDEX4 =
 {
+"_scene_model_8h.html#a7418be61af0a9727c27e9fa61338e4f1":[2,0,6,21,36],
+"_scene_model_8h.html#a765f734ddc8d717d03dfb08048237303":[2,0,6,21,59],
+"_scene_model_8h.html#a7d56b4000d5a003692532f673ca5e86b":[2,0,6,21,40],
 "_scene_model_8h.html#a8c0a79779bc995b9892ec8e44d904d20":[2,0,6,21,54],
 "_scene_model_8h.html#a9b4d098f5d08e110343420ff55701cd5":[2,0,6,21,37],
 "_scene_model_8h.html#aa13611c525609dd4cdde39d34766b51b":[2,0,6,21,55],
@@ -181,12 +184,12 @@ var NAVTREEINDEX4 =
 "_service_panel_8cpp.html":[2,0,2,18],
 "_service_panel_8h.html":[2,0,2,19],
 "_service_panel_8h_source.html":[2,0,2,19],
-"_settings_dialog_8cpp.html":[2,0,11,24],
-"_settings_dialog_8h.html":[2,0,11,25],
-"_settings_dialog_8h.html#ab6690b7ce3c1f479cb09a41231b2e2f3":[2,0,11,25,3],
-"_settings_dialog_8h.html#ad6a1aa38a132f0fdf9682c8b0d8e823e":[2,0,11,25,2],
-"_settings_dialog_8h.html#aedd4b44325c46f7e0605147971411ad0":[2,0,11,25,1],
-"_settings_dialog_8h_source.html":[2,0,11,25],
+"_settings_dialog_8cpp.html":[2,0,11,26],
+"_settings_dialog_8h.html":[2,0,11,27],
+"_settings_dialog_8h.html#ab6690b7ce3c1f479cb09a41231b2e2f3":[2,0,11,27,3],
+"_settings_dialog_8h.html#ad6a1aa38a132f0fdf9682c8b0d8e823e":[2,0,11,27,2],
+"_settings_dialog_8h.html#aedd4b44325c46f7e0605147971411ad0":[2,0,11,27,1],
+"_settings_dialog_8h_source.html":[2,0,11,27],
 "_signal_facets_8cpp.html":[2,0,2,0,7],
 "_signal_facets_8cpp.html#a02416d03c980d78e7b4c3bbabe37f908":[2,0,2,0,7,0],
 "_signal_facets_8h.html":[2,0,2,0,8],
@@ -246,8 +249,5 @@ var NAVTREEINDEX4 =
 "_signalling_8cpp.html#aa4d0088e47ad59d2fa1bbca0fa3332f8":[2,0,7,21,12],
 "_signalling_8cpp.html#aa5b96b4d20b3b5b9772f080e11d91b6e":[2,0,7,21,37],
 "_signalling_8cpp.html#ab00806a0045da2b4b6998b99161f76be":[2,0,7,21,28],
-"_signalling_8cpp.html#ac4a294eef644fcf6b45b6ab8f60da05b":[2,0,7,21,13],
-"_signalling_8cpp.html#add254d8783b745234ccb86b0f6fdbfbb":[2,0,7,21,20],
-"_signalling_8cpp.html#ae506dd708d608f1c83bc0e790570a987":[2,0,7,21,22],
-"_signalling_8cpp.html#ae849c33a59e0fc1bcb45ce9052c72962":[2,0,7,21,6]
+"_signalling_8cpp.html#ac4a294eef644fcf6b45b6ab8f60da05b":[2,0,7,21,13]
 };

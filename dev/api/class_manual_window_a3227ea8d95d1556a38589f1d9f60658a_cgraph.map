@@ -1,0 +1,5 @@
+<map id="ManualWindow::open" name="ManualWindow::open">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,167,31"/>
+<area shape="rect" id="Node000002" href="$class_manual_window.html#afccec72701bcb992e383efd0680ba585" title="Opens the help file helpFile. The window shows nothing when the file cannot be read." alt="" coords="215,5,444,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,15,201,15,201,21,167,21"/>
+</map>
