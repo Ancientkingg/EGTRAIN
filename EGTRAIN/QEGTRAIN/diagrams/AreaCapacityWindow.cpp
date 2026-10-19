@@ -5,6 +5,7 @@
 #include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
@@ -127,11 +128,7 @@ QLabel* makeHelp(QWidget* parent, const QString& text) {
 }
 
 QLabel* makeCaption(QWidget* parent, const QString& text) {
-	auto* label = new QLabel(text, parent);
-	QFont font = label->font();
-	font.setBold(true);
-	label->setFont(font);
-	return label;
+	return EditorLayout::sectionHeading(text, parent);
 }
 
 QWidget* resourcesTab(const AreaCapacityResult& result, QWidget* parent) {

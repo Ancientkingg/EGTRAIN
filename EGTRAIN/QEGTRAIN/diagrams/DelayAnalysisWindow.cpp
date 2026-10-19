@@ -6,6 +6,7 @@
 #include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -177,11 +178,7 @@ QLabel* makeHelp(QWidget* parent, const QString& help) {
 }
 
 QLabel* makeCaption(QWidget* parent, const QString& caption) {
-	auto* label = new QLabel(caption, parent);
-	QFont font = label->font();
-	font.setBold(true);
-	label->setFont(font);
-	return label;
+	return EditorLayout::sectionHeading(caption, parent);
 }
 
 QStringList callRow(const DelayEvent& event) {
