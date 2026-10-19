@@ -63,14 +63,14 @@ from `int` functions, which MSVC at `/W4` reports too. Clang and GCC do not warn
 
 Outside the sources: [CMakeLists.txt](../../CMakeLists.txt) names Qt 5 on 97 lines (`find_package(Qt5 ...)` on line
 115, `Qt5::` targets, `Qt5::WinMain` on line 626). The MSVC forced include `util/QtMsvcCompat.h` was written for
-the Qt 5.15 headers. Ten files under `tools/` name Qt 5, among them `tools/tidy.py:70`,
+the Qt 5.15 headers. Eleven files under `tools/` name Qt 5, among them `tools/tidy.py:70`,
 `tools/release/package_start_smoke.py:70` and `tools/e2e/test_qt_resources.py:62`.
 
 ## Packaging
 
 | Platform | Today | With Qt 6 |
 | --- | --- | --- |
-| macOS | `macdeployqt` of Homebrew `qt@5`, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins ([package.yml](../../.github/workflows/package.yml), lines 109 to 127) | `macdeployqt` remains. Homebrew Qt 6 is split into formulae: `qtbase`, `qtcharts` and `qtsvg` are enough, and `qtcharts` depends on `qtdeclarative`. `qtbase` depends on `icu4c@78` and `openssl@4` and links OpenSSL (Homebrew `qtbase.rb`, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps. |
+| macOS | `macdeployqt` of Homebrew `qt@5`, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins ([package.yml](../../.github/workflows/package.yml), lines 109 to 127) | `macdeployqt` remains. Homebrew Qt 6 is split into formulae: `qtbase`, `qtcharts` and `qtsvg` are enough, and `qtcharts` depends on `qtdeclarative`. `qtbase` depends on `icu4c@78` and `openssl@4` and links OpenSSL (Homebrew `qtbase.rb`, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries; HarfBuzz, double-conversion, libb2 and D-Bus are further `qtbase` dependencies on macOS, and step 4 decides which of them `macdeployqt` bundles. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps. |
 | Windows | `windeployqt` with `--no-angle` and `--no-virtualkeyboard` ([cmake.yml](../../.github/workflows/cmake.yml), line 254; [package.yml](../../.github/workflows/package.yml), line 525); checks name `Qt5Core.dll`, `styles/qwindowsvistastyle.dll` and others (lines 569, 575 and 583) | The Qt 6 `windeployqt` has neither option ([Qt for Windows deployment](https://doc.qt.io/qt-6/windows-deployment.html)); `--skip-plugin-types` and `--exclude-plugins` replace them. The DLLs become `Qt6*.dll`, and the style plugin of Qt 6.8.3 `win64_msvc2022_64` is `styles/qmodernwindowsstyle.dll`. TLS is a plugin, `qschannelbackend` ([Qt SSL](https://doc.qt.io/qt-6/ssl.html)). |
 | Linux | `linuxdeploy-plugin-qt` with the Ubuntu Qt 5 packages; the `QMAKE` fallback names `qmake-qt5` (line 1010); the checks look for `libQt5*.so` (lines 1033 to 1035) | The plugin supports Qt 5 and 6 ([README](https://github.com/linuxdeploy/linuxdeploy-plugin-qt)). The `QMAKE` line, the checks and `package_start_smoke.py` need the Qt 6 names. |
 
@@ -138,7 +138,7 @@ Linux were not measured.
 | Qt Core, Gui, Widgets, Network, Svg, DBus (macOS, Linux), PrintSupport (macOS) | LGPL-3.0, GPL-2.0 or GPL-3.0 (Homebrew `qtbase` and `qtsvg`) | compatible |
 | Qt Charts | GPL-3.0 ([Qt Charts](https://doc.qt.io/qt-6/qtcharts-index.html)) | compatible, as today |
 | Qt Graphs, if it replaces Qt Charts | GPL-3.0 ([Qt Graphs](https://doc.qt.io/qt-6/qtgraphs-index.html)) | compatible |
-| ICU and OpenSSL, with Homebrew `qtbase` on macOS | Unicode licence; Apache-2.0 for OpenSSL 3 and later | compatible; add to `THIRD_PARTY_NOTICES.md` |
+| ICU, OpenSSL and the other `qtbase` dependencies (HarfBuzz, double-conversion, libb2, D-Bus), with Homebrew `qtbase` on macOS | Unicode licence; Apache-2.0 for OpenSSL 3 and later; MIT, BSD, CC0 or Apache-2.0, and GPL-2.0-or-later for the others | compatible; add to `THIRD_PARTY_NOTICES.md` |
 
 The third-party code inside Qt 6 is listed at [Licenses used in Qt](https://doc.qt.io/qt-6/licenses-used-in-qt.html).
 `THIRD_PARTY_NOTICES.md` names Qt 5.15 on lines 7 to 9 and needs the Qt 6 version.
