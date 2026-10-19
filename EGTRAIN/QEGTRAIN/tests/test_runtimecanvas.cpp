@@ -276,7 +276,7 @@ static bool presenterEmpty(const NetworkPresenter& presenter) {
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
-	// The station icons are resources of the application, which this test does not have.
+	// The entity icons are resources of the application, which this test does not have.
 	QLoggingCategory::setFilterRules(QStringLiteral("qt.svg.warning=false"));
 	bool ok = true;
 
