@@ -53,7 +53,7 @@ public:
 	// without update entries.
 	void startUpdateCheck(bool manual);
 
-	// The consent that the sender follows, or null while telemetry is off.
+	/// The consent that the sender follows, or null while telemetry is off.
 	TelemetryConsent* consent() const { return m_telemetryConsent.get(); }
 	// The sender, or null while telemetry is off.
 	telemetry::TelemetrySender* sender() const { return m_telemetrySender.get(); }
