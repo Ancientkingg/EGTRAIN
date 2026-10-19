@@ -62,6 +62,7 @@ canonical model.
 - [Historical track presentation](ui/historical-track-comparison.md): the original renderer used as the visual reference, the only intentional differences from it, the captures that compare the two renderers, and how its drawing distances convert to scene units.
 - [Playback profiling](development/playback-profiling.md): the opt-in tool that measures GUI playback of the Copenhagen case, with its protocol, what it measures and its decision rule.
 - [Peak-memory baselines](development/memory-baselines.md): how to record the peak memory of the Copenhagen and Milano-Brescia runs on macOS, and the baselines recorded so far.
+- [Qt 6 migration study](development/qt6-migration-study.md): what moving from Qt 5.15 to Qt 6 takes, with the incompatible APIs, packaging, CI, platforms, licences, estimates and an order of work.
 
 ## Release
 
