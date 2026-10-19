@@ -34,7 +34,7 @@ public:
 		double actualZoom = 1.0;	   ///< Zoom ratio of the view when measuring began, set by beginAfterPaint().
 		int durationMs = 0;			   ///< Length of the measurement window, in milliseconds.
 		int delayMs = 0;			   ///< Delay between simulation steps, in milliseconds.
-		bool passengerGui = false;	   ///< True when the window shows passengers.
+		bool passengerGui = false;	   ///< True when the main window shows passengers.
 		bool tsm = false;			   ///< True when the traffic-state channel (-TSM) is on.
 		bool routeChoice = false;	   ///< True when the route-choice channel (-RC) is on.
 		int horizon = 0;			   ///< Length of the run in steps of 1 s of simulation time.
@@ -99,9 +99,9 @@ public:
 	/// Counts one computed step while measuring and keeps \p timestep, in seconds from the start of
 	/// the run, as the last step.
 	void noteTimestep(int timestep);
-	/// Counts one snapshot delivered to the window while measuring.
+	/// Counts one snapshot delivered to the main window while measuring.
 	void noteDelivery();
-	/// Counts one delivered snapshot that the window renders while measuring.
+	/// Counts one delivered snapshot that the main window renders while measuring.
 	void noteRenderedUpdate();
 	/// Counts one completed paint of the view while measuring.
 	void notePaint();
