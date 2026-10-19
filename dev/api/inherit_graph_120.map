@@ -8,9 +8,9 @@
 <area shape="poly" id="edge48_Node000000_Node000003" title=" " alt="" coords="44,484,53,405,69,302,93,204,108,165,126,139,145,126,148,130,130,143,113,168,98,205,74,303,58,406,49,485"/>
 <area shape="rect" id="Node000004" href="$class_follow_camera.html" title=" " alt="" coords="170,153,285,179"/>
 <area shape="poly" id="edge49_Node000000_Node000004" title=" " alt="" coords="45,485,55,415,73,327,96,243,110,211,126,188,146,174,169,167,171,172,149,179,130,192,115,213,101,245,78,328,61,416,50,485"/>
-<area shape="rect" id="Node000005" href="$class_http_reply.html" title=" " alt="" coords="184,203,271,228"/>
+<area shape="rect" id="Node000005" href="$class_http_reply.html" title="The response of one request. A redirect of a get() is followed, but never from https to http." alt="" coords="184,203,271,228"/>
 <area shape="poly" id="edge50_Node000000_Node000005" title=" " alt="" coords="41,485,45,433,58,366,68,331,83,297,102,265,126,237,153,221,183,214,185,219,155,226,130,241,106,268,88,299,73,333,63,367,51,433,47,485"/>
-<area shape="rect" id="Node000006" href="$class_http_transport.html" title=" " alt="" coords="172,252,283,277"/>
+<area shape="rect" id="Node000006" href="$class_http_transport.html" title="Sends requests. A reply is a child of its transport; the caller releases it with deleteLater()." alt="" coords="172,252,283,277"/>
 <area shape="poly" id="edge51_Node000000_Node000006" title=" " alt="" coords="44,484,50,441,65,388,89,333,106,308,126,287,147,273,171,266,173,271,150,278,130,291,110,312,94,336,70,389,56,442,49,485"/>
 <area shape="rect" id="Node000007" href="$class_inspector_panel.html" title=" " alt="" coords="169,301,286,327"/>
 <area shape="poly" id="edge52_Node000000_Node000007" title=" " alt="" coords="47,484,56,451,72,410,95,370,126,336,146,324,167,317,169,322,148,329,130,340,99,373,77,413,61,452,52,486"/>
@@ -34,9 +34,9 @@
 <area shape="poly" id="edge61_Node000000_Node000016" title=" " alt="" coords="49,537,56,580,70,632,94,686,110,710,130,731,158,747,156,751,126,735,106,713,89,688,65,634,51,581,44,538"/>
 <area shape="rect" id="Node000017" href="$class_train_unit_source_linker.html" title=" " alt="" coords="146,795,309,820"/>
 <area shape="poly" id="edge62_Node000000_Node000017" title=" " alt="" coords="47,538,51,589,63,655,74,689,88,722,107,753,130,780,148,792,145,797,126,784,102,756,83,725,69,691,58,656,46,590,42,538"/>
-<area shape="rect" id="Node000018" href="$class_update_checker.html" title=" " alt="" coords="167,844,288,869"/>
+<area shape="rect" id="Node000018" href="$class_update_checker.html" title="Asks GitHub for the newest stable release." alt="" coords="167,844,288,869"/>
 <area shape="poly" id="edge63_Node000000_Node000018" title=" " alt="" coords="50,537,61,606,78,694,102,777,115,808,130,829,147,842,167,849,165,854,145,846,126,833,111,811,96,778,73,695,56,607,45,538"/>
-<area shape="rect" id="Node000019" href="$class_update_preparation_worker.html" title=" " alt="" coords="133,893,322,919"/>
+<area shape="rect" id="Node000019" href="$class_update_preparation_worker.html" title="Verifies and stages a downloaded package. SelfUpdater runs it in a thread of its own." alt="" coords="133,893,322,919"/>
 <area shape="poly" id="edge64_Node000000_Node000019" title=" " alt="" coords="49,538,58,616,75,719,99,816,113,854,130,879,146,891,143,895,126,883,109,856,94,818,69,720,53,617,44,538"/>
 <area shape="rect" id="Node000020" href="$class_update_telemetry_controller.html" title=" " alt="" coords="128,943,327,968"/>
 <area shape="poly" id="edge65_Node000000_Node000020" title=" " alt="" coords="48,537,56,626,71,743,96,855,111,899,130,928,146,940,143,945,126,932,107,901,90,857,66,744,51,626,43,538"/>

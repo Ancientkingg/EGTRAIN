@@ -128,26 +128,38 @@ Collaboration diagram for SelfUpdater:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:ad8637cde269408bad682982d807e774a" id="r_ad8637cde269408bad682982d807e774a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad8637cde269408bad682982d807e774a">progress</a> (qint64 received, qint64 total)</td></tr>
+<tr class="memdesc:ad8637cde269408bad682982d807e774a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bytes of the package received so far and the total in bytes, or -1 when the total is not known.  <br /></td></tr>
 <tr class="memitem:a21dd6835be860b3cdae4fcaaf3dafd5c" id="r_a21dd6835be860b3cdae4fcaaf3dafd5c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a21dd6835be860b3cdae4fcaaf3dafd5c">preparing</a> (const QString &amp;version)</td></tr>
+<tr class="memdesc:a21dd6835be860b3cdae4fcaaf3dafd5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The package is downloaded and its preparation for version "X.Y.Z" starts.  <br /></td></tr>
 <tr class="memitem:a72b33df344d25f76b651ae24873dfe82" id="r_a72b33df344d25f76b651ae24873dfe82"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a72b33df344d25f76b651ae24873dfe82">finished</a> (bool success, const QString &amp;error)</td></tr>
+<tr class="memdesc:a72b33df344d25f76b651ae24873dfe82"><td class="mdescLeft">&#160;</td><td class="mdescRight">The update started by <a class="el" href="#afc220b1e5093c3e2ab904c5f7c28677e">start()</a> is ready for <a class="el" href="#aa772a9bfef2ae0a4aab4dc9c88a4e29e">restart()</a>, or failed with error. error is empty on success.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1ed6186d761799cfcc679a63844d405f" id="r_a1ed6186d761799cfcc679a63844d405f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1ed6186d761799cfcc679a63844d405f">SelfUpdater</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a1ed6186d761799cfcc679a63844d405f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes an updater that uses the transport of the application.  <br /></td></tr>
 <tr class="memitem:acd559d796e8c3e90b4078665f5de5b71" id="r_acd559d796e8c3e90b4078665f5de5b71"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#acd559d796e8c3e90b4078665f5de5b71">~SelfUpdater</a> () override</td></tr>
+<tr class="memdesc:acd559d796e8c3e90b4078665f5de5b71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits for a preparation that is running to end.  <br /></td></tr>
 <tr class="memitem:a9eaa566b0937f8f7fb851aeb334794c0" id="r_a9eaa566b0937f8f7fb851aeb334794c0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9eaa566b0937f8f7fb851aeb334794c0">canSelfUpdate</a> (const <a class="el" href="struct_stable_release.html">StableRelease</a> &amp;release) const</td></tr>
+<tr class="memdesc:a9eaa566b0937f8f7fb851aeb334794c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when this copy can update itself and the release lists the manifest and a package for this copy.  <br /></td></tr>
 <tr class="memitem:a1f90872f75b9a4b077236bd92dd05762" id="r_a1f90872f75b9a4b077236bd92dd05762"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1f90872f75b9a4b077236bd92dd05762">isBusy</a> () const</td></tr>
+<tr class="memdesc:a1f90872f75b9a4b077236bd92dd05762"><td class="mdescLeft">&#160;</td><td class="mdescRight">True from <a class="el" href="#afc220b1e5093c3e2ab904c5f7c28677e">start()</a> until the download or the preparation ends.  <br /></td></tr>
 <tr class="memitem:a6188cca8f4f8309afa3654064e5ced10" id="r_a6188cca8f4f8309afa3654064e5ced10"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6188cca8f4f8309afa3654064e5ced10">isPreparing</a> () const</td></tr>
+<tr class="memdesc:a6188cca8f4f8309afa3654064e5ced10"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the downloaded package is checked and unpacked on the worker thread.  <br /></td></tr>
 <tr class="memitem:afc220b1e5093c3e2ab904c5f7c28677e" id="r_afc220b1e5093c3e2ab904c5f7c28677e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afc220b1e5093c3e2ab904c5f7c28677e">start</a> (const <a class="el" href="struct_stable_release.html">StableRelease</a> &amp;release)</td></tr>
 <tr class="memitem:a1a04c260658c945a74b9d367a0463db8" id="r_a1a04c260658c945a74b9d367a0463db8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1a04c260658c945a74b9d367a0463db8">cancel</a> ()</td></tr>
+<tr class="memdesc:a1a04c260658c945a74b9d367a0463db8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops a download. Does nothing when no update runs or while the package is prepared.  <br /></td></tr>
 <tr class="memitem:aa772a9bfef2ae0a4aab4dc9c88a4e29e" id="r_aa772a9bfef2ae0a4aab4dc9c88a4e29e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa772a9bfef2ae0a4aab4dc9c88a4e29e">restart</a> ()</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a7e4e41bec9b7f8372da7f28a53a6f274" id="r_a7e4e41bec9b7f8372da7f28a53a6f274"><td class="memItemLeft">static <a class="el" href="struct_self_update_capability.html">SelfUpdateCapability</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7e4e41bec9b7f8372da7f28a53a6f274">capability</a> ()</td></tr>
 <tr class="memitem:aa1bb90da2d756e38b8384ea94521a064" id="r_aa1bb90da2d756e38b8384ea94521a064"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#aa1bb90da2d756e38b8384ea94521a064">cleanupStaleStaging</a> ()</td></tr>
+<tr class="memdesc:aa1bb90da2d756e38b8384ea94521a064"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes staging folders that an earlier update left next to the installation.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Downloads the update manifest and the package of a release, prepares the package on a worker thread and starts the update helper that installs it. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1ed6186d761799cfcc679a63844d405f" name="a1ed6186d761799cfcc679a63844d405f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1ed6186d761799cfcc679a63844d405f">&#9670;&#160;</a></span>SelfUpdater()</h2>
 
@@ -170,6 +182,8 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes an updater that uses the transport of the application. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -201,6 +215,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Waits for a preparation that is running to end. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -219,6 +235,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Stops a download. Does nothing when no update runs or while the package is prepared. </p>
+
 </div>
 </div>
 <a id="a9eaa566b0937f8f7fb851aeb334794c0" name="a9eaa566b0937f8f7fb851aeb334794c0"></a>
@@ -235,6 +253,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when this copy can update itself and the release lists the manifest and a package for this copy. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -265,6 +285,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Checks whether this is a packaged release build that runs from a writable installation with its update helper. On macOS it also requires a complete QEGTRAIN.app outside a read-only location. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -295,6 +316,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Removes staging folders that an earlier update left next to the installation. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -330,6 +353,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The update started by <a class="el" href="#afc220b1e5093c3e2ab904c5f7c28677e">start()</a> is ready for <a class="el" href="#aa772a9bfef2ae0a4aab4dc9c88a4e29e">restart()</a>, or failed with error. error is empty on success. </p>
+
 </div>
 </div>
 <a id="a1f90872f75b9a4b077236bd92dd05762" name="a1f90872f75b9a4b077236bd92dd05762"></a>
@@ -354,6 +379,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True from <a class="el" href="#afc220b1e5093c3e2ab904c5f7c28677e">start()</a> until the download or the preparation ends. </p>
 
 </div>
 </div>
@@ -380,6 +407,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True while the downloaded package is checked and unpacked on the worker thread. </p>
+
 </div>
 </div>
 <a id="a21dd6835be860b3cdae4fcaaf3dafd5c" name="a21dd6835be860b3cdae4fcaaf3dafd5c"></a>
@@ -404,6 +433,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The package is downloaded and its preparation for version "X.Y.Z" starts. </p>
 
 </div>
 </div>
@@ -434,6 +465,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The bytes of the package received so far and the total in bytes, or -1 when the total is not known. </p>
+
 </div>
 </div>
 <a id="aa772a9bfef2ae0a4aab4dc9c88a4e29e" name="aa772a9bfef2ae0a4aab4dc9c88a4e29e"></a>
@@ -450,6 +483,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Starts the update helper of an update that is ready. The helper waits for this process to end, installs the update and starts the application again. Returns false when no update is ready. Returns false and removes the staged update when the helper could not be started. </p>
 
 </div>
 </div>
@@ -467,6 +501,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Downloads and prepares the update to release. Does nothing while busy; otherwise <a class="el" href="#a72b33df344d25f76b651ae24873dfe82" title="The update started by start() is ready for restart(), or failed with error. error is empty on success...">finished()</a> is emitted once when the update is ready or has failed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

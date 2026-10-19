@@ -132,13 +132,17 @@ Include dependency graph for ReleaseInfo.cpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:aadf6be32c92717a708724110c32ef5d5" id="r_aadf6be32c92717a708724110c32ef5d5"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aadf6be32c92717a708724110c32ef5d5">updateDistributionKey</a> ()</td></tr>
 <tr class="memitem:a7df84b7a08d1e20df92499ba21302b64" id="r_a7df84b7a08d1e20df92499ba21302b64"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a7df84b7a08d1e20df92499ba21302b64">updateManifestAssetName</a> ()</td></tr>
+<tr class="memdesc:a7df84b7a08d1e20df92499ba21302b64"><td class="mdescLeft">&#160;</td><td class="mdescRight">The file name of the update manifest of a release: "update-manifest.json".  <br /></td></tr>
 <tr class="memitem:aa78620ca0576690ed8329f0a2c34e583" id="r_aa78620ca0576690ed8329f0a2c34e583"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa78620ca0576690ed8329f0a2c34e583">isUpdateAssetName</a> (const QString &amp;distribution, const QString &amp;name, const QString &amp;version)</td></tr>
 <tr class="memitem:a43331d960fff9c06c2af536c667a3f69" id="r_a43331d960fff9c06c2af536c667a3f69"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a43331d960fff9c06c2af536c667a3f69">releaseHasUpdatePackage</a> (const <a class="el" href="struct_stable_release.html">StableRelease</a> &amp;release, const QString &amp;distribution)</td></tr>
+<tr class="memdesc:a43331d960fff9c06c2af536c667a3f69"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the release lists a package that the distribution key allows.  <br /></td></tr>
 <tr class="memitem:af5c1cef922b9bea6e866ea9782d31cb8" id="r_af5c1cef922b9bea6e866ea9782d31cb8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af5c1cef922b9bea6e866ea9782d31cb8">isExpectedReleaseAssetUrl</a> (const QString &amp;tag, const QString &amp;name, const QUrl &amp;url)</td></tr>
 <tr class="memitem:a5101cce45b3b110bd114fe82a3f20bb0" id="r_a5101cce45b3b110bd114fe82a3f20bb0"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_stable_release.html">StableRelease</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5101cce45b3b110bd114fe82a3f20bb0">parseLatestStableRelease</a> (const QByteArray &amp;json<a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>, QString *error)</td></tr>
 <tr class="memitem:a97b6ea74fb92fe5f32669c0d20c9138e" id="r_a97b6ea74fb92fe5f32669c0d20c9138e"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_update_manifest.html">UpdateManifest</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a97b6ea74fb92fe5f32669c0d20c9138e">parseUpdateManifest</a> (const QByteArray &amp;json<a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>, const QString &amp;expectedTag, const QString &amp;distribution, QString *error)</td></tr>
 <tr class="memitem:a77451affe3b0bda8102ddfe15289a307" id="r_a77451affe3b0bda8102ddfe15289a307"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a77451affe3b0bda8102ddfe15289a307">isUpdateAvailable</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;current, const <a class="el" href="struct_stable_release.html">StableRelease</a> &amp;release)</td></tr>
+<tr class="memdesc:a77451affe3b0bda8102ddfe15289a307"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the release is newer than current.  <br /></td></tr>
 <tr class="memitem:a284d503287f8e232b3bbbf652c4ee71d" id="r_a284d503287f8e232b3bbbf652c4ee71d"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a284d503287f8e232b3bbbf652c4ee71d">formatSemanticVersion</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;version)</td></tr>
+<tr class="memdesc:a284d503287f8e232b3bbbf652c4ee71d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The version as "X.Y.Z".  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a284d503287f8e232b3bbbf652c4ee71d" name="a284d503287f8e232b3bbbf652c4ee71d"></a>
@@ -155,6 +159,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The version as "X.Y.Z". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -186,6 +192,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when url is <span class="tt"><a href="https://github.com/Ancientkingg/EGTRAIN/releases/download/">https://github.com/Ancientkingg/EGTRAIN/releases/download/</a>&lt;tag&gt;/&lt;name&gt;</span>, without user, port, query or fragment. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -217,6 +224,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when name is a package name that the distribution key allows for the given release version, "X.Y.Z". False when version is empty. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -243,6 +251,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the release is newer than current. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -265,10 +275,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span>&#160;)</td>
+          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the release list of the GitHub API and returns the release with the highest "vX.Y.Z" tag that is neither a draft nor a prerelease. Returns nothing, and sets error when it is given, when there is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -296,15 +307,16 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>distribution</em></span>, </td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>distribution</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="#aadf6be32c92717a708724110c32ef5d5">updateDistributionKey</a>()</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span>&#160;)</td>
+          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads update-manifest.json of the release with expectedTag ("vX.Y.Z") and returns its entry for distribution. Returns nothing, and sets error when it is given, when the version differs from the tag or the entry has no valid package name, SHA-256, size or file list. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -331,6 +343,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the release lists a package that the distribution key allows. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -353,6 +367,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The distribution key of this platform and processor: "windows-x64", "macos-arm64" or "linux-x86_64". Empty on any other platform or processor. An installed Windows copy uses the installer entry instead (<a class="el" href="_self_updater_8cpp.html#aa0e57a6cd0a1574ee37af55b84ea8ec3">updatePackageFor()</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -375,6 +390,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The file name of the update manifest of a release: "update-manifest.json". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

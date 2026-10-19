@@ -1,5 +1,5 @@
 <map id="UpdateChecker::UpdateChecker" name="UpdateChecker::UpdateChecker">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,233,55"/>
+<area shape="rect" id="Node000001" title="Uses the transport of the application and a timeout of 10 seconds." alt="" coords="5,29,233,55"/>
 <area shape="rect" id="Node000002" href="$_http_transport_8cpp.html#a515e602cbe2ce442004bcfef48c5ccf3" title=" " alt="" coords="281,29,432,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,39,268,39,268,45,234,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,31,315,21,319,11,333,5,357,3,386,6,398,15,394,20,384,11,357,8,334,10,322,15,320,20,326,28"/>

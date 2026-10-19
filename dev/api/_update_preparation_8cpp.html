@@ -155,6 +155,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when a file can be created in directory and removed again. It tries the folder because Qt reads no NTFS access list unless it is told to, so QFileInfo::isWritable can say yes for a folder that the user cannot write, such as one below Program Files. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -177,6 +178,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when path is on a volume that is mounted read-only or inside an App Translocation location. An app that runs from a disk image or straight after a download is there. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -203,6 +205,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Removes the staging folders ".qegtrain-update-*" in installationParent that an update left behind: directories that are not symbolic links and in which no entry changed within minimumAge. Failures are ignored. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -225,10 +228,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span>&#160;)</td>
+          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Stages a package after download verification has succeeded, and returns the staged path: the QEGTRAIN.app bundle on macOS, the QEGTRAIN folder on Windows and ready.AppImage on Linux, in stagingRoot, or the package itself for an installer. Returns an empty path on failure and may set error, when it is given. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -251,6 +255,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The text shown when the downloaded package could not be unpacked: what failed, that the installation is unchanged and how to try again, followed by the technical detail when there is one. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -278,10 +283,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span>&#160;)</td>
+          <td class="paramtype">QString *</td>          <td class="paramname"><span class="paramname"><em>error</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Verifies the downloaded package against the manifest SHA-256 using chunked reads. Returns false, and sets error when it is given, when the file cannot be read or does not match. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

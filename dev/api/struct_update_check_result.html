@@ -113,15 +113,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_update_
 </div><!--header-->
 <div class="contents">
 
+<p>The outcome of one update check.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_update_checker_8h_source.html">update/UpdateChecker.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aede7d6ff18fe3b48368e5ff2ff823480" id="r_aede7d6ff18fe3b48368e5ff2ff823480"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aede7d6ff18fe3b48368e5ff2ff823480">success</a> = false</td></tr>
+<tr class="memdesc:aede7d6ff18fe3b48368e5ff2ff823480"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a stable release was found.  <br /></td></tr>
 <tr class="memitem:a3ba2443f7b7573c18a973dc6280e984c" id="r_a3ba2443f7b7573c18a973dc6280e984c"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_stable_release.html">StableRelease</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3ba2443f7b7573c18a973dc6280e984c">release</a></td></tr>
+<tr class="memdesc:a3ba2443f7b7573c18a973dc6280e984c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The newest stable release. Set only on success.  <br /></td></tr>
 <tr class="memitem:add1eb78ee9916255bda91d73124a943e" id="r_add1eb78ee9916255bda91d73124a943e"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#add1eb78ee9916255bda91d73124a943e">error</a></td></tr>
+<tr class="memdesc:add1eb78ee9916255bda91d73124a943e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the check failed, for the user. Empty on success.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The outcome of one update check. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="add1eb78ee9916255bda91d73124a943e" name="add1eb78ee9916255bda91d73124a943e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#add1eb78ee9916255bda91d73124a943e">&#9670;&#160;</a></span>error</h2>
 
@@ -133,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Why the check failed, for the user. Empty on success. </p>
 
 </div>
 </div>
@@ -148,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The newest stable release. Set only on success. </p>
+
 </div>
 </div>
 <a id="aede7d6ff18fe3b48368e5ff2ff823480" name="aede7d6ff18fe3b48368e5ff2ff823480"></a>
@@ -161,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when a stable release was found. </p>
 
 </div>
 </div>

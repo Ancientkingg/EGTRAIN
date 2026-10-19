@@ -25,7 +25,7 @@
 <area shape="poly" id="edge28_Node000001_Node000026" title=" " alt="" coords="161,712,250,693,299,683,300,688,251,698,162,717"/>
 <area shape="rect" id="Node000027" href="$class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" title=" " alt="" coords="273,707,489,747"/>
 <area shape="poly" id="edge29_Node000001_Node000027" title=" " alt="" coords="203,725,259,725,259,730,203,730"/>
-<area shape="rect" id="Node000028" href="$_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" title=" " alt="" coords="295,796,467,821"/>
+<area shape="rect" id="Node000028" href="$_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" title="The choice stored under &quot;updates/automaticCheck&quot;, or Unknown when none is stored." alt="" coords="295,796,467,821"/>
 <area shape="poly" id="edge30_Node000001_Node000028" title=" " alt="" coords="149,737,324,789,322,795,147,743"/>
 <area shape="rect" id="Node000029" href="$class_run_controller.html#aeb1c9c7857d327a1b749a60cb9e37291" title=" " alt="" coords="277,845,485,871"/>
 <area shape="poly" id="edge32_Node000001_Node000029" title=" " alt="" coords="120,738,175,784,212,809,252,830,276,839,274,844,250,835,209,814,172,788,117,742"/>

@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_update_c
 </div><!--header-->
 <div class="contents">
 
+<p>Asks GitHub for the newest stable release.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_update_checker_8h_source.html">update/UpdateChecker.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for UpdateChecker:</div>
@@ -128,19 +131,26 @@ Collaboration diagram for UpdateChecker:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:aff7ad6ee2f6c676cc13133ef6cd2d939" id="r_aff7ad6ee2f6c676cc13133ef6cd2d939"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939">finished</a> (const <a class="el" href="struct_update_check_result.html">UpdateCheckResult</a> &amp;result)</td></tr>
+<tr class="memdesc:aff7ad6ee2f6c676cc13133ef6cd2d939"><td class="mdescLeft">&#160;</td><td class="mdescRight">The check started by <a class="el" href="#a1935e25766fffe05b0174c10107629b1">check()</a> ended.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a157247da05f80aa2d62c377e50a51ac6" id="r_a157247da05f80aa2d62c377e50a51ac6"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a157247da05f80aa2d62c377e50a51ac6">UpdateChecker</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a157247da05f80aa2d62c377e50a51ac6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Uses the transport of the application and a timeout of 10 seconds.  <br /></td></tr>
 <tr class="memitem:a9c333e00ee03e6db4a2fbea912f2124f" id="r_a9c333e00ee03e6db4a2fbea912f2124f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9c333e00ee03e6db4a2fbea912f2124f">UpdateChecker</a> (<a class="el" href="class_http_transport.html">HttpTransport</a> *transport, int timeoutMs, QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a9c333e00ee03e6db4a2fbea912f2124f"><td class="mdescLeft">&#160;</td><td class="mdescRight">For tests: uses a transport that the caller owns and a timeout of timeoutMs milliseconds.  <br /></td></tr>
 <tr class="memitem:a1935e25766fffe05b0174c10107629b1" id="r_a1935e25766fffe05b0174c10107629b1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1935e25766fffe05b0174c10107629b1">check</a> ()</td></tr>
 <tr class="memitem:a3eb0ee169a9d3a18e8fc53427bab2daa" id="r_a3eb0ee169a9d3a18e8fc53427bab2daa"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3eb0ee169a9d3a18e8fc53427bab2daa">isChecking</a> () const</td></tr>
+<tr class="memdesc:a3eb0ee169a9d3a18e8fc53427bab2daa"><td class="mdescLeft">&#160;</td><td class="mdescRight">True from <a class="el" href="#a1935e25766fffe05b0174c10107629b1">check()</a> until <a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended.">finished()</a> is emitted.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a93fd2added1cd3bdf26be8c0b4ca2575" id="r_a93fd2added1cd3bdf26be8c0b4ca2575"><td class="memItemLeft">static QUrl&#160;</td><td class="memItemRight"><a class="el" href="#a93fd2added1cd3bdf26be8c0b4ca2575">releasesUrl</a> ()</td></tr>
+<tr class="memdesc:a93fd2added1cd3bdf26be8c0b4ca2575"><td class="mdescLeft">&#160;</td><td class="mdescRight">The release list of the GitHub API, at most 100 releases.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Asks GitHub for the newest stable release. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a157247da05f80aa2d62c377e50a51ac6" name="a157247da05f80aa2d62c377e50a51ac6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a157247da05f80aa2d62c377e50a51ac6">&#9670;&#160;</a></span>UpdateChecker() <span class="overload">[1/2]</span></h2>
 
@@ -163,6 +173,8 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Uses the transport of the application and a timeout of 10 seconds. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -195,6 +207,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>For tests: uses a transport that the caller owns and a timeout of timeoutMs milliseconds. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -212,6 +226,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fetches <a class="el" href="#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release list of the GitHub API, at most 100 releases.">releasesUrl()</a> and emits <a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended.">finished()</a> once, also when the request fails or times out. A check that is still running is cancelled without a result. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -243,6 +258,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The check started by <a class="el" href="#a1935e25766fffe05b0174c10107629b1">check()</a> ended. </p>
+
 </div>
 </div>
 <a id="a3eb0ee169a9d3a18e8fc53427bab2daa" name="a3eb0ee169a9d3a18e8fc53427bab2daa"></a>
@@ -268,6 +285,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True from <a class="el" href="#a1935e25766fffe05b0174c10107629b1">check()</a> until <a class="el" href="#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended.">finished()</a> is emitted. </p>
+
 </div>
 </div>
 <a id="a93fd2added1cd3bdf26be8c0b4ca2575" name="a93fd2added1cd3bdf26be8c0b4ca2575"></a>
@@ -292,6 +311,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The release list of the GitHub API, at most 100 releases. </p>
 
 </div>
 </div>

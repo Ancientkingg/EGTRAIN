@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_http_rep
 </div><!--header-->
 <div class="contents">
 
+<p>The response of one request. A redirect of a get() is followed, but never from https to http.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_http_transport_8h_source.html">update/HttpTransport.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for HttpReply:</div>
@@ -128,21 +131,33 @@ Collaboration diagram for HttpReply:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a6477173090a5907d88d42340d358511e" id="r_a6477173090a5907d88d42340d358511e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6477173090a5907d88d42340d358511e">readyRead</a> ()</td></tr>
+<tr class="memdesc:a6477173090a5907d88d42340d358511e"><td class="mdescLeft">&#160;</td><td class="mdescRight">New bytes can be taken with <a class="el" href="#a4e211b26004cf9e035241435f736e918" title="Returns the bytes received since the last call and removes them from the reply.">readAll()</a>.  <br /></td></tr>
 <tr class="memitem:a554c521d94f9a82f345323a66b8cf4f8" id="r_a554c521d94f9a82f345323a66b8cf4f8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a554c521d94f9a82f345323a66b8cf4f8">downloadProgress</a> (qint64 received, qint64 total)</td></tr>
+<tr class="memdesc:a554c521d94f9a82f345323a66b8cf4f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bytes of the body received so far and the total in bytes, or -1 when the total is not known.  <br /></td></tr>
 <tr class="memitem:a148662f8bf1d7b19f555cbd85483bcbb" id="r_a148662f8bf1d7b19f555cbd85483bcbb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a148662f8bf1d7b19f555cbd85483bcbb">finished</a> ()</td></tr>
+<tr class="memdesc:a148662f8bf1d7b19f555cbd85483bcbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The request ended, whether it succeeded, failed or was cancelled. Emitted once.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9c571cc8b8932c2d247dcd19360aca1c" id="r_a9c571cc8b8932c2d247dcd19360aca1c"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9c571cc8b8932c2d247dcd19360aca1c">HttpReply</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a9c571cc8b8932c2d247dcd19360aca1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes a reply owned by parent, normally the transport that sent the request.  <br /></td></tr>
 <tr class="memitem:a4e211b26004cf9e035241435f736e918" id="r_a4e211b26004cf9e035241435f736e918"><td class="memItemLeft">virtual QByteArray&#160;</td><td class="memItemRight"><a class="el" href="#a4e211b26004cf9e035241435f736e918">readAll</a> ()=0</td></tr>
+<tr class="memdesc:a4e211b26004cf9e035241435f736e918"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the bytes received since the last call and removes them from the reply.  <br /></td></tr>
 <tr class="memitem:ac22cc86a4e8931a3043901bb0ca22ccc" id="r_ac22cc86a4e8931a3043901bb0ca22ccc"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ac22cc86a4e8931a3043901bb0ca22ccc">abort</a> ()=0</td></tr>
+<tr class="memdesc:ac22cc86a4e8931a3043901bb0ca22ccc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cancels the request. <a class="el" href="#a148662f8bf1d7b19f555cbd85483bcbb" title="The request ended, whether it succeeded, failed or was cancelled. Emitted once.">finished()</a> is emitted if it was not emitted yet.  <br /></td></tr>
 <tr class="memitem:a5477041bdcac6e7fec4ede9a0a9a2da2" id="r_a5477041bdcac6e7fec4ede9a0a9a2da2"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a5477041bdcac6e7fec4ede9a0a9a2da2">failed</a> () const =0</td></tr>
+<tr class="memdesc:a5477041bdcac6e7fec4ede9a0a9a2da2"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for a transport error, a cancelled request and an HTTP error status (4xx and 5xx).  <br /></td></tr>
 <tr class="memitem:a0090d73555b553b74b13212df9044c89" id="r_a0090d73555b553b74b13212df9044c89"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a0090d73555b553b74b13212df9044c89">errorString</a> () const =0</td></tr>
+<tr class="memdesc:a0090d73555b553b74b13212df9044c89"><td class="mdescLeft">&#160;</td><td class="mdescRight">A description of the failure for the user.  <br /></td></tr>
 <tr class="memitem:a25c7e826839fcd45ef0c7b11195aaaed" id="r_a25c7e826839fcd45ef0c7b11195aaaed"><td class="memItemLeft">virtual int&#160;</td><td class="memItemRight"><a class="el" href="#a25c7e826839fcd45ef0c7b11195aaaed">statusCode</a> () const =0</td></tr>
+<tr class="memdesc:a25c7e826839fcd45ef0c7b11195aaaed"><td class="mdescLeft">&#160;</td><td class="mdescRight">The HTTP status code of the response, or 0 when no response arrived.  <br /></td></tr>
 <tr class="memitem:a6236efcf31408643c24fb5efe857eebd" id="r_a6236efcf31408643c24fb5efe857eebd"><td class="memItemLeft">virtual qint64&#160;</td><td class="memItemRight"><a class="el" href="#a6236efcf31408643c24fb5efe857eebd">contentLength</a> () const =0</td></tr>
+<tr class="memdesc:a6236efcf31408643c24fb5efe857eebd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of the body in bytes that the response states, or 0 when it states none.  <br /></td></tr>
 <tr class="memitem:af2002152a16ea55e15f6e18b84ec28cb" id="r_af2002152a16ea55e15f6e18b84ec28cb"><td class="memItemLeft">virtual QByteArray&#160;</td><td class="memItemRight"><a class="el" href="#af2002152a16ea55e15f6e18b84ec28cb">header</a> (const QByteArray &amp;) const</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The response of one request. A redirect of a get() is followed, but never from https to http. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9c571cc8b8932c2d247dcd19360aca1c" name="a9c571cc8b8932c2d247dcd19360aca1c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9c571cc8b8932c2d247dcd19360aca1c">&#9670;&#160;</a></span>HttpReply()</h2>
 
@@ -165,6 +180,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes a reply owned by parent, normally the transport that sent the request. </p>
 
 </div>
 </div>
@@ -192,6 +209,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Cancels the request. <a class="el" href="#a148662f8bf1d7b19f555cbd85483bcbb" title="The request ended, whether it succeeded, failed or was cancelled. Emitted once.">finished()</a> is emitted if it was not emitted yet. </p>
+
 </div>
 </div>
 <a id="a6236efcf31408643c24fb5efe857eebd" name="a6236efcf31408643c24fb5efe857eebd"></a>
@@ -216,6 +235,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The length of the body in bytes that the response states, or 0 when it states none. </p>
 
 </div>
 </div>
@@ -246,6 +267,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The bytes of the body received so far and the total in bytes, or -1 when the total is not known. </p>
+
 </div>
 </div>
 <a id="a0090d73555b553b74b13212df9044c89" name="a0090d73555b553b74b13212df9044c89"></a>
@@ -270,6 +293,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A description of the failure for the user. </p>
 
 </div>
 </div>
@@ -296,6 +321,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>True for a transport error, a cancelled request and an HTTP error status (4xx and 5xx). </p>
+
 </div>
 </div>
 <a id="a148662f8bf1d7b19f555cbd85483bcbb" name="a148662f8bf1d7b19f555cbd85483bcbb"></a>
@@ -321,6 +348,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The request ended, whether it succeeded, failed or was cancelled. Emitted once. </p>
+
 </div>
 </div>
 <a id="af2002152a16ea55e15f6e18b84ec28cb" name="af2002152a16ea55e15f6e18b84ec28cb"></a>
@@ -345,6 +374,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The value of the response header with this name, or an empty array when the response has none. The default reply has no headers. </p>
 
 </div>
 </div>
@@ -371,6 +401,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Returns the bytes received since the last call and removes them from the reply. </p>
+
 </div>
 </div>
 <a id="a6477173090a5907d88d42340d358511e" name="a6477173090a5907d88d42340d358511e"></a>
@@ -396,6 +428,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>New bytes can be taken with <a class="el" href="#a4e211b26004cf9e035241435f736e918" title="Returns the bytes received since the last call and removes them from the reply.">readAll()</a>. </p>
+
 </div>
 </div>
 <a id="a25c7e826839fcd45ef0c7b11195aaaed" name="a25c7e826839fcd45ef0c7b11195aaaed"></a>
@@ -420,6 +454,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The HTTP status code of the response, or 0 when no response arrived. </p>
 
 </div>
 </div>

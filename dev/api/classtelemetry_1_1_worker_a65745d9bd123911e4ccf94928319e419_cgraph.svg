@@ -153,7 +153,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title="Cancels the request. finished() is emitted if it was not emitted yet.">
 <polygon fill="white" stroke="#666666" points="641,-180.5 545,-180.5 545,-161.5 641,-161.5 641,-180.5"/>
 <text text-anchor="middle" x="593" y="-168.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::abort</text>
 </a>

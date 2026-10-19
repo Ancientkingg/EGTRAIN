@@ -147,10 +147,11 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>allowLoopbackHttp</em></span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>allowLoopbackHttp</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Returns the transport the application uses: WinHTTP on Windows, where Qt has no TLS library, and Qt's network manager elsewhere. The Windows transport fetches https addresses only, unless allowLoopbackHttp is true, which only a test sets so that it can use a server on 127.0.0.1. The transport is a child of parent. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -173,6 +174,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>For a test that scripts replies of Qt's network manager in place of a server: the request that the Qt transport hands to the network manager for a post(). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -199,6 +201,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>For a test that scripts replies of Qt's network manager: a reply that wraps a reply of a network manager. The wrapper is a child of parent and deletes the wrapped reply with deleteLater(). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

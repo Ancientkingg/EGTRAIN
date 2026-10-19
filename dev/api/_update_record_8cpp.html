@@ -128,12 +128,15 @@ Include dependency graph for UpdateRecord.cpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:aeb3e3274de628c0b4e506b6de187a33b" id="r_aeb3e3274de628c0b4e506b6de187a33b"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_update_record.html">UpdateRecord</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aeb3e3274de628c0b4e506b6de187a33b">parseUpdateRecord</a> (const QByteArray &amp;contents)</td></tr>
 <tr class="memitem:a0b07cefc60dd36435751649c1a50876c" id="r_a0b07cefc60dd36435751649c1a50876c"><td class="memItemLeft"><a class="el" href="struct_update_record_text.html">UpdateRecordText</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0b07cefc60dd36435751649c1a50876c">describeUpdateRecord</a> (const <a class="el" href="struct_update_record.html">UpdateRecord</a> &amp;record)</td></tr>
+<tr class="memdesc:a0b07cefc60dd36435751649c1a50876c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The text that tells the user about record.  <br /></td></tr>
 <tr class="memitem:ad99a7b4b4b002f2f73bb94f3bbf9f841" id="r_ad99a7b4b4b002f2f73bb94f3bbf9f841"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_installer_record.html">InstallerRecord</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad99a7b4b4b002f2f73bb94f3bbf9f841">parseInstallerRecord</a> (const QByteArray &amp;contents)</td></tr>
 <tr class="memitem:aedd39575c06eb90ceb03d502cb20b062" id="r_aedd39575c06eb90ceb03d502cb20b062"><td class="memItemLeft"><a class="el" href="_update_record_8h.html#ac6941a6382d1b766f796098a749f5396">InstallerCheck</a>&#160;</td><td class="memItemRight"><a class="el" href="#aedd39575c06eb90ceb03d502cb20b062">checkInstallerRecord</a> (const <a class="el" href="struct_installer_record.html">InstallerRecord</a> &amp;record, const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;installed)</td></tr>
+<tr class="memdesc:aedd39575c06eb90ceb03d502cb20b062"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares the installed version with the version that the record names.  <br /></td></tr>
 <tr class="memitem:a9310fdab574108ed07cc653140b5daad" id="r_a9310fdab574108ed07cc653140b5daad"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a9310fdab574108ed07cc653140b5daad">updateRecordPath</a> ()</td></tr>
 <tr class="memitem:ac296b13c3c8e3c075481fe8a8d65a1f7" id="r_ac296b13c3c8e3c075481fe8a8d65a1f7"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_update_record.html">UpdateRecord</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac296b13c3c8e3c075481fe8a8d65a1f7">takeUpdateRecord</a> (const QString &amp;path, const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;installed)</td></tr>
 <tr class="memitem:a3e5786865937c50b538cb477c2c306b6" id="r_a3e5786865937c50b538cb477c2c306b6"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_installer_record.html">InstallerRecord</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3e5786865937c50b538cb477c2c306b6">takeInstallerRecord</a> (const QString &amp;path)</td></tr>
 <tr class="memitem:a0f1a4bb3a770363b7d1aeafbee33b022" id="r_a0f1a4bb3a770363b7d1aeafbee33b022"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a0f1a4bb3a770363b7d1aeafbee33b022">updateRecordArguments</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;version, const QString &amp;recordPath)</td></tr>
+<tr class="memdesc:a0f1a4bb3a770363b7d1aeafbee33b022"><td class="mdescLeft">&#160;</td><td class="mdescRight">The options that make the helper write the record of an update to version. Empty without a path.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aedd39575c06eb90ceb03d502cb20b062" name="aedd39575c06eb90ceb03d502cb20b062"></a>
@@ -154,6 +157,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Compares the installed version with the version that the record names. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -176,6 +181,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The text that tells the user about record. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -198,6 +205,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the text of an installer record. The lines are read as in parseUpdateRecord, the outcome must be installer-succeeded or installer-failed and the version a stable version. The time is not read. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -220,6 +228,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the text of a record. The lines end in LF or CRLF, the keys outcome, version and time must each occur (the first occurrence counts) and other keys are ignored. The outcome must be rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -242,6 +251,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the installer record at path and removes the file. A file that is no installer record is left as it is, for takeUpdateRecord, and so is anything that is no regular file or is longer than 4096 bytes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -268,6 +278,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and its version is newer than the installed one; any other record is stale. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -294,6 +305,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The options that make the helper write the record of an update to version. Empty without a path. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -316,6 +329,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Where the helper leaves the record: the local application data folder of this installation on this machine. Empty when Qt has no such folder. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

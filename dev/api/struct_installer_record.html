@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_install
 </div><!--header-->
 <div class="contents">
 
+<p>The record of an installer-mode update.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_update_record_8h_source.html">update/UpdateRecord.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for InstallerRecord:</div>
@@ -123,10 +126,14 @@ Collaboration diagram for InstallerRecord:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:adc8d0c19bf6d8828fe6adf2f5a4b2fd1" id="r_adc8d0c19bf6d8828fe6adf2f5a4b2fd1"><td class="memItemLeft"><a class="el" href="struct_semantic_version.html">SemanticVersion</a>&#160;</td><td class="memItemRight"><a class="el" href="#adc8d0c19bf6d8828fe6adf2f5a4b2fd1">version</a></td></tr>
+<tr class="memdesc:adc8d0c19bf6d8828fe6adf2f5a4b2fd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The version that the installer was to install.  <br /></td></tr>
 <tr class="memitem:a2cc7cb5ccf2595f6d5f8c262a543ca1e" id="r_a2cc7cb5ccf2595f6d5f8c262a543ca1e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2cc7cb5ccf2595f6d5f8c262a543ca1e">succeeded</a> = false</td></tr>
 <tr class="memitem:a76bf6c94f5f305f549ccd3c08631ed0d" id="r_a76bf6c94f5f305f549ccd3c08631ed0d"><td class="memItemLeft">std::optional&lt; qulonglong &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a76bf6c94f5f305f549ccd3c08631ed0d">exitCode</a></td></tr>
+<tr class="memdesc:a76bf6c94f5f305f549ccd3c08631ed0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The exit code that a failed installer ended with, when the record names one.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The record of an installer-mode update. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a76bf6c94f5f305f549ccd3c08631ed0d" name="a76bf6c94f5f305f549ccd3c08631ed0d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a76bf6c94f5f305f549ccd3c08631ed0d">&#9670;&#160;</a></span>exitCode</h2>
 
@@ -138,6 +145,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The exit code that a failed installer ended with, when the record names one. </p>
 
 </div>
 </div>
@@ -152,6 +161,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True for outcome=installer-succeeded: the installer exited with 0. </p>
 
 </div>
 </div>
@@ -166,6 +176,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The version that the installer was to install. </p>
 
 </div>
 </div>

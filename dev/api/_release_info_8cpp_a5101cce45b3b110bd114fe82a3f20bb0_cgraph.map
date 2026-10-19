@@ -1,13 +1,13 @@
 <map id="parseLatestStableRelease" name="parseLatestStableRelease">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,140,196,165"/>
 <area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="61,142,53,132,57,122,74,116,101,113,135,117,145,122,148,128,144,131,141,126,134,122,101,119,75,121,61,126,58,131,65,138"/>
-<area shape="rect" id="Node000002" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title=" " alt="" coords="257,29,431,55"/>
+<area shape="rect" id="Node000002" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="257,29,431,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,138,172,101,243,64,264,56,266,61,245,68,174,106,120,142"/>
 <area shape="rect" id="Node000003" href="$_release_info_8cpp.html#af5c1cef922b9bea6e866ea9782d31cb8" title=" " alt="" coords="244,103,444,128"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="183,137,247,128,247,133,184,143"/>
 <area shape="rect" id="Node000004" href="$_version_8cpp.html#a137f71e5b980c1049d67bc615992834b" title=" " alt="" coords="283,176,405,201"/>
 <area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="187,163,270,175,269,180,186,168"/>
-<area shape="rect" id="Node000006" href="$_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" title=" " alt="" coords="245,249,443,275"/>
+<area shape="rect" id="Node000006" href="$_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" title="The file name of the update manifest of a release: &quot;update&#45;manifest.json&quot;." alt="" coords="245,249,443,275"/>
 <area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="131,163,304,241,301,246,129,168"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="308,31,300,21,304,11,319,5,344,3,375,6,387,15,384,20,373,11,344,8,320,10,308,15,305,20,312,28"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="308,104,300,94,304,84,319,78,344,76,375,80,387,89,384,93,373,85,344,81,320,83,308,88,305,94,312,101"/>

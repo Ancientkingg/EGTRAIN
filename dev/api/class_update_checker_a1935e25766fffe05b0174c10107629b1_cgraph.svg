@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title="Cancels the request. finished() is emitted if it was not emitted yet.">
 <polygon fill="white" stroke="#666666" points="285,-333 189,-333 189,-314 285,-314 285,-333"/>
 <text text-anchor="middle" x="237" y="-321" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::abort</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_http_reply.html#a0090d73555b553b74b13212df9044c89" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_http_reply.html#a0090d73555b553b74b13212df9044c89" target="_top" xlink:title="A description of the failure for the user.">
 <polygon fill="white" stroke="#666666" points="298,-296 176,-296 176,-277 298,-277 298,-296"/>
 <text text-anchor="middle" x="237" y="-284" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::errorString</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_http_reply.html#a5477041bdcac6e7fec4ede9a0a9a2da2" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_http_reply.html#a5477041bdcac6e7fec4ede9a0a9a2da2" target="_top" xlink:title="True for a transport error, a cancelled request and an HTTP error status (4xx and 5xx).">
 <polygon fill="white" stroke="#666666" points="286,-259 188,-259 188,-240 286,-240 286,-259"/>
 <text text-anchor="middle" x="237" y="-247" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::failed</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" target="_top" xlink:title="The request ended, whether it succeeded, failed or was cancelled. Emitted once.">
 <polygon fill="white" stroke="#666666" points="291.5,-222 182.5,-222 182.5,-203 291.5,-203 291.5,-222"/>
 <text text-anchor="middle" x="237" y="-210" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::finished</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_update_checker.html#aff7ad6ee2f6c676cc13133ef6cd2d939" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_update_checker.html#aff7ad6ee2f6c676cc13133ef6cd2d939" target="_top" xlink:title="The check started by check() ended.">
 <polygon fill="white" stroke="#666666" points="304.5,-185 169.5,-185 169.5,-166 304.5,-166 304.5,-185"/>
 <text text-anchor="middle" x="237" y="-173" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateChecker::finished</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_http_reply.html#a4e211b26004cf9e035241435f736e918" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_http_reply.html#a4e211b26004cf9e035241435f736e918" target="_top" xlink:title="Returns the bytes received since the last call and removes them from the reply.">
 <polygon fill="white" stroke="#666666" points="289.5,-93 184.5,-93 184.5,-74 289.5,-74 289.5,-93"/>
 <text text-anchor="middle" x="237" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::readAll</text>
 </a>
@@ -146,7 +146,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" target="_top" xlink:title="The release list of the GitHub API, at most 100 releases.">
 <polygon fill="white" stroke="#666666" points="313,-56 161,-56 161,-37 313,-37 313,-56"/>
 <text text-anchor="middle" x="237" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateChecker::releasesUrl</text>
 </a>
@@ -164,7 +164,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" target="_top" xlink:title="The HTTP status code of the response, or 0 when no response arrived.">
 <polygon fill="white" stroke="#666666" points="299.5,-19 174.5,-19 174.5,0 299.5,0 299.5,-19"/>
 <text text-anchor="middle" x="237" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::statusCode</text>
 </a>
@@ -191,7 +191,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title="The version as &quot;X.Y.Z&quot;.">
 <polygon fill="white" stroke="#666666" points="489.5,-212 358.5,-212 358.5,-193 489.5,-193 489.5,-212"/>
 <text text-anchor="middle" x="424" y="-200" font-family="Helvetica,sans-Serif" font-size="10.00">formatSemanticVersion</text>
 </a>
@@ -245,7 +245,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" target="_top" xlink:title="The file name of the update manifest of a release: &quot;update&#45;manifest.json&quot;.">
 <polygon fill="white" stroke="#666666" points="498.5,-47 349.5,-47 349.5,-28 498.5,-28 498.5,-47"/>
 <text text-anchor="middle" x="424" y="-35" font-family="Helvetica,sans-Serif" font-size="10.00">updateManifestAssetName</text>
 </a>

@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_http_tra
 </div><!--header-->
 <div class="contents">
 
+<p>Sends requests. A reply is a child of its transport; the caller releases it with deleteLater().  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_http_transport_8h_source.html">update/HttpTransport.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for HttpTransport:</div>
@@ -128,10 +131,14 @@ Collaboration diagram for HttpTransport:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa30f85322d04c0a9312befd02a5bcb58" id="r_aa30f85322d04c0a9312befd02a5bcb58"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa30f85322d04c0a9312befd02a5bcb58">HttpTransport</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:aa30f85322d04c0a9312befd02a5bcb58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes a transport owned by parent.  <br /></td></tr>
 <tr class="memitem:a90ffd50bc02c6f42f5512b245d37e376" id="r_a90ffd50bc02c6f42f5512b245d37e376"><td class="memItemLeft">virtual <a class="el" href="class_http_reply.html">HttpReply</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a90ffd50bc02c6f42f5512b245d37e376">get</a> (const <a class="el" href="struct_http_request.html">HttpRequest</a> &amp;request)=0</td></tr>
+<tr class="memdesc:a90ffd50bc02c6f42f5512b245d37e376"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a GET of request.url and returns its reply, which the transport owns.  <br /></td></tr>
 <tr class="memitem:a831c22a45c49768f7afac913adcca71b" id="r_a831c22a45c49768f7afac913adcca71b"><td class="memItemLeft">virtual <a class="el" href="class_http_reply.html">HttpReply</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a831c22a45c49768f7afac913adcca71b">post</a> (const <a class="el" href="struct_http_request.html">HttpRequest</a> &amp;)</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Sends requests. A reply is a child of its transport; the caller releases it with deleteLater(). </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa30f85322d04c0a9312befd02a5bcb58" name="aa30f85322d04c0a9312befd02a5bcb58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa30f85322d04c0a9312befd02a5bcb58">&#9670;&#160;</a></span>HttpTransport()</h2>
 
@@ -154,6 +161,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Makes a transport owned by parent. </p>
 
 </div>
 </div>
@@ -181,6 +190,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Starts a GET of request.url and returns its reply, which the transport owns. </p>
+
 </div>
 </div>
 <a id="a831c22a45c49768f7afac913adcca71b" name="a831c22a45c49768f7afac913adcca71b"></a>
@@ -205,6 +216,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Sends request.body with a POST. A redirect is not followed: its reply is the reply of the post, without an error. The request carries no cookie and no credentials. The default transport cannot post and returns nullptr. </p>
 
 </div>
 </div>

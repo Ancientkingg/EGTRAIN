@@ -176,6 +176,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The transport of the Windows build. Qt 5.15 has no TLS library there, so the requests go through WinHTTP: Schannel with TLS 1.2 and 1.3, the system certificate store and the proxy settings of the machine. The certificate of a server is always checked. Only https addresses are fetched, and a redirect to another address is followed ten times at most. With allowLoopbackHttp a test may also fetch from <a href="http://127.0.0.1">http://127.0.0.1</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

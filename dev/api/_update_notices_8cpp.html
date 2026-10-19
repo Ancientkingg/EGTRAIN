@@ -145,6 +145,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Tells the user, once, what the installer of an installed Windows copy left: the record that the update helper writes after it ran the installer (<a class="el" href="_update_record_8h.html">update/UpdateRecord.h</a>). The version that runs now decides whether the update is reported as done, as not applied or as failed, so success is never assumed from the end of the installer. A scripted launch shows nothing and keeps the record. Call it before reportRolledBackUpdate, which removes any record it finds. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -167,6 +168,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Tells the user, once, that the update to a version could not be started and that the previous version was restored, or that it could not be applied and that the previous version is still installed. The update helper leaves the record that triggers it (<a class="el" href="_update_record_8h.html">update/UpdateRecord.h</a>). After a version that could not be started, the version is stored so that automatic update checks stop offering it (<a class="el" href="_update_settings_8h.html">update/UpdateSettings.h</a>). A scripted launch shows nothing and keeps the record. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_update_
 </div><!--header-->
 <div class="contents">
 
+<p>A record of an update that was not kept, as <a class="el" href="_update_record_8cpp.html#aeb3e3274de628c0b4e506b6de187a33b">parseUpdateRecord()</a> reads it.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_update_record_8h_source.html">update/UpdateRecord.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for UpdateRecord:</div>
@@ -123,10 +126,15 @@ Collaboration diagram for UpdateRecord:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa85aad1b548c75f9ad7bb95a5ce04870" id="r_aa85aad1b548c75f9ad7bb95a5ce04870"><td class="memItemLeft"><a class="el" href="struct_semantic_version.html">SemanticVersion</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa85aad1b548c75f9ad7bb95a5ce04870">version</a></td></tr>
+<tr class="memdesc:aa85aad1b548c75f9ad7bb95a5ce04870"><td class="mdescLeft">&#160;</td><td class="mdescRight">The version that was to be installed.  <br /></td></tr>
 <tr class="memitem:adcee3b4ce998347d4cd995f674e22801" id="r_adcee3b4ce998347d4cd995f674e22801"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#adcee3b4ce998347d4cd995f674e22801">time</a></td></tr>
+<tr class="memdesc:adcee3b4ce998347d4cd995f674e22801"><td class="mdescLeft">&#160;</td><td class="mdescRight">The UTC time at which the helper wrote the record.  <br /></td></tr>
 <tr class="memitem:a550e87cf5c396b184c34b334160e824b" id="r_a550e87cf5c396b184c34b334160e824b"><td class="memItemLeft"><a class="el" href="_update_record_8h.html#a47d839c793e341182c4d3564973b669a">UpdateOutcome</a>&#160;</td><td class="memItemRight"><a class="el" href="#a550e87cf5c396b184c34b334160e824b">outcome</a> = <a class="el" href="_update_record_8h.html#a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86">UpdateOutcome::RolledBack</a></td></tr>
+<tr class="memdesc:a550e87cf5c396b184c34b334160e824b"><td class="mdescLeft">&#160;</td><td class="mdescRight">What happened to the update.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A record of an update that was not kept, as <a class="el" href="_update_record_8cpp.html#aeb3e3274de628c0b4e506b6de187a33b">parseUpdateRecord()</a> reads it. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a550e87cf5c396b184c34b334160e824b" name="a550e87cf5c396b184c34b334160e824b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a550e87cf5c396b184c34b334160e824b">&#9670;&#160;</a></span>outcome</h2>
 
@@ -138,6 +146,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>What happened to the update. </p>
 
 </div>
 </div>
@@ -153,6 +163,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The UTC time at which the helper wrote the record. </p>
+
 </div>
 </div>
 <a id="aa85aad1b548c75f9ad7bb95a5ce04870" name="aa85aad1b548c75f9ad7bb95a5ce04870"></a>
@@ -166,6 +178,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The version that was to be installed. </p>
 
 </div>
 </div>

@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_self_updater.html#a72b33df344d25f76b651ae24873dfe82" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_self_updater.html#a72b33df344d25f76b651ae24873dfe82" target="_top" xlink:title="The update started by start() is ready for restart(), or failed with error. error is empty on success...">
 <polygon fill="white" stroke="#666666" points="330,-384 211,-384 211,-365 330,-365 330,-384"/>
 <text text-anchor="middle" x="270.5" y="-372" font-family="Helvetica,sans-Serif" font-size="10.00">SelfUpdater::finished</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_update_checker.html#aff7ad6ee2f6c676cc13133ef6cd2d939" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_update_checker.html#aff7ad6ee2f6c676cc13133ef6cd2d939" target="_top" xlink:title="The check started by check() ended.">
 <polygon fill="white" stroke="#666666" points="338,-347 203,-347 203,-328 338,-328 338,-347"/>
 <text text-anchor="middle" x="270.5" y="-335" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateChecker::finished</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_self_updater.html#a21dd6835be860b3cdae4fcaaf3dafd5c" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_self_updater.html#a21dd6835be860b3cdae4fcaaf3dafd5c" target="_top" xlink:title="The package is downloaded and its preparation for version &quot;X.Y.Z&quot; starts.">
 <polygon fill="white" stroke="#666666" points="334,-310 207,-310 207,-291 334,-291 334,-310"/>
 <text text-anchor="middle" x="270.5" y="-298" font-family="Helvetica,sans-Serif" font-size="10.00">SelfUpdater::preparing</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_self_updater.html#ad8637cde269408bad682982d807e774a" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_self_updater.html#ad8637cde269408bad682982d807e774a" target="_top" xlink:title="The bytes of the package received so far and the total in bytes, or &#45;1 when the total is not known.">
 <polygon fill="white" stroke="#666666" points="331.5,-273 209.5,-273 209.5,-254 331.5,-254 331.5,-273"/>
 <text text-anchor="middle" x="270.5" y="-261" font-family="Helvetica,sans-Serif" font-size="10.00">SelfUpdater::progress</text>
 </a>
@@ -93,7 +93,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" target="_top" xlink:title="The choice stored under &quot;updates/automaticCheck&quot;, or Unknown when none is stored.">
 <polygon fill="white" stroke="#666666" points="550,-167 421,-167 421,-148 550,-148 550,-167"/>
 <text text-anchor="middle" x="485.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">readUpdateCheckState</text>
 </a>
@@ -111,7 +111,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_self_updater.html#a1ed6186d761799cfcc679a63844d405f" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_self_updater.html#a1ed6186d761799cfcc679a63844d405f" target="_top" xlink:title="Makes an updater that uses the transport of the application.">
 <polygon fill="white" stroke="#666666" points="339.5,-236 201.5,-236 201.5,-217 339.5,-217 339.5,-236"/>
 <text text-anchor="middle" x="270.5" y="-224" font-family="Helvetica,sans-Serif" font-size="10.00">SelfUpdater::SelfUpdater</text>
 </a>
@@ -166,7 +166,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_update_checker.html#a157247da05f80aa2d62c377e50a51ac6" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_update_checker.html#a157247da05f80aa2d62c377e50a51ac6" target="_top" xlink:title="Uses the transport of the application and a timeout of 10 seconds.">
 <polygon fill="white" stroke="#666666" points="356,-199 185,-199 185,-180 356,-180 356,-199"/>
 <text text-anchor="middle" x="270.5" y="-187" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateChecker::UpdateChecker</text>
 </a>
@@ -184,7 +184,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" target="_top" xlink:title="Stores the choice under &quot;updates/automaticCheck&quot;. Unknown removes the key.">
 <polygon fill="white" stroke="#666666" points="336.5,-19 204.5,-19 204.5,0 336.5,0 336.5,-19"/>
 <text text-anchor="middle" x="270.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">writeUpdateCheckState</text>
 </a>
@@ -211,7 +211,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title="Cancels the request. finished() is emitted if it was not emitted yet.">
 <polygon fill="white" stroke="#666666" points="533.5,-277 437.5,-277 437.5,-258 533.5,-258 533.5,-277"/>
 <text text-anchor="middle" x="485.5" y="-265" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::abort</text>
 </a>
@@ -292,7 +292,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="_update_settings_8cpp.html#aafad3b22f25264ecfe072e5b38a4c751" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="_update_settings_8cpp.html#aafad3b22f25264ecfe072e5b38a4c751" target="_top" xlink:title="True for a check that the user started (manual) and when automatic checks are enabled.">
 <polygon fill="white" stroke="#666666" points="552.5,-112 418.5,-112 418.5,-93 552.5,-93 552.5,-112"/>
 <text text-anchor="middle" x="485.5" y="-100" font-family="Helvetica,sans-Serif" font-size="10.00">shouldCheckForUpdates</text>
 </a>

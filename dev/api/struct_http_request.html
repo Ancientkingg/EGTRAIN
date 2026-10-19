@@ -118,13 +118,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_http_re
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:af35a04593c232981d9c308565786a123" id="r_af35a04593c232981d9c308565786a123"><td class="memItemLeft">QUrl&#160;</td><td class="memItemRight"><a class="el" href="#af35a04593c232981d9c308565786a123">url</a></td></tr>
+<tr class="memdesc:af35a04593c232981d9c308565786a123"><td class="mdescLeft">&#160;</td><td class="mdescRight">The address to fetch or to post to.  <br /></td></tr>
 <tr class="memitem:aa89ff76ceb327d151813cb15e7e42fe6" id="r_aa89ff76ceb327d151813cb15e7e42fe6"><td class="memItemLeft">QByteArray&#160;</td><td class="memItemRight"><a class="el" href="#aa89ff76ceb327d151813cb15e7e42fe6">userAgent</a></td></tr>
+<tr class="memdesc:aa89ff76ceb327d151813cb15e7e42fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The value of the User-Agent header.  <br /></td></tr>
 <tr class="memitem:aba2682ce2aea7134c5f4abb814a55f0e" id="r_aba2682ce2aea7134c5f4abb814a55f0e"><td class="memItemLeft">QByteArray&#160;</td><td class="memItemRight"><a class="el" href="#aba2682ce2aea7134c5f4abb814a55f0e">accept</a></td></tr>
+<tr class="memdesc:aba2682ce2aea7134c5f4abb814a55f0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The value of the Accept header.  <br /></td></tr>
 <tr class="memitem:a7b1e70e05f55cb477134b55766e103cc" id="r_a7b1e70e05f55cb477134b55766e103cc"><td class="memItemLeft">QByteArray&#160;</td><td class="memItemRight"><a class="el" href="#a7b1e70e05f55cb477134b55766e103cc">body</a></td></tr>
+<tr class="memdesc:a7b1e70e05f55cb477134b55766e103cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bytes that post() sends.  <br /></td></tr>
 <tr class="memitem:a7d8c1d4854199c1997e4168c133c0697" id="r_a7d8c1d4854199c1997e4168c133c0697"><td class="memItemLeft">QByteArray&#160;</td><td class="memItemRight"><a class="el" href="#a7d8c1d4854199c1997e4168c133c0697">contentType</a></td></tr>
 <tr class="memitem:ac9aef12c754fef64308bc6013c4765a1" id="r_ac9aef12c754fef64308bc6013c4765a1"><td class="memItemLeft">QByteArray&#160;</td><td class="memItemRight"><a class="el" href="#ac9aef12c754fef64308bc6013c4765a1">extraRootPem</a></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One request. An empty userAgent or accept sets no such header. body, contentType and extraRootPem belong to post() and are ignored by get(). </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aba2682ce2aea7134c5f4abb814a55f0e" name="aba2682ce2aea7134c5f4abb814a55f0e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aba2682ce2aea7134c5f4abb814a55f0e">&#9670;&#160;</a></span>accept</h2>
 
@@ -136,6 +142,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The value of the Accept header. </p>
 
 </div>
 </div>
@@ -151,6 +159,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The bytes that post() sends. </p>
+
 </div>
 </div>
 <a id="a7d8c1d4854199c1997e4168c133c0697" name="a7d8c1d4854199c1997e4168c133c0697"></a>
@@ -164,6 +174,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The value of the Content-Type header of a post. No Content-Type header when empty. </p>
 
 </div>
 </div>
@@ -178,6 +189,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Only a test sets this: a PEM root certificate that the certificate of a server on a loopback address is checked against, for a server whose certificate the system does not trust. </p>
 
 </div>
 </div>
@@ -193,6 +205,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The address to fetch or to post to. </p>
+
 </div>
 </div>
 <a id="aa89ff76ceb327d151813cb15e7e42fe6" name="aa89ff76ceb327d151813cb15e7e42fe6"></a>
@@ -206,6 +220,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The value of the User-Agent header. </p>
 
 </div>
 </div>

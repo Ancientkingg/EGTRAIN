@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_update_p
 </div><!--header-->
 <div class="contents">
 
+<p>Verifies and stages a downloaded package. <a class="el" href="class_self_updater.html">SelfUpdater</a> runs it in a thread of its own.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_update_preparation_8h_source.html">update/UpdatePreparation.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for UpdatePreparationWorker:</div>
@@ -136,12 +139,16 @@ Public Slots</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a287e87ded84dd73ca146c22c1f80bc45" id="r_a287e87ded84dd73ca146c22c1f80bc45"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a287e87ded84dd73ca146c22c1f80bc45">finished</a> (const <a class="el" href="struct_update_preparation_result.html">UpdatePreparationResult</a> &amp;result)</td></tr>
+<tr class="memdesc:a287e87ded84dd73ca146c22c1f80bc45"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preparation started by <a class="el" href="#a939afcb27a126a014fa1002c9122d810">prepare()</a> ended.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a52891470dcf429d829e386b2b5f1859e" id="r_a52891470dcf429d829e386b2b5f1859e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a52891470dcf429d829e386b2b5f1859e">setPlatformStager</a> (<a class="el" href="#a28e7e224ea595bff936cd21f9c8a9f38">PlatformStager</a> stager)</td></tr>
+<tr class="memdesc:a52891470dcf429d829e386b2b5f1859e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stages with stager in place of <a class="el" href="_update_preparation_8cpp.html#a608db59b587b6175282b8339230e4ce8">stageUpdatePackage()</a>. An empty stager restores the default.  <br /></td></tr>
 </table>
-<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Verifies and stages a downloaded package. <a class="el" href="class_self_updater.html">SelfUpdater</a> runs it in a thread of its own. </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a28e7e224ea595bff936cd21f9c8a9f38" name="a28e7e224ea595bff936cd21f9c8a9f38"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a28e7e224ea595bff936cd21f9c8a9f38">&#9670;&#160;</a></span>PlatformStager</h2>
 
@@ -156,7 +163,8 @@ Public Member Functions</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">std::function&lt;QString(</div>
 <div class="line">       <span class="keyword">const</span> <a class="code hl_struct" href="struct_update_preparation_input.html">UpdatePreparationInput</a>&amp;, QString*)&gt;</div>
 <div class="ttc" id="astruct_update_preparation_input_html"><div class="ttname"><a href="struct_update_preparation_input.html">UpdatePreparationInput</a></div><div class="ttdef"><b>Definition</b> UpdatePreparation.h:14</div></div>
-</div><!-- fragment -->
+</div><!-- fragment --><p>Platform-specific structural preparation of the staged installation. Defaults to the real host implementation; injectable so the asynchronous handoff can be exercised on any platform in tests. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -183,6 +191,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The preparation started by <a class="el" href="#a939afcb27a126a014fa1002c9122d810">prepare()</a> ended. </p>
+
 </div>
 </div>
 <a id="a939afcb27a126a014fa1002c9122d810" name="a939afcb27a126a014fa1002c9122d810"></a>
@@ -207,6 +217,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Runs in the worker thread. Emits exactly one <a class="el" href="#a287e87ded84dd73ca146c22c1f80bc45" title="The preparation started by prepare() ended.">finished()</a> result and must not mutate any object owned by another thread. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -229,6 +240,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stages with stager in place of <a class="el" href="_update_preparation_8cpp.html#a608db59b587b6175282b8339230e4ce8">stageUpdatePackage()</a>. An empty stager restores the default. </p>
 
 </div>
 </div>

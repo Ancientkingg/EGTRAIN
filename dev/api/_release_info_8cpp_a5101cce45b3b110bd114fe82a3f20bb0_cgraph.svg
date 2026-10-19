@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title="The version as &quot;X.Y.Z&quot;.">
 <polygon fill="white" stroke="#666666" points="319.5,-184 188.5,-184 188.5,-165 319.5,-165 319.5,-184"/>
 <text text-anchor="middle" x="254" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">formatSemanticVersion</text>
 </a>
@@ -83,7 +83,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" target="_top" xlink:title="The file name of the update manifest of a release: &quot;update&#45;manifest.json&quot;.">
 <polygon fill="white" stroke="#666666" points="328.5,-19 179.5,-19 179.5,0 328.5,0 328.5,-19"/>
 <text text-anchor="middle" x="254" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">updateManifestAssetName</text>
 </a>

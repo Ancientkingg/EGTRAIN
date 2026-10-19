@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_stable_release.html#a21423b70d5862bf7123892416053a348" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_stable_release.html#a21423b70d5862bf7123892416053a348" target="_top" xlink:title="The asset with this name, or nullptr when the release has none. The pointer points into assets.">
 <polygon fill="white" stroke="#666666" points="274,-258 155,-258 155,-239 274,-239 274,-258"/>
 <text text-anchor="middle" x="214.5" y="-246" font-family="Helvetica,sans-Serif" font-size="10.00">StableRelease::asset</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_self_updater.html#a72b33df344d25f76b651ae24873dfe82" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_self_updater.html#a72b33df344d25f76b651ae24873dfe82" target="_top" xlink:title="The update started by start() is ready for restart(), or failed with error. error is empty on success...">
 <polygon fill="white" stroke="#666666" points="274,-184 155,-184 155,-165 274,-165 274,-184"/>
 <text text-anchor="middle" x="214.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">SelfUpdater::finished</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_release_info_8cpp.html#a43331d960fff9c06c2af536c667a3f69" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_release_info_8cpp.html#a43331d960fff9c06c2af536c667a3f69" target="_top" xlink:title="True when the release lists a package that the distribution key allows.">
 <polygon fill="white" stroke="#666666" points="287.5,-129 141.5,-129 141.5,-110 287.5,-110 287.5,-129"/>
 <text text-anchor="middle" x="214.5" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">releaseHasUpdatePackage</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" target="_top" xlink:title="The file name of the update manifest of a release: &quot;update&#45;manifest.json&quot;.">
 <polygon fill="white" stroke="#666666" points="289,-19 140,-19 140,0 289,0 289,-19"/>
 <text text-anchor="middle" x="214.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">updateManifestAssetName</text>
 </a>
@@ -191,7 +191,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title="The version as &quot;X.Y.Z&quot;.">
 <polygon fill="white" stroke="#666666" points="457,-147 326,-147 326,-128 457,-128 457,-147"/>
 <text text-anchor="middle" x="391.5" y="-135" font-family="Helvetica,sans-Serif" font-size="10.00">formatSemanticVersion</text>
 </a>

@@ -172,7 +172,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" target="_top" xlink:title="The HTTP status code of the response, or 0 when no response arrived.">
 <polygon fill="white" stroke="#666666" points="283.5,-34.5 158.5,-34.5 158.5,-15.5 283.5,-15.5 283.5,-34.5"/>
 <text text-anchor="middle" x="221" y="-22.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::statusCode</text>
 </a>
@@ -209,7 +209,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title="Cancels the request. finished() is emitted if it was not emitted yet.">
 <polygon fill="white" stroke="#666666" points="827,-218.5 731,-218.5 731,-199.5 827,-199.5 827,-218.5"/>
 <text text-anchor="middle" x="779" y="-206.5" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::abort</text>
 </a>

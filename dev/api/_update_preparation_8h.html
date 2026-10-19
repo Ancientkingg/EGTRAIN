@@ -135,7 +135,9 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:UpdatePreparationInput" id="r_UpdatePreparationInput"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_update_preparation_input.html">UpdatePreparationInput</a></td></tr>
 <tr class="memitem:UpdatePreparationResult" id="r_UpdatePreparationResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_update_preparation_result.html">UpdatePreparationResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outcome of preparing a package.  <a href="struct_update_preparation_result.html#details">More...</a><br /></td></tr>
 <tr class="memitem:UpdatePreparationWorker" id="r_UpdatePreparationWorker"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_update_preparation_worker.html">UpdatePreparationWorker</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies and stages a downloaded package. <a class="el" href="class_self_updater.html">SelfUpdater</a> runs it in a thread of its own.  <a href="class_update_preparation_worker.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -161,6 +163,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when a file can be created in directory and removed again. It tries the folder because Qt reads no NTFS access list unless it is told to, so QFileInfo::isWritable can say yes for a folder that the user cannot write, such as one below Program Files. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -183,6 +186,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when path is on a volume that is mounted read-only or inside an App Translocation location. An app that runs from a disk image or straight after a download is there. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -209,6 +213,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Removes the staging folders ".qegtrain-update-*" in installationParent that an update left behind: directories that are not symbolic links and in which no entry changed within minimumAge. Failures are ignored. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -235,6 +240,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Stages a package after download verification has succeeded, and returns the staged path: the QEGTRAIN.app bundle on macOS, the QEGTRAIN folder on Windows and ready.AppImage on Linux, in stagingRoot, or the package itself for an installer. Returns an empty path on failure and may set error, when it is given. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -257,6 +263,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The text shown when the downloaded package could not be unpacked: what failed, that the installation is unchanged and how to try again, followed by the technical detail when there is one. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -288,6 +295,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Verifies the downloaded package against the manifest SHA-256 using chunked reads. Returns false, and sets error when it is given, when the file cannot be read or does not match. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -133,15 +133,21 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a35da7659693a1ca3699fe9616d8fea67a00d23a76e43b46dae9ec7aa9dcbebb32">Enabled</a>
 , <a class="el" href="#a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241">Disabled</a>
  }</td></tr>
+<tr class="memdesc:a35da7659693a1ca3699fe9616d8fea67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the application checks for updates by itself, as the user chose.  <a href="#a35da7659693a1ca3699fe9616d8fea67">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa2b2cb64256e4731e74a780c89db57cc" id="r_aa2b2cb64256e4731e74a780c89db57cc"><td class="memItemLeft"><a class="el" href="#a35da7659693a1ca3699fe9616d8fea67">UpdateCheckState</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2b2cb64256e4731e74a780c89db57cc">readUpdateCheckState</a> (const QSettings &amp;settings)</td></tr>
+<tr class="memdesc:aa2b2cb64256e4731e74a780c89db57cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The choice stored under "updates/automaticCheck", or Unknown when none is stored.  <br /></td></tr>
 <tr class="memitem:a2e63cb77401af6e590fcc8cb34e71250" id="r_a2e63cb77401af6e590fcc8cb34e71250"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2e63cb77401af6e590fcc8cb34e71250">writeUpdateCheckState</a> (QSettings &amp;settings, <a class="el" href="#a35da7659693a1ca3699fe9616d8fea67">UpdateCheckState</a> state)</td></tr>
+<tr class="memdesc:a2e63cb77401af6e590fcc8cb34e71250"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the choice under "updates/automaticCheck". Unknown removes the key.  <br /></td></tr>
 <tr class="memitem:aafad3b22f25264ecfe072e5b38a4c751" id="r_aafad3b22f25264ecfe072e5b38a4c751"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aafad3b22f25264ecfe072e5b38a4c751">shouldCheckForUpdates</a> (<a class="el" href="#a35da7659693a1ca3699fe9616d8fea67">UpdateCheckState</a> state, bool manual)</td></tr>
+<tr class="memdesc:aafad3b22f25264ecfe072e5b38a4c751"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for a check that the user started (manual) and when automatic checks are enabled.  <br /></td></tr>
 <tr class="memitem:a0e01110a4f2789c6989f45b0141ddf79" id="r_a0e01110a4f2789c6989f45b0141ddf79"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0e01110a4f2789c6989f45b0141ddf79">readFailedUpdateVersion</a> (const QSettings &amp;settings)</td></tr>
 <tr class="memitem:afaf79ec184ce30c95c89b5b057b25789" id="r_afaf79ec184ce30c95c89b5b057b25789"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afaf79ec184ce30c95c89b5b057b25789">writeFailedUpdateVersion</a> (QSettings &amp;settings, const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;version)</td></tr>
+<tr class="memdesc:afaf79ec184ce30c95c89b5b057b25789"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores version as "X.Y.Z" under "updates/failedVersion".  <br /></td></tr>
 <tr class="memitem:a0b73fad02a69667b102bbdff06a3a930" id="r_a0b73fad02a69667b102bbdff06a3a930"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0b73fad02a69667b102bbdff06a3a930">shouldOfferRelease</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;release, const std::optional&lt; <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &gt; &amp;failedVersion, bool manual)</td></tr>
+<tr class="memdesc:a0b73fad02a69667b102bbdff06a3a930"><td class="mdescLeft">&#160;</td><td class="mdescRight">An automatic check does not offer the release that failed to start; a manual check offers every release.  <br /></td></tr>
 <tr class="memitem:a841edd1014624f82e68d783dce07a809" id="r_a841edd1014624f82e68d783dce07a809"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a841edd1014624f82e68d783dce07a809">updatesSuppressedByEnvironment</a> ()</td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
@@ -164,10 +170,15 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether the application checks for updates by itself, as the user chose. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a35da7659693a1ca3699fe9616d8fea67a88183b946cc5f0e8c96b2e66e1c74a7e" name="a35da7659693a1ca3699fe9616d8fea67a88183b946cc5f0e8c96b2e66e1c74a7e"></a>Unknown&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a35da7659693a1ca3699fe9616d8fea67a00d23a76e43b46dae9ec7aa9dcbebb32" name="a35da7659693a1ca3699fe9616d8fea67a00d23a76e43b46dae9ec7aa9dcbebb32"></a>Enabled&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241" name="a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241"></a>Disabled&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a35da7659693a1ca3699fe9616d8fea67a88183b946cc5f0e8c96b2e66e1c74a7e" name="a35da7659693a1ca3699fe9616d8fea67a88183b946cc5f0e8c96b2e66e1c74a7e"></a>Unknown&#160;</td><td class="fielddoc"><p>The user has not chosen yet, so the application asks. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a35da7659693a1ca3699fe9616d8fea67a00d23a76e43b46dae9ec7aa9dcbebb32" name="a35da7659693a1ca3699fe9616d8fea67a00d23a76e43b46dae9ec7aa9dcbebb32"></a>Enabled&#160;</td><td class="fielddoc"><p>The application checks for updates by itself. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241" name="a35da7659693a1ca3699fe9616d8fea67ab9f5c797ebbf55adccdd8539a65a0241"></a>Disabled&#160;</td><td class="fielddoc"><p>Only the user starts a check. </p>
+</td></tr>
 </table>
 
 </div>
@@ -187,6 +198,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The version whose update was rolled back, once the application has told the user. Stored under "updates/failedVersion"; nothing when none or no stable version is stored. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -209,6 +221,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The choice stored under "updates/automaticCheck", or Unknown when none is stored. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -235,6 +249,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True for a check that the user started (manual) and when automatic checks are enabled. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -266,6 +282,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>An automatic check does not offer the release that failed to start; a manual check offers every release. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -288,6 +306,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True for a scripted launch, which neither asks about update checks nor reaches the network: when QEGTRAIN_DISABLE_UPDATES or QEGTRAIN_AUTOSTART is set, QEGTRAIN_STARTUP_TIMING or QEGTRAIN_PLAYBACK_PROFILE is 1, or a variable of the end-to-end tests is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -314,6 +333,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stores version as "X.Y.Z" under "updates/failedVersion". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -340,6 +361,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stores the choice under "updates/automaticCheck". Unknown removes the key. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

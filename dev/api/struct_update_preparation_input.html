@@ -123,12 +123,16 @@ Collaboration diagram for UpdatePreparationInput:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab7009e5f5870e8505cd221fd7b423e31" id="r_ab7009e5f5870e8505cd221fd7b423e31"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ab7009e5f5870e8505cd221fd7b423e31">packagePath</a></td></tr>
+<tr class="memdesc:ab7009e5f5870e8505cd221fd7b423e31"><td class="mdescLeft">&#160;</td><td class="mdescRight">The downloaded package file.  <br /></td></tr>
 <tr class="memitem:a896caac4b4dac913c2b1fc381c7681f8" id="r_a896caac4b4dac913c2b1fc381c7681f8"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a896caac4b4dac913c2b1fc381c7681f8">stagingRoot</a></td></tr>
 <tr class="memitem:ab4750e00d3de2a1937f7676e0a6d16c6" id="r_ab4750e00d3de2a1937f7676e0a6d16c6"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ab4750e00d3de2a1937f7676e0a6d16c6">currentPath</a></td></tr>
 <tr class="memitem:ae4b7c93415440da7b8d1b66c742606c5" id="r_ae4b7c93415440da7b8d1b66c742606c5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae4b7c93415440da7b8d1b66c742606c5">installer</a> = false</td></tr>
 <tr class="memitem:a06dc26c1f7dc3a5ba090c30c019f127d" id="r_a06dc26c1f7dc3a5ba090c30c019f127d"><td class="memItemLeft"><a class="el" href="struct_update_manifest.html">UpdateManifest</a>&#160;</td><td class="memItemRight"><a class="el" href="#a06dc26c1f7dc3a5ba090c30c019f127d">manifest</a></td></tr>
+<tr class="memdesc:a06dc26c1f7dc3a5ba090c30c019f127d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The manifest entry that the package is checked against.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Inputs for preparing a downloaded update package. Everything is copied so the preparation worker never touches <a class="el" href="class_self_updater.html">SelfUpdater</a> or GUI-thread state. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ab4750e00d3de2a1937f7676e0a6d16c6" name="ab4750e00d3de2a1937f7676e0a6d16c6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab4750e00d3de2a1937f7676e0a6d16c6">&#9670;&#160;</a></span>currentPath</h2>
 
@@ -140,6 +144,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The installation that the update replaces (<a class="el" href="struct_self_update_capability.html#abbfe9ad52a1e7a6114606649717ccbbf">SelfUpdateCapability::currentPath</a>). On Linux the staged AppImage gets its permissions. </p>
 
 </div>
 </div>
@@ -154,6 +159,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when the package is the installer of an installed Windows copy, which runs from where it was downloaded. Nothing is extracted and the staged path is the package. </p>
 
 </div>
 </div>
@@ -169,6 +175,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The manifest entry that the package is checked against. </p>
+
 </div>
 </div>
 <a id="ab7009e5f5870e8505cd221fd7b423e31" name="ab7009e5f5870e8505cd221fd7b423e31"></a>
@@ -183,6 +191,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The downloaded package file. </p>
+
 </div>
 </div>
 <a id="a896caac4b4dac913c2b1fc381c7681f8" name="a896caac4b4dac913c2b1fc381c7681f8"></a>
@@ -196,6 +206,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The staging folder that holds the package, where it is unpacked. </p>
 
 </div>
 </div>

@@ -14,7 +14,7 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="400,23,434,23,434,28,400,28"/>
 <area shape="rect" id="Node000005" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="475,69,621,109"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="374,87,461,87,461,92,374,92"/>
-<area shape="rect" id="Node000006" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title=" " alt="" coords="732,47,860,73"/>
+<area shape="rect" id="Node000006" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="732,47,860,73"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="621,78,718,66,719,72,622,83"/>
 <area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="696,97,896,137"/>
 <area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="622,95,682,102,682,107,621,100"/>

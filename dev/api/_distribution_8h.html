@@ -141,6 +141,7 @@ Enumerations</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a242e6761c7e13b26eee9a257408c7803" id="r_a242e6761c7e13b26eee9a257408c7803"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a242e6761c7e13b26eee9a257408c7803">installerMarkerName</a> ()</td></tr>
+<tr class="memdesc:a242e6761c7e13b26eee9a257408c7803"><td class="mdescLeft">&#160;</td><td class="mdescRight">The file that the installer puts next to QEGTRAIN.exe: "installed-by-setup.ini". Its content is never read.  <br /></td></tr>
 <tr class="memitem:a2dec463a64540a3ad78351bbeede4f6a" id="r_a2dec463a64540a3ad78351bbeede4f6a"><td class="memItemLeft"><a class="el" href="#aecc95248f15d2eab64617d7dc0afeb42">Distribution</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2dec463a64540a3ad78351bbeede4f6a">windowsDistributionOf</a> (const QString &amp;applicationDirectory)</td></tr>
 <tr class="memitem:a07fa0fdf55bd2dfcad5d91799ba73d4f" id="r_a07fa0fdf55bd2dfcad5d91799ba73d4f"><td class="memItemLeft"><a class="el" href="#aecc95248f15d2eab64617d7dc0afeb42">Distribution</a>&#160;</td><td class="memItemRight"><a class="el" href="#a07fa0fdf55bd2dfcad5d91799ba73d4f">currentDistribution</a> ()</td></tr>
 </table>
@@ -164,12 +165,18 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The kind of copy that is running. It is not the manifest key that <a class="el" href="_release_info_8cpp.html#aadf6be32c92717a708724110c32ef5d5">updateDistributionKey()</a> returns, which names an entry of the update manifest. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42a19f68b25e4534073cf8cb8b1616833f5" name="aecc95248f15d2eab64617d7dc0afeb42a19f68b25e4534073cf8cb8b1616833f5"></a>WindowsInstalled&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42a679672d181bcdda59f123c3c7c7085d5" name="aecc95248f15d2eab64617d7dc0afeb42a679672d181bcdda59f123c3c7c7085d5"></a>WindowsPortable&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42aed9842025890ac2defb06ed1fe51ce3e" name="aecc95248f15d2eab64617d7dc0afeb42aed9842025890ac2defb06ed1fe51ce3e"></a>MacApp&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42aeeaca6040afe6ffe642d60a93d3b1c51" name="aecc95248f15d2eab64617d7dc0afeb42aeeaca6040afe6ffe642d60a93d3b1c51"></a>LinuxAppImage&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42ab4080bdf74febf04d578ff105cce9d3f" name="aecc95248f15d2eab64617d7dc0afeb42ab4080bdf74febf04d578ff105cce9d3f"></a>Unsupported&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42a19f68b25e4534073cf8cb8b1616833f5" name="aecc95248f15d2eab64617d7dc0afeb42a19f68b25e4534073cf8cb8b1616833f5"></a>WindowsInstalled&#160;</td><td class="fielddoc"><p>A Windows copy set up by the installer: <a class="el" href="#a242e6761c7e13b26eee9a257408c7803" title="The file that the installer puts next to QEGTRAIN.exe: &quot;installed-by-setup.ini&quot;. Its content is never...">installerMarkerName()</a> is next to QEGTRAIN.exe. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42a679672d181bcdda59f123c3c7c7085d5" name="aecc95248f15d2eab64617d7dc0afeb42a679672d181bcdda59f123c3c7c7085d5"></a>WindowsPortable&#160;</td><td class="fielddoc"><p>A Windows copy without the installer marker, such as one unpacked from the portable zip. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42aed9842025890ac2defb06ed1fe51ce3e" name="aecc95248f15d2eab64617d7dc0afeb42aed9842025890ac2defb06ed1fe51ce3e"></a>MacApp&#160;</td><td class="fielddoc"><p>A copy on macOS. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42aeeaca6040afe6ffe642d60a93d3b1c51" name="aecc95248f15d2eab64617d7dc0afeb42aeeaca6040afe6ffe642d60a93d3b1c51"></a>LinuxAppImage&#160;</td><td class="fielddoc"><p>A copy on Linux. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aecc95248f15d2eab64617d7dc0afeb42ab4080bdf74febf04d578ff105cce9d3f" name="aecc95248f15d2eab64617d7dc0afeb42ab4080bdf74febf04d578ff105cce9d3f"></a>Unsupported&#160;</td><td class="fielddoc"><p>A copy on any other platform. </p>
+</td></tr>
 </table>
 
 </div>
@@ -189,6 +196,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The kind of this platform and, on Windows, of the folder of the running executable. It does not check that the process runs from a bundle or an AppImage: <a class="el" href="class_self_updater.html#a7e4e41bec9b7f8372da7f28a53a6f274">SelfUpdater::capability</a> does. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -211,6 +219,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The file that the installer puts next to QEGTRAIN.exe: "installed-by-setup.ini". Its content is never read. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -233,6 +243,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A Windows copy is installed when <a class="el" href="#a242e6761c7e13b26eee9a257408c7803" title="The file that the installer puts next to QEGTRAIN.exe: &quot;installed-by-setup.ini&quot;. Its content is never...">installerMarkerName()</a> is a regular file directly in the folder of QEGTRAIN.exe, and portable otherwise. A folder that is not an absolute path is portable. Nothing else is consulted. It works on every platform. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

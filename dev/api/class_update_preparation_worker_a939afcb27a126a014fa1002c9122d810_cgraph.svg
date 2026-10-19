@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_update_preparation_worker.html#a287e87ded84dd73ca146c22c1f80bc45" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_update_preparation_worker.html#a287e87ded84dd73ca146c22c1f80bc45" target="_top" xlink:title="The preparation started by prepare() ended.">
 <polygon fill="white" stroke="#666666" points="334,-140.5 192,-140.5 192,-110.5 334,-110.5 334,-140.5"/>
 <text text-anchor="start" x="200" y="-128.5" font-family="Helvetica,sans-Serif" font-size="10.00">UpdatePreparationWorker</text>
 <text text-anchor="middle" x="263" y="-117.5" font-family="Helvetica,sans-Serif" font-size="10.00">::finished</text>

@@ -1,6 +1,6 @@
 <map id="UpdatePreparationWorker::prepare" name="UpdatePreparationWorker::prepare">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,87,195,127"/>
-<area shape="rect" id="Node000002" href="$class_update_preparation_worker.html#a287e87ded84dd73ca146c22c1f80bc45" title=" " alt="" coords="261,5,451,45"/>
+<area shape="rect" id="Node000002" href="$class_update_preparation_worker.html#a287e87ded84dd73ca146c22c1f80bc45" title="The preparation started by prepare() ended." alt="" coords="261,5,451,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,84,242,55,268,47,270,52,243,60,157,89"/>
 <area shape="rect" id="Node000003" href="$_update_preparation_8cpp.html#a608db59b587b6175282b8339230e4ce8" title=" " alt="" coords="277,94,435,119"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,104,263,104,263,109,195,109"/>

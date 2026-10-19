@@ -157,7 +157,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_self_updater.html#aa1bb90da2d756e38b8384ea94521a064" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_self_updater.html#aa1bb90da2d756e38b8384ea94521a064" target="_top" xlink:title="Removes staging folders that an earlier update left next to the installation.">
 <polygon fill="white" stroke="#666666" points="475,-1628.5 332,-1628.5 332,-1598.5 475,-1598.5 475,-1628.5"/>
 <text text-anchor="start" x="340" y="-1616.5" font-family="Helvetica,sans-Serif" font-size="10.00">SelfUpdater::cleanupStale</text>
 <text text-anchor="middle" x="403.5" y="-1605.5" font-family="Helvetica,sans-Serif" font-size="10.00">Staging</text>

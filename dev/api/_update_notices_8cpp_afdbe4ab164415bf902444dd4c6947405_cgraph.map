@@ -1,7 +1,7 @@
 <map id="reportRolledBackUpdate" name="reportRolledBackUpdate">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,199,187,224"/>
 <area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="54,201,45,191,49,181,67,174,96,172,133,176,144,181,147,187,143,190,140,185,132,182,96,178,68,180,53,185,50,190,58,197"/>
-<area shape="rect" id="Node000002" href="$_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" title=" " alt="" coords="275,162,444,187"/>
+<area shape="rect" id="Node000002" href="$_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" title="The text that tells the user about record." alt="" coords="275,162,444,187"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,196,261,186,261,191,186,202"/>
 <area shape="rect" id="Node000004" href="$_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f" title=" " alt="" coords="755,51,901,76"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="101,198,119,165,147,123,186,81,209,63,234,49,305,24,379,9,456,3,531,5,602,11,668,21,772,45,771,50,667,27,601,17,530,10,456,9,380,14,306,29,236,54,212,68,189,85,152,127,123,168,106,200"/>
@@ -11,10 +11,10 @@
 <area shape="poly" id="edge13_Node000001_Node000007" title=" " alt="" coords="187,221,276,234,275,239,186,227"/>
 <area shape="rect" id="Node000008" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="235,308,484,334"/>
 <area shape="poly" id="edge15_Node000001_Node000008" title=" " alt="" coords="126,222,236,270,312,301,310,306,234,275,124,227"/>
-<area shape="rect" id="Node000009" href="$_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" title=" " alt="" coords="265,382,453,407"/>
+<area shape="rect" id="Node000009" href="$_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" title="Stores version as &quot;X.Y.Z&quot; under &quot;updates/failedVersion&quot;." alt="" coords="265,382,453,407"/>
 <area shape="poly" id="edge17_Node000001_Node000009" title=" " alt="" coords="109,223,160,280,196,314,236,344,268,361,301,375,299,379,265,366,233,349,193,318,156,284,105,226"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="318,163,308,153,313,143,330,137,359,135,396,139,406,144,410,149,406,152,403,148,394,144,359,140,332,142,317,147,314,152,321,160"/>
-<area shape="rect" id="Node000003" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title=" " alt="" coords="532,271,707,296"/>
+<area shape="rect" id="Node000003" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="532,271,707,296"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="444,184,485,197,544,228,592,260,589,265,541,232,483,202,443,190"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="585,272,578,263,582,253,596,246,619,244,648,248,660,257,656,261,646,253,619,250,597,252,585,256,583,262,589,269"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="794,52,787,43,790,33,805,26,828,24,857,28,868,37,865,41,855,33,828,30,806,32,794,36,792,42,798,49"/>

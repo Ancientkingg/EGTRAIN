@@ -16,11 +16,11 @@
 <area shape="poly" id="edge31_Node000001_Node000017" title=" " alt="" coords="93,528,135,590,166,624,201,652,252,676,296,685,343,689,401,698,456,712,455,717,399,704,342,694,295,690,251,681,199,657,162,628,131,594,89,531"/>
 <area shape="rect" id="Node000018" href="$classtelemetry_1_1_telemetry_queue.html#a4f6bb5e7a6d6cefd0c897a22cfe4f231" title=" " alt="" coords="200,232,400,272"/>
 <area shape="poly" id="edge27_Node000001_Node000018" title=" " alt="" coords="95,487,271,280,275,284,99,490"/>
-<area shape="rect" id="Node000020" href="$class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" title=" " alt="" coords="217,712,383,738"/>
+<area shape="rect" id="Node000020" href="$class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" title="The HTTP status code of the response, or 0 when no response arrived." alt="" coords="217,712,383,738"/>
 <area shape="poly" id="edge32_Node000001_Node000020" title=" " alt="" coords="90,528,106,563,130,607,162,652,202,691,226,705,223,709,198,695,158,656,126,610,101,566,85,530"/>
 <area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="723,612,869,652"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="579,527,633,562,697,597,714,604,712,609,695,602,630,567,576,531"/>
-<area shape="rect" id="Node000004" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title=" " alt="" coords="980,467,1108,492"/>
+<area shape="rect" id="Node000004" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="980,467,1108,492"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="869,609,895,597,931,575,965,549,1019,500,1023,504,968,553,934,579,897,602,871,614"/>
 <area shape="rect" id="Node000005" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="944,612,1144,652"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="870,629,930,629,930,634,870,634"/>

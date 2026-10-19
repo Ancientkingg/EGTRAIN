@@ -120,7 +120,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a796211d1e8ac56931e77c7c7fbf2839a" id="r_a796211d1e8ac56931e77c7c7fbf2839a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a796211d1e8ac56931e77c7c7fbf2839a">completeWindowsRuntime</a> (const QString &amp;directory, const QStringList &amp;manifestFiles, QString *missing=nullptr)</td></tr>
 <tr class="memitem:a04252549267e75771c39d14d9be57670" id="r_a04252549267e75771c39d14d9be57670"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a04252549267e75771c39d14d9be57670">buildStage</a> (const QString &amp;extractPath, const QString &amp;stagePath, const QStringList &amp;manifestFiles, QString *error=nullptr)</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The staged Windows installation is assembled exclusively from the extracted release package: the release owns its runtime files and shipped canonical Scenes. Nothing is carried over from the installation being replaced, so a released package always produces the same result as a fresh installation. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a04252549267e75771c39d14d9be57670" name="a04252549267e75771c39d14d9be57670"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a04252549267e75771c39d14d9be57670">&#9670;&#160;</a></span>buildStage()</h2>
 
@@ -157,6 +159,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Builds the staged installation at stagePath as an exact copy of the extracted release package at extractPath. The stage path must not exist so staging can never merge new content into old installation leftovers. manifestFiles lists the package files the release manifest promises. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -196,6 +199,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>True when the directory holds the required runtime files, the Scenes directory and every file named in manifestFiles. When it does not, missing receives the first absent entry. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -230,6 +234,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copies the folder sourcePath and everything below it to destinationPath, replacing files there. Returns false at the first symbolic link, entry that is no file or folder, or failed copy. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -260,6 +265,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Files every Windows release package must contain, kept in step with the package verification of the Windows job in the release workflow. The libzmq DLL carries its version in the name and is matched separately. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -1,6 +1,6 @@
 <map id="telemetry::Worker::refresh" name="telemetry::Worker::refresh">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,123,152,163"/>
-<area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title=" " alt="" coords="732,15,860,41"/>
+<area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="732,15,860,41"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,121,141,83,169,65,199,51,268,31,339,17,411,8,482,4,613,6,718,15,718,20,613,11,482,9,411,13,340,22,269,36,201,56,171,69,144,87,101,125"/>
 <area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#abafe4cf5a4c981445f62ae9747accb9f" title=" " alt="" coords="227,65,373,105"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,121,213,105,214,110,153,126"/>

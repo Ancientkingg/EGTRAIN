@@ -228,7 +228,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="_update_record_8cpp.html#aedd39575c06eb90ceb03d502cb20b062" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="_update_record_8cpp.html#aedd39575c06eb90ceb03d502cb20b062" target="_top" xlink:title="Compares the installed version with the version that the record names.">
 <polygon fill="white" stroke="#666666" points="554,-151 435,-151 435,-132 554,-132 554,-151"/>
 <text text-anchor="middle" x="494.5" y="-139" font-family="Helvetica,sans-Serif" font-size="10.00">checkInstallerRecord</text>
 </a>
@@ -246,7 +246,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" target="_top" xlink:title="The version as &quot;X.Y.Z&quot;.">
 <polygon fill="white" stroke="#666666" points="771.5,-316 640.5,-316 640.5,-297 771.5,-297 771.5,-316"/>
 <text text-anchor="middle" x="706" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00">formatSemanticVersion</text>
 </a>
@@ -462,7 +462,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" target="_top" xlink:title="The text that tells the user about record.">
 <polygon fill="white" stroke="#666666" points="558,-316 431,-316 431,-297 558,-297 558,-316"/>
 <text text-anchor="middle" x="494.5" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00">describeUpdateRecord</text>
 </a>
@@ -498,7 +498,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" target="_top" xlink:title="Stores version as &quot;X.Y.Z&quot; under &quot;updates/failedVersion&quot;.">
 <polygon fill="white" stroke="#666666" points="565,-371 424,-371 424,-352 565,-352 565,-371"/>
 <text text-anchor="middle" x="494.5" y="-359" font-family="Helvetica,sans-Serif" font-size="10.00">writeFailedUpdateVersion</text>
 </a>

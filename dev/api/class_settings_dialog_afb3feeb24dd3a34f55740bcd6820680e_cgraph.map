@@ -12,7 +12,7 @@
 <area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="184,353,259,353,259,358,184,358"/>
 <area shape="rect" id="Node000012" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="273,416,429,441"/>
 <area shape="poly" id="edge19_Node000001_Node000012" title=" " alt="" coords="166,373,294,410,292,415,165,378"/>
-<area shape="rect" id="Node000016" href="$_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" title=" " alt="" coords="265,489,437,515"/>
+<area shape="rect" id="Node000016" href="$_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" title="The choice stored under &quot;updates/automaticCheck&quot;, or Unknown when none is stored." alt="" coords="265,489,437,515"/>
 <area shape="poly" id="edge28_Node000001_Node000016" title=" " alt="" coords="121,373,172,412,233,452,301,482,298,487,231,456,169,416,118,378"/>
 <area shape="rect" id="Node000017" href="$class_settings_dialog.html#ae1189358d589b3652bf92dfd81e08696" title="Puts every control at its default: no recent cases, every switch off and the update check choice unse..." alt="" coords="238,539,465,564"/>
 <area shape="poly" id="edge30_Node000001_Node000017" title=" " alt="" coords="108,374,127,408,155,449,191,491,233,525,244,531,242,536,231,530,187,495,151,453,123,411,104,377"/>
@@ -20,7 +20,7 @@
 <area shape="poly" id="edge31_Node000001_Node000018" title=" " alt="" coords="105,374,121,417,147,472,185,528,208,553,234,575,242,580,239,584,230,579,204,557,181,531,143,475,116,419,100,376"/>
 <area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="519,29,696,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,100,518,63,545,56,546,61,519,69,395,105"/>
-<area shape="rect" id="Node000007" href="$_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" title=" " alt="" coords="519,103,695,128"/>
+<area shape="rect" id="Node000007" href="$_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" title="Stores the choice under &quot;updates/automaticCheck&quot;. Unknown removes the key." alt="" coords="519,103,695,128"/>
 <area shape="poly" id="edge10_Node000002_Node000007" title=" " alt="" coords="436,113,505,113,505,118,436,118"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="570,31,562,21,566,11,582,5,607,3,640,7,652,16,649,20,638,11,607,8,583,10,570,15,567,20,574,27"/>
 <area shape="rect" id="Node000004" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="761,55,914,95"/>

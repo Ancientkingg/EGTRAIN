@@ -92,7 +92,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_http_reply.html" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_http_reply.html" target="_top" xlink:title="The response of one request. A redirect of a get() is followed, but never from https to http.">
 <polygon fill="white" stroke="#666666" points="199,-611 134,-611 134,-592 199,-592 199,-611"/>
 <text text-anchor="middle" x="166.5" y="-599" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_http_transport.html" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_http_transport.html" target="_top" xlink:title="Sends requests. A reply is a child of its transport; the caller releases it with deleteLater().">
 <polygon fill="white" stroke="#666666" points="208,-574 125,-574 125,-555 208,-555 208,-574"/>
 <text text-anchor="middle" x="166.5" y="-562" font-family="Helvetica,sans-Serif" font-size="10.00">HttpTransport</text>
 </a>
@@ -326,7 +326,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_update_checker.html" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_update_checker.html" target="_top" xlink:title="Asks GitHub for the newest stable release.">
 <polygon fill="white" stroke="#666666" points="212,-130 121,-130 121,-111 212,-111 212,-130"/>
 <text text-anchor="middle" x="166.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateChecker</text>
 </a>
@@ -344,7 +344,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_update_preparation_worker.html" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_update_preparation_worker.html" target="_top" xlink:title="Verifies and stages a downloaded package. SelfUpdater runs it in a thread of its own.">
 <polygon fill="white" stroke="#666666" points="237.5,-93 95.5,-93 95.5,-74 237.5,-74 237.5,-93"/>
 <text text-anchor="middle" x="166.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">UpdatePreparationWorker</text>
 </a>

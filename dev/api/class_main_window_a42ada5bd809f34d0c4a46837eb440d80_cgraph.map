@@ -23,9 +23,9 @@
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="1040,54,1110,45,1111,51,1040,59"/>
 <area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="1181,1104,1173,1094,1177,1084,1193,1078,1219,1075,1252,1079,1265,1089,1262,1093,1250,1084,1219,1081,1194,1083,1181,1088,1178,1093,1185,1100"/>
 <area shape="poly" id="edge15_Node000007_Node000007" title=" " alt="" coords="322,1632,312,1622,317,1612,335,1606,365,1603,403,1608,413,1613,417,1619,412,1621,410,1617,401,1613,365,1609,336,1611,321,1616,318,1621,325,1628"/>
-<area shape="rect" id="Node000008" href="$_update_record_8cpp.html#aedd39575c06eb90ceb03d502cb20b062" title=" " alt="" coords="585,1630,744,1655"/>
+<area shape="rect" id="Node000008" href="$_update_record_8cpp.html#aedd39575c06eb90ceb03d502cb20b062" title="Compares the installed version with the version that the record names." alt="" coords="585,1630,744,1655"/>
 <area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="446,1640,572,1640,572,1645,446,1645"/>
-<area shape="rect" id="Node000009" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title=" " alt="" coords="859,1410,1034,1435"/>
+<area shape="rect" id="Node000009" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="859,1410,1034,1435"/>
 <area shape="poly" id="edge11_Node000007_Node000009" title=" " alt="" coords="399,1653,473,1677,521,1688,573,1696,628,1700,684,1697,738,1687,788,1666,818,1645,845,1619,868,1590,888,1559,918,1497,936,1448,941,1450,923,1500,892,1562,872,1593,849,1623,822,1649,791,1671,739,1692,684,1703,628,1705,573,1702,520,1693,472,1682,397,1658"/>
 <area shape="rect" id="Node000010" href="$_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f" title=" " alt="" coords="1146,1515,1293,1541"/>
 <area shape="poly" id="edge13_Node000007_Node000010" title=" " alt="" coords="393,1653,459,1681,499,1694,541,1704,610,1715,665,1720,720,1716,789,1704,847,1690,906,1672,1017,1628,1113,1583,1183,1545,1185,1550,1116,1587,1020,1633,907,1677,849,1695,790,1709,720,1721,665,1725,609,1721,539,1709,498,1699,457,1686,391,1658"/>
@@ -49,11 +49,11 @@
 <area shape="poly" id="edge36_Node000015_Node000013" title=" " alt="" coords="378,1361,442,1434,489,1479,541,1519,573,1536,606,1550,604,1555,571,1541,539,1524,486,1483,438,1438,374,1364"/>
 <area shape="poly" id="edge37_Node000015_Node000014" title=" " alt="" coords="388,1360,455,1400,541,1446,615,1476,613,1481,539,1451,452,1405,385,1365"/>
 <area shape="poly" id="edge30_Node000015_Node000015" title=" " alt="" coords="322,1339,312,1329,317,1318,335,1312,365,1310,403,1314,413,1319,417,1325,412,1328,410,1323,401,1319,365,1315,336,1318,321,1322,318,1328,325,1335"/>
-<area shape="rect" id="Node000016" href="$_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" title=" " alt="" coords="580,1410,749,1435"/>
+<area shape="rect" id="Node000016" href="$_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" title="The text that tells the user about record." alt="" coords="580,1410,749,1435"/>
 <area shape="poly" id="edge26_Node000015_Node000016" title=" " alt="" coords="418,1360,599,1404,598,1409,417,1365"/>
 <area shape="rect" id="Node000017" href="$_update_record_8cpp.html#ac296b13c3c8e3c075481fe8a8d65a1f7" title=" " alt="" coords="593,1263,736,1289"/>
 <area shape="poly" id="edge31_Node000015_Node000017" title=" " alt="" coords="407,1334,539,1298,579,1289,581,1294,541,1303,408,1339"/>
-<area shape="rect" id="Node000019" href="$_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" title=" " alt="" coords="571,1337,759,1362"/>
+<area shape="rect" id="Node000019" href="$_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" title="Stores version as &quot;X.Y.Z&quot; under &quot;updates/failedVersion&quot;." alt="" coords="571,1337,759,1362"/>
 <area shape="poly" id="edge38_Node000015_Node000019" title=" " alt="" coords="456,1347,557,1347,557,1352,456,1352"/>
 <area shape="poly" id="edge28_Node000016_Node000009" title=" " alt="" coords="749,1420,845,1420,845,1425,749,1425"/>
 <area shape="poly" id="edge27_Node000016_Node000016" title=" " alt="" coords="620,1412,610,1402,615,1392,633,1386,665,1383,705,1388,716,1393,720,1399,715,1402,712,1397,704,1393,665,1389,634,1391,618,1396,615,1401,623,1408"/>

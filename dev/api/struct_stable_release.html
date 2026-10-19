@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_stable_
 </div><!--header-->
 <div class="contents">
 
+<p>The newest stable release on GitHub, as <a class="el" href="_release_info_8cpp.html#a5101cce45b3b110bd114fe82a3f20bb0">parseLatestStableRelease()</a> reads it.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_release_info_8h_source.html">update/ReleaseInfo.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for StableRelease:</div>
@@ -123,16 +126,22 @@ Collaboration diagram for StableRelease:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a21423b70d5862bf7123892416053a348" id="r_a21423b70d5862bf7123892416053a348"><td class="memItemLeft">const <a class="el" href="struct_release_asset.html">ReleaseAsset</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a21423b70d5862bf7123892416053a348">asset</a> (const QString &amp;name) const</td></tr>
+<tr class="memdesc:a21423b70d5862bf7123892416053a348"><td class="mdescLeft">&#160;</td><td class="mdescRight">The asset with this name, or nullptr when the release has none. The pointer points into assets.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a9476d243c91c922722f64ad9188d446e" id="r_a9476d243c91c922722f64ad9188d446e"><td class="memItemLeft"><a class="el" href="struct_semantic_version.html">SemanticVersion</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9476d243c91c922722f64ad9188d446e">version</a></td></tr>
+<tr class="memdesc:a9476d243c91c922722f64ad9188d446e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The version of the tag.  <br /></td></tr>
 <tr class="memitem:a34e7a66b2ac4391b207f766d772c19df" id="r_a34e7a66b2ac4391b207f766d772c19df"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a34e7a66b2ac4391b207f766d772c19df">tag</a></td></tr>
 <tr class="memitem:a0b688fce97f480a8384b855b6c280069" id="r_a0b688fce97f480a8384b855b6c280069"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a0b688fce97f480a8384b855b6c280069">notes</a></td></tr>
 <tr class="memitem:aaf1369f85c6cf198197c53887a8b040a" id="r_aaf1369f85c6cf198197c53887a8b040a"><td class="memItemLeft">QUrl&#160;</td><td class="memItemRight"><a class="el" href="#aaf1369f85c6cf198197c53887a8b040a">releasePage</a></td></tr>
+<tr class="memdesc:aaf1369f85c6cf198197c53887a8b040a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The page of the release on github.com. When GitHub names another page, the page of the tag.  <br /></td></tr>
 <tr class="memitem:aaf4edba9dc20babeb7c337dc595723fa" id="r_aaf4edba9dc20babeb7c337dc595723fa"><td class="memItemLeft">QList&lt; <a class="el" href="struct_release_asset.html">ReleaseAsset</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaf4edba9dc20babeb7c337dc595723fa">assets</a></td></tr>
+<tr class="memdesc:aaf4edba9dc20babeb7c337dc595723fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The update manifest and the known package files of the release. A file at any other address is left out.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The newest stable release on GitHub, as <a class="el" href="_release_info_8cpp.html#a5101cce45b3b110bd114fe82a3f20bb0">parseLatestStableRelease()</a> reads it. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a21423b70d5862bf7123892416053a348" name="a21423b70d5862bf7123892416053a348"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a21423b70d5862bf7123892416053a348">&#9670;&#160;</a></span>asset()</h2>
 
@@ -147,6 +156,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The asset with this name, or nullptr when the release has none. The pointer points into assets. </p>
 
 </div>
 </div>
@@ -163,6 +174,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The update manifest and the known package files of the release. A file at any other address is left out. </p>
+
 </div>
 </div>
 <a id="a0b688fce97f480a8384b855b6c280069" name="a0b688fce97f480a8384b855b6c280069"></a>
@@ -176,6 +189,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The release notes with LF line ends, without trailing spaces and with at most one blank line in a row. Notes longer than 360 characters are cut and end with a line that points to the release page. </p>
 
 </div>
 </div>
@@ -191,6 +205,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The page of the release on github.com. When GitHub names another page, the page of the tag. </p>
+
 </div>
 </div>
 <a id="a34e7a66b2ac4391b207f766d772c19df" name="a34e7a66b2ac4391b207f766d772c19df"></a>
@@ -204,6 +220,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The tag, "vX.Y.Z". </p>
 
 </div>
 </div>
@@ -218,6 +235,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The version of the tag. </p>
 
 </div>
 </div>

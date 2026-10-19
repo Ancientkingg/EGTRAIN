@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" target="_top" xlink:title="Cancels the request. finished() is emitted if it was not emitted yet.">
 <polygon fill="white" stroke="#666666" points="1036,-915 940,-915 940,-896 1036,-896 1036,-915"/>
 <text text-anchor="middle" x="988" y="-903" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::abort</text>
 </a>
@@ -133,7 +133,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" target="_top" xlink:title="The request ended, whether it succeeded, failed or was cancelled. Emitted once.">
 <polygon fill="white" stroke="#666666" points="298.5,-203 189.5,-203 189.5,-184 298.5,-184 298.5,-203"/>
 <text text-anchor="middle" x="244" y="-191" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::finished</text>
 </a>
@@ -301,7 +301,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="class_http_reply.html#a4e211b26004cf9e035241435f736e918" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="class_http_reply.html#a4e211b26004cf9e035241435f736e918" target="_top" xlink:title="Returns the bytes received since the last call and removes them from the reply.">
 <polygon fill="white" stroke="#666666" points="296.5,-111 191.5,-111 191.5,-92 296.5,-92 296.5,-111"/>
 <text text-anchor="middle" x="244" y="-99" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::readAll</text>
 </a>
@@ -319,7 +319,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_http_reply.html#a6477173090a5907d88d42340d358511e" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_http_reply.html#a6477173090a5907d88d42340d358511e" target="_top" xlink:title="New bytes can be taken with readAll().">
 <polygon fill="white" stroke="#666666" points="305.5,-74 182.5,-74 182.5,-55 305.5,-55 305.5,-74"/>
 <text text-anchor="middle" x="244" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::readyRead</text>
 </a>
@@ -641,7 +641,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" target="_top" xlink:title=" ">
+<g id="a_Node000024"><a xlink:href="class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" target="_top" xlink:title="The HTTP status code of the response, or 0 when no response arrived.">
 <polygon fill="white" stroke="#666666" points="492.5,-651 367.5,-651 367.5,-632 492.5,-632 492.5,-651"/>
 <text text-anchor="middle" x="430" y="-639" font-family="Helvetica,sans-Serif" font-size="10.00">HttpReply::statusCode</text>
 </a>

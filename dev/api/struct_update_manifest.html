@@ -113,18 +113,27 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_update_
 </div><!--header-->
 <div class="contents">
 
+<p>The entry of update-manifest.json that describes the package of one distribution key.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_release_info_8h_source.html">update/ReleaseInfo.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:abfa19abce417d85393e1c1a35ae23fcd" id="r_abfa19abce417d85393e1c1a35ae23fcd"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#abfa19abce417d85393e1c1a35ae23fcd">version</a></td></tr>
+<tr class="memdesc:abfa19abce417d85393e1c1a35ae23fcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The release version, "X.Y.Z" without the v of the tag.  <br /></td></tr>
 <tr class="memitem:af427a332aa614284dc2ed91065495a11" id="r_af427a332aa614284dc2ed91065495a11"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#af427a332aa614284dc2ed91065495a11">distribution</a></td></tr>
+<tr class="memdesc:af427a332aa614284dc2ed91065495a11"><td class="mdescLeft">&#160;</td><td class="mdescRight">The distribution key of the entry, such as "windows-x64".  <br /></td></tr>
 <tr class="memitem:a0e433830a64656e52f29f61f0f7b5864" id="r_a0e433830a64656e52f29f61f0f7b5864"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a0e433830a64656e52f29f61f0f7b5864">assetName</a></td></tr>
+<tr class="memdesc:a0e433830a64656e52f29f61f0f7b5864"><td class="mdescLeft">&#160;</td><td class="mdescRight">The file name of the package.  <br /></td></tr>
 <tr class="memitem:a4d7d3df84238fc3fdd97421fc5c9c7ff" id="r_a4d7d3df84238fc3fdd97421fc5c9c7ff"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a4d7d3df84238fc3fdd97421fc5c9c7ff">sha256</a></td></tr>
+<tr class="memdesc:a4d7d3df84238fc3fdd97421fc5c9c7ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">The SHA-256 of the package as 64 lowercase hexadecimal digits.  <br /></td></tr>
 <tr class="memitem:aa5e78a03f7a59ef68c9fcef236458abb" id="r_aa5e78a03f7a59ef68c9fcef236458abb"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#aa5e78a03f7a59ef68c9fcef236458abb">assetSize</a> = 0</td></tr>
 <tr class="memitem:aab690359a9686135246bd61776a81bb5" id="r_aab690359a9686135246bd61776a81bb5"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#aab690359a9686135246bd61776a81bb5">files</a></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The entry of update-manifest.json that describes the package of one distribution key. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a0e433830a64656e52f29f61f0f7b5864" name="a0e433830a64656e52f29f61f0f7b5864"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0e433830a64656e52f29f61f0f7b5864">&#9670;&#160;</a></span>assetName</h2>
 
@@ -136,6 +145,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The file name of the package. </p>
 
 </div>
 </div>
@@ -150,6 +161,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The size of the package in bytes, from 1 byte to 2 GiB. </p>
 
 </div>
 </div>
@@ -165,6 +177,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The distribution key of the entry, such as "windows-x64". </p>
+
 </div>
 </div>
 <a id="aab690359a9686135246bd61776a81bb5" name="aab690359a9686135246bd61776a81bb5"></a>
@@ -178,6 +192,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The files the package contains, as relative paths with forward slashes. Empty when the entry has no list; a list always names QEGTRAIN.exe. </p>
 
 </div>
 </div>
@@ -193,6 +208,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The SHA-256 of the package as 64 lowercase hexadecimal digits. </p>
+
 </div>
 </div>
 <a id="abfa19abce417d85393e1c1a35ae23fcd" name="abfa19abce417d85393e1c1a35ae23fcd"></a>
@@ -206,6 +223,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The release version, "X.Y.Z" without the v of the tag. </p>
 
 </div>
 </div>

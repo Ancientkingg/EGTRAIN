@@ -59,7 +59,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" target="_top" xlink:title="The choice stored under &quot;updates/automaticCheck&quot;, or Unknown when none is stored.">
 <polygon fill="white" stroke="#666666" points="556,-173 427,-173 427,-154 556,-154 556,-173"/>
 <text text-anchor="middle" x="491.5" y="-161" font-family="Helvetica,sans-Serif" font-size="10.00">readUpdateCheckState</text>
 </a>
@@ -114,7 +114,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" target="_top" xlink:title="Stores the choice under &quot;updates/automaticCheck&quot;. Unknown removes the key.">
 <polygon fill="white" stroke="#666666" points="353.5,-19 221.5,-19 221.5,0 353.5,0 353.5,-19"/>
 <text text-anchor="middle" x="287.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">writeUpdateCheckState</text>
 </a>
@@ -168,7 +168,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_update_settings_8cpp.html#aafad3b22f25264ecfe072e5b38a4c751" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_update_settings_8cpp.html#aafad3b22f25264ecfe072e5b38a4c751" target="_top" xlink:title="True for a check that the user started (manual) and when automatic checks are enabled.">
 <polygon fill="white" stroke="#666666" points="558.5,-118 424.5,-118 424.5,-99 558.5,-99 558.5,-118"/>
 <text text-anchor="middle" x="491.5" y="-106" font-family="Helvetica,sans-Serif" font-size="10.00">shouldCheckForUpdates</text>
 </a>

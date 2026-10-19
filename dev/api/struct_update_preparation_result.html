@@ -113,15 +113,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_update_
 </div><!--header-->
 <div class="contents">
 
+<p>The outcome of preparing a package.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_update_preparation_8h_source.html">update/UpdatePreparation.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aaac63040b287b8cc4beef887fd4c5a0a" id="r_aaac63040b287b8cc4beef887fd4c5a0a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aaac63040b287b8cc4beef887fd4c5a0a">success</a> = false</td></tr>
+<tr class="memdesc:aaac63040b287b8cc4beef887fd4c5a0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the package was verified and staged.  <br /></td></tr>
 <tr class="memitem:a07aa660ec79a0fd935535484dd41e393" id="r_a07aa660ec79a0fd935535484dd41e393"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a07aa660ec79a0fd935535484dd41e393">error</a></td></tr>
+<tr class="memdesc:a07aa660ec79a0fd935535484dd41e393"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the preparation failed, for the user. Empty on success; may be empty on failure.  <br /></td></tr>
 <tr class="memitem:af5dab8da3404b1d453080c97bc1a2d63" id="r_af5dab8da3404b1d453080c97bc1a2d63"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#af5dab8da3404b1d453080c97bc1a2d63">stagedPath</a></td></tr>
+<tr class="memdesc:af5dab8da3404b1d453080c97bc1a2d63"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the update helper installs. Empty on failure.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The outcome of preparing a package. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a07aa660ec79a0fd935535484dd41e393" name="a07aa660ec79a0fd935535484dd41e393"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a07aa660ec79a0fd935535484dd41e393">&#9670;&#160;</a></span>error</h2>
 
@@ -133,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Why the preparation failed, for the user. Empty on success; may be empty on failure. </p>
 
 </div>
 </div>
@@ -148,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>What the update helper installs. Empty on failure. </p>
+
 </div>
 </div>
 <a id="aaac63040b287b8cc4beef887fd4c5a0a" name="aaac63040b287b8cc4beef887fd4c5a0a"></a>
@@ -161,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the package was verified and staged. </p>
 
 </div>
 </div>
