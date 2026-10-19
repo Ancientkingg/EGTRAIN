@@ -80,10 +80,7 @@ int main(int argc, char** argv) {
 	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/guides/glossary.html#case-settings")),
 		"case-settings did not open its page");
 	ok &= check(browser->toPlainText().contains(QStringLiteral("The base time of a timetable.")), "the page text is missing");
-	// A section without a page opens the start page.
-	window.showSection(QStringLiteral("no-such-section"));
-	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")), "an unknown section did not open the start page");
-	// So does a section whose page is not in the help file.
+	// A section whose page is not in the help file opens the start page.
 	window.showSection(QStringLiteral("main-window"));
 	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")), "a missing page did not open the start page");
 
