@@ -2,13 +2,15 @@ name: Docs
 
 # Builds the documentation site: the pages of docs/ with Sphinx and the C++ reference with Doxygen. A pull request also
 # fails when it adds undocumented classes or members to the files it changes. A push to main publishes the site to dev/
-# on the gh-pages branch; a push to production that makes a release, or a release tag v*, publishes it to <version>/ and
-# latest/.
+# on the gh-pages branch. A successful run of the Release workflow publishes the commit it released to <version>/, and to
+# latest/ when no published version is newer.
 on:
   pull_request:
   push:
-    branches: [main, production]
-    tags: ['v*']
+    branches: [main]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
 
 permissions:
   contents: read
@@ -23,32 +25,20 @@ jobs:
     name: Build the site
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
-      # The release workflow selects the version of a production push or a tag in the same way when its run starts, and
-      # does not run for a production push that changes only documentation. Such a push publishes no copy either, nor
-      # does a prerelease tag.
+      # A release tags the commit it releases with v<version>. A prerelease tag has a suffix and publishes no copy.
       - name: Select the release version
         id: version
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BEFORE: ${{ github.event.before }}
-        run: |
-          case "$GITHUB_REF" in refs/tags/v*-*) echo "A prerelease tag publishes no copy."; exit 0 ;; esac
-          files=$(git -c core.quotepath=false diff --name-only "$BEFORE" HEAD) || files=unknown
-          while IFS= read -r file; do
-            case "$file" in
-              *.md|docs/*|LICENSE|.github/ISSUE_TEMPLATE/*) ;;
-              *) python3 tools/release/version.py; exit 0 ;;
-            esac
-          done <<< "$files"
-          echo "This push changes only documentation and makes no release."
+        if: github.event_name == 'workflow_run'
+        run: echo "version=$(git tag --points-at HEAD | grep -xE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 | cut -c 2-)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@v5
         with:
@@ -85,11 +75,15 @@ jobs:
   publish:
     name: Publish the site
     needs: build
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || needs.build.outputs.version != '')
+    if: github.event_name == 'push' || needs.build.outputs.version != ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: write
+    # Publishing dev/ waits for an earlier run of main, and a run whose commit is no longer the tip of main skips it.
+    concurrency:
+      group: docs-publish-${{ github.event_name == 'push' && 'dev' || github.run_id }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -104,6 +98,10 @@ jobs:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
           dir="${VERSION:-dev}"
+          if [ "$dir" = dev ] && [ "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" != "$GITHUB_SHA" ]; then
+            echo "main has advanced; its newer run publishes dev/."
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for attempt in 1 2 3; do
@@ -115,7 +113,7 @@ jobs:
             fi
             rm -rf "pages/$dir"
             cp -R site "pages/$dir"
-            if [ "$dir" != dev ]; then
+            if [ "$dir" != dev ] && [ "$dir" = "$(cd pages && ls -d [0-9]* | sort -V | tail -n 1)" ]; then
               rm -rf pages/latest
               cp -R site pages/latest
             fi

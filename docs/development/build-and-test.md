@@ -1680,13 +1680,9 @@ application; CTest and the smoke scripts set it themselves.
   and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
   The result check is named `Tidy result`.
 - The documentation workflow (`docs.yml`) builds the [documentation site](#documentation-site)
-  for every pull request and every push to `main`, `production` or a `v*` tag. A pull request fails when
-  it adds undocumented classes or members to the files it changes, as
-  `tools/docs/check_undocumented.py` finds them against the base branch. A push to `main`
-  publishes the site to `dev/` on the `gh-pages` branch. A push to `production` that makes a
-  release, or a release tag without a prerelease suffix, publishes it to `<version>/` and `latest/`,
-  with the version that `tools/release/version.py` selects for the release. The root page lists
-  the copies.
+  for every pull request, fails a pull request that adds undocumented classes or members to the
+  files it changes, and publishes the site to `gh-pages`: `dev/` from `main`, and `<version>/`
+  and `latest/` after a successful release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
