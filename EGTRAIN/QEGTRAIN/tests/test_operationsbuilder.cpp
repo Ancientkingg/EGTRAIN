@@ -3319,6 +3319,14 @@ static bool sameSections(const std::vector<BlockSectionInput>& actual, const std
 
 int main() {
 	bool ok = generatorTests();
+	{
+		BlockingTimes source;
+		source.setupTime = 2.0;
+		source.sightReacTime = 5.0;
+		BlockingTimes copy;
+		copy = source;
+		ok &= expect(copy.setupTime == 2.0 && copy.sightReacTime == 5.0, "a copied blocking time keeps its own sight and reaction time");
+	}
 	SceneModel scene = completeScene();
 	// Exercise native route construction, stop resolution and chart coordinate
 	// extraction together. The second route traverses the same track backwards.
