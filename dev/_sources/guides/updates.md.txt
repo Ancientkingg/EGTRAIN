@@ -5,7 +5,7 @@ This page says how EGTRAIN checks for a newer release and how it installs one. T
 ## Checks and consent
 
 On the first start, after the startup windows (Recover Unsaved Work if it appears, then Open a Case) have closed, EGTRAIN asks whether to check for releases automatically. You
-can disable or re-enable automatic checks from **Help**. **Check for Updates...**
+can disable or re-enable automatic checks from **Help** or in [Settings](how-to.md#change-the-application-settings). **Check for Updates...**
 always performs a manual check, even when automatic checks are disabled. An
 available update is downloaded only after consent; **Update and Restart**
 installs it and relaunches the application. If the install location is not

@@ -280,6 +280,7 @@ var annotated_dup =
     [ "SelfUpdater", "class_self_updater.html", "class_self_updater" ],
     [ "SemanticVersion", "struct_semantic_version.html", "struct_semantic_version" ],
     [ "ServicePanel", "class_service_panel.html", "class_service_panel" ],
+    [ "SettingsDialog", "class_settings_dialog.html", "class_settings_dialog" ],
     [ "SignalGeometry", "struct_signal_geometry.html", "struct_signal_geometry" ],
     [ "SignalItem", "class_signal_item.html", "class_signal_item" ],
     [ "SignalVisual", "struct_signal_visual.html", "struct_signal_visual" ],

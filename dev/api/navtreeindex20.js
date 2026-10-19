@@ -1,5 +1,14 @@
 var NAVTREEINDEX20 =
 {
+"struct_infrastructure_guidance_state.html#a141149e014fae8ab95f2288306798350":[1,0,97,3],
+"struct_infrastructure_guidance_state.html#a355d353d7e6c330042c893bb52524247":[1,0,97,0],
+"struct_infrastructure_guidance_state.html#a8b2b927ecbb38e41040b7a24c9b9c0e9":[1,0,97,1],
+"struct_infrastructure_guidance_state.html#aa25b8f96a966c886ec16c63432be9ba3":[1,0,97,2],
+"struct_infrastructure_guidance_state.html#af89deb8724fe21581883024fb930db9e":[1,0,97,4],
+"struct_installer_record.html":[1,0,101],
+"struct_installer_record.html#a2cc7cb5ccf2595f6d5f8c262a543ca1e":[1,0,101,1],
+"struct_installer_record.html#a76bf6c94f5f305f549ccd3c08631ed0d":[1,0,101,0],
+"struct_installer_record.html#adc8d0c19bf6d8828fe6adf2f5a4b2fd1":[1,0,101,2],
 "struct_legacy_passenger_parse_result.html":[1,0,103],
 "struct_legacy_passenger_parse_result.html#a34ac821723a1602fed83ece51c2e91bc":[1,0,103,1],
 "struct_legacy_passenger_parse_result.html#a5fb7e4732652dbfa476d3c2eea006cb6":[1,0,103,0],
@@ -240,14 +249,5 @@ var NAVTREEINDEX20 =
 "struct_run_infrastructure.html#abf5827b15fd5bfed74e574a1c88d1251":[1,0,161,16],
 "struct_run_infrastructure.html#ac6ac68be509d4713e2cf5e85905a660f":[1,0,161,13],
 "struct_run_infrastructure.html#ad6e4a268fde25e9db4efbc4ec114816b":[1,0,161,5],
-"struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd":[1,0,161,12],
-"struct_run_infrastructure.html#adf481bb1a15371de519c4759835a432b":[1,0,161,3],
-"struct_run_infrastructure.html#adfd0b2d7067ca014bcc1477e97931632":[1,0,161,8],
-"struct_run_infrastructure.html#ae2d4e5d638311e8e4aae0692b91a6367":[1,0,161,9],
-"struct_run_infrastructure.html#afa192fca82add88ed2a3572cd6c16c8d":[1,0,161,7],
-"struct_run_input_provenance.html":[1,0,162],
-"struct_run_input_provenance.html#a29b60bc7f791f30736fa832b13c3363b":[1,0,162,2],
-"struct_run_input_provenance.html#a2f814d234860ed34bbdd668655d094bc":[1,0,162,3],
-"struct_run_input_provenance.html#a432c4b41a11b5965852cbd7f96692feb":[1,0,162,6],
-"struct_run_input_provenance.html#a66dc81ac0f6d5a033e13b2b2785caf1f":[1,0,162,4]
+"struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd":[1,0,161,12]
 };

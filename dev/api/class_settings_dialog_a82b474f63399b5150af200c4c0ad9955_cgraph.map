@@ -1,0 +1,18 @@
+<map id="SettingsDialog::accept" name="SettingsDialog::accept">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,74,173,99"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="221,37,399,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,71,221,62,222,67,166,77"/>
+<area shape="rect" id="Node000006" href="$_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" title=" " alt="" coords="222,110,398,135"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="168,97,219,105,218,110,167,102"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="275,38,268,28,271,18,286,12,310,10,340,14,351,23,348,27,338,19,310,15,287,17,275,22,273,28,279,35"/>
+<area shape="rect" id="Node000003" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="447,29,600,69"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="399,47,433,47,433,52,399,52"/>
+<area shape="poly" id="edge8_Node000003_Node000003" title=" " alt="" coords="483,30,481,20,487,10,502,5,523,3,548,6,562,13,559,18,547,11,523,8,503,10,491,15,486,21,488,28"/>
+<area shape="rect" id="Node000004" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="648,29,829,69"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="600,47,634,47,634,52,600,52"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="699,30,696,20,703,10,717,5,739,3,764,6,777,13,775,18,762,11,739,8,718,10,706,15,701,21,704,28"/>
+<area shape="rect" id="Node000005" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="877,29,1031,69"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="830,47,864,47,864,52,830,52"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="914,30,912,20,918,10,932,5,954,3,979,6,993,13,990,18,977,11,954,8,934,10,921,15,917,21,919,28"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="275,112,268,102,271,92,286,86,310,83,340,87,351,96,348,100,338,92,310,89,287,91,275,96,273,101,279,108"/>
+</map>

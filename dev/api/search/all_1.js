@@ -10,7 +10,7 @@ var searchData=
   ['absposeoa_7',['AbsPosEoA',['../class_movement_authority.html#a94008e416d04c6ad84922da3395c7d6f',1,'MovementAuthority']]],
   ['acceleration_8',['Acceleration',['../class_train_event.html#a2dc7f2b6f416aeed8259afbde7de5bba',1,'TrainEvent']]],
   ['accelerationtimefollowingmode_9',['AccelerationTimeFollowingMode',['../class_train.html#a9919b5df2c04fa5c9be99f738d5471f3',1,'Train']]],
-  ['accept_10',['accept',['../struct_http_request.html#aba2682ce2aea7134c5f4abb814a55f0e',1,'HttpRequest']]],
+  ['accept_10',['accept',['../struct_http_request.html#aba2682ce2aea7134c5f4abb814a55f0e',1,'HttpRequest::accept'],['../class_settings_dialog.html#a82b474f63399b5150af200c4c0ad9955',1,'SettingsDialog::accept()']]],
   ['accepted_11',['accepted',['../struct_scene_passenger_import_row.html#a109d1693d622293580147b2951dc6e87',1,'ScenePassengerImportRow']]],
   ['acceptedphysical_12',['acceptedPhysical',['../struct_train_unit_source_linker_1_1_link.html#a5f73199ab871c6789ff1829c58fbddf9',1,'TrainUnitSourceLinker::Link']]],
   ['acceptedtraction_13',['acceptedTraction',['../struct_train_unit_source_linker_1_1_link.html#a9039d81c5e4b908fc1efd84a52413dea',1,'TrainUnitSourceLinker::Link']]],

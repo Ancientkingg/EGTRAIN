@@ -393,21 +393,28 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">test_aboutdialog</span></code>.</p></td>
 <td><p>None.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Help improve EGTRAIN (privacy)</p></td>
+<tr class="row-odd"><td><p>Settings</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SettingsDialog</span></code> in <code class="docutils literal notranslate"><span class="pre">widgets/SettingsDialog.cpp</span></code>, opened by Edit &gt; Preferences… (the application menu on macOS)</p></td>
+<td><p>Group boxes General, Display, and Updates and privacy: the recent cases with Clear Recent Cases, check boxes and help labels. The status label uses <code class="docutils literal notranslate"><span class="pre">dialogStatus</span></code> with the value <code class="docutils literal notranslate"><span class="pre">error</span></code> when the privacy choices cannot be saved. OK, Cancel and Restore Defaults.</p></td>
+<td><p>OK. Restore Defaults is not an auto default.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_settingsdialog</span></code>.</p></td>
+<td><p>None.</p></td>
+</tr>
+<tr class="row-even"><td><p>Help improve EGTRAIN (privacy)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TelemetryConsentDialog</span></code> in <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryConsentDialog.cpp</span></code></p></td>
 <td><p>Two check boxes and explanatory text. The status label uses <code class="docutils literal notranslate"><span class="pre">dialogStatus</span></code> with the value <code class="docutils literal notranslate"><span class="pre">error</span></code> when the choices cannot be saved.</p></td>
 <td><p>Not now. Save choices is not an auto default.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_telemetryconsent</span></code>.</p></td>
 <td><p>None.</p></td>
 </tr>
-<tr class="row-even"><td><p>Diagram windows</p></td>
+<tr class="row-odd"><td><p>Diagram windows</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">DiagramWindow</span></code> in <code class="docutils literal notranslate"><span class="pre">diagrams/DiagramWindow.cpp</span></code></p></td>
 <td><p>Not modal. A <code class="docutils literal notranslate"><span class="pre">QDialog</span></code> with its own layout that sets <code class="docutils literal notranslate"><span class="pre">dialogPresentation</span></code> by hand. A top bar of buttons, context and warning labels, the chart. No button box.</p></td>
 <td><p>None. No button is a default or auto default button, so Enter starts no action.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_diagramwindow</span></code>.</p></td>
 <td><p>Does not use <code class="docutils literal notranslate"><span class="pre">DialogLayout::install</span></code>. The heading is the window title and there is no footer.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Timetable table window</p></td>
+<tr class="row-even"><td><p>Timetable table window</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TimetableTableWindow</span></code> in <code class="docutils literal notranslate"><span class="pre">diagrams/TimetableTableWindow.cpp</span></code></p></td>
 <td><p>Not modal. The same construction as the diagram windows, with a table in place of the chart.</p></td>
 <td><p>None. No button is a default or auto default button, so Enter starts no action.</p></td>

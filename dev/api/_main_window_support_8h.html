@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_s
 <code>#include &quot;<a class="el" href="_signal_item_8h_source.html">graphics/items/SignalItem.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_track_preview_8h_source.html">scene/TrackPreview.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_settings_dialog_8h_source.html">widgets/SettingsDialog.h</a>&quot;</code><br />
 <code>#include &lt;QAbstractItemModel&gt;</code><br />
 <code>#include &lt;QComboBox&gt;</code><br />
 <code>#include &lt;QList&gt;</code><br />
@@ -136,7 +137,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_s
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for MainWindowSupport.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h__incl.svg" width="4472" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_support_8h__incl.svg" width="5056" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -164,8 +165,6 @@ Functions</h2></td></tr>
 Variables</h2></td></tr>
 <tr class="memitem:a6aa2f18f2ec53dacb3a595d007a70595" id="r_a6aa2f18f2ec53dacb3a595d007a70595"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6aa2f18f2ec53dacb3a595d007a70595">kFollowNameRole</a> = Qt::UserRole + 1</td></tr>
 <tr class="memitem:ae4a820273af0456582cb8cb1da388336" id="r_ae4a820273af0456582cb8cb1da388336"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae4a820273af0456582cb8cb1da388336">kFollowStatusMaxWidth</a> = 640</td></tr>
-<tr class="memitem:aedd4b44325c46f7e0605147971411ad0" id="r_aedd4b44325c46f7e0605147971411ad0"><td class="memItemLeft">constexpr const char *&#160;</td><td class="memItemRight"><a class="el" href="#aedd4b44325c46f7e0605147971411ad0">kAdvancedDetailsKey</a> = &quot;advancedDetails&quot;</td></tr>
-<tr class="memitem:ab6690b7ce3c1f479cb09a41231b2e2f3" id="r_ab6690b7ce3c1f479cb09a41231b2e2f3"><td class="memItemLeft">constexpr const char *&#160;</td><td class="memItemRight"><a class="el" href="#ab6690b7ce3c1f479cb09a41231b2e2f3">kShowPassengersKey</a> = &quot;showPassengers&quot;</td></tr>
 <tr class="memitem:a110d4fb368297fb6c77f3ba78a319404" id="r_a110d4fb368297fb6c77f3ba78a319404"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a110d4fb368297fb6c77f3ba78a319404">kMaxStepDelayMs</a> = 500</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -388,28 +387,6 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
-<a id="aedd4b44325c46f7e0605147971411ad0" name="aedd4b44325c46f7e0605147971411ad0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aedd4b44325c46f7e0605147971411ad0">&#9670;&#160;</a></span>kAdvancedDetailsKey</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* kAdvancedDetailsKey = &quot;advancedDetails&quot;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel constexpr">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a6aa2f18f2ec53dacb3a595d007a70595" name="a6aa2f18f2ec53dacb3a595d007a70595"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6aa2f18f2ec53dacb3a595d007a70595">&#9670;&#160;</a></span>kFollowNameRole</h2>
 
@@ -465,28 +442,6 @@ Here is the call graph for this function:</div>
       <table class="memname">
         <tr>
           <td class="memname">int kMaxStepDelayMs = 500</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel constexpr">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab6690b7ce3c1f479cb09a41231b2e2f3" name="ab6690b7ce3c1f479cb09a41231b2e2f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab6690b7ce3c1f479cb09a41231b2e2f3">&#9670;&#160;</a></span>kShowPassengersKey</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* kShowPassengersKey = &quot;showPassengers&quot;</td>
         </tr>
       </table>
   </td>

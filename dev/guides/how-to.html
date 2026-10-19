@@ -468,6 +468,16 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-sc
 <h2>Close, start a new case or open another during a run<a class="headerlink" href="#close-start-a-new-case-or-open-another-during-a-run" title="Link to this heading">¶</a></h2>
 <p>Closing the window, <strong>New Case Study…</strong>, the open commands and <strong>Load Legacy Case…</strong> first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows <code class="docutils literal notranslate"><span class="pre">Stopping</span> <span class="pre">simulation...</span></code> and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.</p>
 </section>
+<section id="change-the-application-settings">
+<h2>Change the application settings<a class="headerlink" href="#change-the-application-settings" title="Link to this heading">¶</a></h2>
+<p><strong>Edit &gt; Preferences…</strong> opens the window <strong>Settings</strong>. On macOS the entry is <strong>EGTRAIN &gt; Preferences…</strong> (Cmd+,). The window holds the settings that apply to every case:</p>
+<ul class="simple">
+<li><p><strong>General</strong>: the recent cases that <strong>File &gt; Recent Scenes</strong> and <strong>Open a Case</strong> offer, and <strong>Clear Recent Cases</strong>.</p></li>
+<li><p><strong>Display</strong>: <strong>Show passengers</strong>, the same switch as <strong>View &gt; Show Passengers</strong>, and <strong>Advanced / Developer details</strong>, the same as the View entry.</p></li>
+<li><p><strong>Updates and privacy</strong>: <strong>Automatically check for updates</strong>, the same as the Help entry, and the two choices of <strong>Help &gt; Privacy &amp; diagnostics…</strong>. A build that collects nothing shows them disabled.</p></li>
+</ul>
+<p><strong>OK</strong> saves the changes, and the menu entries show them at once. <strong>Restore Defaults</strong> clears the recent cases and turns every switch off; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with <strong>OK</strong>. The settings of the open case, such as its base time and duration, are in <strong>Case Settings</strong>.</p>
+</section>
 <section id="why-a-command-is-disabled">
 <h2>Why a command is disabled<a class="headerlink" href="#why-a-command-is-disabled" title="Link to this heading">¶</a></h2>
 <div class="table-wrapper colwidths-auto docutils container">
@@ -595,6 +605,7 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-sc
 <li><a class="reference internal" href="#results-and-exports">Results and exports</a></li>
 <li><a class="reference internal" href="#convert-a-legacy-case-and-write-legacy-files">Convert a legacy case and write legacy files</a></li>
 <li><a class="reference internal" href="#close-start-a-new-case-or-open-another-during-a-run">Close, start a new case or open another during a run</a></li>
+<li><a class="reference internal" href="#change-the-application-settings">Change the application settings</a></li>
 <li><a class="reference internal" href="#why-a-command-is-disabled">Why a command is disabled</a></li>
 </ul>
 </li>

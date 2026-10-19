@@ -148,6 +148,7 @@ var hierarchy =
       [ "FindDialog", "class_find_dialog.html", null ],
       [ "RecoveryPrompt", "class_recovery_prompt.html", null ],
       [ "RouteReferenceDialog", "class_route_reference_dialog.html", null ],
+      [ "SettingsDialog", "class_settings_dialog.html", null ],
       [ "TelemetryConsentDialog", "class_telemetry_consent_dialog.html", null ],
       [ "TimetableTableWindow", "class_timetable_table_window.html", null ]
     ] ],
