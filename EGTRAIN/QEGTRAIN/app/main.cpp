@@ -75,7 +75,7 @@ static const CommandLineOption commandLineOptions[] = {
 	{"-b", "SECONDS", "from the scene", "Buffer time"},
 	{"-c", "PERCENT", "from the scene", "Recovery time"},
 	{"-g", "0|1", "1", "0 runs without a window and exits when the run ends"},
-	{"-pax", "0|1", "0", "1 turns the passenger GUI on; read only when -g is 1"},
+	{"-pax", "0|1", "last choice of View > Show Passengers", "1 shows the passengers; read only when -g is 1"},
 	{"-TSM", "0|1", "0", "Deprecated; sends the traffic state to port 5555"},
 	{"-RC", "0|1", "0", "Deprecated; sends route choice requests to port 5556"},
 	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g, -pax, -TSM and -RC when they are left out"},
