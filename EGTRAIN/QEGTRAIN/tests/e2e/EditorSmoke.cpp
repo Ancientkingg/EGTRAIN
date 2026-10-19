@@ -4604,8 +4604,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			baseline.provenance = provenance;
 			baseline.scenarioId = "baseline";
 			w.m_runController->m_delayBaseline = baseline;
-			// Hidden, the dock opens again with the results, at its first height.
-			w.m_runResultsDock->hide();
 			w.refreshRunResults();
 			w.updateDiagramActions();
 			QApplication::processEvents();
@@ -4622,8 +4620,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			else if (results->minimumSizeHint().width() > shortMinimumWidth || results->minimumSizeHint().width() > w.width() / 2
 				|| results->minimumSizeHint().height() > w.height() / 2)
 				facetFailure(ok, "presentation", "a long run identity raises the minimum size of Run Results");
-			else if (results->height() * 2 >= w.height())
-				facetFailure(ok, "presentation", "Run Results opens at half the window height or more");
 			else if (!summaryLines.first().startsWith("Run: ") || !summaryLines.contains("Status: Completed")
 				|| !summaryLines.last().startsWith("Delay baseline: "))
 				facetFailure(ok, "presentation", "the run, the status and the delay baseline are not on lines of their own in Run Results");
@@ -4644,6 +4640,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!outsidePeriod.contains("\nOccurrences: 196/196 selected, 185 in the run period\nStatus: Completed")
 				|| !insidePeriod.contains("\nOccurrences: 196/196 selected\nStatus: Completed"))
 				facetFailure(ok, "presentation", "the occurrences line of Run Results does not say how many selected occurrences are in the run period");
+
+			// With a short run identity the dock opens at a third of the window height, or at its minimum height when that is more.
+			completed.provenance.caseName = "Paimpol";
+			w.m_runController->m_completedRun = std::make_shared<const CompletedRunData>(completed);
+			w.m_runController->m_delayBaseline.reset();
+			w.m_runResultsDock->hide();
+			w.refreshRunResults();
+			QApplication::processEvents();
+			if (results->height() > std::max(w.height() / 3, results->minimumSizeHint().height()))
+				facetFailure(ok, "presentation", QString("Run Results opens %1 pixels high in a window %2 pixels high").arg(results->height()).arg(w.height()));
 
 			w.m_runController->m_completedRun.reset();
 			w.m_runController->m_delayBaseline.reset();

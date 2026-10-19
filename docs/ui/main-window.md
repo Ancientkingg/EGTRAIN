@@ -12,6 +12,6 @@ The dialog **Run simulation** shows the duration of the run as H:MM:SS, the form
 
 The text at the top of Run Results puts each entry on a line of its own: `Run: <case> / <scenario>`, `Occurrences: ...` and `Status: Completed`. With advanced details on, the direct incident evidence and `Destination terminations: <count>` follow, and `Delay baseline: <run>` comes last when a baseline is set. A long entry wraps inside its own line.
 
-When Run Results first opens at the bottom of the window it takes a third of the window height, so the network and the replay row keep the rest. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets a third again.
+When Run Results first opens at the bottom of the window it takes a third of the window height, or the height that its content needs when that is more, so the network and the replay row keep the rest. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets a third again.
 
 The Case and Layers dock opens at the width of its widest layer toggle, **Stations and platforms**, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.
