@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio().">
 <polygon fill="#999999" stroke="#666666" points="140,-24.5 0,-24.5 0,-5.5 140,-5.5 140,-24.5"/>
 <text text-anchor="middle" x="70" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::zoomRatio</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_view.html#af1efa7710811d8837e43eff52971cd3a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_view.html#af1efa7710811d8837e43eff52971cd3a" target="_top" xlink:title="The largest zoom ratio.">
 <polygon fill="white" stroke="#666666" points="342,-30 176,-30 176,0 342,0 342,-30"/>
 <text text-anchor="start" x="184" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::maximumZoom</text>
 <text text-anchor="middle" x="259" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Ratio</text>

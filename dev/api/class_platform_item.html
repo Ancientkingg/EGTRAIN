@@ -133,19 +133,28 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a28917b41785f07e37a932dc44b327cf0" id="r_a28917b41785f07e37a932dc44b327cf0"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a28917b41785f07e37a932dc44b327cf0">PlatformItem</a> (const QRectF &amp;rect, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:a28917b41785f07e37a932dc44b327cf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A bar in rect, in scene coordinates, without a platform.  <br /></td></tr>
 <tr class="memitem:a0c0e6f9cfc86dab813f679f9f3330ac7" id="r_a0c0e6f9cfc86dab813f679f9f3330ac7"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a0c0e6f9cfc86dab813f679f9f3330ac7">~PlatformItem</a> () override</td></tr>
 <tr class="memitem:ac94362dd7c5c7cee7dae2f569d054512" id="r_ac94362dd7c5c7cee7dae2f569d054512"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac94362dd7c5c7cee7dae2f569d054512">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
+<tr class="memdesc:ac94362dd7c5c7cee7dae2f569d054512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the bar with the pen and the brush of the item.  <br /></td></tr>
 <tr class="memitem:a459cafbb1f2ad251184c518e8d8e1caa" id="r_a459cafbb1f2ad251184c518e8d8e1caa"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a459cafbb1f2ad251184c518e8d8e1caa">type</a> () const override</td></tr>
+<tr class="memdesc:a459cafbb1f2ad251184c518e8d8e1caa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3f12eed888f539f66947b5077649c58b" id="r_a3f12eed888f539f66947b5077649c58b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3f12eed888f539f66947b5077649c58b">stationId</a></td></tr>
+<tr class="memdesc:a3f12eed888f539f66947b5077649c58b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the station of the platform; empty when the run has no such platform and in the preview.  <br /></td></tr>
 <tr class="memitem:af86205daaaa2da7367b9ea8602a3d3fe" id="r_af86205daaaa2da7367b9ea8602a3d3fe"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af86205daaaa2da7367b9ea8602a3d3fe">platformId</a></td></tr>
+<tr class="memdesc:af86205daaaa2da7367b9ea8602a3d3fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the platform; empty when the run has no such platform and in the preview.  <br /></td></tr>
 <tr class="memitem:a6cacdb9e7fc7136292b803e1b7f22132" id="r_a6cacdb9e7fc7136292b803e1b7f22132"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6cacdb9e7fc7136292b803e1b7f22132">maxVolume</a></td></tr>
 <tr class="memitem:a0a2fc66619a1005fe5a98bc716c59e87" id="r_a0a2fc66619a1005fe5a98bc716c59e87"><td class="memItemLeft">QGraphicsTextItem *&#160;</td><td class="memItemRight"><a class="el" href="#a0a2fc66619a1005fe5a98bc716c59e87">textIcon</a></td></tr>
+<tr class="memdesc:a0a2fc66619a1005fe5a98bc716c59e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label with the number of passengers on the platform, which the scene owns; null in the preview.  <br /></td></tr>
 <tr class="memitem:aabdee586d673ba538e83561f96e5e150" id="r_aabdee586d673ba538e83561f96e5e150"><td class="memItemLeft">QList&lt; <a class="el" href="class_passenger_item.html">PassengerItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aabdee586d673ba538e83561f96e5e150">passengerIcons</a></td></tr>
+<tr class="memdesc:aabdee586d673ba538e83561f96e5e150"><td class="mdescLeft">&#160;</td><td class="mdescRight">The icon of each passenger on the platform, in the order of the snapshot. The scene owns them.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The bar of a platform next to a station node, with the icons of the passengers waiting on it. It draws over track lines, connections and nodes. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a0a1047d74f0f7dcb4c1e470f8fe005c5" name="a0a1047d74f0f7dcb4c1e470f8fe005c5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0a1047d74f0f7dcb4c1e470f8fe005c5">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -158,7 +167,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0a1047d74f0f7dcb4c1e470f8fe005c5a57c079207c8f42551656d5ffe394fcbd" name="a0a1047d74f0f7dcb4c1e470f8fe005c5a57c079207c8f42551656d5ffe394fcbd"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0a1047d74f0f7dcb4c1e470f8fe005c5a57c079207c8f42551656d5ffe394fcbd" name="a0a1047d74f0f7dcb4c1e470f8fe005c5a57c079207c8f42551656d5ffe394fcbd"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -182,6 +192,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A bar in rect, in scene coordinates, without a platform. </p>
 
 </div>
 </div>
@@ -243,6 +255,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Draws the bar with the pen and the brush of the item. </p>
+
 </div>
 </div>
 <a id="a459cafbb1f2ad251184c518e8d8e1caa" name="a459cafbb1f2ad251184c518e8d8e1caa"></a>
@@ -268,6 +282,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -282,6 +298,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The passenger capacity of the platform, computed from its area; 0 when the run has no such platform and in the preview. </p>
 
 </div>
 </div>
@@ -297,6 +314,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The icon of each passenger on the platform, in the order of the snapshot. The scene owns them. </p>
+
 </div>
 </div>
 <a id="af86205daaaa2da7367b9ea8602a3d3fe" name="af86205daaaa2da7367b9ea8602a3d3fe"></a>
@@ -310,6 +329,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The id of the platform; empty when the run has no such platform and in the preview. </p>
 
 </div>
 </div>
@@ -325,6 +346,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The id of the station of the platform; empty when the run has no such platform and in the preview. </p>
+
 </div>
 </div>
 <a id="a0a2fc66619a1005fe5a98bc716c59e87" name="a0a2fc66619a1005fe5a98bc716c59e87"></a>
@@ -338,6 +361,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The label with the number of passengers on the platform, which the scene owns; null in the preview. </p>
 
 </div>
 </div>

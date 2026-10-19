@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title="The centre or the scale of the view changed.">
 <polygon fill="white" stroke="#666666" points="516,-95 343,-95 343,-76 516,-76 516,-95"/>
 <text text-anchor="middle" x="429.5" y="-83" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::viewportChanged</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_network_view.html#af1efa7710811d8837e43eff52971cd3a" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_network_view.html#af1efa7710811d8837e43eff52971cd3a" target="_top" xlink:title="The largest zoom ratio.">
 <polygon fill="white" stroke="#666666" points="718,-43.5 552,-43.5 552,-13.5 718,-13.5 718,-43.5"/>
 <text text-anchor="start" x="560" y="-31.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::maximumZoom</text>
 <text text-anchor="middle" x="635" y="-20.5" font-family="Helvetica,sans-Serif" font-size="10.00">Ratio</text>
@@ -84,7 +84,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" target="_top" xlink:title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio().">
 <polygon fill="white" stroke="#666666" points="499.5,-19 359.5,-19 359.5,0 499.5,0 499.5,-19"/>
 <text text-anchor="middle" x="429.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::zoomRatio</text>
 </a>

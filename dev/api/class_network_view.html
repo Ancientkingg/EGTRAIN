@@ -128,30 +128,45 @@ Collaboration diagram for NetworkView:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a56b38d1a10617499bcbed678d3feb7ff" id="r_a56b38d1a10617499bcbed678d3feb7ff"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a56b38d1a10617499bcbed678d3feb7ff">interactionFinished</a> ()</td></tr>
+<tr class="memdesc:a56b38d1a10617499bcbed678d3feb7ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">A mouse button was released over the view.  <br /></td></tr>
 <tr class="memitem:ac759eb59c9af28946b90f56ced8205ac" id="r_ac759eb59c9af28946b90f56ced8205ac"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac759eb59c9af28946b90f56ced8205ac">viewportChanged</a> ()</td></tr>
+<tr class="memdesc:ac759eb59c9af28946b90f56ced8205ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">The centre or the scale of the view changed.  <br /></td></tr>
 <tr class="memitem:ad6908933da4b5fadff421905542bbf48" id="r_ad6908933da4b5fadff421905542bbf48"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad6908933da4b5fadff421905542bbf48">timingPaintCompleted</a> (const QString &amp;kind, int generation, qint64 elapsedNanoseconds)</td></tr>
+<tr class="memdesc:ad6908933da4b5fadff421905542bbf48"><td class="mdescLeft">&#160;</td><td class="mdescRight">The paint that <a class="el" href="#aae84faaa3bcf8d62a6422a798e4dd96c">armTimingPaint()</a> waited for has finished, elapsedNanoseconds after the call.  <br /></td></tr>
 <tr class="memitem:ab2f867c313f3f70dceb0f60a9072ba8a" id="r_ab2f867c313f3f70dceb0f60a9072ba8a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab2f867c313f3f70dceb0f60a9072ba8a">playbackProfileBegan</a> ()</td></tr>
+<tr class="memdesc:ab2f867c313f3f70dceb0f60a9072ba8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The playback profiler began its measurement after a paint.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad3da1ea558773cd3e524312203d57a3b" id="r_ad3da1ea558773cd3e524312203d57a3b"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad3da1ea558773cd3e524312203d57a3b">NetworkView</a> (QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:ad3da1ea558773cd3e524312203d57a3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A view with the dark canvas, antialiasing and panning by drag.  <br /></td></tr>
 <tr class="memitem:a5067c0d6a7ec31ad71a99bac553c9aad" id="r_a5067c0d6a7ec31ad71a99bac553c9aad"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a5067c0d6a7ec31ad71a99bac553c9aad">~NetworkView</a> () override</td></tr>
 <tr class="memitem:a7476713caf7e3df9d643ead6abc26cd1" id="r_a7476713caf7e3df9d643ead6abc26cd1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7476713caf7e3df9d643ead6abc26cd1">centerOn</a> (const QPointF &amp;scenePos)</td></tr>
+<tr class="memdesc:a7476713caf7e3df9d643ead6abc26cd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Centres the view on a point in scene coordinates and emits <a class="el" href="#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed.">viewportChanged()</a> when the centre moved.  <br /></td></tr>
 <tr class="memitem:ad2058481034183e0dc4f6de02c2d1f57" id="r_ad2058481034183e0dc4f6de02c2d1f57"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad2058481034183e0dc4f6de02c2d1f57">centerOn</a> (QGraphicsItem *item)</td></tr>
+<tr class="memdesc:ad2058481034183e0dc4f6de02c2d1f57"><td class="mdescLeft">&#160;</td><td class="mdescRight">Centres the view on the centre of the bounds of the item in the scene. Nothing happens for null.  <br /></td></tr>
 <tr class="memitem:a50f02412e1c7a8f8ef6301e28f94114b" id="r_a50f02412e1c7a8f8ef6301e28f94114b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a50f02412e1c7a8f8ef6301e28f94114b">mousePressEvent</a> (QMouseEvent *mouseEvent) override</td></tr>
+<tr class="memdesc:a50f02412e1c7a8f8ef6301e28f94114b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hands the press to QGraphicsView.  <br /></td></tr>
 <tr class="memitem:ac364c881dac18f0c3efc98501b2b5d06" id="r_ac364c881dac18f0c3efc98501b2b5d06"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac364c881dac18f0c3efc98501b2b5d06">mouseReleaseEvent</a> (QMouseEvent *mouseEvent) override</td></tr>
+<tr class="memdesc:ac364c881dac18f0c3efc98501b2b5d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hands the release to QGraphicsView and emits <a class="el" href="#a56b38d1a10617499bcbed678d3feb7ff" title="A mouse button was released over the view.">interactionFinished()</a>.  <br /></td></tr>
 <tr class="memitem:a76aea6ea237091520ac41b0fe569a8a0" id="r_a76aea6ea237091520ac41b0fe569a8a0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a76aea6ea237091520ac41b0fe569a8a0">fitToTopology</a> ()</td></tr>
+<tr class="memdesc:a76aea6ea237091520ac41b0fe569a8a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fits the view, as <a class="el" href="#aee9647a6c31887862f82e0b18b65b610">fitToBounds()</a> does, to the ends of the track lines and connections in the scene.  <br /></td></tr>
 <tr class="memitem:aee9647a6c31887862f82e0b18b65b610" id="r_aee9647a6c31887862f82e0b18b65b610"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aee9647a6c31887862f82e0b18b65b610">fitToBounds</a> (const QRectF &amp;bounds)</td></tr>
 <tr class="memitem:acfca8b5474a26b98c458e7d75decd1e5" id="r_acfca8b5474a26b98c458e7d75decd1e5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acfca8b5474a26b98c458e7d75decd1e5">zoomBy</a> (qreal factor, const QPointF &amp;viewportAnchor=QPointF(-1.0, -1.0))</td></tr>
 <tr class="memitem:a0d88c5bd66451f6986a8ad733995e521" id="r_a0d88c5bd66451f6986a8ad733995e521"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#a0d88c5bd66451f6986a8ad733995e521">zoomRatio</a> () const</td></tr>
+<tr class="memdesc:a0d88c5bd66451f6986a8ad733995e521"><td class="mdescLeft">&#160;</td><td class="mdescRight">The view scale divided by <a class="el" href="#aa803d9a8c820e98d861d7ae15ce44231" title="The view scale at Fit in logical pixels per scene unit; 1 before a fit and without bounds.">fittedScale()</a>: 1 at Fit, at most <a class="el" href="#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio.">maximumZoomRatio()</a>.  <br /></td></tr>
 <tr class="memitem:aa803d9a8c820e98d861d7ae15ce44231" id="r_aa803d9a8c820e98d861d7ae15ce44231"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#aa803d9a8c820e98d861d7ae15ce44231">fittedScale</a> () const</td></tr>
+<tr class="memdesc:aa803d9a8c820e98d861d7ae15ce44231"><td class="mdescLeft">&#160;</td><td class="mdescRight">The view scale at Fit in logical pixels per scene unit; 1 before a fit and without bounds.  <br /></td></tr>
 <tr class="memitem:a6f153a2e962a6bd7b823bc37585d25f0" id="r_a6f153a2e962a6bd7b823bc37585d25f0"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a6f153a2e962a6bd7b823bc37585d25f0">topologyBounds</a> () const</td></tr>
+<tr class="memdesc:a6f153a2e962a6bd7b823bc37585d25f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bounds in scene coordinates of the last fit.  <br /></td></tr>
 <tr class="memitem:a61b2ce4092775b2df89f9101265ae75d" id="r_a61b2ce4092775b2df89f9101265ae75d"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a61b2ce4092775b2df89f9101265ae75d">zoomLabel</a> () const</td></tr>
+<tr class="memdesc:a61b2ce4092775b2df89f9101265ae75d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The zoom ratio as the view shows it: "Fit", or the ratio with an "x", such as "2x" or "2.5x".  <br /></td></tr>
 <tr class="memitem:aae84faaa3bcf8d62a6422a798e4dd96c" id="r_aae84faaa3bcf8d62a6422a798e4dd96c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aae84faaa3bcf8d62a6422a798e4dd96c">armTimingPaint</a> (const QString &amp;kind, int generation)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:af1efa7710811d8837e43eff52971cd3a" id="r_af1efa7710811d8837e43eff52971cd3a"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#af1efa7710811d8837e43eff52971cd3a">maximumZoomRatio</a> ()</td></tr>
+<tr class="memdesc:af1efa7710811d8837e43eff52971cd3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The largest zoom ratio.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -159,9 +174,13 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a39df6408a6655117aa5a869e91ba0e56" id="r_a39df6408a6655117aa5a869e91ba0e56"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a39df6408a6655117aa5a869e91ba0e56">wheelEvent</a> (QWheelEvent *event) override</td></tr>
 <tr class="memitem:a0c96daed10a6235d1bc2b5c147fe7ad0" id="r_a0c96daed10a6235d1bc2b5c147fe7ad0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0c96daed10a6235d1bc2b5c147fe7ad0">drawBackground</a> (QPainter *painter, const QRectF &amp;rect) override</td></tr>
 <tr class="memitem:acb45e6e5ce7165015e76b75e75c68814" id="r_acb45e6e5ce7165015e76b75e75c68814"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb45e6e5ce7165015e76b75e75c68814">resizeEvent</a> (QResizeEvent *event) override</td></tr>
+<tr class="memdesc:acb45e6e5ce7165015e76b75e75c68814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Keeps a view at Fit fitted to the new size, and keeps the zoom ratio and the centre of any other view.  <br /></td></tr>
 <tr class="memitem:a0058813b1a235d2975ab24cef4fcad3c" id="r_a0058813b1a235d2975ab24cef4fcad3c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0058813b1a235d2975ab24cef4fcad3c">scrollContentsBy</a> (int dx, int dy) override</td></tr>
+<tr class="memdesc:a0058813b1a235d2975ab24cef4fcad3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records the new centre and emits <a class="el" href="#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed.">viewportChanged()</a>, except while the view moves itself.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The view of the network canvas. Items have their positions and sizes in scene units. The view scale, the m11() of transform(), is in logical pixels per scene unit. One logical pixel is as wide as the device pixel ratio of the screen in device pixels. The view fits the track to the viewport and zooms between that Fit scale and <a class="el" href="#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio.">maximumZoomRatio()</a> times it. A left drag pans the view. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad3da1ea558773cd3e524312203d57a3b" name="ad3da1ea558773cd3e524312203d57a3b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad3da1ea558773cd3e524312203d57a3b">&#9670;&#160;</a></span>NetworkView()</h2>
 
@@ -176,6 +195,8 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A view with the dark canvas, antialiasing and panning by drag. </p>
 
 </div>
 </div>
@@ -223,6 +244,7 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Starts a timer for the next paint of the viewport, which emits <a class="el" href="#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call.">timingPaintCompleted()</a> with kind and generation. </p>
 
 </div>
 </div>
@@ -241,6 +263,8 @@ Protected Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Centres the view on a point in scene coordinates and emits <a class="el" href="#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed.">viewportChanged()</a> when the centre moved. </p>
+
 </div>
 </div>
 <a id="ad2058481034183e0dc4f6de02c2d1f57" name="ad2058481034183e0dc4f6de02c2d1f57"></a>
@@ -257,6 +281,8 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Centres the view on the centre of the bounds of the item in the scene. Nothing happens for null. </p>
 
 </div>
 </div>
@@ -286,6 +312,7 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Fills the canvas and draws a grid of lines one device pixel wide on multiples of a spacing in scene units. The spacing starts at 80 and is doubled or halved until it is 24 to 96 logical pixels on screen. </p>
 
 </div>
 </div>
@@ -304,6 +331,8 @@ Protected Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The view scale at Fit in logical pixels per scene unit; 1 before a fit and without bounds. </p>
+
 </div>
 </div>
 <a id="aee9647a6c31887862f82e0b18b65b610" name="aee9647a6c31887862f82e0b18b65b610"></a>
@@ -320,6 +349,7 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fits the view to bounds in scene coordinates, with 24 logical pixels of padding on each side, and makes it the scene rectangle. Empty bounds reset the view to scale 1 around the origin. </p>
 
 </div>
 </div>
@@ -337,6 +367,8 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Fits the view, as <a class="el" href="#aee9647a6c31887862f82e0b18b65b610">fitToBounds()</a> does, to the ends of the track lines and connections in the scene. </p>
 
 </div>
 </div>
@@ -363,6 +395,8 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>A mouse button was released over the view. </p>
+
 </div>
 </div>
 <a id="af1efa7710811d8837e43eff52971cd3a" name="af1efa7710811d8837e43eff52971cd3a"></a>
@@ -387,6 +421,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The largest zoom ratio. </p>
 
 </div>
 </div>
@@ -413,6 +449,8 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Hands the press to QGraphicsView. </p>
+
 </div>
 </div>
 <a id="ac364c881dac18f0c3efc98501b2b5d06" name="ac364c881dac18f0c3efc98501b2b5d06"></a>
@@ -437,6 +475,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Hands the release to QGraphicsView and emits <a class="el" href="#a56b38d1a10617499bcbed678d3feb7ff" title="A mouse button was released over the view.">interactionFinished()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -468,6 +508,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The playback profiler began its measurement after a paint. </p>
+
 </div>
 </div>
 <a id="acb45e6e5ce7165015e76b75e75c68814" name="acb45e6e5ce7165015e76b75e75c68814"></a>
@@ -492,6 +534,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Keeps a view at Fit fitted to the new size, and keeps the zoom ratio and the centre of any other view. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -526,6 +570,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Records the new centre and emits <a class="el" href="#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed.">viewportChanged()</a>, except while the view moves itself. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -566,6 +612,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The paint that <a class="el" href="#aae84faaa3bcf8d62a6422a798e4dd96c">armTimingPaint()</a> waited for has finished, elapsedNanoseconds after the call. </p>
+
 </div>
 </div>
 <a id="a6f153a2e962a6bd7b823bc37585d25f0" name="a6f153a2e962a6bd7b823bc37585d25f0"></a>
@@ -582,6 +630,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The bounds in scene coordinates of the last fit. </p>
 
 </div>
 </div>
@@ -608,6 +658,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The centre or the scale of the view changed. </p>
+
 </div>
 </div>
 <a id="a14b006303865e0c9fa150ab23b2dbcf4" name="a14b006303865e0c9fa150ab23b2dbcf4"></a>
@@ -632,6 +684,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Zooms on a pinch gesture, and times the paint of the viewport for the playback profiler and for <a class="el" href="#aae84faaa3bcf8d62a6422a798e4dd96c">armTimingPaint()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -662,6 +715,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A scroll in pixels pans the view. A wheel step zooms by 1.15 per notch of 120 units about the pointer. With Control held, QGraphicsView handles the wheel. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -688,6 +742,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Multiplies the zoom ratio by factor, kept between 1 and <a class="el" href="#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio.">maximumZoomRatio()</a>. viewportAnchor, in logical pixels of the viewport, stays over the same scene point; a negative coordinate means the centre of the viewport. Returns whether the zoom changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -710,6 +765,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The zoom ratio as the view shows it: "Fit", or the ratio with an "x", such as "2x" or "2.5x". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -732,6 +789,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The view scale divided by <a class="el" href="#aa803d9a8c820e98d861d7ae15ce44231" title="The view scale at Fit in logical pixels per scene unit; 1 before a fit and without bounds.">fittedScale()</a>: 1 at Fit, at most <a class="el" href="#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio.">maximumZoomRatio()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -1,6 +1,6 @@
 <map id="StationOverlayItem::paint" name="StationOverlayItem::paint">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,155,87"/>
-<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a68d5d0899e5551d3adf68241a3bd819b" title=" " alt="" coords="203,5,352,45"/>
+<area shape="rect" id="Node000001" title="Draws the mark and the label; a scene decoration draws nothing." alt="" coords="5,47,155,87"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a68d5d0899e5551d3adf68241a3bd819b" title="The label is drawn." alt="" coords="203,5,352,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,48,188,41,190,46,155,54"/>
 <area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" title=" " alt="" coords="210,94,345,119"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,79,201,88,200,94,154,84"/>

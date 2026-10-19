@@ -1,5 +1,5 @@
 <map id="TrainBadgeItem::boundingRect" name="TrainBadgeItem::boundingRect">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,227,31"/>
-<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a1219a7b09ea494dcb15de7eee9487ffd" title=" " alt="" coords="275,5,476,31"/>
+<area shape="rect" id="Node000001" title="The badge with a margin of 1 logical pixel." alt="" coords="5,5,227,31"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a1219a7b09ea494dcb15de7eee9487ffd" title="The badge, 8 logical pixels to the right of its position and 8 above it." alt="" coords="275,5,476,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,15,261,15,261,21,227,21"/>
 </map>

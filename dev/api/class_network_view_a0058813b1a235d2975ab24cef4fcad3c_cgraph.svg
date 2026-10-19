@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Records the new centre and emits viewportChanged(), except while the view moves itself.">
 <polygon fill="#999999" stroke="#666666" points="170,-19 0,-19 0,0 170,0 170,-19"/>
 <text text-anchor="middle" x="85" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::scrollContentsBy</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title="The centre or the scale of the view changed.">
 <polygon fill="white" stroke="#666666" points="379,-19 206,-19 206,0 379,0 379,-19"/>
 <text text-anchor="middle" x="292.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::viewportChanged</text>
 </a>

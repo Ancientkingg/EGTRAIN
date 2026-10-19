@@ -1,9 +1,9 @@
 <map id="FollowCamera::FollowCamera" name="FollowCamera::FollowCamera">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,221,80"/>
-<area shape="rect" id="Node000002" href="$class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" title=" " alt="" coords="309,5,460,31"/>
+<area shape="rect" id="Node000002" href="$class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and stops the timer." alt="" coords="309,5,460,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,52,300,31,301,36,184,57"/>
-<area shape="rect" id="Node000003" href="$class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" title=" " alt="" coords="311,55,458,80"/>
+<area shape="rect" id="Node000003" href="$class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" title="One step of the glide. The timer calls it; tests call it with a clock set by setClock()." alt="" coords="311,55,458,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,65,297,65,297,70,222,70"/>
-<area shape="rect" id="Node000004" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title=" " alt="" coords="269,104,500,129"/>
+<area shape="rect" id="Node000004" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed." alt="" coords="269,104,500,129"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,77,301,99,300,104,183,83"/>
 </map>

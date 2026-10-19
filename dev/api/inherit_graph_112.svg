@@ -20,7 +20,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:href="class_connection_item.html" target="_top" xlink:title=" ">
+<g id="a_Node000001"><a xlink:href="class_connection_item.html" target="_top" xlink:title="The line of a connection between two track lines, in scene coordinates.">
 <polygon fill="white" stroke="#666666" points="240,-56 146,-56 146,-37 240,-37 240,-56"/>
 <text text-anchor="middle" x="193" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">ConnectionItem</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_track_line_item.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_track_line_item.html" target="_top" xlink:title="The line of an arc of a track line, in scene coordinates.">
 <polygon fill="white" stroke="#666666" points="235.5,-19 150.5,-19 150.5,0 235.5,0 235.5,-19"/>
 <text text-anchor="middle" x="193" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLineItem</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_virtual_arc_item.html" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_virtual_arc_item.html" target="_top" xlink:title="A track line drawn as two lines, firstLine and secondLine, with one click target over both.">
 <polygon fill="white" stroke="#666666" points="363,-19 276,-19 276,0 363,0 363,-19"/>
 <text text-anchor="middle" x="319.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">VirtualArcItem</text>
 </a>

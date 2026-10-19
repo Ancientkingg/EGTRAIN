@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#afd53a492910276319c68e115c587bc54" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#afd53a492910276319c68e115c587bc54" target="_top" xlink:title="The number of platforms of the station.">
 <polygon fill="white" stroke="#666666" points="260,-30 148,-30 148,0 260,0 260,-30"/>
 <text text-anchor="start" x="156" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="204" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::platformCount</text>

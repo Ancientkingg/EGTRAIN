@@ -113,15 +113,22 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_preview
 </div><!--header-->
 <div class="contents">
 
+<p>The station and the platform that a node of the preview belongs to.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_network_presenter_8h_source.html">graphics/NetworkPresenter.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a466cdf31d0437b0e9ba1c9359b8375f2" id="r_a466cdf31d0437b0e9ba1c9359b8375f2"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a466cdf31d0437b0e9ba1c9359b8375f2">stationId</a></td></tr>
+<tr class="memdesc:a466cdf31d0437b0e9ba1c9359b8375f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the station.  <br /></td></tr>
 <tr class="memitem:a4099c07da145c7007e8a16de70974ee3" id="r_a4099c07da145c7007e8a16de70974ee3"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4099c07da145c7007e8a16de70974ee3">name</a></td></tr>
+<tr class="memdesc:a4099c07da145c7007e8a16de70974ee3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the station, or its id when it has no name.  <br /></td></tr>
 <tr class="memitem:a316ba47135e84e544e47ae25a6d00c39" id="r_a316ba47135e84e544e47ae25a6d00c39"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a316ba47135e84e544e47ae25a6d00c39">platformId</a></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The station and the platform that a node of the preview belongs to. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a4099c07da145c7007e8a16de70974ee3" name="a4099c07da145c7007e8a16de70974ee3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4099c07da145c7007e8a16de70974ee3">&#9670;&#160;</a></span>name</h2>
 
@@ -133,6 +140,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The name of the station, or its id when it has no name. </p>
 
 </div>
 </div>
@@ -147,6 +156,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The id of the platform; empty for a node that only a station without platforms takes by its position. Such a station keeps the platform id that an earlier station gave the node. </p>
 
 </div>
 </div>
@@ -161,6 +171,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The id of the station. </p>
 
 </div>
 </div>

@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_station_
 </div><!--header-->
 <div class="contents">
 
+<p>The square of a station node of a track line. It draws over track lines and connections.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_station_node_item_8h_source.html">graphics/items/StationNodeItem.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for StationNodeItem:</div>
@@ -133,16 +136,23 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab3e3843b061e5ccb81440d9047d6e035" id="r_ab3e3843b061e5ccb81440d9047d6e035"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ab3e3843b061e5ccb81440d9047d6e035">StationNodeItem</a> (const QRectF &amp;rect, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:ab3e3843b061e5ccb81440d9047d6e035"><td class="mdescLeft">&#160;</td><td class="mdescRight">A square in rect, in scene coordinates, without a node.  <br /></td></tr>
 <tr class="memitem:a58fcd9d46ad7f584310eb46110901f7c" id="r_a58fcd9d46ad7f584310eb46110901f7c"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a58fcd9d46ad7f584310eb46110901f7c">~StationNodeItem</a> () override</td></tr>
 <tr class="memitem:ae0ec3c745572424eb76865e8368cb02f" id="r_ae0ec3c745572424eb76865e8368cb02f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae0ec3c745572424eb76865e8368cb02f">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
+<tr class="memdesc:ae0ec3c745572424eb76865e8368cb02f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the square with the pen and the brush of the item.  <br /></td></tr>
 <tr class="memitem:a773c96fd2f065d29b384cf02d5c5b0cc" id="r_a773c96fd2f065d29b384cf02d5c5b0cc"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a773c96fd2f065d29b384cf02d5c5b0cc">type</a> () const override</td></tr>
+<tr class="memdesc:a773c96fd2f065d29b384cf02d5c5b0cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a634750ebd986db1938afd485f6a801a7" id="r_a634750ebd986db1938afd485f6a801a7"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a634750ebd986db1938afd485f6a801a7">track</a></td></tr>
+<tr class="memdesc:a634750ebd986db1938afd485f6a801a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the node in the run; -1 in the preview.  <br /></td></tr>
 <tr class="memitem:adb7c249e0c38045fa7ce5c34e2793e91" id="r_adb7c249e0c38045fa7ce5c34e2793e91"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a> *&#160;</td><td class="memItemRight"><a class="el" href="#adb7c249e0c38045fa7ce5c34e2793e91">node</a></td></tr>
+<tr class="memdesc:adb7c249e0c38045fa7ce5c34e2793e91"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node of the run, which belongs to the run; null in the preview.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The square of a station node of a track line. It draws over track lines and connections. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="adb5bfd7354a82560d043057d959a1980" name="adb5bfd7354a82560d043057d959a1980"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adb5bfd7354a82560d043057d959a1980">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -155,7 +165,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="adb5bfd7354a82560d043057d959a1980afb6ee03302fdec043cedfbf6afa4c2dd" name="adb5bfd7354a82560d043057d959a1980afb6ee03302fdec043cedfbf6afa4c2dd"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="adb5bfd7354a82560d043057d959a1980afb6ee03302fdec043cedfbf6afa4c2dd" name="adb5bfd7354a82560d043057d959a1980afb6ee03302fdec043cedfbf6afa4c2dd"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -179,6 +190,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A square in rect, in scene coordinates, without a node. </p>
 
 </div>
 </div>
@@ -240,6 +253,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Draws the square with the pen and the brush of the item. </p>
+
 </div>
 </div>
 <a id="a773c96fd2f065d29b384cf02d5c5b0cc" name="a773c96fd2f065d29b384cf02d5c5b0cc"></a>
@@ -265,6 +280,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -280,6 +297,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The node of the run, which belongs to the run; null in the preview. </p>
+
 </div>
 </div>
 <a id="a634750ebd986db1938afd485f6a801a7" name="a634750ebd986db1938afd485f6a801a7"></a>
@@ -293,6 +312,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The index of the track line of the node in the run; -1 in the preview. </p>
 
 </div>
 </div>

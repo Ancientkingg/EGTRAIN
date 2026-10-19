@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train_bo
 </div><!--header-->
 <div class="contents">
 
+<p>The body of one wagon of a train, a polygon in scene coordinates.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_train_body_item_8h_source.html">graphics/items/TrainBodyItem.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for TrainBodyItem:</div>
@@ -133,22 +136,31 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aeeb3bbb085b5553d6f7a6c74f706c208" id="r_aeeb3bbb085b5553d6f7a6c74f706c208"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aeeb3bbb085b5553d6f7a6c74f706c208">TrainBodyItem</a> (const QPolygonF &amp;polygon, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:aeeb3bbb085b5553d6f7a6c74f706c208"><td class="mdescLeft">&#160;</td><td class="mdescRight">A body with the shape of polygon and train index -1.  <br /></td></tr>
 <tr class="memitem:aa5931f0aaea79bda09a68d502c56ba05" id="r_aa5931f0aaea79bda09a68d502c56ba05"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa5931f0aaea79bda09a68d502c56ba05">~TrainBodyItem</a> () override</td></tr>
 <tr class="memitem:ae1ef13e9ad37810da87bee0a74721d99" id="r_ae1ef13e9ad37810da87bee0a74721d99"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae1ef13e9ad37810da87bee0a74721d99">setViewScale</a> (qreal viewScale)</td></tr>
 <tr class="memitem:a52c3fd19af16d33c9e017bdb17301a2a" id="r_a52c3fd19af16d33c9e017bdb17301a2a"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a52c3fd19af16d33c9e017bdb17301a2a">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:a52c3fd19af16d33c9e017bdb17301a2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The polygon, with the stroke of a body that is too thin on screen.  <br /></td></tr>
 <tr class="memitem:a1b28a578f22d4b108fdc4d93f2fa9985" id="r_a1b28a578f22d4b108fdc4d93f2fa9985"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#a1b28a578f22d4b108fdc4d93f2fa9985">shape</a> () const override</td></tr>
+<tr class="memdesc:a1b28a578f22d4b108fdc4d93f2fa9985"><td class="mdescLeft">&#160;</td><td class="mdescRight">The polygon, with the stroke of a body that is too thin on screen.  <br /></td></tr>
 <tr class="memitem:a17dc1817d42455c7dd41c074a2cd07cf" id="r_a17dc1817d42455c7dd41c074a2cd07cf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a17dc1817d42455c7dd41c074a2cd07cf">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
+<tr class="memdesc:a17dc1817d42455c7dd41c074a2cd07cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the stroke of a body that is too thin on screen, then the polygon with the pen and the brush.  <br /></td></tr>
 <tr class="memitem:a0a3b0fd809bdbb1d5b5a45b2aacf1b1b" id="r_a0a3b0fd809bdbb1d5b5a45b2aacf1b1b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a0a3b0fd809bdbb1d5b5a45b2aacf1b1b">type</a> () const override</td></tr>
+<tr class="memdesc:a0a3b0fd809bdbb1d5b5a45b2aacf1b1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:afd3aa6aeedcb4e7a2d6f652e1fdef9b4" id="r_afd3aa6aeedcb4e7a2d6f652e1fdef9b4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afd3aa6aeedcb4e7a2d6f652e1fdef9b4">index</a></td></tr>
+<tr class="memdesc:afd3aa6aeedcb4e7a2d6f652e1fdef9b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the train in the run; -1 until it is set. A train ID is not unique, the index is.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:abf2b584ee8de3940350ed337fd453192" id="r_abf2b584ee8de3940350ed337fd453192"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#abf2b584ee8de3940350ed337fd453192">MinPixels</a> = 8.0</td></tr>
+<tr class="memdesc:abf2b584ee8de3940350ed337fd453192"><td class="mdescLeft">&#160;</td><td class="mdescRight">Narrowest on-screen size, in logical pixels, of a body that is still drawn as a mark.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The body of one wagon of a train, a polygon in scene coordinates. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a7dbcfb48121c6c17962607cb871e60a2" name="a7dbcfb48121c6c17962607cb871e60a2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7dbcfb48121c6c17962607cb871e60a2">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -161,7 +173,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7dbcfb48121c6c17962607cb871e60a2ad8dd0b93649ee4021f2e0896c9d912c6" name="a7dbcfb48121c6c17962607cb871e60a2ad8dd0b93649ee4021f2e0896c9d912c6"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7dbcfb48121c6c17962607cb871e60a2ad8dd0b93649ee4021f2e0896c9d912c6" name="a7dbcfb48121c6c17962607cb871e60a2ad8dd0b93649ee4021f2e0896c9d912c6"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -185,6 +198,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A body with the shape of polygon and train index -1. </p>
 
 </div>
 </div>
@@ -237,6 +252,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The polygon, with the stroke of a body that is too thin on screen. </p>
+
 </div>
 </div>
 <a id="a17dc1817d42455c7dd41c074a2cd07cf" name="a17dc1817d42455c7dd41c074a2cd07cf"></a>
@@ -271,6 +288,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Draws the stroke of a body that is too thin on screen, then the polygon with the pen and the brush. </p>
+
 </div>
 </div>
 <a id="ae1ef13e9ad37810da87bee0a74721d99" name="ae1ef13e9ad37810da87bee0a74721d99"></a>
@@ -287,6 +306,7 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A body keeps its shape and fill at every zoom. When the view shows it, with its outline, thinner than MinPixels, it is stroked in its fill colour to that thickness, and the stroke is part of the bounding rect and the shape that a click hits. viewScale is the logical pixels per scene unit of the view. </p>
 
 </div>
 </div>
@@ -313,6 +333,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The polygon, with the stroke of a body that is too thin on screen. </p>
+
 </div>
 </div>
 <a id="a0a3b0fd809bdbb1d5b5a45b2aacf1b1b" name="a0a3b0fd809bdbb1d5b5a45b2aacf1b1b"></a>
@@ -338,6 +360,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -352,6 +376,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The index of the train in the run; -1 until it is set. A train ID is not unique, the index is. </p>
 
 </div>
 </div>
@@ -374,6 +400,8 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Narrowest on-screen size, in logical pixels, of a body that is still drawn as a mark. </p>
 
 </div>
 </div>

@@ -128,22 +128,32 @@ Include dependency graph for VisualPolish.cpp:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a805626f8aa909690d0870ba92fabc89a" id="r_a805626f8aa909690d0870ba92fabc89a"><td class="memItemLeft"><a class="el" href="struct_track_visual.html">TrackVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a805626f8aa909690d0870ba92fabc89a">freeTrackVisual</a> ()</td></tr>
+<tr class="memdesc:a805626f8aa909690d0870ba92fabc89a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a free track: that of a track below 120 km/h.  <br /></td></tr>
 <tr class="memitem:a9029f888d43bb9214a40cebfe2302111" id="r_a9029f888d43bb9214a40cebfe2302111"><td class="memItemLeft"><a class="el" href="struct_track_visual.html">TrackVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9029f888d43bb9214a40cebfe2302111">classifyTrackSpeed</a> (double speedLimitMetersPerSecond)</td></tr>
 <tr class="memitem:a9544660681942022e65ce6f609cf583a" id="r_a9544660681942022e65ce6f609cf583a"><td class="memItemLeft"><a class="el" href="struct_track_state_visual.html">TrackStateVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9544660681942022e65ce6f609cf583a">classifyTrackState</a> (<a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
+<tr class="memdesc:a9544660681942022e65ce6f609cf583a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a track state. Free has a transparent colour, a width of 0 and no pen.  <br /></td></tr>
 <tr class="memitem:a1116968bc73a190cd5f022eff464c95c" id="r_a1116968bc73a190cd5f022eff464c95c"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a70e426fbeec6dc2d32748df8f51efe8d">TrainBadgeShape</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1116968bc73a190cd5f022eff464c95c">classifyTrainBadgeShape</a> (<a class="el" href="_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97">TrainVisualKind</a> kind)</td></tr>
+<tr class="memdesc:a1116968bc73a190cd5f022eff464c95c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others.  <br /></td></tr>
 <tr class="memitem:a4d53d9a2a4bde8099d883e9a982680c1" id="r_a4d53d9a2a4bde8099d883e9a982680c1"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4d53d9a2a4bde8099d883e9a982680c1">trainBadgeCornerRadius</a> (<a class="el" href="_visual_polish_8h.html#a70e426fbeec6dc2d32748df8f51efe8d">TrainBadgeShape</a> shape)</td></tr>
+<tr class="memdesc:a4d53d9a2a4bde8099d883e9a982680c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The corner radius of a badge shape in pixels.  <br /></td></tr>
 <tr class="memitem:a436626af4d350c743238ab619ecd6066" id="r_a436626af4d350c743238ab619ecd6066"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a436626af4d350c743238ab619ecd6066">trackStatePriority</a> (<a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
 <tr class="memitem:aff8e3ad42eb21b9d8861e3013901ea7c" id="r_aff8e3ad42eb21b9d8861e3013901ea7c"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#aff8e3ad42eb21b9d8861e3013901ea7c">defaultTrainFill</a> ()</td></tr>
+<tr class="memdesc:aff8e3ad42eb21b9d8861e3013901ea7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The fill of a train without a service colour: RGB (235, 210, 55).  <br /></td></tr>
 <tr class="memitem:a0ca541531be69ea00b2db71455ba3104" id="r_a0ca541531be69ea00b2db71455ba3104"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#a0ca541531be69ea00b2db71455ba3104">defaultTrainOutline</a> ()</td></tr>
+<tr class="memdesc:a0ca541531be69ea00b2db71455ba3104"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outline of a train without a service colour: RGB (110, 90, 20).  <br /></td></tr>
 <tr class="memitem:a1cc87232a45c91e955c2e5a7220ae087" id="r_a1cc87232a45c91e955c2e5a7220ae087"><td class="memItemLeft"><a class="el" href="struct_train_visual.html">TrainVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1cc87232a45c91e955c2e5a7220ae087">classifyTrainType</a> (const std::string &amp;type, const std::string &amp;description)</td></tr>
 <tr class="memitem:a25b564e13629edc3120f6ca6f58a72db" id="r_a25b564e13629edc3120f6ca6f58a72db"><td class="memItemLeft"><a class="el" href="struct_train_visual.html">TrainVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a25b564e13629edc3120f6ca6f58a72db">resolveTrainVisual</a> (const std::string &amp;type, const std::string &amp;description, const QColor &amp;serviceColor)</td></tr>
 <tr class="memitem:a2511e34f95b2de260988d67c627468bf" id="r_a2511e34f95b2de260988d67c627468bf"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a26df8324994d4726d94931837161a573">SignalCueKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2511e34f95b2de260988d67c627468bf">classifySignalCue</a> (int code)</td></tr>
+<tr class="memdesc:a2511e34f95b2de260988d67c627468bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of a signal head for an aspect code, as <a class="el" href="_visual_polish_8h.html#a26df8324994d4726d94931837161a573" title="The state that a signal head shows besides its colour.">SignalCueKind</a> lists it.  <br /></td></tr>
 <tr class="memitem:ac90f4bc2aaf513636a1b81df1096bc61" id="r_ac90f4bc2aaf513636a1b81df1096bc61"><td class="memItemLeft"><a class="el" href="struct_signal_visual.html">SignalVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac90f4bc2aaf513636a1b81df1096bc61">classifySignalAspect</a> (int code)</td></tr>
 <tr class="memitem:a9d91a4372e0f0f446b48ea6c6ea4aace" id="r_a9d91a4372e0f0f446b48ea6c6ea4aace"><td class="memItemLeft"><a class="el" href="struct_station_visual.html">StationVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9d91a4372e0f0f446b48ea6c6ea4aace">classifyStation</a> (bool hasPlatformId, int connectionCount)</td></tr>
+<tr class="memdesc:a9d91a4372e0f0f446b48ea6c6ea4aace"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise.  <br /></td></tr>
 <tr class="memitem:acd5376d75de6b86816b9fbc03adf30cc" id="r_acd5376d75de6b86816b9fbc03adf30cc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark</a> (QPainter *painter, const QRectF &amp;frame, <a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, const QColor &amp;fill, const QColor &amp;halo, qreal haloWidth)</td></tr>
 <tr class="memitem:aedc5fcbf783bda97fca3dc74d3a5098b" id="r_aedc5fcbf783bda97fca3dc74d3a5098b"><td class="memItemLeft">QIcon&#160;</td><td class="memItemRight"><a class="el" href="#aedc5fcbf783bda97fca3dc74d3a5098b">stationMarkIcon</a> (<a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls)</td></tr>
+<tr class="memdesc:aedc5fcbf783bda97fca3dc74d3a5098b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark in its dark variant for light surfaces, at 16 and 32 pixels.  <br /></td></tr>
 <tr class="memitem:a390edc9c1e6f62d5b3ed847698920d13" id="r_a390edc9c1e6f62d5b3ed847698920d13"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel</a> (int delayMs)</td></tr>
 <tr class="memitem:aa804be580241cfa9cdccbe40f94779f4" id="r_aa804be580241cfa9cdccbe40f94779f4"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa804be580241cfa9cdccbe40f94779f4">simulationSpeedMode</a> (int delayMs)</td></tr>
+<tr class="memdesc:aa804be580241cfa9cdccbe40f94779f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of <a class="el" href="_visual_polish_8h.html#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel()</a> followed by " real time", or "Fastest".  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="ac90f4bc2aaf513636a1b81df1096bc61" name="ac90f4bc2aaf513636a1b81df1096bc61"></a>
@@ -160,6 +170,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The lamp colour, state and icon of a signal head for an aspect code: red, yellow or green by <a class="el" href="_visual_polish_8h.html#a26df8324994d4726d94931837161a573" title="The state that a signal head shows besides its colour.">SignalCueKind</a>, grey RGB (128, 128, 128) otherwise. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -182,6 +193,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The state of a signal head for an aspect code, as <a class="el" href="_visual_polish_8h.html#a26df8324994d4726d94931837161a573" title="The state that a signal head shows besides its colour.">SignalCueKind</a> lists it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -208,6 +221,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -230,6 +245,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The look of a track by its speed limit in m/s: blue and 4 pixels wide from 200 km/h, light grey and 3 pixels wide from 120 km/h, grey and 2 pixels wide below. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -252,6 +268,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The look of a track state. Free has a transparent colour, a width of 0 and no pen. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -274,6 +292,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -300,6 +320,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The kind, badge shape and icon of a train from substrings of its type and description, ignoring case and tested in the order that the <a class="el" href="_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97">TrainVisualKind</a> comment gives, with the default colours. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -322,6 +343,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The fill of a train without a service colour: RGB (235, 210, 55). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -344,6 +367,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The outline of a train without a service colour: RGB (110, 90, 20). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -366,6 +391,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The look of a free track: that of a track below 120 km/h. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -412,6 +439,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Paints the mark of a station class centred in frame: a bar for a major station, a disc for a station and a ring for a halt. A halo of haloWidth, in the units of the painter, surrounds it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -439,10 +467,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QColor &amp;</td>          <td class="paramname"><span class="paramname"><em>serviceColor</em></span>&#160;)</td>
+          <td class="paramtype">const QColor &amp;</td>          <td class="paramname"><span class="paramname"><em>serviceColor</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QColor()</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><a class="el" href="_visual_polish_8h.html#a1cc87232a45c91e955c2e5a7220ae087">classifyTrainType()</a>, with the fill set to serviceColor and the outline to a shade of it half as bright when serviceColor is valid. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -465,6 +494,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The playback speed for a delay of delayMs milliseconds per simulated second, as a factor of real time: 1000 / delayMs with an "x", whole from 10x and with one decimal below. "Fastest" for a delay of 0 or less. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -487,6 +517,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The label of <a class="el" href="_visual_polish_8h.html#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel()</a> followed by " real time", or "Fastest". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -509,6 +541,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The mark in its dark variant for light surfaces, at 16 and 32 pixels. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -531,6 +565,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The rank of a state when a track line has more than one; the highest wins: Blocked 3, Occupied 2, Prepared 1, Free 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -553,6 +588,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The corner radius of a badge shape in pixels. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

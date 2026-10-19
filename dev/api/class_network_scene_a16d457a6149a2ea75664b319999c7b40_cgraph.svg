@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_scene.html#a6b490501e98c222100cd704a131635de" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_scene.html#a6b490501e98c222100cd704a131635de" target="_top" xlink:title="A click on empty canvas clears the selection.">
 <polygon fill="white" stroke="#666666" points="375,-24.5 201,-24.5 201,-5.5 375,-5.5 375,-24.5"/>
 <text text-anchor="middle" x="288" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::DisableHighlight</text>
 </a>

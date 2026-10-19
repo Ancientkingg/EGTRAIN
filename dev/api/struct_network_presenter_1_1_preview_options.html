@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_network
 </div><!--header-->
 <div class="contents">
 
+<p>What the preview needs to know besides the model.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_network_presenter_8h_source.html">graphics/NetworkPresenter.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -120,9 +123,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a8c7b476491da05d2e61a10043c421cad" id="r_a8c7b476491da05d2e61a10043c421cad"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8c7b476491da05d2e61a10043c421cad">selectedFacet</a></td></tr>
 <tr class="memitem:a6d2412b2a73da97ccbffc555829b0645" id="r_a6d2412b2a73da97ccbffc555829b0645"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6d2412b2a73da97ccbffc555829b0645">selectedId</a></td></tr>
 <tr class="memitem:aa983aa6e83fff6a211760fe8137111f1" id="r_aa983aa6e83fff6a211760fe8137111f1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa983aa6e83fff6a211760fe8137111f1">markSelection</a> = false</td></tr>
+<tr class="memdesc:aa983aa6e83fff6a211760fe8137111f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The infrastructure panel is shown, so the arc or connection that it selects is marked.  <br /></td></tr>
 <tr class="memitem:a29bcd6d88e787c27bfa644a412620ce7" id="r_a29bcd6d88e787c27bfa644a412620ce7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a29bcd6d88e787c27bfa644a412620ce7">platformBars</a> = false</td></tr>
+<tr class="memdesc:a29bcd6d88e787c27bfa644a412620ce7"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station node gets a platform bar.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the preview needs to know besides the model. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aa983aa6e83fff6a211760fe8137111f1" name="aa983aa6e83fff6a211760fe8137111f1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa983aa6e83fff6a211760fe8137111f1">&#9670;&#160;</a></span>markSelection</h2>
 
@@ -134,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The infrastructure panel is shown, so the arc or connection that it selects is marked. </p>
 
 </div>
 </div>
@@ -149,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>A station node gets a platform bar. </p>
+
 </div>
 </div>
 <a id="a8c7b476491da05d2e61a10043c421cad" name="a8c7b476491da05d2e61a10043c421cad"></a>
@@ -162,6 +173,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The facet of the row that the infrastructure panel selects: "tracks", "nodes", "arcs", "blocks", "connections", "stations", "platforms" or "routes". Empty without one. </p>
 
 </div>
 </div>
@@ -176,6 +188,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The id of that row; for a platform the station id and the platform id with a newline between them. Empty without one. </p>
 
 </div>
 </div>

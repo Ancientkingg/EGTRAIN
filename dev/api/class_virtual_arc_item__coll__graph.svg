@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A track line drawn as two lines, firstLine and secondLine, with one click target over both.">
 <polygon fill="#999999" stroke="#666666" points="128.5,-19 41.5,-19 41.5,0 128.5,0 128.5,-19"/>
 <text text-anchor="middle" x="85" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">VirtualArcItem</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_track_line_item.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_track_line_item.html" target="_top" xlink:title="The line of an arc of a track line, in scene coordinates.">
 <polygon fill="white" stroke="#666666" points="127.5,-75 42.5,-75 42.5,-56 127.5,-56 127.5,-75"/>
 <text text-anchor="middle" x="85" y="-63" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLineItem</text>
 </a>

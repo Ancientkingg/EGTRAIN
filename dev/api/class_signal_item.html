@@ -133,33 +133,54 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acdbab8d0ec1cdecec72538d925a399c5" id="r_acdbab8d0ec1cdecec72538d925a399c5"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#acdbab8d0ec1cdecec72538d925a399c5">SignalItem</a> (const QRectF &amp;rect, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:acdbab8d0ec1cdecec72538d925a399c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A head in rect with aspect code 180, on no track line and at no position.  <br /></td></tr>
 <tr class="memitem:a5b660c88be34fa6c5ad3d89beacde131" id="r_a5b660c88be34fa6c5ad3d89beacde131"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a5b660c88be34fa6c5ad3d89beacde131">~SignalItem</a> () override</td></tr>
 <tr class="memitem:af7f57fe8d66c5ada8f59a96694a38b21" id="r_af7f57fe8d66c5ada8f59a96694a38b21"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af7f57fe8d66c5ada8f59a96694a38b21">setAspectCode</a> (int code)</td></tr>
+<tr class="memdesc:af7f57fe8d66c5ada8f59a96694a38b21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the aspect code of the head, which gives the colour of its lamp through <a class="el" href="_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61">classifySignalAspect()</a>.  <br /></td></tr>
 <tr class="memitem:acce94295f480f3ab855b01fc5e662bf3" id="r_acce94295f480f3ab855b01fc5e662bf3"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#acce94295f480f3ab855b01fc5e662bf3">aspectCode</a> () const</td></tr>
+<tr class="memdesc:acce94295f480f3ab855b01fc5e662bf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The aspect code of the head.  <br /></td></tr>
 <tr class="memitem:ac256dc99b317575fac2036df2251c99b" id="r_ac256dc99b317575fac2036df2251c99b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac256dc99b317575fac2036df2251c99b">setFailed</a> (bool failed)</td></tr>
+<tr class="memdesc:ac256dc99b317575fac2036df2251c99b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A failed signal is a red lamp with a cross, whatever its code is.  <br /></td></tr>
 <tr class="memitem:a166671bcb87bb1c4a3cceef6f2920596" id="r_a166671bcb87bb1c4a3cceef6f2920596"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a166671bcb87bb1c4a3cceef6f2920596">failed</a> () const</td></tr>
+<tr class="memdesc:a166671bcb87bb1c4a3cceef6f2920596"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal has failed.  <br /></td></tr>
 <tr class="memitem:a52235a7322281fe115db5923312e1bee" id="r_a52235a7322281fe115db5923312e1bee"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a52235a7322281fe115db5923312e1bee">setReversedDirection</a> (bool reversed)</td></tr>
+<tr class="memdesc:a52235a7322281fe115db5923312e1bee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the direction that the head is for.  <br /></td></tr>
 <tr class="memitem:a0dd23e201d31c99497f3da7906f718db" id="r_a0dd23e201d31c99497f3da7906f718db"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0dd23e201d31c99497f3da7906f718db">setGroupedSignals</a> (const QVector&lt; QPair&lt; int, bool &gt; &gt; &amp;aspects)</td></tr>
 <tr class="memitem:a97c27f04f12868e290a5cba4358c6896" id="r_a97c27f04f12868e290a5cba4358c6896"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a97c27f04f12868e290a5cba4358c6896">groupedSignalCount</a> () const</td></tr>
+<tr class="memdesc:a97c27f04f12868e290a5cba4358c6896"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of heads grouped with this one.  <br /></td></tr>
 <tr class="memitem:aeb900cc6eb8a30de9f488edb7813033b" id="r_aeb900cc6eb8a30de9f488edb7813033b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aeb900cc6eb8a30de9f488edb7813033b">setInspectionIdentity</a> (const QString &amp;identity)</td></tr>
+<tr class="memdesc:aeb900cc6eb8a30de9f488edb7813033b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the text that names the head in its tooltip, the inspector and Find.  <br /></td></tr>
 <tr class="memitem:a350a640edbd76e6d682205a87c8ddc2e" id="r_a350a640edbd76e6d682205a87c8ddc2e"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a350a640edbd76e6d682205a87c8ddc2e">inspectionIdentity</a> () const</td></tr>
 <tr class="memitem:ade6af967c200f9c65471c79ba621807f" id="r_ade6af967c200f9c65471c79ba621807f"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#ade6af967c200f9c65471c79ba621807f">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:ade6af967c200f9c65471c79ba621807f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The head with a margin of 2 scene units.  <br /></td></tr>
 <tr class="memitem:a47969b04bc38f77f797863adc47d59a9" id="r_a47969b04bc38f77f797863adc47d59a9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a47969b04bc38f77f797863adc47d59a9">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
 <tr class="memitem:a5fab1f5130117b057d557a66cce2fc36" id="r_a5fab1f5130117b057d557a66cce2fc36"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a5fab1f5130117b057d557a66cce2fc36">type</a> () const override</td></tr>
+<tr class="memdesc:a5fab1f5130117b057d557a66cce2fc36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a91bcf34ddfe3eed73c3e1339fd38b9e4" id="r_a91bcf34ddfe3eed73c3e1339fd38b9e4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a91bcf34ddfe3eed73c3e1339fd38b9e4">trackID</a></td></tr>
+<tr class="memdesc:a91bcf34ddfe3eed73c3e1339fd38b9e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the signal in the run; -1 in the preview.  <br /></td></tr>
 <tr class="memitem:ac45bc3dbbbd01724617d3f687a53b773" id="r_ac45bc3dbbbd01724617d3f687a53b773"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac45bc3dbbbd01724617d3f687a53b773">X</a></td></tr>
+<tr class="memdesc:ac45bc3dbbbd01724617d3f687a53b773"><td class="mdescLeft">&#160;</td><td class="mdescRight">The position of the signal along its track line in kilometres; -1 until it is set.  <br /></td></tr>
 <tr class="memitem:ab0e8af97a9cb7aecc30af2fa4f1ce8dd" id="r_ab0e8af97a9cb7aecc30af2fa4f1ce8dd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab0e8af97a9cb7aecc30af2fa4f1ce8dd">sectionAheadId</a></td></tr>
+<tr class="memdesc:ab0e8af97a9cb7aecc30af2fa4f1ce8dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the block section ahead of the head in its direction; empty without one.  <br /></td></tr>
 <tr class="memitem:a2122d5543de2913397145a486edd26d6" id="r_a2122d5543de2913397145a486edd26d6"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2122d5543de2913397145a486edd26d6">sectionBehindId</a></td></tr>
+<tr class="memdesc:a2122d5543de2913397145a486edd26d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the block section behind the head; empty without one.  <br /></td></tr>
 <tr class="memitem:ade5daf5414baff4bf5664ab5df4cbfb2" id="r_ade5daf5414baff4bf5664ab5df4cbfb2"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ade5daf5414baff4bf5664ab5df4cbfb2">sectionAheadLength</a></td></tr>
+<tr class="memdesc:ade5daf5414baff4bf5664ab5df4cbfb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of the section ahead as the run gives it, a difference of positions in kilometres; 0 without one.  <br /></td></tr>
 <tr class="memitem:a92eed40c52ca34aecab30d2e5d39723f" id="r_a92eed40c52ca34aecab30d2e5d39723f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a92eed40c52ca34aecab30d2e5d39723f">sectionBehindLength</a></td></tr>
+<tr class="memdesc:a92eed40c52ca34aecab30d2e5d39723f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of the section behind, as for sectionAheadLength; 0 without one.  <br /></td></tr>
 <tr class="memitem:a5ee34baa5c412fd0e3913feb2e57b329" id="r_a5ee34baa5c412fd0e3913feb2e57b329"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a5ee34baa5c412fd0e3913feb2e57b329">sectionAheadTrackId</a></td></tr>
+<tr class="memdesc:a5ee34baa5c412fd0e3913feb2e57b329"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the section ahead; -1 without one.  <br /></td></tr>
 <tr class="memitem:a215c07d08fed9eeb7d524502a4280e1c" id="r_a215c07d08fed9eeb7d524502a4280e1c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a215c07d08fed9eeb7d524502a4280e1c">sectionBehindTrackId</a></td></tr>
+<tr class="memdesc:a215c07d08fed9eeb7d524502a4280e1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the section behind; -1 without one.  <br /></td></tr>
 <tr class="memitem:ad30dbdd21f76592e7a5eab17ddf8591b" id="r_ad30dbdd21f76592e7a5eab17ddf8591b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad30dbdd21f76592e7a5eab17ddf8591b">reversedDirection</a></td></tr>
+<tr class="memdesc:ad30dbdd21f76592e7a5eab17ddf8591b"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for the head of the reversed direction. The two heads of a signal have the same X.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour, and a mark for any state but Proceed, show the state of the aspect code. A transparent child of 12 by 12 logical pixels at its centre keeps it clickable when the head is smaller on screen. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a8d0c0b27ae98553facc59fc41ac26d66" name="a8d0c0b27ae98553facc59fc41ac26d66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8d0c0b27ae98553facc59fc41ac26d66">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -172,7 +193,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8d0c0b27ae98553facc59fc41ac26d66a05950f7107bd654a27ce2f04908585f7" name="a8d0c0b27ae98553facc59fc41ac26d66a05950f7107bd654a27ce2f04908585f7"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8d0c0b27ae98553facc59fc41ac26d66a05950f7107bd654a27ce2f04908585f7" name="a8d0c0b27ae98553facc59fc41ac26d66a05950f7107bd654a27ce2f04908585f7"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -196,6 +218,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A head in rect with aspect code 180, on no track line and at no position. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -245,6 +269,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The aspect code of the head. </p>
+
 </div>
 </div>
 <a id="ade6af967c200f9c65471c79ba621807f" name="ade6af967c200f9c65471c79ba621807f"></a>
@@ -269,6 +295,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The head with a margin of 2 scene units. </p>
 
 </div>
 </div>
@@ -295,6 +323,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The signal has failed. </p>
+
 </div>
 </div>
 <a id="a97c27f04f12868e290a5cba4358c6896" name="a97c27f04f12868e290a5cba4358c6896"></a>
@@ -320,6 +350,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The number of heads grouped with this one. </p>
+
 </div>
 </div>
 <a id="a350a640edbd76e6d682205a87c8ddc2e" name="a350a640edbd76e6d682205a87c8ddc2e"></a>
@@ -336,6 +368,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>That text, or without one a text of the track line, the position in kilometres and the sections ahead and behind. </p>
 
 </div>
 </div>
@@ -370,6 +403,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Draws the lamp and, when the head is at least 6 device pixels wide, the mark of a failed, Stop, Caution or unavailable head; Proceed has no mark. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -392,6 +426,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the aspect code of the head, which gives the colour of its lamp through <a class="el" href="_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61">classifySignalAspect()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -414,6 +450,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A failed signal is a red lamp with a cross, whatever its code is. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -436,6 +474,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the aspect codes and directions of the heads grouped with this one. <a class="el" href="#a47969b04bc38f77f797863adc47d59a9">paint()</a> does not draw them; the window clears the list. </p>
 
 </div>
 </div>
@@ -462,6 +501,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Sets the text that names the head in its tooltip, the inspector and Find. </p>
+
 </div>
 </div>
 <a id="a52235a7322281fe115db5923312e1bee" name="a52235a7322281fe115db5923312e1bee"></a>
@@ -478,6 +519,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the direction that the head is for. </p>
 
 </div>
 </div>
@@ -504,6 +547,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -519,6 +564,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True for the head of the reversed direction. The two heads of a signal have the same X. </p>
+
 </div>
 </div>
 <a id="ab0e8af97a9cb7aecc30af2fa4f1ce8dd" name="ab0e8af97a9cb7aecc30af2fa4f1ce8dd"></a>
@@ -532,6 +579,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The id of the block section ahead of the head in its direction; empty without one. </p>
 
 </div>
 </div>
@@ -547,6 +596,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The length of the section ahead as the run gives it, a difference of positions in kilometres; 0 without one. </p>
+
 </div>
 </div>
 <a id="a5ee34baa5c412fd0e3913feb2e57b329" name="a5ee34baa5c412fd0e3913feb2e57b329"></a>
@@ -560,6 +611,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The index of the track line of the section ahead; -1 without one. </p>
 
 </div>
 </div>
@@ -575,6 +628,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The id of the block section behind the head; empty without one. </p>
+
 </div>
 </div>
 <a id="a92eed40c52ca34aecab30d2e5d39723f" name="a92eed40c52ca34aecab30d2e5d39723f"></a>
@@ -588,6 +643,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The length of the section behind, as for sectionAheadLength; 0 without one. </p>
 
 </div>
 </div>
@@ -603,6 +660,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The index of the track line of the section behind; -1 without one. </p>
+
 </div>
 </div>
 <a id="a91bcf34ddfe3eed73c3e1339fd38b9e4" name="a91bcf34ddfe3eed73c3e1339fd38b9e4"></a>
@@ -617,6 +676,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The index of the track line of the signal in the run; -1 in the preview. </p>
+
 </div>
 </div>
 <a id="ac45bc3dbbbd01724617d3f687a53b773" name="ac45bc3dbbbd01724617d3f687a53b773"></a>
@@ -630,6 +691,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The position of the signal along its track line in kilometres; -1 until it is set. </p>
 
 </div>
 </div>

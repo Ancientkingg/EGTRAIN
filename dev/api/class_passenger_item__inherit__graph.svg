@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The icon of a passenger waiting on a platform. It draws over the platforms.">
 <polygon fill="#999999" stroke="#666666" points="107.5,-19 18.5,-19 18.5,0 107.5,0 107.5,-19"/>
 <text text-anchor="middle" x="63" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerItem</text>
 </a>

@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" target="_top" xlink:title="The playback profiler began its measurement after a paint.">
 <polygon fill="white" stroke="#666666" points="356,-153.5 194,-153.5 194,-123.5 356,-123.5 356,-153.5"/>
 <text text-anchor="start" x="202" y="-141.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::playbackProfile</text>
 <text text-anchor="middle" x="275" y="-130.5" font-family="Helvetica,sans-Serif" font-size="10.00">Began</text>
@@ -57,7 +57,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_network_view.html#ad6908933da4b5fadff421905542bbf48" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_network_view.html#ad6908933da4b5fadff421905542bbf48" target="_top" xlink:title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call.">
 <polygon fill="white" stroke="#666666" points="346.5,-105.5 203.5,-105.5 203.5,-75.5 346.5,-75.5 346.5,-105.5"/>
 <text text-anchor="start" x="211.5" y="-93.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::timingPaint</text>
 <text text-anchor="middle" x="275" y="-82.5" font-family="Helvetica,sans-Serif" font-size="10.00">Completed</text>
@@ -94,7 +94,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" target="_top" xlink:title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio().">
 <polygon fill="white" stroke="#666666" points="548.5,-19 408.5,-19 408.5,0 548.5,0 548.5,-19"/>
 <text text-anchor="middle" x="478.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::zoomRatio</text>
 </a>
@@ -112,7 +112,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_network_view.html#af1efa7710811d8837e43eff52971cd3a" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_network_view.html#af1efa7710811d8837e43eff52971cd3a" target="_top" xlink:title="The largest zoom ratio.">
 <polygon fill="white" stroke="#666666" points="767,-61.5 601,-61.5 601,-31.5 767,-31.5 767,-61.5"/>
 <text text-anchor="start" x="609" y="-49.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::maximumZoom</text>
 <text text-anchor="middle" x="684" y="-38.5" font-family="Helvetica,sans-Serif" font-size="10.00">Ratio</text>
@@ -131,7 +131,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title="The centre or the scale of the view changed.">
 <polygon fill="white" stroke="#666666" points="565,-56 392,-56 392,-37 565,-37 565,-56"/>
 <text text-anchor="middle" x="478.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::viewportChanged</text>
 </a>

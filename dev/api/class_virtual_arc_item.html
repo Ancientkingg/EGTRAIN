@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_virtual_
 </div><!--header-->
 <div class="contents">
 
+<p>A track line drawn as two lines, firstLine and secondLine, with one click target over both.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_virtual_arc_item_8h_source.html">graphics/items/VirtualArcItem.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for VirtualArcItem:</div>
@@ -128,20 +131,32 @@ Collaboration diagram for VirtualArcItem:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1c9b987a38271108cf6600377e939c32" id="r_a1c9b987a38271108cf6600377e939c32"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1c9b987a38271108cf6600377e939c32">VirtualArcItem</a> (const QLineF &amp;firstLine, const QLineF &amp;secondLine, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:a1c9b987a38271108cf6600377e939c32"><td class="mdescLeft">&#160;</td><td class="mdescRight">The two lines in scene coordinates. The click target joins the end of the first to the start of the second.  <br /></td></tr>
 <tr class="memitem:aa3154d6d58b1dccf384758dfc71982a8" id="r_aa3154d6d58b1dccf384758dfc71982a8"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa3154d6d58b1dccf384758dfc71982a8">~VirtualArcItem</a> () override</td></tr>
 <tr class="memitem:a87dead42e10320da23de8183e7cd6c11" id="r_a87dead42e10320da23de8183e7cd6c11"><td class="memItemLeft">const QLineF &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a87dead42e10320da23de8183e7cd6c11">secondPaintedLine</a> () const</td></tr>
+<tr class="memdesc:a87dead42e10320da23de8183e7cd6c11"><td class="mdescLeft">&#160;</td><td class="mdescRight">The second line; line() is the first.  <br /></td></tr>
 <tr class="memitem:aadf3ab4aafa763561fb97bccc0a5c08f" id="r_aadf3ab4aafa763561fb97bccc0a5c08f"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#aadf3ab4aafa763561fb97bccc0a5c08f">shape</a> () const override</td></tr>
+<tr class="memdesc:aadf3ab4aafa763561fb97bccc0a5c08f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The click target over both lines, 20 scene units on each side of them.  <br /></td></tr>
 <tr class="memitem:ae94d0e2e8622874d74c02c644d3caaaa" id="r_ae94d0e2e8622874d74c02c644d3caaaa"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#ae94d0e2e8622874d74c02c644d3caaaa">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:ae94d0e2e8622874d74c02c644d3caaaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bounds of the click target.  <br /></td></tr>
 <tr class="memitem:ac17ad52a9c0988104e4960bad9c3aac0" id="r_ac17ad52a9c0988104e4960bad9c3aac0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac17ad52a9c0988104e4960bad9c3aac0">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
+<tr class="memdesc:ac17ad52a9c0988104e4960bad9c3aac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws both lines with the pen of the item.  <br /></td></tr>
 <tr class="inherit_header pub_methods_class_track_line_item"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_track_line_item.html">TrackLineItem</a></td></tr>
 <tr class="memitem:abbc560787a749421af9a4406334eb352 pub_methods_class_track_line_item" id="r_abbc560787a749421af9a4406334eb352"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#abbc560787a749421af9a4406334eb352">TrackLineItem</a> (const QLineF &amp;line, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:abbc560787a749421af9a4406334eb352 pub_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">A free line without an arc; its click target reaches 20 scene units on each side of it.  <br /></td></tr>
 <tr class="memitem:a6ce70510852984ae29234241e58ac729 pub_methods_class_track_line_item" id="r_a6ce70510852984ae29234241e58ac729"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a6ce70510852984ae29234241e58ac729">~TrackLineItem</a> () override</td></tr>
 <tr class="memitem:a67a6e9fc09628eb89953e6782eec6a33 pub_methods_class_track_line_item" id="r_a67a6e9fc09628eb89953e6782eec6a33"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a67a6e9fc09628eb89953e6782eec6a33">setOperationalState</a> (<a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
+<tr class="memdesc:a67a6e9fc09628eb89953e6782eec6a33 pub_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the state of the track during a run. The inspector shows it; <a class="el" href="class_track_line_item.html#abc608de0d25b56716f15800bae63094f" title="Draws the line with the pen of the item.">paint()</a> does not.  <br /></td></tr>
 <tr class="memitem:aa41b680d18b2297565423a2a126a818d pub_methods_class_track_line_item" id="r_aa41b680d18b2297565423a2a126a818d"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a>&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#aa41b680d18b2297565423a2a126a818d">operationalState</a> () const</td></tr>
+<tr class="memdesc:aa41b680d18b2297565423a2a126a818d pub_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the track during a run.  <br /></td></tr>
 <tr class="memitem:a135b451641170649ed6200d8ebc870e1 pub_methods_class_track_line_item" id="r_a135b451641170649ed6200d8ebc870e1"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a135b451641170649ed6200d8ebc870e1">shape</a> () const override</td></tr>
+<tr class="memdesc:a135b451641170649ed6200d8ebc870e1 pub_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">The click target: the line widened by 20 scene units on each side.  <br /></td></tr>
 <tr class="memitem:a8f51237d4edbe6b39f7cd75a4f6ccd5e pub_methods_class_track_line_item" id="r_a8f51237d4edbe6b39f7cd75a4f6ccd5e"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a8f51237d4edbe6b39f7cd75a4f6ccd5e">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:a8f51237d4edbe6b39f7cd75a4f6ccd5e pub_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bounds of the click target.  <br /></td></tr>
 <tr class="memitem:abc608de0d25b56716f15800bae63094f pub_methods_class_track_line_item" id="r_abc608de0d25b56716f15800bae63094f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#abc608de0d25b56716f15800bae63094f">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
+<tr class="memdesc:abc608de0d25b56716f15800bae63094f pub_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the line with the pen of the item.  <br /></td></tr>
 <tr class="memitem:aac3bf401b47bbf7217dda952c8ec9114 pub_methods_class_track_line_item" id="r_aac3bf401b47bbf7217dda952c8ec9114"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#aac3bf401b47bbf7217dda952c8ec9114">type</a> () const override</td></tr>
+<tr class="memdesc:aac3bf401b47bbf7217dda952c8ec9114 pub_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -150,14 +165,21 @@ Additional Inherited Members</h2></td></tr>
  }</td></tr>
 <tr class="inherit_header pub_attribs_class_track_line_item"><td colspan="2">Public Attributes inherited from <a class="el" href="class_track_line_item.html">TrackLineItem</a></td></tr>
 <tr class="memitem:a321ce4cea8904657d6a7665fb7044334 pub_attribs_class_track_line_item" id="r_a321ce4cea8904657d6a7665fb7044334"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a321ce4cea8904657d6a7665fb7044334">track</a></td></tr>
+<tr class="memdesc:a321ce4cea8904657d6a7665fb7044334 pub_attribs_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line in the run; -1 in the preview.  <br /></td></tr>
 <tr class="memitem:a84d7bb78192bc9fbd97486b0ed82297b pub_attribs_class_track_line_item" id="r_a84d7bb78192bc9fbd97486b0ed82297b"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a> *&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a84d7bb78192bc9fbd97486b0ed82297b">arc</a></td></tr>
+<tr class="memdesc:a84d7bb78192bc9fbd97486b0ed82297b pub_attribs_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arc of the run, which belongs to the run; null in the preview.  <br /></td></tr>
 <tr class="inherit_header pro_methods_class_track_line_item"><td colspan="2">Protected Member Functions inherited from <a class="el" href="class_track_line_item.html">TrackLineItem</a></td></tr>
 <tr class="memitem:a257ee10133730f3f7318494007ac4ab1 pro_methods_class_track_line_item" id="r_a257ee10133730f3f7318494007ac4ab1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1">createSelectionPolygon</a> ()</td></tr>
+<tr class="memdesc:a257ee10133730f3f7318494007ac4ab1 pro_methods_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds selectionPolygon around the line.  <br /></td></tr>
 <tr class="inherit_header pro_attribs_class_track_line_item"><td colspan="2">Protected Attributes inherited from <a class="el" href="class_track_line_item.html">TrackLineItem</a></td></tr>
 <tr class="memitem:a60bc26211bc068d2674d44d5e962a6c4 pro_attribs_class_track_line_item" id="r_a60bc26211bc068d2674d44d5e962a6c4"><td class="memItemLeft">const qreal&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#a60bc26211bc068d2674d44d5e962a6c4">selectionOffset</a></td></tr>
+<tr class="memdesc:a60bc26211bc068d2674d44d5e962a6c4 pro_attribs_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">The half width in scene units of the click target.  <br /></td></tr>
 <tr class="memitem:adf5050e55ef4244cc57469475a71a009 pro_attribs_class_track_line_item" id="r_adf5050e55ef4244cc57469475a71a009"><td class="memItemLeft">QPolygonF&#160;</td><td class="memItemRight"><a class="el" href="class_track_line_item.html#adf5050e55ef4244cc57469475a71a009">selectionPolygon</a></td></tr>
+<tr class="memdesc:adf5050e55ef4244cc57469475a71a009 pro_attribs_class_track_line_item"><td class="mdescLeft">&#160;</td><td class="mdescRight">The click target in item coordinates.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A track line drawn as two lines, firstLine and secondLine, with one click target over both. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1c9b987a38271108cf6600377e939c32" name="a1c9b987a38271108cf6600377e939c32"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1c9b987a38271108cf6600377e939c32">&#9670;&#160;</a></span>VirtualArcItem()</h2>
 
@@ -181,6 +203,8 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The two lines in scene coordinates. The click target joins the end of the first to the start of the second. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -238,6 +262,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The bounds of the click target. </p>
+
 </div>
 </div>
 <a id="ac17ad52a9c0988104e4960bad9c3aac0" name="ac17ad52a9c0988104e4960bad9c3aac0"></a>
@@ -272,6 +298,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Draws both lines with the pen of the item. </p>
+
 </div>
 </div>
 <a id="a87dead42e10320da23de8183e7cd6c11" name="a87dead42e10320da23de8183e7cd6c11"></a>
@@ -297,6 +325,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The second line; line() is the first. </p>
+
 </div>
 </div>
 <a id="aadf3ab4aafa763561fb97bccc0a5c08f" name="aadf3ab4aafa763561fb97bccc0a5c08f"></a>
@@ -321,6 +351,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The click target over both lines, 20 scene units on each side of them. </p>
 
 </div>
 </div>

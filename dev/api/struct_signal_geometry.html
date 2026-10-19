@@ -118,13 +118,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_signal_
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a8d1876201ae6f26a5fb4474d6dc21a1a" id="r_a8d1876201ae6f26a5fb4474d6dc21a1a"><td class="memItemLeft">QLineF&#160;</td><td class="memItemRight"><a class="el" href="#a8d1876201ae6f26a5fb4474d6dc21a1a">reversedBase</a></td></tr>
+<tr class="memdesc:a8d1876201ae6f26a5fb4474d6dc21a1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The base of the reversed head, across the track.  <br /></td></tr>
 <tr class="memitem:afe72254c96a87339de8f478844b4b3c5" id="r_afe72254c96a87339de8f478844b4b3c5"><td class="memItemLeft">QLineF&#160;</td><td class="memItemRight"><a class="el" href="#afe72254c96a87339de8f478844b4b3c5">reversedPost</a></td></tr>
+<tr class="memdesc:afe72254c96a87339de8f478844b4b3c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The post of the reversed head, along the track towards before.  <br /></td></tr>
 <tr class="memitem:a2d1d3a43dffc27c73e1d4dba692a567b" id="r_a2d1d3a43dffc27c73e1d4dba692a567b"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#a2d1d3a43dffc27c73e1d4dba692a567b">reversedHead</a></td></tr>
+<tr class="memdesc:a2d1d3a43dffc27c73e1d4dba692a567b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The centre of the reversed head, at the end of its post.  <br /></td></tr>
 <tr class="memitem:a629e4ee5dbdfa3e7d688b779fe10775c" id="r_a629e4ee5dbdfa3e7d688b779fe10775c"><td class="memItemLeft">QLineF&#160;</td><td class="memItemRight"><a class="el" href="#a629e4ee5dbdfa3e7d688b779fe10775c">forwardBase</a></td></tr>
+<tr class="memdesc:a629e4ee5dbdfa3e7d688b779fe10775c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The base of the forward head, across the track.  <br /></td></tr>
 <tr class="memitem:afb5904451c7003be64334e5d763f757f" id="r_afb5904451c7003be64334e5d763f757f"><td class="memItemLeft">QLineF&#160;</td><td class="memItemRight"><a class="el" href="#afb5904451c7003be64334e5d763f757f">forwardPost</a></td></tr>
+<tr class="memdesc:afb5904451c7003be64334e5d763f757f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The post of the forward head, along the track towards after.  <br /></td></tr>
 <tr class="memitem:ad969916ab590c91b1bfb10a1979dda3f" id="r_ad969916ab590c91b1bfb10a1979dda3f"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#ad969916ab590c91b1bfb10a1979dda3f">forwardHead</a></td></tr>
+<tr class="memdesc:ad969916ab590c91b1bfb10a1979dda3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The centre of the forward head, at the end of its post.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The two heads of a signal, one for each direction, with their posts and bases, in scene coordinates. The reversed head is on the side opposite the normal, the forward head on the side of the normal. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a629e4ee5dbdfa3e7d688b779fe10775c" name="a629e4ee5dbdfa3e7d688b779fe10775c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a629e4ee5dbdfa3e7d688b779fe10775c">&#9670;&#160;</a></span>forwardBase</h2>
 
@@ -136,6 +144,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The base of the forward head, across the track. </p>
 
 </div>
 </div>
@@ -151,6 +161,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The centre of the forward head, at the end of its post. </p>
+
 </div>
 </div>
 <a id="afb5904451c7003be64334e5d763f757f" name="afb5904451c7003be64334e5d763f757f"></a>
@@ -164,6 +176,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The post of the forward head, along the track towards after. </p>
 
 </div>
 </div>
@@ -179,6 +193,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The base of the reversed head, across the track. </p>
+
 </div>
 </div>
 <a id="a2d1d3a43dffc27c73e1d4dba692a567b" name="a2d1d3a43dffc27c73e1d4dba692a567b"></a>
@@ -193,6 +209,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The centre of the reversed head, at the end of its post. </p>
+
 </div>
 </div>
 <a id="afe72254c96a87339de8f478844b4b3c5" name="afe72254c96a87339de8f478844b4b3c5"></a>
@@ -206,6 +224,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The post of the reversed head, along the track towards before. </p>
 
 </div>
 </div>

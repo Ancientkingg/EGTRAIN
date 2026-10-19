@@ -124,14 +124,20 @@ Inheritance diagram for NetworkPresenter::FrameHost:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a942d53fbf8db414a3a184f0de555a567" id="r_a942d53fbf8db414a3a184f0de555a567"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#a942d53fbf8db414a3a184f0de555a567">~FrameHost</a> ()=default</td></tr>
 <tr class="memitem:a987f515010cd91bebe564d38424b5b16" id="r_a987f515010cd91bebe564d38424b5b16"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a987f515010cd91bebe564d38424b5b16">isTrainOverlayPromoted</a> (int train) const =0</td></tr>
+<tr class="memdesc:a987f515010cd91bebe564d38424b5b16"><td class="mdescLeft">&#160;</td><td class="mdescRight">The overlay of the train is drawn in full, because the train is selected or followed.  <br /></td></tr>
 <tr class="memitem:ad0c4be2fe422dffba54019d436680f28" id="r_ad0c4be2fe422dffba54019d436680f28"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ad0c4be2fe422dffba54019d436680f28">trainWillUpdate</a> (int train)=0</td></tr>
+<tr class="memdesc:ad0c4be2fe422dffba54019d436680f28"><td class="mdescLeft">&#160;</td><td class="mdescRight">A train of the snapshot is about to be updated. The frame can be one in which the train has already left.  <br /></td></tr>
 <tr class="memitem:aaf5499ebb69528f491b02a825c04a2c8" id="r_aaf5499ebb69528f491b02a825c04a2c8"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aaf5499ebb69528f491b02a825c04a2c8">trainPlaced</a> (int train, const QPointF &amp;center)=0</td></tr>
 <tr class="memitem:a7bce4461814d98410a4cb65939ab7c42" id="r_a7bce4461814d98410a4cb65939ab7c42"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a7bce4461814d98410a4cb65939ab7c42">trainHidden</a> (int train)=0</td></tr>
+<tr class="memdesc:a7bce4461814d98410a4cb65939ab7c42"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train has left the network and is hidden.  <br /></td></tr>
 <tr class="memitem:aeff64d3c99777d7b7a4c0f80689bddcc" id="r_aeff64d3c99777d7b7a4c0f80689bddcc"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aeff64d3c99777d7b7a4c0f80689bddcc">trainAdded</a> (int train, bool firstLiveTrain)=0</td></tr>
 <tr class="memitem:a3284af52a8cc987841efa0e26d40bcc2" id="r_a3284af52a8cc987841efa0e26d40bcc2"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a3284af52a8cc987841efa0e26d40bcc2">signalsApplied</a> ()=0</td></tr>
+<tr class="memdesc:a3284af52a8cc987841efa0e26d40bcc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signals show the aspects of the frame.  <br /></td></tr>
 <tr class="memitem:a433f9f7ddc26ee5638b1cb1d576e9e77" id="r_a433f9f7ddc26ee5638b1cb1d576e9e77"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a433f9f7ddc26ee5638b1cb1d576e9e77">trainsApplied</a> (bool anyAdded, bool cameraMoved)=0</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The parts of a frame that are not on the canvas: the follow camera, the legend and the signal inspector. <a class="el" href="class_network_presenter.html#a2f2dbeb4415ab81874fff34a4f97b078">apply()</a> calls them at the points of a frame where they belong. Without a host no train is selected or followed. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a942d53fbf8db414a3a184f0de555a567" name="a942d53fbf8db414a3a184f0de555a567"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a942d53fbf8db414a3a184f0de555a567">&#9670;&#160;</a></span>~FrameHost()</h2>
 
@@ -181,6 +187,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The overlay of the train is drawn in full, because the train is selected or followed. </p>
+
 </div>
 </div>
 <a id="a3284af52a8cc987841efa0e26d40bcc2" name="a3284af52a8cc987841efa0e26d40bcc2"></a>
@@ -205,6 +213,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The signals show the aspects of the frame. </p>
 
 </div>
 </div>
@@ -234,6 +244,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The train was added to the canvas; firstLiveTrain is true for the first train of a live run. Tells whether this moved the camera to the train. </p>
 
 </div>
 </div>
@@ -259,6 +270,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The train has left the network and is hidden. </p>
 
 </div>
 </div>
@@ -288,6 +301,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The train has the shape and the place of the frame; center is the centre of its bodies in scene coordinates. Tells whether this moved the camera to the train. </p>
 
 </div>
 </div>
@@ -317,6 +331,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Every train has been updated. anyAdded tells whether a train was added, cameraMoved whether the camera moved to the followed train. </p>
 
 </div>
 </div>
@@ -342,6 +357,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A train of the snapshot is about to be updated. The frame can be one in which the train has already left. </p>
 
 </div>
 </div>

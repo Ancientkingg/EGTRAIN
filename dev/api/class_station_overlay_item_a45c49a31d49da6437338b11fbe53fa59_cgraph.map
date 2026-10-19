@@ -1,7 +1,7 @@
 <map id="StationOverlayItem::displayName" name="StationOverlayItem::displayName">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,155,77"/>
-<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" title=" " alt="" coords="203,5,352,45"/>
+<area shape="rect" id="Node000001" title="The same for a std::string." alt="" coords="5,37,155,77"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" title="The name as it is shown, with spaces between its words." alt="" coords="203,5,352,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,43,189,37,189,42,155,48"/>
-<area shape="rect" id="Node000003" href="$class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" title=" " alt="" coords="203,69,352,109"/>
+<area shape="rect" id="Node000003" href="$class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" title="The name of the station as given." alt="" coords="203,69,352,109"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,67,189,72,189,78,154,72"/>
 </map>

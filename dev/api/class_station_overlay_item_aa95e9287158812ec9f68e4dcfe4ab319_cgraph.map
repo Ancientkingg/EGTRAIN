@@ -1,5 +1,5 @@
 <map id="StationOverlayItem::deviceCombinedRect" name="StationOverlayItem::deviceCombinedRect">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,173,45"/>
-<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a745fffd5ae7a848ba4c548b80d06cb3e" title=" " alt="" coords="221,5,371,45"/>
+<area shape="rect" id="Node000001" title="The same as combinedRect()." alt="" coords="5,5,173,45"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a745fffd5ae7a848ba4c548b80d06cb3e" title="The label and the visible mark after their moves." alt="" coords="221,5,371,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,23,207,23,207,28,174,28"/>
 </map>

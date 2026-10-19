@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_connecti
 </div><!--header-->
 <div class="contents">
 
+<p>The line of a connection between two track lines, in scene coordinates.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_connection_item_8h_source.html">graphics/items/ConnectionItem.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for ConnectionItem:</div>
@@ -133,17 +136,25 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4217d44fe32189a7b27e543367f38fd2" id="r_a4217d44fe32189a7b27e543367f38fd2"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4217d44fe32189a7b27e543367f38fd2">ConnectionItem</a> (const QLineF &amp;line, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:a4217d44fe32189a7b27e543367f38fd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">A line without a connection; its click target reaches 20 scene units on each side of it.  <br /></td></tr>
 <tr class="memitem:a2bb8d306c9e03384c91c871c81f161a8" id="r_a2bb8d306c9e03384c91c871c81f161a8"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a2bb8d306c9e03384c91c871c81f161a8">~ConnectionItem</a> () override</td></tr>
 <tr class="memitem:ae3a8acd1a3352ebc6b655acc74eede4b" id="r_ae3a8acd1a3352ebc6b655acc74eede4b"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#ae3a8acd1a3352ebc6b655acc74eede4b">shape</a> () const override</td></tr>
+<tr class="memdesc:ae3a8acd1a3352ebc6b655acc74eede4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The click target: the line widened by 20 scene units on each side.  <br /></td></tr>
 <tr class="memitem:a9e5e7c379a585e82dbb36db0d1ee6756" id="r_a9e5e7c379a585e82dbb36db0d1ee6756"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a9e5e7c379a585e82dbb36db0d1ee6756">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:a9e5e7c379a585e82dbb36db0d1ee6756"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bounds of the click target.  <br /></td></tr>
 <tr class="memitem:acd3cf6ac682c114592a99a975d3a6812" id="r_acd3cf6ac682c114592a99a975d3a6812"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd3cf6ac682c114592a99a975d3a6812">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
+<tr class="memdesc:acd3cf6ac682c114592a99a975d3a6812"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the line with the pen of the item.  <br /></td></tr>
 <tr class="memitem:ad1f2251dad95ca0dcf2a3e8a55d98660" id="r_ad1f2251dad95ca0dcf2a3e8a55d98660"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad1f2251dad95ca0dcf2a3e8a55d98660">type</a> () const override</td></tr>
+<tr class="memdesc:ad1f2251dad95ca0dcf2a3e8a55d98660"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a88d0774ff29ce5a44536466a90c9054a" id="r_a88d0774ff29ce5a44536466a90c9054a"><td class="memItemLeft"><a class="el" href="class_connections.html">Connections</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a88d0774ff29ce5a44536466a90c9054a">connection</a></td></tr>
+<tr class="memdesc:a88d0774ff29ce5a44536466a90c9054a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The connection of the run, which belongs to the run; null in the preview.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The line of a connection between two track lines, in scene coordinates. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a35ab6ba92eb82ab7ca6145e3eac8c272" name="a35ab6ba92eb82ab7ca6145e3eac8c272"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a35ab6ba92eb82ab7ca6145e3eac8c272">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -156,7 +167,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a35ab6ba92eb82ab7ca6145e3eac8c272a03417ddeac0f21fb30ad468c21d3f12d" name="a35ab6ba92eb82ab7ca6145e3eac8c272a03417ddeac0f21fb30ad468c21d3f12d"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a35ab6ba92eb82ab7ca6145e3eac8c272a03417ddeac0f21fb30ad468c21d3f12d" name="a35ab6ba92eb82ab7ca6145e3eac8c272a03417ddeac0f21fb30ad468c21d3f12d"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -180,6 +192,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A line without a connection; its click target reaches 20 scene units on each side of it. </p>
 
 </div>
 </div>
@@ -232,6 +246,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The bounds of the click target. </p>
+
 </div>
 </div>
 <a id="acd3cf6ac682c114592a99a975d3a6812" name="acd3cf6ac682c114592a99a975d3a6812"></a>
@@ -266,6 +282,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Draws the line with the pen of the item. </p>
+
 </div>
 </div>
 <a id="ae3a8acd1a3352ebc6b655acc74eede4b" name="ae3a8acd1a3352ebc6b655acc74eede4b"></a>
@@ -290,6 +308,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The click target: the line widened by 20 scene units on each side. </p>
 
 </div>
 </div>
@@ -316,6 +336,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -330,6 +352,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The connection of the run, which belongs to the run; null in the preview. </p>
 
 </div>
 </div>

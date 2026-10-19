@@ -133,27 +133,46 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa2ee8d89c5cd34fe917d334e049c7da5" id="r_aa2ee8d89c5cd34fe917d334e049c7da5"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa2ee8d89c5cd34fe917d334e049c7da5">SelectionCueItem</a> (const QGraphicsItem *target)</td></tr>
+<tr class="memdesc:aa2ee8d89c5cd34fe917d334e049c7da5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A cue for target, at the scale of the first view of its scene.  <br /></td></tr>
 <tr class="memitem:a3a14e7445c109fa57a788b60726ee5aa" id="r_a3a14e7445c109fa57a788b60726ee5aa"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3a14e7445c109fa57a788b60726ee5aa">type</a> () const override</td></tr>
+<tr class="memdesc:a3a14e7445c109fa57a788b60726ee5aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 <tr class="memitem:a318428b4b485d287af591a52e801d901" id="r_a318428b4b485d287af591a52e801d901"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a318428b4b485d287af591a52e801d901">setViewScale</a> (qreal scale)</td></tr>
+<tr class="memdesc:a318428b4b485d287af591a52e801d901"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logical pixels per scene unit of the view. A value that is not positive keeps the old scale.  <br /></td></tr>
 <tr class="memitem:a2f5a51a3248c6752c393d0fd0320884e" id="r_a2f5a51a3248c6752c393d0fd0320884e"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#a2f5a51a3248c6752c393d0fd0320884e">viewScale</a> () const</td></tr>
+<tr class="memdesc:a2f5a51a3248c6752c393d0fd0320884e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logical pixels per scene unit of the view.  <br /></td></tr>
 <tr class="memitem:ad7d1659586bc24e053efea9e3b269c48" id="r_ad7d1659586bc24e053efea9e3b269c48"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad7d1659586bc24e053efea9e3b269c48">sync</a> ()</td></tr>
+<tr class="memdesc:ad7d1659586bc24e053efea9e3b269c48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Follows the target: geometry, visibility and the scene it is in.  <br /></td></tr>
 <tr class="memitem:a5dbd000ac47fe81285ef02c80f5bab0b" id="r_a5dbd000ac47fe81285ef02c80f5bab0b"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a5dbd000ac47fe81285ef02c80f5bab0b">targetRect</a> () const</td></tr>
+<tr class="memdesc:a5dbd000ac47fe81285ef02c80f5bab0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene rectangle the ring surrounds; for a line item, see <a class="el" href="#aee22bea736321aa38987e3328c108b48" title="The line of a line item in scene coordinates.">targetLine()</a>.  <br /></td></tr>
 <tr class="memitem:a1291095ada5420e2494d29f71cfc0cdd" id="r_a1291095ada5420e2494d29f71cfc0cdd"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a1291095ada5420e2494d29f71cfc0cdd">ringRect</a> () const</td></tr>
+<tr class="memdesc:a1291095ada5420e2494d29f71cfc0cdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ring itself in scene units, without the casing.  <br /></td></tr>
 <tr class="memitem:a7848bc968c2a9fe5d7508e618ea0c9cd" id="r_a7848bc968c2a9fe5d7508e618ea0c9cd"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7848bc968c2a9fe5d7508e618ea0c9cd">followsLine</a> () const</td></tr>
+<tr class="memdesc:a7848bc968c2a9fe5d7508e618ea0c9cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The target is a line item, which gets a halo along its line.  <br /></td></tr>
 <tr class="memitem:aee22bea736321aa38987e3328c108b48" id="r_aee22bea736321aa38987e3328c108b48"><td class="memItemLeft">QLineF&#160;</td><td class="memItemRight"><a class="el" href="#aee22bea736321aa38987e3328c108b48">targetLine</a> () const</td></tr>
+<tr class="memdesc:aee22bea736321aa38987e3328c108b48"><td class="mdescLeft">&#160;</td><td class="mdescRight">The line of a line item in scene coordinates.  <br /></td></tr>
 <tr class="memitem:a2122050451c7112b32bde2d3e4566e2a" id="r_a2122050451c7112b32bde2d3e4566e2a"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a2122050451c7112b32bde2d3e4566e2a">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:a2122050451c7112b32bde2d3e4566e2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ring with its casing and a margin of one logical pixel.  <br /></td></tr>
 <tr class="memitem:aab1a197cdb8cfecdc567d6efccf5d09a" id="r_aab1a197cdb8cfecdc567d6efccf5d09a"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#aab1a197cdb8cfecdc567d6efccf5d09a">shape</a> () const override</td></tr>
+<tr class="memdesc:aab1a197cdb8cfecdc567d6efccf5d09a"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty shape, so the cue is never picked.  <br /></td></tr>
 <tr class="memitem:acb47e6b1481f925b14c42fc46abd8fbb" id="r_acb47e6b1481f925b14c42fc46abd8fbb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb47e6b1481f925b14c42fc46abd8fbb">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget=nullptr) override</td></tr>
+<tr class="memdesc:acb47e6b1481f925b14c42fc46abd8fbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the casing and then the ring with cosmetic pens.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:ab3c1b93842ba80610b6621f8882fcc97" id="r_ab3c1b93842ba80610b6621f8882fcc97"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#ab3c1b93842ba80610b6621f8882fcc97">MinPixels</a> = 16.0</td></tr>
+<tr class="memdesc:ab3c1b93842ba80610b6621f8882fcc97"><td class="mdescLeft">&#160;</td><td class="mdescRight">The smallest width and height of a ring in logical pixels.  <br /></td></tr>
 <tr class="memitem:ac42c0fba45693a5bb3e1154b951a659d" id="r_ac42c0fba45693a5bb3e1154b951a659d"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#ac42c0fba45693a5bb3e1154b951a659d">PaddingPixels</a> = 3.0</td></tr>
+<tr class="memdesc:ac42c0fba45693a5bb3e1154b951a659d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The gap in logical pixels between the bounds of the item and the ring.  <br /></td></tr>
 <tr class="memitem:aa9533853716ed0c3712bd6378309c953" id="r_aa9533853716ed0c3712bd6378309c953"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#aa9533853716ed0c3712bd6378309c953">RingPixels</a> = 2.0</td></tr>
+<tr class="memdesc:aa9533853716ed0c3712bd6378309c953"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width in pixels of the cosmetic pen of the ring.  <br /></td></tr>
 <tr class="memitem:a6878b208e0bf02c071d626998a436769" id="r_a6878b208e0bf02c071d626998a436769"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a6878b208e0bf02c071d626998a436769">CasingPixels</a> = 1.0</td></tr>
+<tr class="memdesc:a6878b208e0bf02c071d626998a436769"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width in pixels of the dark casing on each side of the ring.  <br /></td></tr>
 <tr class="memitem:a1dffa5ccd32c7d5b488149aaa431a648" id="r_a1dffa5ccd32c7d5b488149aaa431a648"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a1dffa5ccd32c7d5b488149aaa431a648">HaloRadiusPixels</a> = 6.0</td></tr>
+<tr class="memdesc:a1dffa5ccd32c7d5b488149aaa431a648"><td class="mdescLeft">&#160;</td><td class="mdescRight">The distance in logical pixels from a line to the halo around it.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A ring around the selected item, sized in pixels on screen and stacked just below the item. The ring is a 2 pixel line in kSelectionCueColor with a 1 pixel dark casing on both sides. A line item gets a halo along its line, any other item a rounded ring of at least MinPixels around its bounds. The ring never covers the item, takes no mouse input and has an empty shape, so picking is not affected. Its path is in scene units: the sizes in logical pixels are divided by the view scale. The cue reads the target in <a class="el" href="#ad7d1659586bc24e053efea9e3b269c48" title="Follows the target: geometry, visibility and the scene it is in.">sync()</a> and must not outlive it: <a class="el" href="class_highlight_effect.html">HighlightEffect</a> owns it. The pictogram of a station node is read through a pointer that stays valid because the overlays are only replaced with the whole scene. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a3f4295cbe9effc87b3dd65767676ce21" name="a3f4295cbe9effc87b3dd65767676ce21"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3f4295cbe9effc87b3dd65767676ce21">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -166,7 +185,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a3f4295cbe9effc87b3dd65767676ce21ad8927529909dd12e1552b4ba9e55af28" name="a3f4295cbe9effc87b3dd65767676ce21ad8927529909dd12e1552b4ba9e55af28"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a3f4295cbe9effc87b3dd65767676ce21ad8927529909dd12e1552b4ba9e55af28" name="a3f4295cbe9effc87b3dd65767676ce21ad8927529909dd12e1552b4ba9e55af28"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -195,6 +215,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>A cue for target, at the scale of the first view of its scene. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -221,6 +243,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The ring with its casing and a margin of one logical pixel. </p>
+
 </div>
 </div>
 <a id="a7848bc968c2a9fe5d7508e618ea0c9cd" name="a7848bc968c2a9fe5d7508e618ea0c9cd"></a>
@@ -245,6 +269,8 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The target is a line item, which gets a halo along its line. </p>
 
 </div>
 </div>
@@ -279,6 +305,8 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Draws the casing and then the ring with cosmetic pens. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -310,6 +338,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The ring itself in scene units, without the casing. </p>
+
 </div>
 </div>
 <a id="a318428b4b485d287af591a52e801d901" name="a318428b4b485d287af591a52e801d901"></a>
@@ -326,6 +356,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Logical pixels per scene unit of the view. A value that is not positive keeps the old scale. </p>
 
 </div>
 </div>
@@ -352,6 +384,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>An empty shape, so the cue is never picked. </p>
+
 </div>
 </div>
 <a id="ad7d1659586bc24e053efea9e3b269c48" name="ad7d1659586bc24e053efea9e3b269c48"></a>
@@ -368,6 +402,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Follows the target: geometry, visibility and the scene it is in. </p>
 
 </div>
 </div>
@@ -394,6 +430,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The line of a line item in scene coordinates. </p>
+
 </div>
 </div>
 <a id="a5dbd000ac47fe81285ef02c80f5bab0b" name="a5dbd000ac47fe81285ef02c80f5bab0b"></a>
@@ -418,6 +456,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The scene rectangle the ring surrounds; for a line item, see <a class="el" href="#aee22bea736321aa38987e3328c108b48" title="The line of a line item in scene coordinates.">targetLine()</a>. </p>
 
 </div>
 </div>
@@ -444,6 +484,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a id="a2f5a51a3248c6752c393d0fd0320884e" name="a2f5a51a3248c6752c393d0fd0320884e"></a>
@@ -469,6 +511,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Logical pixels per scene unit of the view. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -492,6 +536,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The width in pixels of the dark casing on each side of the ring. </p>
+
 </div>
 </div>
 <a id="a1dffa5ccd32c7d5b488149aaa431a648" name="a1dffa5ccd32c7d5b488149aaa431a648"></a>
@@ -513,6 +559,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The distance in logical pixels from a line to the halo around it. </p>
 
 </div>
 </div>
@@ -536,6 +584,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The smallest width and height of a ring in logical pixels. </p>
+
 </div>
 </div>
 <a id="ac42c0fba45693a5bb3e1154b951a659d" name="ac42c0fba45693a5bb3e1154b951a659d"></a>
@@ -558,6 +608,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The gap in logical pixels between the bounds of the item and the ring. </p>
+
 </div>
 </div>
 <a id="aa9533853716ed0c3712bd6378309c953" name="aa9533853716ed0c3712bd6378309c953"></a>
@@ -579,6 +631,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The width in pixels of the cosmetic pen of the ring. </p>
 
 </div>
 </div>

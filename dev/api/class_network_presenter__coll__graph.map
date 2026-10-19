@@ -8,7 +8,7 @@
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="276,118,281,135,289,150,303,164,320,174,317,178,300,168,285,154,276,137,271,119"/>
 <area shape="rect" id="Node000005" title=" " alt="" coords="193,5,351,31"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="275,45,275,80,269,80,269,45"/>
-<area shape="rect" id="Node000006" href="$class_passenger_item.html" title=" " alt="" coords="358,80,477,105"/>
+<area shape="rect" id="Node000006" href="$class_passenger_item.html" title="The icon of a passenger waiting on a platform. It draws over the platforms." alt="" coords="358,80,477,105"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="408,119,386,154,365,177,361,174,382,150,403,116"/>
 <area shape="rect" id="Node000007" title=" " alt="" coords="376,5,544,31"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="448,44,427,81,422,78,444,42"/>

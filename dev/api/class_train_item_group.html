@@ -133,30 +133,50 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a91be3682065f70ca60cdb815eb8c21c5" id="r_a91be3682065f70ca60cdb815eb8c21c5"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a91be3682065f70ca60cdb815eb8c21c5">TrainItemGroup</a> (QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:a91be3682065f70ca60cdb815eb8c21c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty group with train index -1 and no bodies.  <br /></td></tr>
 <tr class="memitem:a700546e6beaa98e06d5793b0bedc0152" id="r_a700546e6beaa98e06d5793b0bedc0152"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a700546e6beaa98e06d5793b0bedc0152">~TrainItemGroup</a> () override</td></tr>
+<tr class="memdesc:a700546e6beaa98e06d5793b0bedc0152"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the list of bodies; the bodies are children and go with the group.  <br /></td></tr>
 <tr class="memitem:aedf8f8902777dc08efd0a080b7920b99" id="r_aedf8f8902777dc08efd0a080b7920b99"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aedf8f8902777dc08efd0a080b7920b99">prepareForChildGeometryChange</a> ()</td></tr>
 <tr class="memitem:a6777e3246011cafe1f15fd3311d9fe73" id="r_a6777e3246011cafe1f15fd3311d9fe73"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a6777e3246011cafe1f15fd3311d9fe73">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:a6777e3246011cafe1f15fd3311d9fe73"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bounds of the bodies as they are now.  <br /></td></tr>
 <tr class="memitem:a05f4971b0231b1713a43a9a8733fb77a" id="r_a05f4971b0231b1713a43a9a8733fb77a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a05f4971b0231b1713a43a9a8733fb77a">applyViewScale</a> (qreal viewScale)</td></tr>
+<tr class="memdesc:a05f4971b0231b1713a43a9a8733fb77a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gives every body its minimum size on screen for a view of viewScale logical pixels per scene unit.  <br /></td></tr>
 <tr class="memitem:a58a7d6c8915bd6e5360caf6b11f13117" id="r_a58a7d6c8915bd6e5360caf6b11f13117"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a58a7d6c8915bd6e5360caf6b11f13117">type</a> () const override</td></tr>
+<tr class="memdesc:a58a7d6c8915bd6e5360caf6b11f13117"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1bc33ccffe933d503605587dc93e9eaf" id="r_a1bc33ccffe933d503605587dc93e9eaf"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1bc33ccffe933d503605587dc93e9eaf">index</a></td></tr>
+<tr class="memdesc:a1bc33ccffe933d503605587dc93e9eaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the train in the run; -1 until it is set. A train ID is not unique, the index is.  <br /></td></tr>
 <tr class="memitem:a5730de475fdd0e61d0b156be14e7b06b" id="r_a5730de475fdd0e61d0b156be14e7b06b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a5730de475fdd0e61d0b156be14e7b06b">trainDescription</a></td></tr>
+<tr class="memdesc:a5730de475fdd0e61d0b156be14e7b06b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The description of the train.  <br /></td></tr>
 <tr class="memitem:adbd6d77e4c4c5c025a5044c0d3e6f130" id="r_adbd6d77e4c4c5c025a5044c0d3e6f130"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#adbd6d77e4c4c5c025a5044c0d3e6f130">trainType</a></td></tr>
+<tr class="memdesc:adbd6d77e4c4c5c025a5044c0d3e6f130"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of the train.  <br /></td></tr>
 <tr class="memitem:ae4831a60a2e11e0e18e84925c28707b9" id="r_ae4831a60a2e11e0e18e84925c28707b9"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#ae4831a60a2e11e0e18e84925c28707b9">fillColor</a></td></tr>
+<tr class="memdesc:ae4831a60a2e11e0e18e84925c28707b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The fill of the bodies.  <br /></td></tr>
 <tr class="memitem:ad5aec26ad0081552d4c01cfe22dcdd09" id="r_ad5aec26ad0081552d4c01cfe22dcdd09"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#ad5aec26ad0081552d4c01cfe22dcdd09">outlineColor</a></td></tr>
+<tr class="memdesc:ad5aec26ad0081552d4c01cfe22dcdd09"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outline of the bodies.  <br /></td></tr>
 <tr class="memitem:acc662520bc11177a9821d93360b3775c" id="r_acc662520bc11177a9821d93360b3775c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#acc662520bc11177a9821d93360b3775c">serviceId</a></td></tr>
+<tr class="memdesc:acc662520bc11177a9821d93360b3775c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The service that gives the bodies their colour; empty for the default colour.  <br /></td></tr>
 <tr class="memitem:a1c49f5367b64b18b7ec0268d81d3805e" id="r_a1c49f5367b64b18b7ec0268d81d3805e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1c49f5367b64b18b7ec0268d81d3805e">trainId</a></td></tr>
+<tr class="memdesc:a1c49f5367b64b18b7ec0268d81d3805e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ID of the train.  <br /></td></tr>
 <tr class="memitem:a91c53169d2c45044e1309259ccea9800" id="r_a91c53169d2c45044e1309259ccea9800"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a91c53169d2c45044e1309259ccea9800">trainLength</a></td></tr>
+<tr class="memdesc:a91c53169d2c45044e1309259ccea9800"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of the train in metres.  <br /></td></tr>
 <tr class="memitem:ad324b398b90c278f36297ab2ae7806aa" id="r_ad324b398b90c278f36297ab2ae7806aa"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad324b398b90c278f36297ab2ae7806aa">wagonCount</a></td></tr>
+<tr class="memdesc:ad324b398b90c278f36297ab2ae7806aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of wagons; the group has one body more.  <br /></td></tr>
 <tr class="memitem:af8cf7b453ad9829fd67ae45249276aa6" id="r_af8cf7b453ad9829fd67ae45249276aa6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af8cf7b453ad9829fd67ae45249276aa6">currentOnboardPassengers</a></td></tr>
+<tr class="memdesc:af8cf7b453ad9829fd67ae45249276aa6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of passengers on board.  <br /></td></tr>
 <tr class="memitem:ad62434d02bd243faffbabf6528352a1e" id="r_ad62434d02bd243faffbabf6528352a1e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad62434d02bd243faffbabf6528352a1e">maxOnboardPassengers</a></td></tr>
+<tr class="memdesc:ad62434d02bd243faffbabf6528352a1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passenger capacity of the train, from its number of wagons.  <br /></td></tr>
 <tr class="memitem:aeb70c9aaeabba7d84c2c64285d266e6f" id="r_aeb70c9aaeabba7d84c2c64285d266e6f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aeb70c9aaeabba7d84c2c64285d266e6f">outOfSimulation</a></td></tr>
+<tr class="memdesc:aeb70c9aaeabba7d84c2c64285d266e6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train has left the network.  <br /></td></tr>
 <tr class="memitem:ae69bd2d634bb9fc3eec8dd5cc7583d93" id="r_ae69bd2d634bb9fc3eec8dd5cc7583d93"><td class="memItemLeft">QGraphicsItemGroup *&#160;</td><td class="memItemRight"><a class="el" href="#ae69bd2d634bb9fc3eec8dd5cc7583d93">paxInfoItem</a></td></tr>
+<tr class="memdesc:ae69bd2d634bb9fc3eec8dd5cc7583d93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not used: it stays null.  <br /></td></tr>
 <tr class="memitem:af04bc892f43aabb1416716fa0c33bba7" id="r_af04bc892f43aabb1416716fa0c33bba7"><td class="memItemLeft">QList&lt; <a class="el" href="class_train_body_item.html">TrainBodyItem</a> * &gt; *&#160;</td><td class="memItemRight"><a class="el" href="#af04bc892f43aabb1416716fa0c33bba7">trainPolygonItemList</a></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A train on the canvas: the group of the bodies of its wagons, with the data that the inspector and the passenger information read. It draws over the track, the signals, the stations, the platforms and the passengers. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="abfc417e2784a794f2f29dd180f8b630f" name="abfc417e2784a794f2f29dd180f8b630f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abfc417e2784a794f2f29dd180f8b630f">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -169,7 +189,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="abfc417e2784a794f2f29dd180f8b630faffb4178522d1a4459d0ee06309ea652c" name="abfc417e2784a794f2f29dd180f8b630faffb4178522d1a4459d0ee06309ea652c"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="abfc417e2784a794f2f29dd180f8b630faffb4178522d1a4459d0ee06309ea652c" name="abfc417e2784a794f2f29dd180f8b630faffb4178522d1a4459d0ee06309ea652c"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -189,6 +210,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>An empty group with train index -1 and no bodies. </p>
 
 </div>
 </div>
@@ -215,6 +238,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Deletes the list of bodies; the bodies are children and go with the group. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -232,6 +257,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Gives every body its minimum size on screen for a view of viewScale logical pixels per scene unit. </p>
 
 </div>
 </div>
@@ -258,6 +285,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The bounds of the bodies as they are now. </p>
+
 </div>
 </div>
 <a id="aedf8f8902777dc08efd0a080b7920b99" name="aedf8f8902777dc08efd0a080b7920b99"></a>
@@ -274,6 +303,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>QGraphicsItemGroup caches its child bounds. Notify the scene before a train body polygon changes so the group's scene index remains current. </p>
 
 </div>
 </div>
@@ -300,6 +330,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -315,6 +347,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The number of passengers on board. </p>
+
 </div>
 </div>
 <a id="ae4831a60a2e11e0e18e84925c28707b9" name="ae4831a60a2e11e0e18e84925c28707b9"></a>
@@ -328,6 +362,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The fill of the bodies. </p>
 
 </div>
 </div>
@@ -343,6 +379,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The index of the train in the run; -1 until it is set. A train ID is not unique, the index is. </p>
+
 </div>
 </div>
 <a id="ad62434d02bd243faffbabf6528352a1e" name="ad62434d02bd243faffbabf6528352a1e"></a>
@@ -356,6 +394,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The passenger capacity of the train, from its number of wagons. </p>
 
 </div>
 </div>
@@ -371,6 +411,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The outline of the bodies. </p>
+
 </div>
 </div>
 <a id="aeb70c9aaeabba7d84c2c64285d266e6f" name="aeb70c9aaeabba7d84c2c64285d266e6f"></a>
@@ -384,6 +426,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The train has left the network. </p>
 
 </div>
 </div>
@@ -399,6 +443,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Not used: it stays null. </p>
+
 </div>
 </div>
 <a id="acc662520bc11177a9821d93360b3775c" name="acc662520bc11177a9821d93360b3775c"></a>
@@ -412,6 +458,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The service that gives the bodies their colour; empty for the default colour. </p>
 
 </div>
 </div>
@@ -427,6 +475,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The description of the train. </p>
+
 </div>
 </div>
 <a id="a1c49f5367b64b18b7ec0268d81d3805e" name="a1c49f5367b64b18b7ec0268d81d3805e"></a>
@@ -440,6 +490,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The ID of the train. </p>
 
 </div>
 </div>
@@ -455,6 +507,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The length of the train in metres. </p>
+
 </div>
 </div>
 <a id="af04bc892f43aabb1416716fa0c33bba7" name="af04bc892f43aabb1416716fa0c33bba7"></a>
@@ -468,6 +522,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The body items of the train, from the head. The bodies are children of the group; the group owns the list and deletes it in its destructor. A caller that deletes the list itself sets this pointer to null first. </p>
 
 </div>
 </div>
@@ -483,6 +538,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The type of the train. </p>
+
 </div>
 </div>
 <a id="ad324b398b90c278f36297ab2ae7806aa" name="ad324b398b90c278f36297ab2ae7806aa"></a>
@@ -496,6 +553,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The number of wagons; the group has one body more. </p>
 
 </div>
 </div>

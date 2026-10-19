@@ -129,9 +129,13 @@ Collaboration diagram for StationMarkItem:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a3325809cbc714dab4aa4ae00f098389f" id="r_a3325809cbc714dab4aa4ae00f098389f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a3325809cbc714dab4aa4ae00f098389f">StationMarkItem</a> (<a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, int size, QGraphicsItem *parent=nullptr)</td></tr>
 <tr class="memitem:a51e5cc26746108189c9ba95cb8d9d553" id="r_a51e5cc26746108189c9ba95cb8d9d553"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a51e5cc26746108189c9ba95cb8d9d553">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget=nullptr) override</td></tr>
+<tr class="memdesc:a51e5cc26746108189c9ba95cb8d9d553"><td class="mdescLeft">&#160;</td><td class="mdescRight">Paints the mark of the class over the pixmap, with a halo of 2 logical pixels.  <br /></td></tr>
 <tr class="memitem:a0df86e58f5d6f2dde336ba2e5d9b3d48" id="r_a0df86e58f5d6f2dde336ba2e5d9b3d48"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0df86e58f5d6f2dde336ba2e5d9b3d48">stationClass</a> () const</td></tr>
+<tr class="memdesc:a0df86e58f5d6f2dde336ba2e5d9b3d48"><td class="mdescLeft">&#160;</td><td class="mdescRight">The class of the station.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The scene-space mark of a station. The transparent pixmap only gives the size and anchor that <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> enlarges; paint draws the mark of the station class over it. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a3325809cbc714dab4aa4ae00f098389f" name="a3325809cbc714dab4aa4ae00f098389f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3325809cbc714dab4aa4ae00f098389f">&#9670;&#160;</a></span>StationMarkItem()</h2>
 
@@ -155,6 +159,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A mark of class cls in a transparent pixmap of size by size pixels, one scene unit per pixel before the scale of the item. </p>
 
 </div>
 </div>
@@ -190,6 +195,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Paints the mark of the class over the pixmap, with a halo of 2 logical pixels. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -220,6 +227,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The class of the station. </p>
 
 </div>
 </div>

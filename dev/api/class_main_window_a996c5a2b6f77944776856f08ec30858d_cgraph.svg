@@ -83,7 +83,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" target="_top" xlink:title="The centre or the scale of the view changed.">
 <polygon fill="white" stroke="#666666" points="592.5,-900.5 419.5,-900.5 419.5,-881.5 592.5,-881.5 592.5,-900.5"/>
 <text text-anchor="middle" x="506" y="-888.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::viewportChanged</text>
 </a>
@@ -156,7 +156,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_network_view.html#a56b38d1a10617499bcbed678d3feb7ff" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="class_network_view.html#a56b38d1a10617499bcbed678d3feb7ff" target="_top" xlink:title="A mouse button was released over the view.">
 <polygon fill="white" stroke="#666666" points="351.5,-681 211.5,-681 211.5,-651 351.5,-651 351.5,-681"/>
 <text text-anchor="start" x="219.5" y="-669" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::interaction</text>
 <text text-anchor="middle" x="281.5" y="-658" font-family="Helvetica,sans-Serif" font-size="10.00">Finished</text>
@@ -193,7 +193,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="class_network_scene.html#a9c9388a7a1f9d8970cc36adb281bbc75" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="class_network_scene.html#a9c9388a7a1f9d8970cc36adb281bbc75" target="_top" xlink:title="A scene with parent as its QObject parent.">
 <polygon fill="white" stroke="#666666" points="363.5,-577.5 199.5,-577.5 199.5,-558.5 363.5,-558.5 363.5,-577.5"/>
 <text text-anchor="middle" x="281.5" y="-565.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::NetworkScene</text>
 </a>
@@ -211,7 +211,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="class_network_view.html#ad3da1ea558773cd3e524312203d57a3b" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="class_network_view.html#ad3da1ea558773cd3e524312203d57a3b" target="_top" xlink:title="A view with the dark canvas, antialiasing and panning by drag.">
 <polygon fill="white" stroke="#666666" points="357.5,-540.5 205.5,-540.5 205.5,-521.5 357.5,-521.5 357.5,-540.5"/>
 <text text-anchor="middle" x="281.5" y="-528.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::NetworkView</text>
 </a>
@@ -229,7 +229,7 @@
 <!-- Node27 -->
 <g id="Node000027" class="node">
 <title>Node27</title>
-<g id="a_Node000027"><a xlink:href="class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" target="_top" xlink:title=" ">
+<g id="a_Node000027"><a xlink:href="class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" target="_top" xlink:title="The playback profiler began its measurement after a paint.">
 <polygon fill="white" stroke="#666666" points="362.5,-503 200.5,-503 200.5,-473 362.5,-473 362.5,-503"/>
 <text text-anchor="start" x="208.5" y="-491" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::playbackProfile</text>
 <text text-anchor="middle" x="281.5" y="-480" font-family="Helvetica,sans-Serif" font-size="10.00">Began</text>
@@ -428,7 +428,7 @@
 <!-- Node265 -->
 <g id="Node000265" class="node">
 <title>Node265</title>
-<g id="a_Node000265"><a xlink:href="class_network_view.html#ad6908933da4b5fadff421905542bbf48" target="_top" xlink:title=" ">
+<g id="a_Node000265"><a xlink:href="class_network_view.html#ad6908933da4b5fadff421905542bbf48" target="_top" xlink:title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call.">
 <polygon fill="white" stroke="#666666" points="353,-30 210,-30 210,0 353,0 353,-30"/>
 <text text-anchor="start" x="218" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::timingPaint</text>
 <text text-anchor="middle" x="281.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Completed</text>
@@ -483,7 +483,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" target="_top" xlink:title="Forgets the target and stops the timer.">
 <polygon fill="white" stroke="#666666" points="562.5,-974.5 449.5,-974.5 449.5,-955.5 562.5,-955.5 562.5,-974.5"/>
 <text text-anchor="middle" x="506" y="-962.5" font-family="Helvetica,sans-Serif" font-size="10.00">FollowCamera::stop</text>
 </a>
@@ -501,7 +501,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" target="_top" xlink:title="One step of the glide. The timer calls it; tests call it with a clock set by setClock().">
 <polygon fill="white" stroke="#666666" points="561,-937.5 451,-937.5 451,-918.5 561,-918.5 561,-937.5"/>
 <text text-anchor="middle" x="506" y="-925.5" font-family="Helvetica,sans-Serif" font-size="10.00">FollowCamera::tick</text>
 </a>

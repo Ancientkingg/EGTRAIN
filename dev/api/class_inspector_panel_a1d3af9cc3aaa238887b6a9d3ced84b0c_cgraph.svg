@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" target="_top" xlink:title="An effect without a cue until it is installed on an item. color and strength are not used.">
 <polygon fill="white" stroke="#666666" points="378.5,-134 239.5,-134 239.5,-104 378.5,-104 378.5,-134"/>
 <text text-anchor="start" x="247.5" y="-122" font-family="Helvetica,sans-Serif" font-size="10.00">HighlightEffect::Highlight</text>
 <text text-anchor="middle" x="309" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">Effect</text>
@@ -104,7 +104,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" target="_top" xlink:title="The aspect code of the head.">
 <polygon fill="white" stroke="#666666" points="554,-122.5 422,-122.5 422,-103.5 554,-103.5 554,-122.5"/>
 <text text-anchor="middle" x="488" y="-110.5" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::aspectCode</text>
 </a>
@@ -122,7 +122,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title="The state of a signal head for an aspect code, as SignalCueKind lists it.">
 <polygon fill="white" stroke="#666666" points="539,-67.5 437,-67.5 437,-48.5 539,-48.5 539,-67.5"/>
 <text text-anchor="middle" x="488" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">classifySignalCue</text>
 </a>
@@ -140,7 +140,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" target="_top" xlink:title="The signal has failed.">
 <polygon fill="white" stroke="#666666" points="539.5,-30.5 436.5,-30.5 436.5,-11.5 539.5,-11.5 539.5,-30.5"/>
 <text text-anchor="middle" x="488" y="-18.5" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::failed</text>
 </a>

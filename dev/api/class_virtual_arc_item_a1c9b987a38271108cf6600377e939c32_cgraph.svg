@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The two lines in scene coordinates. The click target joins the end of the first to the start of the s...">
 <polygon fill="#999999" stroke="#666666" points="164,-24.5 0,-24.5 0,-5.5 164,-5.5 164,-24.5"/>
 <text text-anchor="middle" x="82" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">VirtualArcItem::VirtualArcItem</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_track_line_item.html#abbc560787a749421af9a4406334eb352" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_track_line_item.html#abbc560787a749421af9a4406334eb352" target="_top" xlink:title="A free line without an arc; its click target reaches 20 scene units on each side of it.">
 <polygon fill="white" stroke="#666666" points="359,-24.5 200,-24.5 200,-5.5 359,-5.5 359,-24.5"/>
 <text text-anchor="middle" x="279.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLineItem::TrackLineItem</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1" target="_top" xlink:title="Builds selectionPolygon around the line.">
 <polygon fill="white" stroke="#666666" points="562,-30 395,-30 395,0 562,0 562,-30"/>
 <text text-anchor="start" x="403" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLineItem::createSelection</text>
 <text text-anchor="middle" x="478.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Polygon</text>

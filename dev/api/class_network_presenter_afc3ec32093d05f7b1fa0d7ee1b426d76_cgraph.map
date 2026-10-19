@@ -1,8 +1,8 @@
 <map id="NetworkPresenter::updateTrainPaxInfo" name="NetworkPresenter::updateTrainPaxInfo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,197,77"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#ae2cdcf7d81884df2a6fdb675a43d8805" title=" " alt="" coords="245,5,456,45"/>
+<area shape="rect" id="Node000001" title="Draws the passenger information of the selected train again, or hides it while the passenger layer is..." alt="" coords="5,37,197,77"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#ae2cdcf7d81884df2a6fdb675a43d8805" title="Shows the passengers on board above a train." alt="" coords="245,5,456,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,42,231,38,232,43,198,48"/>
-<area shape="rect" id="Node000004" href="$class_network_presenter.html#abea8a1cdd4332b161fa39b5a0d4b8f86" title=" " alt="" coords="252,69,449,109"/>
+<area shape="rect" id="Node000004" href="$class_network_presenter.html#abea8a1cdd4332b161fa39b5a0d4b8f86" title="Deletes the passenger information of the selected train. The train stays selected." alt="" coords="252,69,449,109"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,67,239,72,238,78,197,72"/>
 <area shape="rect" id="Node000003" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="504,5,733,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="456,23,490,23,490,28,456,28"/>

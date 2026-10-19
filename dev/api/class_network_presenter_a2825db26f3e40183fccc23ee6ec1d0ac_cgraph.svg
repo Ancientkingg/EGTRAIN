@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" target="_top" xlink:title="The line of the preview that the track line with this index in the run is drawn on,...">
 <polygon fill="white" stroke="#666666" points="602.5,-539.23 457.5,-539.23 457.5,-509.23 602.5,-509.23 602.5,-539.23"/>
 <text text-anchor="start" x="465.5" y="-527.23" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::cached</text>
 <text text-anchor="middle" x="530" y="-516.23" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLine</text>
@@ -39,7 +39,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace" target="_top" xlink:title="The look of a station node: Major with three or more connections, Station with a platform id,...">
 <polygon fill="white" stroke="#666666" points="574,-472.73 486,-472.73 486,-453.73 574,-453.73 574,-472.73"/>
 <text text-anchor="middle" x="530" y="-460.73" font-family="Helvetica,sans-Serif" font-size="10.00">classifyStation</text>
 </a>
@@ -185,7 +185,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" target="_top" xlink:title="The line of the preview with this track id in the scene, or null.">
 <polygon fill="white" stroke="#666666" points="807,-533.73 652,-533.73 652,-514.73 807,-514.73 807,-533.73"/>
 <text text-anchor="middle" x="729.5" y="-521.73" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::trackLine</text>
 </a>
@@ -239,7 +239,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_station_node_item.html#ab3e3843b061e5ccb81440d9047d6e035" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_station_node_item.html#ab3e3843b061e5ccb81440d9047d6e035" target="_top" xlink:title="A square in rect, in scene coordinates, without a node.">
 <polygon fill="white" stroke="#666666" points="600,-435.23 460,-435.23 460,-405.23 600,-405.23 600,-435.23"/>
 <text text-anchor="start" x="468" y="-423.23" font-family="Helvetica,sans-Serif" font-size="10.00">StationNodeItem::Station</text>
 <text text-anchor="middle" x="530" y="-412.23" font-family="Helvetica,sans-Serif" font-size="10.00">NodeItem</text>
@@ -258,7 +258,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" target="_top" xlink:title="The name as it is shown, with spaces between its words.">
 <polygon fill="white" stroke="#666666" points="785.5,-373.23 673.5,-373.23 673.5,-343.23 785.5,-343.23 785.5,-373.23"/>
 <text text-anchor="start" x="681.5" y="-361.23" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="729.5" y="-350.23" font-family="Helvetica,sans-Serif" font-size="10.00">::displayName</text>
@@ -324,7 +324,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" target="_top" xlink:title="The number of connections at the station.">
 <polygon fill="white" stroke="#666666" points="785.5,-277.23 673.5,-277.23 673.5,-247.23 785.5,-247.23 785.5,-277.23"/>
 <text text-anchor="start" x="681.5" y="-265.23" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="729.5" y="-254.23" font-family="Helvetica,sans-Serif" font-size="10.00">::degree</text>
@@ -343,7 +343,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_station_overlay_item.html#af08a4a63689f7ba4b61c46f1c5ac886a" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_station_overlay_item.html#af08a4a63689f7ba4b61c46f1c5ac886a" target="_top" xlink:title="The position of the station in scene coordinates.">
 <polygon fill="white" stroke="#666666" points="785.5,-229.23 673.5,-229.23 673.5,-199.23 785.5,-199.23 785.5,-229.23"/>
 <text text-anchor="start" x="681.5" y="-217.23" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="729.5" y="-206.23" font-family="Helvetica,sans-Serif" font-size="10.00">::stableAnchor</text>
@@ -362,7 +362,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" target="_top" xlink:title="The name of the station as given.">
 <polygon fill="white" stroke="#666666" points="785.5,-181.23 673.5,-181.23 673.5,-151.23 785.5,-151.23 785.5,-181.23"/>
 <text text-anchor="start" x="681.5" y="-169.23" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="729.5" y="-158.23" font-family="Helvetica,sans-Serif" font-size="10.00">::stationName</text>
@@ -381,7 +381,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" target="_top" xlink:title="The colours and the class of the station.">
 <polygon fill="white" stroke="#666666" points="785.5,-325.23 673.5,-325.23 673.5,-295.23 785.5,-295.23 785.5,-325.23"/>
 <text text-anchor="start" x="681.5" y="-313.23" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="729.5" y="-302.23" font-family="Helvetica,sans-Serif" font-size="10.00">::visual</text>

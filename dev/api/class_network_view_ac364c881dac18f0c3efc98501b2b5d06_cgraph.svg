@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Hands the release to QGraphicsView and emits interactionFinished().">
 <polygon fill="#999999" stroke="#666666" points="159,-30 0,-30 0,0 159,0 159,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::mouseRelease</text>
 <text text-anchor="middle" x="79.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Event</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_view.html#a56b38d1a10617499bcbed678d3feb7ff" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_view.html#a56b38d1a10617499bcbed678d3feb7ff" target="_top" xlink:title="A mouse button was released over the view.">
 <polygon fill="white" stroke="#666666" points="335,-30 195,-30 195,0 335,0 335,-30"/>
 <text text-anchor="start" x="203" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkView::interaction</text>
 <text text-anchor="middle" x="265" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Finished</text>

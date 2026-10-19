@@ -1,5 +1,5 @@
 <map id="stationMarkIcon" name="stationMarkIcon">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,132,55"/>
+<area shape="rect" id="Node000001" title="The mark in its dark variant for light surfaces, at 16 and 32 pixels." alt="" coords="5,29,132,55"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="39,31,33,21,36,11,48,5,69,3,93,6,104,15,100,19,91,11,69,8,50,10,40,15,38,20,43,28"/>
 <area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" title=" " alt="" coords="180,29,315,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,39,166,39,166,45,132,45"/>

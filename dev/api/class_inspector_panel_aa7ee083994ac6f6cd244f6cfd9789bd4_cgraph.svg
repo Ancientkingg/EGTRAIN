@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#a15a99bf2d5436f07027e68886ddac9b8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#a15a99bf2d5436f07027e68886ddac9b8" target="_top" xlink:title="The station stands for a node of the run.">
 <polygon fill="white" stroke="#666666" points="322.5,-126 210.5,-126 210.5,-96 322.5,-96 322.5,-126"/>
 <text text-anchor="start" x="218.5" y="-114" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="266.5" y="-103" font-family="Helvetica,sans-Serif" font-size="10.00">::hasSourceIdentity</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_station_overlay_item.html#a45218fc521b91ed42ddc09a1c2cfad1f" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_station_overlay_item.html#a45218fc521b91ed42ddc09a1c2cfad1f" target="_top" xlink:title="The station stands for the node with this ID on this track line.">
 <polygon fill="white" stroke="#666666" points="334,-78 199,-78 199,-48 334,-48 334,-78"/>
 <text text-anchor="start" x="207" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="266.5" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">::matchesSourceIdentity</text>
@@ -59,7 +59,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" target="_top" xlink:title="The name of the station as given.">
 <polygon fill="white" stroke="#666666" points="322.5,-30 210.5,-30 210.5,0 322.5,0 322.5,-30"/>
 <text text-anchor="start" x="218.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="266.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::stationName</text>

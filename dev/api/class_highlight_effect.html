@@ -128,16 +128,24 @@ Collaboration diagram for HighlightEffect:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:adf647a7463d3cfd110067bc3f28c692a" id="r_adf647a7463d3cfd110067bc3f28c692a"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#adf647a7463d3cfd110067bc3f28c692a">HighlightEffect</a> (const QColor &amp;color, qreal strength, QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:adf647a7463d3cfd110067bc3f28c692a"><td class="mdescLeft">&#160;</td><td class="mdescRight">An effect without a cue until it is installed on an item. color and strength are not used.  <br /></td></tr>
 <tr class="memitem:a97666fa98f04e6ae5674f4b49aa72cbd" id="r_a97666fa98f04e6ae5674f4b49aa72cbd"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a97666fa98f04e6ae5674f4b49aa72cbd">~HighlightEffect</a> () override</td></tr>
+<tr class="memdesc:a97666fa98f04e6ae5674f4b49aa72cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the cue.  <br /></td></tr>
 <tr class="memitem:aa9fbd4b690c75a9369b5ff1c6f2186f3" id="r_aa9fbd4b690c75a9369b5ff1c6f2186f3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa9fbd4b690c75a9369b5ff1c6f2186f3">setViewScale</a> (qreal scale)</td></tr>
+<tr class="memdesc:aa9fbd4b690c75a9369b5ff1c6f2186f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logical pixels per scene unit of the view; the cue keeps its size on screen.  <br /></td></tr>
 <tr class="memitem:a25cde3863d7af3d21332004d5b8390eb" id="r_a25cde3863d7af3d21332004d5b8390eb"><td class="memItemLeft"><a class="el" href="class_selection_cue_item.html">SelectionCueItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a25cde3863d7af3d21332004d5b8390eb">cue</a> () const</td></tr>
+<tr class="memdesc:a25cde3863d7af3d21332004d5b8390eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The cue in the scene of the item, or null while the effect is not installed on an item in a shown scene.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a285319f59e726bb03f1c3e38072fe26a" id="r_a285319f59e726bb03f1c3e38072fe26a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a285319f59e726bb03f1c3e38072fe26a">draw</a> (QPainter *painter) override</td></tr>
+<tr class="memdesc:a285319f59e726bb03f1c3e38072fe26a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the item unchanged.  <br /></td></tr>
 <tr class="memitem:accad7ba1a7c9535817745dc29dae66a5" id="r_accad7ba1a7c9535817745dc29dae66a5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#accad7ba1a7c9535817745dc29dae66a5">sourceChanged</a> (ChangeFlags flags) override</td></tr>
+<tr class="memdesc:accad7ba1a7c9535817745dc29dae66a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the cue when the effect is installed on an item and removes it when the effect is taken off.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Marks the item it is installed on as selected. The item is drawn unchanged; while the effect is attached, one <a class="el" href="class_selection_cue_item.html">SelectionCueItem</a> in the scene of the item shows the selection. The effect removes the cue when it is detached or deleted. The scene of the item must be shown by a QGraphicsView. The colour and strength only keep the call sites unchanged: the cue always has kSelectionCueColor. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="adf647a7463d3cfd110067bc3f28c692a" name="adf647a7463d3cfd110067bc3f28c692a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adf647a7463d3cfd110067bc3f28c692a">&#9670;&#160;</a></span>HighlightEffect()</h2>
 
@@ -161,6 +169,8 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>An effect without a cue until it is installed on an item. color and strength are not used. </p>
 
 </div>
 </div>
@@ -186,6 +196,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Deletes the cue. </p>
 
 </div>
 </div>
@@ -213,6 +225,8 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The cue in the scene of the item, or null while the effect is not installed on an item in a shown scene. </p>
+
 </div>
 </div>
 <a id="a285319f59e726bb03f1c3e38072fe26a" name="a285319f59e726bb03f1c3e38072fe26a"></a>
@@ -238,6 +252,8 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Draws the item unchanged. </p>
+
 </div>
 </div>
 <a id="aa9fbd4b690c75a9369b5ff1c6f2186f3" name="aa9fbd4b690c75a9369b5ff1c6f2186f3"></a>
@@ -254,6 +270,8 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Logical pixels per scene unit of the view; the cue keeps its size on screen. </p>
 
 </div>
 </div>
@@ -279,6 +297,8 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Adds the cue when the effect is installed on an item and removes it when the effect is taken off. </p>
 
 </div>
 </div>

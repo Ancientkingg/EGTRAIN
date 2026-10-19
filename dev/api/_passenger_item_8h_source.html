@@ -117,32 +117,29 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_passenger_ite
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QGraphicsPixmapItem&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="foldopen" id="foldopen00007" data-start="{" data-end="};">
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno"><a class="line" href="class_passenger_item.html">    7</a></span><span class="keyword">class </span><a class="code hl_function" href="class_passenger_item.html#a5cf8b735586a966304dc4703e7673316">PassengerItem</a> : <span class="keyword">public</span> QGraphicsPixmapItem {</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>    <span class="comment">// Q_OBJECT</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span></div>
+<div class="foldopen" id="foldopen00008" data-start="{" data-end="};">
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno"><a class="line" href="class_passenger_item.html">    8</a></span><span class="keyword">class </span><a class="code hl_function" href="class_passenger_item.html#a5cf8b735586a966304dc4703e7673316">PassengerItem</a> : <span class="keyword">public</span> QGraphicsPixmapItem {</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">public</span>:</div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    <a class="code hl_function" href="class_passenger_item.html#a5cf8b735586a966304dc4703e7673316">PassengerItem</a>(<span class="keyword">const</span> QPixmap&amp; pixmap, QGraphicsItem* parent = <span class="keyword">nullptr</span>);</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    <a class="code hl_function" href="class_passenger_item.html#a5cf8b735586a966304dc4703e7673316">~PassengerItem</a>() <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="class_passenger_item.html#a7e5b987b43a051ba3f7b20b40b1c1e60">   14</a></span>    std::string <a class="code hl_variable" href="class_passenger_item.html#a7e5b987b43a051ba3f7b20b40b1c1e60">passengerId</a>;</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <span class="comment">// to allow cast</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="class_passenger_item.html#a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6">   17</a></span>    <span class="keyword">enum</span> { <a class="code hl_enumvalue" href="class_passenger_item.html#a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6">Type</a> = UserType + 10 };</div>
-<div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="class_passenger_item.html#a68c28d239cb0ce2d432b4c0a0399915a">   18</a></span>    <span class="keywordtype">int</span> <a class="code hl_function" href="class_passenger_item.html#a68c28d239cb0ce2d432b4c0a0399915a">type</a>()<span class="keyword"> const override </span>{</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>        <span class="comment">// Enable the use of qgraphicsitem_cast with this item.</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>        <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="class_passenger_item.html#a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6">Type</a>;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    }</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="class_passenger_item.html#a7e5b987b43a051ba3f7b20b40b1c1e60">   15</a></span>    std::string <a class="code hl_variable" href="class_passenger_item.html#a7e5b987b43a051ba3f7b20b40b1c1e60">passengerId</a>;</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="class_passenger_item.html#a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6">   17</a></span>    <span class="keyword">enum</span> { <a class="code hl_enumvalue" href="class_passenger_item.html#a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6">Type</a> = UserType + 10  };</div>
+<div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="class_passenger_item.html#a68c28d239cb0ce2d432b4c0a0399915a">   19</a></span>    <span class="keywordtype">int</span> <a class="code hl_function" href="class_passenger_item.html#a68c28d239cb0ce2d432b4c0a0399915a">type</a>()<span class="keyword"> const override </span>{</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>        <span class="comment">// Enable the use of qgraphicsitem_cast with this item.</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>        <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="class_passenger_item.html#a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6">Type</a>;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    }</div>
 </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>};</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>};</div>
 </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#endif </span><span class="comment">// PASSENGERITEM_H</span></div>
-<div class="ttc" id="aclass_passenger_item_html_a5cf8b735586a966304dc4703e7673316"><div class="ttname"><a href="class_passenger_item.html#a5cf8b735586a966304dc4703e7673316">PassengerItem::PassengerItem</a></div><div class="ttdeci">PassengerItem(const QPixmap &amp;pixmap, QGraphicsItem *parent=nullptr)</div><div class="ttdef"><b>Definition</b> PassengerItem.cpp:3</div></div>
-<div class="ttc" id="aclass_passenger_item_html_a68c28d239cb0ce2d432b4c0a0399915a"><div class="ttname"><a href="class_passenger_item.html#a68c28d239cb0ce2d432b4c0a0399915a">PassengerItem::type</a></div><div class="ttdeci">int type() const override</div><div class="ttdef"><b>Definition</b> PassengerItem.h:18</div></div>
-<div class="ttc" id="aclass_passenger_item_html_a7e5b987b43a051ba3f7b20b40b1c1e60"><div class="ttname"><a href="class_passenger_item.html#a7e5b987b43a051ba3f7b20b40b1c1e60">PassengerItem::passengerId</a></div><div class="ttdeci">std::string passengerId</div><div class="ttdef"><b>Definition</b> PassengerItem.h:14</div></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#endif </span><span class="comment">// PASSENGERITEM_H</span></div>
+<div class="ttc" id="aclass_passenger_item_html_a5cf8b735586a966304dc4703e7673316"><div class="ttname"><a href="class_passenger_item.html#a5cf8b735586a966304dc4703e7673316">PassengerItem::PassengerItem</a></div><div class="ttdeci">PassengerItem(const QPixmap &amp;pixmap, QGraphicsItem *parent=nullptr)</div><div class="ttdoc">An icon that shows pixmap, one scene unit per pixel before the scale of the item.</div><div class="ttdef"><b>Definition</b> PassengerItem.cpp:3</div></div>
+<div class="ttc" id="aclass_passenger_item_html_a68c28d239cb0ce2d432b4c0a0399915a"><div class="ttname"><a href="class_passenger_item.html#a68c28d239cb0ce2d432b4c0a0399915a">PassengerItem::type</a></div><div class="ttdeci">int type() const override</div><div class="ttdoc">Returns Type.</div><div class="ttdef"><b>Definition</b> PassengerItem.h:19</div></div>
+<div class="ttc" id="aclass_passenger_item_html_a7e5b987b43a051ba3f7b20b40b1c1e60"><div class="ttname"><a href="class_passenger_item.html#a7e5b987b43a051ba3f7b20b40b1c1e60">PassengerItem::passengerId</a></div><div class="ttdeci">std::string passengerId</div><div class="ttdoc">The id of the passenger.</div><div class="ttdef"><b>Definition</b> PassengerItem.h:15</div></div>
 <div class="ttc" id="aclass_passenger_item_html_a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6"><div class="ttname"><a href="class_passenger_item.html#a99df0c779648bd729daf51a04eaac55caff45af052dd961a117220a0274fc5ca6">PassengerItem::Type</a></div><div class="ttdeci">@ Type</div><div class="ttdef"><b>Definition</b> PassengerItem.h:17</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

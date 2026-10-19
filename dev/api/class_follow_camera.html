@@ -128,24 +128,36 @@ Collaboration diagram for FollowCamera:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a7708afbc07564d2a4ac15fa15c99d0d2" id="r_a7708afbc07564d2a4ac15fa15c99d0d2"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> = std::function&lt;qint64()&gt;</td></tr>
+<tr class="memdesc:a7708afbc07564d2a4ac15fa15c99d0d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">A clock that returns a time in milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9030ce6e08973b6c398a131c6928fc24" id="r_a9030ce6e08973b6c398a131c6928fc24"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9030ce6e08973b6c398a131c6928fc24">FollowCamera</a> (<a class="el" href="class_network_view.html">NetworkView</a> *view, QObject *parent=nullptr)</td></tr>
 <tr class="memitem:aa35304c51c3b9e4b934050ed6af628f8" id="r_aa35304c51c3b9e4b934050ed6af628f8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa35304c51c3b9e4b934050ed6af628f8">follow</a> (const QPointF &amp;target, bool snap)</td></tr>
 <tr class="memitem:a36eac3c89c8c676f93cc33a1f7bca0f5" id="r_a36eac3c89c8c676f93cc33a1f7bca0f5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a36eac3c89c8c676f93cc33a1f7bca0f5">settle</a> ()</td></tr>
+<tr class="memdesc:a36eac3c89c8c676f93cc33a1f7bca0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the view to the target at once and stops the timer.  <br /></td></tr>
 <tr class="memitem:a90668ade85e90015e042c15ad3c765e4" id="r_a90668ade85e90015e042c15ad3c765e4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a90668ade85e90015e042c15ad3c765e4">stop</a> ()</td></tr>
+<tr class="memdesc:a90668ade85e90015e042c15ad3c765e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the target and stops the timer.  <br /></td></tr>
 <tr class="memitem:a388b88dfd824d48b7d1209d158e6e907" id="r_a388b88dfd824d48b7d1209d158e6e907"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a388b88dfd824d48b7d1209d158e6e907">tick</a> ()</td></tr>
+<tr class="memdesc:a388b88dfd824d48b7d1209d158e6e907"><td class="mdescLeft">&#160;</td><td class="mdescRight">One step of the glide. The timer calls it; tests call it with a clock set by <a class="el" href="#ae0f5e68eb62cd243606feb0662e384bb" title="Replaces the millisecond clock. An empty function restores the real clock.">setClock()</a>.  <br /></td></tr>
 <tr class="memitem:a1291df8bc9f1ed8468a2cf60b579e66e" id="r_a1291df8bc9f1ed8468a2cf60b579e66e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1291df8bc9f1ed8468a2cf60b579e66e">running</a> () const</td></tr>
+<tr class="memdesc:a1291df8bc9f1ed8468a2cf60b579e66e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The glide timer runs.  <br /></td></tr>
 <tr class="memitem:af63c6d27c2da4e5f0105e306ced0fccb" id="r_af63c6d27c2da4e5f0105e306ced0fccb"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af63c6d27c2da4e5f0105e306ced0fccb">hasTarget</a> () const</td></tr>
+<tr class="memdesc:af63c6d27c2da4e5f0105e306ced0fccb"><td class="mdescLeft">&#160;</td><td class="mdescRight">A target is set and not forgotten by <a class="el" href="#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and stops the timer.">stop()</a>.  <br /></td></tr>
 <tr class="memitem:a56664ab643ea14afb526786f3c9c540d" id="r_a56664ab643ea14afb526786f3c9c540d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a56664ab643ea14afb526786f3c9c540d">movingView</a> () const</td></tr>
 <tr class="memitem:ae0f5e68eb62cd243606feb0662e384bb" id="r_ae0f5e68eb62cd243606feb0662e384bb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae0f5e68eb62cd243606feb0662e384bb">setClock</a> (<a class="el" href="#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> clock)</td></tr>
+<tr class="memdesc:ae0f5e68eb62cd243606feb0662e384bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replaces the millisecond clock. An empty function restores the real clock.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a268b0b5a4f3b7f7b88089dca9a58874a" id="r_a268b0b5a4f3b7f7b88089dca9a58874a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a268b0b5a4f3b7f7b88089dca9a58874a">tickIntervalMs</a> = 33</td></tr>
+<tr class="memdesc:a268b0b5a4f3b7f7b88089dca9a58874a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The interval of the glide timer in milliseconds.  <br /></td></tr>
 </table>
-<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Moves the centre of a <a class="el" href="class_network_view.html">NetworkView</a> towards a target scene position. It owns neither a train nor a snapshot: the caller passes positions in and the controller moves the view.</p>
+<p>A glide follows the target with a timer of its own. The view moves at a constant speed and reaches the newest target one estimated update interval after that target arrived, and never sooner than two timer steps. The estimate starts at 500 ms, and each interval between targets of up to 2000 ms moves it halfway there. It is about one update behind a train that moves at constant speed, and moves at one speed between updates and across them. The distance to the target is capped to 30 percent of the smaller side of the visible scene, and the timer stops when the target is reached or the view cannot get closer to it. A snap moves the view at once.</p>
+<p>The controller reads the real centre back after every move to detect a clamped axis, and leaves a clamped axis out of the distance, the step and the lag cap of the free axis. It adopts the centre after a pan, a zoom or a resize by the user as the new starting point, so the next glide returns from there. </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a7708afbc07564d2a4ac15fa15c99d0d2" name="a7708afbc07564d2a4ac15fa15c99d0d2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7708afbc07564d2a4ac15fa15c99d0d2">&#9670;&#160;</a></span>Clock</h2>
 
@@ -157,6 +169,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A clock that returns a time in milliseconds. </p>
 
 </div>
 </div>
@@ -187,6 +201,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Moves view, which the camera does not own. A pan, a zoom or a resize of the view sets a new starting point, and the deletion of the view stops the camera. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -214,6 +229,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the position to follow, in scene coordinates. A snap moves the view there at once. The first target after <a class="el" href="#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and stops the timer.">stop()</a> and a target further away than 1.5 times the larger side of the visible scene also move the view at once. </p>
 
 </div>
 </div>
@@ -240,6 +256,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>A target is set and not forgotten by <a class="el" href="#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and stops the timer.">stop()</a>. </p>
+
 </div>
 </div>
 <a id="a56664ab643ea14afb526786f3c9c540d" name="a56664ab643ea14afb526786f3c9c540d"></a>
@@ -264,6 +282,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>True while the controller itself moves the view, so that a slot of viewportChanged() can tell this move from a pan, a zoom or a resize by the user. </p>
 
 </div>
 </div>
@@ -290,6 +309,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The glide timer runs. </p>
+
 </div>
 </div>
 <a id="ae0f5e68eb62cd243606feb0662e384bb" name="ae0f5e68eb62cd243606feb0662e384bb"></a>
@@ -306,6 +327,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Replaces the millisecond clock. An empty function restores the real clock. </p>
 
 </div>
 </div>
@@ -324,6 +347,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Moves the view to the target at once and stops the timer. </p>
+
 </div>
 </div>
 <a id="a90668ade85e90015e042c15ad3c765e4" name="a90668ade85e90015e042c15ad3c765e4"></a>
@@ -341,6 +366,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Forgets the target and stops the timer. </p>
+
 </div>
 </div>
 <a id="a388b88dfd824d48b7d1209d158e6e907" name="a388b88dfd824d48b7d1209d158e6e907"></a>
@@ -357,6 +384,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>One step of the glide. The timer calls it; tests call it with a clock set by <a class="el" href="#ae0f5e68eb62cd243606feb0662e384bb" title="Replaces the millisecond clock. An empty function restores the real clock.">setClock()</a>. </p>
 
 </div>
 </div>
@@ -380,6 +409,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The interval of the glide timer in milliseconds. </p>
 
 </div>
 </div>

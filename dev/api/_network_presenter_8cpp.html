@@ -168,8 +168,11 @@ Include dependency graph for NetworkPresenter.cpp:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a1b57662dc5e3aac38290b652a37de442" id="r_a1b57662dc5e3aac38290b652a37de442"><td class="memItemLeft"><a class="el" href="struct_gui_passenger_state.html">GuiPassengerState</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1b57662dc5e3aac38290b652a37de442">passengerStateIn</a> (const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> *snapshot, const std::string &amp;id)</td></tr>
+<tr class="memdesc:a1b57662dc5e3aac38290b652a37de442"><td class="mdescLeft">&#160;</td><td class="mdescRight">The details of a passenger in the snapshot; only the id is known when the snapshot is null or does not list the passenger.  <br /></td></tr>
 <tr class="memitem:ab86c30f8ddd372850bdc390b9e58d813" id="r_ab86c30f8ddd372850bdc390b9e58d813"><td class="memItemLeft">QPen&#160;</td><td class="memItemRight"><a class="el" href="#ab86c30f8ddd372850bdc390b9e58d813">connectionPen</a> (int width)</td></tr>
+<tr class="memdesc:ab86c30f8ddd372850bdc390b9e58d813"><td class="mdescLeft">&#160;</td><td class="mdescRight">The white cosmetic pen of a connection, width pixels wide, shared by the preview before Run and a run.  <br /></td></tr>
 <tr class="memitem:a16f55e4eca9c38ca6f6b52339f8c42c1" id="r_a16f55e4eca9c38ca6f6b52339f8c42c1"><td class="memItemLeft">QPen&#160;</td><td class="memItemRight"><a class="el" href="#a16f55e4eca9c38ca6f6b52339f8c42c1">signalHeadPen</a> ()</td></tr>
+<tr class="memdesc:a16f55e4eca9c38ca6f6b52339f8c42c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outline of a signal head, a hairline at every zoom, shared by the preview before Run and a run.  <br /></td></tr>
 <tr class="memitem:a5ad7e0d37140be7daecd2de8ac3410c4" id="r_a5ad7e0d37140be7daecd2de8ac3410c4"><td class="memItemLeft">std::map&lt; std::string, <a class="el" href="struct_preview_station_membership.html">PreviewStationMembership</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5ad7e0d37140be7daecd2de8ac3410c4">previewStationMemberships</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model)</td></tr>
 <tr class="memitem:a90871b99822ad821aef490a21ffd9272" id="r_a90871b99822ad821aef490a21ffd9272"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a90871b99822ad821aef490a21ffd9272">previewPointAtNode</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, const std::string &amp;nodeId, qreal offset, QPointF &amp;point)</td></tr>
 <tr class="memitem:a2c806caf42aab9fe3cd7c2e65f79fdef" id="r_a2c806caf42aab9fe3cd7c2e65f79fdef"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c806caf42aab9fe3cd7c2e65f79fdef">previewPointAtX</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, double x, qreal offset, QPointF &amp;point)</td></tr>
@@ -191,6 +194,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The white cosmetic pen of a connection, width pixels wide, shared by the preview before Run and a run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -217,6 +222,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The details of a passenger in the snapshot; only the id is known when the snapshot is null or does not list the passenger. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -253,6 +260,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The point of a preview line at a node, moved down by offset scene units (the display offset of the line). Returns false when the line has no such node. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -289,6 +297,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The point of a preview line at the position x in kilometres, interpolated between its points and moved down by offset scene units. Outside the line it is the nearest point. Returns false when there is no finite point. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -320,6 +329,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The unit normal of a preview line at the position rawX in kilometres, which tells the side of a signal head. Returns false when no segment of the line covers rawX. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -342,6 +352,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The station and the platform of each node of the model by node id. A node belongs to the platforms that list it; a station without platforms takes the nodes at its position, within 1e-8 km. A later station in the model replaces the station id and name of an earlier one. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -364,6 +375,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The outline of a signal head, a hairline at every zoom, shared by the preview before Run and a run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -395,6 +408,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>How far the artwork and the name of a station sit from its anchor, in historical presentation distances: the regional shift of <a class="el" href="_annotation_placement_8h.html#a3b8bd90c7b803359bfd5a4a13d9d7922">annotationStationShift()</a> plus the named offset of <a class="el" href="_annotation_placement_8h.html#ae3067ca56533e5abb741474b47047747">stationNamedYOffset()</a>. The callers multiply it by the presentation scale. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

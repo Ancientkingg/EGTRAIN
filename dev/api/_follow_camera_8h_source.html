@@ -123,95 +123,73 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_follow_camera
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;QPointer&gt;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;QTimer&gt;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="comment">// Moves the centre of a NetworkView towards a target scene position. It owns neither a</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="comment">// train nor a snapshot: the caller passes positions in and the controller moves the view.</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="comment">//</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="comment">// A glide follows the target with a timer of its own. The view moves at a constant speed and</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="comment">// reaches the newest target one estimated update interval after that target arrived, and never</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="comment">// sooner than two timer steps. It is about one update behind a train that moves at constant</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">// speed, and moves at one speed between updates and across them. The distance to the target is</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// capped to a fraction of the visible scene, and the timer stops when the target is reached or</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// the view cannot get closer to it. A snap moves the view at once.</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="comment">//</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="comment">// The controller reads the real centre back after every move to detect a clamped axis, and</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="comment">// leaves a clamped axis out of the distance, the step and the lag cap of the free axis. It</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">// adopts the centre after a pan, a zoom or a resize by the user as the new starting point, so</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="comment">// the next glide returns from there.</span></div>
-<div class="foldopen" id="foldopen00027" data-start="{" data-end="};">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="class_follow_camera.html">   27</a></span><span class="keyword">class </span><a class="code hl_function" href="class_follow_camera.html#a9030ce6e08973b6c398a131c6928fc24">FollowCamera</a> : <span class="keyword">public</span> QObject {</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    Q_OBJECT</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">   31</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> = std::function&lt;qint64()&gt;;</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a">   33</a></span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a">tickIntervalMs</a> = 33;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keyword">explicit</span> <a class="code hl_function" href="class_follow_camera.html#a9030ce6e08973b6c398a131c6928fc24">FollowCamera</a>(<a class="code hl_class" href="class_network_view.html">NetworkView</a>* view, QObject* parent = <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="comment">// Sets the position to follow. A snap moves the view there at once. The first target</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="comment">// after stop() and a target far outside the visible scene also move the view at once.</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#aa35304c51c3b9e4b934050ed6af628f8">follow</a>(<span class="keyword">const</span> QPointF&amp; target, <span class="keywordtype">bool</span> snap);</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="comment">// Moves the view to the target at once and stops the timer.</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5">settle</a>();</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="comment">// Forgets the target and stops the timer.</span></div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4">stop</a>();</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="comment">// One step of the glide. The timer calls it; tests call it with a clock set by setClock().</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907">tick</a>();</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e">   47</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e">running</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_timer.isActive(); }</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="class_follow_camera.html#af63c6d27c2da4e5f0105e306ced0fccb">   48</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_follow_camera.html#af63c6d27c2da4e5f0105e306ced0fccb">hasTarget</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_hasTarget; }</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="comment">// True while the controller itself moves the view, so that a slot of viewportChanged() can</span></div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="comment">// tell this move from a pan, a zoom or a resize by the user.</span></div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a56664ab643ea14afb526786f3c9c540d">   51</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_follow_camera.html#a56664ab643ea14afb526786f3c9c540d">movingView</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_moving; }</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="comment">// Replaces the millisecond clock. An empty function restores the real clock.</span></div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#ae0f5e68eb62cd243606feb0662e384bb">setClock</a>(<a class="code hl_typedef" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> clock);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keyword">struct </span>Stall {</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keywordtype">bool</span> x = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keywordtype">bool</span> y = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    };</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    qint64 nowMs() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    QPointF viewCenter() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    qreal pixelSize() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    Stall moveTo(<span class="keyword">const</span> QPointF&amp; desired);</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    qreal distanceToTarget(<span class="keyword">const</span> Stall&amp; stall) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    qint64 glideDurationMs() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keywordtype">void</span> adoptViewCenter();</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span></div>
+<div class="foldopen" id="foldopen00028" data-start="{" data-end="};">
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="class_follow_camera.html">   28</a></span><span class="keyword">class </span><a class="code hl_function" href="class_follow_camera.html#a9030ce6e08973b6c398a131c6928fc24">FollowCamera</a> : <span class="keyword">public</span> QObject {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    Q_OBJECT</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">   33</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> = std::function&lt;qint64()&gt;;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a">   36</a></span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a">tickIntervalMs</a> = 33;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keyword">explicit</span> <a class="code hl_function" href="class_follow_camera.html#a9030ce6e08973b6c398a131c6928fc24">FollowCamera</a>(<a class="code hl_class" href="class_network_view.html">NetworkView</a>* view, QObject* parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#aa35304c51c3b9e4b934050ed6af628f8">follow</a>(<span class="keyword">const</span> QPointF&amp; target, <span class="keywordtype">bool</span> snap);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5">settle</a>();</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4">stop</a>();</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907">tick</a>();</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e">   54</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e">running</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_timer.isActive(); }</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="class_follow_camera.html#af63c6d27c2da4e5f0105e306ced0fccb">   56</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_follow_camera.html#af63c6d27c2da4e5f0105e306ced0fccb">hasTarget</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_hasTarget; }</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno"><a class="line" href="class_follow_camera.html#a56664ab643ea14afb526786f3c9c540d">   59</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_follow_camera.html#a56664ab643ea14afb526786f3c9c540d">movingView</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_moving; }</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_follow_camera.html#ae0f5e68eb62cd243606feb0662e384bb">setClock</a>(<a class="code hl_typedef" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> clock);</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keyword">struct </span>Stall {</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="keywordtype">bool</span> x = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <span class="keywordtype">bool</span> y = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    };</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    QPointer&lt;NetworkView&gt; m_view;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    QTimer m_timer;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    QElapsedTimer m_elapsed;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <a class="code hl_typedef" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> m_clock;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    QPointF m_position;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    QPointF m_target;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    Stall m_stall;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordtype">bool</span> m_hasTarget = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keywordtype">bool</span> m_withinLag = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keywordtype">bool</span> m_moving = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    qreal m_intervalMs;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    qint64 m_lastTargetMs = 0;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    qint64 m_lastTickMs = 0;</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    qint64 m_arrivalMs = 0;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>};</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    qint64 nowMs() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    QPointF viewCenter() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    qreal pixelSize() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    Stall moveTo(<span class="keyword">const</span> QPointF&amp; desired);</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    qreal distanceToTarget(<span class="keyword">const</span> Stall&amp; stall) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    qint64 glideDurationMs() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordtype">void</span> adoptViewCenter();</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    QPointer&lt;NetworkView&gt; m_view;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    QTimer m_timer;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    QElapsedTimer m_elapsed;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <a class="code hl_typedef" href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">Clock</a> m_clock;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    QPointF m_position;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    QPointF m_target;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    Stall m_stall;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keywordtype">bool</span> m_hasTarget = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordtype">bool</span> m_withinLag = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordtype">bool</span> m_moving = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    qreal m_intervalMs;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    qint64 m_lastTargetMs = 0;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    qint64 m_lastTickMs = 0;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    qint64 m_arrivalMs = 0;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>};</div>
 </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#endif </span><span class="comment">// FOLLOWCAMERA_H</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><span class="preprocessor">#endif </span><span class="comment">// FOLLOWCAMERA_H</span></div>
 <div class="ttc" id="a_network_view_8h_html"><div class="ttname"><a href="_network_view_8h.html">NetworkView.h</a></div></div>
-<div class="ttc" id="aclass_follow_camera_html_a1291df8bc9f1ed8468a2cf60b579e66e"><div class="ttname"><a href="class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e">FollowCamera::running</a></div><div class="ttdeci">bool running() const</div><div class="ttdef"><b>Definition</b> FollowCamera.h:47</div></div>
-<div class="ttc" id="aclass_follow_camera_html_a268b0b5a4f3b7f7b88089dca9a58874a"><div class="ttname"><a href="class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a">FollowCamera::tickIntervalMs</a></div><div class="ttdeci">static constexpr int tickIntervalMs</div><div class="ttdef"><b>Definition</b> FollowCamera.h:33</div></div>
-<div class="ttc" id="aclass_follow_camera_html_a36eac3c89c8c676f93cc33a1f7bca0f5"><div class="ttname"><a href="class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5">FollowCamera::settle</a></div><div class="ttdeci">void settle()</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:123</div></div>
-<div class="ttc" id="aclass_follow_camera_html_a388b88dfd824d48b7d1209d158e6e907"><div class="ttname"><a href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907">FollowCamera::tick</a></div><div class="ttdeci">void tick()</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:139</div></div>
-<div class="ttc" id="aclass_follow_camera_html_a56664ab643ea14afb526786f3c9c540d"><div class="ttname"><a href="class_follow_camera.html#a56664ab643ea14afb526786f3c9c540d">FollowCamera::movingView</a></div><div class="ttdeci">bool movingView() const</div><div class="ttdef"><b>Definition</b> FollowCamera.h:51</div></div>
-<div class="ttc" id="aclass_follow_camera_html_a7708afbc07564d2a4ac15fa15c99d0d2"><div class="ttname"><a href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">FollowCamera::Clock</a></div><div class="ttdeci">std::function&lt; qint64()&gt; Clock</div><div class="ttdef"><b>Definition</b> FollowCamera.h:31</div></div>
+<div class="ttc" id="aclass_follow_camera_html_a1291df8bc9f1ed8468a2cf60b579e66e"><div class="ttname"><a href="class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e">FollowCamera::running</a></div><div class="ttdeci">bool running() const</div><div class="ttdoc">The glide timer runs.</div><div class="ttdef"><b>Definition</b> FollowCamera.h:54</div></div>
+<div class="ttc" id="aclass_follow_camera_html_a268b0b5a4f3b7f7b88089dca9a58874a"><div class="ttname"><a href="class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a">FollowCamera::tickIntervalMs</a></div><div class="ttdeci">static constexpr int tickIntervalMs</div><div class="ttdoc">The interval of the glide timer in milliseconds.</div><div class="ttdef"><b>Definition</b> FollowCamera.h:36</div></div>
+<div class="ttc" id="aclass_follow_camera_html_a36eac3c89c8c676f93cc33a1f7bca0f5"><div class="ttname"><a href="class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5">FollowCamera::settle</a></div><div class="ttdeci">void settle()</div><div class="ttdoc">Moves the view to the target at once and stops the timer.</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:123</div></div>
+<div class="ttc" id="aclass_follow_camera_html_a388b88dfd824d48b7d1209d158e6e907"><div class="ttname"><a href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907">FollowCamera::tick</a></div><div class="ttdeci">void tick()</div><div class="ttdoc">One step of the glide. The timer calls it; tests call it with a clock set by setClock().</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:139</div></div>
+<div class="ttc" id="aclass_follow_camera_html_a56664ab643ea14afb526786f3c9c540d"><div class="ttname"><a href="class_follow_camera.html#a56664ab643ea14afb526786f3c9c540d">FollowCamera::movingView</a></div><div class="ttdeci">bool movingView() const</div><div class="ttdef"><b>Definition</b> FollowCamera.h:59</div></div>
+<div class="ttc" id="aclass_follow_camera_html_a7708afbc07564d2a4ac15fa15c99d0d2"><div class="ttname"><a href="class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2">FollowCamera::Clock</a></div><div class="ttdeci">std::function&lt; qint64()&gt; Clock</div><div class="ttdoc">A clock that returns a time in milliseconds.</div><div class="ttdef"><b>Definition</b> FollowCamera.h:33</div></div>
 <div class="ttc" id="aclass_follow_camera_html_a9030ce6e08973b6c398a131c6928fc24"><div class="ttname"><a href="class_follow_camera.html#a9030ce6e08973b6c398a131c6928fc24">FollowCamera::FollowCamera</a></div><div class="ttdeci">FollowCamera(NetworkView *view, QObject *parent=nullptr)</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:33</div></div>
-<div class="ttc" id="aclass_follow_camera_html_a90668ade85e90015e042c15ad3c765e4"><div class="ttname"><a href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4">FollowCamera::stop</a></div><div class="ttdeci">void stop()</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:131</div></div>
+<div class="ttc" id="aclass_follow_camera_html_a90668ade85e90015e042c15ad3c765e4"><div class="ttname"><a href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4">FollowCamera::stop</a></div><div class="ttdeci">void stop()</div><div class="ttdoc">Forgets the target and stops the timer.</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:131</div></div>
 <div class="ttc" id="aclass_follow_camera_html_aa35304c51c3b9e4b934050ed6af628f8"><div class="ttname"><a href="class_follow_camera.html#aa35304c51c3b9e4b934050ed6af628f8">FollowCamera::follow</a></div><div class="ttdeci">void follow(const QPointF &amp;target, bool snap)</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:96</div></div>
-<div class="ttc" id="aclass_follow_camera_html_ae0f5e68eb62cd243606feb0662e384bb"><div class="ttname"><a href="class_follow_camera.html#ae0f5e68eb62cd243606feb0662e384bb">FollowCamera::setClock</a></div><div class="ttdeci">void setClock(Clock clock)</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:45</div></div>
-<div class="ttc" id="aclass_follow_camera_html_af63c6d27c2da4e5f0105e306ced0fccb"><div class="ttname"><a href="class_follow_camera.html#af63c6d27c2da4e5f0105e306ced0fccb">FollowCamera::hasTarget</a></div><div class="ttdeci">bool hasTarget() const</div><div class="ttdef"><b>Definition</b> FollowCamera.h:48</div></div>
-<div class="ttc" id="aclass_network_view_html"><div class="ttname"><a href="class_network_view.html">NetworkView</a></div><div class="ttdef"><b>Definition</b> NetworkView.h:23</div></div>
+<div class="ttc" id="aclass_follow_camera_html_ae0f5e68eb62cd243606feb0662e384bb"><div class="ttname"><a href="class_follow_camera.html#ae0f5e68eb62cd243606feb0662e384bb">FollowCamera::setClock</a></div><div class="ttdeci">void setClock(Clock clock)</div><div class="ttdoc">Replaces the millisecond clock. An empty function restores the real clock.</div><div class="ttdef"><b>Definition</b> FollowCamera.cpp:45</div></div>
+<div class="ttc" id="aclass_follow_camera_html_af63c6d27c2da4e5f0105e306ced0fccb"><div class="ttname"><a href="class_follow_camera.html#af63c6d27c2da4e5f0105e306ced0fccb">FollowCamera::hasTarget</a></div><div class="ttdeci">bool hasTarget() const</div><div class="ttdoc">A target is set and not forgotten by stop().</div><div class="ttdef"><b>Definition</b> FollowCamera.h:56</div></div>
+<div class="ttc" id="aclass_network_view_html"><div class="ttname"><a href="class_network_view.html">NetworkView</a></div><div class="ttdef"><b>Definition</b> NetworkView.h:27</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

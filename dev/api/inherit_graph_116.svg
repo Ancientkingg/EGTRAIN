@@ -38,7 +38,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_station_node_item.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_station_node_item.html" target="_top" xlink:title="The square of a station node of a track line. It draws over track lines and connections.">
 <polygon fill="white" stroke="#666666" points="246,-19 147,-19 147,0 246,0 246,-19"/>
 <text text-anchor="middle" x="196.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">StationNodeItem</text>
 </a>

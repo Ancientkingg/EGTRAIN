@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Draws the mark and the label; a scene decoration draws nothing.">
 <polygon fill="#999999" stroke="#666666" points="112,-54.5 0,-54.5 0,-24.5 112,-24.5 112,-54.5"/>
 <text text-anchor="start" x="8" y="-42.5" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="56" y="-31.5" font-family="Helvetica,sans-Serif" font-size="10.00">::paint</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#a68d5d0899e5551d3adf68241a3bd819b" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#a68d5d0899e5551d3adf68241a3bd819b" target="_top" xlink:title="The label is drawn.">
 <polygon fill="white" stroke="#666666" points="260,-85.5 148,-85.5 148,-55.5 260,-55.5 260,-85.5"/>
 <text text-anchor="start" x="156" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="204" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">::isLabelVisible</text>

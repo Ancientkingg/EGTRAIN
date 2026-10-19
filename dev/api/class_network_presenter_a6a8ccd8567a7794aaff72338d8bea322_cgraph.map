@@ -1,5 +1,5 @@
 <map id="NetworkPresenter::clear" name="NetworkPresenter::clear">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,13,184,38"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#a1012f4c1a63b39a3897b4c4702fb8d24" title=" " alt="" coords="232,5,439,45"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a1012f4c1a63b39a3897b4c4702fb8d24" title="Stops the movement of every train between its last two places." alt="" coords="232,5,439,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,23,218,23,218,28,184,28"/>
 </map>

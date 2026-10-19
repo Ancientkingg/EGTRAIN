@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" target="_top" xlink:title="The line of the preview that the track line with this index in the run is drawn on,...">
 <polygon fill="white" stroke="#666666" points="528.5,-133.5 383.5,-133.5 383.5,-103.5 528.5,-103.5 528.5,-133.5"/>
 <text text-anchor="start" x="391.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::cached</text>
 <text text-anchor="middle" x="456" y="-110.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLine</text>
@@ -96,7 +96,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" target="_top" xlink:title="The line of the preview with this track id in the scene, or null.">
 <polygon fill="white" stroke="#666666" points="733,-128 578,-128 578,-109 733,-109 733,-128"/>
 <text text-anchor="middle" x="655.5" y="-116" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::trackLine</text>
 </a>

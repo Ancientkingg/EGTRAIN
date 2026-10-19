@@ -113,20 +113,33 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_station
 </div><!--header-->
 <div class="contents">
 
+<p>Where the mark and the label go for one label side, in logical pixels of the viewport.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_station_overlay_item_8h_source.html">graphics/items/StationOverlayItem.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a42008f91f400e418ba7195fe6eb73848" id="r_a42008f91f400e418ba7195fe6eb73848"><td class="memItemLeft"><a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2f">LabelSide</a>&#160;</td><td class="memItemRight"><a class="el" href="#a42008f91f400e418ba7195fe6eb73848">side</a> = <a class="el" href="class_station_overlay_item.html#a0af9fa9f950f04263d448e47806e9f2fa92b09c7c48c520c3c55e497875da437c">LabelSide::Right</a></td></tr>
+<tr class="memdesc:a42008f91f400e418ba7195fe6eb73848"><td class="mdescLeft">&#160;</td><td class="mdescRight">The side of the label.  <br /></td></tr>
 <tr class="memitem:ae4ce167ae3ce466a4ef3bd14c0896252" id="r_ae4ce167ae3ce466a4ef3bd14c0896252"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#ae4ce167ae3ce466a4ef3bd14c0896252">offset</a></td></tr>
+<tr class="memdesc:ae4ce167ae3ce466a4ef3bd14c0896252"><td class="mdescLeft">&#160;</td><td class="mdescRight">The move that keeps the mark and the label in the inset; zero when the anchor is too far out.  <br /></td></tr>
 <tr class="memitem:a3462866d5b2e1abf287694b3cf3e9c3a" id="r_a3462866d5b2e1abf287694b3cf3e9c3a"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a3462866d5b2e1abf287694b3cf3e9c3a">symbolRect</a></td></tr>
+<tr class="memdesc:a3462866d5b2e1abf287694b3cf3e9c3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark after the move.  <br /></td></tr>
 <tr class="memitem:a916752976edbaf2f1b35ab099ff8250e" id="r_a916752976edbaf2f1b35ab099ff8250e"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a916752976edbaf2f1b35ab099ff8250e">labelRect</a></td></tr>
+<tr class="memdesc:a916752976edbaf2f1b35ab099ff8250e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label after the move.  <br /></td></tr>
 <tr class="memitem:a3e396fed304e8e3d668605b348fa6697" id="r_a3e396fed304e8e3d668605b348fa6697"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a3e396fed304e8e3d668605b348fa6697">combinedRect</a></td></tr>
+<tr class="memdesc:a3e396fed304e8e3d668605b348fa6697"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark and the label after the move.  <br /></td></tr>
 <tr class="memitem:a3758362ffd514d62cbd24aa0f4f9dc91" id="r_a3758362ffd514d62cbd24aa0f4f9dc91"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#a3758362ffd514d62cbd24aa0f4f9dc91">overflow</a> = 0.0</td></tr>
+<tr class="memdesc:a3758362ffd514d62cbd24aa0f4f9dc91"><td class="mdescLeft">&#160;</td><td class="mdescRight">How far the mark and the label reach outside the inset before the move, summed over the four sides.  <br /></td></tr>
 <tr class="memitem:a53b99afa67ab3c7538321fc6ff9fc919" id="r_a53b99afa67ab3c7538321fc6ff9fc919"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a53b99afa67ab3c7538321fc6ff9fc919">fitsBeforeClamp</a> = false</td></tr>
+<tr class="memdesc:a53b99afa67ab3c7538321fc6ff9fc919"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark and the label fit in the inset without the move.  <br /></td></tr>
 <tr class="memitem:a5265e9711429efeaa5e4074011fc8946" id="r_a5265e9711429efeaa5e4074011fc8946"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5265e9711429efeaa5e4074011fc8946">fits</a> = false</td></tr>
+<tr class="memdesc:a5265e9711429efeaa5e4074011fc8946"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark and the label fit in the inset after the move.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Where the mark and the label go for one label side, in logical pixels of the viewport. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a3e396fed304e8e3d668605b348fa6697" name="a3e396fed304e8e3d668605b348fa6697"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3e396fed304e8e3d668605b348fa6697">&#9670;&#160;</a></span>combinedRect</h2>
 
@@ -138,6 +151,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The mark and the label after the move. </p>
 
 </div>
 </div>
@@ -153,6 +168,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The mark and the label fit in the inset after the move. </p>
+
 </div>
 </div>
 <a id="a53b99afa67ab3c7538321fc6ff9fc919" name="a53b99afa67ab3c7538321fc6ff9fc919"></a>
@@ -166,6 +183,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The mark and the label fit in the inset without the move. </p>
 
 </div>
 </div>
@@ -181,6 +200,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The label after the move. </p>
+
 </div>
 </div>
 <a id="ae4ce167ae3ce466a4ef3bd14c0896252" name="ae4ce167ae3ce466a4ef3bd14c0896252"></a>
@@ -194,6 +215,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The move that keeps the mark and the label in the inset; zero when the anchor is too far out. </p>
 
 </div>
 </div>
@@ -209,6 +232,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>How far the mark and the label reach outside the inset before the move, summed over the four sides. </p>
+
 </div>
 </div>
 <a id="a42008f91f400e418ba7195fe6eb73848" name="a42008f91f400e418ba7195fe6eb73848"></a>
@@ -223,6 +248,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The side of the label. </p>
+
 </div>
 </div>
 <a id="a3462866d5b2e1abf287694b3cf3e9c3a" name="a3462866d5b2e1abf287694b3cf3e9c3a"></a>
@@ -236,6 +263,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The mark after the move. </p>
 
 </div>
 </div>

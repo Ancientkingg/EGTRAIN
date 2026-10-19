@@ -1,23 +1,23 @@
 <map id="NetworkScene::mousePressEvent" name="NetworkScene::mousePressEvent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,201,208,241"/>
-<area shape="rect" id="Node000002" href="$class_network_scene.html#a4b27b56ae596fe530b6ca3a14a88e0c4" title=" " alt="" coords="256,172,475,212"/>
+<area shape="rect" id="Node000001" title="A left click selects the item under it as select() does. Every press then emits MousePressedOnScene()..." alt="" coords="5,201,208,241"/>
+<area shape="rect" id="Node000002" href="$class_network_scene.html#a4b27b56ae596fe530b6ca3a14a88e0c4" title="A mouse button was pressed on the scene." alt="" coords="256,172,475,212"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,207,242,203,243,209,208,213"/>
 <area shape="rect" id="Node000003" href="$class_network_scene.html#ad316fbfe52b5958b0a80b66f12b84fe9" title=" " alt="" coords="284,237,447,262"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,230,270,236,270,242,208,235"/>
-<area shape="rect" id="Node000004" href="$class_network_scene.html#a16390d059b0101603d510d2edea5b9e6" title=" " alt="" coords="523,5,741,45"/>
+<area shape="rect" id="Node000004" href="$class_network_scene.html#a16390d059b0101603d510d2edea5b9e6" title="A track line of a run was selected." alt="" coords="523,5,741,45"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="446,238,473,222,488,203,495,183,497,141,497,99,505,77,521,56,525,51,529,55,525,59,510,79,503,99,502,141,501,184,493,205,476,226,448,243"/>
-<area shape="rect" id="Node000005" href="$class_network_scene.html#a6da84bcdcac3c63c4d92b8060c450ae9" title=" " alt="" coords="523,69,741,109"/>
+<area shape="rect" id="Node000005" href="$class_network_scene.html#a6da84bcdcac3c63c4d92b8060c450ae9" title="A connection of a run was selected." alt="" coords="523,69,741,109"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="446,237,473,222,484,210,491,198,496,173,502,146,509,132,521,119,527,114,531,119,524,123,513,135,507,148,502,174,496,200,489,213,476,226,448,241"/>
-<area shape="rect" id="Node000006" href="$class_network_scene.html#ac2e826af7152f709ce12cbada70a65ad" title=" " alt="" coords="523,133,741,173"/>
+<area shape="rect" id="Node000006" href="$class_network_scene.html#ac2e826af7152f709ce12cbada70a65ad" title="A node of a run was selected." alt="" coords="523,133,741,173"/>
 <area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="440,234,473,222,487,213,497,203,507,193,521,183,536,176,538,181,524,188,510,197,501,207,491,217,476,226,442,239"/>
-<area shape="rect" id="Node000007" href="$class_network_scene.html#aaca310d0d226711c712b75085335f14f" title=" " alt="" coords="523,197,741,237"/>
+<area shape="rect" id="Node000007" href="$class_network_scene.html#aaca310d0d226711c712b75085335f14f" title="A passenger icon was selected." alt="" coords="523,197,741,237"/>
 <area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="447,237,508,229,509,235,447,242"/>
-<area shape="rect" id="Node000008" href="$class_network_scene.html#ab55072303517ed7b5c6a50622efe64ee" title=" " alt="" coords="523,261,741,301"/>
+<area shape="rect" id="Node000008" href="$class_network_scene.html#ab55072303517ed7b5c6a50622efe64ee" title="An item of the preview was selected." alt="" coords="523,261,741,301"/>
 <area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="447,256,509,264,508,269,447,262"/>
-<area shape="rect" id="Node000009" href="$class_network_scene.html#a62ef3b5bcb3944af81c0519f67075640" title=" " alt="" coords="523,325,741,365"/>
+<area shape="rect" id="Node000009" href="$class_network_scene.html#a62ef3b5bcb3944af81c0519f67075640" title="A signal head of a run was selected." alt="" coords="523,325,741,365"/>
 <area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="396,260,524,311,547,319,545,324,522,316,394,264"/>
-<area shape="rect" id="Node000010" href="$class_network_scene.html#a9ee9b4bf46f12f9d0acfd80f92c5f512" title=" " alt="" coords="523,389,741,429"/>
+<area shape="rect" id="Node000010" href="$class_network_scene.html#a9ee9b4bf46f12f9d0acfd80f92c5f512" title="A station node of a run was selected." alt="" coords="523,389,741,429"/>
 <area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="381,260,439,315,480,347,524,375,538,382,536,387,521,380,477,352,436,319,377,264"/>
-<area shape="rect" id="Node000011" href="$class_network_scene.html#a3bbba62c662c2c16ef7146065d9843f0" title=" " alt="" coords="523,453,741,493"/>
+<area shape="rect" id="Node000011" href="$class_network_scene.html#a3bbba62c662c2c16ef7146065d9843f0" title="A body of a train was selected." alt="" coords="523,453,741,493"/>
 <area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="376,261,397,297,430,345,473,396,524,439,534,445,531,450,521,444,469,399,425,348,392,299,371,264"/>
 </map>

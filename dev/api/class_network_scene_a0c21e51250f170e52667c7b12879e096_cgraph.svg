@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A left click selects the item under it as select() does. Every press then emits MousePressedOnScene()...">
 <polygon fill="#999999" stroke="#666666" points="152,-219 0,-219 0,-189 152,-189 152,-219"/>
 <text text-anchor="start" x="8" y="-207" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::mousePress</text>
 <text text-anchor="middle" x="76" y="-196" font-family="Helvetica,sans-Serif" font-size="10.00">Event</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_scene.html#a4b27b56ae596fe530b6ca3a14a88e0c4" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_scene.html#a4b27b56ae596fe530b6ca3a14a88e0c4" target="_top" xlink:title="A mouse button was pressed on the scene.">
 <polygon fill="white" stroke="#666666" points="352,-241 188,-241 188,-211 352,-211 352,-241"/>
 <text text-anchor="start" x="196" y="-229" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="270" y="-218" font-family="Helvetica,sans-Serif" font-size="10.00">OnScene</text>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_network_scene.html#a16390d059b0101603d510d2edea5b9e6" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_network_scene.html#a16390d059b0101603d510d2edea5b9e6" target="_top" xlink:title="A track line of a run was selected.">
 <polygon fill="white" stroke="#666666" points="552,-366 388,-366 388,-336 552,-336 552,-366"/>
 <text text-anchor="start" x="396" y="-354" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-343" font-family="Helvetica,sans-Serif" font-size="10.00">OnArc</text>
@@ -77,7 +77,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_network_scene.html#a6da84bcdcac3c63c4d92b8060c450ae9" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_network_scene.html#a6da84bcdcac3c63c4d92b8060c450ae9" target="_top" xlink:title="A connection of a run was selected.">
 <polygon fill="white" stroke="#666666" points="552,-318 388,-318 388,-288 552,-288 552,-318"/>
 <text text-anchor="start" x="396" y="-306" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-295" font-family="Helvetica,sans-Serif" font-size="10.00">OnConnection</text>
@@ -96,7 +96,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_network_scene.html#ac2e826af7152f709ce12cbada70a65ad" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_network_scene.html#ac2e826af7152f709ce12cbada70a65ad" target="_top" xlink:title="A node of a run was selected.">
 <polygon fill="white" stroke="#666666" points="552,-270 388,-270 388,-240 552,-240 552,-270"/>
 <text text-anchor="start" x="396" y="-258" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-247" font-family="Helvetica,sans-Serif" font-size="10.00">OnNode</text>
@@ -115,7 +115,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_network_scene.html#aaca310d0d226711c712b75085335f14f" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_network_scene.html#aaca310d0d226711c712b75085335f14f" target="_top" xlink:title="A passenger icon was selected.">
 <polygon fill="white" stroke="#666666" points="552,-222 388,-222 388,-192 552,-192 552,-222"/>
 <text text-anchor="start" x="396" y="-210" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00">OnPassenger</text>
@@ -134,7 +134,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_network_scene.html#ab55072303517ed7b5c6a50622efe64ee" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_network_scene.html#ab55072303517ed7b5c6a50622efe64ee" target="_top" xlink:title="An item of the preview was selected.">
 <polygon fill="white" stroke="#666666" points="552,-174 388,-174 388,-144 552,-144 552,-174"/>
 <text text-anchor="start" x="396" y="-162" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-151" font-family="Helvetica,sans-Serif" font-size="10.00">OnPreview</text>
@@ -153,7 +153,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_network_scene.html#a62ef3b5bcb3944af81c0519f67075640" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_network_scene.html#a62ef3b5bcb3944af81c0519f67075640" target="_top" xlink:title="A signal head of a run was selected.">
 <polygon fill="white" stroke="#666666" points="552,-126 388,-126 388,-96 552,-96 552,-126"/>
 <text text-anchor="start" x="396" y="-114" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-103" font-family="Helvetica,sans-Serif" font-size="10.00">OnSignal</text>
@@ -172,7 +172,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_network_scene.html#a9ee9b4bf46f12f9d0acfd80f92c5f512" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_network_scene.html#a9ee9b4bf46f12f9d0acfd80f92c5f512" target="_top" xlink:title="A station node of a run was selected.">
 <polygon fill="white" stroke="#666666" points="552,-78 388,-78 388,-48 552,-48 552,-78"/>
 <text text-anchor="start" x="396" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">OnStationNode</text>
@@ -191,7 +191,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_network_scene.html#a3bbba62c662c2c16ef7146065d9843f0" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_network_scene.html#a3bbba62c662c2c16ef7146065d9843f0" target="_top" xlink:title="A body of a train was selected.">
 <polygon fill="white" stroke="#666666" points="552,-30 388,-30 388,0 552,0 552,-30"/>
 <text text-anchor="start" x="396" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkScene::MousePressed</text>
 <text text-anchor="middle" x="470" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">OnTrain</text>

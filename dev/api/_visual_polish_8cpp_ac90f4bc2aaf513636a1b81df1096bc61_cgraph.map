@@ -1,7 +1,7 @@
 <map id="classifySignalAspect" name="classifySignalAspect">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,160,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="51,31,44,21,48,11,61,5,83,3,109,6,120,15,117,19,107,11,83,8,62,10,52,15,49,20,55,28"/>
-<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title=" " alt="" coords="208,29,344,55"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title="The state of a signal head for an aspect code, as SignalCueKind lists it." alt="" coords="208,29,344,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="160,39,194,39,194,45,160,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="244,31,238,21,241,11,254,5,276,3,302,6,313,15,310,19,300,11,276,8,256,10,245,15,243,20,249,28"/>
 </map>

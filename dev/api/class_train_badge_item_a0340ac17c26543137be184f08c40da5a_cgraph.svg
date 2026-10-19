@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The identifier, elided in the middle to fit its room.">
 <polygon fill="#999999" stroke="#666666" points="146,-79.5 0,-79.5 0,-49.5 146,-49.5 146,-79.5"/>
 <text text-anchor="start" x="8" y="-67.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::displayed</text>
 <text text-anchor="middle" x="73" y="-56.5" font-family="Helvetica,sans-Serif" font-size="10.00">Identifier</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train_badge_item.html#ad7f2047f6147eb22ab8b02376488cfb8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train_badge_item.html#ad7f2047f6147eb22ab8b02376488cfb8" target="_top" xlink:title="The room for the identifier; empty when the presentation does not hold it.">
 <polygon fill="white" stroke="#666666" points="325,-79.5 182,-79.5 182,-49.5 325,-49.5 325,-79.5"/>
 <text text-anchor="start" x="190" y="-67.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::identifier</text>
 <text text-anchor="middle" x="253.5" y="-56.5" font-family="Helvetica,sans-Serif" font-size="10.00">TextRect</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_badge_item.html#a1219a7b09ea494dcb15de7eee9487ffd" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train_badge_item.html#a1219a7b09ea494dcb15de7eee9487ffd" target="_top" xlink:title="The badge, 8 logical pixels to the right of its position and 8 above it.">
 <polygon fill="white" stroke="#666666" points="725.5,-93 574.5,-93 574.5,-74 725.5,-74 725.5,-93"/>
 <text text-anchor="middle" x="650" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::badgeRect</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train_badge_item.html#ae65de68f6758127eede92a2db94bcbd7" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_train_badge_item.html#ae65de68f6758127eede92a2db94bcbd7" target="_top" xlink:title="The icon inside the badge.">
 <polygon fill="white" stroke="#666666" points="518,-93 377,-93 377,-74 518,-74 518,-93"/>
 <text text-anchor="middle" x="447.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::iconRect</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train_badge_item.html#afacf752d0b0153c6c8fb139030d0edd2" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_train_badge_item.html#afacf752d0b0153c6c8fb139030d0edd2" target="_top" xlink:title="The presentation holds the identifier.">
 <polygon fill="white" stroke="#666666" points="534,-56 361,-56 361,-37 534,-37 534,-56"/>
 <text text-anchor="middle" x="447.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::showsIdentifier</text>
 </a>
@@ -94,7 +94,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_train_badge_item.html#a8ef5aae236421b9efacd1ec8922a072a" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_train_badge_item.html#a8ef5aae236421b9efacd1ec8922a072a" target="_top" xlink:title="The room for the speed; empty when the presentation does not hold it.">
 <polygon fill="white" stroke="#666666" points="532.5,-19 362.5,-19 362.5,0 532.5,0 532.5,-19"/>
 <text text-anchor="middle" x="447.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::speedTextRect</text>
 </a>
@@ -130,7 +130,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" target="_top" xlink:title="The presentation holds a speed text that is to be shown.">
 <polygon fill="white" stroke="#666666" points="730,-19 570,-19 570,0 730,0 730,-19"/>
 <text text-anchor="middle" x="650" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::showsSpeed</text>
 </a>

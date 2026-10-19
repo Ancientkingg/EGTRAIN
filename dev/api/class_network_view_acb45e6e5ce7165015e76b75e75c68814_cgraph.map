@@ -1,10 +1,10 @@
 <map id="NetworkView::resizeEvent" name="NetworkView::resizeEvent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,25,197,50"/>
-<area shape="rect" id="Node000002" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title=" " alt="" coords="524,17,745,57"/>
+<area shape="rect" id="Node000001" title="Keeps a view at Fit fitted to the new size, and keeps the zoom ratio and the centre of any other view..." alt="" coords="5,25,197,50"/>
+<area shape="rect" id="Node000002" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="524,17,745,57"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,22,245,9,361,3,476,9,511,13,510,18,476,15,361,8,246,15,161,27"/>
-<area shape="rect" id="Node000003" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title=" " alt="" coords="245,25,476,50"/>
+<area shape="rect" id="Node000003" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed." alt="" coords="245,25,476,50"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,35,232,35,232,40,198,40"/>
-<area shape="rect" id="Node000004" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title=" " alt="" coords="267,74,454,99"/>
+<area shape="rect" id="Node000004" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="267,74,454,99"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="169,47,280,69,279,74,168,53"/>
 <area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="431,71,510,57,511,62,432,76"/>
 </map>

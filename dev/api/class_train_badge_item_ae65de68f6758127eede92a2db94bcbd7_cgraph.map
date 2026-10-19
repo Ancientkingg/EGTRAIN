@@ -1,5 +1,5 @@
 <map id="TrainBadgeItem::iconRect" name="TrainBadgeItem::iconRect">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,193,31"/>
-<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a1219a7b09ea494dcb15de7eee9487ffd" title=" " alt="" coords="241,5,443,31"/>
+<area shape="rect" id="Node000001" title="The icon inside the badge." alt="" coords="5,5,193,31"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a1219a7b09ea494dcb15de7eee9487ffd" title="The badge, 8 logical pixels to the right of its position and 8 above it." alt="" coords="241,5,443,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,15,228,15,228,21,193,21"/>
 </map>

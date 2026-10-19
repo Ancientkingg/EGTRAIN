@@ -48,7 +48,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" target="_top" xlink:title="The aspect code of the head.">
 <polygon fill="white" stroke="#666666" points="485,-111 353,-111 353,-92 485,-92 485,-111"/>
 <text text-anchor="middle" x="419" y="-99" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::aspectCode</text>
 </a>
@@ -66,7 +66,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title="The state of a signal head for an aspect code, as SignalCueKind lists it.">
 <polygon fill="white" stroke="#666666" points="470,-56 368,-56 368,-37 470,-37 470,-56"/>
 <text text-anchor="middle" x="419" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">classifySignalCue</text>
 </a>
@@ -84,7 +84,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" target="_top" xlink:title="The signal has failed.">
 <polygon fill="white" stroke="#666666" points="470.5,-19 367.5,-19 367.5,0 470.5,0 470.5,-19"/>
 <text text-anchor="middle" x="419" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::failed</text>
 </a>

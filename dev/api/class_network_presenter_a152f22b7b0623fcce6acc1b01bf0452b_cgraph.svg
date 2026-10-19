@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" target="_top" xlink:title="The line of the preview that the track line with this index in the run is drawn on,...">
 <polygon fill="white" stroke="#666666" points="389.5,-182 244.5,-182 244.5,-152 389.5,-152 389.5,-182"/>
 <text text-anchor="start" x="252.5" y="-170" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::cached</text>
 <text text-anchor="middle" x="317" y="-159" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLine</text>
@@ -39,7 +39,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace" target="_top" xlink:title="The look of a station node: Major with three or more connections, Station with a platform id,...">
 <polygon fill="white" stroke="#666666" points="361,-115.5 273,-115.5 273,-96.5 361,-96.5 361,-115.5"/>
 <text text-anchor="middle" x="317" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">classifyStation</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_station_node_item.html#ab3e3843b061e5ccb81440d9047d6e035" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_station_node_item.html#ab3e3843b061e5ccb81440d9047d6e035" target="_top" xlink:title="A square in rect, in scene coordinates, without a node.">
 <polygon fill="white" stroke="#666666" points="387,-30 247,-30 247,0 387,0 387,-30"/>
 <text text-anchor="start" x="255" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">StationNodeItem::Station</text>
 <text text-anchor="middle" x="317" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">NodeItem</text>
@@ -95,7 +95,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" target="_top" xlink:title="The line of the preview with this track id in the scene, or null.">
 <polygon fill="white" stroke="#666666" points="594,-176.5 439,-176.5 439,-157.5 594,-157.5 594,-176.5"/>
 <text text-anchor="middle" x="516.5" y="-164.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::trackLine</text>
 </a>

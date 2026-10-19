@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A head in rect with aspect code 180, on no track line and at no position.">
 <polygon fill="#999999" stroke="#666666" points="128,-19 0,-19 0,0 128,0 128,-19"/>
 <text text-anchor="middle" x="64" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::SignalItem</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_signal_item.html#af7f57fe8d66c5ada8f59a96694a38b21" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_signal_item.html#af7f57fe8d66c5ada8f59a96694a38b21" target="_top" xlink:title="Sets the aspect code of the head, which gives the colour of its lamp through classifySignalAspect().">
 <polygon fill="white" stroke="#666666" points="312,-19 164,-19 164,0 312,0 312,-19"/>
 <text text-anchor="middle" x="238" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::setAspectCode</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title="The state of a signal head for an aspect code, as SignalCueKind lists it.">
 <polygon fill="white" stroke="#666666" points="602,-19 500,-19 500,0 602,0 602,-19"/>
 <text text-anchor="middle" x="551" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">classifySignalCue</text>
 </a>

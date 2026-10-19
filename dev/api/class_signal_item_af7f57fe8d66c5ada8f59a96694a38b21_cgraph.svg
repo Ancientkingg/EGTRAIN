@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Sets the aspect code of the head, which gives the colour of its lamp through classifySignalAspect().">
 <polygon fill="#999999" stroke="#666666" points="148,-19 0,-19 0,0 148,0 148,-19"/>
 <text text-anchor="middle" x="74" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::setAspectCode</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title="The state of a signal head for an aspect code, as SignalCueKind lists it.">
 <polygon fill="white" stroke="#666666" points="438,-19 336,-19 336,0 438,0 438,-19"/>
 <text text-anchor="middle" x="387" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">classifySignalCue</text>
 </a>

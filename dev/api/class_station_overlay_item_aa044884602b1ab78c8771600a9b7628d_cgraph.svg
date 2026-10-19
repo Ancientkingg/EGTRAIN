@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#a6bd9f3174fb5d90109e7e742483f1928" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_station_overlay_item.html#a6bd9f3174fb5d90109e7e742483f1928" target="_top" xlink:title="The mark around the anchor, in logical pixels, before its moves.">
 <polygon fill="white" stroke="#666666" points="273,-30 161,-30 161,0 273,0 273,-30"/>
 <text text-anchor="start" x="169" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="217" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::symbolRect</text>

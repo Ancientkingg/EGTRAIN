@@ -56,7 +56,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c" target="_top" xlink:title="The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others.">
 <polygon fill="white" stroke="#666666" points="414,-129 277,-129 277,-110 414,-110 414,-129"/>
 <text text-anchor="middle" x="345.5" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">classifyTrainBadgeShape</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#aff8e3ad42eb21b9d8861e3013901ea7c" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#aff8e3ad42eb21b9d8861e3013901ea7c" target="_top" xlink:title="The fill of a train without a service colour: RGB (235, 210, 55).">
 <polygon fill="white" stroke="#666666" points="390,-74 301,-74 301,-55 390,-55 390,-74"/>
 <text text-anchor="middle" x="345.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">defaultTrainFill</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104" target="_top" xlink:title="The outline of a train without a service colour: RGB (110, 90, 20).">
 <polygon fill="white" stroke="#666666" points="400.5,-19 290.5,-19 290.5,0 400.5,0 400.5,-19"/>
 <text text-anchor="middle" x="345.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">defaultTrainOutline</text>
 </a>

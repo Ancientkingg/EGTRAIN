@@ -1,5 +1,5 @@
 <map id="NetworkScene::contextMenuEvent" name="NetworkScene::contextMenuEvent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,215,45"/>
+<area shape="rect" id="Node000001" title="Emits ContextMenuRequested() with the item that a left click at the same point would select,..." alt="" coords="5,5,215,45"/>
 <area shape="rect" id="Node000002" href="$class_network_scene.html#a30830e690c649b9447bed87be1cc9b13" title=" " alt="" coords="263,5,473,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,23,249,23,249,28,215,28"/>
 </map>

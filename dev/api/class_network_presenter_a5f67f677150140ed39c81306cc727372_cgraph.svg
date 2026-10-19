@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The same, with the selection of the infrastructure panel and the platform bars of options.">
 <polygon fill="#999999" stroke="#666666" points="175,-605.5 0,-605.5 0,-586.5 175,-586.5 175,-605.5"/>
 <text text-anchor="middle" x="87.5" y="-593.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::showPreview</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace" target="_top" xlink:title="The look of a station node: Major with three or more connections, Station with a platform id,...">
 <polygon fill="white" stroke="#666666" points="348,-1172.5 260,-1172.5 260,-1153.5 348,-1153.5 348,-1172.5"/>
 <text text-anchor="middle" x="304" y="-1160.5" font-family="Helvetica,sans-Serif" font-size="10.00">classifyStation</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_connection_item.html#a4217d44fe32189a7b27e543367f38fd2" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_connection_item.html#a4217d44fe32189a7b27e543367f38fd2" target="_top" xlink:title="A line without a connection; its click target reaches 20 scene units on each side of it.">
 <polygon fill="white" stroke="#666666" points="392.5,-1080.5 215.5,-1080.5 215.5,-1061.5 392.5,-1061.5 392.5,-1080.5"/>
 <text text-anchor="middle" x="304" y="-1068.5" font-family="Helvetica,sans-Serif" font-size="10.00">ConnectionItem::ConnectionItem</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_network_presenter_8cpp.html#ab86c30f8ddd372850bdc390b9e58d813" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_network_presenter_8cpp.html#ab86c30f8ddd372850bdc390b9e58d813" target="_top" xlink:title="The white cosmetic pen of a connection, width pixels wide, shared by the preview before Run and a run...">
 <polygon fill="white" stroke="#666666" points="348,-1025.5 260,-1025.5 260,-1006.5 348,-1006.5 348,-1025.5"/>
 <text text-anchor="middle" x="304" y="-1013.5" font-family="Helvetica,sans-Serif" font-size="10.00">connectionPen</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82" target="_top" xlink:title="The one colour of the selection cue. No built&#45;in track, signal or default train colour uses it; a ser...">
 <polygon fill="white" stroke="#666666" points="360,-970.5 248,-970.5 248,-951.5 360,-951.5 360,-970.5"/>
 <text text-anchor="middle" x="304" y="-958.5" font-family="Helvetica,sans-Serif" font-size="10.00">kSelectionCueColor</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_node_item.html#a02a6034483be79559c0356c2e8e777d5" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_node_item.html#a02a6034483be79559c0356c2e8e777d5" target="_top" xlink:title="A dot in rect, in scene coordinates, without a node.">
 <polygon fill="white" stroke="#666666" points="363.5,-878.5 244.5,-878.5 244.5,-859.5 363.5,-859.5 363.5,-878.5"/>
 <text text-anchor="middle" x="304" y="-866.5" font-family="Helvetica,sans-Serif" font-size="10.00">NodeItem::NodeItem</text>
 </a>
@@ -183,7 +183,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_platform_item.html#a28917b41785f07e37a932dc44b327cf0" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_platform_item.html#a28917b41785f07e37a932dc44b327cf0" target="_top" xlink:title="A bar in rect, in scene coordinates, without a platform.">
 <polygon fill="white" stroke="#666666" points="380,-737.5 228,-737.5 228,-718.5 380,-718.5 380,-737.5"/>
 <text text-anchor="middle" x="304" y="-725.5" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformItem::PlatformItem</text>
 </a>
@@ -292,7 +292,7 @@
 <!-- Node29 -->
 <g id="Node000029" class="node">
 <title>Node29</title>
-<g id="a_Node000029"><a xlink:href="class_network_presenter.html#a1bdb6293c1982c3cb74603bb6d4263ea" target="_top" xlink:title=" ">
+<g id="a_Node000029"><a xlink:href="class_network_presenter.html#a1bdb6293c1982c3cb74603bb6d4263ea" target="_top" xlink:title="Forgets the fit and the selection of the last preview; the preview itself stays.">
 <polygon fill="white" stroke="#666666" points="397,-431.5 211,-431.5 211,-412.5 397,-412.5 397,-431.5"/>
 <text text-anchor="middle" x="304" y="-419.5" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::resetPreviewFit</text>
 </a>
@@ -364,7 +364,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="_network_presenter_8cpp.html#a16f55e4eca9c38ca6f6b52339f8c42c1" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="_network_presenter_8cpp.html#a16f55e4eca9c38ca6f6b52339f8c42c1" target="_top" xlink:title="The outline of a signal head, a hairline at every zoom, shared by the preview before Run and a run.">
 <polygon fill="white" stroke="#666666" points="348.5,-211.5 259.5,-211.5 259.5,-192.5 348.5,-192.5 348.5,-211.5"/>
 <text text-anchor="middle" x="304" y="-199.5" font-family="Helvetica,sans-Serif" font-size="10.00">signalHeadPen</text>
 </a>
@@ -382,7 +382,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_signal_item.html#acdbab8d0ec1cdecec72538d925a399c5" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_signal_item.html#acdbab8d0ec1cdecec72538d925a399c5" target="_top" xlink:title="A head in rect with aspect code 180, on no track line and at no position.">
 <polygon fill="white" stroke="#666666" points="368,-174.5 240,-174.5 240,-155.5 368,-155.5 368,-174.5"/>
 <text text-anchor="middle" x="304" y="-162.5" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::SignalItem</text>
 </a>
@@ -418,7 +418,7 @@
 <!-- Node41 -->
 <g id="Node000041" class="node">
 <title>Node41</title>
-<g id="a_Node000041"><a xlink:href="class_station_node_item.html#ab3e3843b061e5ccb81440d9047d6e035" target="_top" xlink:title=" ">
+<g id="a_Node000041"><a xlink:href="class_station_node_item.html#ab3e3843b061e5ccb81440d9047d6e035" target="_top" xlink:title="A square in rect, in scene coordinates, without a node.">
 <polygon fill="white" stroke="#666666" points="374,-82 234,-82 234,-52 374,-52 374,-82"/>
 <text text-anchor="start" x="242" y="-70" font-family="Helvetica,sans-Serif" font-size="10.00">StationNodeItem::Station</text>
 <text text-anchor="middle" x="304" y="-59" font-family="Helvetica,sans-Serif" font-size="10.00">NodeItem</text>
@@ -437,7 +437,7 @@
 <!-- Node42 -->
 <g id="Node000042" class="node">
 <title>Node42</title>
-<g id="a_Node000042"><a xlink:href="class_track_line_item.html#abbc560787a749421af9a4406334eb352" target="_top" xlink:title=" ">
+<g id="a_Node000042"><a xlink:href="class_track_line_item.html#abbc560787a749421af9a4406334eb352" target="_top" xlink:title="A free line without an arc; its click target reaches 20 scene units on each side of it.">
 <polygon fill="white" stroke="#666666" points="383.5,-30.5 224.5,-30.5 224.5,-11.5 383.5,-11.5 383.5,-30.5"/>
 <text text-anchor="middle" x="304" y="-18.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLineItem::TrackLineItem</text>
 </a>
@@ -563,7 +563,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" target="_top" xlink:title="The name as it is shown, with spaces between its words.">
 <polygon fill="white" stroke="#666666" points="776,-831 664,-831 664,-801 776,-801 776,-831"/>
 <text text-anchor="start" x="672" y="-819" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="720" y="-808" font-family="Helvetica,sans-Serif" font-size="10.00">::displayName</text>
@@ -629,7 +629,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" target="_top" xlink:title="The number of connections at the station.">
 <polygon fill="white" stroke="#666666" points="776,-783 664,-783 664,-753 776,-753 776,-783"/>
 <text text-anchor="start" x="672" y="-771" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="720" y="-760" font-family="Helvetica,sans-Serif" font-size="10.00">::degree</text>
@@ -648,7 +648,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_station_overlay_item.html#af08a4a63689f7ba4b61c46f1c5ac886a" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_station_overlay_item.html#af08a4a63689f7ba4b61c46f1c5ac886a" target="_top" xlink:title="The position of the station in scene coordinates.">
 <polygon fill="white" stroke="#666666" points="776,-735 664,-735 664,-705 776,-705 776,-735"/>
 <text text-anchor="start" x="672" y="-723" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="720" y="-712" font-family="Helvetica,sans-Serif" font-size="10.00">::stableAnchor</text>
@@ -667,7 +667,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" target="_top" xlink:title="The name of the station as given.">
 <polygon fill="white" stroke="#666666" points="776,-687 664,-687 664,-657 776,-657 776,-687"/>
 <text text-anchor="start" x="672" y="-675" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="720" y="-664" font-family="Helvetica,sans-Serif" font-size="10.00">::stationName</text>
@@ -686,7 +686,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" target="_top" xlink:title="The colours and the class of the station.">
 <polygon fill="white" stroke="#666666" points="776,-639 664,-639 664,-609 776,-609 776,-639"/>
 <text text-anchor="start" x="672" y="-627" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="720" y="-616" font-family="Helvetica,sans-Serif" font-size="10.00">::visual</text>
@@ -858,7 +858,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="class_signal_item.html#af7f57fe8d66c5ada8f59a96694a38b21" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="class_signal_item.html#af7f57fe8d66c5ada8f59a96694a38b21" target="_top" xlink:title="Sets the aspect code of the head, which gives the colour of its lamp through classifySignalAspect().">
 <polygon fill="white" stroke="#666666" points="590.5,-177.5 442.5,-177.5 442.5,-158.5 590.5,-158.5 590.5,-177.5"/>
 <text text-anchor="middle" x="516.5" y="-165.5" font-family="Helvetica,sans-Serif" font-size="10.00">SignalItem::setAspectCode</text>
 </a>
@@ -903,7 +903,7 @@
 <!-- Node37 -->
 <g id="Node000037" class="node">
 <title>Node37</title>
-<g id="a_Node000037"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title=" ">
+<g id="a_Node000037"><a xlink:href="_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" target="_top" xlink:title="The state of a signal head for an aspect code, as SignalCueKind lists it.">
 <polygon fill="white" stroke="#666666" points="942,-177.5 840,-177.5 840,-158.5 942,-158.5 942,-177.5"/>
 <text text-anchor="middle" x="891" y="-165.5" font-family="Helvetica,sans-Serif" font-size="10.00">classifySignalCue</text>
 </a>
@@ -993,7 +993,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="class_track_line_item.html#a257ee10133730f3f7318494007ac4ab1" target="_top" xlink:title="Builds selectionPolygon around the line.">
 <polygon fill="white" stroke="#666666" points="600,-30 433,-30 433,0 600,0 600,-30"/>
 <text text-anchor="start" x="441" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLineItem::createSelection</text>
 <text text-anchor="middle" x="516.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Polygon</text>

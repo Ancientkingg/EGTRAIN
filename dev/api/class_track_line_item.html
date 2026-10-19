@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_track_li
 </div><!--header-->
 <div class="contents">
 
+<p>The line of an arc of a track line, in scene coordinates.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_track_line_item_8h_source.html">graphics/items/TrackLineItem.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for TrackLineItem:</div>
@@ -133,29 +136,43 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:abbc560787a749421af9a4406334eb352" id="r_abbc560787a749421af9a4406334eb352"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#abbc560787a749421af9a4406334eb352">TrackLineItem</a> (const QLineF &amp;line, QGraphicsItem *parent=nullptr)</td></tr>
+<tr class="memdesc:abbc560787a749421af9a4406334eb352"><td class="mdescLeft">&#160;</td><td class="mdescRight">A free line without an arc; its click target reaches 20 scene units on each side of it.  <br /></td></tr>
 <tr class="memitem:a6ce70510852984ae29234241e58ac729" id="r_a6ce70510852984ae29234241e58ac729"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a6ce70510852984ae29234241e58ac729">~TrackLineItem</a> () override</td></tr>
 <tr class="memitem:a67a6e9fc09628eb89953e6782eec6a33" id="r_a67a6e9fc09628eb89953e6782eec6a33"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a67a6e9fc09628eb89953e6782eec6a33">setOperationalState</a> (<a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
+<tr class="memdesc:a67a6e9fc09628eb89953e6782eec6a33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the state of the track during a run. The inspector shows it; <a class="el" href="#abc608de0d25b56716f15800bae63094f" title="Draws the line with the pen of the item.">paint()</a> does not.  <br /></td></tr>
 <tr class="memitem:aa41b680d18b2297565423a2a126a818d" id="r_aa41b680d18b2297565423a2a126a818d"><td class="memItemLeft"><a class="el" href="_visual_polish_8h.html#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa41b680d18b2297565423a2a126a818d">operationalState</a> () const</td></tr>
+<tr class="memdesc:aa41b680d18b2297565423a2a126a818d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the track during a run.  <br /></td></tr>
 <tr class="memitem:a135b451641170649ed6200d8ebc870e1" id="r_a135b451641170649ed6200d8ebc870e1"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#a135b451641170649ed6200d8ebc870e1">shape</a> () const override</td></tr>
+<tr class="memdesc:a135b451641170649ed6200d8ebc870e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The click target: the line widened by 20 scene units on each side.  <br /></td></tr>
 <tr class="memitem:a8f51237d4edbe6b39f7cd75a4f6ccd5e" id="r_a8f51237d4edbe6b39f7cd75a4f6ccd5e"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a8f51237d4edbe6b39f7cd75a4f6ccd5e">boundingRect</a> () const override</td></tr>
+<tr class="memdesc:a8f51237d4edbe6b39f7cd75a4f6ccd5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bounds of the click target.  <br /></td></tr>
 <tr class="memitem:abc608de0d25b56716f15800bae63094f" id="r_abc608de0d25b56716f15800bae63094f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abc608de0d25b56716f15800bae63094f">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
+<tr class="memdesc:abc608de0d25b56716f15800bae63094f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the line with the pen of the item.  <br /></td></tr>
 <tr class="memitem:aac3bf401b47bbf7217dda952c8ec9114" id="r_aac3bf401b47bbf7217dda952c8ec9114"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aac3bf401b47bbf7217dda952c8ec9114">type</a> () const override</td></tr>
+<tr class="memdesc:aac3bf401b47bbf7217dda952c8ec9114"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns Type.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a321ce4cea8904657d6a7665fb7044334" id="r_a321ce4cea8904657d6a7665fb7044334"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a321ce4cea8904657d6a7665fb7044334">track</a></td></tr>
+<tr class="memdesc:a321ce4cea8904657d6a7665fb7044334"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line in the run; -1 in the preview.  <br /></td></tr>
 <tr class="memitem:a84d7bb78192bc9fbd97486b0ed82297b" id="r_a84d7bb78192bc9fbd97486b0ed82297b"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a84d7bb78192bc9fbd97486b0ed82297b">arc</a></td></tr>
+<tr class="memdesc:a84d7bb78192bc9fbd97486b0ed82297b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arc of the run, which belongs to the run; null in the preview.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a257ee10133730f3f7318494007ac4ab1" id="r_a257ee10133730f3f7318494007ac4ab1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a257ee10133730f3f7318494007ac4ab1">createSelectionPolygon</a> ()</td></tr>
+<tr class="memdesc:a257ee10133730f3f7318494007ac4ab1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds selectionPolygon around the line.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-attribs" class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a60bc26211bc068d2674d44d5e962a6c4" id="r_a60bc26211bc068d2674d44d5e962a6c4"><td class="memItemLeft">const qreal&#160;</td><td class="memItemRight"><a class="el" href="#a60bc26211bc068d2674d44d5e962a6c4">selectionOffset</a></td></tr>
+<tr class="memdesc:a60bc26211bc068d2674d44d5e962a6c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The half width in scene units of the click target.  <br /></td></tr>
 <tr class="memitem:adf5050e55ef4244cc57469475a71a009" id="r_adf5050e55ef4244cc57469475a71a009"><td class="memItemLeft">QPolygonF&#160;</td><td class="memItemRight"><a class="el" href="#adf5050e55ef4244cc57469475a71a009">selectionPolygon</a></td></tr>
+<tr class="memdesc:adf5050e55ef4244cc57469475a71a009"><td class="mdescLeft">&#160;</td><td class="mdescRight">The click target in item coordinates.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The line of an arc of a track line, in scene coordinates. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a6c72acf78002bd8453c156073830be92" name="a6c72acf78002bd8453c156073830be92"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6c72acf78002bd8453c156073830be92">&#9670;&#160;</a></span>anonymous enum</h2>
 
@@ -168,7 +185,8 @@ Protected Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6c72acf78002bd8453c156073830be92ae04c92dca4ce5e080470d13306f5fff1" name="a6c72acf78002bd8453c156073830be92ae04c92dca4ce5e080470d13306f5fff1"></a>Type&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6c72acf78002bd8453c156073830be92ae04c92dca4ce5e080470d13306f5fff1" name="a6c72acf78002bd8453c156073830be92ae04c92dca4ce5e080470d13306f5fff1"></a>Type&#160;</td><td class="fielddoc"><p>The item type for qgraphicsitem_cast. </p>
+</td></tr>
 </table>
 
 </div>
@@ -192,6 +210,8 @@ Protected Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A free line without an arc; its click target reaches 20 scene units on each side of it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -249,6 +269,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The bounds of the click target. </p>
+
 </div>
 </div>
 <a id="a257ee10133730f3f7318494007ac4ab1" name="a257ee10133730f3f7318494007ac4ab1"></a>
@@ -274,6 +296,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Builds selectionPolygon around the line. </p>
+
 </div>
 </div>
 <a id="aa41b680d18b2297565423a2a126a818d" name="aa41b680d18b2297565423a2a126a818d"></a>
@@ -290,6 +314,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The state of the track during a run. </p>
 
 </div>
 </div>
@@ -325,6 +351,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Draws the line with the pen of the item. </p>
+
 </div>
 </div>
 <a id="a67a6e9fc09628eb89953e6782eec6a33" name="a67a6e9fc09628eb89953e6782eec6a33"></a>
@@ -341,6 +369,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the state of the track during a run. The inspector shows it; <a class="el" href="#abc608de0d25b56716f15800bae63094f" title="Draws the line with the pen of the item.">paint()</a> does not. </p>
 
 </div>
 </div>
@@ -367,6 +397,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The click target: the line widened by 20 scene units on each side. </p>
+
 </div>
 </div>
 <a id="aac3bf401b47bbf7217dda952c8ec9114" name="aac3bf401b47bbf7217dda952c8ec9114"></a>
@@ -392,6 +424,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Returns Type. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -406,6 +440,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The arc of the run, which belongs to the run; null in the preview. </p>
 
 </div>
 </div>
@@ -429,6 +465,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The half width in scene units of the click target. </p>
+
 </div>
 </div>
 <a id="adf5050e55ef4244cc57469475a71a009" name="adf5050e55ef4244cc57469475a71a009"></a>
@@ -451,6 +489,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The click target in item coordinates. </p>
+
 </div>
 </div>
 <a id="a321ce4cea8904657d6a7665fb7044334" name="a321ce4cea8904657d6a7665fb7044334"></a>
@@ -464,6 +504,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The index of the track line in the run; -1 in the preview. </p>
 
 </div>
 </div>

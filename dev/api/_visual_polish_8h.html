@@ -134,10 +134,15 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:TrackVisual" id="r_TrackVisual"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_visual.html">TrackVisual</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a track line.  <a href="struct_track_visual.html#details">More...</a><br /></td></tr>
 <tr class="memitem:TrainVisual" id="r_TrainVisual"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_visual.html">TrainVisual</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a train.  <a href="struct_train_visual.html#details">More...</a><br /></td></tr>
 <tr class="memitem:StationVisual" id="r_StationVisual"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_station_visual.html">StationVisual</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of the square of a station node.  <a href="struct_station_visual.html#details">More...</a><br /></td></tr>
 <tr class="memitem:TrackStateVisual" id="r_TrackStateVisual"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_state_visual.html">TrackStateVisual</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a track state.  <a href="struct_track_state_visual.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SignalVisual" id="r_SignalVisual"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_signal_visual.html">SignalVisual</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a signal head.  <a href="struct_signal_visual.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -154,40 +159,54 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a70e426fbeec6dc2d32748df8f51efe8da4880c0f12c06dd6d142e7a40b041bf1a">Capsule</a>
 , <a class="el" href="#a70e426fbeec6dc2d32748df8f51efe8daceb46ca115d05c51aa5a16a8867c3304">Square</a>
  }</td></tr>
+<tr class="memdesc:a70e426fbeec6dc2d32748df8f51efe8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The shape of a train badge.  <a href="#a70e426fbeec6dc2d32748df8f51efe8d">More...</a><br /></td></tr>
 <tr class="memitem:ac911f586567167005b7821cfc3da968d" id="r_ac911f586567167005b7821cfc3da968d"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> { <a class="el" href="#ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594">Free</a>
 , <a class="el" href="#ac911f586567167005b7821cfc3da968da4f8ebbe84c83c694e33dfc679cf40ddb">Prepared</a>
 , <a class="el" href="#ac911f586567167005b7821cfc3da968dabbd86c81e760279d9731d5cac811ba50">Occupied</a>
 , <a class="el" href="#ac911f586567167005b7821cfc3da968da4ecc0d90eec1cea3e9db96583a1bb9c2">Blocked</a>
  }</td></tr>
+<tr class="memdesc:ac911f586567167005b7821cfc3da968d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of a track line during a run. The track line keeps it for the inspector; the canvas does not paint it.  <a href="#ac911f586567167005b7821cfc3da968d">More...</a><br /></td></tr>
 <tr class="memitem:a26df8324994d4726d94931837161a573" id="r_a26df8324994d4726d94931837161a573"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a26df8324994d4726d94931837161a573">SignalCueKind</a> { <a class="el" href="#a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01">Neutral</a>
 , <a class="el" href="#a26df8324994d4726d94931837161a573a11a755d598c0c417f9a36758c3da7481">Stop</a>
 , <a class="el" href="#a26df8324994d4726d94931837161a573a764a2caff05993fc0d3eff5de7b225e9">Caution</a>
 , <a class="el" href="#a26df8324994d4726d94931837161a573af262fae0a2f17e8c1eb4e9eddb0160e4">Proceed</a>
  }</td></tr>
+<tr class="memdesc:a26df8324994d4726d94931837161a573"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state that a signal head shows besides its colour.  <a href="#a26df8324994d4726d94931837161a573">More...</a><br /></td></tr>
 <tr class="memitem:a49d576a166f0648bea83212755f0c3cb" id="r_a49d576a166f0648bea83212755f0c3cb"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> { <a class="el" href="#a49d576a166f0648bea83212755f0c3cba4558f7fa8f5356a88a53347ad89babde">Halt</a>
 , <a class="el" href="#a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99">Station</a>
 , <a class="el" href="#a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9">Major</a>
  }</td></tr>
+<tr class="memdesc:a49d576a166f0648bea83212755f0c3cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The class of a station, which chooses its mark.  <a href="#a49d576a166f0648bea83212755f0c3cb">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a805626f8aa909690d0870ba92fabc89a" id="r_a805626f8aa909690d0870ba92fabc89a"><td class="memItemLeft"><a class="el" href="struct_track_visual.html">TrackVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a805626f8aa909690d0870ba92fabc89a">freeTrackVisual</a> ()</td></tr>
+<tr class="memdesc:a805626f8aa909690d0870ba92fabc89a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a free track: that of a track below 120 km/h.  <br /></td></tr>
 <tr class="memitem:a9029f888d43bb9214a40cebfe2302111" id="r_a9029f888d43bb9214a40cebfe2302111"><td class="memItemLeft"><a class="el" href="struct_track_visual.html">TrackVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9029f888d43bb9214a40cebfe2302111">classifyTrackSpeed</a> (double speedLimitMetersPerSecond)</td></tr>
 <tr class="memitem:a9544660681942022e65ce6f609cf583a" id="r_a9544660681942022e65ce6f609cf583a"><td class="memItemLeft"><a class="el" href="struct_track_state_visual.html">TrackStateVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9544660681942022e65ce6f609cf583a">classifyTrackState</a> (<a class="el" href="#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
+<tr class="memdesc:a9544660681942022e65ce6f609cf583a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a track state. Free has a transparent colour, a width of 0 and no pen.  <br /></td></tr>
 <tr class="memitem:a436626af4d350c743238ab619ecd6066" id="r_a436626af4d350c743238ab619ecd6066"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a436626af4d350c743238ab619ecd6066">trackStatePriority</a> (<a class="el" href="#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
 <tr class="memitem:aff8e3ad42eb21b9d8861e3013901ea7c" id="r_aff8e3ad42eb21b9d8861e3013901ea7c"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#aff8e3ad42eb21b9d8861e3013901ea7c">defaultTrainFill</a> ()</td></tr>
+<tr class="memdesc:aff8e3ad42eb21b9d8861e3013901ea7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The fill of a train without a service colour: RGB (235, 210, 55).  <br /></td></tr>
 <tr class="memitem:a0ca541531be69ea00b2db71455ba3104" id="r_a0ca541531be69ea00b2db71455ba3104"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#a0ca541531be69ea00b2db71455ba3104">defaultTrainOutline</a> ()</td></tr>
+<tr class="memdesc:a0ca541531be69ea00b2db71455ba3104"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outline of a train without a service colour: RGB (110, 90, 20).  <br /></td></tr>
 <tr class="memitem:a1cc87232a45c91e955c2e5a7220ae087" id="r_a1cc87232a45c91e955c2e5a7220ae087"><td class="memItemLeft"><a class="el" href="struct_train_visual.html">TrainVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1cc87232a45c91e955c2e5a7220ae087">classifyTrainType</a> (const std::string &amp;type, const std::string &amp;description)</td></tr>
 <tr class="memitem:aa7bdb2ea7d61624407538aebde558b10" id="r_aa7bdb2ea7d61624407538aebde558b10"><td class="memItemLeft"><a class="el" href="struct_train_visual.html">TrainVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa7bdb2ea7d61624407538aebde558b10">resolveTrainVisual</a> (const std::string &amp;type, const std::string &amp;description, const QColor &amp;serviceColor=QColor())</td></tr>
 <tr class="memitem:a1116968bc73a190cd5f022eff464c95c" id="r_a1116968bc73a190cd5f022eff464c95c"><td class="memItemLeft"><a class="el" href="#a70e426fbeec6dc2d32748df8f51efe8d">TrainBadgeShape</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1116968bc73a190cd5f022eff464c95c">classifyTrainBadgeShape</a> (<a class="el" href="#aa3d69fc136eed55ed2a75c1c0d8a7f97">TrainVisualKind</a> kind)</td></tr>
+<tr class="memdesc:a1116968bc73a190cd5f022eff464c95c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others.  <br /></td></tr>
 <tr class="memitem:a4d53d9a2a4bde8099d883e9a982680c1" id="r_a4d53d9a2a4bde8099d883e9a982680c1"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4d53d9a2a4bde8099d883e9a982680c1">trainBadgeCornerRadius</a> (<a class="el" href="#a70e426fbeec6dc2d32748df8f51efe8d">TrainBadgeShape</a> shape)</td></tr>
+<tr class="memdesc:a4d53d9a2a4bde8099d883e9a982680c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The corner radius of a badge shape in pixels.  <br /></td></tr>
 <tr class="memitem:ac90f4bc2aaf513636a1b81df1096bc61" id="r_ac90f4bc2aaf513636a1b81df1096bc61"><td class="memItemLeft"><a class="el" href="struct_signal_visual.html">SignalVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac90f4bc2aaf513636a1b81df1096bc61">classifySignalAspect</a> (int code)</td></tr>
 <tr class="memitem:a2511e34f95b2de260988d67c627468bf" id="r_a2511e34f95b2de260988d67c627468bf"><td class="memItemLeft"><a class="el" href="#a26df8324994d4726d94931837161a573">SignalCueKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2511e34f95b2de260988d67c627468bf">classifySignalCue</a> (int code)</td></tr>
+<tr class="memdesc:a2511e34f95b2de260988d67c627468bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of a signal head for an aspect code, as <a class="el" href="#a26df8324994d4726d94931837161a573" title="The state that a signal head shows besides its colour.">SignalCueKind</a> lists it.  <br /></td></tr>
 <tr class="memitem:a7ea3f93e7d09822b4b13415ffc8f307d" id="r_a7ea3f93e7d09822b4b13415ffc8f307d"><td class="memItemLeft"><a class="el" href="struct_station_visual.html">StationVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7ea3f93e7d09822b4b13415ffc8f307d">classifyStation</a> (bool hasPlatformId=false, int connectionCount=0)</td></tr>
+<tr class="memdesc:a7ea3f93e7d09822b4b13415ffc8f307d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise.  <br /></td></tr>
 <tr class="memitem:acd5376d75de6b86816b9fbc03adf30cc" id="r_acd5376d75de6b86816b9fbc03adf30cc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark</a> (QPainter *painter, const QRectF &amp;frame, <a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, const QColor &amp;fill, const QColor &amp;halo, qreal haloWidth)</td></tr>
 <tr class="memitem:aedc5fcbf783bda97fca3dc74d3a5098b" id="r_aedc5fcbf783bda97fca3dc74d3a5098b"><td class="memItemLeft">QIcon&#160;</td><td class="memItemRight"><a class="el" href="#aedc5fcbf783bda97fca3dc74d3a5098b">stationMarkIcon</a> (<a class="el" href="#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls)</td></tr>
+<tr class="memdesc:aedc5fcbf783bda97fca3dc74d3a5098b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark in its dark variant for light surfaces, at 16 and 32 pixels.  <br /></td></tr>
 <tr class="memitem:a390edc9c1e6f62d5b3ed847698920d13" id="r_a390edc9c1e6f62d5b3ed847698920d13"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel</a> (int delayMs)</td></tr>
 <tr class="memitem:aa804be580241cfa9cdccbe40f94779f4" id="r_aa804be580241cfa9cdccbe40f94779f4"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa804be580241cfa9cdccbe40f94779f4">simulationSpeedMode</a> (int delayMs)</td></tr>
+<tr class="memdesc:aa804be580241cfa9cdccbe40f94779f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of <a class="el" href="#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel()</a> followed by " real time", or "Fastest".  <br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a26df8324994d4726d94931837161a573" name="a26df8324994d4726d94931837161a573"></a>
@@ -209,11 +228,17 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The state that a signal head shows besides its colour. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01" name="a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01"></a>Neutral&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573a11a755d598c0c417f9a36758c3da7481" name="a26df8324994d4726d94931837161a573a11a755d598c0c417f9a36758c3da7481"></a>Stop&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573a764a2caff05993fc0d3eff5de7b225e9" name="a26df8324994d4726d94931837161a573a764a2caff05993fc0d3eff5de7b225e9"></a>Caution&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573af262fae0a2f17e8c1eb4e9eddb0160e4" name="a26df8324994d4726d94931837161a573af262fae0a2f17e8c1eb4e9eddb0160e4"></a>Proceed&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01" name="a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01"></a>Neutral&#160;</td><td class="fielddoc"><p>Any other aspect code: the head is unavailable. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573a11a755d598c0c417f9a36758c3da7481" name="a26df8324994d4726d94931837161a573a11a755d598c0c417f9a36758c3da7481"></a>Stop&#160;</td><td class="fielddoc"><p>Aspect codes 0 and 751. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573a764a2caff05993fc0d3eff5de7b225e9" name="a26df8324994d4726d94931837161a573a764a2caff05993fc0d3eff5de7b225e9"></a>Caution&#160;</td><td class="fielddoc"><p>Aspect code 75. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a26df8324994d4726d94931837161a573af262fae0a2f17e8c1eb4e9eddb0160e4" name="a26df8324994d4726d94931837161a573af262fae0a2f17e8c1eb4e9eddb0160e4"></a>Proceed&#160;</td><td class="fielddoc"><p>Aspect codes 180 and 270. </p>
+</td></tr>
 </table>
 
 </div>
@@ -237,10 +262,15 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The class of a station, which chooses its mark. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba4558f7fa8f5356a88a53347ad89babde" name="a49d576a166f0648bea83212755f0c3cba4558f7fa8f5356a88a53347ad89babde"></a>Halt&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99" name="a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99"></a>Station&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9" name="a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9"></a>Major&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba4558f7fa8f5356a88a53347ad89babde" name="a49d576a166f0648bea83212755f0c3cba4558f7fa8f5356a88a53347ad89babde"></a>Halt&#160;</td><td class="fielddoc"><p>No platform. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99" name="a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99"></a>Station&#160;</td><td class="fielddoc"><p>At least one platform. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9" name="a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9"></a>Major&#160;</td><td class="fielddoc"><p>Three or more connections at its node. </p>
+</td></tr>
 </table>
 
 </div>
@@ -264,11 +294,17 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The state of a track line during a run. The track line keeps it for the inspector; the canvas does not paint it. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594" name="ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594"></a>Free&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968da4f8ebbe84c83c694e33dfc679cf40ddb" name="ac911f586567167005b7821cfc3da968da4f8ebbe84c83c694e33dfc679cf40ddb"></a>Prepared&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968dabbd86c81e760279d9731d5cac811ba50" name="ac911f586567167005b7821cfc3da968dabbd86c81e760279d9731d5cac811ba50"></a>Occupied&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968da4ecc0d90eec1cea3e9db96583a1bb9c2" name="ac911f586567167005b7821cfc3da968da4ecc0d90eec1cea3e9db96583a1bb9c2"></a>Blocked&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594" name="ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594"></a>Free&#160;</td><td class="fielddoc"><p>None of the states below. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968da4f8ebbe84c83c694e33dfc679cf40ddb" name="ac911f586567167005b7821cfc3da968da4f8ebbe84c83c694e33dfc679cf40ddb"></a>Prepared&#160;</td><td class="fielddoc"><p>A route through the section has a signal code other than 0. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968dabbd86c81e760279d9731d5cac811ba50" name="ac911f586567167005b7821cfc3da968dabbd86c81e760279d9731d5cac811ba50"></a>Occupied&#160;</td><td class="fielddoc"><p>A train occupies the arc. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968da4ecc0d90eec1cea3e9db96583a1bb9c2" name="ac911f586567167005b7821cfc3da968da4ecc0d90eec1cea3e9db96583a1bb9c2"></a>Blocked&#160;</td><td class="fielddoc"><p>A signal failure in the section is active. </p>
+</td></tr>
 </table>
 
 </div>
@@ -292,10 +328,15 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The shape of a train badge. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a70e426fbeec6dc2d32748df8f51efe8dabef2481eda40bd121482f1814d72314f" name="a70e426fbeec6dc2d32748df8f51efe8dabef2481eda40bd121482f1814d72314f"></a>Rounded&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a70e426fbeec6dc2d32748df8f51efe8da4880c0f12c06dd6d142e7a40b041bf1a" name="a70e426fbeec6dc2d32748df8f51efe8da4880c0f12c06dd6d142e7a40b041bf1a"></a>Capsule&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a70e426fbeec6dc2d32748df8f51efe8daceb46ca115d05c51aa5a16a8867c3304" name="a70e426fbeec6dc2d32748df8f51efe8daceb46ca115d05c51aa5a16a8867c3304"></a>Square&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a70e426fbeec6dc2d32748df8f51efe8dabef2481eda40bd121482f1814d72314f" name="a70e426fbeec6dc2d32748df8f51efe8dabef2481eda40bd121482f1814d72314f"></a>Rounded&#160;</td><td class="fielddoc"><p>Corners with a radius of 3 pixels. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a70e426fbeec6dc2d32748df8f51efe8da4880c0f12c06dd6d142e7a40b041bf1a" name="a70e426fbeec6dc2d32748df8f51efe8da4880c0f12c06dd6d142e7a40b041bf1a"></a>Capsule&#160;</td><td class="fielddoc"><p>Corners with a radius of 8 pixels. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a70e426fbeec6dc2d32748df8f51efe8daceb46ca115d05c51aa5a16a8867c3304" name="a70e426fbeec6dc2d32748df8f51efe8daceb46ca115d05c51aa5a16a8867c3304"></a>Square&#160;</td><td class="fielddoc"><p>Square corners. </p>
+</td></tr>
 </table>
 
 </div>
@@ -319,12 +360,18 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The kind of a train, from substrings of its type and description, tested in the order Freight, HighSpeed, Sprinter, Intercity; the first match wins. It chooses the icon and the badge shape. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97abf2528a296adb62d041a7519aa77f248" name="aa3d69fc136eed55ed2a75c1c0d8a7f97abf2528a296adb62d041a7519aa77f248"></a>Passenger&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97a0744c022cb7e4ca2e70b635065e8f190" name="aa3d69fc136eed55ed2a75c1c0d8a7f97a0744c022cb7e4ca2e70b635065e8f190"></a>Sprinter&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97ad63254229cd89bd1ad2f33b6d90aeae3" name="aa3d69fc136eed55ed2a75c1c0d8a7f97ad63254229cd89bd1ad2f33b6d90aeae3"></a>Intercity&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97a419dcbabdbac74acb57d4d21aa110da8" name="aa3d69fc136eed55ed2a75c1c0d8a7f97a419dcbabdbac74acb57d4d21aa110da8"></a>HighSpeed&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97aa2eca8f6be5b0bf0f2cddcda7cfca376" name="aa3d69fc136eed55ed2a75c1c0d8a7f97aa2eca8f6be5b0bf0f2cddcda7cfca376"></a>Freight&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97abf2528a296adb62d041a7519aa77f248" name="aa3d69fc136eed55ed2a75c1c0d8a7f97abf2528a296adb62d041a7519aa77f248"></a>Passenger&#160;</td><td class="fielddoc"><p>None of the substrings below. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97a0744c022cb7e4ca2e70b635065e8f190" name="aa3d69fc136eed55ed2a75c1c0d8a7f97a0744c022cb7e4ca2e70b635065e8f190"></a>Sprinter&#160;</td><td class="fielddoc"><p>"sprinter" or "spr". </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97ad63254229cd89bd1ad2f33b6d90aeae3" name="aa3d69fc136eed55ed2a75c1c0d8a7f97ad63254229cd89bd1ad2f33b6d90aeae3"></a>Intercity&#160;</td><td class="fielddoc"><p>"intercity", " ic" or "ic ". </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97a419dcbabdbac74acb57d4d21aa110da8" name="aa3d69fc136eed55ed2a75c1c0d8a7f97a419dcbabdbac74acb57d4d21aa110da8"></a>HighSpeed&#160;</td><td class="fielddoc"><p>"ice", "hst", "highspeed" or "high speed". </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa3d69fc136eed55ed2a75c1c0d8a7f97aa2eca8f6be5b0bf0f2cddcda7cfca376" name="aa3d69fc136eed55ed2a75c1c0d8a7f97aa2eca8f6be5b0bf0f2cddcda7cfca376"></a>Freight&#160;</td><td class="fielddoc"><p>"freight", "cargo" or "goederen". </p>
+</td></tr>
 </table>
 
 </div>
@@ -344,6 +391,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The lamp colour, state and icon of a signal head for an aspect code: red, yellow or green by <a class="el" href="#a26df8324994d4726d94931837161a573" title="The state that a signal head shows besides its colour.">SignalCueKind</a>, grey RGB (128, 128, 128) otherwise. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -366,6 +414,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The state of a signal head for an aspect code, as <a class="el" href="#a26df8324994d4726d94931837161a573" title="The state that a signal head shows besides its colour.">SignalCueKind</a> lists it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -392,6 +442,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -414,6 +466,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The look of a track by its speed limit in m/s: blue and 4 pixels wide from 200 km/h, light grey and 3 pixels wide from 120 km/h, grey and 2 pixels wide below. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -436,6 +489,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The look of a track state. Free has a transparent colour, a width of 0 and no pen. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -458,6 +513,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -484,6 +541,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The kind, badge shape and icon of a train from substrings of its type and description, ignoring case and tested in the order that the <a class="el" href="#aa3d69fc136eed55ed2a75c1c0d8a7f97">TrainVisualKind</a> comment gives, with the default colours. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -506,6 +564,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The fill of a train without a service colour: RGB (235, 210, 55). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -528,6 +588,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The outline of a train without a service colour: RGB (110, 90, 20). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -550,6 +612,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The look of a free track: that of a track below 120 km/h. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -596,6 +660,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Paints the mark of a station class centred in frame: a bar for a major station, a disc for a station and a ring for a halt. A halo of haloWidth, in the units of the painter, surrounds it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -627,6 +692,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><a class="el" href="#a1cc87232a45c91e955c2e5a7220ae087">classifyTrainType()</a>, with the fill set to serviceColor and the outline to a shade of it half as bright when serviceColor is valid. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -649,6 +715,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The playback speed for a delay of delayMs milliseconds per simulated second, as a factor of real time: 1000 / delayMs with an "x", whole from 10x and with one decimal below. "Fastest" for a delay of 0 or less. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -671,6 +738,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The label of <a class="el" href="#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel()</a> followed by " real time", or "Fastest". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -693,6 +762,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The mark in its dark variant for light surfaces, at 16 and 32 pixels. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -715,6 +786,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The rank of a state when a track line has more than one; the highest wins: Blocked 3, Occupied 2, Prepared 1, Free 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -737,6 +809,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The corner radius of a badge shape in pixels. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

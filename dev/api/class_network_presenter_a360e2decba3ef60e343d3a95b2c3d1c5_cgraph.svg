@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_presenter.html#aa360cc99d5a45dcfab687ea8408a9825" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_network_presenter.html#aa360cc99d5a45dcfab687ea8408a9825" target="_top" xlink:title="Shows the details of a passenger above its icon; a replay adds that the journey details are unavailab...">
 <polygon fill="white" stroke="#666666" points="365,-134 180,-134 180,-104 365,-104 365,-134"/>
 <text text-anchor="start" x="188" y="-122" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::paintPassenger</text>
 <text text-anchor="middle" x="272.5" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">InfoIcon</text>
@@ -40,7 +40,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_network_presenter_8cpp.html#a1b57662dc5e3aac38290b652a37de442" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_network_presenter_8cpp.html#a1b57662dc5e3aac38290b652a37de442" target="_top" xlink:title="The details of a passenger in the snapshot; only the id is known when the snapshot is null or does no...">
 <polygon fill="white" stroke="#666666" points="323,-67.5 222,-67.5 222,-48.5 323,-48.5 323,-67.5"/>
 <text text-anchor="middle" x="272.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">passengerStateIn</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_network_presenter.html#a7f9a72f4a0c0a5ca7c5d13ebccbd30ba" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_network_presenter.html#a7f9a72f4a0c0a5ca7c5d13ebccbd30ba" target="_top" xlink:title="Deletes the passenger information of the selected passenger icon. The icon stays selected.">
 <polygon fill="white" stroke="#666666" points="346.5,-30 198.5,-30 198.5,0 346.5,0 346.5,-30"/>
 <text text-anchor="start" x="206.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::remove</text>
 <text text-anchor="middle" x="272.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PaxInfoIcon</text>
