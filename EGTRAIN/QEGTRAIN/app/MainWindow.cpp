@@ -1003,7 +1003,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedLabel->ensurePolished();
 	m_speedLabel->setFixedWidth(qMax(m_speedLabel->fontMetrics().horizontalAdvance("Fastest"),
 		m_speedLabel->fontMetrics().horizontalAdvance("1000x")));
-	m_speedLabel->setFixedHeight(24);
 	m_speedLabel->setProperty("toolbarGroup", "Playback");
 	m_toolBar->addWidget(m_speedLabel);
 	addToolbarGroupSeparator("separatorPlaybackView", "Playback commands / view commands");
