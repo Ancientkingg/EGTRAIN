@@ -47,6 +47,8 @@ canonical model.
 - [Build and test guide](development/build-and-test.md): configure recipes for each system, common setup failures, test labels and smokes, where output goes, and CI.
 - [Coding guidelines](development/coding-guidelines.md)
 - [Documentation decision](development/documentation-decision.md): how the docs are structured, built, checked and shipped in the app, the options compared, the screenshot process and the map of every page.
+
+- [Code documentation investigation](development/code-documentation-investigation.md): the comment coverage per source folder, the legacy simulation core, the unstated units and conventions, dead or misleading comments, open questions and the order of the follow-up work.
 - [QEGTRAIN source layout](architecture/source-layout.md): the folders of `EGTRAIN/QEGTRAIN` and what each holds, the libraries and the renames.
 - [Scene model design](architecture/scene-model.md)
 - [Scene editor flow](architecture/scene-editor-flow.md): how the editor creates, opens, validates, runs and saves a case, with the main window layout and the edit panes.
