@@ -10,6 +10,7 @@
 #include <QPointer>
 #include <QPolygonF>
 #include <QRectF>
+#include <QString>
 
 #include <map>
 #include <memory>
@@ -186,6 +187,17 @@ public:
 
 	// Forgets the fit and the selection of the last preview; the preview itself stays.
 	void resetPreviewFit();
+
+	// An item that Find offers: its name with its kind and enough context to tell it apart, the item that a click on
+	// it selects, and the point of the scene to centre on.
+	struct FindTarget {
+		QString label;
+		QGraphicsItem* item;
+		QPointF center;
+	};
+	// The stations, the signals and the trains on the canvas, sorted by label, each label once. The items belong to
+	// the scene and are only valid until it changes.
+	QList<FindTarget> findTargets() const;
 
 	// The line of the preview with this track id in the scene, or null.
 	const TrackPreviewLine* trackLine(const std::string& sceneTrackId) const;

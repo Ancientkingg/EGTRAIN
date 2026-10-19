@@ -45,6 +45,7 @@ class CompositionPanel;
 class ConsoleWidget;
 class ElidedLabel;
 class EntranceDelayPanel;
+class FindDialog;
 class FollowCamera;
 class IncidentPanel;
 class InfrastructurePanel;
@@ -285,6 +286,8 @@ private:
 	bool m_recoveryFailureShown = false;
 	QAction* m_undoAction = nullptr;
 	QAction* m_redoAction = nullptr;
+	QAction* m_findAction = nullptr;
+	FindDialog* m_findDialog = nullptr;
 	bool m_committingPendingEditorValues = false;
 	// The editor panels, in the order in which commitPendingEditorValues takes their pending edits.
 	std::vector<SceneEditorPanel*> m_editorPanels;
@@ -554,6 +557,10 @@ private:
 	void sceneDocumentChanged();
 	void invalidateAfterSceneChange();
 	void setupEditMenu();
+	// Opens Find over the stations, signals and trains on the canvas.
+	void showFind();
+	// Centres the view on the item with this label, zooms in to read it and selects it as a click does.
+	void goToFound(const QString& label);
 	void undoScene();
 	void redoScene();
 	void stepSceneHistory(bool redo);

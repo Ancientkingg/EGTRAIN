@@ -192,6 +192,55 @@ void NetworkPresenter::resetPreviewFit() {
 	m_previewHasSignals = false;
 }
 
+QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
+	QList<FindTarget> targets;
+	if (!m_scene)
+		return targets;
+	// A station node of a run has the node of its stopping board; one of the preview has none.
+	for (QGraphicsItem* item : m_scene->items()) {
+		auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
+		if (station && station->node && !station->node->stationName.empty())
+			targets.append({QStringLiteral("Station: %1 (track %2)").arg(QString::fromStdString(station->node->stationName)).arg(station->track),
+				station, station->sceneBoundingRect().center()});
+	}
+	// The overlay of a station of the preview is drawn at a fixed size on the screen, so its anchor is its place.
+	for (StationOverlayItem* overlay : m_stationOverlays) {
+		if (!overlay || overlay->data(PreviewGraphics::Kind).toString() != QLatin1String("station"))
+			continue;
+		const QString id = overlay->data(PreviewGraphics::Id).toString();
+		const QString name = overlay->stationName();
+		targets.append({name.isEmpty() || name == id ? QStringLiteral("Station: %1").arg(id) : QStringLiteral("Station: %1 (%2)").arg(name, id),
+			overlay, overlay->stableAnchor()});
+	}
+	// A signal of a run knows its sections; the scene gives the ids of the signals that protect them.
+	std::map<std::string, QStringList> authoredIds;
+	if (m_runModel)
+		for (const SceneSignal& source : sceneSignals(*m_runModel))
+			authoredIds[source.protectedSection].append(QString::fromStdString(source.id));
+	for (QGraphicsItem* item : m_signalDecorations) {
+		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
+		if (!signal)
+			continue;
+		QString identity = signal->inspectionIdentity();
+		const auto ids = signal->sectionAheadId.empty() ? authoredIds.end() : authoredIds.find(signal->sectionAheadId);
+		if (ids != authoredIds.end())
+			identity += QStringLiteral("; signal ID %1").arg(ids->second.join(QStringLiteral(", ")));
+		targets.append({QStringLiteral("Signal: %1, %2").arg(identity, signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right")),
+			signal, signal->sceneBoundingRect().center()});
+	}
+	for (TrainItemGroup* train : allTrains) {
+		if (!train || train->outOfSimulation || !train->trainPolygonItemList || train->trainPolygonItemList->isEmpty()
+			|| train->sceneBoundingRect().isEmpty())
+			continue;
+		targets.append({QStringLiteral("Train: %1").arg(QString::fromStdString(followTrainName(train->trainDescription, train->index))),
+			train->trainPolygonItemList->first(), train->sceneBoundingRect().center()});
+	}
+	std::stable_sort(targets.begin(), targets.end(), [](const FindTarget& a, const FindTarget& b) { return a.label < b.label; });
+	targets.erase(std::unique(targets.begin(), targets.end(), [](const FindTarget& a, const FindTarget& b) { return a.label == b.label; }),
+		targets.end());
+	return targets;
+}
+
 const TrackPreviewLine* NetworkPresenter::trackLine(const std::string& sceneTrackId) const {
 	const auto line = std::find_if(m_cachedTrackPreview.lines.begin(),
 		m_cachedTrackPreview.lines.end(), [&sceneTrackId](const TrackPreviewLine& candidate) {

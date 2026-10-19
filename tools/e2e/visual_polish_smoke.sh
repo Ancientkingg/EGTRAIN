@@ -115,6 +115,7 @@ phase_dpr1() {
 	grep -q "E2E_SELECTION_CUE_FIT_OK" "$OUT"
 	grep -q "E2E_SELECTION_CUE_DETAIL_OK" "$OUT"
 	grep -q "E2E_SELECTION_CUE_CLEAR_OK" "$OUT"
+	grep -q "E2E_FIND_OK" "$OUT"
 	grep -q "E2E_STOP_PREVIEW_UNSELECTED_OK" "$OUT"
 	grep -q "E2E_STATION_SQUARE_COLOUR_OK" "$OUT"
 	require_markers "$OUT" "${FOLLOW_LIVE_MARKERS[@]}"

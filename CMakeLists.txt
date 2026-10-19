@@ -257,6 +257,7 @@ add_library(egtrain_widgets STATIC
     ${SRC_DIR}/widgets/CaseChooserDialog.cpp
     ${SRC_DIR}/widgets/ColorChoiceButton.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
+    ${SRC_DIR}/widgets/FindDialog.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
     ${SRC_DIR}/widgets/InspectorPanel.cpp
     ${SRC_DIR}/widgets/NetworkLegendWidget.cpp

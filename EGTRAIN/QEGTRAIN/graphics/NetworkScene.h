@@ -49,6 +49,10 @@ public:
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
 	void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
+	// Selects the item as a left click on it does: emits the MousePressedOn signal of its kind. Nothing happens for null
+	// or an item of another kind.
+	void select(QGraphicsItem* item);
+
 signals:
 	void MousePressedOnScene();
 	void MousePressedOnPreview(QGraphicsItem* item);

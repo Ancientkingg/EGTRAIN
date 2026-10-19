@@ -570,6 +570,14 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			marker("E2E_SELECTION_CUE_PREVIEW_OK");
 	}
 
+	if (w.networkView) {
+		QString findFailure;
+		if (checkFind(w, false, findFailure))
+			marker("E2E_FIND_PREVIEW_OK");
+		else
+			fail("find", findFailure);
+	}
+
 	if (ok) {
 		std::fprintf(stdout, "E2E_TRACK_PREVIEW_OK\n");
 		std::fflush(stdout);
