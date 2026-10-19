@@ -1,5 +1,6 @@
 #include "editors/TrainUnitPanel.h"
 
+#include "scene/SceneFields.h"
 #include "widgets/DisplayPath.h"
 
 #include <QApplication>
@@ -602,6 +603,47 @@ int main(int argc, char** argv) {
 					"leaving the Physical page takes the number that was typed in a field");
 			}
 		}
+	}
+
+	{
+		// the number fields stop at their ranges, and a stored number outside its range is shown at the nearest limit but kept
+		const SceneValueRange& lengthRange = kSceneTrainPhysicalFields[8].range;
+		const SceneValueRange& c0Range = kSceneTractionColumns[2].range;
+		SceneModel scene = unitScene();
+		scene.trainUnits[0].physical.length_m = 1e300;
+		scene.trainUnits[0].tractionCurve[0][2] = -1e300;
+		SceneDocument document;
+		TrainUnitPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.show();
+		panel.activateWindow();
+		QApplication::processEvents();
+		QDoubleSpinBox* length = panel.physicalEdits()[8];
+		QDoubleSpinBox* c0 = cell(panel, 0, 2);
+		ok &= expect(length->minimum() == lengthRange.min && length->maximum() == lengthRange.max && length->value() == lengthRange.max
+				&& c0->minimum() == c0Range.min && c0->maximum() == c0Range.max && c0->value() == c0Range.min,
+			"the number fields have the shared ranges and show a number beyond them at the nearest limit");
+		panel.tabs()->setCurrentIndex(1);
+		length->setFocus();
+		QApplication::processEvents();
+		const bool lengthFocused = length->hasFocus();
+		panel.commitPendingEditors();
+		panel.tabs()->setCurrentIndex(0);
+		c0->setFocus();
+		QApplication::processEvents();
+		const bool c0Focused = c0->hasFocus();
+		panel.commitPendingEditors();
+		ok &= expect(lengthFocused && c0Focused && document.model().trainUnits[0].physical.length_m == 1e300
+				&& document.model().trainUnits[0].tractionCurve[0][2] == -1e300 && document.revision() == 1,
+			"focusing a number field that shows a limit does not replace the stored number");
+		length->setValue(100.0);
+		length->setValue(1e300);
+		c0->setValue(0.0);
+		c0->setValue(1e300);
+		ok &= expect(document.model().trainUnits[0].physical.length_m == lengthRange.max
+				&& document.model().trainUnits[0].tractionCurve[0][2] == c0Range.max,
+			"a number that is entered beyond the range stops at the limit");
 	}
 
 	{

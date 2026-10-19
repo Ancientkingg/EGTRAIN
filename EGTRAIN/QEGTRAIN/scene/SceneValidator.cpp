@@ -1,5 +1,6 @@
 #include "scene/SceneValidator.h"
 #include "scene/RuntimeLimits.h"
+#include "scene/SceneFields.h"
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
 
@@ -444,6 +445,24 @@ std::string gradientText(double value) {
 	std::ostringstream text;
 	text << std::setprecision(4) << value;
 	return text.str();
+}
+
+std::string valueText(double value) {
+	std::ostringstream text;
+	text << std::setprecision(10) << value;
+	return text.str();
+}
+
+// Warns when a number of a train unit lies outside the range that a rail vehicle can have. `path` is the path of the
+// number.
+void warnImplausibleTrainValue(DiagnosticBuilder& diagnostics, const SceneTrainUnit& unit, const char* name, double value,
+	const SceneValueRange& range, const std::string& path) {
+	if (value >= range.plausibleMin && value <= range.plausibleMax)
+		return;
+	diagnostics.warning("scene.train.value.implausible",
+		std::string(name) + " is " + valueText(value) + ", outside the plausible range " + valueText(range.plausibleMin)
+			+ " to " + valueText(range.plausibleMax),
+		"rolling_stock.json", "train_unit", unit.id, path, "", "Check the value and its unit");
 }
 
 // Warns once per route and composition that a service uses when an arc of the
@@ -1182,9 +1201,17 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				"rolling_stock.json", "train_unit", unit.id, path + ".physical", "",
 				"Add the train-unit physical parameters");
 		}
+		if (unit.hasPhysical) {
+			for (const SceneTrainPhysicalField& field : kSceneTrainPhysicalFields)
+				warnImplausibleTrainValue(diagnostics, unit, field.key, unit.physical.*field.member, field.range,
+					path + ".physical." + field.key);
+		}
 		for (std::size_t rowIndex = 0; rowIndex < unit.tractionCurve.size(); ++rowIndex) {
 			const auto& row = unit.tractionCurve[rowIndex];
 			const std::string rowPath = path + ".traction_curve[" + std::to_string(rowIndex) + "]";
+			for (std::size_t column = 0; column < row.size(); ++column)
+				warnImplausibleTrainValue(diagnostics, unit, kSceneTractionColumns[column].key, row[column],
+					kSceneTractionColumns[column].range, rowPath + "[" + std::to_string(column) + "]");
 			if (!(row[0] < row[1])) {
 				diagnostics.error("scene.train.traction.interval",
 					"Traction curve lower speed must be below upper speed", "rolling_stock.json",
