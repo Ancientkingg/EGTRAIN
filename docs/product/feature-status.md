@@ -143,7 +143,7 @@ The editors are panels in `editors/`. They are docks under View or Editors.
 | `--live`, `--live-every`, `--live-commands` | tested | `test_liveframe`, `test_livecommand`, `test_livereplay`, `test_liveserver`, `test_live_stream_smoke` (macOS only) |
 | `-TSM 1` and `-RC 1` | partial | `test_external_sharing_no_listener`, `test_route_choice_missing_data`, `test_rttp`. Tested only without a listener; deprecated |
 | `--interactive` | untested | No test or run uses the questions |
-| `--help` | placeholder | The option does not exist. An unknown option is ignored and the window starts (#783) |
+| `--help` | placeholder | The option does not exist. An unknown option is ignored and the window starts (#783, fixed after this snapshot) |
 | `scene_tool` import, pack, unpack, export, validate | tested | `test_scene_tool_diagnostics`, `test_sceneimporter`, `test_sceneexporter`, `test_scenebundle`; Release run 39019990227, `roundtrip_smoke.py` and `bundle_smoke.py` |
 | Seven committed cases | tested | Release run 39019990227 (`headless_smoke.py`); manual run, 2026-10-17, macOS (audit item 2): all seven open with 0 errors; manual run, 2026-10-16, Windows (row R6) opened the Assignment case; manual run, 2026-10-17, Windows (WIN-E): all seven open as folders and as bundles with 0 errors and these warnings: Amsterdam_Hilversum_Student 26, Assignment 0, Copenhagen 509, Lebanon 0, Milano_Brescia 11, Netherlands 56, Paimpol 371. Every case has one network-wide signalling area at level 0 and no signals |
 | Playback profiler and start-up timing | tested | `test_playbackprofiler`, `test_playback_profile` (developer tools) |

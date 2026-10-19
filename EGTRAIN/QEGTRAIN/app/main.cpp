@@ -18,6 +18,7 @@
 #include "widgets/ConsoleWidget.h"
 #include <algorithm>
 #include <climits>
+#include <iomanip>
 #include <iterator>
 #include <optional>
 #include "util/portability.h"
@@ -57,9 +58,79 @@ static bool creatorAcceptanceRun() {
 #endif
 }
 
-// The options that take a value. It must name every option that is read with getCmdOption: the
-// value of an option that is missing here would count as a file name.
-static const QStringList optionsWithValue = {"-n", "-h", "-b", "-c", "-g", "-pax", "-TSM", "-RC", "--seed", "--scene", "--live", "--live-every"};
+// The options of the command line. The table drives --help and the check for unknown options. An option that
+// takes a value names it in value; one without a value has nullptr there. An option that is read with
+// getCmdOption must have a value, or the value would count as a file name.
+struct CommandLineOption {
+	const char* name;
+	const char* value;
+	const char* defaultText;
+	const char* description;
+};
+
+static const CommandLineOption commandLineOptions[] = {
+	{"-n", "ID", "1", "Case study number, 1 to 6"},
+	{"--scene", "PATH", "the case study of -n", "Scene folder or .egscene file to load"},
+	{"-h", "SECONDS", "from the scene", "Simulation horizon; this is not help"},
+	{"-b", "SECONDS", "from the scene", "Buffer time"},
+	{"-c", "PERCENT", "from the scene", "Recovery time"},
+	{"-g", "0|1", "1", "0 runs without a window and exits when the run ends"},
+	{"-pax", "0|1", "0", "1 turns the passenger GUI on; read only when -g is 1"},
+	{"-TSM", "0|1", "0", "Deprecated; sends the traffic state to port 5555"},
+	{"-RC", "0|1", "0", "Deprecated; sends route choice requests to port 5556"},
+	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g, -pax, -TSM and -RC when they are left out"},
+	{"-interactive", nullptr, "off", "Same as --interactive"},
+	{"--detailed-trajectories", nullptr, "off", "Also writes the per-train files"},
+	{"--live", "PORT", "off", "Publishes the run state on a ZeroMQ socket; 0 takes a free port"},
+	{"--live-every", "N", "1", "With --live: sends a state frame every N steps"},
+	{"--live-commands", nullptr, "off", "With --live: accepts pause, resume and stop commands"},
+	{"--seed", "N", "789350715", "Seed of the random draws, 1 to 2147483646"},
+	{"--help", nullptr, "off", "Prints this list and exits"},
+};
+
+static const CommandLineOption* findOption(const QString& name) {
+	for (const CommandLineOption& option : commandLineOptions)
+		if (name == QLatin1String(option.name))
+			return &option;
+	return nullptr;
+}
+
+static QStringList valueOptionNames() {
+	QStringList names;
+	for (const CommandLineOption& option : commandLineOptions)
+		if (option.value)
+			names.append(QLatin1String(option.name));
+	return names;
+}
+
+static void printHelp() {
+	std::cout << "Usage: QEGTRAIN [options] [file.egscene]\n\nOptions:\n";
+	for (const CommandLineOption& option : commandLineOptions) {
+		const std::string usage = option.value ? std::string(option.name) + ' ' + option.value : option.name;
+		std::cout << "  " << std::left << std::setw(25) << usage << ' ' << option.description << " (default: " << option.defaultText << ")\n";
+	}
+}
+
+// Reports the first option that is not in the table and returns false. It reads argv after the application object
+// took its own options out. macOS adds -psn_* and -NS* to some launches.
+static bool onlyKnownOptions(int argc, char* argv[]) {
+	bool skipValue = false;
+	for (int i = 1; i < argc; ++i) {
+		const QString argument = QString::fromLocal8Bit(argv[i]);
+		if (skipValue) {
+			skipValue = false;
+		} else if (argument.startsWith(QLatin1Char('-'))) {
+			const CommandLineOption* option = findOption(argument);
+			if (option) {
+				skipValue = option->value != nullptr;
+			} else if (!argument.startsWith(QLatin1String("-psn_")) && !argument.startsWith(QLatin1String("-NS"))) {
+				std::cerr << "ERROR: Unknown option " << argument.toStdString() << ". Run QEGTRAIN --help to list the options.\n";
+				return false;
+			}
+		}
+	}
+	return true;
+}
 
 void parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
@@ -286,7 +357,7 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 		request.path = optionValue(arguments, QStringLiteral("--scene"));
 		return request;
 	}
-	const QStringList positional = positionalArguments(arguments, optionsWithValue);
+	const QStringList positional = positionalArguments(arguments, valueOptionNames());
 	if (positional.isEmpty())
 		return request;
 	const SceneOpenChoice choice = classifyOpenPaths(positional);
@@ -305,6 +376,11 @@ int main(int argc, char* argv[]) {
 	const std::string loggingProblems = installConsoleLogging();
 	if (!loggingProblems.empty())
 		std::cerr << loggingProblems;
+	// Before the application object exists, so it works without a display.
+	if (cmdOptionEntered(argv, argv + argc, "--help")) {
+		printHelp();
+		return 0;
+	}
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
 	QCoreApplication::setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION));
@@ -357,6 +433,8 @@ int main(int argc, char* argv[]) {
 
 	if (gui) {
 		QApplication application(argc, argv);
+		if (!onlyKnownOptions(argc, argv))
+			return 1;
 		if (!updatesSuppressedByEnvironment()) {
 			// The second sweep also removes the staging folder that a Windows update helper keeps while it runs.
 			SelfUpdater::cleanupStaleStaging();
@@ -444,6 +522,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	QCoreApplication application(argc, argv);
+	if (!onlyKnownOptions(argc, argv))
+		return 1;
 	const SceneRequest request = readSceneRequest(sceneOption, false);
 	if (request.rejected)
 		return 1;
