@@ -80,7 +80,11 @@ QToolBar QToolButton {
 QToolBar QToolButton:disabled {
     background: #e4e8eb;
     border-color: #c9d3db;
-    color: #64717a;
+}
+
+QToolBar QToolButton:checked {
+    background: #315a70;
+    color: #ffffff;
 }
 
 QToolButton#actionFollowButton:checked {
