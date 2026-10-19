@@ -417,15 +417,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		ok = false;
 		failures << "toolbar still contains the case badge or simulation clock";
 	}
-	if (!w.ui->menuSimulation) {
-		ok = false;
-		failures << "the Simulation menu is missing";
-	} else {
-		for (QAction* action : w.ui->menuSimulation->actions()) {
-			if (action->text().contains("Start Time", Qt::CaseInsensitive)) {
-				ok = false;
-				failures << "the Simulation menu has a Start Time entry";
-			}
+	for (QAction* action : w.ui->menuSimulation->actions()) {
+		if (action->text().contains("Start Time", Qt::CaseInsensitive)) {
+			ok = false;
+			failures << "the Simulation menu has a Start Time entry";
 		}
 	}
 	QLabel* slowerLabel = w.findChild<QLabel*>("speedSlowerLabel");

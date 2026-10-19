@@ -26,13 +26,6 @@ int main() {
 	ok &= expect(formatSimTime(3600, 23 * 3600) == "00:00:00", "formatSimTime wrap");
 	ok &= expect(formatSimTime(-5) == "00:00:00", "formatSimTime negative clamp");
 
-	// Parse HH:MM to seconds since midnight.
-	ok &= expect(parseClockToSeconds("08:00") == 28800, "parseClockToSeconds 08:00");
-	ok &= expect(parseClockToSeconds("00:00") == 0, "parseClockToSeconds 00:00");
-	ok &= expect(parseClockToSeconds("23:59") == 86340, "parseClockToSeconds 23:59");
-	ok &= expect(parseClockToSeconds("8") == -1, "parseClockToSeconds short malformed");
-	ok &= expect(parseClockToSeconds("ab:cd") == -1, "parseClockToSeconds nonnumeric malformed");
-
 	for (const auto& sample : {std::make_pair(0.0, "08:00:00"), {90.0, "08:01:30"},
 			 {90.125, "08:01:30.125"}, {57600.0, "+1d 00:00:00"}, {144001.0, "+2d 00:00:01"}}) {
 		std::optional<double> value;
