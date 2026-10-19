@@ -22,10 +22,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from headless_smoke import scene_output_dir
+from headless_smoke import find_executable, scene_output_dir
 
 ROOT = Path(__file__).resolve().parents[2]
-APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP = find_executable("QEGTRAIN", "QEGTRAIN_APP")
 SCENE_DIR = ROOT / "EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
 CASE_ID = 5
 
@@ -93,9 +93,6 @@ def span(positions: list[float | None], lo: int, hi: int) -> float:
 
 
 def main() -> None:
-    if not APP.exists():
-        sys.exit("QEGTRAIN app not built")
-
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
 

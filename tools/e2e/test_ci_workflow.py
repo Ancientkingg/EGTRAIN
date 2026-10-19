@@ -458,8 +458,8 @@ def main() -> None:
         "ctest --test-dir build --output-on-failure"
     ) != 1:
         missing.append("production validation CTest job")
-    if any(smoke not in release_workflow for smoke in standalone_smokes):
-        missing.append("production standalone smoke steps")
+    if any(smoke in release_workflow for smoke in standalone_smokes):
+        missing.append("no standalone smoke steps in the release workflow, CTest runs them")
     if "\n  sanitizer:\n" not in release_workflow or "EGTRAIN_ENABLE_SANITIZERS=ON" not in release_workflow:
         missing.append("production sanitizer job")
     if any(
@@ -609,8 +609,10 @@ def main() -> None:
         or "          fail_on_unmatched_files: true\n" not in prepare_step
     ):
         missing.append("release published from the files of the output directory, failing when none matches")
-    if "python3 tools/e2e/headless_smoke.py 1 2 3 4 5 7" not in release_workflow:
-        missing.append("production headless smoke of all six canonical scenes")
+    if "foreach(egtrain_case 1 2 3 4 5 7)" not in cmake or "tools/e2e/headless_smoke.py ${egtrain_case}" not in cmake:
+        missing.append("headless smoke of all six canonical scenes in CTest")
+    if "        run: python3 tools/docs/check_docs.py\n" not in job_block(workflow, "docs") or "    if:" in job_block(workflow, "docs"):
+        missing.append("documentation check on every pull request")
     if '"$APP/Contents/Frameworks/QtNetwork.framework"' not in release_workflow:
         missing.append("macOS Qt Network package verification")
     if '"Qt5Network.dll"' not in release_workflow:

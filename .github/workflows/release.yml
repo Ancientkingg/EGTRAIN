@@ -67,39 +67,6 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
 
-      - name: Run headless canonical scene smokes
-        run: python3 tools/e2e/headless_smoke.py 1 2 3 4 5 7
-
-      - name: Run editor smoke
-        run: tools/e2e/editor_smoke.sh
-
-      - name: Run scene roundtrip smoke
-        run: python3 tools/e2e/roundtrip_smoke.py
-
-      - name: Run bundle smoke
-        run: python3 tools/e2e/bundle_smoke.py build/scene_tool build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
-
-      - name: Run assignment smoke
-        run: python3 tools/e2e/assignment_smoke.py
-
-      - name: Run incident smoke
-        run: python3 tools/e2e/incident_smoke.py
-
-      - name: Run scene render smoke
-        env:
-          QT_QPA_PLATFORM: offscreen
-        run: tools/e2e/scene_render_smoke.sh
-
-      - name: Run track preview smoke
-        env:
-          QT_QPA_PLATFORM: offscreen
-        run: tools/e2e/track_preview_smoke.sh
-
-      - name: Run visual smoke
-        env:
-          QT_QPA_PLATFORM: offscreen
-        run: tools/e2e/visual_polish_smoke.sh
-
       - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

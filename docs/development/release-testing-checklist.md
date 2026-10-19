@@ -78,7 +78,7 @@ case-study assets above and the update manifest.
 What the jobs prove today:
 
 - The Full validation job builds the project with tests on macOS and runs
-  CTest and the end-to-end smoke tests. The Sanitizers job runs CTest again in
+  CTest, which holds the end-to-end smoke tests. The Sanitizers job runs CTest again in
   a debug build with sanitizers.
 - In the Package macOS job, no Mach-O file of the app names a path under
   `/opt/homebrew` or `/usr/local` in `otool -L`, `otool -D` or `otool -l`, and

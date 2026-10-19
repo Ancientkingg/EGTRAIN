@@ -50,6 +50,16 @@ jobs:
           fi
           echo "build=$build" >> "$GITHUB_OUTPUT"
 
+  # CTest runs the same check, but the build job skips CTest for a pull request that changes only documentation.
+  docs:
+    name: Check the documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the documentation check
+        run: python3 tools/docs/check_docs.py
+
   # A skipped matrix job is listed under its unexpanded name, so the legs always start and each step checks the output
   # of the changes job.
   build:
@@ -263,6 +273,8 @@ jobs:
           path: |
             ${{ runner.temp }}/ctest.log
             ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
+            ${{ runner.temp }}/qegtrain-incident-*.log
+            tools/e2e/headless_case_*.log
           if-no-files-found: ignore
 
   # LeakSanitizer finds the leaks and double frees that a normal run does not show. It does not run on
@@ -337,7 +349,7 @@ jobs:
   result:
     name: CMake result
     if: always()
-    needs: [changes, build, leak-check]
+    needs: [changes, docs, build, leak-check]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

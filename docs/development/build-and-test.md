@@ -512,7 +512,9 @@ the directory of the test executables as the two arguments of
 `route_diagram_smoke.py`, which uses the paths under `build/` when it gets none.
 
 `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`,
-`test_route_diagram_smoke` and the five `test_visual_polish_smoke_*` tests are not registered in a
+`test_route_diagram_smoke`, the five `test_visual_polish_smoke_*` tests and the end-to-end smokes
+(`test_headless_smoke_case_1` to `test_headless_smoke_case_7`, `test_roundtrip_smoke`, `test_bundle_smoke`,
+`test_incident_smoke` and `test_assignment_smoke`) are not registered in a
 build with `EGTRAIN_ENABLE_SANITIZERS=ON`: the time limits of their scripts are set
 for an uninstrumented build.
 
@@ -1165,6 +1167,8 @@ The script runs the application that `QEGTRAIN_APP` names. Without that variable
 the build folder of the system: `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS,
 `build/QEGTRAIN` on Linux, and `build/QEGTRAIN.exe` or `build/Release/QEGTRAIN.exe` on Windows.
 If none exists it stops and names the paths it tried.
+CTest runs each case as its own test, `test_headless_smoke_case_1` to `test_headless_smoke_case_7`,
+so that the cases run side by side.
 
 For Amsterdam_Hilversum_Student the script also checks that every occurrence
 of its service reaches Hilversum, one after the other, and that the five files
@@ -1236,7 +1240,13 @@ load the canonical source directory directly.
 The reimported Assignment run must report no route section without a
 signalling level and must write section records to `BlockingTimes.txt`.
 The script finds the application and `scene_tool` as the headless smoke finds the application, with
-`QEGTRAIN_APP` and `QEGTRAIN_SCENE_TOOL` as the variables.
+`QEGTRAIN_APP` and `QEGTRAIN_SCENE_TOOL` as the variables. CTest runs it as `test_roundtrip_smoke`.
+
+CTest also runs three smaller scripts of the Assignment scene: `test_bundle_smoke` packs and validates
+every committed scene with `bundle_smoke.py` and runs the Assignment bundle, `test_incident_smoke` runs
+Assignment with a train breakdown and with a signal failure through `incident_smoke.py`, and
+`test_assignment_smoke` checks the service ids, entry times and headway of its timetable with
+`assignment_smoke.py`.
 
 ## Live stream tests
 
@@ -1629,7 +1639,7 @@ most of its checks, so run it locally to read its logs.
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
 | Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_external_sharing_no_listener`, `test_scene_drop` and `test_output_folder` write to `build/external-sharing-test`, `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
 | Logs and screenshots of the Bash smokes | `${TMPDIR:-/tmp}`, for example `qegtrain-visual-polish-e2e.log`; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
-| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes |
+| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test |
 | Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |
 | Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
 
@@ -1642,7 +1652,11 @@ application; CTest and the smoke scripts set it themselves.
 - `main` is the validation branch. Pull requests build the project and run
   the CTest suite without the tests labelled `network` (those run on Windows only), in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
   x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
-  documentation rule below. The same checks run on `main` once a night (02:17 UTC)
+  documentation rule below. The suite holds the end-to-end smokes of the
+  committed scenes (see [Simulation Smoke Test](#simulation-smoke-test) and
+  [Scene Roundtrip Smoke Test](#scene-roundtrip-smoke-test)). The `docs` job runs
+  `tools/docs/check_docs.py` on every pull request, documentation-only ones
+  included. The same checks run on `main` once a night (02:17 UTC)
   and when started by hand from the Actions tab (`workflow_dispatch`); both
   always build, and both also start the [leak check](#leak-check) on Linux.
   A push to `main` starts no run. A scheduled workflow runs
@@ -1781,8 +1795,8 @@ application; CTest and the smoke scripts set it themselves.
   cover the rest on a Windows machine. A release still runs only from
   `release.yml`. A newer push to the pull request cancels the running check.
 - `production` is the release branch. Its full pipeline packages macOS,
-  Windows, and Linux applications, runs CTest, sanitizers, and the complete
-  smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
+  Windows, and Linux applications, runs CTest, which holds the smoke suite,
+  and the sanitizers, validates the scene bundles, and publishes a stable `vX.Y.Z`
   release. The three package jobs and the Rehearse Linux job, which runs the
   clean-install steps on the Linux package, are in `.github/workflows/package.yml`, which
   `release.yml` calls from its `package` job with the selected version. The
@@ -1864,7 +1878,8 @@ compares the files of the pull request with the rule of the workflow, and the
 real jobs skip when the rule selects nothing:
 
 - CMake builds unless every changed file is a Markdown file (`**.md`), under
-  `docs/` or `.github/ISSUE_TEMPLATE/`, or the root `LICENSE`.
+  `docs/` or `.github/ISSUE_TEMPLATE/`, or the root `LICENSE`. Its `docs` job
+  checks the documentation on every pull request.
 - Format runs for the files of the format check, listed above.
 - Tidy runs for the files of the tidy check, listed above.
 - The package check runs its jobs for the packaging inputs, listed above.
@@ -1878,7 +1893,7 @@ The last job of each workflow reports one check: `CMake result`, `Format result`
 `Tidy result` or `Package check result`. It runs whatever the other jobs did, fails when any of
 them failed or was cancelled, and succeeds when they succeeded or were skipped.
 A documentation-only pull request gets four successful result checks without a
-build. `main` requires these four checks and no others, so a pull request can
+build when the documentation check finds nothing. `main` requires these four checks and no others, so a pull request can
 merge automatically when they are green. Do not require the build legs, the
 format job, the tidy job or the package jobs: a required check that no run reports under its
 own name leaves the pull request waiting forever.
@@ -2358,16 +2373,17 @@ For simulation, scene model, data conversion, or memory changes:
 ```bash
 cmake --build build
 ctest --test-dir build --output-on-failure
-tools/e2e/headless_smoke.py
-tools/e2e/roundtrip_smoke.py
 ```
+
+The suite runs `tools/e2e/headless_smoke.py` and `tools/e2e/roundtrip_smoke.py`.
 
 For scene-format changes, also pack/unpack and validate/export the committed
 scene directories with `build/scene_tool`. For UI or rendering changes, also run
 `tools/e2e/visual_polish_smoke.sh`.
 
 For documentation changes, run `python3 tools/docs/check_docs.py`; CTest runs it
-as `docs_check` in a Git checkout, and its own tests as `test_check_docs`. It checks
+as `docs_check` in a Git checkout, and its own tests as `test_check_docs`. The CMake
+workflow runs it on every pull request. It checks
 relative links, heading anchors, image references and alt text, images below
 `docs/` that no document uses, documents below `docs/` that `docs/README.md`
 does not reach through links, the syntax of `bash`, `sh` and `json` examples
