@@ -123,8 +123,11 @@ Inheritance diagram for Node:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad7a34779cad45d997bfd6d3d8043c75f" id="r_ad7a34779cad45d997bfd6d3d8043c75f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad7a34779cad45d997bfd6d3d8043c75f">Node</a> ()</td></tr>
+<tr class="memdesc:ad7a34779cad45d997bfd6d3d8043c75f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1.  <br /></td></tr>
 <tr class="memitem:a9c444d5f947a38d1d182f333a4999a02" id="r_a9c444d5f947a38d1d182f333a4999a02"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a9c444d5f947a38d1d182f333a4999a02">operator=</a> (const <a class="el" href="class_node.html">Node</a> &amp;ob2)</td></tr>
+<tr class="memdesc:a9c444d5f947a38d1d182f333a4999a02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member.  <br /></td></tr>
 <tr class="memitem:aad5536ec693dc1a89b6a0d4df7582ad5" id="r_aad5536ec693dc1a89b6a0d4df7582ad5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aad5536ec693dc1a89b6a0d4df7582ad5">operator==</a> (const <a class="el" href="class_node.html">Node</a> &amp;ob2)</td></tr>
+<tr class="memdesc:aad5536ec693dc1a89b6a0d4df7582ad5"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when ID, X, Y, isSignalled, station and dwellTime are equal.  <br /></td></tr>
 <tr class="memitem:a8ef1e7ccc0a087be2e724ccfddf18f90" id="r_a8ef1e7ccc0a087be2e724ccfddf18f90"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8ef1e7ccc0a087be2e724ccfddf18f90">initialiseIdConnectedBlocks</a> (std::string *IDConnectedBSofBlock, int N_IDConnectedBSofBlock)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -138,26 +141,43 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a396fded00eb96c713d3f883b964a4d59" id="r_a396fded00eb96c713d3f883b964a4d59"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a396fded00eb96c713d3f883b964a4d59">respectOrder</a></td></tr>
 <tr class="memitem:adfac506c25da76917b30fb9783c86b1d" id="r_adfac506c25da76917b30fb9783c86b1d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adfac506c25da76917b30fb9783c86b1d">dwellTime</a></td></tr>
 <tr class="memitem:af69876939a46c3bb200db9ed5438257e" id="r_af69876939a46c3bb200db9ed5438257e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af69876939a46c3bb200db9ed5438257e">StopTime</a></td></tr>
+<tr class="memdesc:af69876939a46c3bb200db9ed5438257e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dwell at this stop in steps, the planned dwell divided by timestep. The passenger dwell model may lengthen it.  <br /></td></tr>
 <tr class="memitem:a0f0fc87e89e8be525eda61e267eb0e0f" id="r_a0f0fc87e89e8be525eda61e267eb0e0f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a0f0fc87e89e8be525eda61e267eb0e0f">StepStopped</a></td></tr>
+<tr class="memdesc:a0f0fc87e89e8be525eda61e267eb0e0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of steps the train has stood at this stop; 0 before it arrives.  <br /></td></tr>
 <tr class="memitem:a217021694295c69bee6a38a0013dd556" id="r_a217021694295c69bee6a38a0013dd556"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a217021694295c69bee6a38a0013dd556">virtualCouplingNode</a></td></tr>
+<tr class="memdesc:a217021694295c69bee6a38a0013dd556"><td class="mdescLeft">&#160;</td><td class="mdescRight">True on a braking target node where the train can couple virtually to the train ahead.  <br /></td></tr>
 <tr class="memitem:ad44c73b04d836c889a5bb8ffa56c0af6" id="r_ad44c73b04d836c889a5bb8ffa56c0af6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad44c73b04d836c889a5bb8ffa56c0af6">indexOrderList</a></td></tr>
 <tr class="memitem:a08ff43eb9d46bbd049ecc4b47b50413a" id="r_a08ff43eb9d46bbd049ecc4b47b50413a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a08ff43eb9d46bbd049ecc4b47b50413a">connectIdBlockSet</a> [6]</td></tr>
+<tr class="memdesc:a08ff43eb9d46bbd049ecc4b47b50413a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Track slot of the track at the other end of each connection at this node. Up to 6 (<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86" title="Connection ends at one node.">RuntimeLimits::kNativeMaxNodeConnections</a>).  <br /></td></tr>
 <tr class="memitem:ac6e111c352d94530be0315807836102b" id="r_ac6e111c352d94530be0315807836102b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac6e111c352d94530be0315807836102b">connectXNode</a> [6]</td></tr>
+<tr class="memdesc:ac6e111c352d94530be0315807836102b"><td class="mdescLeft">&#160;</td><td class="mdescRight">X in kilometres of the node at the other end of each connection.  <br /></td></tr>
 <tr class="memitem:acf6037d69ad2cc2f60cb3121e246660d" id="r_acf6037d69ad2cc2f60cb3121e246660d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#acf6037d69ad2cc2f60cb3121e246660d">numConnections</a></td></tr>
+<tr class="memdesc:acf6037d69ad2cc2f60cb3121e246660d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of connections at this node, the used entries of the two arrays above.  <br /></td></tr>
 <tr class="memitem:a633cd9429e74119f27c859ef2fe93b36" id="r_a633cd9429e74119f27c859ef2fe93b36"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a633cd9429e74119f27c859ef2fe93b36">IDConnectedBlocks</a></td></tr>
 <tr class="memitem:aaa9a61fcade634b182e5a58e66795bb1" id="r_aaa9a61fcade634b182e5a58e66795bb1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aaa9a61fcade634b182e5a58e66795bb1">arcSpeedLimit</a></td></tr>
+<tr class="memdesc:aaa9a61fcade634b182e5a58e66795bb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed in m/s to reach at this node when it is a braking target: the speedInBraking of the arc that ends here.  <br /></td></tr>
 <tr class="memitem:a7ef0c1926d35e53a73e675f3cc8d40b0" id="r_a7ef0c1926d35e53a73e675f3cc8d40b0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7ef0c1926d35e53a73e675f3cc8d40b0">stationName</a></td></tr>
+<tr class="memdesc:a7ef0c1926d35e53a73e675f3cc8d40b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the station of the node; empty when there is none.  <br /></td></tr>
 <tr class="memitem:aa77f03ec952b63addc50325e6e249fd9" id="r_aa77f03ec952b63addc50325e6e249fd9"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa77f03ec952b63addc50325e6e249fd9">stationPlatformId</a></td></tr>
+<tr class="memdesc:aa77f03ec952b63addc50325e6e249fd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the platform of the node; "None" by default.  <br /></td></tr>
 <tr class="memitem:a7a8e92527a36836ae128d21579ecf041" id="r_a7a8e92527a36836ae128d21579ecf041"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7a8e92527a36836ae128d21579ecf041">tdsbId</a></td></tr>
+<tr class="memdesc:a7a8e92527a36836ae128d21579ecf041"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the track detection section border at this node; empty when there is none.  <br /></td></tr>
 <tr class="memitem:a1face2ebc4b421205bee71aaa56a2951" id="r_a1face2ebc4b421205bee71aaa56a2951"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1face2ebc4b421205bee71aaa56a2951">tdsbGeoCoordX</a></td></tr>
+<tr class="memdesc:a1face2ebc4b421205bee71aaa56a2951"><td class="mdescLeft">&#160;</td><td class="mdescRight">X of the border in metres in the direction in which the sections are defined; -1 when unset.  <br /></td></tr>
 <tr class="memitem:a02ecdd9459fd7d70c071f2e3b09db77d" id="r_a02ecdd9459fd7d70c071f2e3b09db77d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a02ecdd9459fd7d70c071f2e3b09db77d">tdsbGeoCoordY</a></td></tr>
 <tr class="memitem:a18e537ee3be0b0f494e54d19486b532b" id="r_a18e537ee3be0b0f494e54d19486b532b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a18e537ee3be0b0f494e54d19486b532b">latitude</a></td></tr>
+<tr class="memdesc:a18e537ee3be0b0f494e54d19486b532b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not set for a node; <a class="el" href="class_stations.html">Stations</a> has its own latitude and longitude.  <br /></td></tr>
 <tr class="memitem:af1772ed9e687d1e230f21c8fdf955ee9" id="r_af1772ed9e687d1e230f21c8fdf955ee9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af1772ed9e687d1e230f21c8fdf955ee9">longitude</a></td></tr>
 <tr class="memitem:a17af8258d372ab0d2c0a63022f12c7df" id="r_a17af8258d372ab0d2c0a63022f12c7df"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a17af8258d372ab0d2c0a63022f12c7df">graphX</a></td></tr>
+<tr class="memdesc:a17af8258d372ab0d2c0a63022f12c7df"><td class="mdescLeft">&#160;</td><td class="mdescRight">X on the canvas, which the network presenter sets for the nodes of <a class="el" href="class_block_set.html#ab2f49a93077ab4ba03e00618676639d2" title="A second copy of the arcs, which the canvas draws and setVirtualSignals reads.">BlockSet::member</a>; 0 otherwise.  <br /></td></tr>
 <tr class="memitem:abca80823d69b672821840baa596bb53a" id="r_abca80823d69b672821840baa596bb53a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abca80823d69b672821840baa596bb53a">graphY</a></td></tr>
+<tr class="memdesc:abca80823d69b672821840baa596bb53a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Y on the canvas, set like graphX.  <br /></td></tr>
 <tr class="memitem:a191fc672342373f3c7c899961b4d8344" id="r_a191fc672342373f3c7c899961b4d8344"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a191fc672342373f3c7c899961b4d8344">virtualSignal</a></td></tr>
+<tr class="memdesc:a191fc672342373f3c7c899961b4d8344"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for the signal in the middle of a double switch, which setVirtualSignals marks.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A point of the network. A track is a chain of nodes joined by arcs. A train also keeps copies of its stop nodes (<a class="el" href="class_train.html#a1a86c435a7d8d57b1741197aec1e5049" title="Stop nodes of the train in service order. Node::dwellTime, StopTime and StepStopped hold the dwell of...">Train::Stations</a>), and the braking routines use nodes as braking targets. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad7a34779cad45d997bfd6d3d8043c75f" name="ad7a34779cad45d997bfd6d3d8043c75f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad7a34779cad45d997bfd6d3d8043c75f">&#9670;&#160;</a></span>Node()</h2>
 
@@ -172,6 +192,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1. </p>
 
 </div>
 </div>
@@ -194,6 +216,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fills IDConnectedBlocks from the given block section IDs, choosing for each connection the ID that names its track and node position. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -224,6 +247,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Copies every member. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -254,6 +279,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when ID, X, Y, isSignalled, station and dwellTime are equal. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -275,6 +302,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Speed in m/s to reach at this node when it is a braking target: the speedInBraking of the arc that ends here. </p>
+
 </div>
 </div>
 <a id="a08ff43eb9d46bbd049ecc4b47b50413a" name="a08ff43eb9d46bbd049ecc4b47b50413a"></a>
@@ -288,6 +317,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Track slot of the track at the other end of each connection at this node. Up to 6 (<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86" title="Connection ends at one node.">RuntimeLimits::kNativeMaxNodeConnections</a>). </p>
 
 </div>
 </div>
@@ -303,6 +334,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>X in kilometres of the node at the other end of each connection. </p>
+
 </div>
 </div>
 <a id="adfac506c25da76917b30fb9783c86b1d" name="adfac506c25da76917b30fb9783c86b1d"></a>
@@ -316,6 +349,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Planned dwell at this stop in seconds; set on the stop nodes of a train. </p>
 
 </div>
 </div>
@@ -331,6 +365,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>X on the canvas, which the network presenter sets for the nodes of <a class="el" href="class_block_set.html#ab2f49a93077ab4ba03e00618676639d2" title="A second copy of the arcs, which the canvas draws and setVirtualSignals reads.">BlockSet::member</a>; 0 otherwise. </p>
+
 </div>
 </div>
 <a id="abca80823d69b672821840baa596bb53a" name="abca80823d69b672821840baa596bb53a"></a>
@@ -345,6 +381,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Y on the canvas, set like graphX. </p>
+
 </div>
 </div>
 <a id="a3f004d7828f8d7511d5ed47f9516c2c9" name="a3f004d7828f8d7511d5ed47f9516c2c9"></a>
@@ -358,6 +396,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Number of the node: track slot times 1,000,000 plus the index along the track plus 1. A node made inside an arc has the ID of the start node of the arc plus a small fraction. </p>
 
 </div>
 </div>
@@ -372,6 +411,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>IDs of the block sections that leave this node through a connection. </p>
 
 </div>
 </div>
@@ -386,6 +426,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Not used by the simulation; -1 by default. </p>
 
 </div>
 </div>
@@ -400,6 +441,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True on a braking target node that is an end of authority; its X is then a route position in metres. Nodes of the infrastructure keep false. </p>
 
 </div>
 </div>
@@ -415,6 +457,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Not set for a node; <a class="el" href="class_stations.html">Stations</a> has its own latitude and longitude. </p>
+
 </div>
 </div>
 <a id="af1772ed9e687d1e230f21c8fdf955ee9" name="af1772ed9e687d1e230f21c8fdf955ee9"></a>
@@ -428,6 +472,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Not set for a node. </p>
 
 </div>
 </div>
@@ -443,6 +488,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of connections at this node, the used entries of the two arrays above. </p>
+
 </div>
 </div>
 <a id="a396fded00eb96c713d3f883b964a4d59" name="a396fded00eb96c713d3f883b964a4d59"></a>
@@ -456,6 +503,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when a train stopping at the node may leave only when the aspect of its section is not restrictive. Nothing outside the tests sets it. </p>
 
 </div>
 </div>
@@ -470,6 +518,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Canonical scene node identity, when built from a <a class="el" href="struct_scene_model.html" title="The whole scene: the content of the scene files and the summaries derived from them.">SceneModel</a>. </p>
 
 </div>
 </div>
@@ -484,6 +533,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when a train stops at the node: a platform node, or a stop of the train. </p>
 
 </div>
 </div>
@@ -499,6 +549,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Name of the station of the node; empty when there is none. </p>
+
 </div>
 </div>
 <a id="aa77f03ec952b63addc50325e6e249fd9" name="aa77f03ec952b63addc50325e6e249fd9"></a>
@@ -512,6 +564,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>ID of the platform of the node; "None" by default. </p>
 
 </div>
 </div>
@@ -527,6 +581,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of steps the train has stood at this stop; 0 before it arrives. </p>
+
 </div>
 </div>
 <a id="af69876939a46c3bb200db9ed5438257e" name="af69876939a46c3bb200db9ed5438257e"></a>
@@ -540,6 +596,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Dwell at this stop in steps, the planned dwell divided by timestep. The passenger dwell model may lengthen it. </p>
 
 </div>
 </div>
@@ -555,6 +613,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>X of the border in metres in the direction in which the sections are defined; -1 when unset. </p>
+
 </div>
 </div>
 <a id="a02ecdd9459fd7d70c071f2e3b09db77d" name="a02ecdd9459fd7d70c071f2e3b09db77d"></a>
@@ -568,6 +628,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Y of the border in metres; -1 when unset. </p>
 
 </div>
 </div>
@@ -583,6 +644,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>ID of the track detection section border at this node; empty when there is none. </p>
+
 </div>
 </div>
 <a id="a217021694295c69bee6a38a0013dd556" name="a217021694295c69bee6a38a0013dd556"></a>
@@ -596,6 +659,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True on a braking target node where the train can couple virtually to the train ahead. </p>
 
 </div>
 </div>
@@ -611,6 +676,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True for the signal in the middle of a double switch, which setVirtualSignals marks. </p>
+
 </div>
 </div>
 <a id="a74c32024d5d9eac789cdbcc0a70238a4" name="a74c32024d5d9eac789cdbcc0a70238a4"></a>
@@ -624,6 +691,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Position along the track in kilometres. A position in metres is X * 1000. A braking target node with isSignalled set holds a route position in metres. </p>
 
 </div>
 </div>
@@ -638,6 +706,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Y coordinate in kilometres. </p>
 
 </div>
 </div>

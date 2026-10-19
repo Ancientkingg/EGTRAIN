@@ -1,15 +1,15 @@
 <map id="Train::AccelerationTimeFollowingMode" name="Train::AccelerationTimeFollowingMode">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,113,279,139"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Calculation of the sum of all Train Resistances." alt="" coords="336,77,464,117"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="336,77,464,117"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,111,322,103,322,108,254,116"/>
 <area shape="rect" id="Node000007" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="327,141,473,167"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="259,136,313,142,313,147,259,141"/>
-<area shape="rect" id="Node000003" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Calculation of Train Resistances due to Track Curvature." alt="" coords="521,5,725,31"/>
+<area shape="rect" id="Node000003" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="521,5,725,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="440,74,520,39,546,32,548,37,522,45,442,79"/>
-<area shape="rect" id="Node000004" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Calculation of Train Resistances due to Track Gradient." alt="" coords="525,55,721,80"/>
+<area shape="rect" id="Node000004" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="525,55,721,80"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="464,86,513,79,514,84,465,91"/>
 <area shape="rect" id="Node000005" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="552,105,695,145"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="465,102,539,111,538,117,464,107"/>
-<area shape="rect" id="Node000006" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Calculation of Train Wagons Resistances using the Sauthoff Formula." alt="" coords="527,169,719,195"/>
+<area shape="rect" id="Node000006" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="527,169,719,195"/>
 <area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="450,114,475,126,498,141,522,154,548,163,546,168,520,159,496,146,472,131,447,119"/>
 </map>

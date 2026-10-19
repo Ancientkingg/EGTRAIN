@@ -104,7 +104,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_train.html#a2227178ed28567e80def50fba1b5f44f" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_train.html#a2227178ed28567e80def50fba1b5f44f" target="_top" xlink:title="instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samp...">
 <polygon fill="white" stroke="#666666" points="328.5,-123 220.5,-123 220.5,-104 328.5,-104 328.5,-123"/>
 <text text-anchor="middle" x="274.5" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">Train::speedKmhAt</text>
 </a>

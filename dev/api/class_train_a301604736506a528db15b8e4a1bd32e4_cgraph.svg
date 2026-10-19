@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The speed limit candidate in m/s, lowered to the speed cap of an active breakdown of this train at th...">
 <polygon fill="#999999" stroke="#666666" points="128,-42.5 0,-42.5 0,-12.5 128,-12.5 128,-42.5"/>
 <text text-anchor="start" x="8" y="-30.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::effectiveIncident</text>
 <text text-anchor="middle" x="64" y="-19.5" font-family="Helvetica,sans-Serif" font-size="10.00">SpeedLimit</text>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#a0b494c5d366434dc4514c43a6926e180" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train.html#a0b494c5d366434dc4514c43a6926e180" target="_top" xlink:title="recordDirectIncidentId with the ID of the incident, or its target when it has none.">
 <polygon fill="white" stroke="#666666" points="309,-19 164,-19 164,0 309,0 309,-19"/>
 <text text-anchor="middle" x="236.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Train::recordDirectIncident</text>
 </a>
@@ -66,7 +66,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train.html#aae86e0228dcc9da75848221be573a189" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_train.html#aae86e0228dcc9da75848221be573a189" target="_top" xlink:title="Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is t...">
 <polygon fill="white" stroke="#666666" points="499,-19 345,-19 345,0 499,0 499,-19"/>
 <text text-anchor="middle" x="422" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Train::recordDirectIncidentId</text>
 </a>

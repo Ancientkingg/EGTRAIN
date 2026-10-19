@@ -14,13 +14,13 @@
 <area shape="poly" id="edge50_Node000001_Node000030" title=" " alt="" coords="148,1134,226,1134,226,1139,148,1139"/>
 <area shape="rect" id="Node000038" href="$_scene_validator_8cpp.html#a50b98f3db178a5c612ae70c047ec72a5" title=" " alt="" coords="224,1344,399,1369"/>
 <area shape="poly" id="edge65_Node000001_Node000038" title=" " alt="" coords="90,1155,130,1227,161,1269,198,1305,225,1323,254,1337,252,1342,222,1328,194,1309,157,1272,126,1230,85,1158"/>
-<area shape="rect" id="Node000003" href="$class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" title=" " alt="" coords="532,55,696,80"/>
+<area shape="rect" id="Node000003" href="$class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" title="Indexes the list, replacing what the index held." alt="" coords="532,55,696,80"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,65,518,65,518,70,393,70"/>
-<area shape="rect" id="Node000005" href="$class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" title=" " alt="" coords="537,5,691,31"/>
+<area shape="rect" id="Node000005" href="$class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" title="Indexes the list, replacing what the index held." alt="" coords="537,5,691,31"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="389,52,522,30,523,35,390,57"/>
-<area shape="rect" id="Node000004" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title=" " alt="" coords="1391,595,1555,620"/>
+<area shape="rect" id="Node000004" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title="Empties the index." alt="" coords="1391,595,1555,620"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="697,73,754,89,846,131,920,172,982,214,1038,257,1149,354,1215,409,1295,471,1446,584,1443,588,1292,475,1211,413,1145,358,1034,261,979,218,917,176,844,135,752,94,695,78"/>
-<area shape="rect" id="Node000006" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title=" " alt="" coords="1396,380,1551,405"/>
+<area shape="rect" id="Node000006" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title="Empties the index." alt="" coords="1396,380,1551,405"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="692,25,814,47,968,85,1051,110,1135,141,1217,177,1295,218,1344,254,1390,295,1456,367,1452,371,1386,298,1341,258,1292,223,1215,181,1133,146,1050,115,967,90,813,52,691,31"/>
 <area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="268,1256,265,1246,272,1236,288,1231,311,1229,339,1232,354,1239,351,1244,337,1237,311,1234,289,1236,275,1241,270,1247,273,1254"/>
 <area shape="poly" id="edge9_Node000008_Node000003" title=" " alt="" coords="310,546,315,467,323,408,336,342,356,273,385,205,423,143,447,115,473,89,494,76,518,67,519,72,496,81,476,93,450,118,428,146,390,208,361,275,341,343,328,409,320,467,315,547"/>
@@ -98,7 +98,7 @@
 <area shape="poly" id="edge62_Node000034_Node000019" title=" " alt="" coords="1249,1025,1391,999,1392,1004,1250,1031"/>
 <area shape="rect" id="Node000035" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ..." alt="" coords="1403,1023,1544,1063"/>
 <area shape="poly" id="edge60_Node000034_Node000035" title=" " alt="" coords="1261,1039,1389,1040,1389,1045,1261,1044"/>
-<area shape="rect" id="Node000037" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title=" " alt="" coords="1405,1088,1541,1113"/>
+<area shape="rect" id="Node000037" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="1405,1088,1541,1113"/>
 <area shape="poly" id="edge63_Node000034_Node000037" title=" " alt="" coords="1240,1051,1342,1073,1392,1083,1391,1088,1341,1078,1239,1056"/>
 <area shape="rect" id="Node000036" href="$class_initial_parameters.html#af0cffe214c1366a11fab292eaf4fd48d" title=" " alt="" coords="1653,1023,1795,1063"/>
 <area shape="poly" id="edge61_Node000035_Node000036" title=" " alt="" coords="1544,1041,1640,1041,1640,1046,1544,1046"/>

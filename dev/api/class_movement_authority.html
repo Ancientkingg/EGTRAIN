@@ -124,6 +124,7 @@ Collaboration diagram for MovementAuthority:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9551f5c6183502cd608db57c1ae38604" id="r_a9551f5c6183502cd608db57c1ae38604"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9551f5c6183502cd608db57c1ae38604">MovementAuthority</a> ()</td></tr>
 <tr class="memitem:abfc805bbba05bb5e28e9572822388876" id="r_abfc805bbba05bb5e28e9572822388876"><td class="memItemLeft"><a class="el" href="class_movement_authority.html">MovementAuthority</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#abfc805bbba05bb5e28e9572822388876">operator=</a> (const <a class="el" href="class_movement_authority.html">MovementAuthority</a> &amp;MA2)</td></tr>
+<tr class="memdesc:abfc805bbba05bb5e28e9572822388876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -132,11 +133,16 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ae11f6bcf4d742033d24522bc7555c3cc" id="r_ae11f6bcf4d742033d24522bc7555c3cc"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae11f6bcf4d742033d24522bc7555c3cc">typePart</a></td></tr>
 <tr class="memitem:acc9ef70c922742aed531cfd424ca40c2" id="r_acc9ef70c922742aed531cfd424ca40c2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acc9ef70c922742aed531cfd424ca40c2">ReversedDirection</a></td></tr>
 <tr class="memitem:a94008e416d04c6ad84922da3395c7d6f" id="r_a94008e416d04c6ad84922da3395c7d6f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a94008e416d04c6ad84922da3395c7d6f">AbsPosEoA</a></td></tr>
+<tr class="memdesc:a94008e416d04c6ad84922da3395c7d6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the end of authority in scene coordinates, which do not depend on the direction of the route; -1 by default.  <br /></td></tr>
 <tr class="memitem:ad5811bb7272cb07dc1385386042ecbb6" id="r_ad5811bb7272cb07dc1385386042ecbb6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad5811bb7272cb07dc1385386042ecbb6">RelativePosEoA</a></td></tr>
+<tr class="memdesc:ad5811bb7272cb07dc1385386042ecbb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the end of authority on the route of the train that received it, which the braking routine sets; -1 by default.  <br /></td></tr>
 <tr class="memitem:a4f3243b9da029fa1047454fef6c1a823" id="r_a4f3243b9da029fa1047454fef6c1a823"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4f3243b9da029fa1047454fef6c1a823">EoA_Dist_From_BSID_Beg</a></td></tr>
 <tr class="memitem:a602d5a1465093e88f64047da46d83d9a" id="r_a602d5a1465093e88f64047da46d83d9a"><td class="memItemLeft"><a class="el" href="class_train_event.html">TrainEvent</a>&#160;</td><td class="memItemRight"><a class="el" href="#a602d5a1465093e88f64047da46d83d9a">TrainInfo</a></td></tr>
+<tr class="memdesc:a602d5a1465093e88f64047da46d83d9a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_train.html">Train</a> info for this EoA: position, speed, description.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>An end of authority for levels 3 and 4, and for a failed signal at every level. <a class="el" href="struct_simulation_run.html#a5a91fa277f04410abb1fa5d257ae3090" title="Movement authorities of the current step: those of levels 3 and 4, and the failed signals at every le...">SimulationRun::etcsMa</a> holds the authorities of the current step. Positions are metres. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9551f5c6183502cd608db57c1ae38604" name="a9551f5c6183502cd608db57c1ae38604"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9551f5c6183502cd608db57c1ae38604">&#9670;&#160;</a></span>MovementAuthority()</h2>
 
@@ -177,6 +183,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Copies every member. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -198,6 +206,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Position of the end of authority in scene coordinates, which do not depend on the direction of the route; -1 by default. </p>
+
 </div>
 </div>
 <a id="a94fdf8106c266654dfd79e368c0aadb0" name="a94fdf8106c266654dfd79e368c0aadb0"></a>
@@ -211,6 +221,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>ID of the block section of the end of authority; "None" by default. </p>
 
 </div>
 </div>
@@ -225,6 +236,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Distance of EoA from BSID start node in train's direction of travel. If reversed: measured from BSID end node. If forward: from BSID start node. -1 by default. </p>
 
 </div>
 </div>
@@ -240,6 +252,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Position of the end of authority on the route of the train that received it, which the braking routine sets; -1 by default. </p>
+
 </div>
 </div>
 <a id="acc9ef70c922742aed531cfd424ca40c2" name="acc9ef70c922742aed531cfd424ca40c2"></a>
@@ -253,6 +267,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when the route of the train that made it runs against the direction of the sections. </p>
 
 </div>
 </div>
@@ -268,6 +283,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_train.html">Train</a> info for this EoA: position, speed, description. </p>
+
 </div>
 </div>
 <a id="a52d07f93973347ac68f02a0879234b13" name="a52d07f93973347ac68f02a0879234b13"></a>
@@ -281,6 +298,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>What the authority stands for: "TrainEnd" (an end of a train), "DivergingSwitchOccupied" (a diverging switch a train is on) or "SignalFailure" (a failed signal or a held single-track section). "None" by default. </p>
 
 </div>
 </div>
@@ -295,6 +313,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Which end of the train it is: "Front" or "Tale" (the code spells the rear end this way). A signal failure has "Front". "None" by default. </p>
 
 </div>
 </div>

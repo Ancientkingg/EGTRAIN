@@ -7,7 +7,7 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="400,109,514,71,516,76,402,115"/>
 <area shape="rect" id="Node000006" href="$_rolling_stock_8cpp.html#a4321f0d14635cb369fa4b53e960a81bd" title=" " alt="" coords="762,94,957,119"/>
 <area shape="poly" id="edge8_Node000002_Node000006" title=" " alt="" coords="435,125,748,109,748,115,435,130"/>
-<area shape="rect" id="Node000007" href="$class_passenger_index.html#a7b5628c80b7a623da509bf056602cf7c" title=" " alt="" coords="512,145,668,170"/>
+<area shape="rect" id="Node000007" href="$class_passenger_index.html#a7b5628c80b7a623da509bf056602cf7c" title="The passengers with this ID in list order. There are several only when an ID repeats." alt="" coords="512,145,668,170"/>
 <area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="435,139,499,145,498,151,435,144"/>
 <area shape="rect" id="Node000008" href="$_simulation_8cpp.html#a15561587cf3c4f3cdfc40c7a48b32d47" title=" " alt="" coords="483,218,697,243"/>
 <area shape="poly" id="edge9_Node000002_Node000008" title=" " alt="" coords="392,150,545,211,543,215,390,155"/>

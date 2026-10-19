@@ -118,11 +118,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_passenge
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa66d20d715ad35d783d26e95c7aedcfd" id="r_aa66d20d715ad35d783d26e95c7aedcfd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa66d20d715ad35d783d26e95c7aedcfd">build</a> (std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt; &amp;passengers)</td></tr>
+<tr class="memdesc:aa66d20d715ad35d783d26e95c7aedcfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indexes the list, replacing what the index held.  <br /></td></tr>
 <tr class="memitem:aad565a2ead3849944d78b63abe0102c2" id="r_aad565a2ead3849944d78b63abe0102c2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aad565a2ead3849944d78b63abe0102c2">clear</a> ()</td></tr>
+<tr class="memdesc:aad565a2ead3849944d78b63abe0102c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empties the index.  <br /></td></tr>
 <tr class="memitem:ab03aff790ff0d8c1d901c64393688765" id="r_ab03aff790ff0d8c1d901c64393688765"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab03aff790ff0d8c1d901c64393688765">covers</a> (const std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt; &amp;passengers) const</td></tr>
+<tr class="memdesc:ab03aff790ff0d8c1d901c64393688765"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the index was built for this list and the list has the size it had then.  <br /></td></tr>
 <tr class="memitem:a7b5628c80b7a623da509bf056602cf7c" id="r_a7b5628c80b7a623da509bf056602cf7c"><td class="memItemLeft">const std::vector&lt; <a class="el" href="class_passenger.html">Passenger</a> * &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a7b5628c80b7a623da509bf056602cf7c">find</a> (const std::string &amp;id) const</td></tr>
+<tr class="memdesc:a7b5628c80b7a623da509bf056602cf7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers with this ID in list order. There are several only when an ID repeats.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Passengers by ID, in list order, for one passenger list. The index points into the list, so it describes the list only while the list keeps the same elements: a list that was cleared or replaced needs a new index. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="aa66d20d715ad35d783d26e95c7aedcfd" name="aa66d20d715ad35d783d26e95c7aedcfd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa66d20d715ad35d783d26e95c7aedcfd">&#9670;&#160;</a></span>build()</h2>
 
@@ -137,6 +143,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Indexes the list, replacing what the index held. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -160,6 +168,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Empties the index. </p>
+
 </div>
 </div>
 <a id="ab03aff790ff0d8c1d901c64393688765" name="ab03aff790ff0d8c1d901c64393688765"></a>
@@ -177,6 +187,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True when the index was built for this list and the list has the size it had then. </p>
+
 </div>
 </div>
 <a id="a7b5628c80b7a623da509bf056602cf7c" name="a7b5628c80b7a623da509bf056602cf7c"></a>
@@ -193,6 +205,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The passengers with this ID in list order. There are several only when an ID repeats. </p>
 
 </div>
 </div>

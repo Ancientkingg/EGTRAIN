@@ -44,7 +44,7 @@
 <area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="982,186,1029,186,1029,191,982,191"/>
 <area shape="poly" id="edge12_Node000008_Node000008" title=" " alt="" coords="1093,178,1085,168,1089,158,1105,152,1132,149,1166,153,1179,163,1175,167,1164,158,1132,155,1106,157,1093,162,1090,167,1097,174"/>
 <area shape="poly" id="edge15_Node000009_Node000009" title=" " alt="" coords="592,206,583,196,588,186,605,179,633,177,669,181,680,186,684,192,679,195,676,190,668,186,633,183,606,185,591,190,588,195,596,202"/>
-<area shape="rect" id="Node000010" href="$class_train.html#a23977edf7b951918b731c0164af29425" title=" " alt="" coords="787,226,995,266"/>
+<area shape="rect" id="Node000010" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="787,226,995,266"/>
 <area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="718,224,773,230,773,235,717,229"/>
 <area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="592,279,583,269,588,259,605,253,633,251,669,255,680,259,684,265,679,268,676,263,668,260,633,256,606,258,591,263,588,268,596,275"/>
 <area shape="rect" id="Node000013" href="$class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" title=" " alt="" coords="535,327,732,352"/>

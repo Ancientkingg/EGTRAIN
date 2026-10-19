@@ -146,11 +146,15 @@ Classes</h2></td></tr>
 <tr class="memitem:InfraElement" id="r_InfraElement"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_infra_element.html">InfraElement</a></td></tr>
 <tr class="memitem:Node" id="r_Node"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_node.html">Node</a></td></tr>
 <tr class="memitem:Arc" id="r_Arc"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_arc.html">Arc</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A directed piece of track between two nodes.  <a href="class_arc.html#details">More...</a><br /></td></tr>
 <tr class="memitem:BlockSet" id="r_BlockSet"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_block_set.html">BlockSet</a></td></tr>
 <tr class="memitem:Connections" id="r_Connections"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_connections.html">Connections</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A connection between two tracks, such as a switch.  <a href="class_connections.html#details">More...</a><br /></td></tr>
 <tr class="memitem:StationPlatform" id="r_StationPlatform"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_station_platform.html">StationPlatform</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station platform: its size, capacity and waiting passengers.  <a href="class_station_platform.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Stations" id="r_Stations"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_stations.html">Stations</a></td></tr>
 <tr class="memitem:Location" id="r_Location"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_location.html">Location</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A block section or station on the route of a train. <a class="el" href="class_train.html#a61e091b9d5ad3d8c70cec2b29ea50533" title="Not filled by the simulation, so empty.">Train::LocationNames</a> holds these, and nothing fills it.  <a href="class_location.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -160,12 +164,16 @@ Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:adeb4332ce106902917303ad004eae2fa" id="r_adeb4332ce106902917303ad004eae2fa"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#adeb4332ce106902917303ad004eae2fa">timestep</a> = 1</td></tr>
+<tr class="memdesc:adeb4332ce106902917303ad004eae2fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of a simulation step in seconds. A step index t is the time in seconds from the start of the run.  <br /></td></tr>
 <tr class="memitem:a7cb1b5af562128a8229985d3786cd6b5" id="r_a7cb1b5af562128a8229985d3786cd6b5"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a7cb1b5af562128a8229985d3786cd6b5">signalCode1</a> = 11.111</td></tr>
 <tr class="memitem:a175de7291ab561dc2f5c719769aff959" id="r_a175de7291ab561dc2f5c719769aff959"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a175de7291ab561dc2f5c719769aff959">signalCode2</a> = 0</td></tr>
 <tr class="memitem:a1d84084196b3d6e8403535d31d92809b" id="r_a1d84084196b3d6e8403535d31d92809b"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a1d84084196b3d6e8403535d31d92809b">signalCode3</a> = 0</td></tr>
 <tr class="memitem:af2442dde680e9478090dd86a2d57744a" id="r_af2442dde680e9478090dd86a2d57744a"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af2442dde680e9478090dd86a2d57744a">kMaxTrackLines</a> = 268</td></tr>
+<tr class="memdesc:af2442dde680e9478090dd86a2d57744a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more.  <br /></td></tr>
 <tr class="memitem:a5f3d96dcde4e6535720ee603ca6b452f" id="r_a5f3d96dcde4e6535720ee603ca6b452f"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5f3d96dcde4e6535720ee603ca6b452f">kMaxConnections</a> = 708</td></tr>
+<tr class="memdesc:a5f3d96dcde4e6535720ee603ca6b452f"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
 <tr class="memitem:a52eed63d46d1afcb96c62cd5085e34f8" id="r_a52eed63d46d1afcb96c62cd5085e34f8"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a52eed63d46d1afcb96c62cd5085e34f8">kMaxStations</a> = 95</td></tr>
+<tr class="memdesc:a52eed63d46d1afcb96c62cd5085e34f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="ad132837730a71e818c60f574c8b7c44f" name="ad132837730a71e818c60f574c8b7c44f"></a>
@@ -246,6 +254,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>See kMaxTrackLines. </p>
+
 </div>
 </div>
 <a id="a52eed63d46d1afcb96c62cd5085e34f8" name="a52eed63d46d1afcb96c62cd5085e34f8"></a>
@@ -267,6 +277,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>See kMaxTrackLines. </p>
 
 </div>
 </div>
@@ -290,6 +302,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more. </p>
+
 </div>
 </div>
 <a id="a7cb1b5af562128a8229985d3786cd6b5" name="a7cb1b5af562128a8229985d3786cd6b5"></a>
@@ -311,6 +325,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use </p>
 
 </div>
 </div>
@@ -361,6 +376,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The length of a simulation step in seconds. A step index t is the time in seconds from the start of the run. </p>
 
 </div>
 </div>

@@ -1,5 +1,5 @@
 <map id="Train::timetablePointOfStop" name="Train::timetablePointOfStop">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,13,207,38"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a23977edf7b951918b731c0164af29425" title=" " alt="" coords="255,5,463,45"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="255,5,463,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,23,241,23,241,28,207,28"/>
 </map>

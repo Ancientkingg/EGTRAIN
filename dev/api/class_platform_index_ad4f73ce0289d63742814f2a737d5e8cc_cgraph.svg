@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Indexes the list, replacing what the index held.">
 <polygon fill="#999999" stroke="#666666" points="116,-19 0,-19 0,0 116,0 116,-19"/>
 <text text-anchor="middle" x="58" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex::build</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" target="_top" xlink:title="Empties the index.">
 <polygon fill="white" stroke="#666666" points="268,-19 152,-19 152,0 268,0 268,-19"/>
 <text text-anchor="middle" x="210" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex::clear</text>
 </a>

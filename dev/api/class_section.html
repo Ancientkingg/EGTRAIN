@@ -124,46 +124,73 @@ Collaboration diagram for Section:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a77b88e06692841ba49559d22a25a09f9" id="r_a77b88e06692841ba49559d22a25a09f9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a77b88e06692841ba49559d22a25a09f9">Section</a> ()</td></tr>
 <tr class="memitem:a19c7ad148d4216503ad2749e7e752622" id="r_a19c7ad148d4216503ad2749e7e752622"><td class="memItemLeft"><a class="el" href="class_section.html">Section</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a19c7ad148d4216503ad2749e7e752622">operator=</a> (const <a class="el" href="class_section.html">Section</a> &amp;ob2)</td></tr>
+<tr class="memdesc:a19c7ad148d4216503ad2749e7e752622"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member; the node list stays shared.  <br /></td></tr>
 <tr class="memitem:ae025e5d6be6a85e7536f004929a12963" id="r_ae025e5d6be6a85e7536f004929a12963"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae025e5d6be6a85e7536f004929a12963">operator==</a> (const <a class="el" href="class_section.html">Section</a> &amp;ob2)</td></tr>
+<tr class="memdesc:ae025e5d6be6a85e7536f004929a12963"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.  <br /></td></tr>
 <tr class="memitem:a9d107275a33abfcfbcc2f9bf310f10bc" id="r_a9d107275a33abfcfbcc2f9bf310f10bc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9d107275a33abfcfbcc2f9bf310f10bc">CutBlockSection</a> (std::string CutPart, double CuttingAbscissa)</td></tr>
 <tr class="memitem:a651681e3131f69ab2d4b91b0127137a4" id="r_a651681e3131f69ab2d4b91b0127137a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a651681e3131f69ab2d4b91b0127137a4">reverseBlockSection</a> (<a class="el" href="class_section.html">Section</a> blockSets, double RouteLength)</td></tr>
+<tr class="memdesc:a651681e3131f69ab2d4b91b0127137a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7e5e2e0d57da1c211ac11c09c7ef68ac" id="r_a7e5e2e0d57da1c211ac11c09c7ef68ac"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7e5e2e0d57da1c211ac11c09c7ef68ac">ID</a></td></tr>
+<tr class="memdesc:a7e5e2e0d57da1c211ac11c09c7ef68ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the section.  <br /></td></tr>
 <tr class="memitem:a24809424c7e5f66a38f3cb217a8ed08a" id="r_a24809424c7e5f66a38f3cb217a8ed08a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a24809424c7e5f66a38f3cb217a8ed08a">trackLineId</a></td></tr>
+<tr class="memdesc:a24809424c7e5f66a38f3cb217a8ed08a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Slot of the track the section lies on; -1 for a section derived at a switch.  <br /></td></tr>
 <tr class="memitem:a36c6365c3e4a3d934234d4543a5d42c9" id="r_a36c6365c3e4a3d934234d4543a5d42c9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a36c6365c3e4a3d934234d4543a5d42c9">FirstConnectedTrackLineID</a></td></tr>
+<tr class="memdesc:a36c6365c3e4a3d934234d4543a5d42c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.  <br /></td></tr>
 <tr class="memitem:a3196e7535e753f4ae17c079752fd85f9" id="r_a3196e7535e753f4ae17c079752fd85f9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3196e7535e753f4ae17c079752fd85f9">SecondConnectedTrackLineID</a></td></tr>
+<tr class="memdesc:a3196e7535e753f4ae17c079752fd85f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.  <br /></td></tr>
 <tr class="memitem:a0b47458d4a3ceb0f7107e698520e001c" id="r_a0b47458d4a3ceb0f7107e698520e001c"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0b47458d4a3ceb0f7107e698520e001c">arcs_in_signalling_block_section</a> [20]</td></tr>
 <tr class="memitem:a18141433af72aed8b416dc5e10c8c481" id="r_a18141433af72aed8b416dc5e10c8c481"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a18141433af72aed8b416dc5e10c8c481">start_node</a></td></tr>
+<tr class="memdesc:a18141433af72aed8b416dc5e10c8c481"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start node.  <br /></td></tr>
 <tr class="memitem:a565e1de59d3e57b5489f7b1c6ff556dc" id="r_a565e1de59d3e57b5489f7b1c6ff556dc"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a565e1de59d3e57b5489f7b1c6ff556dc">end_node</a></td></tr>
 <tr class="memitem:a8115a5c1e646eb32cc3e7abf05053fc4" id="r_a8115a5c1e646eb32cc3e7abf05053fc4"><td class="memItemLeft">std::shared_ptr&lt; const std::vector&lt; <a class="el" href="class_node.html">Node</a> &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8115a5c1e646eb32cc3e7abf05053fc4">nodelist_of_nodes_in_signalling_section</a></td></tr>
+<tr class="memdesc:a8115a5c1e646eb32cc3e7abf05053fc4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section.  <br /></td></tr>
 <tr class="memitem:a3f2367f1d07b6aba084c0325cedd2f62" id="r_a3f2367f1d07b6aba084c0325cedd2f62"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3f2367f1d07b6aba084c0325cedd2f62">total_nodes</a></td></tr>
+<tr class="memdesc:a3f2367f1d07b6aba084c0325cedd2f62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of nodes in the block section.  <br /></td></tr>
 <tr class="memitem:a97a7933a5d186bb2c60ea4b393501b3f" id="r_a97a7933a5d186bb2c60ea4b393501b3f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a97a7933a5d186bb2c60ea4b393501b3f">total_arcs</a></td></tr>
+<tr class="memdesc:a97a7933a5d186bb2c60ea4b393501b3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of arcs in the block section.  <br /></td></tr>
 <tr class="memitem:a21780a413b3276bf7ecee9a85d505fc1" id="r_a21780a413b3276bf7ecee9a85d505fc1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a21780a413b3276bf7ecee9a85d505fc1">length</a></td></tr>
+<tr class="memdesc:a21780a413b3276bf7ecee9a85d505fc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length in kilometres, the difference of the X of the end nodes.  <br /></td></tr>
 <tr class="memitem:ac0cc7a63e69d916505a95296af2c9551" id="r_ac0cc7a63e69d916505a95296af2c9551"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac0cc7a63e69d916505a95296af2c9551">exit_speed</a></td></tr>
 <tr class="memitem:afbdae80fc7c0bcae32e9befa321775e8" id="r_afbdae80fc7c0bcae32e9befa321775e8"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#afbdae80fc7c0bcae32e9befa321775e8">code</a></td></tr>
+<tr class="memdesc:afbdae80fc7c0bcae32e9befa321775e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aspect code: 270 green, 180 yellow, 75 red, 751 red-red, 0 on an occupied or failed section. 270 by default.  <br /></td></tr>
 <tr class="memitem:a0d50c3f4542ad182e7241975ae0f058d" id="r_a0d50c3f4542ad182e7241975ae0f058d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0d50c3f4542ad182e7241975ae0f058d">XStartSwitch</a></td></tr>
+<tr class="memdesc:a0d50c3f4542ad182e7241975ae0f058d"><td class="mdescLeft">&#160;</td><td class="mdescRight">X where the diverging switch starts (nonzero only when withSwitchDiv=true).  <br /></td></tr>
 <tr class="memitem:a9afe21947753aa2af864cffb4cb5d155" id="r_a9afe21947753aa2af864cffb4cb5d155"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9afe21947753aa2af864cffb4cb5d155">XEndSwitch</a></td></tr>
+<tr class="memdesc:a9afe21947753aa2af864cffb4cb5d155"><td class="mdescLeft">&#160;</td><td class="mdescRight">X where the diverging switch ends (nonzero only when withSwitchDiv=true).  <br /></td></tr>
 <tr class="memitem:a796e3151577c489713252155beca6aab" id="r_a796e3151577c489713252155beca6aab"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a796e3151577c489713252155beca6aab">GeoXBegNode</a></td></tr>
+<tr class="memdesc:a796e3151577c489713252155beca6aab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the start node in metres in scene coordinates, which a reversed copy keeps.  <br /></td></tr>
 <tr class="memitem:a3b639e030b9852d376f8ddbaa18642c6" id="r_a3b639e030b9852d376f8ddbaa18642c6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a3b639e030b9852d376f8ddbaa18642c6">GeoXEndNode</a></td></tr>
 <tr class="memitem:a4e6995dd49ac78126dc9f146494e157a" id="r_a4e6995dd49ac78126dc9f146494e157a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4e6995dd49ac78126dc9f146494e157a">SignallingLevel</a></td></tr>
 <tr class="memitem:a0f7120a64107979ea2bbfa4c6155de12" id="r_a0f7120a64107979ea2bbfa4c6155de12"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0f7120a64107979ea2bbfa4c6155de12">ETCS3BrakingPoints</a> [40]</td></tr>
+<tr class="memdesc:a0f7120a64107979ea2bbfa4c6155de12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to -1 by the constructor and never given another value.  <br /></td></tr>
 <tr class="memitem:a2082b9f4303a94f3ec855710c8168327" id="r_a2082b9f4303a94f3ec855710c8168327"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2082b9f4303a94f3ec855710c8168327">ETCS3BrakingPointsTrainID</a> [40]</td></tr>
+<tr class="memdesc:a2082b9f4303a94f3ec855710c8168327"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to "None" by the constructor and never given another value.  <br /></td></tr>
 <tr class="memitem:ac45652a2bc2cb2b7d49753f819e953e7" id="r_ac45652a2bc2cb2b7d49753f819e953e7"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac45652a2bc2cb2b7d49753f819e953e7">N_ETCS3BrakingPoints</a></td></tr>
+<tr class="memdesc:ac45652a2bc2cb2b7d49753f819e953e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to 0 by the constructor and never given another value.  <br /></td></tr>
 <tr class="memitem:ab310417a0f133ec4f2f35b51afa53abf" id="r_ab310417a0f133ec4f2f35b51afa53abf"><td class="memItemLeft"><a class="el" href="_signalling_8h.html#a6d9c8de9a24500df39f2c275d892df2a">SignalState</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab310417a0f133ec4f2f35b51afa53abf">state</a></td></tr>
+<tr class="memdesc:ab310417a0f133ec4f2f35b51afa53abf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main signal aspect; Green by default.  <br /></td></tr>
 <tr class="memitem:a7e338f7e8c60d49b5e3f545b3c985969" id="r_a7e338f7e8c60d49b5e3f545b3c985969"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7e338f7e8c60d49b5e3f545b3c985969">Occupied</a></td></tr>
+<tr class="memdesc:a7e338f7e8c60d49b5e3f545b3c985969"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block section occupied by a train.  <br /></td></tr>
 <tr class="memitem:a5440182a1de2a86465a5b5e5ea3d703e" id="r_a5440182a1de2a86465a5b5e5ea3d703e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5440182a1de2a86465a5b5e5ea3d703e">Occup_By_Train</a></td></tr>
+<tr class="memdesc:a5440182a1de2a86465a5b5e5ea3d703e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to false by the constructor and never given another value.  <br /></td></tr>
 <tr class="memitem:a37ca1b3b87fd03fea98becdab4c74ace" id="r_a37ca1b3b87fd03fea98becdab4c74ace"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a37ca1b3b87fd03fea98becdab4c74ace">withSwitchDiv</a></td></tr>
 <tr class="memitem:ac54e567b6d2ad813886d6856d9ad4b47" id="r_ac54e567b6d2ad813886d6856d9ad4b47"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac54e567b6d2ad813886d6856d9ad4b47">IDConnectedBS</a> [10]</td></tr>
 <tr class="memitem:a74127a65cb4551837bfd8922a9e46111" id="r_a74127a65cb4551837bfd8922a9e46111"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a74127a65cb4551837bfd8922a9e46111">N_ConnectedBS</a></td></tr>
+<tr class="memdesc:a74127a65cb4551837bfd8922a9e46111"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of used entries of IDConnectedBS.  <br /></td></tr>
 <tr class="memitem:a72a2b9fd2907d90c94fa7b9506bf9656" id="r_a72a2b9fd2907d90c94fa7b9506bf9656"><td class="memItemLeft">std::list&lt; <a class="el" href="class_t_d_s.html">TDS</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a72a2b9fd2907d90c94fa7b9506bf9656">TDS_in_block</a></td></tr>
+<tr class="memdesc:a72a2b9fd2907d90c94fa7b9506bf9656"><td class="mdescLeft">&#160;</td><td class="mdescRight">Track detection sections of the section; they point into <a class="el" href="struct_run_infrastructure.html#a2c629868c25cd1060430eaff9cb94832" title="The track detection sections. The block sections point into this list.">RunInfrastructure::detectionSections</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a483902af146fba7721f9db93165283c8" id="r_a483902af146fba7721f9db93165283c8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a483902af146fba7721f9db93165283c8">SetBlockSpeed</a> ()</td></tr>
+<tr class="memdesc:a483902af146fba7721f9db93165283c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Names a function that does not exist.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A block section. <a class="el" href="struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd" title="The block sections of the network, sized once per scene by the builder.">RunInfrastructure::sections</a> holds the sections of the scene and the sections derived at switches, and a <a class="el" href="class_route.html">Route</a> holds copies of them, reversed for a reversed route. X values are kilometres. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a77b88e06692841ba49559d22a25a09f9" name="a77b88e06692841ba49559d22a25a09f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a77b88e06692841ba49559d22a25a09f9">&#9670;&#160;</a></span>Section()</h2>
 
@@ -200,6 +227,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Cut block section: CutPart="CutEnd" removes from CuttingAbscissa to end; "CutBegin" removes from start to CuttingAbscissa. CuttingAbscissa is an X in kilometres. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -230,6 +258,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Copies every member; the node list stays shared. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -260,6 +290,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -286,6 +318,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -318,6 +352,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Names a function that does not exist. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -332,6 +368,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Arcs of the section, total_arcs of them; at most 20 (<a class="el" href="namespace_runtime_limits.html#a432a9ed44b097ac42198d2d36f2c0987">RuntimeLimits::kNativeMaxSectionArcs</a>). </p>
 
 </div>
 </div>
@@ -347,6 +384,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Aspect code: 270 green, 180 yellow, 75 red, 751 red-red, 0 on an occupied or failed section. 270 by default. </p>
+
 </div>
 </div>
 <a id="a565e1de59d3e57b5489f7b1c6ff556dc" name="a565e1de59d3e57b5489f7b1c6ff556dc"></a>
@@ -360,6 +399,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>End node. </p>
 
 </div>
 </div>
@@ -375,6 +415,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Set to -1 by the constructor and never given another value. </p>
+
 </div>
 </div>
 <a id="a2082b9f4303a94f3ec855710c8168327" name="a2082b9f4303a94f3ec855710c8168327"></a>
@@ -389,6 +431,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Set to "None" by the constructor and never given another value. </p>
+
 </div>
 </div>
 <a id="ac0cc7a63e69d916505a95296af2c9551" name="ac0cc7a63e69d916505a95296af2c9551"></a>
@@ -402,6 +446,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>speedInBraking (m/s) of the last arc, set when an aspect pass marks the section occupied; 0 by default. Only copied and compared. </p>
 
 </div>
 </div>
@@ -417,6 +462,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise. </p>
+
 </div>
 </div>
 <a id="a796e3151577c489713252155beca6aab" name="a796e3151577c489713252155beca6aab"></a>
@@ -431,6 +478,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Position of the start node in metres in scene coordinates, which a reversed copy keeps. </p>
+
 </div>
 </div>
 <a id="a3b639e030b9852d376f8ddbaa18642c6" name="a3b639e030b9852d376f8ddbaa18642c6"></a>
@@ -444,6 +493,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Position of the end node in metres in scene coordinates, which a reversed copy keeps. </p>
 
 </div>
 </div>
@@ -459,6 +509,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>ID of the section. </p>
+
 </div>
 </div>
 <a id="ac54e567b6d2ad813886d6856d9ad4b47" name="ac54e567b6d2ad813886d6856d9ad4b47"></a>
@@ -472,6 +524,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>IDs of the sections that depend on this one, which are occupied and released with it: at most 10 (<a class="el" href="namespace_runtime_limits.html#a34582c35d3eb1e7cb9579ba6b12224fd" title="Switch sections and block dependencies of one section.">RuntimeLimits::kNativeMaxDependencies</a>). </p>
 
 </div>
 </div>
@@ -487,6 +540,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Length in kilometres, the difference of the X of the end nodes. </p>
+
 </div>
 </div>
 <a id="a74127a65cb4551837bfd8922a9e46111" name="a74127a65cb4551837bfd8922a9e46111"></a>
@@ -500,6 +555,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of used entries of IDConnectedBS. </p>
 
 </div>
 </div>
@@ -515,6 +572,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Set to 0 by the constructor and never given another value. </p>
+
 </div>
 </div>
 <a id="a8115a5c1e646eb32cc3e7abf05053fc4" name="a8115a5c1e646eb32cc3e7abf05053fc4"></a>
@@ -528,6 +587,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section. </p>
 
 </div>
 </div>
@@ -543,6 +604,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Set to false by the constructor and never given another value. </p>
+
 </div>
 </div>
 <a id="a7e338f7e8c60d49b5e3f545b3c985969" name="a7e338f7e8c60d49b5e3f545b3c985969"></a>
@@ -556,6 +619,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Block section occupied by a train. </p>
 
 </div>
 </div>
@@ -571,6 +636,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise. </p>
+
 </div>
 </div>
 <a id="a4e6995dd49ac78126dc9f146494e157a" name="a4e6995dd49ac78126dc9f146494e157a"></a>
@@ -584,6 +651,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Signalling level 0 to 5 (enum <a class="el" href="_signalling_level_8h.html#a54b7d64327a4a83cf45836f9c8e487d1">SignallingLevel</a> in <a class="el" href="_signalling_level_8h.html">scene/SignallingLevel.h</a>); kSignallingLevelUnset (-99999999) means no level (default) </p>
 
 </div>
 </div>
@@ -599,6 +667,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Start node. </p>
+
 </div>
 </div>
 <a id="ab310417a0f133ec4f2f35b51afa53abf" name="ab310417a0f133ec4f2f35b51afa53abf"></a>
@@ -612,6 +682,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Main signal aspect; Green by default. </p>
 
 </div>
 </div>
@@ -627,6 +699,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Track detection sections of the section; they point into <a class="el" href="struct_run_infrastructure.html#a2c629868c25cd1060430eaff9cb94832" title="The track detection sections. The block sections point into this list.">RunInfrastructure::detectionSections</a>. </p>
+
 </div>
 </div>
 <a id="a97a7933a5d186bb2c60ea4b393501b3f" name="a97a7933a5d186bb2c60ea4b393501b3f"></a>
@@ -640,6 +714,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of arcs in the block section. </p>
 
 </div>
 </div>
@@ -655,6 +731,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of nodes in the block section. </p>
+
 </div>
 </div>
 <a id="a24809424c7e5f66a38f3cb217a8ed08a" name="a24809424c7e5f66a38f3cb217a8ed08a"></a>
@@ -669,6 +747,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Slot of the track the section lies on; -1 for a section derived at a switch. </p>
+
 </div>
 </div>
 <a id="a37ca1b3b87fd03fea98becdab4c74ace" name="a37ca1b3b87fd03fea98becdab4c74ace"></a>
@@ -682,6 +762,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Block section contains a diverging switch </p>
 
 </div>
 </div>
@@ -697,6 +778,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>X where the diverging switch ends (nonzero only when withSwitchDiv=true). </p>
+
 </div>
 </div>
 <a id="a0d50c3f4542ad182e7241975ae0f058d" name="a0d50c3f4542ad182e7241975ae0f058d"></a>
@@ -710,6 +793,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>X where the diverging switch starts (nonzero only when withSwitchDiv=true). </p>
 
 </div>
 </div>

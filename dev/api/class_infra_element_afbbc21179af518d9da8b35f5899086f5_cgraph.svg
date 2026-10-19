@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Copies every member.">
 <polygon fill="#999999" stroke="#666666" points="135,-19 0,-19 0,0 135,0 135,-19"/>
 <text text-anchor="middle" x="67.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">InfraElement::operator=</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infra_element.html#ac86970977f3cfb7700ef2451ec7868f1" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infra_element.html#ac86970977f3cfb7700ef2451ec7868f1" target="_top" xlink:title="Sets the strings to &quot;None&quot;, the flags to false and the coordinates to &#45;1.">
 <polygon fill="white" stroke="#666666" points="320,-19 171,-19 171,0 320,0 320,-19"/>
 <text text-anchor="middle" x="245.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">InfraElement::InfraElement</text>
 </a>

@@ -1,5 +1,5 @@
 <map id="Train::Det_Section_Occupied_By_Train" name="Train::Det_Section_Occupied_By_Train">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,258,156,298"/>
+<area shape="rect" id="Node000001" title="Function to Determine which Block Section is Occupied by the train." alt="" coords="5,258,156,298"/>
 <area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a0c7ede1d5b02ee595cd967feaf2d28d2" title=" " alt="" coords="204,29,432,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,257,100,216,123,164,157,110,178,86,202,65,213,58,216,63,206,69,182,90,162,113,128,166,104,218,90,258"/>
 <area shape="rect" id="Node000003" href="$_signalling_8cpp.html#a6fe767c1795f10933948db49cbef89ff" title=" " alt="" coords="215,103,421,143"/>

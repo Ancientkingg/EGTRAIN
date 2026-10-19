@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup.">
 <polygon fill="#999999" stroke="#666666" points="98,-24.5 0,-24.5 0,-5.5 98,-5.5 98,-24.5"/>
 <text text-anchor="middle" x="49" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingArc</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" target="_top" xlink:title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold...">
 <polygon fill="white" stroke="#666666" points="265,-30 134,-30 134,0 265,0 265,-30"/>
 <text text-anchor="start" x="142" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">Train::BrakingArcCursor</text>
 <text text-anchor="middle" x="199.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::find</text>

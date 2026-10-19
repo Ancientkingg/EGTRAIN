@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" target="_top" xlink:title="Indexes the list, replacing what the index held.">
 <polygon fill="white" stroke="#666666" points="350,-802 227,-802 227,-783 350,-783 350,-802"/>
 <text text-anchor="middle" x="288.5" y="-790" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerIndex::build</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" target="_top" xlink:title="Indexes the list, replacing what the index held.">
 <polygon fill="white" stroke="#666666" points="346.5,-765 230.5,-765 230.5,-746 346.5,-746 346.5,-765"/>
 <text text-anchor="middle" x="288.5" y="-753" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex::build</text>
 </a>
@@ -321,7 +321,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" target="_top" xlink:title="Empties the index.">
 <polygon fill="white" stroke="#666666" points="566.5,-802 443.5,-802 443.5,-783 566.5,-783 566.5,-802"/>
 <text text-anchor="middle" x="505" y="-790" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerIndex::clear</text>
 </a>
@@ -339,7 +339,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" target="_top" xlink:title="Empties the index.">
 <polygon fill="white" stroke="#666666" points="563,-765 447,-765 447,-746 563,-746 563,-765"/>
 <text text-anchor="middle" x="505" y="-753" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex::clear</text>
 </a>

@@ -6,13 +6,13 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="332,300,409,292,489,280,548,265,550,270,490,285,409,298,333,306"/>
 <area shape="rect" id="Node000004" href="$class_passenger_index.html" title=" " alt="" coords="190,349,314,374"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="328,359,407,351,449,342,488,328,514,315,538,298,574,265,578,269,541,302,517,319,490,333,450,347,408,356,328,364"/>
-<area shape="rect" id="Node000005" href="$class_platform_index.html" title=" " alt="" coords="195,22,309,47"/>
+<area shape="rect" id="Node000005" href="$class_platform_index.html" title="Station platforms by station ID and platform ID, for one platform list, with the same rules as Passen..." alt="" coords="195,22,309,47"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="323,25,364,25,408,31,451,43,491,63,513,82,532,105,561,156,579,205,588,241,583,243,574,207,556,158,528,108,509,86,488,68,449,47,407,36,364,31,323,30"/>
 <area shape="rect" id="Node000006" href="$class_stations.html" title=" " alt="" coords="215,137,289,162"/>
 <area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="303,147,392,156,442,166,490,182,540,210,576,240,573,244,536,214,488,186,441,171,391,161,303,153"/>
 <area shape="rect" id="Node000007" href="$class_node.html" title=" " alt="" coords="5,409,61,434"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="41,394,61,348,90,289,131,228,154,199,181,174,213,156,216,161,184,178,158,203,135,231,95,292,65,350,46,396"/>
-<area shape="rect" id="Node000010" href="$class_arc.html" title=" " alt="" coords="231,409,273,434"/>
+<area shape="rect" id="Node000010" href="$class_arc.html" title="A directed piece of track between two nodes." alt="" coords="231,409,273,434"/>
 <area shape="poly" id="edge10_Node000010_Node000007" title=" " alt="" coords="75,419,230,419,230,424,75,424"/>
 <area shape="rect" id="Node000011" href="$class_section.html" title=" " alt="" coords="554,455,625,481"/>
 <area shape="poly" id="edge13_Node000011_Node000007" title=" " alt="" coords="68,438,121,465,183,485,235,494,288,498,392,495,485,485,553,473,554,478,486,490,393,501,288,503,234,499,182,491,119,470,66,443"/>

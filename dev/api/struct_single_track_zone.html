@@ -118,9 +118,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_single_
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0bf4dcd6fd02e746a0bb87d4abb57f72" id="r_a0bf4dcd6fd02e746a0bb87d4abb57f72"><td class="memItemLeft">std::vector&lt; std::pair&lt; double, double &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0bf4dcd6fd02e746a0bb87d4abb57f72">intervals</a></td></tr>
+<tr class="memdesc:a0bf4dcd6fd02e746a0bb87d4abb57f72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intervals [from, to) of route position in metres.  <br /></td></tr>
 <tr class="memitem:af62899e0caa72e5077873d109a14c681" id="r_af62899e0caa72e5077873d109a14c681"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af62899e0caa72e5077873d109a14c681">sectionIDs</a></td></tr>
+<tr class="memdesc:af62899e0caa72e5077873d109a14c681"><td class="mdescLeft">&#160;</td><td class="mdescRight">IDs of the zone sections in route order.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section between its first and last plain section on a route that has both, plus the two protected sections. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a0bf4dcd6fd02e746a0bb87d4abb57f72" name="a0bf4dcd6fd02e746a0bb87d4abb57f72"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0bf4dcd6fd02e746a0bb87d4abb57f72">&#9670;&#160;</a></span>intervals</h2>
 
@@ -132,6 +136,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Intervals [from, to) of route position in metres. </p>
 
 </div>
 </div>
@@ -146,6 +152,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>IDs of the zone sections in route order. </p>
 
 </div>
 </div>

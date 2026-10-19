@@ -118,14 +118,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_single_
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1302e899157f286fb6c1e8de1963d2e8" id="r_a1302e899157f286fb6c1e8de1963d2e8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1302e899157f286fb6c1e8de1963d2e8">trainIndex</a></td></tr>
+<tr class="memdesc:a1302e899157f286fb6c1e8de1963d2e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the train in <a class="el" href="struct_simulation_run.html#a772713a34d28bc07f0b65d151fde5432">SimulationRun::trains</a>.  <br /></td></tr>
 <tr class="memitem:a4c12d1db92d10505cd3b72ce271eec8a" id="r_a4c12d1db92d10505cd3b72ce271eec8a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c12d1db92d10505cd3b72ce271eec8a">routeIndex</a></td></tr>
+<tr class="memdesc:a4c12d1db92d10505cd3b72ce271eec8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the route of the train.  <br /></td></tr>
 <tr class="memitem:a61db094c6745c4c6e0933bedfe271514" id="r_a61db094c6745c4c6e0933bedfe271514"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a61db094c6745c4c6e0933bedfe271514">trainDescription</a></td></tr>
 <tr class="memitem:a8d9f46c1cff99234351c362343159cf8" id="r_a8d9f46c1cff99234351c362343159cf8"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8d9f46c1cff99234351c362343159cf8">departureTime</a></td></tr>
+<tr class="memdesc:a8d9f46c1cff99234351c362343159cf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">departure_time of the train in seconds.  <br /></td></tr>
 <tr class="memitem:aa9f2a30064e9838b6e4e6a105f8a43e7" id="r_aa9f2a30064e9838b6e4e6a105f8a43e7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa9f2a30064e9838b6e4e6a105f8a43e7">origin</a></td></tr>
 <tr class="memitem:a7a026238e703087cad5efc15be5df0f3" id="r_a7a026238e703087cad5efc15be5df0f3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7a026238e703087cad5efc15be5df0f3">destination</a></td></tr>
 <tr class="memitem:a8e63c75dcb806fca56b4ca3f058788ab" id="r_a8e63c75dcb806fca56b4ca3f058788ab"><td class="memItemLeft">std::pair&lt; double, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8e63c75dcb806fca56b4ca3f058788ab">interval</a></td></tr>
+<tr class="memdesc:a8e63c75dcb806fca56b4ca3f058788ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">The zone interval [from, to) in metres on the route that the reservation is for.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A train that holds or waits for the direction of a single-track limit.</p>
+<p>Pending entries keep a direction reserved through temporary stops. The identity prevents a removed or retargeted train from leaving a phantom reservation. Several same-direction trains may have committed before a leader clears. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a8d9f46c1cff99234351c362343159cf8" name="a8d9f46c1cff99234351c362343159cf8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8d9f46c1cff99234351c362343159cf8">&#9670;&#160;</a></span>departureTime</h2>
 
@@ -137,6 +144,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>departure_time of the train in seconds. </p>
 
 </div>
 </div>
@@ -151,6 +160,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>X in kilometres of the end of the route. </p>
 
 </div>
 </div>
@@ -166,6 +176,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The zone interval [from, to) in metres on the route that the reservation is for. </p>
+
 </div>
 </div>
 <a id="aa9f2a30064e9838b6e4e6a105f8a43e7" name="aa9f2a30064e9838b6e4e6a105f8a43e7"></a>
@@ -179,6 +191,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>X in kilometres of the start of the route, <a class="el" href="class_train.html#a16d9fbb942200efe5fd346dd6a35bea3" title="X in kilometres of the start of the route.">Train::Start_Node_X</a>. </p>
 
 </div>
 </div>
@@ -194,6 +207,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index of the route of the train. </p>
+
 </div>
 </div>
 <a id="a61db094c6745c4c6e0933bedfe271514" name="a61db094c6745c4c6e0933bedfe271514"></a>
@@ -207,6 +222,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>trainDescription of the train. </p>
 
 </div>
 </div>
@@ -221,6 +237,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Index of the train in <a class="el" href="struct_simulation_run.html#a772713a34d28bc07f0b65d151fde5432">SimulationRun::trains</a>. </p>
 
 </div>
 </div>

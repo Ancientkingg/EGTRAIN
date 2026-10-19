@@ -123,15 +123,21 @@ Collaboration diagram for StationBoundarySection:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a5f08a35d8626da26d31962559dc64c2c" id="r_a5f08a35d8626da26d31962559dc64c2c"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a5f08a35d8626da26d31962559dc64c2c">StationBoundarySection</a> (<a class="el" href="class_section.html">Section</a> *entrance, bool direction, <a class="el" href="class_section.html">Section</a> *exit)</td></tr>
+<tr class="memdesc:a5f08a35d8626da26d31962559dc64c2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the three values.  <br /></td></tr>
 <tr class="memitem:a7078799e22a787219dc330736e9d5ce2" id="r_a7078799e22a787219dc330736e9d5ce2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7078799e22a787219dc330736e9d5ce2">protectEntrance</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int sectionIndex, int routeIndex, bool platformBooked)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a2b0c59a54a566900856be2bb5bcd36b7" id="r_a2b0c59a54a566900856be2bb5bcd36b7"><td class="memItemLeft"><a class="el" href="class_section.html">Section</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a2b0c59a54a566900856be2bb5bcd36b7">entrance</a></td></tr>
+<tr class="memdesc:a2b0c59a54a566900856be2bb5bcd36b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Entrance section.  <br /></td></tr>
 <tr class="memitem:ac3e18c9af2719949833b758ce23eaabb" id="r_ac3e18c9af2719949833b758ce23eaabb"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac3e18c9af2719949833b758ce23eaabb">direction</a></td></tr>
+<tr class="memdesc:ac3e18c9af2719949833b758ce23eaabb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Routes whose reversed_direction equals this value are protected.  <br /></td></tr>
 <tr class="memitem:a741347ca64d9b88ea1b71ceade4903e2" id="r_a741347ca64d9b88ea1b71ceade4903e2"><td class="memItemLeft"><a class="el" href="class_section.html">Section</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a741347ca64d9b88ea1b71ceade4903e2">exit</a></td></tr>
+<tr class="memdesc:a741347ca64d9b88ea1b71ceade4903e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exit section; null at the end of a line, where the area runs to the end of the route.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The entrance of a station area, which is held while a section of the area ahead is occupied. The pointers point into <a class="el" href="struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd" title="The block sections of the network, sized once per scene by the builder.">RunInfrastructure::sections</a> and are not owned. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5f08a35d8626da26d31962559dc64c2c" name="a5f08a35d8626da26d31962559dc64c2c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5f08a35d8626da26d31962559dc64c2c">&#9670;&#160;</a></span>StationBoundarySection()</h2>
 
@@ -155,6 +161,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stores the three values. </p>
 
 </div>
 </div>
@@ -187,6 +195,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Protect station interlocking area: marks section sectionIndex of route routeIndex occupied when platformBooked is true, or when it is the entrance, the route has the protected direction and a section ahead up to the exit is occupied. Otherwise releases it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -208,6 +217,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Routes whose reversed_direction equals this value are protected. </p>
+
 </div>
 </div>
 <a id="a2b0c59a54a566900856be2bb5bcd36b7" name="a2b0c59a54a566900856be2bb5bcd36b7"></a>
@@ -222,6 +233,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Entrance section. </p>
+
 </div>
 </div>
 <a id="a741347ca64d9b88ea1b71ceade4903e2" name="a741347ca64d9b88ea1b71ceade4903e2"></a>
@@ -235,6 +248,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Exit section; null at the end of a line, where the area runs to the end of the route. </p>
 
 </div>
 </div>

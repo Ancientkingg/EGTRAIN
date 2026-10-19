@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Copies every member.">
 <polygon fill="#999999" stroke="#666666" points="144,-19 0,-19 0,0 144,0 144,-19"/>
 <text text-anchor="middle" x="72" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">BlockingTimes::operator=</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_blocking_times.html#a60fe3a47d566e07429d8760119e5f6d6" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_blocking_times.html#a60fe3a47d566e07429d8760119e5f6d6" target="_top" xlink:title="Sets the times, durations and positions to &#45;1, the IDs to &quot;None&quot; and IsComplete to true.">
 <polygon fill="white" stroke="#666666" points="347,-19 180,-19 180,0 347,0 347,-19"/>
 <text text-anchor="middle" x="263.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">BlockingTimes::BlockingTimes</text>
 </a>

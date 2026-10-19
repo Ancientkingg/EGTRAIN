@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A cached successor is a proposal only from its exact actual state and historical target.">
 <polygon fill="#999999" stroke="#666666" points="167,-64 0,-64 0,-45 167,-45 167,-64"/>
 <text text-anchor="middle" x="83.5" y="-52" font-family="Helvetica,sans-Serif" font-size="10.00">Train::cachedBrakingSuccessor</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
 <polygon fill="white" stroke="#666666" points="344,-102 203,-102 203,-83 344,-83 344,-102"/>
 <text text-anchor="middle" x="273.5" y="-90" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Calculation of the sum of all Train Resistances.">
+<g id="a_Node000003"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.">
 <polygon fill="white" stroke="#666666" points="476,-88.5 380,-88.5 380,-58.5 476,-58.5 476,-88.5"/>
 <text text-anchor="start" x="388" y="-76.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::total_train</text>
 <text text-anchor="middle" x="428" y="-65.5" font-family="Helvetica,sans-Serif" font-size="10.00">_resistances</text>
@@ -84,7 +84,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Calculation of Train Resistances due to Track Curvature.">
+<g id="a_Node000004"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).">
 <polygon fill="white" stroke="#666666" points="665,-142 512,-142 512,-123 665,-123 665,-142"/>
 <text text-anchor="middle" x="588.5" y="-130" font-family="Helvetica,sans-Serif" font-size="10.00">Train::curvature_resistances</text>
 </a>
@@ -102,7 +102,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Calculation of Train Resistances due to Track Gradient.">
+<g id="a_Node000005"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Resistance in N of the gradient G, as rise per length (Arc::gradient).">
 <polygon fill="white" stroke="#666666" points="662,-105 515,-105 515,-86 662,-86 662,-105"/>
 <text text-anchor="middle" x="588.5" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">Train::gradient_resistances</text>
 </a>
@@ -139,7 +139,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Calculation of Train Wagons Resistances using the Sauthoff Formula.">
+<g id="a_Node000007"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula.">
 <polygon fill="white" stroke="#666666" points="660.5,-19 516.5,-19 516.5,0 660.5,0 660.5,-19"/>
 <text text-anchor="middle" x="588.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Train::wagons_resistances</text>
 </a>

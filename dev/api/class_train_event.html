@@ -119,21 +119,31 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train_ev
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a2c514a571b7a3aab5eb2fe00b1101b8f" id="r_a2c514a571b7a3aab5eb2fe00b1101b8f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a2c514a571b7a3aab5eb2fe00b1101b8f">TrainEvent</a> ()</td></tr>
 <tr class="memitem:a02c1eaf2a973b21731829c649322c2ab" id="r_a02c1eaf2a973b21731829c649322c2ab"><td class="memItemLeft"><a class="el" href="class_train_event.html">TrainEvent</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a02c1eaf2a973b21731829c649322c2ab">operator=</a> (const <a class="el" href="class_train_event.html">TrainEvent</a> &amp;ob2)</td></tr>
+<tr class="memdesc:a02c1eaf2a973b21731829c649322c2ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7f0fbeca2cb0c40642eafa1088c0b7db" id="r_a7f0fbeca2cb0c40642eafa1088c0b7db"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7f0fbeca2cb0c40642eafa1088c0b7db">trainDescription</a></td></tr>
 <tr class="memitem:a941e13b2108d4bdc03da8831515fbd6a" id="r_a941e13b2108d4bdc03da8831515fbd6a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a941e13b2108d4bdc03da8831515fbd6a">Time</a></td></tr>
+<tr class="memdesc:a941e13b2108d4bdc03da8831515fbd6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time of the event: the passage, or the arrival at a timetable point.  <br /></td></tr>
 <tr class="memitem:aa6b2bb89b35e8aa55c4efe52b2e7a249" id="r_aa6b2bb89b35e8aa55c4efe52b2e7a249"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa6b2bb89b35e8aa55c4efe52b2e7a249">Time2</a></td></tr>
 <tr class="memitem:a952420c3ff38f3a111827b087fabc97e" id="r_a952420c3ff38f3a111827b087fabc97e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a952420c3ff38f3a111827b087fabc97e">Position</a></td></tr>
 <tr class="memitem:ac455b83db253f6d457d128c756d736b9" id="r_ac455b83db253f6d457d128c756d736b9"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac455b83db253f6d457d128c756d736b9">SuccessorID</a></td></tr>
+<tr class="memdesc:ac455b83db253f6d457d128c756d736b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the next infrastructure element of the route; for a timetable point the name of its station.  <br /></td></tr>
 <tr class="memitem:ab1cc82421a112c4b5961485089103c30" id="r_ab1cc82421a112c4b5961485089103c30"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab1cc82421a112c4b5961485089103c30">CurrentSectionID</a></td></tr>
+<tr class="memdesc:ab1cc82421a112c4b5961485089103c30"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_section.html">Section</a> of the train when it made a movement authority.  <br /></td></tr>
 <tr class="memitem:a3bfb075fe144165cc4a766f82e9ddeea" id="r_a3bfb075fe144165cc4a766f82e9ddeea"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3bfb075fe144165cc4a766f82e9ddeea">NextSectionID</a></td></tr>
+<tr class="memdesc:a3bfb075fe144165cc4a766f82e9ddeea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Next section on the route of the train; "None" at the end of the route.  <br /></td></tr>
 <tr class="memitem:a8a5bc0880c888a60c9176401f81b24c4" id="r_a8a5bc0880c888a60c9176401f81b24c4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8a5bc0880c888a60c9176401f81b24c4">TrainSpeed</a></td></tr>
+<tr class="memdesc:a8a5bc0880c888a60c9176401f81b24c4"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_train.html">Train</a> speed at the position given by Position.  <br /></td></tr>
 <tr class="memitem:a2dc7f2b6f416aeed8259afbde7de5bba" id="r_a2dc7f2b6f416aeed8259afbde7de5bba"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2dc7f2b6f416aeed8259afbde7de5bba">Acceleration</a></td></tr>
+<tr class="memdesc:a2dc7f2b6f416aeed8259afbde7de5bba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Acceleration of the train in m/s2 when it made a movement authority.  <br /></td></tr>
 <tr class="memitem:a15f059a9d3ac32c58fdb72fd348df394" id="r_a15f059a9d3ac32c58fdb72fd348df394"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a15f059a9d3ac32c58fdb72fd348df394">InfraElemStatus</a></td></tr>
+<tr class="memdesc:a15f059a9d3ac32c58fdb72fd348df394"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of a switch at the passage: "Straight" or "Diverging"; "None" for other elements.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A record of a train at a place and time. It serves as the passage of a train at an infrastructure element (<a class="el" href="class_infra_event.html">InfraEvent</a>), as a timetable point of a train (<a class="el" href="class_train.html#acc2df842d01c43aa0a3bd6d7bb5b2a04" title="Arrival and departure at each station node on the route, where the train stops or not (ComputeTimetab...">Train::TimetablePoints</a>) and as the train data of a movement authority. Times are seconds from the start of the run, positions metres and speeds m/s. Numbers are -10000 and strings "None" until set, and TrainSpeed is -1. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2c514a571b7a3aab5eb2fe00b1101b8f" name="a2c514a571b7a3aab5eb2fe00b1101b8f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2c514a571b7a3aab5eb2fe00b1101b8f">&#9670;&#160;</a></span>TrainEvent()</h2>
 
@@ -174,6 +184,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Copies every member. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -195,6 +207,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Acceleration of the train in m/s2 when it made a movement authority. </p>
+
 </div>
 </div>
 <a id="ab1cc82421a112c4b5961485089103c30" name="ab1cc82421a112c4b5961485089103c30"></a>
@@ -208,6 +222,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_section.html">Section</a> of the train when it made a movement authority. </p>
 
 </div>
 </div>
@@ -223,6 +239,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Position of a switch at the passage: "Straight" or "Diverging"; "None" for other elements. </p>
+
 </div>
 </div>
 <a id="a3bfb075fe144165cc4a766f82e9ddeea" name="a3bfb075fe144165cc4a766f82e9ddeea"></a>
@@ -237,6 +255,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Next section on the route of the train; "None" at the end of the route. </p>
+
 </div>
 </div>
 <a id="a952420c3ff38f3a111827b087fabc97e" name="a952420c3ff38f3a111827b087fabc97e"></a>
@@ -250,6 +270,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Position in metres: the route position of a passage, the scene position of an authority or a timetable point. A timetable point the train never reached keeps the X of its node in kilometres. </p>
 
 </div>
 </div>
@@ -265,6 +286,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>ID of the next infrastructure element of the route; for a timetable point the name of its station. </p>
+
 </div>
 </div>
 <a id="a941e13b2108d4bdc03da8831515fbd6a" name="a941e13b2108d4bdc03da8831515fbd6a"></a>
@@ -279,6 +302,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Time of the event: the passage, or the arrival at a timetable point. </p>
+
 </div>
 </div>
 <a id="aa6b2bb89b35e8aa55c4efe52b2e7a249" name="aa6b2bb89b35e8aa55c4efe52b2e7a249"></a>
@@ -292,6 +317,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Departure from a timetable point; unset when the train did not leave it. </p>
 
 </div>
 </div>
@@ -306,6 +332,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>trainDescription of the train; for a signal failure authority "signal_failure:" and the incident ID (its target when it has none); for a held single-track section "single_track:" and the limit ID. </p>
 
 </div>
 </div>
@@ -320,6 +347,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_train.html">Train</a> speed at the position given by Position. </p>
 
 </div>
 </div>

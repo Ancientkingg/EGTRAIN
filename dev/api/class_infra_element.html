@@ -118,28 +118,42 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_infra_el
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac86970977f3cfb7700ef2451ec7868f1" id="r_ac86970977f3cfb7700ef2451ec7868f1"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ac86970977f3cfb7700ef2451ec7868f1">InfraElement</a> ()</td></tr>
+<tr class="memdesc:ac86970977f3cfb7700ef2451ec7868f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the strings to "None", the flags to false and the coordinates to -1.  <br /></td></tr>
 <tr class="memitem:afbbc21179af518d9da8b35f5899086f5" id="r_afbbc21179af518d9da8b35f5899086f5"><td class="memItemLeft"><a class="el" href="class_infra_element.html">InfraElement</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#afbbc21179af518d9da8b35f5899086f5">operator=</a> (const <a class="el" href="class_infra_element.html">InfraElement</a> &amp;ob2)</td></tr>
+<tr class="memdesc:afbbc21179af518d9da8b35f5899086f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1eb737e93a9ed26752326d99c841a42e" id="r_a1eb737e93a9ed26752326d99c841a42e"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1eb737e93a9ed26752326d99c841a42e">ID</a></td></tr>
+<tr class="memdesc:a1eb737e93a9ed26752326d99c841a42e"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the element, the tdsbId of its node; "VirtualTDSB" at the cut end of a section; "None" when not set.  <br /></td></tr>
 <tr class="memitem:ac9f1a8e94e624db888831e1ec942e31c" id="r_ac9f1a8e94e624db888831e1ec942e31c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac9f1a8e94e624db888831e1ec942e31c">SectionID</a></td></tr>
+<tr class="memdesc:ac9f1a8e94e624db888831e1ec942e31c"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the block section the element belongs to.  <br /></td></tr>
 <tr class="memitem:a70649e29615f8b9761d00460b311863e" id="r_a70649e29615f8b9761d00460b311863e"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a70649e29615f8b9761d00460b311863e">stationName</a></td></tr>
+<tr class="memdesc:a70649e29615f8b9761d00460b311863e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the station at this element; "None" when it is not a station.  <br /></td></tr>
 <tr class="memitem:a3aa5f6a6d172bf443dffd39d8594e385" id="r_a3aa5f6a6d172bf443dffd39d8594e385"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3aa5f6a6d172bf443dffd39d8594e385">ConnectedPoint</a></td></tr>
 <tr class="memitem:aa06b244a85e8f7ea6dcde478700ddeb6" id="r_aa06b244a85e8f7ea6dcde478700ddeb6"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa06b244a85e8f7ea6dcde478700ddeb6">SwitchName</a></td></tr>
 <tr class="memitem:a23540ae72b02a36abf33240942f6eb18" id="r_a23540ae72b02a36abf33240942f6eb18"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a23540ae72b02a36abf33240942f6eb18">isStation</a></td></tr>
+<tr class="memdesc:a23540ae72b02a36abf33240942f6eb18"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the element is a station stop.  <br /></td></tr>
 <tr class="memitem:a242a82745f4941d79070b85f9aff15f0" id="r_a242a82745f4941d79070b85f9aff15f0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a242a82745f4941d79070b85f9aff15f0">IsSwitch</a></td></tr>
 <tr class="memitem:a0df56a25b343d6fa4826568b561341b7" id="r_a0df56a25b343d6fa4826568b561341b7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0df56a25b343d6fa4826568b561341b7">IsSignal</a></td></tr>
 <tr class="memitem:a12a93dce40b00cfbf2e77d9bd9e45827" id="r_a12a93dce40b00cfbf2e77d9bd9e45827"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a12a93dce40b00cfbf2e77d9bd9e45827">IsTrackDetSecBorder</a></td></tr>
 <tr class="memitem:aaa369badb0111ac96364b696a0a1bdd5" id="r_aaa369badb0111ac96364b696a0a1bdd5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aaa369badb0111ac96364b696a0a1bdd5">withSwitchDiv</a></td></tr>
+<tr class="memdesc:aaa369badb0111ac96364b696a0a1bdd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the element is an edge of a diverging switch.  <br /></td></tr>
 <tr class="memitem:ad279ff2f12b632912479f34a05eee328" id="r_ad279ff2f12b632912479f34a05eee328"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad279ff2f12b632912479f34a05eee328">isEndOfDivSwitchStartOfADivSwitch</a></td></tr>
+<tr class="memdesc:ad279ff2f12b632912479f34a05eee328"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the end of one diverging switch is the start of another at this element.  <br /></td></tr>
 <tr class="memitem:a8c13ab919312c36462be42bdddaca51a" id="r_a8c13ab919312c36462be42bdddaca51a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8c13ab919312c36462be42bdddaca51a">XCoordinate</a></td></tr>
+<tr class="memdesc:a8c13ab919312c36462be42bdddaca51a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position along the route in metres, measured in the direction of the route.  <br /></td></tr>
 <tr class="memitem:aad463afa772a422ad758152bb1929795" id="r_aad463afa772a422ad758152bb1929795"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aad463afa772a422ad758152bb1929795">YCoordinate</a></td></tr>
 <tr class="memitem:a0fb54d2e38585884aeee35d630a57506" id="r_a0fb54d2e38585884aeee35d630a57506"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0fb54d2e38585884aeee35d630a57506">GeoXCoord</a></td></tr>
+<tr class="memdesc:a0fb54d2e38585884aeee35d630a57506"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position in metres in the direction in which the sections are defined, which does not change when a route is reversed.  <br /></td></tr>
 <tr class="memitem:a8d3e6426e8e151ec758fea7993c5ec71" id="r_a8d3e6426e8e151ec758fea7993c5ec71"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8d3e6426e8e151ec758fea7993c5ec71">GeoYCoord</a></td></tr>
+<tr class="memdesc:a8d3e6426e8e151ec758fea7993c5ec71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Y coordinate in metres of the track detection section border.  <br /></td></tr>
 <tr class="memitem:a9565d189c6243ffc5f292791504777c4" id="r_a9565d189c6243ffc5f292791504777c4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9565d189c6243ffc5f292791504777c4">XConnectedPoint</a></td></tr>
+<tr class="memdesc:a9565d189c6243ffc5f292791504777c4"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> position in metres of the other edge of the same diverging switch; -1 when there is none.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A point element on the route of a train: a signal, a switch edge, a station stop or a border of a track detection section. <a class="el" href="class_route.html#a2d74a28fcd6d288fba1f924f3664f5bb" title="Initialize infrastructure element list for route; each element includes its block section ID.">Route::setListInfrastructureElementsForRoute</a> makes one per node that has a tdsbId. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac86970977f3cfb7700ef2451ec7868f1" name="ac86970977f3cfb7700ef2451ec7868f1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac86970977f3cfb7700ef2451ec7868f1">&#9670;&#160;</a></span>InfraElement()</h2>
 
@@ -154,6 +168,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the strings to "None", the flags to false and the coordinates to -1. </p>
 
 </div>
 </div>
@@ -180,6 +196,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Copies every member. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -200,6 +218,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>ID of the other edge of the same diverging switch; "None" otherwise. </p>
 
 </div>
 </div>
@@ -215,6 +234,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Position in metres in the direction in which the sections are defined, which does not change when a route is reversed. </p>
+
 </div>
 </div>
 <a id="a8d3e6426e8e151ec758fea7993c5ec71" name="a8d3e6426e8e151ec758fea7993c5ec71"></a>
@@ -228,6 +249,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Y coordinate in metres of the track detection section border. </p>
 
 </div>
 </div>
@@ -243,6 +266,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>ID of the element, the tdsbId of its node; "VirtualTDSB" at the cut end of a section; "None" when not set. </p>
+
 </div>
 </div>
 <a id="ad279ff2f12b632912479f34a05eee328" name="ad279ff2f12b632912479f34a05eee328"></a>
@@ -257,6 +282,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True when the end of one diverging switch is the start of another at this element. </p>
+
 </div>
 </div>
 <a id="a0df56a25b343d6fa4826568b561341b7" name="a0df56a25b343d6fa4826568b561341b7"></a>
@@ -270,6 +297,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Never set to true. </p>
 
 </div>
 </div>
@@ -285,6 +313,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True when the element is a station stop. </p>
+
 </div>
 </div>
 <a id="a242a82745f4941d79070b85f9aff15f0" name="a242a82745f4941d79070b85f9aff15f0"></a>
@@ -298,6 +328,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when the node of the element has a connection to another track. </p>
 
 </div>
 </div>
@@ -312,6 +343,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when the element lies at the start or end of its block section. </p>
 
 </div>
 </div>
@@ -327,6 +359,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>ID of the block section the element belongs to. </p>
+
 </div>
 </div>
 <a id="a70649e29615f8b9761d00460b311863e" name="a70649e29615f8b9761d00460b311863e"></a>
@@ -341,6 +375,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Name of the station at this element; "None" when it is not a station. </p>
+
 </div>
 </div>
 <a id="aa06b244a85e8f7ea6dcde478700ddeb6" name="aa06b244a85e8f7ea6dcde478700ddeb6"></a>
@@ -354,6 +390,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Name of the switch. For an edge of a diverging switch it comes from the tdsbId: <span class="tt">@0.22-2-B0@/@0.23-2-B1@Point-Start</span> gives <span class="tt">@0.22-2-B0@Point</span>, and the Point-End variant gives <span class="tt">@0.23-2-B1@Point</span>. Another switch has its ID; "None" when it is no switch. </p>
 
 </div>
 </div>
@@ -369,6 +406,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True when the element is an edge of a diverging switch. </p>
+
 </div>
 </div>
 <a id="a9565d189c6243ffc5f292791504777c4" name="a9565d189c6243ffc5f292791504777c4"></a>
@@ -382,6 +421,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_route.html">Route</a> position in metres of the other edge of the same diverging switch; -1 when there is none. </p>
 
 </div>
 </div>
@@ -397,6 +438,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Position along the route in metres, measured in the direction of the route. </p>
+
 </div>
 </div>
 <a id="aad463afa772a422ad758152bb1929795" name="aad463afa772a422ad758152bb1929795"></a>
@@ -410,6 +453,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Y coordinate of the node in metres. </p>
 
 </div>
 </div>

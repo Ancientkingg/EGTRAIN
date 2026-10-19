@@ -113,27 +113,38 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_station_
 </div><!--header-->
 <div class="contents">
 
+<p>A station platform: its size, capacity and waiting passengers.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_infrastructure_8h_source.html">simulation/Infrastructure.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac5ed8665c6d1b3428ba62b5a964dafff" id="r_ac5ed8665c6d1b3428ba62b5a964dafff"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ac5ed8665c6d1b3428ba62b5a964dafff">StationPlatform</a> ()</td></tr>
+<tr class="memdesc:ac5ed8665c6d1b3428ba62b5a964dafff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the IDs to "None" and the numbers to -1.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:adb4e5aaa431da73c57656e5c971a6cec" id="r_adb4e5aaa431da73c57656e5c971a6cec"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#adb4e5aaa431da73c57656e5c971a6cec">ID</a></td></tr>
+<tr class="memdesc:adb4e5aaa431da73c57656e5c971a6cec"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the platform. "None" until set.  <br /></td></tr>
 <tr class="memitem:acc5216340d34e57d2c2c295f34acde0d" id="r_acc5216340d34e57d2c2c295f34acde0d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#acc5216340d34e57d2c2c295f34acde0d">StationID</a></td></tr>
 <tr class="memitem:a448130fcf3dadbde7210b3027e20f11c" id="r_a448130fcf3dadbde7210b3027e20f11c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a448130fcf3dadbde7210b3027e20f11c">BlockSectionID</a></td></tr>
 <tr class="memitem:acb0539b723154583582fa24acbc10bfb" id="r_acb0539b723154583582fa24acbc10bfb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#acb0539b723154583582fa24acbc10bfb">X</a></td></tr>
+<tr class="memdesc:acb0539b723154583582fa24acbc10bfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">X of the platform node in kilometres; -1 until set.  <br /></td></tr>
 <tr class="memitem:a1fb7b83b82b646b3085c3871a5e9409b" id="r_a1fb7b83b82b646b3085c3871a5e9409b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1fb7b83b82b646b3085c3871a5e9409b">Y</a></td></tr>
 <tr class="memitem:a4dc350e489ad9dba466eed45145e1620" id="r_a4dc350e489ad9dba466eed45145e1620"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4dc350e489ad9dba466eed45145e1620">length</a></td></tr>
 <tr class="memitem:abced6c849704079036f3c081cdcef95d" id="r_abced6c849704079036f3c081cdcef95d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abced6c849704079036f3c081cdcef95d">width</a></td></tr>
 <tr class="memitem:aba6c14e1323da3fb4334bbd5b83f0783" id="r_aba6c14e1323da3fb4334bbd5b83f0783"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aba6c14e1323da3fb4334bbd5b83f0783">Max_Passenger_Volume</a></td></tr>
+<tr class="memdesc:aba6c14e1323da3fb4334bbd5b83f0783"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of passengers the platform holds, which the operations builder works out from length and width.  <br /></td></tr>
 <tr class="memitem:a6b4af17d40153a4fd036687b75644dfe" id="r_a6b4af17d40153a4fd036687b75644dfe"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6b4af17d40153a4fd036687b75644dfe">Current_N_Passengers</a></td></tr>
+<tr class="memdesc:a6b4af17d40153a4fd036687b75644dfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of passengers waiting now.  <br /></td></tr>
 <tr class="memitem:a48a5505f8c06e4b790b364e6b54a5c44" id="r_a48a5505f8c06e4b790b364e6b54a5c44"><td class="memItemLeft">std::list&lt; std::pair&lt; std::string, double &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a48a5505f8c06e4b790b364e6b54a5c44">Current_List_Pax_On_Platform</a></td></tr>
 <tr class="memitem:ad1c7fc7dfe81f05fe05b3d7109f9b78b" id="r_ad1c7fc7dfe81f05fe05b3d7109f9b78b"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad1c7fc7dfe81f05fe05b3d7109f9b78b">List_Trains_Stopping_At_Platform</a></td></tr>
+<tr class="memdesc:ad1c7fc7dfe81f05fe05b3d7109f9b78b"><td class="mdescLeft">&#160;</td><td class="mdescRight">trainDescription of each train with a planned stop at this platform.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A station platform: its size, capacity and waiting passengers. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac5ed8665c6d1b3428ba62b5a964dafff" name="ac5ed8665c6d1b3428ba62b5a964dafff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac5ed8665c6d1b3428ba62b5a964dafff">&#9670;&#160;</a></span>StationPlatform()</h2>
 
@@ -157,6 +168,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Sets the IDs to "None" and the numbers to -1. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -171,6 +184,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>ID of the block section that holds the platform node. </p>
 
 </div>
 </div>
@@ -185,6 +199,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Pairs of passenger ID and the time, in seconds since midnight, from which the passenger waits for the train of its trip. Sorted by that time. </p>
 
 </div>
 </div>
@@ -200,6 +215,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of passengers waiting now. </p>
+
 </div>
 </div>
 <a id="adb4e5aaa431da73c57656e5c971a6cec" name="adb4e5aaa431da73c57656e5c971a6cec"></a>
@@ -214,6 +231,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>ID of the platform. "None" until set. </p>
+
 </div>
 </div>
 <a id="a4dc350e489ad9dba466eed45145e1620" name="a4dc350e489ad9dba466eed45145e1620"></a>
@@ -227,6 +246,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Length in metres: the scene value, or 100. </p>
 
 </div>
 </div>
@@ -242,6 +262,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>trainDescription of each train with a planned stop at this platform. </p>
+
 </div>
 </div>
 <a id="aba6c14e1323da3fb4334bbd5b83f0783" name="aba6c14e1323da3fb4334bbd5b83f0783"></a>
@@ -256,6 +278,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of passengers the platform holds, which the operations builder works out from length and width. </p>
+
 </div>
 </div>
 <a id="acc5216340d34e57d2c2c295f34acde0d" name="acc5216340d34e57d2c2c295f34acde0d"></a>
@@ -269,6 +293,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Name of the station, or its ID when it has no name. </p>
 
 </div>
 </div>
@@ -283,6 +308,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Width in metres: the scene value, or 2.5. </p>
 
 </div>
 </div>
@@ -298,6 +324,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>X of the platform node in kilometres; -1 until set. </p>
+
 </div>
 </div>
 <a id="a1fb7b83b82b646b3085c3871a5e9409b" name="a1fb7b83b82b646b3085c3871a5e9409b"></a>
@@ -311,6 +339,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Y of the platform node in kilometres; -1 until set. </p>
 
 </div>
 </div>

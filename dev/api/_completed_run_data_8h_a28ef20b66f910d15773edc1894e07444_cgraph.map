@@ -24,7 +24,7 @@
 <area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="666,186,713,186,713,191,666,191"/>
 <area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="777,178,769,168,773,158,789,152,816,149,850,153,863,163,859,167,848,158,816,155,790,157,777,162,774,167,781,174"/>
 <area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="284,207,275,197,280,187,295,181,321,179,354,183,366,192,363,196,352,187,321,184,296,186,283,191,281,196,288,203"/>
-<area shape="rect" id="Node000009" href="$class_train.html#a23977edf7b951918b731c0164af29425" title=" " alt="" coords="471,226,679,266"/>
+<area shape="rect" id="Node000009" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="471,226,679,266"/>
 <area shape="poly" id="edge15_Node000008_Node000009" title=" " alt="" coords="406,225,458,230,457,236,405,230"/>
 <area shape="poly" id="edge18_Node000010_Node000010" title=" " alt="" coords="284,280,275,270,280,260,295,254,321,252,354,256,366,265,363,270,352,261,321,257,296,259,283,264,281,270,288,277"/>
 </map>

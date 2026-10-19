@@ -1,5 +1,5 @@
 <map id="Arc::operator=" name="Arc::operator=">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,123,31"/>
-<area shape="rect" id="Node000002" href="$class_arc.html#a83dc91c16778d7fd8664b1e2cd2444c7" title=" " alt="" coords="171,5,243,31"/>
+<area shape="rect" id="Node000001" title="Copies every member." alt="" coords="5,5,123,31"/>
+<area shape="rect" id="Node000002" href="$class_arc.html#a83dc91c16778d7fd8664b1e2cd2444c7" title="Sets the numbers to 0 and signalSpeedLimit to 999." alt="" coords="171,5,243,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,15,157,15,157,21,123,21"/>
 </map>

@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_platform_index.html" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_platform_index.html" target="_top" xlink:title="Station platforms by station ID and platform ID, for one platform list, with the same rules as Passen...">
 <polygon fill="white" stroke="#666666" points="174,-185.71 88,-185.71 88,-166.71 174,-166.71 174,-185.71"/>
 <text text-anchor="middle" x="131" y="-173.71" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex</text>
 </a>

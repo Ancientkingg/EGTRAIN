@@ -1,5 +1,5 @@
 <map id="Train::printTrainServicePathDiagram" name="Train::printTrainServicePathDiagram">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,176,62"/>
+<area shape="rect" id="Node000001" title="print train service path diagram to file" alt="" coords="5,22,176,62"/>
 <area shape="rect" id="Node000002" href="$_trajectory_util_8cpp.html#a0af1ce98130e2167e36a106ae1fef2de" title=" " alt="" coords="224,29,383,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,39,210,39,210,45,176,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="269,31,261,21,265,11,280,5,303,3,333,6,344,15,341,20,331,11,303,8,281,10,269,15,267,20,273,28"/>

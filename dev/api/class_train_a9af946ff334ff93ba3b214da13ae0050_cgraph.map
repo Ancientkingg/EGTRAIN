@@ -1,17 +1,17 @@
 <map id="Train::predictBraking" name="Train::predictBraking">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,113,161,139"/>
-<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="209,84,397,109"/>
+<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="209,84,397,109"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,113,195,108,196,114,162,118"/>
-<area shape="rect" id="Node000008" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title=" " alt="" coords="216,134,391,174"/>
+<area shape="rect" id="Node000008" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="216,134,391,174"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="162,133,203,139,202,144,162,139"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Calculation of the sum of all Train Resistances." alt="" coords="445,77,573,117"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="445,77,573,117"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,94,432,94,432,99,397,99"/>
-<area shape="rect" id="Node000004" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Calculation of Train Resistances due to Track Curvature." alt="" coords="621,5,825,31"/>
+<area shape="rect" id="Node000004" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="621,5,825,31"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="545,74,620,40,645,32,647,37,622,44,547,79"/>
-<area shape="rect" id="Node000005" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Calculation of Train Resistances due to Track Gradient." alt="" coords="625,55,821,80"/>
+<area shape="rect" id="Node000005" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="625,55,821,80"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="573,85,617,79,617,85,574,91"/>
 <area shape="rect" id="Node000006" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="652,105,795,145"/>
 <area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="574,102,639,111,638,116,573,108"/>
-<area shape="rect" id="Node000007" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Calculation of Train Wagons Resistances using the Sauthoff Formula." alt="" coords="627,169,819,195"/>
+<area shape="rect" id="Node000007" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="627,169,819,195"/>
 <area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="544,114,581,135,622,154,649,163,647,168,620,159,578,140,541,119"/>
 </map>

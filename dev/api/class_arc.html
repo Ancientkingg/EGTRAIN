@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_arc.html
 </div><!--header-->
 <div class="contents">
 
+<p>A directed piece of track between two nodes.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_infrastructure_8h_source.html">simulation/Infrastructure.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for Arc:</div>
@@ -123,25 +126,34 @@ Collaboration diagram for Arc:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a83dc91c16778d7fd8664b1e2cd2444c7" id="r_a83dc91c16778d7fd8664b1e2cd2444c7"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a83dc91c16778d7fd8664b1e2cd2444c7">Arc</a> ()</td></tr>
+<tr class="memdesc:a83dc91c16778d7fd8664b1e2cd2444c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers to 0 and signalSpeedLimit to 999.  <br /></td></tr>
 <tr class="memitem:a9ce1cb241d051d98c9baf5430cdc6449" id="r_a9ce1cb241d051d98c9baf5430cdc6449"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9ce1cb241d051d98c9baf5430cdc6449">arcLength</a> ()</td></tr>
+<tr class="memdesc:a9ce1cb241d051d98c9baf5430cdc6449"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets length in metres from the X and Y of the two nodes.  <br /></td></tr>
 <tr class="memitem:a6ea01f7cba3faa673141f76ccb0c8b11" id="r_a6ea01f7cba3faa673141f76ccb0c8b11"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6ea01f7cba3faa673141f76ccb0c8b11">operator==</a> (const <a class="el" href="class_arc.html">Arc</a> &amp;ob2)</td></tr>
+<tr class="memdesc:a6ea01f7cba3faa673141f76ccb0c8b11"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when every member but the nodes is equal and the nodes have the same IDs.  <br /></td></tr>
 <tr class="memitem:afaa76dba2fde43d48923c59153aeaf2d" id="r_afaa76dba2fde43d48923c59153aeaf2d"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#afaa76dba2fde43d48923c59153aeaf2d">operator=</a> (const <a class="el" href="class_arc.html">Arc</a> &amp;ob2)</td></tr>
+<tr class="memdesc:afaa76dba2fde43d48923c59153aeaf2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3321fb8ba4dd51921d8f32be5cfdaebb" id="r_a3321fb8ba4dd51921d8f32be5cfdaebb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a3321fb8ba4dd51921d8f32be5cfdaebb">ID</a></td></tr>
 <tr class="memitem:a494d5f6c76c482c52c1a431c42d24b47" id="r_a494d5f6c76c482c52c1a431c42d24b47"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a494d5f6c76c482c52c1a431c42d24b47">startNode</a></td></tr>
+<tr class="memdesc:a494d5f6c76c482c52c1a431c42d24b47"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_node.html">Node</a> at the start of the arc.  <br /></td></tr>
 <tr class="memitem:a17c93c499f678bea0debfd124f6fe9fb" id="r_a17c93c499f678bea0debfd124f6fe9fb"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a17c93c499f678bea0debfd124f6fe9fb">endNode</a></td></tr>
 <tr class="memitem:a1b8f6b85e7d81324b710f327b6ccd379" id="r_a1b8f6b85e7d81324b710f327b6ccd379"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1b8f6b85e7d81324b710f327b6ccd379">length</a></td></tr>
 <tr class="memitem:aee2dfaf5d286bc771fbaf167865bf933" id="r_aee2dfaf5d286bc771fbaf167865bf933"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aee2dfaf5d286bc771fbaf167865bf933">curvature</a></td></tr>
 <tr class="memitem:a49a70cc9f9cec941b854c7ee67001872" id="r_a49a70cc9f9cec941b854c7ee67001872"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a49a70cc9f9cec941b854c7ee67001872">gradient</a></td></tr>
 <tr class="memitem:a4e7d98bdb0f5706641e9d651c5ba3e2c" id="r_a4e7d98bdb0f5706641e9d651c5ba3e2c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4e7d98bdb0f5706641e9d651c5ba3e2c">speedLimit</a></td></tr>
 <tr class="memitem:ae483819071b3305505e054422b7d4c83" id="r_ae483819071b3305505e054422b7d4c83"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae483819071b3305505e054422b7d4c83">fs</a></td></tr>
+<tr class="memdesc:ae483819071b3305505e054422b7d4c83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position of the end node in metres, X * 1000.  <br /></td></tr>
 <tr class="memitem:a53792eedabac4445cc3b2787507a98f1" id="r_a53792eedabac4445cc3b2787507a98f1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a53792eedabac4445cc3b2787507a98f1">brakingDistance</a></td></tr>
 <tr class="memitem:ad383a3aaf0e9a344bf482a6cd9096cbf" id="r_ad383a3aaf0e9a344bf482a6cd9096cbf"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad383a3aaf0e9a344bf482a6cd9096cbf">speedInBraking</a></td></tr>
 <tr class="memitem:abacea941d4b1ead2299fa329c614351a" id="r_abacea941d4b1ead2299fa329c614351a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abacea941d4b1ead2299fa329c614351a">signalSpeedLimit</a></td></tr>
+<tr class="memdesc:abacea941d4b1ead2299fa329c614351a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed limit in m/s that the signalling imposes; 999 means none.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A directed piece of track between two nodes. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a83dc91c16778d7fd8664b1e2cd2444c7" name="a83dc91c16778d7fd8664b1e2cd2444c7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a83dc91c16778d7fd8664b1e2cd2444c7">&#9670;&#160;</a></span>Arc()</h2>
 
@@ -156,6 +168,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the numbers to 0 and signalSpeedLimit to 999. </p>
 
 </div>
 </div>
@@ -174,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets length in metres from the X and Y of the two nodes. </p>
 
 </div>
 </div>
@@ -199,6 +215,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Copies every member. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -229,6 +247,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when every member but the nodes is equal and the nodes have the same IDs. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -249,6 +269,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set to 0 by the constructor and never given another value; it is only copied and compared. </p>
 
 </div>
 </div>
@@ -263,6 +284,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Radius of curvature in metres; 0 means straight. </p>
 
 </div>
 </div>
@@ -277,6 +299,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><a class="el" href="class_node.html">Node</a> at the end of the arc. </p>
 
 </div>
 </div>
@@ -292,6 +315,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Position of the end node in metres, X * 1000. </p>
+
 </div>
 </div>
 <a id="a49a70cc9f9cec941b854c7ee67001872" name="a49a70cc9f9cec941b854c7ee67001872"></a>
@@ -305,6 +330,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Rise per length: 0.01 is a 1 % slope, although the scene field is called gradientPercent. </p>
 
 </div>
 </div>
@@ -319,6 +345,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Index of the arc along its track. </p>
 
 </div>
 </div>
@@ -333,6 +360,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Length of the arc. Metres for the arcs of a track (arcLength). The arcs of a section hold the difference of the X of their nodes, in kilometres. </p>
 
 </div>
 </div>
@@ -348,6 +376,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Speed limit in m/s that the signalling imposes; 999 means none. </p>
+
 </div>
 </div>
 <a id="ad383a3aaf0e9a344bf482a6cd9096cbf" name="ad383a3aaf0e9a344bf482a6cd9096cbf"></a>
@@ -361,6 +391,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Speed in m/s to reach at the end of the arc, which the signalling sets.</p>
+<p>It is the limit of the next arc, the lower limit of the next section, 0 before an occupied section or 0 before a stop. </p>
 
 </div>
 </div>
@@ -375,6 +407,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Speed limit of the track in m/s. </p>
 
 </div>
 </div>
@@ -389,6 +422,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_node.html">Node</a> at the start of the arc. </p>
 
 </div>
 </div>

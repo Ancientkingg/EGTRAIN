@@ -1,6 +1,6 @@
 <map id="Train::BrakDist_Block" name="Train::BrakDist_Block">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,187,165,212"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="224,62,429,87"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling." alt="" coords="224,62,429,87"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,185,212,121,280,90,282,95,215,126,108,189"/>
 <area shape="rect" id="Node000011" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="213,136,440,162"/>
 <area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="146,184,252,162,253,167,147,190"/>
@@ -10,26 +10,26 @@
 <area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="149,210,251,231,250,236,148,215"/>
 <area shape="rect" id="Node000015" href="$class_train.html#a518c09b45fe8dd0df01a9ce6be22c2c7" title=" " alt="" coords="230,286,423,311"/>
 <area shape="poly" id="edge23_Node000001_Node000015" title=" " alt="" coords="106,210,153,241,214,272,237,280,235,285,212,277,151,246,103,215"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" title=" " alt="" coords="517,136,647,162"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup." alt="" coords="517,136,647,162"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="372,85,525,130,524,135,371,90"/>
-<area shape="rect" id="Node000005" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Calculation of the sum of all Train Resistances." alt="" coords="747,129,875,169"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="747,129,875,169"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="353,59,413,35,494,12,540,5,586,3,633,7,677,20,712,39,743,64,790,116,786,120,739,68,709,43,675,25,632,13,586,8,540,10,496,17,415,40,355,64"/>
 <area shape="rect" id="Node000010" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="509,35,655,60"/>
 <area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="429,61,495,54,495,59,430,66"/>
-<area shape="rect" id="Node000004" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title=" " alt="" coords="724,281,899,321"/>
+<area shape="rect" id="Node000004" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="724,281,899,321"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="604,160,770,271,767,276,601,164"/>
-<area shape="rect" id="Node000006" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Calculation of Train Resistances due to Track Curvature." alt="" coords="947,58,1151,83"/>
+<area shape="rect" id="Node000006" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="947,58,1151,83"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="856,126,946,92,973,84,975,89,948,97,858,131"/>
-<area shape="rect" id="Node000007" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Calculation of Train Resistances due to Track Gradient." alt="" coords="951,107,1147,132"/>
+<area shape="rect" id="Node000007" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="951,107,1147,132"/>
 <area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="875,139,936,131,937,136,876,144"/>
 <area shape="rect" id="Node000008" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="977,157,1120,197"/>
 <area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="876,154,964,164,963,170,875,159"/>
-<area shape="rect" id="Node000009" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Calculation of Train Wagons Resistances using the Sauthoff Formula." alt="" coords="953,222,1145,247"/>
+<area shape="rect" id="Node000009" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="953,222,1145,247"/>
 <area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="854,167,948,207,977,216,975,221,946,212,852,172"/>
 <area shape="poly" id="edge11_Node000011_Node000003" title=" " alt="" coords="440,146,503,146,503,152,440,152"/>
 <area shape="poly" id="edge14_Node000011_Node000005" title=" " alt="" coords="393,134,488,121,582,116,676,121,734,129,733,135,676,126,582,121,488,126,393,139"/>
 <area shape="poly" id="edge15_Node000011_Node000010" title=" " alt="" coords="354,134,487,77,528,62,530,67,489,82,357,139"/>
-<area shape="rect" id="Node000012" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="488,238,676,263"/>
+<area shape="rect" id="Node000012" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="488,238,676,263"/>
 <area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="399,159,441,172,500,199,551,228,548,233,498,204,439,177,397,164"/>
 <area shape="poly" id="edge13_Node000012_Node000005" title=" " alt="" coords="623,235,675,216,761,173,764,178,677,221,625,240"/>
 <area shape="poly" id="edge17_Node000013_Node000003" title=" " alt="" coords="391,184,503,162,504,167,392,190"/>

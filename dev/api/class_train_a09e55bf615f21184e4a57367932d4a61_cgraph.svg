@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Function to Simulate the Train Trajectory: computes step time_seconds from step time_seconds &#45; 1.">
 <polygon fill="#999999" stroke="#666666" points="156,-565 0,-565 0,-535 156,-535 156,-565"/>
 <text text-anchor="start" x="8" y="-553" font-family="Helvetica,sans-Serif" font-size="10.00">Train::trajectoryComputation</text>
 <text text-anchor="middle" x="78" y="-542" font-family="Helvetica,sans-Serif" font-size="10.00">IncludingMovingBlock</text>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
 <polygon fill="white" stroke="#666666" points="1371,-624.5 1230,-624.5 1230,-605.5 1371,-605.5 1371,-624.5"/>
 <text text-anchor="middle" x="1300.5" y="-612.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Calculation of the sum of all Train Resistances.">
+<g id="a_Node000004"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.">
 <polygon fill="white" stroke="#666666" points="1503,-781 1407,-781 1407,-751 1503,-751 1503,-781"/>
 <text text-anchor="start" x="1415" y="-769" font-family="Helvetica,sans-Serif" font-size="10.00">Train::total_train</text>
 <text text-anchor="middle" x="1455" y="-758" font-family="Helvetica,sans-Serif" font-size="10.00">_resistances</text>
@@ -76,7 +76,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Calculation of Train Resistances due to Track Curvature.">
+<g id="a_Node000005"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).">
 <polygon fill="white" stroke="#666666" points="1692,-1026.5 1539,-1026.5 1539,-1007.5 1692,-1007.5 1692,-1026.5"/>
 <text text-anchor="middle" x="1615.5" y="-1014.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::curvature_resistances</text>
 </a>
@@ -94,7 +94,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Calculation of Train Resistances due to Track Gradient.">
+<g id="a_Node000006"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Resistance in N of the gradient G, as rise per length (Arc::gradient).">
 <polygon fill="white" stroke="#666666" points="1689,-417.5 1542,-417.5 1542,-398.5 1689,-398.5 1689,-417.5"/>
 <text text-anchor="middle" x="1615.5" y="-405.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::gradient_resistances</text>
 </a>
@@ -112,7 +112,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_train.html#a82de975c4acc0c503964ccce89396d74" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_train.html#a82de975c4acc0c503964ccce89396d74" target="_top" xlink:title="Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_...">
 <polygon fill="white" stroke="#666666" points="327.5,-321.5 218.5,-321.5 218.5,-302.5 327.5,-302.5 327.5,-321.5"/>
 <text text-anchor="middle" x="273" y="-309.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingEffort</text>
 </a>
@@ -130,7 +130,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_train.html#a1af634b7447d29cd8696899f0d900f03" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_train.html#a1af634b7447d29cd8696899f0d900f03" target="_top" xlink:title="One braking step at time_seconds on arc As: follows the stored plan, makes a new one,...">
 <polygon fill="white" stroke="#666666" points="751.5,-902.5 647.5,-902.5 647.5,-883.5 751.5,-883.5 751.5,-902.5"/>
 <text text-anchor="middle" x="699.5" y="-890.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingStep</text>
 </a>
@@ -202,7 +202,7 @@
 <!-- Node38 -->
 <g id="Node000038" class="node">
 <title>Node38</title>
-<g id="a_Node000038"><a xlink:href="class_train.html#a56bc8158e3c8ee2b4cc8f0cfaab6f9a3" target="_top" xlink:title=" ">
+<g id="a_Node000038"><a xlink:href="class_train.html#a56bc8158e3c8ee2b4cc8f0cfaab6f9a3" target="_top" xlink:title="Validate before current target selection so an invalid old hold cannot clear new metadata.">
 <polygon fill="white" stroke="#666666" points="569,-522 390,-522 390,-492 569,-492 569,-522"/>
 <text text-anchor="start" x="398" y="-510" font-family="Helvetica,sans-Serif" font-size="10.00">Train::checkIfMovementAuthority</text>
 <text text-anchor="middle" x="479.5" y="-499" font-family="Helvetica,sans-Serif" font-size="10.00">StillValid</text>
@@ -221,7 +221,7 @@
 <!-- Node39 -->
 <g id="Node000039" class="node">
 <title>Node39</title>
-<g id="a_Node000039"><a xlink:href="class_train.html#af7934345348548b70111ecbb47dd58c7" target="_top" xlink:title=" ">
+<g id="a_Node000039"><a xlink:href="class_train.html#af7934345348548b70111ecbb47dd58c7" target="_top" xlink:title="Resolve only the selected, currently published forward Tale within the EVC&#39;s existing scope.">
 <polygon fill="white" stroke="#666666" points="785.5,-549.5 613.5,-549.5 613.5,-530.5 785.5,-530.5 785.5,-549.5"/>
 <text text-anchor="middle" x="699.5" y="-537.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::currentFollowingAuthority</text>
 </a>
@@ -239,7 +239,7 @@
 <!-- Node41 -->
 <g id="Node000041" class="node">
 <title>Node41</title>
-<g id="a_Node000041"><a xlink:href="class_train.html#a7fb86eca790a418b0ef476f89e77e36b" target="_top" xlink:title=" ">
+<g id="a_Node000041"><a xlink:href="class_train.html#a7fb86eca790a418b0ef476f89e77e36b" target="_top" xlink:title="ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.">
 <polygon fill="white" stroke="#666666" points="354,-284.5 192,-284.5 192,-265.5 354,-265.5 354,-284.5"/>
 <text text-anchor="middle" x="273" y="-272.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::DetermineOccupiedTDS</text>
 </a>
@@ -257,7 +257,7 @@
 <!-- Node42 -->
 <g id="Node000042" class="node">
 <title>Node42</title>
-<g id="a_Node000042"><a xlink:href="class_train.html#a301604736506a528db15b8e4a1bd32e4" target="_top" xlink:title=" ">
+<g id="a_Node000042"><a xlink:href="class_train.html#a301604736506a528db15b8e4a1bd32e4" target="_top" xlink:title="The speed limit candidate in m/s, lowered to the speed cap of an active breakdown of this train at th...">
 <polygon fill="white" stroke="#666666" points="337,-1318 209,-1318 209,-1288 337,-1288 337,-1318"/>
 <text text-anchor="start" x="217" y="-1306" font-family="Helvetica,sans-Serif" font-size="10.00">Train::effectiveIncident</text>
 <text text-anchor="middle" x="273" y="-1295" font-family="Helvetica,sans-Serif" font-size="10.00">SpeedLimit</text>
@@ -276,7 +276,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="class_train.html#a0b494c5d366434dc4514c43a6926e180" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="class_train.html#a0b494c5d366434dc4514c43a6926e180" target="_top" xlink:title="recordDirectIncidentId with the ID of the incident, or its target when it has none.">
 <polygon fill="white" stroke="#666666" points="552,-1279.5 407,-1279.5 407,-1260.5 552,-1260.5 552,-1279.5"/>
 <text text-anchor="middle" x="479.5" y="-1267.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::recordDirectIncident</text>
 </a>
@@ -331,7 +331,7 @@
 <!-- Node47 -->
 <g id="Node000047" class="node">
 <title>Node47</title>
-<g id="a_Node000047"><a xlink:href="class_train.html#a6cca849cac9ee24c1670648f588bd5b1" target="_top" xlink:title=" ">
+<g id="a_Node000047"><a xlink:href="class_train.html#a6cca849cac9ee24c1670648f588bd5b1" target="_top" xlink:title="True when the aspect of the block section is restrictive: red, or red&#45;red at level 5.">
 <polygon fill="white" stroke="#666666" points="549.5,-189.5 409.5,-189.5 409.5,-170.5 549.5,-170.5 549.5,-189.5"/>
 <text text-anchor="middle" x="479.5" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::isAspectRestrictive</text>
 </a>
@@ -386,7 +386,7 @@
 <!-- Node50 -->
 <g id="Node000050" class="node">
 <title>Node50</title>
-<g id="a_Node000050"><a xlink:href="class_train.html#a84f34505ebfd5f1fc6262171d58013cb" target="_top" xlink:title=" ">
+<g id="a_Node000050"><a xlink:href="class_train.html#a84f34505ebfd5f1fc6262171d58013cb" target="_top" xlink:title="Records time_seconds as the arrival at the current stop when that stop has no arrival yet.">
 <polygon fill="white" stroke="#666666" points="347.5,-144 198.5,-144 198.5,-114 347.5,-114 347.5,-144"/>
 <text text-anchor="start" x="206.5" y="-132" font-family="Helvetica,sans-Serif" font-size="10.00">Train::recordCurrentService</text>
 <text text-anchor="middle" x="273" y="-121" font-family="Helvetica,sans-Serif" font-size="10.00">StopArrival</text>
@@ -405,7 +405,7 @@
 <!-- Node51 -->
 <g id="Node000051" class="node">
 <title>Node51</title>
-<g id="a_Node000051"><a xlink:href="class_train.html#af83706fc0c810785c1570b044d91a7d7" target="_top" xlink:title=" ">
+<g id="a_Node000051"><a xlink:href="class_train.html#af83706fc0c810785c1570b044d91a7d7" target="_top" xlink:title="Records the incident behind a signal failure authority.">
 <polygon fill="white" stroke="#666666" points="547.5,-1242 411.5,-1242 411.5,-1212 547.5,-1212 547.5,-1242"/>
 <text text-anchor="start" x="419.5" y="-1230" font-family="Helvetica,sans-Serif" font-size="10.00">Train::recordDirectSignal</text>
 <text text-anchor="middle" x="479.5" y="-1219" font-family="Helvetica,sans-Serif" font-size="10.00">Failure</text>
@@ -442,7 +442,7 @@
 <!-- Node53 -->
 <g id="Node000053" class="node">
 <title>Node53</title>
-<g id="a_Node000053"><a xlink:href="class_train.html#a94dccc7e1bd2b58dde2acd5b75f2895d" target="_top" xlink:title="Calculation of Train Energy Consumption.">
+<g id="a_Node000053"><a xlink:href="class_train.html#a94dccc7e1bd2b58dde2acd5b75f2895d" target="_top" xlink:title="Adds the energy of step t to instant_train_energy_consumption and returns the total in MJ.">
 <polygon fill="white" stroke="#666666" points="326.5,-96 219.5,-96 219.5,-66 326.5,-66 326.5,-96"/>
 <text text-anchor="start" x="227.5" y="-84" font-family="Helvetica,sans-Serif" font-size="10.00">Train::train_energy</text>
 <text text-anchor="middle" x="273" y="-73" font-family="Helvetica,sans-Serif" font-size="10.00">_consumption</text>
@@ -535,7 +535,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Calculation of Train Wagons Resistances using the Sauthoff Formula.">
+<g id="a_Node000008"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula.">
 <polygon fill="white" stroke="#666666" points="1687.5,-753.5 1543.5,-753.5 1543.5,-734.5 1687.5,-734.5 1687.5,-753.5"/>
 <text text-anchor="middle" x="1615.5" y="-741.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::wagons_resistances</text>
 </a>
@@ -562,7 +562,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title="A cached successor is a proposal only from its exact actual state and historical target.">
 <polygon fill="white" stroke="#666666" points="1192.5,-737.5 1025.5,-737.5 1025.5,-718.5 1192.5,-718.5 1192.5,-737.5"/>
 <text text-anchor="middle" x="1109" y="-725.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::cachedBrakingSuccessor</text>
 </a>
@@ -589,7 +589,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title="Native inverse plan shares the exact actual&#45;start step with BrakDist_Block.">
 <polygon fill="white" stroke="#666666" points="977.5,-663.5 840.5,-663.5 840.5,-644.5 977.5,-644.5 977.5,-663.5"/>
 <text text-anchor="middle" x="909" y="-651.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::DrawBrakingCurve</text>
 </a>
@@ -634,7 +634,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_train.html#ab7c0931ae832319456ae4b4f65acd580" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_train.html#ab7c0931ae832319456ae4b4f65acd580" target="_top" xlink:title="Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths a...">
 <polygon fill="white" stroke="#666666" points="980.5,-813.5 837.5,-813.5 837.5,-794.5 980.5,-794.5 980.5,-813.5"/>
 <text text-anchor="middle" x="909" y="-801.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::planPositiveBraking</text>
 </a>
@@ -805,7 +805,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
 <polygon fill="#fff0f0" stroke="red" points="1186,-813.5 1032,-813.5 1032,-794.5 1186,-794.5 1186,-813.5"/>
 <text text-anchor="middle" x="1109" y="-801.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>
@@ -968,7 +968,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_train.html#a469fabb03f7d48a3748c3bbb8fbe7ba3" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_train.html#a469fabb03f7d48a3748c3bbb8fbe7ba3" target="_top" xlink:title="True while a signal failure of the first section of the route holds this train at its entry.">
 <polygon fill="white" stroke="#666666" points="549.5,-473.5 409.5,-473.5 409.5,-454.5 549.5,-454.5 549.5,-473.5"/>
 <text text-anchor="middle" x="479.5" y="-461.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::isFirstSectionFailed</text>
 </a>
@@ -1058,7 +1058,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="class_train.html#aa05ce5a8ff68dea76d457f4ff2d0d1ba" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="class_train.html#aa05ce5a8ff68dea76d457f4ff2d0d1ba" target="_top" xlink:title="Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.">
 <polygon fill="#fff0f0" stroke="red" points="734,-397.5 665,-397.5 665,-378.5 734,-378.5 734,-397.5"/>
 <text text-anchor="middle" x="699.5" y="-385.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::Train</text>
 </a>
@@ -1274,7 +1274,7 @@
 <!-- Node40 -->
 <g id="Node000040" class="node">
 <title>Node40</title>
-<g id="a_Node000040"><a xlink:href="class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" target="_top" xlink:title=" ">
+<g id="a_Node000040"><a xlink:href="class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" target="_top" xlink:title="Position in metres of the authority on the route of this train, for an authority on section.">
 <polygon fill="white" stroke="#666666" points="988,-435.5 830,-435.5 830,-416.5 988,-416.5 988,-435.5"/>
 <text text-anchor="middle" x="909" y="-423.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::authorityRoutePosition</text>
 </a>
@@ -1310,7 +1310,7 @@
 <!-- Node44 -->
 <g id="Node000044" class="node">
 <title>Node44</title>
-<g id="a_Node000044"><a xlink:href="class_train.html#aae86e0228dcc9da75848221be573a189" target="_top" xlink:title=" ">
+<g id="a_Node000044"><a xlink:href="class_train.html#aae86e0228dcc9da75848221be573a189" target="_top" xlink:title="Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is t...">
 <polygon fill="white" stroke="#666666" points="776.5,-1257.5 622.5,-1257.5 622.5,-1238.5 776.5,-1238.5 776.5,-1257.5"/>
 <text text-anchor="middle" x="699.5" y="-1245.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::recordDirectIncidentId</text>
 </a>

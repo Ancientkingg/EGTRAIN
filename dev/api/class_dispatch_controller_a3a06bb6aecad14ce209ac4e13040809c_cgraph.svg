@@ -169,7 +169,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" target="_top" xlink:title="Indexes the list, replacing what the index held.">
 <polygon fill="white" stroke="#666666" points="676,-986 553,-986 553,-967 676,-967 676,-986"/>
 <text text-anchor="middle" x="614.5" y="-974" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerIndex::build</text>
 </a>
@@ -187,7 +187,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" target="_top" xlink:title="Indexes the list, replacing what the index held.">
 <polygon fill="white" stroke="#666666" points="672.5,-1023 556.5,-1023 556.5,-1004 672.5,-1004 672.5,-1023"/>
 <text text-anchor="middle" x="614.5" y="-1011" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex::build</text>
 </a>
@@ -205,7 +205,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" target="_top" xlink:title="Empties the index.">
 <polygon fill="white" stroke="#666666" points="1320.5,-581 1197.5,-581 1197.5,-562 1320.5,-562 1320.5,-581"/>
 <text text-anchor="middle" x="1259" y="-569" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerIndex::clear</text>
 </a>
@@ -223,7 +223,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" target="_top" xlink:title="Empties the index.">
 <polygon fill="white" stroke="#666666" points="1317,-742 1201,-742 1201,-723 1317,-723 1317,-742"/>
 <text text-anchor="middle" x="1259" y="-730" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex::clear</text>
 </a>
@@ -933,7 +933,7 @@
 <!-- Node38 -->
 <g id="Node000038" class="node">
 <title>Node38</title>
-<g id="a_Node000038"><a xlink:href="class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" target="_top" xlink:title=" ">
+<g id="a_Node000038"><a xlink:href="class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" target="_top" xlink:title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0.">
 <polygon fill="white" stroke="#666666" points="1310,-211 1208,-211 1208,-192 1310,-192 1310,-211"/>
 <text text-anchor="middle" x="1259" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00">Stations::Stations</text>
 </a>

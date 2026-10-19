@@ -625,7 +625,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" target="_top" xlink:title="Function to compute the passing time of a train over each timetable point (i.e. stations,...">
 <polygon fill="#fff0f0" stroke="red" points="556.5,-1240.5 407.5,-1240.5 407.5,-1210.5 556.5,-1210.5 556.5,-1240.5"/>
 <text text-anchor="start" x="415.5" y="-1228.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::ComputeTimetabling</text>
 <text text-anchor="middle" x="482" y="-1217.5" font-family="Helvetica,sans-Serif" font-size="10.00">Points</text>

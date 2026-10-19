@@ -1,9 +1,9 @@
 <map id="Compute_TimetablingPoints_For_All_Trains" name="Compute_TimetablingPoints_For_All_Trains">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,59,212,99"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="62,60,59,50,67,40,83,35,109,33,138,36,154,43,151,48,136,41,109,38,84,40,70,45,64,51,67,58"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" title=" " alt="" coords="260,59,459,99"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" title="Function to compute the passing time of a train over each timetable point (i.e. stations,..." alt="" coords="260,59,459,99"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="212,77,246,77,246,82,212,82"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a4b084c4974815396a1675e0ebab3350e" title=" " alt="" coords="507,59,693,99"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a4b084c4974815396a1675e0ebab3350e" title="Function to compute the arrival and departure of a train from a location with a specific position exp..." alt="" coords="507,59,693,99"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="459,77,493,77,493,82,459,82"/>
 <area shape="rect" id="Node000004" href="$_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470" title=" " alt="" coords="749,29,899,55"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="693,61,735,54,736,59,694,66"/>

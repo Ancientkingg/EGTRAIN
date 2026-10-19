@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="One braking step at time_seconds on arc As: follows the stored plan, makes a new one,...">
 <polygon fill="#999999" stroke="#666666" points="104,-397 0,-397 0,-378 104,-378 104,-397"/>
 <text text-anchor="middle" x="52" y="-385" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingStep</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title="A cached successor is a proposal only from its exact actual state and historical target.">
 <polygon fill="white" stroke="#666666" points="487.5,-435 320.5,-435 320.5,-416 487.5,-416 487.5,-435"/>
 <text text-anchor="middle" x="404" y="-423" font-family="Helvetica,sans-Serif" font-size="10.00">Train::cachedBrakingSuccessor</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Calculation of the sum of all Train Resistances.">
+<g id="a_Node000004"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.">
 <polygon fill="white" stroke="#666666" points="815.5,-327.5 719.5,-327.5 719.5,-297.5 815.5,-297.5 815.5,-327.5"/>
 <text text-anchor="start" x="727.5" y="-315.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::total_train</text>
 <text text-anchor="middle" x="767.5" y="-304.5" font-family="Helvetica,sans-Serif" font-size="10.00">_resistances</text>
@@ -75,7 +75,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title="Native inverse plan shares the exact actual&#45;start step with BrakDist_Block.">
 <polygon fill="white" stroke="#666666" points="280,-228 143,-228 143,-209 280,-209 280,-228"/>
 <text text-anchor="middle" x="211.5" y="-216" font-family="Helvetica,sans-Serif" font-size="10.00">Train::DrawBrakingCurve</text>
 </a>
@@ -129,7 +129,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_train.html#ab7c0931ae832319456ae4b4f65acd580" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_train.html#ab7c0931ae832319456ae4b4f65acd580" target="_top" xlink:title="Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths a...">
 <polygon fill="white" stroke="#666666" points="283,-283 140,-283 140,-264 283,-264 283,-283"/>
 <text text-anchor="middle" x="211.5" y="-271" font-family="Helvetica,sans-Serif" font-size="10.00">Train::planPositiveBraking</text>
 </a>
@@ -147,7 +147,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
 <polygon fill="white" stroke="#666666" points="666,-170 525,-170 525,-151 666,-151 666,-170"/>
 <text text-anchor="middle" x="595.5" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>
@@ -192,7 +192,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Calculation of Train Resistances due to Track Curvature.">
+<g id="a_Node000005"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).">
 <polygon fill="white" stroke="#666666" points="1022,-381 869,-381 869,-362 1022,-362 1022,-381"/>
 <text text-anchor="middle" x="945.5" y="-369" font-family="Helvetica,sans-Serif" font-size="10.00">Train::curvature_resistances</text>
 </a>
@@ -210,7 +210,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Calculation of Train Resistances due to Track Gradient.">
+<g id="a_Node000006"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Resistance in N of the gradient G, as rise per length (Arc::gradient).">
 <polygon fill="white" stroke="#666666" points="1019,-344 872,-344 872,-325 1019,-325 1019,-344"/>
 <text text-anchor="middle" x="945.5" y="-332" font-family="Helvetica,sans-Serif" font-size="10.00">Train::gradient_resistances</text>
 </a>
@@ -247,7 +247,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Calculation of Train Wagons Resistances using the Sauthoff Formula.">
+<g id="a_Node000008"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula.">
 <polygon fill="white" stroke="#666666" points="1017.5,-258 873.5,-258 873.5,-239 1017.5,-239 1017.5,-258"/>
 <text text-anchor="middle" x="945.5" y="-246" font-family="Helvetica,sans-Serif" font-size="10.00">Train::wagons_resistances</text>
 </a>
@@ -301,7 +301,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" target="_top" xlink:title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup.">
 <polygon fill="white" stroke="#666666" points="644.5,-246 546.5,-246 546.5,-227 644.5,-227 644.5,-246"/>
 <text text-anchor="middle" x="595.5" y="-234" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingArc</text>
 </a>
@@ -319,7 +319,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" target="_top" xlink:title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold...">
 <polygon fill="white" stroke="#666666" points="833,-43.5 702,-43.5 702,-13.5 833,-13.5 833,-43.5"/>
 <text text-anchor="start" x="710" y="-31.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::BrakingArcCursor</text>
 <text text-anchor="middle" x="767.5" y="-20.5" font-family="Helvetica,sans-Serif" font-size="10.00">::find</text>
@@ -437,7 +437,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
 <polygon fill="white" stroke="#666666" points="481,-283 327,-283 327,-264 481,-264 481,-283"/>
 <text text-anchor="middle" x="404" y="-271" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>

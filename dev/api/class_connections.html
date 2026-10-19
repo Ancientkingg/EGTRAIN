@@ -113,28 +113,38 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_connecti
 </div><!--header-->
 <div class="contents">
 
+<p>A connection between two tracks, such as a switch.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_infrastructure_8h_source.html">simulation/Infrastructure.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac88d39f818e8a52e8c630cb388ed520c" id="r_ac88d39f818e8a52e8c630cb388ed520c"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ac88d39f818e8a52e8c630cb388ed520c">Connections</a> ()</td></tr>
+<tr class="memdesc:ac88d39f818e8a52e8c630cb388ed520c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers to 0 and speedlimit to 16.667 m/s.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3b991cb009aa3fe3c3bb24ea54441bc9" id="r_a3b991cb009aa3fe3c3bb24ea54441bc9"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3b991cb009aa3fe3c3bb24ea54441bc9">ID</a></td></tr>
 <tr class="memitem:a82e6f43960b3efa85a6b8f3b71b9f9ce" id="r_a82e6f43960b3efa85a6b8f3b71b9f9ce"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a82e6f43960b3efa85a6b8f3b71b9f9ce">sceneFirstNodeId</a></td></tr>
+<tr class="memdesc:a82e6f43960b3efa85a6b8f3b71b9f9ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene ID of the end node with the lower X.  <br /></td></tr>
 <tr class="memitem:a3d8ea02eb62b74b7f3839a1584879f5c" id="r_a3d8ea02eb62b74b7f3839a1584879f5c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3d8ea02eb62b74b7f3839a1584879f5c">sceneSecondNodeId</a></td></tr>
 <tr class="memitem:af675cd7b4ccf26b19be55d78687b1d04" id="r_af675cd7b4ccf26b19be55d78687b1d04"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af675cd7b4ccf26b19be55d78687b1d04">idFirstTrackLine</a></td></tr>
+<tr class="memdesc:af675cd7b4ccf26b19be55d78687b1d04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Slot of the track of the first node.  <br /></td></tr>
 <tr class="memitem:aeed40a32a8dcf417c4e153753be404da" id="r_aeed40a32a8dcf417c4e153753be404da"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aeed40a32a8dcf417c4e153753be404da">idSecondTrackLine</a></td></tr>
 <tr class="memitem:ac0d0d092939d41d6d0c5c7518a17b858" id="r_ac0d0d092939d41d6d0c5c7518a17b858"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac0d0d092939d41d6d0c5c7518a17b858">xFirstNode</a></td></tr>
+<tr class="memdesc:ac0d0d092939d41d6d0c5c7518a17b858"><td class="mdescLeft">&#160;</td><td class="mdescRight">X of the first node in kilometres.  <br /></td></tr>
 <tr class="memitem:a7130f512aa69623fffa17940ed8cc2bd" id="r_a7130f512aa69623fffa17940ed8cc2bd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7130f512aa69623fffa17940ed8cc2bd">xSecondNode</a></td></tr>
+<tr class="memdesc:a7130f512aa69623fffa17940ed8cc2bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">X of the second node in kilometres.  <br /></td></tr>
 <tr class="memitem:ac12d24778f6af12885f90ba88637e120" id="r_ac12d24778f6af12885f90ba88637e120"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac12d24778f6af12885f90ba88637e120">speedlimit</a></td></tr>
 <tr class="memitem:abe46975eb784942ea18354770c3c82cc" id="r_abe46975eb784942ea18354770c3c82cc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abe46975eb784942ea18354770c3c82cc">graphXFirstNode</a></td></tr>
 <tr class="memitem:a9352ed12816af4521f1af42e6e369aab" id="r_a9352ed12816af4521f1af42e6e369aab"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9352ed12816af4521f1af42e6e369aab">graphYFirstNode</a></td></tr>
 <tr class="memitem:a3f415492e45f45b9214b5160c5081cbc" id="r_a3f415492e45f45b9214b5160c5081cbc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a3f415492e45f45b9214b5160c5081cbc">graphXSecondNode</a></td></tr>
 <tr class="memitem:a81598eb96436c1174c8e9e1c2f81c347" id="r_a81598eb96436c1174c8e9e1c2f81c347"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a81598eb96436c1174c8e9e1c2f81c347">graphYSecondNode</a></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A connection between two tracks, such as a switch. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac88d39f818e8a52e8c630cb388ed520c" name="ac88d39f818e8a52e8c630cb388ed520c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac88d39f818e8a52e8c630cb388ed520c">&#9670;&#160;</a></span>Connections()</h2>
 
@@ -150,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Sets the numbers to 0 and speedlimit to 16.667 m/s. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -164,6 +176,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Canvas coordinates of the two ends of the connection. The builder copies them from <a class="el" href="class_node.html#a17af8258d372ab0d2c0a63022f12c7df" title="X on the canvas, which the network presenter sets for the nodes of BlockSet::member; 0 otherwise.">Node::graphX</a> and graphY, which are 0 at that point, and the network presenter sets them (egtrainPoint2Screen) before it draws the connection. </p>
 
 </div>
 </div>
@@ -178,6 +191,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>See graphXFirstNode. </p>
 
 </div>
 </div>
@@ -192,6 +206,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>See graphXFirstNode. </p>
 
 </div>
 </div>
@@ -206,6 +221,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>See graphXFirstNode. </p>
 
 </div>
 </div>
@@ -220,6 +236,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>ID of the scene connection. </p>
 
 </div>
 </div>
@@ -235,6 +252,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Slot of the track of the first node. </p>
+
 </div>
 </div>
 <a id="aeed40a32a8dcf417c4e153753be404da" name="aeed40a32a8dcf417c4e153753be404da"></a>
@@ -248,6 +267,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Slot of the track of the second node. </p>
 
 </div>
 </div>
@@ -263,6 +283,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Scene ID of the end node with the lower X. </p>
+
 </div>
 </div>
 <a id="a3d8ea02eb62b74b7f3839a1584879f5c" name="a3d8ea02eb62b74b7f3839a1584879f5c"></a>
@@ -276,6 +298,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Scene ID of the end node with the higher X. </p>
 
 </div>
 </div>
@@ -290,6 +313,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Speed limit in m/s; 16.667 (60 km/h) when the scene gives none. </p>
 
 </div>
 </div>
@@ -305,6 +329,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>X of the first node in kilometres. </p>
+
 </div>
 </div>
 <a id="a7130f512aa69623fffa17940ed8cc2bd" name="a7130f512aa69623fffa17940ed8cc2bd"></a>
@@ -318,6 +344,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>X of the second node in kilometres. </p>
 
 </div>
 </div>

@@ -65,7 +65,7 @@
 <area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="287,476,284,466,292,457,309,451,335,449,365,452,382,459,380,464,364,457,335,455,310,457,295,461,290,467,292,475"/>
 <area shape="poly" id="edge19_Node000010_Node000010" title=" " alt="" coords="294,566,284,556,289,546,306,540,335,538,372,542,382,547,386,552,382,555,379,551,370,547,335,543,308,545,293,550,290,556,297,563"/>
 <area shape="poly" id="edge21_Node000011_Node000011" title=" " alt="" coords="287,639,284,629,292,620,309,614,335,612,365,615,382,622,380,627,364,620,335,617,310,619,295,624,290,630,292,637"/>
-<area shape="rect" id="Node000012" href="$class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" title=" " alt="" coords="549,639,747,679"/>
+<area shape="rect" id="Node000012" href="$class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" title="Function to compute the passing time of a train over each timetable point (i.e. stations,..." alt="" coords="549,639,747,679"/>
 <area shape="poly" id="edge22_Node000011_Node000012" title=" " alt="" coords="439,656,535,656,535,661,439,661"/>
 <area shape="poly" id="edge24_Node000016_Node000016" title=" " alt="" coords="287,727,284,717,292,708,309,702,335,700,365,703,382,710,380,715,364,708,335,705,310,707,295,712,290,718,292,725"/>
 <area shape="rect" id="Node000017" href="$_rolling_stock_8cpp.html#a2ca32310c7b2a9fa6808228e2e52e827" title=" " alt="" coords="559,729,737,754"/>

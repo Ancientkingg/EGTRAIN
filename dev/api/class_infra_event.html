@@ -124,13 +124,18 @@ Collaboration diagram for InfraEvent:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad5b2b9e544400099d3e2d42a8485311a" id="r_ad5b2b9e544400099d3e2d42a8485311a"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad5b2b9e544400099d3e2d42a8485311a">InfraEvent</a> ()</td></tr>
 <tr class="memitem:a53f49e284fe5d614bae9dec970a90c7c" id="r_a53f49e284fe5d614bae9dec970a90c7c"><td class="memItemLeft"><a class="el" href="class_infra_event.html">InfraEvent</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a53f49e284fe5d614bae9dec970a90c7c">operator=</a> (const <a class="el" href="class_infra_event.html">InfraEvent</a> &amp;ob2)</td></tr>
+<tr class="memdesc:a53f49e284fe5d614bae9dec970a90c7c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies the element and the events.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a11dd5b7be2208d3b78a1630630ac4e8a" id="r_a11dd5b7be2208d3b78a1630630ac4e8a"><td class="memItemLeft"><a class="el" href="class_infra_element.html">InfraElement</a>&#160;</td><td class="memItemRight"><a class="el" href="#a11dd5b7be2208d3b78a1630630ac4e8a">ElementInfo</a></td></tr>
+<tr class="memdesc:a11dd5b7be2208d3b78a1630630ac4e8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The element.  <br /></td></tr>
 <tr class="memitem:af121dbc3738b0b290d4b8647d0523768" id="r_af121dbc3738b0b290d4b8647d0523768"><td class="memItemLeft">std::list&lt; <a class="el" href="class_train_event.html">TrainEvent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af121dbc3738b0b290d4b8647d0523768">RecordedEvent</a></td></tr>
+<tr class="memdesc:af121dbc3738b0b290d4b8647d0523768"><td class="mdescLeft">&#160;</td><td class="mdescRight">One event per train passage, sorted by time after the run.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The passages of trains at one infrastructure element, which the blocking times use to find the switch position a train left behind. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad5b2b9e544400099d3e2d42a8485311a" name="ad5b2b9e544400099d3e2d42a8485311a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad5b2b9e544400099d3e2d42a8485311a">&#9670;&#160;</a></span>InfraEvent()</h2>
 
@@ -171,6 +176,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Copies the element and the events. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -192,6 +199,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The element. </p>
+
 </div>
 </div>
 <a id="af121dbc3738b0b290d4b8647d0523768" name="af121dbc3738b0b290d4b8647d0523768"></a>
@@ -205,6 +214,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>One event per train passage, sorted by time after the run. </p>
 
 </div>
 </div>

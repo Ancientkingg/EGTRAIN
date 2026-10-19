@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The train class that the operations builder fills. It adds no member to Train.">
 <polygon fill="#999999" stroke="#666666" points="818,-160.42 759,-160.42 759,-141.42 818,-141.42 818,-160.42"/>
 <text text-anchor="middle" x="788.5" y="-148.42" font-family="Helvetica,sans-Serif" font-size="10.00">Regional</text>
 </a>
@@ -95,7 +95,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_platform_index.html" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_platform_index.html" target="_top" xlink:title="Station platforms by station ID and platform ID, for one platform list, with the same rules as Passen...">
 <polygon fill="white" stroke="#666666" points="228,-474.42 142,-474.42 142,-455.42 228,-455.42 228,-474.42"/>
 <text text-anchor="middle" x="185" y="-462.42" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex</text>
 </a>
@@ -154,7 +154,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_arc.html" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_arc.html" target="_top" xlink:title="A directed piece of track between two nodes.">
 <polygon fill="white" stroke="#666666" points="201,-184.42 169,-184.42 169,-165.42 201,-165.42 201,-184.42"/>
 <text text-anchor="middle" x="185" y="-172.42" font-family="Helvetica,sans-Serif" font-size="10.00">Arc</text>
 </a>

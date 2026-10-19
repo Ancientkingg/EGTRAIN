@@ -423,7 +423,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_train.html#a23977edf7b951918b731c0164af29425" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_train.html#a23977edf7b951918b731c0164af29425" target="_top" xlink:title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops.">
 <polygon fill="white" stroke="#666666" points="742,-455 586,-455 586,-425 742,-425 742,-455"/>
 <text text-anchor="start" x="594" y="-443" font-family="Helvetica,sans-Serif" font-size="10.00">Train::stationNameForArrival</text>
 <text text-anchor="middle" x="664" y="-432" font-family="Helvetica,sans-Serif" font-size="10.00">Stats</text>

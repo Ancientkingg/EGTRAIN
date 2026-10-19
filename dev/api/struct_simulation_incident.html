@@ -118,19 +118,33 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_simulat
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a6530b25f224ab3103deea1ef53cec3a7" id="r_a6530b25f224ab3103deea1ef53cec3a7"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6530b25f224ab3103deea1ef53cec3a7">type</a></td></tr>
+<tr class="memdesc:a6530b25f224ab3103deea1ef53cec3a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">"signal_failure" or "train_breakdown".  <br /></td></tr>
 <tr class="memitem:ab1706e8b32a2632c576575b7660ff787" id="r_ab1706e8b32a2632c576575b7660ff787"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab1706e8b32a2632c576575b7660ff787">target</a></td></tr>
+<tr class="memdesc:ab1706e8b32a2632c576575b7660ff787"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signal or section ID of a signal failure; service ID of a breakdown.  <br /></td></tr>
 <tr class="memitem:a7e6869c112a50edfa62b25bb1845f2ee" id="r_a7e6869c112a50edfa62b25bb1845f2ee"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7e6869c112a50edfa62b25bb1845f2ee">startSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a7e6869c112a50edfa62b25bb1845f2ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start of the incident.  <br /></td></tr>
 <tr class="memitem:ac9cf591b7e17e9431bf95564197f0135" id="r_ac9cf591b7e17e9431bf95564197f0135"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac9cf591b7e17e9431bf95564197f0135">endSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:ac9cf591b7e17e9431bf95564197f0135"><td class="mdescLeft">&#160;</td><td class="mdescRight">End of the incident; meaningful when hasEndSeconds is true.  <br /></td></tr>
 <tr class="memitem:a8f56f572e138d9dbf479185d1d0f05f5" id="r_a8f56f572e138d9dbf479185d1d0f05f5"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8f56f572e138d9dbf479185d1d0f05f5">resolvedSectionIDs</a></td></tr>
+<tr class="memdesc:a8f56f572e138d9dbf479185d1d0f05f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime section IDs that a signal failure affects.  <br /></td></tr>
 <tr class="memitem:a4b9076018ff0fd351f6b1ea6ae09e03b" id="r_a4b9076018ff0fd351f6b1ea6ae09e03b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4b9076018ff0fd351f6b1ea6ae09e03b">id</a></td></tr>
+<tr class="memdesc:a4b9076018ff0fd351f6b1ea6ae09e03b"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the incident.  <br /></td></tr>
 <tr class="memitem:a36d0dba19a4ba9878ced15de70ea0c06" id="r_a36d0dba19a4ba9878ced15de70ea0c06"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a36d0dba19a4ba9878ced15de70ea0c06">hasOccurrence</a> = false</td></tr>
+<tr class="memdesc:a36d0dba19a4ba9878ced15de70ea0c06"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the breakdown applies to one occurrence of the service only.  <br /></td></tr>
 <tr class="memitem:ae1bff6bb071f3fed35c20aa1e85b0622" id="r_ae1bff6bb071f3fed35c20aa1e85b0622"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae1bff6bb071f3fed35c20aa1e85b0622">occurrence</a> = 1</td></tr>
+<tr class="memdesc:ae1bff6bb071f3fed35c20aa1e85b0622"><td class="mdescLeft">&#160;</td><td class="mdescRight">1-based occurrence of the service when hasOccurrence is true.  <br /></td></tr>
 <tr class="memitem:af15fcc2c0ed8cc88d33e28927954b07f" id="r_af15fcc2c0ed8cc88d33e28927954b07f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af15fcc2c0ed8cc88d33e28927954b07f">hasReducedSpeed</a> = false</td></tr>
+<tr class="memdesc:af15fcc2c0ed8cc88d33e28927954b07f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the breakdown caps the speed instead of holding the train.  <br /></td></tr>
 <tr class="memitem:a2d7fec8b8086a278552e30f63ce40b3e" id="r_a2d7fec8b8086a278552e30f63ce40b3e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2d7fec8b8086a278552e30f63ce40b3e">reducedSpeedKmh</a> = 0.0</td></tr>
+<tr class="memdesc:a2d7fec8b8086a278552e30f63ce40b3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed cap of the breakdown in km/h.  <br /></td></tr>
 <tr class="memitem:a4fcc432a1f08de8a7bb62ce20db70268" id="r_a4fcc432a1f08de8a7bb62ce20db70268"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4fcc432a1f08de8a7bb62ce20db70268">terminateAtDestination</a> = false</td></tr>
+<tr class="memdesc:a4fcc432a1f08de8a7bb62ce20db70268"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the broken-down train is marked as terminated at the end of its route.  <br /></td></tr>
 <tr class="memitem:a3e2b9b06f1f8c3534f5cf5fae3a125a9" id="r_a3e2b9b06f1f8c3534f5cf5fae3a125a9"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3e2b9b06f1f8c3534f5cf5fae3a125a9">hasEndSeconds</a> = false</td></tr>
+<tr class="memdesc:a3e2b9b06f1f8c3534f5cf5fae3a125a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the incident has an end; without one a speed cap lasts to the end of the route.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>An incident of the selected scenario, as the scene gives it. Times are seconds from the start of the run, compared with the step index. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ac9cf591b7e17e9431bf95564197f0135" name="ac9cf591b7e17e9431bf95564197f0135"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac9cf591b7e17e9431bf95564197f0135">&#9670;&#160;</a></span>endSeconds</h2>
 
@@ -142,6 +156,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>End of the incident; meaningful when hasEndSeconds is true. </p>
 
 </div>
 </div>
@@ -157,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the incident has an end; without one a speed cap lasts to the end of the route. </p>
+
 </div>
 </div>
 <a id="a36d0dba19a4ba9878ced15de70ea0c06" name="a36d0dba19a4ba9878ced15de70ea0c06"></a>
@@ -170,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the breakdown applies to one occurrence of the service only. </p>
 
 </div>
 </div>
@@ -185,6 +205,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the breakdown caps the speed instead of holding the train. </p>
+
 </div>
 </div>
 <a id="a4b9076018ff0fd351f6b1ea6ae09e03b" name="a4b9076018ff0fd351f6b1ea6ae09e03b"></a>
@@ -198,6 +220,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>ID of the incident. </p>
 
 </div>
 </div>
@@ -213,6 +237,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>1-based occurrence of the service when hasOccurrence is true. </p>
+
 </div>
 </div>
 <a id="a2d7fec8b8086a278552e30f63ce40b3e" name="a2d7fec8b8086a278552e30f63ce40b3e"></a>
@@ -226,6 +252,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Speed cap of the breakdown in km/h. </p>
 
 </div>
 </div>
@@ -241,6 +269,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Runtime section IDs that a signal failure affects. </p>
+
 </div>
 </div>
 <a id="a7e6869c112a50edfa62b25bb1845f2ee" name="a7e6869c112a50edfa62b25bb1845f2ee"></a>
@@ -254,6 +284,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Start of the incident. </p>
 
 </div>
 </div>
@@ -269,6 +301,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Signal or section ID of a signal failure; service ID of a breakdown. </p>
+
 </div>
 </div>
 <a id="a4fcc432a1f08de8a7bb62ce20db70268" name="a4fcc432a1f08de8a7bb62ce20db70268"></a>
@@ -283,6 +317,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the broken-down train is marked as terminated at the end of its route. </p>
+
 </div>
 </div>
 <a id="a6530b25f224ab3103deea1ef53cec3a7" name="a6530b25f224ab3103deea1ef53cec3a7"></a>
@@ -296,6 +332,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>"signal_failure" or "train_breakdown". </p>
 
 </div>
 </div>

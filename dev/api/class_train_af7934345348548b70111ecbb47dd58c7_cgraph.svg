@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Resolve only the selected, currently published forward Tale within the EVC&#39;s existing scope.">
 <polygon fill="#999999" stroke="#666666" points="172,-46 0,-46 0,-27 172,-27 172,-46"/>
 <text text-anchor="middle" x="86" y="-34" font-family="Helvetica,sans-Serif" font-size="10.00">Train::currentFollowingAuthority</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" target="_top" xlink:title="Position in metres of the authority on the route of this train, for an authority on section.">
 <polygon fill="white" stroke="#666666" points="366,-74 208,-74 208,-55 366,-55 366,-74"/>
 <text text-anchor="middle" x="287" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">Train::authorityRoutePosition</text>
 </a>

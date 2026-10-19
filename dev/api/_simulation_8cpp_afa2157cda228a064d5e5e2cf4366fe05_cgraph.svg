@@ -67,7 +67,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_passenger_index.html#a7b5628c80b7a623da509bf056602cf7c" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_passenger_index.html#a7b5628c80b7a623da509bf056602cf7c" target="_top" xlink:title="The passengers with this ID in list order. There are several only when an ID repeats.">
 <polygon fill="white" stroke="#666666" points="318,-74 201,-74 201,-55 318,-55 318,-74"/>
 <text text-anchor="middle" x="259.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerIndex::find</text>
 </a>

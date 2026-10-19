@@ -1,5 +1,5 @@
 <map id="Section::operator=" name="Section::operator=">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,149,31"/>
+<area shape="rect" id="Node000001" title="Copies every member; the node list stays shared." alt="" coords="5,5,149,31"/>
 <area shape="rect" id="Node000002" href="$class_section.html#a77b88e06692841ba49559d22a25a09f9" title=" " alt="" coords="197,5,324,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,15,183,15,183,21,150,21"/>
 </map>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Copies every member.">
 <polygon fill="#999999" stroke="#666666" points="88,-19 0,-19 0,0 88,0 88,-19"/>
 <text text-anchor="middle" x="44" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Arc::operator=</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_arc.html#a83dc91c16778d7fd8664b1e2cd2444c7" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_arc.html#a83dc91c16778d7fd8664b1e2cd2444c7" target="_top" xlink:title="Sets the numbers to 0 and signalSpeedLimit to 999.">
 <polygon fill="white" stroke="#666666" points="178,-19 124,-19 124,0 178,0 178,-19"/>
 <text text-anchor="middle" x="151" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Arc::Arc</text>
 </a>

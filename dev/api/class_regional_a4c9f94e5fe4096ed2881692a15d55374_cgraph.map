@@ -1,6 +1,6 @@
 <map id="Regional::operator=" name="Regional::operator=">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,67,159,92"/>
-<area shape="rect" id="Node000002" href="$class_regional.html#af50277e42fe10ea15d06feaf6d015798" title=" " alt="" coords="222,29,366,55"/>
+<area shape="rect" id="Node000002" href="$class_regional.html#af50277e42fe10ea15d06feaf6d015798" title="Sets the default rolling stock values, which the operations builder replaces." alt="" coords="222,29,366,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,64,208,54,209,60,155,69"/>
 <area shape="rect" id="Node000004" href="$_rolling_stock_8cpp.html#afad804c52cb5f74014fcc0162b015f89" title=" " alt="" coords="207,103,381,128"/>
 <area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="158,89,206,98,205,103,157,95"/>

@@ -1,6 +1,6 @@
 <map id="Train::BrakingArcCursor" name="Train::BrakingArcCursor">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,217,180,243"/>
-<area shape="rect" id="Node000002" href="$class_arc.html" title=" " alt="" coords="71,121,114,147"/>
+<area shape="rect" id="Node000002" href="$class_arc.html" title="A directed piece of track between two nodes." alt="" coords="71,121,114,147"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,161,95,217,90,217,90,161"/>
 <area shape="rect" id="Node000003" href="$class_node.html" title=" " alt="" coords="65,5,121,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,45,95,121,90,121,90,45"/>

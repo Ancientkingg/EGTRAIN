@@ -685,7 +685,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Calculation of the sum of all Train Resistances.">
+<g id="a_Node000023"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.">
 <polygon fill="#fff0f0" stroke="red" points="1387,-1108.5 1291,-1108.5 1291,-1078.5 1387,-1078.5 1387,-1108.5"/>
 <text text-anchor="start" x="1299" y="-1096.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::total_train</text>
 <text text-anchor="middle" x="1339" y="-1085.5" font-family="Helvetica,sans-Serif" font-size="10.00">_resistances</text>
@@ -740,7 +740,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
 <polygon fill="#fff0f0" stroke="red" points="1240,-1063 1086,-1063 1086,-1044 1240,-1044 1240,-1063"/>
 <text text-anchor="middle" x="1163" y="-1051" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>
@@ -848,7 +848,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Calculation of Train Resistances due to Track Curvature.">
+<g id="a_Node000024"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).">
 <polygon fill="white" stroke="#666666" points="1583,-1121 1430,-1121 1430,-1102 1583,-1102 1583,-1121"/>
 <text text-anchor="middle" x="1506.5" y="-1109" font-family="Helvetica,sans-Serif" font-size="10.00">Train::curvature_resistances</text>
 </a>
@@ -866,7 +866,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Calculation of Train Resistances due to Track Gradient.">
+<g id="a_Node000025"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Resistance in N of the gradient G, as rise per length (Arc::gradient).">
 <polygon fill="white" stroke="#666666" points="1580,-1084 1433,-1084 1433,-1065 1580,-1065 1580,-1084"/>
 <text text-anchor="middle" x="1506.5" y="-1072" font-family="Helvetica,sans-Serif" font-size="10.00">Train::gradient_resistances</text>
 </a>
@@ -1083,7 +1083,7 @@
 <!-- Node50 -->
 <g id="Node000050" class="node">
 <title>Node50</title>
-<g id="a_Node000050"><a xlink:href="class_passenger_index.html#a7b5628c80b7a623da509bf056602cf7c" target="_top" xlink:title=" ">
+<g id="a_Node000050"><a xlink:href="class_passenger_index.html#a7b5628c80b7a623da509bf056602cf7c" target="_top" xlink:title="The passengers with this ID in list order. There are several only when an ID repeats.">
 <polygon fill="white" stroke="#666666" points="575,-259 458,-259 458,-240 575,-240 575,-259"/>
 <text text-anchor="middle" x="516.5" y="-247" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerIndex::find</text>
 </a>

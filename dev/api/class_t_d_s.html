@@ -123,20 +123,32 @@ Collaboration diagram for TDS:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a81c8daa603d3060a0fe213d81bce5a36" id="r_a81c8daa603d3060a0fe213d81bce5a36"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a81c8daa603d3060a0fe213d81bce5a36">TDS</a> ()</td></tr>
+<tr class="memdesc:a81c8daa603d3060a0fe213d81bce5a36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers and the X of connection_node and node_on_switch to -1.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad263ccb6d926a68b97d26dbe11abe919" id="r_ad263ccb6d926a68b97d26dbe11abe919"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad263ccb6d926a68b97d26dbe11abe919">blocksection_ID</a></td></tr>
+<tr class="memdesc:ad263ccb6d926a68b97d26dbe11abe919"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not set by createTds; empty.  <br /></td></tr>
 <tr class="memitem:ab5c7f7d55eb9032f9fbd4bfe94a2cc7b" id="r_ab5c7f7d55eb9032f9fbd4bfe94a2cc7b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab5c7f7d55eb9032f9fbd4bfe94a2cc7b">ID</a></td></tr>
+<tr class="memdesc:ab5c7f7d55eb9032f9fbd4bfe94a2cc7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID such as <span class="tt">TDS_1@</span> followed by the block section ID.  <br /></td></tr>
 <tr class="memitem:a1a0e03833ed1dc2d10c6aa238faa7557" id="r_a1a0e03833ed1dc2d10c6aa238faa7557"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1a0e03833ed1dc2d10c6aa238faa7557">TracklineID</a></td></tr>
+<tr class="memdesc:a1a0e03833ed1dc2d10c6aa238faa7557"><td class="mdescLeft">&#160;</td><td class="mdescRight">Slot of the track; -1 until set.  <br /></td></tr>
 <tr class="memitem:a8d6bf51a754fe695c18b3a86258d7300" id="r_a8d6bf51a754fe695c18b3a86258d7300"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8d6bf51a754fe695c18b3a86258d7300">length</a></td></tr>
+<tr class="memdesc:a8d6bf51a754fe695c18b3a86258d7300"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length in kilometres, the difference of the X of the end nodes; -1 until set.  <br /></td></tr>
 <tr class="memitem:ad49cff8070835093b4d0505b73a9050f" id="r_ad49cff8070835093b4d0505b73a9050f"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad49cff8070835093b4d0505b73a9050f">start_node</a></td></tr>
+<tr class="memdesc:ad49cff8070835093b4d0505b73a9050f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start node.  <br /></td></tr>
 <tr class="memitem:ab72a5e17372d3a491481671d76e2cd38" id="r_ab72a5e17372d3a491481671d76e2cd38"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab72a5e17372d3a491481671d76e2cd38">end_node</a></td></tr>
+<tr class="memdesc:ab72a5e17372d3a491481671d76e2cd38"><td class="mdescLeft">&#160;</td><td class="mdescRight">End node.  <br /></td></tr>
 <tr class="memitem:a73e80a9cfa2a31df26cbbebf8641081a" id="r_a73e80a9cfa2a31df26cbbebf8641081a"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a73e80a9cfa2a31df26cbbebf8641081a">connection_node</a></td></tr>
+<tr class="memdesc:a73e80a9cfa2a31df26cbbebf8641081a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Switch node of a section with a diverging switch; X is -1 otherwise.  <br /></td></tr>
 <tr class="memitem:a6dae77b2aa5bacd0b7fed593941db48a" id="r_a6dae77b2aa5bacd0b7fed593941db48a"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a6dae77b2aa5bacd0b7fed593941db48a">node_on_switch</a></td></tr>
+<tr class="memdesc:a6dae77b2aa5bacd0b7fed593941db48a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_node.html">Node</a> halfway along a diverging switch, where its two detection sections meet; X is -1 otherwise.  <br /></td></tr>
 <tr class="memitem:a9e017915109d31a8dfa950d3df5ccfb5" id="r_a9e017915109d31a8dfa950d3df5ccfb5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9e017915109d31a8dfa950d3df5ccfb5">occupied</a></td></tr>
+<tr class="memdesc:a9e017915109d31a8dfa950d3df5ccfb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Never set to true.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A track detection section: a part of a block section. createTds makes them, and <a class="el" href="struct_run_infrastructure.html#a2c629868c25cd1060430eaff9cb94832" title="The track detection sections. The block sections point into this list.">RunInfrastructure::detectionSections</a> holds them. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a81c8daa603d3060a0fe213d81bce5a36" name="a81c8daa603d3060a0fe213d81bce5a36"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a81c8daa603d3060a0fe213d81bce5a36">&#9670;&#160;</a></span>TDS()</h2>
 
@@ -151,6 +163,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the numbers and the X of connection_node and node_on_switch to -1. </p>
 
 </div>
 </div>
@@ -167,6 +181,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Not set by createTds; empty. </p>
+
 </div>
 </div>
 <a id="a73e80a9cfa2a31df26cbbebf8641081a" name="a73e80a9cfa2a31df26cbbebf8641081a"></a>
@@ -180,6 +196,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Switch node of a section with a diverging switch; X is -1 otherwise. </p>
 
 </div>
 </div>
@@ -195,6 +213,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>End node. </p>
+
 </div>
 </div>
 <a id="ab5c7f7d55eb9032f9fbd4bfe94a2cc7b" name="ab5c7f7d55eb9032f9fbd4bfe94a2cc7b"></a>
@@ -208,6 +228,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>ID such as <span class="tt">TDS_1@</span> followed by the block section ID. </p>
 
 </div>
 </div>
@@ -223,6 +245,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Length in kilometres, the difference of the X of the end nodes; -1 until set. </p>
+
 </div>
 </div>
 <a id="a6dae77b2aa5bacd0b7fed593941db48a" name="a6dae77b2aa5bacd0b7fed593941db48a"></a>
@@ -236,6 +260,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_node.html">Node</a> halfway along a diverging switch, where its two detection sections meet; X is -1 otherwise. </p>
 
 </div>
 </div>
@@ -251,6 +277,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Never set to true. </p>
+
 </div>
 </div>
 <a id="ad49cff8070835093b4d0505b73a9050f" name="ad49cff8070835093b4d0505b73a9050f"></a>
@@ -265,6 +293,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Start node. </p>
+
 </div>
 </div>
 <a id="a1a0e03833ed1dc2d10c6aa238faa7557" name="a1a0e03833ed1dc2d10c6aa238faa7557"></a>
@@ -278,6 +308,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Slot of the track; -1 until set. </p>
 
 </div>
 </div>

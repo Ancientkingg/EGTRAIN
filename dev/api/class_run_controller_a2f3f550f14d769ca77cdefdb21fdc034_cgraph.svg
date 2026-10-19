@@ -548,7 +548,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" target="_top" xlink:title="Indexes the list, replacing what the index held.">
 <polygon fill="#fff0f0" stroke="red" points="922,-713 799,-713 799,-694 922,-694 922,-713"/>
 <text text-anchor="middle" x="860.5" y="-701" font-family="Helvetica,sans-Serif" font-size="10.00">PassengerIndex::build</text>
 </a>
@@ -566,7 +566,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" target="_top" xlink:title="Indexes the list, replacing what the index held.">
 <polygon fill="#fff0f0" stroke="red" points="918.5,-750 802.5,-750 802.5,-731 918.5,-731 918.5,-750"/>
 <text text-anchor="middle" x="860.5" y="-738" font-family="Helvetica,sans-Serif" font-size="10.00">PlatformIndex::build</text>
 </a>

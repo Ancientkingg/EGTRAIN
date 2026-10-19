@@ -1,9 +1,9 @@
 <map id="buildOperationsFromScene" name="buildOperationsFromScene">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,513,203,539"/>
 <area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="58,515,48,505,53,495,72,489,104,487,145,491,156,496,160,502,155,505,153,500,144,496,104,492,73,494,57,499,53,504,62,511"/>
-<area shape="rect" id="Node000002" href="$class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" title=" " alt="" coords="308,5,472,31"/>
+<area shape="rect" id="Node000002" href="$class_passenger_index.html#aa66d20d715ad35d783d26e95c7aedcfd" title="Indexes the list, replacing what the index held." alt="" coords="308,5,472,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,513,103,431,108,371,119,303,136,231,163,161,200,96,223,67,249,40,270,26,294,18,296,23,273,31,252,44,227,70,204,99,167,163,141,233,124,304,114,371,108,431,107,513"/>
-<area shape="rect" id="Node000004" href="$class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" title=" " alt="" coords="313,55,467,80"/>
+<area shape="rect" id="Node000004" href="$class_platform_index.html#ad4f73ce0289d63742814f2a737d5e8cc" title="Indexes the list, replacing what the index held." alt="" coords="313,55,467,80"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="103,513,106,439,113,384,125,323,143,260,168,197,203,139,249,89,272,75,298,66,300,71,274,80,252,93,208,142,173,199,148,261,130,324,118,385,112,439,108,513"/>
 <area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a7418be61af0a9727c27e9fa61338e4f1" title=" " alt="" coords="303,128,477,153"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="104,513,112,449,134,354,152,301,177,250,209,203,249,163,268,151,288,143,290,148,270,156,252,167,213,206,182,253,157,303,139,355,117,450,109,514"/>
@@ -33,9 +33,9 @@
 <area shape="poly" id="edge36_Node000001_Node000023" title=" " alt="" coords="109,539,116,608,137,715,155,775,180,834,212,890,253,939,276,956,302,969,300,974,273,961,249,943,208,893,175,836,150,776,132,716,110,609,103,539"/>
 <area shape="rect" id="Node000024" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="285,1049,495,1075"/>
 <area shape="poly" id="edge38_Node000001_Node000024" title=" " alt="" coords="108,539,111,619,117,678,129,745,147,816,172,887,207,953,253,1012,275,1030,301,1042,298,1047,272,1034,249,1016,203,956,167,889,142,818,124,746,112,679,106,619,103,539"/>
-<area shape="rect" id="Node000003" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title=" " alt="" coords="597,5,761,31"/>
+<area shape="rect" id="Node000003" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title="Empties the index." alt="" coords="597,5,761,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="472,15,583,15,583,21,472,21"/>
-<area shape="rect" id="Node000005" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title=" " alt="" coords="601,55,756,80"/>
+<area shape="rect" id="Node000005" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title="Empties the index." alt="" coords="601,55,756,80"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="468,65,588,65,588,70,468,70"/>
 <area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="344,130,334,120,339,110,358,103,390,101,431,106,442,111,446,117,441,119,439,115,430,111,390,107,359,109,343,114,339,119,348,126"/>
 <area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="344,203,334,193,339,183,358,177,390,175,431,179,442,184,446,190,441,193,439,188,430,184,390,180,359,182,343,187,339,192,348,199"/>

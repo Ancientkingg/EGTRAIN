@@ -123,16 +123,23 @@ Collaboration diagram for Train::BrakingArcCursor:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a34c2af035d590de6e1d94a0589d91e19" id="r_a34c2af035d590de6e1d94a0589d91e19"><td class="memItemLeft">const <a class="el" href="class_arc.html">Arc</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a34c2af035d590de6e1d94a0589d91e19">find</a> (double head, <a class="el" href="class_section.html">Section</a> *sections, int count, double *safeUpper=nullptr)</td></tr>
+<tr class="memdesc:a34c2af035d590de6e1d94a0589d91e19"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arc under head, or null. safeUpper, when given, receives the position up to which the result holds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac6771dda22432d499fb1acfc435f465b" id="r_ac6771dda22432d499fb1acfc435f465b"><td class="memItemLeft">const <a class="el" href="class_arc.html">Arc</a> *&#160;</td><td class="memItemRight"><a class="el" href="#ac6771dda22432d499fb1acfc435f465b">arc</a> = nullptr</td></tr>
 <tr class="memitem:a7ed5b43360f8a5af4d9792b51a2f44c4" id="r_a7ed5b43360f8a5af4d9792b51a2f44c4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7ed5b43360f8a5af4d9792b51a2f44c4">section</a> = 0</td></tr>
+<tr class="memdesc:a7ed5b43360f8a5af4d9792b51a2f44c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the section of the last lookup.  <br /></td></tr>
 <tr class="memitem:a8e84a6dec5b1e83a0af20bc2b785e714" id="r_a8e84a6dec5b1e83a0af20bc2b785e714"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8e84a6dec5b1e83a0af20bc2b785e714">arcIndex</a> = 0</td></tr>
+<tr class="memdesc:a8e84a6dec5b1e83a0af20bc2b785e714"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the arc within that section.  <br /></td></tr>
 <tr class="memitem:ac86d934bcd47cb1f9a030a7c790bb071" id="r_ac86d934bcd47cb1f9a030a7c790bb071"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac86d934bcd47cb1f9a030a7c790bb071">lookupHead</a> = 0</td></tr>
 <tr class="memitem:aad9c5724afd55dbcf13a09c8800d974a" id="r_aad9c5724afd55dbcf13a09c8800d974a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aad9c5724afd55dbcf13a09c8800d974a">earlierFuture</a> = std::numeric_limits&lt;double&gt;::infinity()</td></tr>
+<tr class="memdesc:aad9c5724afd55dbcf13a09c8800d974a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lowest start in metres of an arc beyond the head seen by the scan; infinity when there is none.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Finds the arc of the route under a head position in metres, continuing from the previous lookup.</p>
+<p>Call-local first-match lookup. Earlier future starts invalidate forward progress, so unordered and overlapping routes retain the linear scan's precedence. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a34c2af035d590de6e1d94a0589d91e19" name="a34c2af035d590de6e1d94a0589d91e19"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a34c2af035d590de6e1d94a0589d91e19">&#9670;&#160;</a></span>find()</h2>
 
@@ -162,6 +169,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The arc under head, or null. safeUpper, when given, receives the position up to which the result holds. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -176,6 +185,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><a class="el" href="class_arc.html" title="A directed piece of track between two nodes.">Arc</a> of the last lookup; null when there is none. </p>
 
 </div>
 </div>
@@ -191,6 +201,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index of the arc within that section. </p>
+
 </div>
 </div>
 <a id="aad9c5724afd55dbcf13a09c8800d974a" name="aad9c5724afd55dbcf13a09c8800d974a"></a>
@@ -205,6 +217,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Lowest start in metres of an arc beyond the head seen by the scan; infinity when there is none. </p>
+
 </div>
 </div>
 <a id="ac86d934bcd47cb1f9a030a7c790bb071" name="ac86d934bcd47cb1f9a030a7c790bb071"></a>
@@ -218,6 +232,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Head position in metres of the last lookup. </p>
 
 </div>
 </div>
@@ -232,6 +247,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Index of the section of the last lookup. </p>
 
 </div>
 </div>

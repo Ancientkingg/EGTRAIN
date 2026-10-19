@@ -113,16 +113,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_platform
 </div><!--header-->
 <div class="contents">
 
+<p>Station platforms by station ID and platform ID, for one platform list, with the same rules as <a class="el" href="class_passenger_index.html">PassengerIndex</a>.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_passengers_8h_source.html">simulation/Passengers.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad4f73ce0289d63742814f2a737d5e8cc" id="r_ad4f73ce0289d63742814f2a737d5e8cc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad4f73ce0289d63742814f2a737d5e8cc">build</a> (const std::list&lt; <a class="el" href="class_station_platform.html">StationPlatform</a> &gt; &amp;platforms)</td></tr>
+<tr class="memdesc:ad4f73ce0289d63742814f2a737d5e8cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indexes the list, replacing what the index held.  <br /></td></tr>
 <tr class="memitem:ad7fc8710e599a5d0a1cc03a49378f8a6" id="r_ad7fc8710e599a5d0a1cc03a49378f8a6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad7fc8710e599a5d0a1cc03a49378f8a6">clear</a> ()</td></tr>
+<tr class="memdesc:ad7fc8710e599a5d0a1cc03a49378f8a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empties the index.  <br /></td></tr>
 <tr class="memitem:ae3a03b754dde4aa27d61266af43d7049" id="r_ae3a03b754dde4aa27d61266af43d7049"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae3a03b754dde4aa27d61266af43d7049">covers</a> (const std::list&lt; <a class="el" href="class_station_platform.html">StationPlatform</a> &gt; &amp;platforms) const</td></tr>
+<tr class="memdesc:ae3a03b754dde4aa27d61266af43d7049"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the index was built for this list and the list has the size it had then.  <br /></td></tr>
 <tr class="memitem:a2ce688e7d2193b6f83b14088cf525373" id="r_a2ce688e7d2193b6f83b14088cf525373"><td class="memItemLeft">const <a class="el" href="class_station_platform.html">StationPlatform</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a2ce688e7d2193b6f83b14088cf525373">find</a> (const std::string &amp;stationId, const std::string &amp;platformId) const</td></tr>
+<tr class="memdesc:a2ce688e7d2193b6f83b14088cf525373"><td class="mdescLeft">&#160;</td><td class="mdescRight">The first platform in list order with these IDs, or null.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Station platforms by station ID and platform ID, for one platform list, with the same rules as <a class="el" href="class_passenger_index.html">PassengerIndex</a>. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="ad4f73ce0289d63742814f2a737d5e8cc" name="ad4f73ce0289d63742814f2a737d5e8cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad4f73ce0289d63742814f2a737d5e8cc">&#9670;&#160;</a></span>build()</h2>
 
@@ -137,6 +146,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Indexes the list, replacing what the index held. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -160,6 +171,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Empties the index. </p>
+
 </div>
 </div>
 <a id="ae3a03b754dde4aa27d61266af43d7049" name="ae3a03b754dde4aa27d61266af43d7049"></a>
@@ -176,6 +189,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the index was built for this list and the list has the size it had then. </p>
 
 </div>
 </div>
@@ -197,6 +212,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The first platform in list order with these IDs, or null. </p>
 
 </div>
 </div>

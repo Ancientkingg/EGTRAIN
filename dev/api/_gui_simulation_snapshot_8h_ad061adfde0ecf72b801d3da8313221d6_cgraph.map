@@ -9,7 +9,7 @@
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="167,237,299,208,300,213,168,242"/>
 <area shape="rect" id="Node000005" href="$class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619" title=" " alt="" coords="301,232,442,272"/>
 <area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="212,249,287,249,287,255,212,255"/>
-<area shape="rect" id="Node000010" href="$class_train.html#a2227178ed28567e80def50fba1b5f44f" title=" " alt="" coords="299,297,443,322"/>
+<area shape="rect" id="Node000010" href="$class_train.html#a2227178ed28567e80def50fba1b5f44f" title="instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samp..." alt="" coords="299,297,443,322"/>
 <area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="168,262,300,291,299,296,167,267"/>
 <area shape="rect" id="Node000011" href="$class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f" title=" " alt="" coords="301,347,442,387"/>
 <area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="131,262,188,296,261,332,289,342,287,347,259,337,186,301,128,267"/>
