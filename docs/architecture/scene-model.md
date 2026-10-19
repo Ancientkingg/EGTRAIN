@@ -10,7 +10,7 @@ canonical model -> native infrastructure + operations -> simulator
 canonical model -> explicit SceneExporter -> legacy interoperability files
 ```
 
-`DispatchController::prepareScene` is the shared native setup seam. It consumes
+[`DispatchController::prepareScene`] is the shared native setup seam. It consumes
 the loaded model through the infrastructure/signalling and operations builders
 and prepares runtime output directories. Neither builder opens provenance files
 or consults an `Input/` tree.
@@ -53,7 +53,7 @@ Each key of the scene files is written in one place and read in one place.
 `encodeInfrastructure`, `encodeStations`, `encodeSignalling`,
 `encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
 `encodePassengers`), and `loadScene` in `SceneModel.cpp` and
-`SceneFieldReader.cpp` read the files. The importer fills a `SceneModel` and
+`SceneFieldReader.cpp` read the files. The importer fills a [`SceneModel`] and
 writes it with the encoders, so an imported scene has the form of a saved one.
 The exporter writes the items of its area sidecar with `encodeSignallingArea`,
 and the importer reads them with `decodeSignallingArea`.
@@ -72,7 +72,7 @@ and the builders check against, are in `scene/RuntimeLimits.h`.
 ## Model ownership
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy
-incidents. Incidents belong to a `SceneScenario`; the selected scenario is
+incidents. Incidents belong to a [`SceneScenario`]; the selected scenario is
 identified by `default_scenario_id`. Runtime `loadedData` and `sourceFiles` are
 derived, non-serialized summaries. Loaded-data navigation targets point only to
 existing editors and are not part of the canonical schema. `import_report` is
@@ -365,9 +365,9 @@ temporary directory and reuses `loadScene`.
 The infrastructure/signalling builder accepts an already loaded and validated
 `SceneModel` and populates the run that it is given. The operations builder
 then creates services, train occurrences, the selected scenario, entrance
-delays, and passengers in memory. Each native `Train` carries operating code,
+delays, and passengers in memory. Each native [`Train`] carries operating code,
 service ID, occurrence, performance, configured cap, composition maximum, and
-applied maximum-speed provenance. `RunResults` copies that provenance to train
+applied maximum-speed provenance. [`RunResults`] copies that provenance to train
 rows and operating code/service identity to timetable rows. `TrackPreview`
 resolves connections and station markers through the same canonical node IDs.
 GUI Run, `--scene`, and the numeric case shortcuts all enter this shared native
@@ -384,3 +384,9 @@ runnable validation warns about the route sections it leaves unset. Normal
 runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
 conventional or ETCS default. The levels and the rule that gives a section its
 level are described in [Signalling levels](signalling-levels.md).
+
+[`DispatchController::prepareScene`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
+[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
+[`SceneScenario`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_scenario.html
+[`Train`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
+[`RunResults`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_run_results.html

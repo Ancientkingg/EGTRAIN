@@ -15,7 +15,7 @@ in code font. They are the characterization cases in
 ## What a signalling level is
 
 - A signalling level is a whole number from 0 to 5 that belongs to a runtime
-  section (`Section::SignallingLevel`). A section is a block of one track, or a
+  section ([`Section::SignallingLevel`]). A section is a block of one track, or a
   section that a connection builds from two blocks. See
   [Signalling areas, block sections and capacity areas](#signalling-areas-block-sections-and-capacity-areas).
 - A section can also have no level. Its value is -99999999
@@ -50,7 +50,7 @@ section different levels shows them. The editor shows the labels of the levels
 
 ### What happens in a step
 
-The order is fixed in `DispatchController`.
+The order is fixed in [`DispatchController`].
 
 1. Every train moves. It reads the codes and speed limits that the previous
    step wrote.
@@ -251,7 +251,7 @@ sections whose ids contain those block ids in `blocksOccupied`.
 code 0 the code 270 and exit speed 0, and the section before it state `green`.
 The section after the double switch is not held by that lock: when it shares a
 plain block with the double switch, as the first half of a second double switch
-does, `Train::Det_Section_Occupied_By_Train` takes it out again if only the lock
+does, [`Train::Det_Section_Occupied_By_Train`] takes it out again if only the lock
 put it there. At fixed-block levels 0, 1, 2 and 5, an occupied exit also closes the approach
 before the first half. This route-local check does not propagate recursively
 through a chain of crossovers. Internal unlocking remains in place so a train
@@ -571,7 +571,7 @@ small scenes.
   nothing. Validation warns with `scene.signalling_area.empty`.
 - **Routes used in reverse.** The level belongs to the section ID. A route in
   decreasing chainage is built from copies of the sections
-  (`Route::createRouteFromBlockIds`, `Section::reverseBlockSection`), which copy
+  ([`Route::createRouteFromBlockIds`], `Section::reverseBlockSection`), which copy
   the level. The area range is not mirrored; the same area covers a section
   whichever way a route runs.
 - **Sections on no route.** They get a level, but no train uses them. The
@@ -748,3 +748,8 @@ how diverging switches are handled at levels 3 and 4
 (`activateBlocksWithSwitchesDiv` and the fixed block routine next to it), and it
 does not say what creates the infrastructure elements that levels 3 and 4 make
 blocking times for; the characterization line has none.
+
+[`Section::SignallingLevel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_section.html
+[`DispatchController`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
+[`Train::Det_Section_Occupied_By_Train`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
+[`Route::createRouteFromBlockIds`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_route.html

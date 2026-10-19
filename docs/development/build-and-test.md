@@ -1679,6 +1679,10 @@ application; CTest and the smoke scripts set it themselves.
   run installs clang-tidy 23.1 from apt.llvm.org and lists the findings; the local command
   and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
   The result check is named `Tidy result`.
+- The documentation workflow (`docs.yml`) builds the [documentation site](#documentation-site)
+  for every pull request, fails a pull request that adds undocumented classes or members to the
+  files it changes, and publishes the site to `gh-pages`: `dev/` from `main`, and `<version>/`
+  and `latest/` after a successful release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
@@ -2394,3 +2398,35 @@ when it cannot run, for example outside a Git repository. A `json` example must
 be valid JSON, so an excerpt with comments or ellipses takes another info word
 such as `text`. The script does not fetch external links and does not render
 Markdown.
+
+### Documentation site
+
+The site is built from the pages of `docs/` with Sphinx, and the C++ reference from the
+sources in `EGTRAIN/QEGTRAIN` with Doxygen. Its [table of contents](../index.md) is
+`docs/index.md`, and its settings are `docs/conf.py` and `docs/Doxyfile`. Install Doxygen 1.18
+or newer and Graphviz (on macOS `brew install doxygen graphviz`), then the Python packages in a
+virtual environment in the build folder with Python 3.12 or newer, and configure again:
+
+```bash
+python3 -m venv build/docs-venv
+build/docs-venv/bin/pip install -r docs/requirements.txt
+cmake -S . -B build
+```
+
+On Windows the programs of the environment are in `build\docs-venv\Scripts`. Then:
+
+```bash
+cmake --build build --target docs
+cmake --build build --target docs-preview
+```
+
+`docs` builds the reference into `build/docs/api/` and the site into `build/docs/`; open
+`build/docs/index.html`. A Sphinx warning fails it. `docs-preview` serves the pages at
+`http://127.0.0.1:8000` and rebuilds a page when its Markdown changes. It does not rebuild the
+reference, so run `docs` first.
+
+A page links to a class with the address of the published reference, such as
+`https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html`, so the link also
+works on GitHub. The site build points such a link to the reference next to the page.
+`build/docs-venv/bin/python tools/docs/check_undocumented.py main` lists the undocumented classes
+and members that your branch adds since it forked from `main`, as the pull request check does.
