@@ -69,7 +69,7 @@ struct CommandLineOption {
 };
 
 static const CommandLineOption commandLineOptions[] = {
-	{"-n", "ID", "1", "Case study number, 1 to 6"},
+	{"-n", "ID", "1", "Case study number, 1 to 5"},
 	{"--scene", "PATH", "the case study of -n", "Scene folder or .egscene file to load"},
 	{"-h", "SECONDS", "from the scene", "Simulation horizon; this is not help"},
 	{"-b", "SECONDS", "from the scene", "Buffer time"},
