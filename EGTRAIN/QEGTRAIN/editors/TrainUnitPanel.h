@@ -59,12 +59,12 @@ public:
 	/// Takes the value of the physical field with this index, 0 to PhysicalFieldCount - 1, from its editor. The unit then
 	/// has physical values.
 	void commitPhysical(int fieldIndex);
-	/// Appends a traction curve row whose speed band starts at the upper speed of the last row and is 1 m/s wide, with
-	/// zero coefficients.
+	/// Appends a traction curve row whose speed band starts at the upper speed of the last row, or at 0 m/s when the
+	/// curve is empty, and is 1 m/s wide, with zero coefficients.
 	void addTractionRow();
 	/// Removes the selected traction curve row.
 	void removeTractionRow();
-	/// Stores `value` in `column` (0 to 4) of traction curve row `row`: a speed in m/s or a coefficient in N.
+	/// Stores `value` in `column` (0 to 4) of traction curve row `row`: a speed in m/s, or a coefficient of the force in N with the speed in m/s.
 	void commitTractionCell(int row, int column, double value);
 
 	/// Selects the unit with this id. False when there is none.

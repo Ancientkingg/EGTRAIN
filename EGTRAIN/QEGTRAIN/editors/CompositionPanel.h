@@ -24,7 +24,7 @@ public:
 
 	/// Refreshes when the document is replaced.
 	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
+	/// The questions and error messages go through these prompts. The panel uses its own until it is given others; null
 	/// brings its own back. The prompts must outlive the panel.
 	void setPrompts(UserPrompts* prompts);
 	void refresh() override;

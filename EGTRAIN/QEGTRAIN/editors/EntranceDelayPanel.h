@@ -22,7 +22,7 @@ class QSpinBox;
 /// The entrance delays of the selected scenario: a list to pick one, and the fields of the selected delay, which holds a
 /// train back before it enters the network. A delay names one occurrence of a service (counted from 1), the station at
 /// which the train is held and the delay in seconds. The choices of occurrences and stations follow the services of the
-/// document: a station is offered when a stop of the service there has a planned departure. The scenario whose delays
+/// document: a station is offered when the first stop of the service there has a planned departure. The scenario whose delays
 /// are shown is the one that the run selection names.
 class EntranceDelayPanel : public SceneEditorPanel {
 	Q_OBJECT
@@ -81,7 +81,7 @@ public:
 	QLabel* occurrenceContextLabel() const { return m_occurrenceContextLabel; }
 	/// The message above the fields while no entrance delay is selected; hidden otherwise.
 	QLabel* emptyStateLabel() const { return m_emptyStateLabel; }
-	/// The stations at which the service has a planned departure, each with its id as the data.
+	/// The stations whose first stop of the service has a planned departure, each with its id as the data.
 	QComboBox* stationCombo() const { return m_stationCombo; }
 	/// The delay in seconds.
 	QDoubleSpinBox* secondsEdit() const { return m_secondsEdit; }
