@@ -229,8 +229,7 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 			signal, signal->sceneBoundingRect().center()});
 	}
 	for (TrainItemGroup* train : allTrains) {
-		if (!train || train->outOfSimulation || !train->trainPolygonItemList || train->trainPolygonItemList->isEmpty()
-			|| train->sceneBoundingRect().isEmpty())
+		if (!train || !train->isVisible() || !train->trainPolygonItemList || train->trainPolygonItemList->isEmpty())
 			continue;
 		targets.append({QStringLiteral("Train: %1").arg(QString::fromStdString(followTrainName(train->trainDescription, train->index))),
 			train->trainPolygonItemList->first(), train->sceneBoundingRect().center()});
