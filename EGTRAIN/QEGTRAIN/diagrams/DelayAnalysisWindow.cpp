@@ -162,6 +162,17 @@ void fillTable(QTableWidget* table, const std::vector<QStringList>& rows) {
 		for (int column = 0; column < table->columnCount(); ++column)
 			table->setItem(row, column, new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column)));
 	}
+	// A column of numbers, with "-" where a value is missing, is aligned to the right.
+	for (int column = 0; column < table->columnCount(); ++column) {
+		bool numeric = table->rowCount() > 0;
+		for (int row = 0; numeric && row < table->rowCount(); ++row) {
+			const QString text = table->item(row, column)->text();
+			text.toDouble(&numeric);
+			numeric = numeric || text == QStringLiteral("-");
+		}
+		for (int row = 0; numeric && row < table->rowCount(); ++row)
+			table->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	}
 	table->resizeColumnsToContents();
 }
 

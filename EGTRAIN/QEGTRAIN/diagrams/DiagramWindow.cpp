@@ -687,7 +687,7 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 	chart->setMargins(QMargins(12, 8, 12, 8));
 
 	QFont titleFont = font();
-	titleFont.setPointSizeF(titleFont.pointSizeF() + 2.0);
+	titleFont.setPointSizeF(titleFont.pointSizeF() * 1.25);
 	titleFont.setBold(true);
 	chart->setTitleFont(titleFont);
 	chart->setTitleBrush(palette().brush(QPalette::WindowText));
