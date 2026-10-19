@@ -59,6 +59,7 @@ jobs:
 
       - name: Build the site
         run: |
+          mkdir -p build/docs
           doxygen docs/Doxyfile
           sphinx-build -W -b html docs build/docs
 
