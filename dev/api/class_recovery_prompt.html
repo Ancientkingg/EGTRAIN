@@ -131,13 +131,19 @@ Public Types</h2></td></tr>
 , <a class="el" href="#a669c765d197b7c8584246832f371b18ba6a4c8eaa10613f02ab59b8da2168f20f">Recover</a> = QDialog::Accepted
 , <a class="el" href="#a669c765d197b7c8584246832f371b18ba3c0611de762f5a443794b8896da22733">Discard</a> = 2
  }</td></tr>
+<tr class="memdesc:a669c765d197b7c8584246832f371b18b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The choice of the user, as the result code of the dialog.  <a href="#a669c765d197b7c8584246832f371b18b">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa4f26edf9525843d8bb58e22b2f8d30f" id="r_aa4f26edf9525843d8bb58e22b2f8d30f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa4f26edf9525843d8bb58e22b2f8d30f">RecoveryPrompt</a> (const <a class="el" href="struct_recovery_scan.html">RecoveryScan</a> &amp;scan, QWidget *parent=nullptr, const QRect &amp;availableGeometry=QRect())</td></tr>
 <tr class="memitem:a119f7fa1e00fbf7d62b8c03fe452bf99" id="r_a119f7fa1e00fbf7d62b8c03fe452bf99"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a119f7fa1e00fbf7d62b8c03fe452bf99">selectedIndex</a> () const</td></tr>
+<tr class="memdesc:a119f7fa1e00fbf7d62b8c03fe452bf99"><td class="mdescLeft">&#160;</td><td class="mdescRight">The row that Recover and Discard act on, as an index into scan.candidates; -1 without rows.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Offers the recovery copies that an earlier run left behind, one row for each, and reports what the user chose. It is a dialog of its own and not a QMessageBox, which crashes on the Qt 5.15 offscreen platform on Windows. The dialog changes nothing on disk: the caller recovers or discards the copy that selectedIndex names.</p>
+<p>Recover and Discard act on the selected row, and Decide Later keeps every copy. Recover is the default button unless the original of the copy may hold newer work, and it is disabled for a copy that this version cannot open. Discard asks for a second click, naming the case, before it finishes. Escape and closing the window give Later.</p>
+<p>After the dialog closes, result() holds an <a class="el" href="#a669c765d197b7c8584246832f371b18b" title="The choice of the user, as the result code of the dialog.">Outcome</a>. A caller that discards one copy can remove that row and show the dialog again for the rest. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a669c765d197b7c8584246832f371b18b" name="a669c765d197b7c8584246832f371b18b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a669c765d197b7c8584246832f371b18b">&#9670;&#160;</a></span>Outcome</h2>
 
@@ -149,10 +155,15 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The choice of the user, as the result code of the dialog. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a669c765d197b7c8584246832f371b18ba5201cd6960753fe4f756cdb4c44669f6" name="a669c765d197b7c8584246832f371b18ba5201cd6960753fe4f756cdb4c44669f6"></a>Later&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a669c765d197b7c8584246832f371b18ba6a4c8eaa10613f02ab59b8da2168f20f" name="a669c765d197b7c8584246832f371b18ba6a4c8eaa10613f02ab59b8da2168f20f"></a>Recover&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a669c765d197b7c8584246832f371b18ba3c0611de762f5a443794b8896da22733" name="a669c765d197b7c8584246832f371b18ba3c0611de762f5a443794b8896da22733"></a>Discard&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a669c765d197b7c8584246832f371b18ba5201cd6960753fe4f756cdb4c44669f6" name="a669c765d197b7c8584246832f371b18ba5201cd6960753fe4f756cdb4c44669f6"></a>Later&#160;</td><td class="fielddoc"><p>Keep every copy: Decide Later, Escape or closing the window. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a669c765d197b7c8584246832f371b18ba6a4c8eaa10613f02ab59b8da2168f20f" name="a669c765d197b7c8584246832f371b18ba6a4c8eaa10613f02ab59b8da2168f20f"></a>Recover&#160;</td><td class="fielddoc"><p>Recover the copy that selectedIndex names. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a669c765d197b7c8584246832f371b18ba3c0611de762f5a443794b8896da22733" name="a669c765d197b7c8584246832f371b18ba3c0611de762f5a443794b8896da22733"></a>Discard&#160;</td><td class="fielddoc"><p>Discard the copy that selectedIndex names, after the second click. </p>
+</td></tr>
 </table>
 
 </div>
@@ -189,6 +200,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The scan names the copies and how many older ones the store removed over its limit. availableGeometry bounds the size of the dialog; the screen of the dialog is used when it is invalid. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -220,6 +232,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The row that Recover and Discard act on, as an index into scan.candidates; -1 without rows. </p>
 
 </div>
 </div>

@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_recovery_controller.html#a50aac94a116e2090f66811ddd9a3ba21" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_recovery_controller.html#a50aac94a116e2090f66811ddd9a3ba21" target="_top" xlink:title="RecoveryStore::discard, serialised against the worker. Waits for a job that is running.">
 <polygon fill="white" stroke="#666666" points="259,-462 149,-462 149,-432 259,-432 259,-462"/>
 <text text-anchor="start" x="157" y="-450" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryController</text>
 <text text-anchor="middle" x="204" y="-439" font-family="Helvetica,sans-Serif" font-size="10.00">::discard</text>
@@ -59,7 +59,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_recovery_controller.html#ac90d2f6ff7c14a666013e3ae9ac613cb" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_recovery_controller.html#ac90d2f6ff7c14a666013e3ae9ac613cb" target="_top" xlink:title="Interval of the write timer in milliseconds.">
 <polygon fill="white" stroke="#666666" points="259,-414 149,-414 149,-384 259,-384 259,-414"/>
 <text text-anchor="start" x="157" y="-402" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryController</text>
 <text text-anchor="middle" x="204" y="-391" font-family="Helvetica,sans-Serif" font-size="10.00">::intervalMs</text>
@@ -78,7 +78,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_recovery_controller.html#a9c0279526af4824838440c99b2bf1d29" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_recovery_controller.html#a9c0279526af4824838440c99b2bf1d29" target="_top" xlink:title="True when no edit waits for the timer and no job is running or waiting.">
 <polygon fill="white" stroke="#666666" points="259,-366 149,-366 149,-336 259,-336 259,-366"/>
 <text text-anchor="start" x="157" y="-354" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryController</text>
 <text text-anchor="middle" x="204" y="-343" font-family="Helvetica,sans-Serif" font-size="10.00">::isIdle</text>
@@ -97,7 +97,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_recovery_controller.html#a26f383d8badd77bbe5ddc4134d837907" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_recovery_controller.html#a26f383d8badd77bbe5ddc4134d837907" target="_top" xlink:title="The scene is back at its saved state (Undo to the clean point). Removes the copy.">
 <polygon fill="white" stroke="#666666" points="259,-318 149,-318 149,-288 259,-288 259,-318"/>
 <text text-anchor="start" x="157" y="-306" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryController</text>
 <text text-anchor="middle" x="204" y="-295" font-family="Helvetica,sans-Serif" font-size="10.00">::noteClean</text>
@@ -135,7 +135,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_recovery_controller.html#a1d4a150a4e58ba80a0991975b83fcca6" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_recovery_controller.html#a1d4a150a4e58ba80a0991975b83fcca6" target="_top" xlink:title="Another scene took its place, or the scene was discarded. Removes the copy.">
 <polygon fill="white" stroke="#666666" points="259,-222 149,-222 149,-192 259,-192 259,-222"/>
 <text text-anchor="start" x="157" y="-210" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryController</text>
 <text text-anchor="middle" x="204" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00">::noteReplaced</text>
@@ -154,7 +154,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_recovery_controller.html#a3004744109d7ff44ef63448b4012f669" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_recovery_controller.html#a3004744109d7ff44ef63448b4012f669" target="_top" xlink:title="The scene was saved. Removes the copy.">
 <polygon fill="white" stroke="#666666" points="259,-174 149,-174 149,-144 259,-144 259,-174"/>
 <text text-anchor="start" x="157" y="-162" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryController</text>
 <text text-anchor="middle" x="204" y="-151" font-family="Helvetica,sans-Serif" font-size="10.00">::noteSaved</text>
@@ -192,7 +192,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_recovery_controller.html#ac7cb5b861dff8f8ec1bdc4b663f3a4dc" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_recovery_controller.html#ac7cb5b861dff8f8ec1bdc4b663f3a4dc" target="_top" xlink:title="RecoveryStore::scan, serialised against the worker. Waits for a job that is running.">
 <polygon fill="white" stroke="#666666" points="259,-78 149,-78 149,-48 259,-48 259,-78"/>
 <text text-anchor="start" x="157" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryController</text>
 <text text-anchor="middle" x="204" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">::scan</text>

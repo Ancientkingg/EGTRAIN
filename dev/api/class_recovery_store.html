@@ -118,24 +118,37 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_recovery
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9a12849494955131dc4010497628b7ef" id="r_a9a12849494955131dc4010497628b7ef"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9a12849494955131dc4010497628b7ef">RecoveryStore</a> (const QString &amp;root)</td></tr>
+<tr class="memdesc:a9a12849494955131dc4010497628b7ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">root is the folder that holds the instance folders. Nothing is created until <a class="el" href="#a15fe37a2bbd99ce5624da036d81dff22" title="Creates the instance folder with a new random id and locks it. Ok when already open.">open()</a>.  <br /></td></tr>
 <tr class="memitem:ae041222f2b43f924ea6aacfbbda9a823" id="r_ae041222f2b43f924ea6aacfbbda9a823"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae041222f2b43f924ea6aacfbbda9a823">~RecoveryStore</a> ()</td></tr>
+<tr class="memdesc:ae041222f2b43f924ea6aacfbbda9a823"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases the lock and deletes nothing, so a missing <a class="el" href="#af978c63e596761d554bd4b4ad0e04645" title="Removes the instance folder and releases the lock. Ok when already closed.">close()</a> never destroys a copy.  <br /></td></tr>
 <tr class="memitem:a7050888996380d76ba0280ad2767843c" id="r_a7050888996380d76ba0280ad2767843c"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a7050888996380d76ba0280ad2767843c">RecoveryStore</a> (const <a class="el" href="class_recovery_store.html">RecoveryStore</a> &amp;)=delete</td></tr>
 <tr class="memitem:a73c48576303ee836b14fd2682715bbef" id="r_a73c48576303ee836b14fd2682715bbef"><td class="memItemLeft"><a class="el" href="class_recovery_store.html">RecoveryStore</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a73c48576303ee836b14fd2682715bbef">operator=</a> (const <a class="el" href="class_recovery_store.html">RecoveryStore</a> &amp;)=delete</td></tr>
 <tr class="memitem:a15fe37a2bbd99ce5624da036d81dff22" id="r_a15fe37a2bbd99ce5624da036d81dff22"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a15fe37a2bbd99ce5624da036d81dff22">open</a> ()</td></tr>
+<tr class="memdesc:a15fe37a2bbd99ce5624da036d81dff22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the instance folder with a new random id and locks it. Ok when already open.  <br /></td></tr>
 <tr class="memitem:a3b4f8f098d72af3ad21ddf8d0a694963" id="r_a3b4f8f098d72af3ad21ddf8d0a694963"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3b4f8f098d72af3ad21ddf8d0a694963">isOpen</a> () const</td></tr>
+<tr class="memdesc:a3b4f8f098d72af3ad21ddf8d0a694963"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the store holds the lock of its instance folder.  <br /></td></tr>
 <tr class="memitem:a4bdf834179746cb415bef6fbfefe9c34" id="r_a4bdf834179746cb415bef6fbfefe9c34"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a4bdf834179746cb415bef6fbfefe9c34">instanceId</a> () const</td></tr>
+<tr class="memdesc:a4bdf834179746cb415bef6fbfefe9c34"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the instance folder; empty while the store is not open.  <br /></td></tr>
 <tr class="memitem:a9803146f10ee60076d9f633be88b237a" id="r_a9803146f10ee60076d9f633be88b237a"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9803146f10ee60076d9f633be88b237a">write</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_recovery_source.html">RecoverySource</a> &amp;source)</td></tr>
 <tr class="memitem:a20f7204f481cb56f828c30e3e060925b" id="r_a20f7204f481cb56f828c30e3e060925b"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a20f7204f481cb56f828c30e3e060925b">clear</a> ()</td></tr>
+<tr class="memdesc:a20f7204f481cb56f828c30e3e060925b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the copy and the record. The folder and the lock stay.  <br /></td></tr>
 <tr class="memitem:af978c63e596761d554bd4b4ad0e04645" id="r_af978c63e596761d554bd4b4ad0e04645"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#af978c63e596761d554bd4b4ad0e04645">close</a> ()</td></tr>
+<tr class="memdesc:af978c63e596761d554bd4b4ad0e04645"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the instance folder and releases the lock. Ok when already closed.  <br /></td></tr>
 <tr class="memitem:a14432615736100b0a23838598e1f2394" id="r_a14432615736100b0a23838598e1f2394"><td class="memItemLeft"><a class="el" href="struct_recovery_scan.html">RecoveryScan</a>&#160;</td><td class="memItemRight"><a class="el" href="#a14432615736100b0a23838598e1f2394">scan</a> ()</td></tr>
 <tr class="memitem:a0810755024c2fe95721038b9699174c7" id="r_a0810755024c2fe95721038b9699174c7"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0810755024c2fe95721038b9699174c7">adopt</a> (const <a class="el" href="struct_recovery_candidate.html">RecoveryCandidate</a> &amp;candidate)</td></tr>
 <tr class="memitem:a1ae0f306a7490c1659c40cd38c3c59fb" id="r_a1ae0f306a7490c1659c40cd38c3c59fb"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1ae0f306a7490c1659c40cd38c3c59fb">discard</a> (const <a class="el" href="struct_recovery_candidate.html">RecoveryCandidate</a> &amp;candidate)</td></tr>
+<tr class="memdesc:a1ae0f306a7490c1659c40cd38c3c59fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the folder of a candidate in any state. Fails when the candidate is in use.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a7e7f40e86ba96fe528d78b64f5168298" id="r_a7e7f40e86ba96fe528d78b64f5168298"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a7e7f40e86ba96fe528d78b64f5168298">kMaxKeptInstances</a> = 20</td></tr>
+<tr class="memdesc:a7e7f40e86ba96fe528d78b64f5168298"><td class="mdescLeft">&#160;</td><td class="mdescRight">At most this many candidates are kept; scan removes the oldest beyond it.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Keeps recovery copies of a scene below a root folder that the caller names. Each running application (an instance) owns one folder below the root, named by its instance id. It holds a lock on it while the store is open and keeps at most one copy of the scene in it, as an ordinary scene bundle. A clean close removes the folder. A folder whose owner is gone is a candidate for recovery.</p>
+<p>The store writes only below its root, apart from the private copy that saveSceneBundle makes in the system temporary directory while it runs. It never touches the file or folder a scene came from. No function throws, prints or logs, and no error text holds a path.</p>
+<p>A store is used by one thread at a time and has no static state. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9a12849494955131dc4010497628b7ef" name="a9a12849494955131dc4010497628b7ef"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9a12849494955131dc4010497628b7ef">&#9670;&#160;</a></span>RecoveryStore() <span class="overload">[1/2]</span></h2>
 
@@ -158,6 +171,8 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>root is the folder that holds the instance folders. Nothing is created until <a class="el" href="#a15fe37a2bbd99ce5624da036d81dff22" title="Creates the instance folder with a new random id and locks it. Ok when already open.">open()</a>. </p>
 
 </div>
 </div>
@@ -183,6 +198,8 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Releases the lock and deletes nothing, so a missing <a class="el" href="#af978c63e596761d554bd4b4ad0e04645" title="Removes the instance folder and releases the lock. Ok when already closed.">close()</a> never destroys a copy. </p>
 
 </div>
 </div>
@@ -231,6 +248,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes over the copy of an Openable candidate. It replaces the copy this store holds, as write does, and the candidate folder is removed. Fails when the candidate is in use. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -254,6 +272,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Removes the copy and the record. The folder and the lock stay. </p>
+
 </div>
 </div>
 <a id="af978c63e596761d554bd4b4ad0e04645" name="af978c63e596761d554bd4b4ad0e04645"></a>
@@ -270,6 +290,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Removes the instance folder and releases the lock. Ok when already closed. </p>
 
 </div>
 </div>
@@ -288,6 +310,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Removes the folder of a candidate in any state. Fails when the candidate is in use. </p>
+
 </div>
 </div>
 <a id="a4bdf834179746cb415bef6fbfefe9c34" name="a4bdf834179746cb415bef6fbfefe9c34"></a>
@@ -304,6 +328,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The id of the instance folder; empty while the store is not open. </p>
 
 </div>
 </div>
@@ -322,6 +348,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True while the store holds the lock of its instance folder. </p>
+
 </div>
 </div>
 <a id="a15fe37a2bbd99ce5624da036d81dff22" name="a15fe37a2bbd99ce5624da036d81dff22"></a>
@@ -338,6 +366,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Creates the instance folder with a new random id and locks it. Ok when already open. </p>
 
 </div>
 </div>
@@ -385,6 +415,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Lists the copies that other applications left behind, newest first. A folder whose lock is held belongs to a running application and is skipped. The scan removes what is not usable: stray files of an interrupted write, older generations, folders without a complete bundle, and candidates beyond kMaxKeptInstances. </p>
 
 </div>
 </div>
@@ -406,6 +437,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes the scene as a new generation next to the previous one, then records it and removes the previous one. A failed write leaves the previous copy. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -434,6 +466,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>At most this many candidates are kept; scan removes the oldest beyond it. </p>
 
 </div>
 </div>

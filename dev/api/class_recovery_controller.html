@@ -128,6 +128,7 @@ Collaboration diagram for RecoveryController:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a409ff80419880e6a1ba651a2d16e3469" id="r_a409ff80419880e6a1ba651a2d16e3469"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a409ff80419880e6a1ba651a2d16e3469">written</a> (quint64 revision)</td></tr>
+<tr class="memdesc:a409ff80419880e6a1ba651a2d16e3469"><td class="mdescLeft">&#160;</td><td class="mdescRight">A copy of the scene at this revision is on disk. Not emitted for a write that was cancelled.  <br /></td></tr>
 <tr class="memitem:acb53660c0df9374cc8409f53e9684c4c" id="r_acb53660c0df9374cc8409f53e9684c4c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb53660c0df9374cc8409f53e9684c4c">writeFailed</a> (const QString &amp;message)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -138,20 +139,35 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7b18d49660fead939347cc7659793714" id="r_a7b18d49660fead939347cc7659793714"><td class="memItemLeft"><a class="el" href="class_recovery_controller.html">RecoveryController</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a7b18d49660fead939347cc7659793714">operator=</a> (const <a class="el" href="class_recovery_controller.html">RecoveryController</a> &amp;)=delete</td></tr>
 <tr class="memitem:abc232b70451ca88b8dcf4d5129a01125" id="r_abc232b70451ca88b8dcf4d5129a01125"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abc232b70451ca88b8dcf4d5129a01125">noteEdited</a> (std::shared_ptr&lt; const <a class="el" href="struct_scene_model.html">SceneModel</a> &gt; scene, const <a class="el" href="struct_recovery_source.html">RecoverySource</a> &amp;source, quint64 revision)</td></tr>
 <tr class="memitem:a26f383d8badd77bbe5ddc4134d837907" id="r_a26f383d8badd77bbe5ddc4134d837907"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a26f383d8badd77bbe5ddc4134d837907">noteClean</a> ()</td></tr>
+<tr class="memdesc:a26f383d8badd77bbe5ddc4134d837907"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene is back at its saved state (Undo to the clean point). Removes the copy.  <br /></td></tr>
 <tr class="memitem:a3004744109d7ff44ef63448b4012f669" id="r_a3004744109d7ff44ef63448b4012f669"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3004744109d7ff44ef63448b4012f669">noteSaved</a> ()</td></tr>
+<tr class="memdesc:a3004744109d7ff44ef63448b4012f669"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene was saved. Removes the copy.  <br /></td></tr>
 <tr class="memitem:a1d4a150a4e58ba80a0991975b83fcca6" id="r_a1d4a150a4e58ba80a0991975b83fcca6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1d4a150a4e58ba80a0991975b83fcca6">noteReplaced</a> ()</td></tr>
+<tr class="memdesc:a1d4a150a4e58ba80a0991975b83fcca6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Another scene took its place, or the scene was discarded. Removes the copy.  <br /></td></tr>
 <tr class="memitem:a180f0e0fb0d14f1fe2813545d9da216c" id="r_a180f0e0fb0d14f1fe2813545d9da216c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a180f0e0fb0d14f1fe2813545d9da216c">shutdown</a> ()</td></tr>
 <tr class="memitem:ac7cb5b861dff8f8ec1bdc4b663f3a4dc" id="r_ac7cb5b861dff8f8ec1bdc4b663f3a4dc"><td class="memItemLeft"><a class="el" href="struct_recovery_scan.html">RecoveryScan</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac7cb5b861dff8f8ec1bdc4b663f3a4dc">scan</a> ()</td></tr>
+<tr class="memdesc:ac7cb5b861dff8f8ec1bdc4b663f3a4dc"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_recovery_store.html#a14432615736100b0a23838598e1f2394">RecoveryStore::scan</a>, serialised against the worker. Waits for a job that is running.  <br /></td></tr>
 <tr class="memitem:aa9afba4edf3b26cb988aab453de18fef" id="r_aa9afba4edf3b26cb988aab453de18fef"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa9afba4edf3b26cb988aab453de18fef">adopt</a> (const <a class="el" href="struct_recovery_candidate.html">RecoveryCandidate</a> &amp;candidate)</td></tr>
 <tr class="memitem:a50aac94a116e2090f66811ddd9a3ba21" id="r_a50aac94a116e2090f66811ddd9a3ba21"><td class="memItemLeft"><a class="el" href="struct_recovery_result.html">RecoveryResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a50aac94a116e2090f66811ddd9a3ba21">discard</a> (const <a class="el" href="struct_recovery_candidate.html">RecoveryCandidate</a> &amp;candidate)</td></tr>
+<tr class="memdesc:a50aac94a116e2090f66811ddd9a3ba21"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_recovery_store.html#a1ae0f306a7490c1659c40cd38c3c59fb" title="Removes the folder of a candidate in any state. Fails when the candidate is in use.">RecoveryStore::discard</a>, serialised against the worker. Waits for a job that is running.  <br /></td></tr>
 <tr class="memitem:a9c0279526af4824838440c99b2bf1d29" id="r_a9c0279526af4824838440c99b2bf1d29"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9c0279526af4824838440c99b2bf1d29">isIdle</a> () const</td></tr>
+<tr class="memdesc:a9c0279526af4824838440c99b2bf1d29"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when no edit waits for the timer and no job is running or waiting.  <br /></td></tr>
 <tr class="memitem:ac90d2f6ff7c14a666013e3ae9ac613cb" id="r_ac90d2f6ff7c14a666013e3ae9ac613cb"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac90d2f6ff7c14a666013e3ae9ac613cb">intervalMs</a> () const</td></tr>
+<tr class="memdesc:ac90d2f6ff7c14a666013e3ae9ac613cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interval of the write timer in milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a1e36f6e638f5b3787a70d77f2654f635" id="r_a1e36f6e638f5b3787a70d77f2654f635"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a1e36f6e638f5b3787a70d77f2654f635">kDefaultIntervalMs</a> = 30000</td></tr>
+<tr class="memdesc:a1e36f6e638f5b3787a70d77f2654f635"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interval of the write timer in milliseconds when QEGTRAIN_RECOVERY_INTERVAL_MS does not set one.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Writes a recovery copy of a scene while the scene has unsaved edits, through a <a class="el" href="class_recovery_store.html">RecoveryStore</a>.</p>
+<p>The first edit after a write arms a single-shot timer. When it fires, the newest scene is written, unless that revision is already on disk. Later edits do not move the timer, so a copy is never more than one interval behind the editing. The interval is 30 seconds, or the value in QEGTRAIN_RECOVERY_INTERVAL_MS when that is a positive whole number of milliseconds.</p>
+<p>The write runs on one worker thread, because saving a bundle takes tens of milliseconds for the largest committed scene and longer when the disk or a virus scanner is slow. One job runs at a time. Edits that arrive while a job runs are merged: when it ends, the newest scene is written once. The scene handed over is never modified, so the editing thread needs no lock.</p>
+<p>Saving, replacing the scene and returning to the clean state each bump an epoch and remove the copy. A write that is under way cannot be stopped, but its result is dropped and the removal runs after it, so a late write never brings back a copy that a save removed. A write that has not started when the epoch changes does not run.</p>
+<p>A failure is reported with writeFailed and never stops the editing: nothing here blocks the caller except scan, adopt, discard and shutdown, which wait for a job that is running. No function throws, prints or logs.</p>
+<p>All functions belong to the thread that owns the object, which runs the event loop. Signals are emitted there. The controller holds the store alone: the store is used by one thread at a time and has no static state. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="add7e9c8e974ca43a271fb1a66d77e950" name="add7e9c8e974ca43a271fb1a66d77e950"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#add7e9c8e974ca43a271fb1a66d77e950">&#9670;&#160;</a></span>RecoveryController() <span class="overload">[1/2]</span></h2>
 
@@ -183,6 +199,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>root is the folder of the store. Nothing is created until the first copy is written. The destructor stops the worker and keeps the copy on disk, as a crash would. testHook is called on the worker thread at the points of <a class="el" href="_recovery_controller_8h.html#a4b0c2e702090e8412e94d1324127c836" title="A point of a job where a test can stop the worker thread. Nothing else uses a hook.">RecoveryHookPoint</a>, and may be null. </p>
 
 </div>
 </div>
@@ -256,6 +273,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes over the copy of a candidate as the copy of the scene that is now open. It cancels the edits and the removal that wait, like a replacement, but keeps the copy it took over, so a replacement of the previous scene belongs before it. When the store refuses the copy, the copy of the previous scene is still removed, as after a replacement. Refused after shutdown. </p>
 
 </div>
 </div>
@@ -274,6 +292,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_recovery_store.html#a1ae0f306a7490c1659c40cd38c3c59fb" title="Removes the folder of a candidate in any state. Fails when the candidate is in use.">RecoveryStore::discard</a>, serialised against the worker. Waits for a job that is running. </p>
+
 </div>
 </div>
 <a id="ac90d2f6ff7c14a666013e3ae9ac613cb" name="ac90d2f6ff7c14a666013e3ae9ac613cb"></a>
@@ -290,6 +310,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Interval of the write timer in milliseconds. </p>
 
 </div>
 </div>
@@ -308,6 +330,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True when no edit waits for the timer and no job is running or waiting. </p>
+
 </div>
 </div>
 <a id="a26f383d8badd77bbe5ddc4134d837907" name="a26f383d8badd77bbe5ddc4134d837907"></a>
@@ -324,6 +348,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scene is back at its saved state (Undo to the clean point). Removes the copy. </p>
 
 </div>
 </div>
@@ -350,6 +376,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The scene has unsaved edits. scene must not be changed afterwards; a null scene is ignored. revision identifies the state of the scene, and a revision that is already on disk is not written again. The newest call replaces the ones that still wait. Ignored after shutdown. </p>
 
 </div>
 </div>
@@ -368,6 +395,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Another scene took its place, or the scene was discarded. Removes the copy. </p>
+
 </div>
 </div>
 <a id="a3004744109d7ff44ef63448b4012f669" name="a3004744109d7ff44ef63448b4012f669"></a>
@@ -384,6 +413,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scene was saved. Removes the copy. </p>
 
 </div>
 </div>
@@ -432,6 +463,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_recovery_store.html#a14432615736100b0a23838598e1f2394">RecoveryStore::scan</a>, serialised against the worker. Waits for a job that is running. </p>
+
 </div>
 </div>
 <a id="a180f0e0fb0d14f1fe2813545d9da216c" name="a180f0e0fb0d14f1fe2813545d9da216c"></a>
@@ -448,6 +481,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Stops the worker after the job that is running, removes the instance folder and releases the lock. Nothing is written afterwards. Ok to call twice. </p>
 
 </div>
 </div>
@@ -473,6 +507,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A write or a removal failed. The text is a fixed sentence without a path. It is emitted for the first failure of a run; any success ends the run. </p>
 
 </div>
 </div>
@@ -499,6 +534,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>A copy of the scene at this revision is on disk. Not emitted for a write that was cancelled. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -521,6 +558,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Interval of the write timer in milliseconds when QEGTRAIN_RECOVERY_INTERVAL_MS does not set one. </p>
 
 </div>
 </div>

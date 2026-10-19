@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_recover
 </div><!--header-->
 <div class="contents">
 
+<p>The outcome of a store operation.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_recovery_store_8h_source.html">recovery/RecoveryStore.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -120,8 +123,11 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a9998c5ddbe86951b42eff9d38ba50780" id="r_a9998c5ddbe86951b42eff9d38ba50780"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9998c5ddbe86951b42eff9d38ba50780">ok</a> = false</td></tr>
 <tr class="memitem:ade59a8ff21ce9e0f0572487e52b199fc" id="r_ade59a8ff21ce9e0f0572487e52b199fc"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ade59a8ff21ce9e0f0572487e52b199fc">error</a></td></tr>
 <tr class="memitem:a6dc586d2c9b2e490dacc6b97f027ae78" id="r_a6dc586d2c9b2e490dacc6b97f027ae78"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a6dc586d2c9b2e490dacc6b97f027ae78">bundlePath</a></td></tr>
+<tr class="memdesc:a6dc586d2c9b2e490dacc6b97f027ae78"><td class="mdescLeft">&#160;</td><td class="mdescRight">write and adopt: the bundle that now holds the copy. Empty otherwise.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The outcome of a store operation. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a6dc586d2c9b2e490dacc6b97f027ae78" name="a6dc586d2c9b2e490dacc6b97f027ae78"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6dc586d2c9b2e490dacc6b97f027ae78">&#9670;&#160;</a></span>bundlePath</h2>
 
@@ -133,6 +139,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>write and adopt: the bundle that now holds the copy. Empty otherwise. </p>
 
 </div>
 </div>
@@ -147,6 +155,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Empty when ok. One sentence for the user, without a path, a diagnostic code or scene content. A copy that cannot be written because an entry of the case is incomplete says which entry. </p>
 
 </div>
 </div>
@@ -161,6 +170,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when the operation succeeded. </p>
 
 </div>
 </div>

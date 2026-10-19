@@ -133,8 +133,11 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:RecoverySource" id="r_RecoverySource"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_recovery_source.html">RecoverySource</a></td></tr>
 <tr class="memitem:RecoveryCandidate" id="r_RecoveryCandidate"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_recovery_candidate.html">RecoveryCandidate</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A recovery copy that an application left behind.  <a href="struct_recovery_candidate.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RecoveryResult" id="r_RecoveryResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_recovery_result.html">RecoveryResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outcome of a store operation.  <a href="struct_recovery_result.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RecoveryScan" id="r_RecoveryScan"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_recovery_scan.html">RecoveryScan</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of <a class="el" href="class_recovery_store.html#a14432615736100b0a23838598e1f2394">RecoveryStore::scan</a>.  <a href="struct_recovery_scan.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RecoveryStore" id="r_RecoveryStore"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_recovery_store.html">RecoveryStore</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
@@ -143,6 +146,7 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a1a024835c6bb67380adee3df155f8df5a94c51f19c37f96ed231f5a0ae512b2a8">Bundle</a>
 , <a class="el" href="#a1a024835c6bb67380adee3df155f8df5ae73cda510e8bb947f7e61089e5581494">Directory</a>
  }</td></tr>
+<tr class="memdesc:a1a024835c6bb67380adee3df155f8df5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where a scene came from. A recovery copy never changes the file or folder named here.  <a href="#a1a024835c6bb67380adee3df155f8df5">More...</a><br /></td></tr>
 <tr class="memitem:af480b1ede1fd36a7990eaded55d1daa4" id="r_af480b1ede1fd36a7990eaded55d1daa4"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#af480b1ede1fd36a7990eaded55d1daa4">RecoverySourceStatus</a> { <br />
 &#160;&#160;<a class="el" href="#af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c">NotApplicable</a>
 , <a class="el" href="#af480b1ede1fd36a7990eaded55d1daa4a88183b946cc5f0e8c96b2e66e1c74a7e">Unknown</a>
@@ -153,10 +157,12 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#af480b1ede1fd36a7990eaded55d1daa4a2aee0be2678ee90fd327cc186826438e">Missing</a>
 <br />
  }</td></tr>
+<tr class="memdesc:af480b1ede1fd36a7990eaded55d1daa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">How the source compares with the copy.  <a href="#af480b1ede1fd36a7990eaded55d1daa4">More...</a><br /></td></tr>
 <tr class="memitem:a7cfcac1adb88c96a29cd956701508400" id="r_a7cfcac1adb88c96a29cd956701508400"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a7cfcac1adb88c96a29cd956701508400">RecoveryCandidateState</a> { <a class="el" href="#a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149">Openable</a>
 , <a class="el" href="#a7cfcac1adb88c96a29cd956701508400a5d2ccb29510a262cdbcd5278361c862b">NewerRecordVersion</a>
 , <a class="el" href="#a7cfcac1adb88c96a29cd956701508400a487574203cc3954f5f2f06ff28b331b7">OtherSceneVersion</a>
  }</td></tr>
+<tr class="memdesc:a7cfcac1adb88c96a29cd956701508400"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether this version can open a recovery copy.  <a href="#a7cfcac1adb88c96a29cd956701508400">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -182,10 +188,15 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether this version can open a recovery copy. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149" name="a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149"></a>Openable&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a7cfcac1adb88c96a29cd956701508400a5d2ccb29510a262cdbcd5278361c862b" name="a7cfcac1adb88c96a29cd956701508400a5d2ccb29510a262cdbcd5278361c862b"></a>NewerRecordVersion&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a7cfcac1adb88c96a29cd956701508400a487574203cc3954f5f2f06ff28b331b7" name="a7cfcac1adb88c96a29cd956701508400a487574203cc3954f5f2f06ff28b331b7"></a>OtherSceneVersion&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149" name="a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149"></a>Openable&#160;</td><td class="fielddoc"><p>The bundle is of the current scene version. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a7cfcac1adb88c96a29cd956701508400a5d2ccb29510a262cdbcd5278361c862b" name="a7cfcac1adb88c96a29cd956701508400a5d2ccb29510a262cdbcd5278361c862b"></a>NewerRecordVersion&#160;</td><td class="fielddoc"><p>The record has a layout this version does not know. Nothing is changed. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a7cfcac1adb88c96a29cd956701508400a487574203cc3954f5f2f06ff28b331b7" name="a7cfcac1adb88c96a29cd956701508400a487574203cc3954f5f2f06ff28b331b7"></a>OtherSceneVersion&#160;</td><td class="fielddoc"><p>The bundle is valid but not of the current scene version. </p>
+</td></tr>
 </table>
 
 </div>
@@ -209,10 +220,15 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Where a scene came from. A recovery copy never changes the file or folder named here. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1a024835c6bb67380adee3df155f8df5a911af7aa209e00b49f3d6fd2afa92564" name="a1a024835c6bb67380adee3df155f8df5a911af7aa209e00b49f3d6fd2afa92564"></a>Untitled&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1a024835c6bb67380adee3df155f8df5a94c51f19c37f96ed231f5a0ae512b2a8" name="a1a024835c6bb67380adee3df155f8df5a94c51f19c37f96ed231f5a0ae512b2a8"></a>Bundle&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1a024835c6bb67380adee3df155f8df5ae73cda510e8bb947f7e61089e5581494" name="a1a024835c6bb67380adee3df155f8df5ae73cda510e8bb947f7e61089e5581494"></a>Directory&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1a024835c6bb67380adee3df155f8df5a911af7aa209e00b49f3d6fd2afa92564" name="a1a024835c6bb67380adee3df155f8df5a911af7aa209e00b49f3d6fd2afa92564"></a>Untitled&#160;</td><td class="fielddoc"><p>A new scene that was never saved. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1a024835c6bb67380adee3df155f8df5a94c51f19c37f96ed231f5a0ae512b2a8" name="a1a024835c6bb67380adee3df155f8df5a94c51f19c37f96ed231f5a0ae512b2a8"></a>Bundle&#160;</td><td class="fielddoc"><p>A scene bundle file. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1a024835c6bb67380adee3df155f8df5ae73cda510e8bb947f7e61089e5581494" name="a1a024835c6bb67380adee3df155f8df5ae73cda510e8bb947f7e61089e5581494"></a>Directory&#160;</td><td class="fielddoc"><p>A scene directory with a scene.json. </p>
+</td></tr>
 </table>
 
 </div>
@@ -236,13 +252,21 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>How the source compares with the copy. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c" name="af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c"></a>NotApplicable&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a88183b946cc5f0e8c96b2e66e1c74a7e" name="af480b1ede1fd36a7990eaded55d1daa4a88183b946cc5f0e8c96b2e66e1c74a7e"></a>Unknown&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a5ff3c6978f87d96febfdc8ed3899a97e" name="af480b1ede1fd36a7990eaded55d1daa4a5ff3c6978f87d96febfdc8ed3899a97e"></a>Unchanged&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a820dbd2b8f606aff866c0bbfb6b737c1" name="af480b1ede1fd36a7990eaded55d1daa4a820dbd2b8f606aff866c0bbfb6b737c1"></a>Changed&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a28ce593df5fdab60694ac2db838fae5a" name="af480b1ede1fd36a7990eaded55d1daa4a28ce593df5fdab60694ac2db838fae5a"></a>NewerThanCopy&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a2aee0be2678ee90fd327cc186826438e" name="af480b1ede1fd36a7990eaded55d1daa4a2aee0be2678ee90fd327cc186826438e"></a>Missing&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c" name="af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c"></a>NotApplicable&#160;</td><td class="fielddoc"><p>Untitled scene, or no path recorded. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a88183b946cc5f0e8c96b2e66e1c74a7e" name="af480b1ede1fd36a7990eaded55d1daa4a88183b946cc5f0e8c96b2e66e1c74a7e"></a>Unknown&#160;</td><td class="fielddoc"><p>The recorded size or time is missing. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a5ff3c6978f87d96febfdc8ed3899a97e" name="af480b1ede1fd36a7990eaded55d1daa4a5ff3c6978f87d96febfdc8ed3899a97e"></a>Unchanged&#160;</td><td class="fielddoc"><p>Size and modification time equal the recorded values. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a820dbd2b8f606aff866c0bbfb6b737c1" name="af480b1ede1fd36a7990eaded55d1daa4a820dbd2b8f606aff866c0bbfb6b737c1"></a>Changed&#160;</td><td class="fielddoc"><p>Size or modification time differ from the recorded values. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a28ce593df5fdab60694ac2db838fae5a" name="af480b1ede1fd36a7990eaded55d1daa4a28ce593df5fdab60694ac2db838fae5a"></a>NewerThanCopy&#160;</td><td class="fielddoc"><p>Modified after the copy was written. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af480b1ede1fd36a7990eaded55d1daa4a2aee0be2678ee90fd327cc186826438e" name="af480b1ede1fd36a7990eaded55d1daa4a2aee0be2678ee90fd327cc186826438e"></a>Missing&#160;</td><td class="fielddoc"><p>The bundle file, or scene.json of the directory, is not there. </p>
+</td></tr>
 </table>
 
 </div>
@@ -266,6 +290,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Compares the source with the values recorded when the copy was written. writtenAt is the time (UTC) of the copy; when it is invalid, NewerThanCopy is never returned. Reads metadata only. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

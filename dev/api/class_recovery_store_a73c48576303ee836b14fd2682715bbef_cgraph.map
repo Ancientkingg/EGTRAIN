@@ -2,19 +2,19 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,832,196,857"/>
 <area shape="rect" id="Node000002" href="$class_recovery_store.html#a0810755024c2fe95721038b9699174c7" title=" " alt="" coords="273,449,435,475"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,830,334,485,339,488,113,833"/>
-<area shape="rect" id="Node000005" href="$class_recovery_store.html#a20f7204f481cb56f828c30e3e060925b" title=" " alt="" coords="275,659,433,684"/>
+<area shape="rect" id="Node000005" href="$class_recovery_store.html#a20f7204f481cb56f828c30e3e060925b" title="Removes the copy and the record. The folder and the lock stay." alt="" coords="275,659,433,684"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="108,830,159,764,198,725,243,693,261,685,263,689,245,698,201,729,163,768,112,833"/>
-<area shape="rect" id="Node000006" href="$class_recovery_store.html#af978c63e596761d554bd4b4ad0e04645" title=" " alt="" coords="275,708,433,733"/>
+<area shape="rect" id="Node000006" href="$class_recovery_store.html#af978c63e596761d554bd4b4ad0e04645" title="Removes the instance folder and releases the lock. Ok when already closed." alt="" coords="275,708,433,733"/>
 <area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="114,830,168,787,204,763,243,742,263,735,265,740,245,747,207,767,171,791,118,834"/>
-<area shape="rect" id="Node000007" href="$class_recovery_store.html#a1ae0f306a7490c1659c40cd38c3c59fb" title=" " alt="" coords="268,757,440,783"/>
+<area shape="rect" id="Node000007" href="$class_recovery_store.html#a1ae0f306a7490c1659c40cd38c3c59fb" title="Removes the folder of a candidate in any state. Fails when the candidate is in use." alt="" coords="268,757,440,783"/>
 <area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="133,829,243,791,275,783,276,788,245,797,135,834"/>
-<area shape="rect" id="Node000008" href="$class_recovery_store.html#a4bdf834179746cb415bef6fbfefe9c34" title=" " alt="" coords="258,807,450,832"/>
+<area shape="rect" id="Node000008" href="$class_recovery_store.html#a4bdf834179746cb415bef6fbfefe9c34" title="The id of the instance folder; empty while the store is not open." alt="" coords="258,807,450,832"/>
 <area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="196,833,244,828,245,833,196,838"/>
-<area shape="rect" id="Node000009" href="$class_recovery_store.html#a3b4f8f098d72af3ad21ddf8d0a694963" title=" " alt="" coords="269,856,439,881"/>
+<area shape="rect" id="Node000009" href="$class_recovery_store.html#a3b4f8f098d72af3ad21ddf8d0a694963" title="True while the store holds the lock of its instance folder." alt="" coords="269,856,439,881"/>
 <area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="196,851,255,857,254,862,196,856"/>
-<area shape="rect" id="Node000010" href="$class_recovery_store.html#a15fe37a2bbd99ce5624da036d81dff22" title=" " alt="" coords="275,905,433,931"/>
+<area shape="rect" id="Node000010" href="$class_recovery_store.html#a15fe37a2bbd99ce5624da036d81dff22" title="Creates the instance folder with a new random id and locks it. Ok when already open." alt="" coords="275,905,433,931"/>
 <area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="138,855,245,890,281,900,280,905,243,895,136,860"/>
-<area shape="rect" id="Node000011" href="$class_recovery_store.html#a9a12849494955131dc4010497628b7ef" title=" " alt="" coords="244,955,464,980"/>
+<area shape="rect" id="Node000011" href="$class_recovery_store.html#a9a12849494955131dc4010497628b7ef" title="root is the folder that holds the instance folders. Nothing is created until open()." alt="" coords="244,955,464,980"/>
 <area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="118,855,171,898,207,921,245,941,265,948,263,953,243,946,204,926,168,902,115,859"/>
 <area shape="rect" id="Node000012" href="$class_recovery_store.html#a14432615736100b0a23838598e1f2394" title=" " alt="" coords="277,1004,431,1029"/>
 <area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="112,856,163,921,201,959,245,990,264,999,262,1004,243,995,198,963,159,925,108,859"/>

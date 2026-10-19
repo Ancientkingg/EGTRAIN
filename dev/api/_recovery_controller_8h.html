@@ -146,6 +146,7 @@ Enumerations</h2></td></tr>
 <tr class="memitem:a4b0c2e702090e8412e94d1324127c836" id="r_a4b0c2e702090e8412e94d1324127c836"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a4b0c2e702090e8412e94d1324127c836">RecoveryHookPoint</a> { <a class="el" href="#a4b0c2e702090e8412e94d1324127c836a623ce5f57789979d02ba3241e79d3aec">JobStart</a>
 , <a class="el" href="#a4b0c2e702090e8412e94d1324127c836a77331d68534b431374e940e7c32b1301">BeforeWrite</a>
  }</td></tr>
+<tr class="memdesc:a4b0c2e702090e8412e94d1324127c836"><td class="mdescLeft">&#160;</td><td class="mdescRight">A point of a job where a test can stop the worker thread. Nothing else uses a hook.  <a href="#a4b0c2e702090e8412e94d1324127c836">More...</a><br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a4b0c2e702090e8412e94d1324127c836" name="a4b0c2e702090e8412e94d1324127c836"></a>
@@ -167,9 +168,13 @@ Enumerations</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A point of a job where a test can stop the worker thread. Nothing else uses a hook. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a4b0c2e702090e8412e94d1324127c836a623ce5f57789979d02ba3241e79d3aec" name="a4b0c2e702090e8412e94d1324127c836a623ce5f57789979d02ba3241e79d3aec"></a>JobStart&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a4b0c2e702090e8412e94d1324127c836a77331d68534b431374e940e7c32b1301" name="a4b0c2e702090e8412e94d1324127c836a77331d68534b431374e940e7c32b1301"></a>BeforeWrite&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a4b0c2e702090e8412e94d1324127c836a623ce5f57789979d02ba3241e79d3aec" name="a4b0c2e702090e8412e94d1324127c836a623ce5f57789979d02ba3241e79d3aec"></a>JobStart&#160;</td><td class="fielddoc"><p>The worker took the job. It has not locked the store or checked for cancellation. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a4b0c2e702090e8412e94d1324127c836a77331d68534b431374e940e7c32b1301" name="a4b0c2e702090e8412e94d1324127c836a77331d68534b431374e940e7c32b1301"></a>BeforeWrite&#160;</td><td class="fielddoc"><p>The job is current and the store is open and locked. The scene is not written yet. </p>
+</td></tr>
 </table>
 
 </div>

@@ -38,7 +38,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_recovery_store.html#a20f7204f481cb56f828c30e3e060925b" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_recovery_store.html#a20f7204f481cb56f828c30e3e060925b" target="_top" xlink:title="Removes the copy and the record. The folder and the lock stay.">
 <polygon fill="white" stroke="#666666" points="320.5,-869 202.5,-869 202.5,-850 320.5,-850 320.5,-869"/>
 <text text-anchor="middle" x="261.5" y="-857" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::clear</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_recovery_store.html#af978c63e596761d554bd4b4ad0e04645" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_recovery_store.html#af978c63e596761d554bd4b4ad0e04645" target="_top" xlink:title="Removes the instance folder and releases the lock. Ok when already closed.">
 <polygon fill="white" stroke="#666666" points="321,-832 202,-832 202,-813 321,-813 321,-832"/>
 <text text-anchor="middle" x="261.5" y="-820" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::close</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_recovery_store.html#a1ae0f306a7490c1659c40cd38c3c59fb" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_recovery_store.html#a1ae0f306a7490c1659c40cd38c3c59fb" target="_top" xlink:title="Removes the folder of a candidate in any state. Fails when the candidate is in use.">
 <polygon fill="white" stroke="#666666" points="326,-795 197,-795 197,-776 326,-776 326,-795"/>
 <text text-anchor="middle" x="261.5" y="-783" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::discard</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_recovery_store.html#a4bdf834179746cb415bef6fbfefe9c34" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_recovery_store.html#a4bdf834179746cb415bef6fbfefe9c34" target="_top" xlink:title="The id of the instance folder; empty while the store is not open.">
 <polygon fill="white" stroke="#666666" points="333.5,-758 189.5,-758 189.5,-739 333.5,-739 333.5,-758"/>
 <text text-anchor="middle" x="261.5" y="-746" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::instanceId</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_recovery_store.html#a3b4f8f098d72af3ad21ddf8d0a694963" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_recovery_store.html#a3b4f8f098d72af3ad21ddf8d0a694963" target="_top" xlink:title="True while the store holds the lock of its instance folder.">
 <polygon fill="white" stroke="#666666" points="325.5,-721 197.5,-721 197.5,-702 325.5,-702 325.5,-721"/>
 <text text-anchor="middle" x="261.5" y="-709" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::isOpen</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_recovery_store.html#a15fe37a2bbd99ce5624da036d81dff22" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_recovery_store.html#a15fe37a2bbd99ce5624da036d81dff22" target="_top" xlink:title="Creates the instance folder with a new random id and locks it. Ok when already open.">
 <polygon fill="white" stroke="#666666" points="320.5,-684 202.5,-684 202.5,-665 320.5,-665 320.5,-684"/>
 <text text-anchor="middle" x="261.5" y="-672" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::open</text>
 </a>
@@ -146,7 +146,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_recovery_store.html#a9a12849494955131dc4010497628b7ef" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_recovery_store.html#a9a12849494955131dc4010497628b7ef" target="_top" xlink:title="root is the folder that holds the instance folders. Nothing is created until open().">
 <polygon fill="white" stroke="#666666" points="344,-647 179,-647 179,-628 344,-628 344,-647"/>
 <text text-anchor="middle" x="261.5" y="-635" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::RecoveryStore</text>
 </a>

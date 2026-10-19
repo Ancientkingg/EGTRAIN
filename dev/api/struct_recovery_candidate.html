@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_recover
 </div><!--header-->
 <div class="contents">
 
+<p>A recovery copy that an application left behind.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_recovery_store_8h_source.html">recovery/RecoveryStore.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for RecoveryCandidate:</div>
@@ -123,13 +126,18 @@ Collaboration diagram for RecoveryCandidate:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0d917596aa0f8496ea18c8bc4b2a3ae7" id="r_a0d917596aa0f8496ea18c8bc4b2a3ae7"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a0d917596aa0f8496ea18c8bc4b2a3ae7">instanceId</a></td></tr>
+<tr class="memdesc:a0d917596aa0f8496ea18c8bc4b2a3ae7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the application that wrote the copy, which is also the name of its folder.  <br /></td></tr>
 <tr class="memitem:a27cb262341c99306959a40dc5c8f23d7" id="r_a27cb262341c99306959a40dc5c8f23d7"><td class="memItemLeft"><a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400">RecoveryCandidateState</a>&#160;</td><td class="memItemRight"><a class="el" href="#a27cb262341c99306959a40dc5c8f23d7">state</a> = <a class="el" href="_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149">RecoveryCandidateState::Openable</a></td></tr>
 <tr class="memitem:aa712bb5af433296b765c8af6b583c2ec" id="r_aa712bb5af433296b765c8af6b583c2ec"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa712bb5af433296b765c8af6b583c2ec">bundlePath</a></td></tr>
+<tr class="memdesc:aa712bb5af433296b765c8af6b583c2ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene bundle of the copy. Empty only for NewerRecordVersion when no readable bundle is found.  <br /></td></tr>
 <tr class="memitem:ae5313ac778efad53b62e57fc5bdab8ab" id="r_ae5313ac778efad53b62e57fc5bdab8ab"><td class="memItemLeft"><a class="el" href="struct_recovery_source.html">RecoverySource</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae5313ac778efad53b62e57fc5bdab8ab">source</a></td></tr>
 <tr class="memitem:a46e71b98b741f4fa510579cbb8932195" id="r_a46e71b98b741f4fa510579cbb8932195"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#a46e71b98b741f4fa510579cbb8932195">writtenAt</a></td></tr>
 <tr class="memitem:a8e4b9c61f690a55926ae0a7980112c91" id="r_a8e4b9c61f690a55926ae0a7980112c91"><td class="memItemLeft"><a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4">RecoverySourceStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8e4b9c61f690a55926ae0a7980112c91">sourceStatus</a> = <a class="el" href="_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4a7599922e28b6009660de5e67f8ce210c">RecoverySourceStatus::NotApplicable</a></td></tr>
+<tr class="memdesc:a8e4b9c61f690a55926ae0a7980112c91"><td class="mdescLeft">&#160;</td><td class="mdescRight">The source compared with the copy at scan time.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A recovery copy that an application left behind. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aa712bb5af433296b765c8af6b583c2ec" name="aa712bb5af433296b765c8af6b583c2ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa712bb5af433296b765c8af6b583c2ec">&#9670;&#160;</a></span>bundlePath</h2>
 
@@ -141,6 +149,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scene bundle of the copy. Empty only for NewerRecordVersion when no readable bundle is found. </p>
 
 </div>
 </div>
@@ -156,6 +166,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Id of the application that wrote the copy, which is also the name of its folder. </p>
+
 </div>
 </div>
 <a id="ae5313ac778efad53b62e57fc5bdab8ab" name="ae5313ac778efad53b62e57fc5bdab8ab"></a>
@@ -169,6 +181,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The source as recorded; Untitled when the record is missing or not usable. </p>
 
 </div>
 </div>
@@ -184,6 +197,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The source compared with the copy at scan time. </p>
+
 </div>
 </div>
 <a id="a27cb262341c99306959a40dc5c8f23d7" name="a27cb262341c99306959a40dc5c8f23d7"></a>
@@ -197,6 +212,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Whether this version can open the copy. </p>
 
 </div>
 </div>
@@ -211,6 +227,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Time (UTC) the copy was written. Without a usable record it is the modification time of the bundle, or of the record for NewerRecordVersion. </p>
 
 </div>
 </div>

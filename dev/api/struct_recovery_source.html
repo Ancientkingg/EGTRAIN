@@ -118,12 +118,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_recover
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a560c74be0df95952889215184d065bad" id="r_a560c74be0df95952889215184d065bad"><td class="memItemLeft"><a class="el" href="_recovery_store_8h.html#a1a024835c6bb67380adee3df155f8df5">RecoverySourceKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#a560c74be0df95952889215184d065bad">kind</a> = <a class="el" href="_recovery_store_8h.html#a1a024835c6bb67380adee3df155f8df5a911af7aa209e00b49f3d6fd2afa92564">RecoverySourceKind::Untitled</a></td></tr>
+<tr class="memdesc:a560c74be0df95952889215184d065bad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kind of file or folder that path names.  <br /></td></tr>
 <tr class="memitem:aaef56fe2cadd461c6a6607151a937f27" id="r_aaef56fe2cadd461c6a6607151a937f27"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aaef56fe2cadd461c6a6607151a937f27">path</a></td></tr>
+<tr class="memdesc:aaef56fe2cadd461c6a6607151a937f27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Absolute path the scene was loaded from or last saved to; empty for Untitled.  <br /></td></tr>
 <tr class="memitem:ad1757f2ab119513e389f1572b2b78650" id="r_ad1757f2ab119513e389f1572b2b78650"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad1757f2ab119513e389f1572b2b78650">displayName</a></td></tr>
+<tr class="memdesc:ad1757f2ab119513e389f1572b2b78650"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the scene, shown to the user; empty shows as an untitled case.  <br /></td></tr>
 <tr class="memitem:a2bc9fb7698b219ca86ea51a3b219710e" id="r_a2bc9fb7698b219ca86ea51a3b219710e"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a2bc9fb7698b219ca86ea51a3b219710e">sizeBytes</a> = -1</td></tr>
+<tr class="memdesc:a2bc9fb7698b219ca86ea51a3b219710e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size in bytes of the bundle file, or of scene.json in a directory; -1 when unknown.  <br /></td></tr>
 <tr class="memitem:a91f5483f32f816e0632fd0f8e8950200" id="r_a91f5483f32f816e0632fd0f8e8950200"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#a91f5483f32f816e0632fd0f8e8950200">modified</a></td></tr>
+<tr class="memdesc:a91f5483f32f816e0632fd0f8e8950200"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modification time (UTC) of the same file; invalid when unknown.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The source of a scene at the time its copy is written. A directory source is judged by its scene.json alone. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ad1757f2ab119513e389f1572b2b78650" name="ad1757f2ab119513e389f1572b2b78650"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad1757f2ab119513e389f1572b2b78650">&#9670;&#160;</a></span>displayName</h2>
 
@@ -135,6 +142,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Name of the scene, shown to the user; empty shows as an untitled case. </p>
 
 </div>
 </div>
@@ -150,6 +159,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Kind of file or folder that path names. </p>
+
 </div>
 </div>
 <a id="a91f5483f32f816e0632fd0f8e8950200" name="a91f5483f32f816e0632fd0f8e8950200"></a>
@@ -163,6 +174,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Modification time (UTC) of the same file; invalid when unknown. </p>
 
 </div>
 </div>
@@ -178,6 +191,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Absolute path the scene was loaded from or last saved to; empty for Untitled. </p>
+
 </div>
 </div>
 <a id="a2bc9fb7698b219ca86ea51a3b219710e" name="a2bc9fb7698b219ca86ea51a3b219710e"></a>
@@ -191,6 +206,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Size in bytes of the bundle file, or of scene.json in a directory; -1 when unknown. </p>
 
 </div>
 </div>

@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_recovery_store.html#a9a12849494955131dc4010497628b7ef" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_recovery_store.html#a9a12849494955131dc4010497628b7ef" target="_top" xlink:title="root is the folder that holds the instance folders. Nothing is created until open().">
 <polygon fill="white" stroke="#666666" points="366,-19 201,-19 201,0 366,0 366,-19"/>
 <text text-anchor="middle" x="283.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">RecoveryStore::RecoveryStore</text>
 </a>

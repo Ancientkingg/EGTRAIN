@@ -113,14 +113,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_recover
 </div><!--header-->
 <div class="contents">
 
+<p>The result of <a class="el" href="class_recovery_store.html#a14432615736100b0a23838598e1f2394">RecoveryStore::scan</a>.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_recovery_store_8h_source.html">recovery/RecoveryStore.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a4e2dcdeb71309cb7e66fa8f13efd4f51" id="r_a4e2dcdeb71309cb7e66fa8f13efd4f51"><td class="memItemLeft">QVector&lt; <a class="el" href="struct_recovery_candidate.html">RecoveryCandidate</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4e2dcdeb71309cb7e66fa8f13efd4f51">candidates</a></td></tr>
+<tr class="memdesc:a4e2dcdeb71309cb7e66fa8f13efd4f51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newest first.  <br /></td></tr>
 <tr class="memitem:ae20e7237336e68231c4f642bc38ed40d" id="r_ae20e7237336e68231c4f642bc38ed40d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae20e7237336e68231c4f642bc38ed40d">removedOverCap</a> = 0</td></tr>
+<tr class="memdesc:ae20e7237336e68231c4f642bc38ed40d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Candidates removed because more than kMaxKeptInstances were left.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The result of <a class="el" href="class_recovery_store.html#a14432615736100b0a23838598e1f2394">RecoveryStore::scan</a>. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a4e2dcdeb71309cb7e66fa8f13efd4f51" name="a4e2dcdeb71309cb7e66fa8f13efd4f51"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4e2dcdeb71309cb7e66fa8f13efd4f51">&#9670;&#160;</a></span>candidates</h2>
 
@@ -132,6 +139,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Newest first. </p>
 
 </div>
 </div>
@@ -146,6 +155,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Candidates removed because more than kMaxKeptInstances were left. </p>
 
 </div>
 </div>
