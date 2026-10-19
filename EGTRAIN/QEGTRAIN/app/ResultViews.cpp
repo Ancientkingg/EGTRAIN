@@ -242,7 +242,8 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 	}
 
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
-	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance", "Simulated Tractive Effort vs Distance"};
+	const char* titles[] = {ResultViewName::kSpeedDistance, ResultViewName::kSpeedTime, ResultViewName::kTimeDistance,
+		ResultViewName::kTractiveEffortDistance};
 	const QString heading = titles[mode];
 	QChart* chart = new QChart();
 	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
@@ -307,7 +308,7 @@ void ResultViews::showTimetableTable() {
 	window->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	window->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	window->setRunProvenance(run->provenance);
-	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(run->provenance)));
+	window->setWindowTitle(QString("%1 [%2]").arg(ResultViewName::kTimetable, completedRunContext(run->provenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
 }
@@ -320,7 +321,7 @@ void ResultViews::showDelayDiagram() {
 
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	QChart* chart = new QChart();
-	const QString heading = QStringLiteral("Arrival delay along journey (minutes)");
+	const QString heading = ResultViewName::kDelays;
 	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
 
 	for (const CompletedTrain& train : run->trains) {
@@ -378,8 +379,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	const RouteDiagramPath& referencePath = diagram->referencePath;
 	const double origin = referencePath.nodes.front().positionKm;
 	const double end = referencePath.nodes.back().positionKm;
-	const QString heading = timetable ? "Timetable graph: planned vs simulated stops"
-									  : "Train paths: simulated movement";
+	const QString heading = timetable ? ResultViewName::kTimetableGraph : ResultViewName::kTrainPaths;
 	const QString explanation = timetable
 		? "Stop arrivals/departures and dwell, not continuous movement."
 		: "Recorded position samples, not planned stop times.";
@@ -508,7 +508,7 @@ void ResultViews::showBlockingTimeDiagram() {
 		if (!scope.blockIds.empty())
 			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
 	}
-	chart->setTitle("Blocking time: envelopes and trajectories");
+	chart->setTitle(ResultViewName::kBlockingTime);
 
 	addBlockingTimeSeries(chart, segments, false);
 
@@ -573,7 +573,7 @@ void ResultViews::showBlockingTimeDiagram() {
 	axisY->setReverse(true);
 	axisY->setRange(diagram->timeRange.first, diagram->timeRange.second);
 
-	DiagramWindow* win = new DiagramWindow("Blocking time: envelopes and trajectories", m_window);
+	DiagramWindow* win = new DiagramWindow(ResultViewName::kBlockingTime, m_window);
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setBlockSections(extents, QString::fromStdString(referencePath.id));
@@ -586,7 +586,7 @@ void ResultViews::showBlockingTimeDiagram() {
 							 .arg(omitted)
 		+ (nothingPlotted ? QString(" No complete envelope could be projected in this scope.") : QString())
 		+ QString::fromStdString(blockSectionGeometryNote(extents));
-	win->setPresentation("Blocking time: envelopes and trajectories",
+	win->setPresentation(ResultViewName::kBlockingTime,
 		QString("%1 | %2 to %3 [%4] | Reference: %5")
 			.arg(routeScope,
 				QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), run->settings.startOffsetSeconds)),
@@ -614,7 +614,7 @@ void ResultViews::showCapacityAnalysis() {
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
 	if (scope.routeIndex < 0) {
-		QMessageBox::information(m_window, "Capacity analysis",
+		QMessageBox::information(m_window, ResultViewName::kCapacity,
 			"No retained native blocking-time section has two occurrences with a common entry block. "
 			"Run a scene with explicit signalling data; EGTRAIN does not infer a signalling system or blocking-time parameters.");
 		return;
@@ -623,7 +623,7 @@ void ResultViews::showCapacityAnalysis() {
 		&& !chooseCapacityAnalysisScope(m_window, *run, scope))
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
-		QMessageBox::information(m_window, "Capacity analysis",
+		QMessageBox::information(m_window, ResultViewName::kCapacity,
 			"No route section has two occurrences with a common entry block. Choose a common entry or analyze the route in separate sections.");
 		return;
 	}
@@ -634,7 +634,7 @@ void ResultViews::showCapacityAnalysis() {
 	}
 	const auto trains = capacityInputsFrom(*run, scope);
 	if (trains.size() < 2) {
-		QMessageBox::information(m_window, "Capacity analysis",
+		QMessageBox::information(m_window, ResultViewName::kCapacity,
 			"Fewer than two occurrences share the selected section entry. Choose a common entry or a narrower section.");
 		return;
 	}
@@ -642,12 +642,12 @@ void ResultViews::showCapacityAnalysis() {
 	const CapacityAnalysisResult result = analyzeCapacity(trains, scope.periodSeconds,
 		scope.cycleEndOccurrenceId);
 	if (!result.analyzable) {
-		QMessageBox::information(m_window, "Capacity analysis",
+		QMessageBox::information(m_window, ResultViewName::kCapacity,
 			"The selected occurrences do not form a valid shared-resource chain. Choose a common entry or analyze the route in separate sections.");
 		return;
 	}
 	if (result.cycleEndIdentity.empty() || result.cycleTime < 0.0) {
-		QMessageBox::information(m_window, "Capacity analysis",
+		QMessageBox::information(m_window, ResultViewName::kCapacity,
 			"The cycle-closing occurrence must be a selected row after the first occurrence.");
 		return;
 	}
@@ -655,7 +655,7 @@ void ResultViews::showCapacityAnalysis() {
 	const RunProvenance provenance = run->provenance;
 	QDialog* dialog = new QDialog(m_window);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
-	dialog->setWindowTitle("Capacity analysis");
+	dialog->setWindowTitle(ResultViewName::kCapacity);
 	dialog->setModal(false);
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);

@@ -17,7 +17,7 @@ The loaded network of Milano_Brescia in the main window before a run.
    - Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libharfbuzz0b` and `libfontconfig1` first.
 3. The application first shows the **Open a Case** window over the case that is already loaded; choose a case in it or continue with the loaded case, and answer any first-start question. Then open the case study with **File > Open Case Study...** and select the downloaded file.
 4. Run it with **Simulation > Run** (or **Run** on the toolbar) and confirm the **Run simulation** window.
-5. When the run ends, open the **Diagrams** menu for the results, for example **Speed / Distance (per train)...**. The result windows have **Export CSV...** and **Export PNG...**.
+5. When the run ends, open the **Diagrams** menu for the results, for example **Speed / distance**. The result windows have **Export CSV...** and **Export PNG...**.
 
 [Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) has the details. [Command-line options and scene_tool](docs/guides/command-line.md) covers headless runs, options and the output folder.
 
@@ -51,9 +51,9 @@ The installer and the portable archive hold the same application files. Choose t
 - Scene editing and validation: edit scenes, validate them before a run, and import legacy cases.
 - Results and exports: review timetable, train-path, delay, speed, trajectory and blocking-time results, and export them as CSV and PNG files.
 
-![The Speed vs Distance result window of Milano_Brescia, baseline, 47 trains, after a run](docs/images/speed-distance-milano-brescia.png)
+![The Speed / distance result window of Milano_Brescia, baseline, 47 trains, after a run](docs/images/speed-distance-milano-brescia.png)
 
-The Speed vs Distance result window of Milano_Brescia (baseline, 47 trains) after a run.
+The Speed / distance result window of Milano_Brescia (baseline, 47 trains) after a run.
 
 ## Case studies
 

@@ -26,7 +26,7 @@ Each row names the code that builds a dialog or prompt, so that a change to it f
 
 ### Custom dialogs
 
-These are `QDialog` windows. Unless a row says otherwise, the dialog is modal and `DialogLayout::install` builds it. The options dialog and the results window of the capacity analysis have the same window title, Capacity analysis.
+These are `QDialog` windows. Unless a row says otherwise, the dialog is modal and `DialogLayout::install` builds it. The options dialog and the results window of the capacity analysis have the same window title, Capacity.
 
 | Dialog | Code | Layout and labels | Default button | Checked by | Differs from the contract |
 | --- | --- | --- | --- | --- | --- |

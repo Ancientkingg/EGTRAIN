@@ -25,6 +25,22 @@ class OperationObservation;
 void saveCsvInteractive(QWidget* parent, const QString& suggestedName, const telemetry::OperationObservation& operation,
 	const std::function<std::string()>& provider, const std::function<bool(const QString&, const std::string&)>& artifactWriter);
 
+// The name of each result view. The Diagrams menu, the Run Results menu and the window titles use these names.
+namespace ResultViewName {
+inline constexpr const char* kTimetable = "Timetable";
+inline constexpr const char* kTimetableGraph = "Timetable graph";
+inline constexpr const char* kDelays = "Delays";
+inline constexpr const char* kDelayAnalysis = "Delay analysis";
+inline constexpr const char* kSpeedDistance = "Speed / distance";
+inline constexpr const char* kSpeedTime = "Speed / time";
+inline constexpr const char* kTimeDistance = "Time / distance";
+inline constexpr const char* kTractiveEffortDistance = "Tractive effort / distance";
+inline constexpr const char* kTrainPaths = "Train paths";
+inline constexpr const char* kBlockingTime = "Blocking time";
+inline constexpr const char* kCapacity = "Capacity";
+inline constexpr const char* kCapacityByArea = "Capacity by area";
+} // namespace ResultViewName
+
 // The windows that show the completed run: the per-train charts, the route and timetable diagrams, the delay charts, the
 // blocking-time diagram, and the capacity analyses. Each slot opens one window over the main window and reads the run of
 // the RunController. Without results a slot opens nothing and says so in the status bar.

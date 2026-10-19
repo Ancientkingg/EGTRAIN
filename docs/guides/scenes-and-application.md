@@ -297,11 +297,11 @@ it and what it does not cover are in
 These two **Diagrams** and **Run Results > Open result view...** actions use the
 same reference-route distance axis, but show different data:
 
-- **Timetable graph (planned vs simulated stops)** connects available planned
+- **Timetable graph** connects available planned
   and simulated station arrivals and departures in separate series and shows
   dwell at each stop as a vertical segment. Planned lines are dashed, simulated
   lines solid. Connections between stops are not continuous train movement.
-- **Train paths (simulated movement)** plots recorded position samples against
+- **Train paths** plots recorded position samples against
   simulation time. It does not plot planned timetable events.
 
 Both ask for a reference route in a list of the routes used in the run. Each row
