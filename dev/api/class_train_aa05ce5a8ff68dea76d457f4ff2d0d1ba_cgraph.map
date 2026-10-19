@@ -1,6 +1,6 @@
 <map id="Train::Train" name="Train::Train">
 <area shape="rect" id="Node000001" title="Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput." alt="" coords="5,29,97,55"/>
-<area shape="rect" id="Node000002" href="$_rolling_stock_8cpp.html#afad804c52cb5f74014fcc0162b015f89" title=" " alt="" coords="145,29,320,55"/>
+<area shape="rect" id="Node000002" href="$_rolling_stock_8cpp.html#afad804c52cb5f74014fcc0162b015f89" title="Passenger capacity of a train: 300 for the traction unit and 300 for each wagon." alt="" coords="145,29,320,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,39,132,39,132,45,98,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="203,31,196,21,200,11,212,5,233,3,258,6,268,15,265,19,255,11,233,8,214,10,204,15,201,20,207,28"/>
 </map>

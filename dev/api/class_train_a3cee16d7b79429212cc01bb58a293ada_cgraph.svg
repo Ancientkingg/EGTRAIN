@@ -328,7 +328,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
+<g id="a_Node000009"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="892,-429 738,-429 738,-410 892,-410 892,-429"/>
 <text text-anchor="middle" x="815" y="-417" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>
@@ -573,7 +573,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
+<g id="a_Node000019"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1077,-315 936,-315 936,-296 1077,-296 1077,-315"/>
 <text text-anchor="middle" x="1006.5" y="-303" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>
@@ -663,7 +663,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="_rolling_stock_8cpp.html#afad804c52cb5f74014fcc0162b015f89" target="_top" xlink:title=" ">
+<g id="a_Node000024"><a xlink:href="_rolling_stock_8cpp.html#afad804c52cb5f74014fcc0162b015f89" target="_top" xlink:title="Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.">
 <polygon fill="white" stroke="#666666" points="694,-298 563,-298 563,-279 694,-279 694,-298"/>
 <text text-anchor="middle" x="628.5" y="-286" font-family="Helvetica,sans-Serif" font-size="10.00">trainPassengerCapacity</text>
 </a>

@@ -6,7 +6,7 @@
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="127,241,151,213,185,177,229,142,279,116,317,104,356,97,434,94,513,104,589,123,660,148,723,176,816,225,814,230,721,181,658,153,588,129,512,110,434,100,356,102,318,109,281,120,232,146,189,181,155,216,131,244"/>
 <area shape="rect" id="Node000004" href="$_signalling_8cpp.html#a39da4653597bcc1f744002e9dde82277" title=" " alt="" coords="314,154,509,194"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="158,240,279,203,312,195,313,200,281,209,160,245"/>
-<area shape="rect" id="Node000005" href="$_signalling_8cpp.html#add254d8783b745234ccb86b0f6fdbfbb" title=" " alt="" coords="311,243,511,268"/>
+<area shape="rect" id="Node000005" href="$_signalling_8cpp.html#add254d8783b745234ccb86b0f6fdbfbb" title="Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how m..." alt="" coords="311,243,511,268"/>
 <area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="232,253,297,253,297,258,232,258"/>
 <area shape="rect" id="Node000007" href="$_signalling_8cpp.html#ae506dd708d608f1c83bc0e790570a987" title=" " alt="" coords="280,316,543,341"/>
 <area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="171,266,347,310,346,315,170,271"/>

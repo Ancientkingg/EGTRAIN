@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_waiting
 </div><!--header-->
 <div class="contents">
 
+<p>The passengers waiting at one platform.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_simulation_8h_source.html">simulation/Simulation.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -120,7 +123,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a94d8ee65b662aeea8639bb828ededb4e" id="r_a94d8ee65b662aeea8639bb828ededb4e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a94d8ee65b662aeea8639bb828ededb4e">count</a> = 0</td></tr>
 <tr class="memitem:a1ca65c68af09891c04a849f68451ff3f" id="r_a1ca65c68af09891c04a849f68451ff3f"><td class="memItemLeft">std::list&lt; std::pair&lt; std::string, double &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1ca65c68af09891c04a849f68451ff3f">passengers</a></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The passengers waiting at one platform. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a94d8ee65b662aeea8639bb828ededb4e" name="a94d8ee65b662aeea8639bb828ededb4e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a94d8ee65b662aeea8639bb828ededb4e">&#9670;&#160;</a></span>count</h2>
 
@@ -132,6 +137,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Number of waiting passengers. </p>
 
 </div>
 </div>
@@ -146,6 +152,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>For each waiting passenger, the passenger ID and the <a class="el" href="class_trip.html#a098b4ca511c73549c94c19d92e48d9e1">Trip::Actual_Departure_Time</a> of the trip the passenger waits for, which is when the passenger started to wait, in seconds since midnight. Sorted by that time, and in the order of the passenger list for equal times. </p>
 
 </div>
 </div>

@@ -169,15 +169,20 @@ Functions</h2></td></tr>
 <tr class="memitem:a9b6ca6d943e41ea30a95d9a41f43fee3" id="r_a9b6ca6d943e41ea30a95d9a41f43fee3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9b6ca6d943e41ea30a95d9a41f43fee3">orderListOfTrainEvents</a> (std::list&lt; <a class="el" href="class_train_event.html">TrainEvent</a> &gt; &amp;OutputList)</td></tr>
 <tr class="memitem:a2687c879086f01bea41256fa38b65274" id="r_a2687c879086f01bea41256fa38b65274"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2687c879086f01bea41256fa38b65274">UpdateInfrastructureElementStatus</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const std::list&lt; <a class="el" href="class_infra_element.html">InfraElement</a> &gt; &amp;RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const std::string &amp;TrainName)</td></tr>
 <tr class="memitem:ab9ba34d2883427068cbd5664fddad15a" id="r_ab9ba34d2883427068cbd5664fddad15a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab9ba34d2883427068cbd5664fddad15a">SortRecordedEventsForAllInfrastructureElements</a> (std::list&lt; <a class="el" href="class_infra_event.html">InfraEvent</a> &gt; &amp;ListOfAllInfraEvents)</td></tr>
+<tr class="memdesc:ab9ba34d2883427068cbd5664fddad15a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sorts the recorded events of every element with orderListOfTrainEvents.  <br /></td></tr>
 <tr class="memitem:ac4a294eef644fcf6b45b6ab8f60da05b" id="r_ac4a294eef644fcf6b45b6ab8f60da05b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac4a294eef644fcf6b45b6ab8f60da05b">generateConnectBlock</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_section.html">Section</a> BS1, <a class="el" href="class_section.html">Section</a> BS2, <a class="el" href="class_node.html">Node</a> N1, <a class="el" href="class_node.html">Node</a> N2, <a class="el" href="class_section.html">Section</a> &amp;BS3)</td></tr>
 <tr class="memitem:a88c103a7841f76b8af033572043608a4" id="r_a88c103a7841f76b8af033572043608a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a88c103a7841f76b8af033572043608a4">createBlockConn</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_node.html">Node</a> Nb, <a class="el" href="class_section.html">Section</a> BS1, int Temp_Blocks, int n_conn)</td></tr>
 <tr class="memitem:a3f6686c44b0ba10303b6b49a54520644" id="r_a3f6686c44b0ba10303b6b49a54520644"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3f6686c44b0ba10303b6b49a54520644">setAllConnections</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:a3f6686c44b0ba10303b6b49a54520644"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the section over every connection of every node of the sections in run.infra.sections (createBlockConn).  <br /></td></tr>
 <tr class="memitem:a87cd7afe7d9cd11a352f48c5ab65248b" id="r_a87cd7afe7d9cd11a352f48c5ab65248b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a87cd7afe7d9cd11a352f48c5ab65248b">setList</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, std::string input, std::list&lt; <a class="el" href="class_section.html">Section</a> &gt; &amp;BSConnected)</td></tr>
+<tr class="memdesc:a87cd7afe7d9cd11a352f48c5ab65248b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.  <br /></td></tr>
 <tr class="memitem:a4386e78bc457a96e80cdc76c3843df3f" id="r_a4386e78bc457a96e80cdc76c3843df3f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4386e78bc457a96e80cdc76c3843df3f">setDependenciesBetweenBlocks</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a5df0ad753af013105eddf479f21d5982" id="r_a5df0ad753af013105eddf479f21d5982"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5df0ad753af013105eddf479f21d5982">areBlocksConnected</a> (<a class="el" href="class_section.html">Section</a> A, <a class="el" href="class_section.html">Section</a> blockSets)</td></tr>
+<tr class="memdesc:a5df0ad753af013105eddf479f21d5982"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.  <br /></td></tr>
 <tr class="memitem:a40869713165ffc728f60b07ba8757291" id="r_a40869713165ffc728f60b07ba8757291"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a40869713165ffc728f60b07ba8757291">setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations</a> (<a class="el" href="class_section.html">Section</a> *BS, int N_BlockSections)</td></tr>
 <tr class="memitem:aa01849a8cc919f52e8133156e59bf702" id="r_aa01849a8cc919f52e8133156e59bf702"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa01849a8cc919f52e8133156e59bf702">createTds</a> (<a class="el" href="class_section.html">Section</a> *Blocks, int N_Blocks, int N_TDS_On_Straight_Blocks, std::list&lt; <a class="el" href="class_t_d_s.html">TDS</a> &gt; &amp;ALL_TDS)</td></tr>
 <tr class="memitem:a092bc81125d4d1fc837addf3b4f3d69a" id="r_a092bc81125d4d1fc837addf3b4f3d69a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a092bc81125d4d1fc837addf3b4f3d69a">setGeoCoordinates</a> (<a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
+<tr class="memdesc:a092bc81125d4d1fc837addf3b4f3d69a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets GeoXBegNode and GeoXEndNode of the N_BS sections of BS to the X of their start and end node in metres.  <br /></td></tr>
 <tr class="memitem:acfaa798b8c53ec9d3cc5c3bf2c54388f" id="r_acfaa798b8c53ec9d3cc5c3bf2c54388f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acfaa798b8c53ec9d3cc5c3bf2c54388f">setUpRoutesFromScene</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::vector&lt; int &gt; &amp;routeDirections={})</td></tr>
 <tr class="memitem:aa5b96b4d20b3b5b9772f080e11d91b6e" id="r_aa5b96b4d20b3b5b9772f080e11d91b6e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa5b96b4d20b3b5b9772f080e11d91b6e">setListAllInfrastructureElementsFromRoutes</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a562e52b9ac97e3ac60932e36dde67a4d" id="r_a562e52b9ac97e3ac60932e36dde67a4d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a562e52b9ac97e3ac60932e36dde67a4d">occupyBlockAndConnected</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="class_section.html">Section</a> &amp;BLS, const <a class="el" href="class_section.html">Section</a> &amp;BLSPrev, double S_i, double S_i_1)</td></tr>
@@ -203,10 +208,14 @@ Functions</h2></td></tr>
 <tr class="memitem:a7f7714757ab7a6a55814c9e95597b168" id="r_a7f7714757ab7a6a55814c9e95597b168"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7f7714757ab7a6a55814c9e95597b168">setVirtualSignals</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a761bf86fdb562bcdf5c183468961ba3c" id="r_a761bf86fdb562bcdf5c183468961ba3c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a761bf86fdb562bcdf5c183468961ba3c">setRouteVirtualSignals</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:ab00806a0045da2b4b6998b99161f76be" id="r_ab00806a0045da2b4b6998b99161f76be"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab00806a0045da2b4b6998b99161f76be">resetSingleTrackLocks</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:ab00806a0045da2b4b6998b99161f76be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.  <br /></td></tr>
 <tr class="memitem:a475976cd4cee44735b57bd3aa6b640e3" id="r_a475976cd4cee44735b57bd3aa6b640e3"><td class="memItemLeft">const <a class="el" href="struct_single_track_zone.html">SingleTrackZone</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a475976cd4cee44735b57bd3aa6b640e3">singleTrackZone</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, std::size_t l, int routeIndex)</td></tr>
 <tr class="memitem:af0021f3af4d1429c3739cfb0b0342e2f" id="r_af0021f3af4d1429c3739cfb0b0342e2f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af0021f3af4d1429c3739cfb0b0342e2f">singleTrackRouteHasZone</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int routeIndex)</td></tr>
+<tr class="memdesc:af0021f3af4d1429c3739cfb0b0342e2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the zone of any limit has a section on the route.  <br /></td></tr>
 <tr class="memitem:add254d8783b745234ccb86b0f6fdbfbb" id="r_add254d8783b745234ccb86b0f6fdbfbb"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#add254d8783b745234ccb86b0f6fdbfbb">occupySingleTrackForRoute</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int routeIndex)</td></tr>
+<tr class="memdesc:add254d8783b745234ccb86b0f6fdbfbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.  <br /></td></tr>
 <tr class="memitem:abcd8c987e25c21897927edef7865281d" id="r_abcd8c987e25c21897927edef7865281d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abcd8c987e25c21897927edef7865281d">updateSingleTrackLocks</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int step)</td></tr>
+<tr class="memdesc:abcd8c987e25c21897927edef7865281d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates occupancy and pending entry reservations from the positions of step <span class="tt">step</span>. Every changed zone is released (<a class="el" href="_rolling_stock_8cpp.html">RollingStock.cpp</a>).  <br /></td></tr>
 </table>
 <a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
 <a id="af08ec37a8c99d747fb60fa15bc28678b" name="af08ec37a8c99d747fb60fa15bc28678b"></a>
@@ -287,6 +296,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>For a train with its tail at route position S (m) on the level 3 or 4 section BS with a diverging switch: puts the block sections named in the ID of BS in run.blocksOccupied: the first while S is before the switch, both while it is on the switch, and the second after it, when both also go to run.blocksConnected. The two swap when TrackLineIDPrevBS is the track line of the second. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -323,6 +333,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The fixed-block form of activateBlocksWithSwitchesDiv: both block sections named in the ID of BS go to run.blocksOccupied and run.blocksConnected. S is not read. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -345,6 +356,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes the codes, states and speed limits of every route for the next step from run.blocksOccupied, with the routine of each level the route has. See "What happens in a step" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -376,6 +388,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The same with other red speeds (m/s), the limits that the fixed-block levels write behind an occupied section: redSpeed1 on the red section of levels 0 and 5, redSpeed2 on the double red section of level 5. The call above passes signalCode1 and signalCode2. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -407,6 +420,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The train_breakdown incident of run.incidents that applies to the train trainDesc in step timestepIndex, from its start second up to its end second, or nullptr. A breakdown that stops the train comes first; of the speed caps the lowest reducedSpeedKmh wins. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -433,6 +447,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Applies the signal_failure incidents of step timestepIndex: each failed section joins run.blocksOccupied, and every route that contains it gets an end of authority in front of it. In the step after a failure ends, its sections go to run.blocksConnected to be released. See "Common behaviour" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -455,6 +470,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives every route against the direction that holds a single-track zone an end of authority in front of each stretch of the zone on that route, at levels 0 to 5. The authorities last for the current step. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -481,6 +497,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -549,6 +567,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Appends to run.infra.sections the section over connection n_conn of node Nb of BS1 (generateConnectBlock), when the connection leads to a higher coordinate and none of the first Temp_Blocks sections has that ID in either direction. When the planned array is full it sets run.infra.derivedSectionsExceedPlan instead. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -585,6 +604,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Splits each of the N_Blocks sections of Blocks into track detection sections and appends them to ALL_TDS, which owns them; the TDS_in_block list of the section points into ALL_TDS. A section without a diverging switch gets N_TDS_On_Straight_Blocks of equal length (at most 20). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -641,6 +661,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The form of elaborateRbcMas for the section BS with a diverging switch: adds "TrainEnd" ends of authority at S_i (m) on BS and on the block sections named in its ID that S_i covers, the first before the switch, both on it and the second after it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -717,6 +738,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Adds to run.etcsMa an end of authority of the given type and typePart for the train at route position S_i (m) on BLS, with its speed V_i (m/s) and acceleration Acc_i (m/s2), unless the train has one on the same section within 1 mm. A position before the route is moved to the start of its first section; on a reversed route AbsPosEoA is in the coordinates of the original direction. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -763,6 +785,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>When N1 lies before N2, makes BS3 the section over a switch: BS1 up to node N1, a switch arc from N1 to N2 with the speed limit of the matching connection, and BS2 after N2. Its ID is "&lt;BS1&gt;-&lt;N1&gt;/&lt;BS2&gt;-&lt;N2&gt;" with the node coordinates in km. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -794,6 +817,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True while a train_breakdown incident without a reduced speed holds the train trainDesc ("&lt;service&gt;-&lt;occurrence&gt;") in step timestepIndex. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -865,6 +889,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>While the train spans a switch node of BS (FrontEndPos at or past it and BackEndPos at or before it, m), adds to run.etcsMa "DivergingSwitchOccupied" ends of authority at the switch on BS and at both edges of every section over that switch, except IDSectionToExclude ("None" excludes nothing). V_i (m/s) and Acc_i (m/s2) are the speed and acceleration of the train. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -926,6 +951,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>While the train spans the diverging switch of BLS (FrontEndPos at or past its start and BackEndPos at or before its end, m), adds "DivergingSwitchOccupied" ends of authority at both switch edges, on BLS and on the two block sections named in its ID, and locks the switches that connect to those (lockSwitchesOnAllConnectedSections, 10 m on either side of each edge). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -952,6 +978,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the end speed (speedInBraking of the last arc, m/s) of every level 3 and 4 section of the route: 0 before an occupied section of another level, otherwise the lower of the speed limit and the signal speed limit at the start of the next section. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -993,6 +1020,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Adds BLS and its connected sections to run.blocksOccupied, and puts BLSPrev and its connected sections in run.blocksConnected (releaseLastBlockAndConnected). S_i and S_i_1 are the tail positions (route, m) of this step and the step before. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1024,6 +1052,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Occupies the two halves BLS and BLSPrev of a double switch: each half with its connected sections, and the two block sections named in its ID with theirs, go to run.blocksOccupied; the two block sections also go to run.blocksConnected. Does nothing when an ID does not name two sections of run.infra.sections. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1050,6 +1079,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1072,6 +1103,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sorts the events by Time, earliest first, with non-finite times last. The sort is stable, so events with equal times keep their order. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1098,6 +1130,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the occupied sections of levels 3 and 4 code 0 and the end speed of their last arc as exit speed, so that the routines of the other levels see them. occupied has one flag per section of the route, nonzero when the section is in BlocksOccupied. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1129,6 +1162,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Clears each route section flagged in connected (one flag per route section, nonzero when in BlocksConnected) and the sections behind it. See "Codes and what they do to a following train" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1160,6 +1194,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Releases the two halves BLS and BLSPrev of a double switch: each half and its connected sections go to run.blocksConnected, and for a half with a diverging switch also the two block sections named in its ID with theirs. Does nothing when an ID does not name two sections of run.infra.sections. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1186,6 +1221,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Puts BLS, its connected sections and, for a section with a diverging switch, the two block sections named in its ID in run.blocksConnected, so that releaseMixedSignallingSystem clears them. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1208,6 +1244,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Clears every route behind the sections in run.blocksConnected (releaseBlocksMixedSignalling), so that the activation can write the aspects again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1234,6 +1271,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Releases section blockID when a train leaves its route there; see "Codes and what they do to a following train" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1280,6 +1318,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Forgets the held directions and the derived zones. Call it whenever the limits or the routes change. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1302,6 +1342,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Bit n of the result is set when a section of the route has signalling level n (0 to 5). A section without a level, or with a number that is no level, sets no bit. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1324,6 +1365,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Makes the section over every connection of every node of the sections in run.infra.sections (createBlockConn). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1346,6 +1389,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most 10). This entry point also adds the fixed legacy dependency of section "@5-B6@" and copies the IDs to the switch nodes (<a class="el" href="class_node.html#a633cd9429e74119f27c859ef2fe93b36">Node::IDConnectedBlocks</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1372,6 +1416,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets GeoXBegNode and GeoXEndNode of the N_BS sections of BS to the X of their start and end node in metres. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1398,6 +1444,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets speedInBraking of every arc of the Blocks route sections BS to the speed limit of the next arc (m/s). The last arc of the route takes its own limit. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1429,6 +1476,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1451,6 +1500,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fills run.infra.infraEvents with one entry for each distinct infrastructure element of all routes, without the "VirtualTDSB" borders. A diverging switch edge is listed under its switch name. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1473,6 +1523,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Copies the virtual signals of run.infra.sections to the section copies of every route, with start and end swapped on a reversed route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1499,6 +1550,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the switch and station nodes of the N_BlockSections sections of BS a track detection border ID (tdsbId) and geographic coordinates in metres (tdsbGeoCoordX and tdsbGeoCoordY, the node X and Y times 1000). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1553,6 +1605,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Marks the middle of each double switch as a virtual signal: in a track line of three arcs that is 30 m long, the section that starts at the start of the track line gets a virtual signal at its end node, any other at its start node, and so do the sections connected to it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1579,6 +1632,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the zone of any limit has a section on the route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1610,6 +1665,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The zone of limit l on route routeIndex, or an empty zone for an index out of range. The zones of all limits and routes are derived on first use. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1632,6 +1688,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sorts the recorded events of every element with orderListOfTrainEvents. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1654,6 +1712,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Frees the double switches that would hold a train in their middle; see "Double switches" under "Common behaviour" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1705,6 +1764,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Records in run.infra.infraEvents a passage of the train TrainName over each element of RouteInfrastructureElements that its head passed in step t, from route position Xt_1 to Xt (m). The event has the time t - 1 (s), the speed Vt_1 (m/s), the next element of the route, and for a switch the position "Straight" or "Diverging". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1731,6 +1791,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Updates occupancy and pending entry reservations from the positions of step <span class="tt">step</span>. Every changed zone is released (<a class="el" href="_rolling_stock_8cpp.html">RollingStock.cpp</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -1,5 +1,5 @@
 <map id="Train::PrintTrajectory" name="Train::PrintTrajectory">
-<area shape="rect" id="Node000001" title="Function for printing Train Trajectory Data." alt="" coords="5,29,160,55"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,160,55"/>
 <area shape="rect" id="Node000002" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="208,29,391,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,39,194,39,194,45,160,45"/>
 <area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="264,31,256,21,260,11,275,5,299,3,329,6,341,15,338,20,327,11,299,8,276,10,264,15,262,20,268,28"/>

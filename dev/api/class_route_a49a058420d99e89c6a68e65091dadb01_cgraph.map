@@ -1,12 +1,12 @@
 <map id="Route::createRouteFromBlockIds" name="Route::createRouteFromBlockIds">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,125,240,151"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" title=" " alt="" coords="333,29,488,55"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" title="True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share..." alt="" coords="333,29,488,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,123,210,93,287,63,319,55,321,60,289,69,212,98,149,128"/>
-<area shape="rect" id="Node000004" href="$class_route.html#af890e6e38e15b5298d2add9d5795765a" title="Identify ending edges of diverging switches that are also start of another diverging switch." alt="" coords="288,79,533,133"/>
+<area shape="rect" id="Node000004" href="$class_route.html#af890e6e38e15b5298d2add9d5795765a" title=" " alt="" coords="288,79,533,133"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="237,123,274,118,275,124,237,128"/>
 <area shape="rect" id="Node000005" href="$class_section.html#a651681e3131f69ab2d4b91b0127137a4" title="Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLen..." alt="" coords="305,157,516,183"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="237,148,292,154,291,159,237,153"/>
-<area shape="rect" id="Node000007" href="$class_route.html#a2d74a28fcd6d288fba1f924f3664f5bb" title="Initialize infrastructure element list for route; each element includes its block section ID." alt="" coords="311,207,510,247"/>
+<area shape="rect" id="Node000007" href="$class_route.html#a2d74a28fcd6d288fba1f924f3664f5bb" title=" " alt="" coords="311,207,510,247"/>
 <area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="159,148,289,193,317,201,316,206,287,198,157,153"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="370,31,361,21,365,11,382,5,411,3,446,7,457,11,460,17,456,20,453,15,445,12,411,8,383,10,369,15,366,20,374,27"/>
 <area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" title="True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a bloc..." alt="" coords="581,29,748,55"/>

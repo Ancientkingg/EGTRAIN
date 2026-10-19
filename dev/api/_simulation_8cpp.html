@@ -136,11 +136,14 @@ Functions</h2></td></tr>
 <tr class="memitem:aa73169ed81cf031ff28e7be4e2d3fa79" id="r_aa73169ed81cf031ff28e7be4e2d3fa79"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa73169ed81cf031ff28e7be4e2d3fa79">calculatePosAndNegDelayStatsAtStation</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_stations.html">Stations</a> &amp;S)</td></tr>
 <tr class="memitem:a049cdf2f7b762611e3384fa27a309cc7" id="r_a049cdf2f7b762611e3384fa27a309cc7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a049cdf2f7b762611e3384fa27a309cc7">Compute_Input_Delays</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a75c1f37717d0a65fa5d4c32b1fe986e9" id="r_a75c1f37717d0a65fa5d4c32b1fe986e9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a75c1f37717d0a65fa5d4c32b1fe986e9">calculateDelayStatsForAllStations</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:a75c1f37717d0a65fa5d4c32b1fe986e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">calculateDelayStatsAtStation for every station of run.infra.stations.  <br /></td></tr>
 <tr class="memitem:a1bd6d9c667729e1683b9f5d5cf9de1f9" id="r_a1bd6d9c667729e1683b9f5d5cf9de1f9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1bd6d9c667729e1683b9f5d5cf9de1f9">calculatePosAndNegDelayStatsForAllStations</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:a1bd6d9c667729e1683b9f5d5cf9de1f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">calculatePosAndNegDelayStatsAtStation for every station of run.infra.stations.  <br /></td></tr>
 <tr class="memitem:a3a3691886ef68820ee91158d907f1870" id="r_a3a3691886ef68820ee91158d907f1870"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3a3691886ef68820ee91158d907f1870">calculatePosAndNegArrivalDelayAllTrains</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:ad326ac2cac03ef2e25b605f47184572c" id="r_ad326ac2cac03ef2e25b605f47184572c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad326ac2cac03ef2e25b605f47184572c">ComputeEnergyConsumptionForAllTrains</a> (<a class="el" href="class_train.html">Train</a> *Trains, int numTrains)</td></tr>
 <tr class="memitem:ae9081831180c8548dcce0fa82b1c6a63" id="r_ae9081831180c8548dcce0fa82b1c6a63"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae9081831180c8548dcce0fa82b1c6a63">ComputeTimetableEnergyConsumption</a> (<a class="el" href="class_regional.html">Regional</a> *Trains, int numTrains, string OutputFolder)</td></tr>
 <tr class="memitem:a484d0b0359abbfe59d1530b7859678f3" id="r_a484d0b0359abbfe59d1530b7859678f3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a484d0b0359abbfe59d1530b7859678f3">Compute_TimetablingPoints_For_All_Trains</a> (<a class="el" href="class_regional.html">Regional</a> *Trains, int numTrains)</td></tr>
+<tr class="memdesc:a484d0b0359abbfe59d1530b7859678f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the timetable points of the first numTrains trains of Trains (<a class="el" href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0">Train::ComputeTimetablingPoints</a>).  <br /></td></tr>
 <tr class="memitem:aea2ba43c33e809e2c7e1a77152c2115c" id="r_aea2ba43c33e809e2c7e1a77152c2115c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aea2ba43c33e809e2c7e1a77152c2115c">PrintTrainPathDiagram</a> (const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_regional.html">Regional</a> *S, int N_S, string FolderName)</td></tr>
 <tr class="memitem:adc5a01d3f5da92e4cc2166a618b85b0c" id="r_adc5a01d3f5da92e4cc2166a618b85b0c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adc5a01d3f5da92e4cc2166a618b85b0c">Print_Computing_Times</a> (const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, string FolderName)</td></tr>
 <tr class="memitem:a0b670bedffbb4a6badd0d74b97dc69a0" id="r_a0b670bedffbb4a6badd0d74b97dc69a0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0b670bedffbb4a6badd0d74b97dc69a0">checkJourneyStartForAllPassengers</a> (int t, int StartingSimulationTime, list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt; &amp;SIMUL_PAX)</td></tr>
@@ -163,6 +166,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the actual station arrivals and the arrival delays of every train (<a class="el" href="class_train.html#a4bd81ea0b726a82a615d4dc9dc3571c2">Train::Determine_Actual_Station_Arrivals</a> and <a class="el" href="class_train.html#a3d76fb79bafd9bb1683d32c403b94a32">Train::computeArrivalDelaysAtStations</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -189,6 +193,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fills the delay statistics of station S from the trains with an arrival delay there, in seconds; the average and standard deviation count only delayed trains, and the 3 and 5 minute counts compare with 180 and 300 s. The station "Final_Station" takes the last stop of every train. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -211,6 +216,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>calculateDelayStatsAtStation for every station of run.infra.stations. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -233,6 +240,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the arrival delays of every train again, with an early arrival as a negative delay (<a class="el" href="class_train.html#ad16806b65057677a073571752ae4789a" title="Like computeArrivalDelaysAtStations, but an early arrival keeps its negative delay,...">Train::Compute_Pos_And_Neg_Arrival_Delays_At_Stations</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -259,6 +267,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The same as calculateDelayStatsAtStation with early arrivals: every train with an arrival and a planned arrival there counts, and the average and standard deviation include delays of 0 and below. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -281,6 +290,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>calculatePosAndNegDelayStatsAtStation for every station of run.infra.stations. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -334,6 +345,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fills run.totalInputDelays, run.entranceInputDelays and run.disturbanceInput with the statistics of the input delays of all trains (s): the total, the entrance delay, and the dwell disturbances (the total less the entrance delay). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -360,6 +372,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Computes the timetable points of the first numTrains trains of Trains (<a class="el" href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0">Train::ComputeTimetablingPoints</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -386,6 +400,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the energy totals (MJ) of each of the numTrains trains whose energy samples are complete, with a substation efficiency of 0.8 and a regeneration factor of 0.7 (<a class="el" href="class_train.html#a5973ff2a8a15d46b4b625f7b2e60270c">Train::TotalEnergyConsumptionWithAndWithoutRegBraking</a>). The totals of the other trains are 0. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -1,6 +1,6 @@
 <map id="Train::BrakDist_Block" name="Train::BrakDist_Block">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,187,165,212"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling." alt="" coords="224,62,429,87"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="224,62,429,87"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,185,212,121,280,90,282,95,215,126,108,189"/>
 <area shape="rect" id="Node000011" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="213,136,440,162"/>
 <area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="146,184,252,162,253,167,147,190"/>
@@ -29,7 +29,7 @@
 <area shape="poly" id="edge11_Node000011_Node000003" title=" " alt="" coords="440,146,503,146,503,152,440,152"/>
 <area shape="poly" id="edge14_Node000011_Node000005" title=" " alt="" coords="393,134,488,121,582,116,676,121,734,129,733,135,676,126,582,121,488,126,393,139"/>
 <area shape="poly" id="edge15_Node000011_Node000010" title=" " alt="" coords="354,134,487,77,528,62,530,67,489,82,357,139"/>
-<area shape="rect" id="Node000012" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="488,238,676,263"/>
+<area shape="rect" id="Node000012" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="488,238,676,263"/>
 <area shape="poly" id="edge12_Node000011_Node000012" title=" " alt="" coords="399,159,441,172,500,199,551,228,548,233,498,204,439,177,397,164"/>
 <area shape="poly" id="edge13_Node000012_Node000005" title=" " alt="" coords="623,235,675,216,761,173,764,178,677,221,625,240"/>
 <area shape="poly" id="edge17_Node000013_Node000003" title=" " alt="" coords="391,184,503,162,504,167,392,190"/>

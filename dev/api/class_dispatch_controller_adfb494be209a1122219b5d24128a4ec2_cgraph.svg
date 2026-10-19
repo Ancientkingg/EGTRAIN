@@ -76,7 +76,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_simulation_8cpp.html#a75c1f37717d0a65fa5d4c32b1fe986e9" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_simulation_8cpp.html#a75c1f37717d0a65fa5d4c32b1fe986e9" target="_top" xlink:title="calculateDelayStatsAtStation for every station of run.infra.stations.">
 <polygon fill="white" stroke="#666666" points="318.5,-1448.5 176.5,-1448.5 176.5,-1418.5 318.5,-1418.5 318.5,-1448.5"/>
 <text text-anchor="start" x="184.5" y="-1436.5" font-family="Helvetica,sans-Serif" font-size="10.00">calculateDelayStatsForAll</text>
 <text text-anchor="middle" x="247.5" y="-1425.5" font-family="Helvetica,sans-Serif" font-size="10.00">Stations</text>
@@ -133,7 +133,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="_simulation_8cpp.html#a1bd6d9c667729e1683b9f5d5cf9de1f9" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="_simulation_8cpp.html#a1bd6d9c667729e1683b9f5d5cf9de1f9" target="_top" xlink:title="calculatePosAndNegDelayStatsAtStation for every station of run.infra.stations.">
 <polygon fill="white" stroke="#666666" points="332.5,-1278.5 162.5,-1278.5 162.5,-1248.5 332.5,-1248.5 332.5,-1278.5"/>
 <text text-anchor="start" x="170.5" y="-1266.5" font-family="Helvetica,sans-Serif" font-size="10.00">calculatePosAndNegDelayStats</text>
 <text text-anchor="middle" x="247.5" y="-1255.5" font-family="Helvetica,sans-Serif" font-size="10.00">ForAllStations</text>
@@ -170,7 +170,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="_simulation_8cpp.html#a484d0b0359abbfe59d1530b7859678f3" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="_simulation_8cpp.html#a484d0b0359abbfe59d1530b7859678f3" target="_top" xlink:title="Computes the timetable points of the first numTrains trains of Trains (Train::ComputeTimetablingPoint...">
 <polygon fill="white" stroke="#666666" points="325,-1156.5 170,-1156.5 170,-1126.5 325,-1126.5 325,-1156.5"/>
 <text text-anchor="start" x="178" y="-1144.5" font-family="Helvetica,sans-Serif" font-size="10.00">Compute_TimetablingPoints</text>
 <text text-anchor="middle" x="247.5" y="-1133.5" font-family="Helvetica,sans-Serif" font-size="10.00">_For_All_Trains</text>
@@ -625,7 +625,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" target="_top" xlink:title="Function to compute the passing time of a train over each timetable point (i.e. stations,...">
+<g id="a_Node000012"><a xlink:href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="556.5,-1156.5 407.5,-1156.5 407.5,-1126.5 556.5,-1126.5 556.5,-1156.5"/>
 <text text-anchor="start" x="415.5" y="-1144.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::ComputeTimetabling</text>
 <text text-anchor="middle" x="482" y="-1133.5" font-family="Helvetica,sans-Serif" font-size="10.00">Points</text>
@@ -644,7 +644,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_train.html#a4b084c4974815396a1675e0ebab3350e" target="_top" xlink:title="Function to compute the arrival and departure of a train from a location with a specific position exp...">
+<g id="a_Node000013"><a xlink:href="class_train.html#a4b084c4974815396a1675e0ebab3350e" target="_top" xlink:title=" ">
 <polygon fill="#fff0f0" stroke="red" points="760,-1156.5 620,-1156.5 620,-1126.5 760,-1126.5 760,-1156.5"/>
 <text text-anchor="start" x="628" y="-1144.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::computeArrivalAnd</text>
 <text text-anchor="middle" x="690" y="-1133.5" font-family="Helvetica,sans-Serif" font-size="10.00">DepartureAtLocation</text>
@@ -1109,7 +1109,7 @@
 <!-- Node78 -->
 <g id="Node000078" class="node">
 <title>Node78</title>
-<g id="a_Node000078"><a xlink:href="_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" target="_top" xlink:title=" ">
+<g id="a_Node000078"><a xlink:href="_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" target="_top" xlink:title="Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC),...">
 <polygon fill="white" stroke="#666666" points="562,-665 402,-665 402,-646 562,-646 562,-665"/>
 <text text-anchor="middle" x="482" y="-653" font-family="Helvetica,sans-Serif" font-size="10.00">ReportAllTrainPositionsToRBC</text>
 </a>

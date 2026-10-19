@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
+<g id="a_Node000002"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="526,-50.72 385,-50.72 385,-31.72 526,-31.72 526,-50.72"/>
 <text text-anchor="middle" x="455.5" y="-38.72" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
+<g id="a_Node000008"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="341,-201.72 187,-201.72 187,-182.72 341,-182.72 341,-201.72"/>
 <text text-anchor="middle" x="264" y="-189.72" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>

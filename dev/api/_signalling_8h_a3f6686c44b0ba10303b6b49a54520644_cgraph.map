@@ -1,5 +1,5 @@
 <map id="setAllConnections" name="setAllConnections">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,144,55"/>
+<area shape="rect" id="Node000001" title="Makes the section over every connection of every node of the sections in run.infra...." alt="" coords="5,29,144,55"/>
 <area shape="poly" id="edge8_Node000001_Node000001" title=" " alt="" coords="45,31,38,21,42,11,54,5,75,3,100,6,110,15,107,19,97,11,75,8,56,10,46,15,43,20,49,28"/>
 <area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a88c103a7841f76b8af033572043608a4" title=" " alt="" coords="192,29,324,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,39,178,39,178,45,144,45"/>

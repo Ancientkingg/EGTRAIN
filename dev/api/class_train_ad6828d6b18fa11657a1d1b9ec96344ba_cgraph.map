@@ -1,8 +1,8 @@
 <map id="Train::ComputeBlockingTimesInMixedSignallingAreas" name="Train::ComputeBlockingTimesInMixedSignallingAreas">
-<area shape="rect" id="Node000001" title="Function to Compute the Blocking times in mixed signalling areas." alt="" coords="5,179,221,219"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a875f0eaa5ed019bfe9e9ec44486874e8" title="Function to Compute Blocking Times for a single Block Section. This Function allows us to compute blo..." alt="" coords="293,5,502,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,179,221,219"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a875f0eaa5ed019bfe9e9ec44486874e8" title=" " alt="" coords="293,5,502,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,177,186,116,225,83,268,55,282,48,285,53,271,60,228,87,190,120,133,180"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a5d3788a334ff231b4e9fa35a96a5cb4a" title="Function to Compute the Blocking Times in Virtual Coupling (EntryTime is the time the train actually ..." alt="" coords="303,70,492,125"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a5d3788a334ff231b4e9fa35a96a5cb4a" title=" " alt="" coords="303,70,492,125"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,176,268,135,293,126,294,132,270,140,164,181"/>
 <area shape="rect" id="Node000013" href="$class_train.html#a20daa1ddd39245f4bca371639115a2ce" title="Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually ente..." alt="" coords="303,149,492,189"/>
 <area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="221,185,289,178,289,183,222,190"/>

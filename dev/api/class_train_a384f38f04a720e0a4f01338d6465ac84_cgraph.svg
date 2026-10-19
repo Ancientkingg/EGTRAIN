@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="A cached successor is a proposal only from its exact actual state and historical target.">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="167,-64 0,-64 0,-45 167,-45 167,-64"/>
 <text text-anchor="middle" x="83.5" y="-52" font-family="Helvetica,sans-Serif" font-size="10.00">Train::cachedBrakingSuccessor</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
+<g id="a_Node000002"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="344,-102 203,-102 203,-83 344,-83 344,-102"/>
 <text text-anchor="middle" x="273.5" y="-90" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>

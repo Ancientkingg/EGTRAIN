@@ -1,5 +1,5 @@
 <map id="Train::ReportPositionToRBC" name="Train::ReportPositionToRBC">
-<area shape="rect" id="Node000001" title="Function to Report Train Position to RBC (the ETCS3 Safety Margin must be given in m)." alt="" coords="5,149,203,175"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,149,203,175"/>
 <area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a709ad087aef14cae2de7d230f0cce014" title=" " alt="" coords="263,61,476,101"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,147,250,110,278,102,279,107,251,115,142,152"/>
 <area shape="rect" id="Node000003" href="$_signalling_8cpp.html#aa4d0088e47ad59d2fa1bbca0fa3332f8" title=" " alt="" coords="574,68,709,93"/>

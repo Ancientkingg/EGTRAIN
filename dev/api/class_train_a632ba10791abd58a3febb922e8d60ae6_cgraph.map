@@ -1,6 +1,6 @@
 <map id="Train::planBraking" name="Train::planBraking">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,135,144,160"/>
-<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="396,109,584,135"/>
+<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="396,109,584,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,140,382,126,382,131,144,146"/>
 <area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="632,77,760,117"/>
 <area shape="poly" id="edge10_Node000001_Node000003" title=" " alt="" coords="120,132,192,115,307,100,424,92,618,91,618,96,424,98,308,105,192,121,121,137"/>

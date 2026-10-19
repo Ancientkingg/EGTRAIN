@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Function to Simulate the Train Trajectory: computes step time_seconds from step time_seconds &#45; 1.">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="156,-565 0,-565 0,-535 156,-535 156,-565"/>
 <text text-anchor="start" x="8" y="-553" font-family="Helvetica,sans-Serif" font-size="10.00">Train::trajectoryComputation</text>
 <text text-anchor="middle" x="78" y="-542" font-family="Helvetica,sans-Serif" font-size="10.00">IncludingMovingBlock</text>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
+<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1371,-624.5 1230,-624.5 1230,-605.5 1371,-605.5 1371,-624.5"/>
 <text text-anchor="middle" x="1300.5" y="-612.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>
@@ -202,7 +202,7 @@
 <!-- Node38 -->
 <g id="Node000038" class="node">
 <title>Node38</title>
-<g id="a_Node000038"><a xlink:href="class_train.html#a56bc8158e3c8ee2b4cc8f0cfaab6f9a3" target="_top" xlink:title="Validate before current target selection so an invalid old hold cannot clear new metadata.">
+<g id="a_Node000038"><a xlink:href="class_train.html#a56bc8158e3c8ee2b4cc8f0cfaab6f9a3" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="569,-522 390,-522 390,-492 569,-492 569,-522"/>
 <text text-anchor="start" x="398" y="-510" font-family="Helvetica,sans-Serif" font-size="10.00">Train::checkIfMovementAuthority</text>
 <text text-anchor="middle" x="479.5" y="-499" font-family="Helvetica,sans-Serif" font-size="10.00">StillValid</text>
@@ -221,7 +221,7 @@
 <!-- Node39 -->
 <g id="Node000039" class="node">
 <title>Node39</title>
-<g id="a_Node000039"><a xlink:href="class_train.html#af7934345348548b70111ecbb47dd58c7" target="_top" xlink:title="Resolve only the selected, currently published forward Tale within the EVC&#39;s existing scope.">
+<g id="a_Node000039"><a xlink:href="class_train.html#af7934345348548b70111ecbb47dd58c7" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="785.5,-549.5 613.5,-549.5 613.5,-530.5 785.5,-530.5 785.5,-549.5"/>
 <text text-anchor="middle" x="699.5" y="-537.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::currentFollowingAuthority</text>
 </a>
@@ -257,7 +257,7 @@
 <!-- Node42 -->
 <g id="Node000042" class="node">
 <title>Node42</title>
-<g id="a_Node000042"><a xlink:href="class_train.html#a301604736506a528db15b8e4a1bd32e4" target="_top" xlink:title="The speed limit candidate in m/s, lowered to the speed cap of an active breakdown of this train at th...">
+<g id="a_Node000042"><a xlink:href="class_train.html#a301604736506a528db15b8e4a1bd32e4" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="337,-1318 209,-1318 209,-1288 337,-1288 337,-1318"/>
 <text text-anchor="start" x="217" y="-1306" font-family="Helvetica,sans-Serif" font-size="10.00">Train::effectiveIncident</text>
 <text text-anchor="middle" x="273" y="-1295" font-family="Helvetica,sans-Serif" font-size="10.00">SpeedLimit</text>
@@ -349,7 +349,7 @@
 <!-- Node48 -->
 <g id="Node000048" class="node">
 <title>Node48</title>
-<g id="a_Node000048"><a xlink:href="_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1" target="_top" xlink:title=" ">
+<g id="a_Node000048"><a xlink:href="_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1" target="_top" xlink:title="True when position (m) is short of the hold&#45;back position before brakingPoint (m),...">
 <polygon fill="white" stroke="#666666" points="335,-229.5 211,-229.5 211,-210.5 335,-210.5 335,-229.5"/>
 <text text-anchor="middle" x="273" y="-217.5" font-family="Helvetica,sans-Serif" font-size="10.00">isShortOfBrakingPoint</text>
 </a>
@@ -386,7 +386,7 @@
 <!-- Node50 -->
 <g id="Node000050" class="node">
 <title>Node50</title>
-<g id="a_Node000050"><a xlink:href="class_train.html#a84f34505ebfd5f1fc6262171d58013cb" target="_top" xlink:title="Records time_seconds as the arrival at the current stop when that stop has no arrival yet.">
+<g id="a_Node000050"><a xlink:href="class_train.html#a84f34505ebfd5f1fc6262171d58013cb" target="_top" xlink:title="Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that ha...">
 <polygon fill="white" stroke="#666666" points="347.5,-144 198.5,-144 198.5,-114 347.5,-114 347.5,-144"/>
 <text text-anchor="start" x="206.5" y="-132" font-family="Helvetica,sans-Serif" font-size="10.00">Train::recordCurrentService</text>
 <text text-anchor="middle" x="273" y="-121" font-family="Helvetica,sans-Serif" font-size="10.00">StopArrival</text>
@@ -562,7 +562,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title="A cached successor is a proposal only from its exact actual state and historical target.">
+<g id="a_Node000011"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1192.5,-737.5 1025.5,-737.5 1025.5,-718.5 1192.5,-718.5 1192.5,-737.5"/>
 <text text-anchor="middle" x="1109" y="-725.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::cachedBrakingSuccessor</text>
 </a>
@@ -589,7 +589,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title="Native inverse plan shares the exact actual&#45;start step with BrakDist_Block.">
+<g id="a_Node000013"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="977.5,-663.5 840.5,-663.5 840.5,-644.5 977.5,-644.5 977.5,-663.5"/>
 <text text-anchor="middle" x="909" y="-651.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::DrawBrakingCurve</text>
 </a>
@@ -805,7 +805,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
+<g id="a_Node000021"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
 <polygon fill="#fff0f0" stroke="red" points="1186,-813.5 1032,-813.5 1032,-794.5 1186,-794.5 1186,-813.5"/>
 <text text-anchor="middle" x="1109" y="-801.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>

@@ -118,10 +118,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_route.ht
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a2b1c971aaf032109cee8081c97e9b9e9" id="r_a2b1c971aaf032109cee8081c97e9b9e9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a2b1c971aaf032109cee8081c97e9b9e9">Route</a> ()</td></tr>
+<tr class="memdesc:a2b1c971aaf032109cee8081c97e9b9e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty route with ID "None" on corridor "A"; OriginalRefReversedRoute is -1.  <br /></td></tr>
 <tr class="memitem:a2d74a28fcd6d288fba1f924f3664f5bb" id="r_a2d74a28fcd6d288fba1f924f3664f5bb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2d74a28fcd6d288fba1f924f3664f5bb">setListInfrastructureElementsForRoute</a> (<a class="el" href="class_section.html">Section</a> BS)</td></tr>
-<tr class="memdesc:a2d74a28fcd6d288fba1f924f3664f5bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize infrastructure element list for route; each element includes its block section ID.  <br /></td></tr>
 <tr class="memitem:af890e6e38e15b5298d2add9d5795765a" id="r_af890e6e38e15b5298d2add9d5795765a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af890e6e38e15b5298d2add9d5795765a">identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch</a> (std::list&lt; <a class="el" href="class_infra_element.html">InfraElement</a> &gt; &amp;RouteInfrastructureElements)</td></tr>
-<tr class="memdesc:af890e6e38e15b5298d2add9d5795765a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identify ending edges of diverging switches that are also start of another diverging switch.  <br /></td></tr>
 <tr class="memitem:a49a058420d99e89c6a68e65091dadb01" id="r_a49a058420d99e89c6a68e65091dadb01"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a49a058420d99e89c6a68e65091dadb01">createRouteFromBlockIds</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const std::vector&lt; std::string &gt; &amp;blockIds, int direction=0)</td></tr>
 <tr class="memitem:ada497ab81de0b3c7ae51de6074367a6a" id="r_ada497ab81de0b3c7ae51de6074367a6a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ada497ab81de0b3c7ae51de6074367a6a">adjustRouteAcrossDiffRegions</a> ()</td></tr>
 </table><table class="memberdecls">
@@ -163,6 +162,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>An empty route with ID "None" on corridor "A"; OriginalRefReversedRoute is -1. </p>
 
 </div>
 </div>
@@ -231,8 +232,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Identify ending edges of diverging switches that are also start of another diverging switch. </p>
+<p>Marks with isEndOfDivSwitchStartOfADivSwitch each diverging switch edge of the list that has the position and switch name of another edge with a different connected point: the end of one diverging switch that is the start of the next. </p>
 
 </div>
 </div>
@@ -250,8 +250,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Initialize infrastructure element list for route; each element includes its block section ID. </p>
+<p>Appends the infrastructure elements of section BS to InfrastructureElements: its <a class="el" href="class_t_d_s.html">TDS</a> borders, stations and switches, with their route position in metres and the ID of BS. An element with the ID or position of one already listed is left out; a diverging switch edge only when its ID, switch name and connected point all match. </p>
 
 </div>
 </div>

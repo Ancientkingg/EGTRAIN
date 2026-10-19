@@ -1,5 +1,5 @@
 <map id="Train::currentFollowingAuthority" name="Train::currentFollowingAuthority">
-<area shape="rect" id="Node000001" title="Resolve only the selected, currently published forward Tale within the EVC&#39;s existing scope." alt="" coords="5,43,235,68"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,43,235,68"/>
 <area shape="rect" id="Node000002" href="$class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" title="Position in metres of the authority on the route of this train, for an authority on section." alt="" coords="283,5,493,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,40,282,30,283,35,212,45"/>
 <area shape="rect" id="Node000003" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="343,79,433,104"/>

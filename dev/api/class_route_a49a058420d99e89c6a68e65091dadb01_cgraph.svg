@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" target="_top" xlink:title="True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share...">
 <polygon fill="white" stroke="#666666" points="362,-163.5 246,-163.5 246,-144.5 362,-144.5 362,-163.5"/>
 <text text-anchor="middle" x="304" y="-151.5" font-family="Helvetica,sans-Serif" font-size="10.00">areBlocksConnected</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_route.html#af890e6e38e15b5298d2add9d5795765a" target="_top" xlink:title="Identify ending edges of diverging switches that are also start of another diverging switch.">
+<g id="a_Node000004"><a xlink:href="class_route.html#af890e6e38e15b5298d2add9d5795765a" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="396,-126.5 212,-126.5 212,-85.5 396,-85.5 396,-126.5"/>
 <text text-anchor="start" x="220" y="-114.5" font-family="Helvetica,sans-Serif" font-size="10.00">Route::identifyEndingEdge</text>
 <text text-anchor="start" x="220" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">OfDivSwitchesWhichAreStartingOf</text>
@@ -76,7 +76,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_route.html#a2d74a28fcd6d288fba1f924f3664f5bb" target="_top" xlink:title="Initialize infrastructure element list for route; each element includes its block section ID.">
+<g id="a_Node000007"><a xlink:href="class_route.html#a2d74a28fcd6d288fba1f924f3664f5bb" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="378.5,-30 229.5,-30 229.5,0 378.5,0 378.5,-30"/>
 <text text-anchor="start" x="237.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">Route::setListInfrastructure</text>
 <text text-anchor="middle" x="304" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">ElementsForRoute</text>

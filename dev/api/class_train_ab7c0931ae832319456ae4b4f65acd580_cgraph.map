@@ -1,10 +1,10 @@
 <map id="Train::planPositiveBraking" name="Train::planPositiveBraking">
 <area shape="rect" id="Node000001" title="Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths a..." alt="" coords="5,179,196,204"/>
-<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="519,253,707,279"/>
+<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="519,253,707,279"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,202,185,220,245,237,311,248,380,255,505,263,505,268,379,261,311,253,243,242,183,225,131,207"/>
 <area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="778,202,906,242"/>
 <area shape="poly" id="edge20_Node000001_Node000003" title=" " alt="" coords="121,202,174,236,209,254,245,267,372,302,425,312,474,317,524,317,577,313,706,287,755,270,798,247,801,252,757,275,707,293,578,318,524,323,474,323,424,317,371,307,243,272,207,259,172,241,118,206"/>
-<area shape="rect" id="Node000008" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling." alt="" coords="255,52,460,77"/>
+<area shape="rect" id="Node000008" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="255,52,460,77"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="116,176,170,136,243,94,284,79,286,84,245,99,173,141,119,181"/>
 <area shape="rect" id="Node000011" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="539,52,686,77"/>
 <area shape="poly" id="edge21_Node000001_Node000011" title=" " alt="" coords="133,176,243,138,392,102,525,76,526,81,393,107,245,143,135,181"/>

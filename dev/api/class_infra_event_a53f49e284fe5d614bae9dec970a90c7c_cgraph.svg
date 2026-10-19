@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infra_event.html#ad5b2b9e544400099d3e2d42a8485311a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_infra_event.html#ad5b2b9e544400099d3e2d42a8485311a" target="_top" xlink:title="Sets the coordinates of the element to &#45;1, its IDs and station name to &quot;None&quot; and its flags to false;...">
 <polygon fill="white" stroke="#666666" points="281,-19 158,-19 158,0 281,0 281,-19"/>
 <text text-anchor="middle" x="219.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">InfraEvent::InfraEvent</text>
 </a>

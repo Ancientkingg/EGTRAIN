@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Route position in metres of stop stationIndex; &#45;1 when it is not on the route.">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="147,-51 0,-51 0,-21 147,-21 147,-51"/>
 <text text-anchor="start" x="8" y="-39" font-family="Helvetica,sans-Serif" font-size="10.00">Train::stationRoutePosition</text>
 <text text-anchor="middle" x="73.5" y="-28" font-family="Helvetica,sans-Serif" font-size="10.00">Meters</text>

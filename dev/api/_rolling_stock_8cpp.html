@@ -135,13 +135,16 @@ Include dependency graph for RollingStock.cpp:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:afad804c52cb5f74014fcc0162b015f89" id="r_afad804c52cb5f74014fcc0162b015f89"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afad804c52cb5f74014fcc0162b015f89">trainPassengerCapacity</a> (double numberOfWagons)</td></tr>
+<tr class="memdesc:afad804c52cb5f74014fcc0162b015f89"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_passenger.html">Passenger</a> capacity of a train: 300 for the traction unit and 300 for each wagon.  <br /></td></tr>
 <tr class="memitem:a4321f0d14635cb369fa4b53e960a81bd" id="r_a4321f0d14635cb369fa4b53e960a81bd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4321f0d14635cb369fa4b53e960a81bd">passengerOccupancyRatio</a> (int passengers, int capacity)</td></tr>
 <tr class="memitem:a41dc54213b765c5d5b6363607e97e701" id="r_a41dc54213b765c5d5b6363607e97e701"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a41dc54213b765c5d5b6363607e97e701">ComputeBlockingTimesInMixedSignallingForAllTrains</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement)</td></tr>
 <tr class="memitem:a4b973a830e5e044443d37d4e5b727d47" id="r_a4b973a830e5e044443d37d4e5b727d47"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b973a830e5e044443d37d4e5b727d47">Occupy_Block_Sections_Of_Route</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int i)</td></tr>
 <tr class="memitem:abcd8c987e25c21897927edef7865281d" id="r_abcd8c987e25c21897927edef7865281d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abcd8c987e25c21897927edef7865281d">updateSingleTrackLocks</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int step)</td></tr>
+<tr class="memdesc:abcd8c987e25c21897927edef7865281d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates occupancy and pending entry reservations from the positions of step <span class="tt">step</span>. Every changed zone is released (<a class="el" href="_rolling_stock_8cpp.html">RollingStock.cpp</a>).  <br /></td></tr>
 <tr class="memitem:a38d60284d39af59e1aaa869191cbc8f7" id="r_a38d60284d39af59e1aaa869191cbc8f7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a38d60284d39af59e1aaa869191cbc8f7">PrintTimetablePoints</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, string MainFolder)</td></tr>
 <tr class="memitem:a2ca32310c7b2a9fa6808228e2e52e827" id="r_a2ca32310c7b2a9fa6808228e2e52e827"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2ca32310c7b2a9fa6808228e2e52e827">PrintTrainBlockingTimes</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, string MainFolder)</td></tr>
 <tr class="memitem:ad48e1118a615ff310e32fea0135151a4" id="r_ad48e1118a615ff310e32fea0135151a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad48e1118a615ff310e32fea0135151a4">ReportAllTrainPositionsToRBC</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int i, double ETCS3SafetyMargin)</td></tr>
+<tr class="memdesc:ad48e1118a615ff310e32fea0135151a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC), with the margin ETCS3SafetyMargin (m).  <br /></td></tr>
 <tr class="memitem:aaa8fab90207fc1867bf5c1f51e8c0e17" id="r_aaa8fab90207fc1867bf5c1f51e8c0e17"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aaa8fab90207fc1867bf5c1f51e8c0e17">trainXPositionOf</a> (const <a class="el" href="class_train.html">Train</a> &amp;train, int t, int wagon)</td></tr>
 <tr class="memitem:a623d4a090f128a2181adcae4698fc80b" id="r_a623d4a090f128a2181adcae4698fc80b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a623d4a090f128a2181adcae4698fc80b">protectStationAreas</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int i)</td></tr>
 </table>
@@ -220,6 +223,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fills run.blocksOccupied and run.blocksConnected for step i with the sections that every train covers (Det_Section_Occupied_By_Train), then updates the single-track locks. See "What happens in a step" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -246,6 +250,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Occupancy as a ratio of passengers to capacity. An unknown capacity (zero or negative) gives 0, so it never counts as congested. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -324,6 +329,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections ahead of its head, <a class="el" href="class_station_boundary_section.html#a7078799e22a787219dc330736e9d5ce2">StationBoundarySection::protectEntrance</a> runs for it. A platform is booked only for trains whose last stop is "Alm", "Asd" or "Asdz". It does not run when the entrance is two sections ahead and the section between is occupied. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -355,6 +361,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC), with the margin ETCS3SafetyMargin (m). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -377,6 +385,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_passenger.html">Passenger</a> capacity of a train: 300 for the traction unit and 300 for each wagon. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -408,7 +418,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The X position in kilometres of a point of the train at step t, as <a class="el" href="class_train.html#a30e47997e3c286ecf68dc457f1b99a67" title="computes train X position in kilometres (works with routes acrossing different regions); -1 when that...">Train::trainXPosition</a> gives it, for a train that is read and not changed. The point lies wagon * train_length / (number_of_wagons + 1) metres behind the head, so wagon 0 is the head and wagon number_of_wagons + 1 the tail. Returns -1 when the point is on no section of the route. </p>
+<p>The X position in kilometres of a point of the train at step t, as <a class="el" href="class_train.html#a30e47997e3c286ecf68dc457f1b99a67">Train::trainXPosition</a> gives it, for a train that is read and not changed. The point lies wagon * train_length / (number_of_wagons + 1) metres behind the head, so wagon 0 is the head and wagon number_of_wagons + 1 the tail. Returns -1 when the point is on no section of the route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -435,6 +445,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Updates occupancy and pending entry reservations from the positions of step <span class="tt">step</span>. Every changed zone is released (<a class="el" href="_rolling_stock_8cpp.html">RollingStock.cpp</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

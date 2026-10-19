@@ -1,6 +1,6 @@
 <map id="Train::predictBraking" name="Train::predictBraking">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,113,161,139"/>
-<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="209,84,397,109"/>
+<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="209,84,397,109"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,113,195,108,196,114,162,118"/>
 <area shape="rect" id="Node000008" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="216,134,391,174"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="162,133,203,139,202,144,162,139"/>

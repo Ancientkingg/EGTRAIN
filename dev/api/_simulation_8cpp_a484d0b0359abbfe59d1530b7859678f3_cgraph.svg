@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Computes the timetable points of the first numTrains trains of Trains (Train::ComputeTimetablingPoint...">
 <polygon fill="#999999" stroke="#666666" points="155,-51.5 0,-51.5 0,-21.5 155,-21.5 155,-51.5"/>
 <text text-anchor="start" x="8" y="-39.5" font-family="Helvetica,sans-Serif" font-size="10.00">Compute_TimetablingPoints</text>
 <text text-anchor="middle" x="77.5" y="-28.5" font-family="Helvetica,sans-Serif" font-size="10.00">_For_All_Trains</text>
@@ -30,7 +30,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" target="_top" xlink:title="Function to compute the passing time of a train over each timetable point (i.e. stations,...">
+<g id="a_Node000002"><a xlink:href="class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="340,-51.5 191,-51.5 191,-21.5 340,-21.5 340,-51.5"/>
 <text text-anchor="start" x="199" y="-39.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::ComputeTimetabling</text>
 <text text-anchor="middle" x="265.5" y="-28.5" font-family="Helvetica,sans-Serif" font-size="10.00">Points</text>
@@ -49,7 +49,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#a4b084c4974815396a1675e0ebab3350e" target="_top" xlink:title="Function to compute the arrival and departure of a train from a location with a specific position exp...">
+<g id="a_Node000003"><a xlink:href="class_train.html#a4b084c4974815396a1675e0ebab3350e" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="516,-51.5 376,-51.5 376,-21.5 516,-21.5 516,-51.5"/>
 <text text-anchor="start" x="384" y="-39.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::computeArrivalAnd</text>
 <text text-anchor="middle" x="446" y="-28.5" font-family="Helvetica,sans-Serif" font-size="10.00">DepartureAtLocation</text>
@@ -68,7 +68,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470" target="_top" xlink:title="True when position (m) is past the hold&#45;back position before stoppingPoint (m), beyond the tolerance.">
 <polygon fill="white" stroke="#666666" points="670.5,-74 557.5,-74 557.5,-55 670.5,-55 670.5,-74"/>
 <text text-anchor="middle" x="614" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">isPastStopHoldback</text>
 </a>
@@ -86,7 +86,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1" target="_top" xlink:title="True when position (m) is short of the hold&#45;back position before brakingPoint (m),...">
 <polygon fill="white" stroke="#666666" points="676,-19 552,-19 552,0 676,0 676,-19"/>
 <text text-anchor="middle" x="614" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">isShortOfBrakingPoint</text>
 </a>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="The speed limit candidate in m/s, lowered to the speed cap of an active breakdown of this train at th...">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="128,-42.5 0,-42.5 0,-12.5 128,-12.5 128,-42.5"/>
 <text text-anchor="start" x="8" y="-30.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::effectiveIncident</text>
 <text text-anchor="middle" x="64" y="-19.5" font-family="Helvetica,sans-Serif" font-size="10.00">SpeedLimit</text>

@@ -6,17 +6,17 @@
 <area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="75,974,79,818,93,576,108,448,129,331,157,234,174,196,194,168,212,152,232,142,235,146,215,157,198,171,179,199,162,236,134,332,113,449,99,576,84,818,81,974"/>
 <area shape="rect" id="Node000005" href="$_simulation_8cpp.html#a6f41337418b750a16b567c9743d56af4" title=" " alt="" coords="542,215,754,241"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="75,975,76,823,80,711,89,590,103,469,124,359,138,311,154,270,173,236,194,211,222,197,260,188,307,185,359,186,468,196,567,210,566,216,468,201,358,191,307,190,261,194,224,202,198,215,177,239,159,272,143,313,130,360,108,470,94,591,86,712,82,823,80,975"/>
-<area shape="rect" id="Node000006" href="$_simulation_8cpp.html#a75c1f37717d0a65fa5d4c32b1fe986e9" title=" " alt="" coords="241,249,430,289"/>
+<area shape="rect" id="Node000006" href="$_simulation_8cpp.html#a75c1f37717d0a65fa5d4c32b1fe986e9" title="calculateDelayStatsAtStation for every station of run.infra.stations." alt="" coords="241,249,430,289"/>
 <area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="76,974,82,840,100,637,115,531,135,434,161,354,177,323,194,300,209,287,226,278,229,282,212,291,198,303,181,326,166,356,140,435,120,532,105,637,87,840,81,975"/>
 <area shape="rect" id="Node000007" href="$_simulation_8cpp.html#a3a3691886ef68820ee91158d907f1870" title=" " alt="" coords="236,337,435,377"/>
 <area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="77,974,86,856,107,682,122,592,142,509,166,441,179,414,194,394,222,374,225,378,198,398,184,417,170,443,147,511,128,593,112,683,91,857,82,975"/>
 <area shape="rect" id="Node000008" href="$_simulation_8cpp.html#aa73169ed81cf031ff28e7be4e2d3fa79" title=" " alt="" coords="535,435,761,475"/>
 <area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="76,974,85,861,105,698,120,615,140,539,164,478,179,455,194,438,218,425,250,417,333,413,428,419,521,430,520,435,428,424,333,418,251,423,220,430,198,442,183,458,169,480,145,541,125,616,110,699,90,862,82,974"/>
-<area shape="rect" id="Node000009" href="$_simulation_8cpp.html#a1bd6d9c667729e1683b9f5d5cf9de1f9" title=" " alt="" coords="222,476,449,516"/>
+<area shape="rect" id="Node000009" href="$_simulation_8cpp.html#a1bd6d9c667729e1683b9f5d5cf9de1f9" title="calculatePosAndNegDelayStatsAtStation for every station of run.infra.stations." alt="" coords="222,476,449,516"/>
 <area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="78,974,91,879,114,745,130,676,149,613,170,561,194,526,208,515,211,519,198,530,175,564,154,615,136,677,120,746,96,880,83,975"/>
 <area shape="rect" id="Node000010" href="$_simulation_8cpp.html#a049cdf2f7b762611e3384fa27a309cc7" title=" " alt="" coords="249,565,422,590"/>
 <area shape="poly" id="edge18_Node000001_Node000010" title=" " alt="" coords="75,975,77,903,82,855,91,802,106,747,127,693,156,644,194,601,213,588,235,579,237,584,216,592,198,605,160,647,132,696,111,749,96,803,87,856,82,904,80,975"/>
-<area shape="rect" id="Node000011" href="$_simulation_8cpp.html#a484d0b0359abbfe59d1530b7859678f3" title=" " alt="" coords="232,639,439,679"/>
+<area shape="rect" id="Node000011" href="$_simulation_8cpp.html#a484d0b0359abbfe59d1530b7859678f3" title="Computes the timetable points of the first numTrains trains of Trains (Train::ComputeTimetablingPoint..." alt="" coords="232,639,439,679"/>
 <area shape="poly" id="edge20_Node000001_Node000011" title=" " alt="" coords="77,974,85,917,104,840,119,799,139,758,164,721,194,689,218,673,221,678,198,693,168,724,143,761,124,801,109,842,90,918,82,975"/>
 <area shape="rect" id="Node000016" href="$_rolling_stock_8cpp.html#a41dc54213b765c5d5b6363607e97e701" title=" " alt="" coords="221,727,449,767"/>
 <area shape="poly" id="edge24_Node000001_Node000016" title=" " alt="" coords="81,974,94,932,116,878,149,823,170,798,194,777,207,768,210,772,198,781,174,802,154,826,121,881,99,934,86,975"/>
@@ -65,9 +65,9 @@
 <area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="287,476,284,466,292,457,309,451,335,449,365,452,382,459,380,464,364,457,335,455,310,457,295,461,290,467,292,475"/>
 <area shape="poly" id="edge19_Node000010_Node000010" title=" " alt="" coords="294,566,284,556,289,546,306,540,335,538,372,542,382,547,386,552,382,555,379,551,370,547,335,543,308,545,293,550,290,556,297,563"/>
 <area shape="poly" id="edge21_Node000011_Node000011" title=" " alt="" coords="287,639,284,629,292,620,309,614,335,612,365,615,382,622,380,627,364,620,335,617,310,619,295,624,290,630,292,637"/>
-<area shape="rect" id="Node000012" href="$class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" title="Function to compute the passing time of a train over each timetable point (i.e. stations,..." alt="" coords="549,639,747,679"/>
+<area shape="rect" id="Node000012" href="$class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0" title=" " alt="" coords="549,639,747,679"/>
 <area shape="poly" id="edge22_Node000011_Node000012" title=" " alt="" coords="439,656,535,656,535,661,439,661"/>
-<area shape="rect" id="Node000013" href="$class_train.html#a4b084c4974815396a1675e0ebab3350e" title="Function to compute the arrival and departure of a train from a location with a specific position exp..." alt="" coords="832,639,1019,679"/>
+<area shape="rect" id="Node000013" href="$class_train.html#a4b084c4974815396a1675e0ebab3350e" title=" " alt="" coords="832,639,1019,679"/>
 <area shape="poly" id="edge23_Node000012_Node000013" title=" " alt="" coords="748,656,818,656,818,661,748,661"/>
 <area shape="poly" id="edge25_Node000016_Node000016" title=" " alt="" coords="287,727,284,717,292,708,309,702,335,700,365,703,382,710,380,715,364,708,335,705,310,707,295,712,290,718,292,725"/>
 <area shape="rect" id="Node000017" href="$_rolling_stock_8cpp.html#a2ca32310c7b2a9fa6808228e2e52e827" title=" " alt="" coords="559,734,737,759"/>
@@ -118,7 +118,7 @@
 <area shape="poly" id="edge77_Node000041_Node000075" title=" " alt="" coords="439,1363,473,1339,487,1320,493,1301,495,1261,497,1221,505,1201,521,1182,539,1170,558,1162,560,1167,541,1175,524,1186,509,1204,502,1222,500,1261,499,1302,491,1323,477,1343,442,1367"/>
 <area shape="rect" id="Node000076" href="$_signalling_8cpp.html#a17c34a6fb342ec8619d0ef4836687db0" title=" " alt="" coords="537,1221,759,1246"/>
 <area shape="poly" id="edge79_Node000041_Node000076" title=" " alt="" coords="440,1360,473,1339,489,1319,495,1298,503,1276,521,1255,529,1250,532,1255,524,1259,507,1279,501,1299,494,1321,476,1343,442,1364"/>
-<area shape="rect" id="Node000078" href="$_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" title=" " alt="" coords="541,1294,755,1319"/>
+<area shape="rect" id="Node000078" href="$_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" title="Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC),..." alt="" coords="541,1294,755,1319"/>
 <area shape="poly" id="edge81_Node000041_Node000078" title=" " alt="" coords="421,1358,522,1329,565,1319,566,1325,523,1335,423,1363"/>
 <area shape="rect" id="Node000079" href="$_simulation_8cpp.html#afa2157cda228a064d5e5e2cf4366fe05" title=" " alt="" coords="553,1368,743,1408"/>
 <area shape="poly" id="edge84_Node000041_Node000079" title=" " alt="" coords="441,1385,539,1385,539,1391,441,1391"/>

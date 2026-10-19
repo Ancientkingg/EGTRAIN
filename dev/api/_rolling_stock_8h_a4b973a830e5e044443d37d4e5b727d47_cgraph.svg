@@ -30,7 +30,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_rolling_stock_8cpp.html#abcd8c987e25c21897927edef7865281d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_rolling_stock_8cpp.html#abcd8c987e25c21897927edef7865281d" target="_top" xlink:title="Updates occupancy and pending entry reservations from the positions of step step. Every changed zone ...">
 <polygon fill="white" stroke="#666666" points="301,-57 167,-57 167,-38 301,-38 301,-57"/>
 <text text-anchor="middle" x="234" y="-45" font-family="Helvetica,sans-Serif" font-size="10.00">updateSingleTrackLocks</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="_signalling_8cpp.html#af0021f3af4d1429c3739cfb0b0342e2f" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="_signalling_8cpp.html#af0021f3af4d1429c3739cfb0b0342e2f" target="_top" xlink:title="True when the zone of any limit has a section on the route.">
 <polygon fill="white" stroke="#666666" points="503,-57 360,-57 360,-38 503,-38 503,-57"/>
 <text text-anchor="middle" x="431.5" y="-45" font-family="Helvetica,sans-Serif" font-size="10.00">singleTrackRouteHasZone</text>
 </a>
@@ -184,7 +184,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
+<g id="a_Node000005"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="880,-302 726,-302 726,-283 880,-283 880,-302"/>
 <text text-anchor="middle" x="803" y="-290" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>
@@ -429,7 +429,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
+<g id="a_Node000015"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1065,-189 924,-189 924,-170 1065,-170 1065,-189"/>
 <text text-anchor="middle" x="994.5" y="-177" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>

@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_movement_authority.html#a9551f5c6183502cd608db57c1ae38604" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_movement_authority.html#a9551f5c6183502cd608db57c1ae38604" target="_top" xlink:title="Sets BSID, type and typePart to &quot;None&quot; and the positions to &#45;1.">
 <polygon fill="white" stroke="#666666" points="274,-30 155,-30 155,0 274,0 274,-30"/>
 <text text-anchor="start" x="163" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">MovementAuthority::</text>
 <text text-anchor="middle" x="214.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">MovementAuthority</text>

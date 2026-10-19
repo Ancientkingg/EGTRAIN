@@ -20,7 +20,7 @@
 <area shape="poly" id="edge61_Node000001_Node000037" title=" " alt="" coords="216,579,328,609,326,614,214,584"/>
 <area shape="rect" id="Node000038" href="$_signalling_8cpp.html#a17c34a6fb342ec8619d0ef4836687db0" title=" " alt="" coords="278,827,501,852"/>
 <area shape="poly" id="edge63_Node000001_Node000038" title=" " alt="" coords="125,581,146,625,177,681,217,738,266,788,293,806,324,820,322,824,291,811,262,792,213,741,172,683,141,628,121,583"/>
-<area shape="rect" id="Node000040" href="$_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" title=" " alt="" coords="283,753,496,779"/>
+<area shape="rect" id="Node000040" href="$_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" title="Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC),..." alt="" coords="283,753,496,779"/>
 <area shape="poly" id="edge67_Node000001_Node000040" title=" " alt="" coords="134,580,189,646,225,683,265,714,297,732,331,746,328,751,295,737,263,719,222,687,185,650,130,583"/>
 <area shape="rect" id="Node000041" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="303,468,475,493"/>
 <area shape="poly" id="edge69_Node000001_Node000041" title=" " alt="" coords="190,524,263,502,300,494,301,499,265,507,191,529"/>
@@ -55,13 +55,13 @@
 <area shape="poly" id="edge21_Node000014_Node000015" title=" " alt="" coords="460,664,514,649,646,603,647,608,515,654,462,669"/>
 <area shape="poly" id="edge22_Node000015_Node000015" title=" " alt="" coords="645,577,635,566,640,556,660,550,694,548,739,552,750,558,753,564,748,567,746,562,737,558,694,553,661,555,643,560,640,566,649,573"/>
 <area shape="poly" id="edge24_Node000016_Node000016" title=" " alt="" coords="338,404,335,394,343,384,361,379,389,377,421,379,439,387,437,392,420,385,389,382,362,384,346,389,340,395,343,402"/>
-<area shape="rect" id="Node000017" href="$_rolling_stock_8cpp.html#abcd8c987e25c21897927edef7865281d" title=" " alt="" coords="605,408,783,433"/>
+<area shape="rect" id="Node000017" href="$_rolling_stock_8cpp.html#abcd8c987e25c21897927edef7865281d" title="Updates occupancy and pending entry reservations from the positions of step step. Every changed zone ..." alt="" coords="605,408,783,433"/>
 <area shape="poly" id="edge25_Node000016_Node000017" title=" " alt="" coords="477,420,591,419,591,424,477,425"/>
 <area shape="poly" id="edge57_Node000017_Node000006" title=" " alt="" coords="784,412,943,399,1125,378,1208,364,1209,369,1126,383,943,404,784,417"/>
 <area shape="poly" id="edge58_Node000017_Node000017" title=" " alt="" coords="645,410,635,400,640,390,660,383,694,381,739,386,750,391,753,398,748,400,746,395,737,391,694,387,661,389,643,394,640,399,649,406"/>
 <area shape="rect" id="Node000018" href="$class_train.html#a54fc076df66c661dccd1a701273efd19" title=" " alt="" coords="873,464,1125,489"/>
 <area shape="poly" id="edge26_Node000017_Node000018" title=" " alt="" coords="764,431,916,459,915,464,764,436"/>
-<area shape="rect" id="Node000035" href="$_signalling_8cpp.html#af0021f3af4d1429c3739cfb0b0342e2f" title=" " alt="" coords="904,344,1095,369"/>
+<area shape="rect" id="Node000035" href="$_signalling_8cpp.html#af0021f3af4d1429c3739cfb0b0342e2f" title="True when the zone of any limit has a section on the route." alt="" coords="904,344,1095,369"/>
 <area shape="poly" id="edge54_Node000017_Node000035" title=" " alt="" coords="755,405,924,370,925,375,756,411"/>
 <area shape="rect" id="Node000019" href="$class_train.html#a7db162f3326726463763a63d6190bd9f" title=" " alt="" coords="1204,640,1364,665"/>
 <area shape="poly" id="edge27_Node000018_Node000019" title=" " alt="" coords="1023,487,1252,631,1249,635,1020,492"/>
@@ -71,7 +71,7 @@
 <area shape="poly" id="edge53_Node000018_Node000028" title=" " alt="" coords="1081,487,1174,498,1325,509,1477,517,1724,524,1724,529,1476,522,1325,515,1173,503,1080,492"/>
 <area shape="rect" id="Node000034" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="1239,464,1329,489"/>
 <area shape="poly" id="edge50_Node000018_Node000034" title=" " alt="" coords="1126,474,1225,474,1225,479,1126,479"/>
-<area shape="rect" id="Node000020" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling." alt="" coords="1453,565,1659,591"/>
+<area shape="rect" id="Node000020" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="1453,565,1659,591"/>
 <area shape="poly" id="edge28_Node000019_Node000020" title=" " alt="" coords="1320,637,1442,599,1476,591,1477,596,1443,605,1322,642"/>
 <area shape="rect" id="Node000029" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="1443,615,1669,640"/>
 <area shape="poly" id="edge36_Node000019_Node000029" title=" " alt="" coords="1364,643,1428,637,1429,642,1365,648"/>
@@ -96,7 +96,7 @@
 <area shape="poly" id="edge37_Node000029_Node000021" title=" " alt="" coords="1670,625,1732,626,1732,631,1670,631"/>
 <area shape="poly" id="edge40_Node000029_Node000023" title=" " alt="" coords="1635,612,1717,601,1939,580,1940,586,1718,606,1636,617"/>
 <area shape="poly" id="edge41_Node000029_Node000028" title=" " alt="" coords="1636,612,1668,600,1682,590,1692,579,1701,568,1716,557,1748,542,1750,547,1719,562,1705,572,1696,583,1686,594,1671,604,1638,617"/>
-<area shape="rect" id="Node000030" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="1717,717,1905,743"/>
+<area shape="rect" id="Node000030" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="1717,717,1905,743"/>
 <area shape="poly" id="edge38_Node000029_Node000030" title=" " alt="" coords="1633,637,1670,649,1731,677,1781,707,1779,712,1728,682,1668,654,1631,643"/>
 <area shape="poly" id="edge39_Node000030_Node000023" title=" " alt="" coords="1863,715,1904,696,1930,676,1954,653,1992,607,1996,611,1958,657,1933,680,1907,700,1865,720"/>
 <area shape="poly" id="edge43_Node000031_Node000021" title=" " alt="" coords="1624,661,1732,641,1733,646,1625,667"/>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Resolve only the selected, currently published forward Tale within the EVC&#39;s existing scope.">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="172,-46 0,-46 0,-27 172,-27 172,-46"/>
 <text text-anchor="middle" x="86" y="-34" font-family="Helvetica,sans-Serif" font-size="10.00">Train::currentFollowingAuthority</text>
 </a>

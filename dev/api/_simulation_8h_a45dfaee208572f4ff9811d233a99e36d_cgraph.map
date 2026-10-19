@@ -1,5 +1,5 @@
 <map id="passengersWaitingAtPlatform" name="passengersWaitingAtPlatform">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,220,55"/>
+<area shape="rect" id="Node000001" title="The passengers waiting at the platform with these IDs. No platform is modified." alt="" coords="5,29,220,55"/>
 <area shape="rect" id="Node000002" href="$_simulation_8cpp.html#a15561587cf3c4f3cdfc40c7a48b32d47" title=" " alt="" coords="268,29,483,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,39,254,39,254,45,220,45"/>
 <area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="333,31,324,21,329,11,346,5,375,3,413,7,423,12,427,18,422,20,419,16,411,12,375,8,347,10,332,15,329,20,337,27"/>

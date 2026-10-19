@@ -75,7 +75,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_signalling_8cpp.html#add254d8783b745234ccb86b0f6fdbfbb" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_signalling_8cpp.html#add254d8783b745234ccb86b0f6fdbfbb" target="_top" xlink:title="Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how m...">
 <polygon fill="white" stroke="#666666" points="379.5,-184 229.5,-184 229.5,-165 379.5,-165 379.5,-184"/>
 <text text-anchor="middle" x="304.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">occupySingleTrackForRoute</text>
 </a>

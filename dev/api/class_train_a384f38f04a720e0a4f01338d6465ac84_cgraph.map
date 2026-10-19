@@ -1,6 +1,6 @@
 <map id="Train::cachedBrakingSuccessor" name="Train::cachedBrakingSuccessor">
-<area shape="rect" id="Node000001" title="A cached successor is a proposal only from its exact actual state and historical target." alt="" coords="5,109,228,135"/>
-<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="276,59,464,84"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,228,135"/>
+<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="276,59,464,84"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,107,292,84,293,89,182,112"/>
 <area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="512,77,640,117"/>
 <area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="228,113,498,98,498,104,229,119"/>

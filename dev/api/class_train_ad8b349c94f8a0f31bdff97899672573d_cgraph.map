@@ -6,7 +6,7 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,280,295,264,296,270,217,285"/>
 <area shape="rect" id="Node000016" href="$class_train.html#a9af946ff334ff93ba3b214da13ae0050" title=" " alt="" coords="563,338,719,363"/>
 <area shape="poly" id="edge38_Node000001_Node000016" title=" " alt="" coords="222,305,480,325,550,334,550,339,480,330,221,311"/>
-<area shape="rect" id="Node000018" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title="A cached successor is a proposal only from its exact actual state and historical target." alt="" coords="530,51,753,76"/>
+<area shape="rect" id="Node000018" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="530,51,753,76"/>
 <area shape="poly" id="edge28_Node000001_Node000018" title=" " alt="" coords="149,280,204,252,268,224,301,214,329,210,379,206,426,199,451,189,478,172,494,155,502,137,510,118,526,99,564,79,566,83,530,103,514,121,507,139,499,158,482,177,453,194,427,204,379,212,330,215,302,220,270,229,206,256,151,285"/>
 <area shape="rect" id="Node000019" href="$_signalling_level_8h.html#ab08ef98cad36a5df962e8d6d677a2c9a" title=" " alt="" coords="299,364,451,390"/>
 <area shape="poly" id="edge32_Node000001_Node000019" title=" " alt="" coords="185,320,317,358,315,363,183,325"/>
@@ -14,7 +14,7 @@
 <area shape="poly" id="edge36_Node000001_Node000020" title=" " alt="" coords="139,320,196,363,232,384,270,400,353,420,438,429,517,430,582,428,582,433,517,436,438,434,352,425,269,405,230,389,193,367,136,325"/>
 <area shape="rect" id="Node000021" href="$class_train.html#a5fc5143e0d84fee869df7af936bc20aa" title=" " alt="" coords="295,466,455,491"/>
 <area shape="poly" id="edge37_Node000001_Node000021" title=" " alt="" coords="133,321,190,382,229,415,271,444,304,459,302,464,268,449,225,419,186,386,129,325"/>
-<area shape="rect" id="Node000004" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling." alt="" coords="539,114,744,139"/>
+<area shape="rect" id="Node000004" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="539,114,744,139"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="432,237,479,217,493,207,502,196,526,174,589,142,592,147,530,178,506,200,496,211,481,222,435,242"/>
 <area shape="rect" id="Node000013" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="528,188,755,214"/>
 <area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="442,236,560,214,561,219,443,242"/>
@@ -42,7 +42,7 @@
 <area shape="poly" id="edge13_Node000013_Node000005" title=" " alt="" coords="755,198,818,198,818,204,755,204"/>
 <area shape="poly" id="edge16_Node000013_Node000007" title=" " alt="" coords="715,186,802,173,932,160,1048,152,1048,157,933,166,803,178,715,191"/>
 <area shape="poly" id="edge17_Node000013_Node000012" title=" " alt="" coords="674,186,753,148,816,107,867,69,871,73,819,112,756,153,677,191"/>
-<area shape="rect" id="Node000014" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="803,290,991,315"/>
+<area shape="rect" id="Node000014" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="803,290,991,315"/>
 <area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="714,211,756,224,815,251,865,280,863,285,812,256,754,229,712,216"/>
 <area shape="poly" id="edge15_Node000014_Node000007" title=" " alt="" coords="946,287,989,268,1049,224,1096,179,1100,183,1052,228,992,273,948,292"/>
 <area shape="poly" id="edge19_Node000015_Node000005" title=" " alt="" coords="706,236,818,214,819,219,707,242"/>

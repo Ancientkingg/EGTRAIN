@@ -1,12 +1,12 @@
 <map id="Train::brakingStep" name="Train::brakingStep">
 <area shape="rect" id="Node000001" title="One braking step at time_seconds on arc As: follows the stored plan, makes a new one,..." alt="" coords="5,232,144,257"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title="A cached successor is a proposal only from its exact actual state and historical target." alt="" coords="433,181,655,207"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="433,181,655,207"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,230,192,223,418,201,419,206,192,229,145,236"/>
 <area shape="rect" id="Node000004" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="965,325,1093,365"/>
 <area shape="poly" id="edge41_Node000001_Node000004" title=" " alt="" coords="104,229,191,194,309,150,361,135,430,122,494,115,544,114,657,122,726,124,781,123,834,132,863,143,895,160,936,193,970,233,996,274,1015,310,1011,313,992,277,965,236,932,196,892,164,860,147,832,137,781,129,726,129,657,127,544,119,494,120,431,127,362,140,310,155,193,199,106,234"/>
 <area shape="rect" id="Node000009" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="726,281,873,307"/>
 <area shape="poly" id="edge42_Node000001_Node000009" title=" " alt="" coords="145,247,712,286,712,291,144,252"/>
-<area shape="rect" id="Node000010" href="$class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" title="Native inverse plan shares the exact actual&#45;start step with BrakDist_Block." alt="" coords="196,457,379,483"/>
+<area shape="rect" id="Node000010" href="$class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" title=" " alt="" coords="196,457,379,483"/>
 <area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="84,256,123,331,155,378,194,420,216,436,240,449,237,454,213,441,190,424,151,381,119,334,79,259"/>
 <area shape="rect" id="Node000014" href="$class_train.html#a9ed1da2ac786a644ff5e8fd001c8d4e1" title=" " alt="" coords="719,29,880,55"/>
 <area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="78,231,91,197,114,153,147,108,168,88,191,72,259,41,331,20,406,8,480,3,552,4,619,9,728,24,728,30,618,14,552,9,480,9,406,13,332,25,260,46,193,76,171,92,151,111,119,156,96,199,83,233"/>
@@ -14,7 +14,7 @@
 <area shape="poly" id="edge18_Node000001_Node000015" title=" " alt="" coords="84,257,127,356,194,494,235,565,272,622,268,625,231,567,190,497,122,358,79,259"/>
 <area shape="rect" id="Node000017" href="$class_train.html#ab7c0931ae832319456ae4b4f65acd580" title="Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths a..." alt="" coords="192,384,383,409"/>
 <area shape="poly" id="edge25_Node000001_Node000017" title=" " alt="" coords="95,255,259,374,256,378,92,260"/>
-<area shape="rect" id="Node000003" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="705,535,893,560"/>
+<area shape="rect" id="Node000003" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="705,535,893,560"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="556,205,602,275,660,372,681,423,691,445,707,470,737,500,768,525,765,529,733,504,703,473,686,447,676,425,655,374,597,278,552,208"/>
 <area shape="poly" id="edge8_Node000002_Node000004" title=" " alt="" coords="639,204,762,228,829,246,894,268,943,290,987,315,984,320,941,295,892,273,828,251,761,234,638,209"/>
 <area shape="poly" id="edge9_Node000002_Node000009" title=" " alt="" coords="597,204,658,224,714,248,764,273,762,277,712,253,656,229,596,209"/>
@@ -46,7 +46,7 @@
 <area shape="poly" id="edge26_Node000017_Node000003" title=" " alt="" coords="324,407,355,423,385,444,400,465,407,485,415,503,432,519,465,535,501,547,575,561,648,564,713,559,713,564,648,569,574,566,499,552,463,540,429,523,411,506,402,487,395,467,381,448,352,427,321,412"/>
 <area shape="poly" id="edge39_Node000017_Node000004" title=" " alt="" coords="289,383,304,339,331,278,350,247,372,216,399,189,429,168,494,137,553,120,608,116,662,121,715,137,770,159,895,222,926,242,956,266,1003,312,1000,316,952,269,923,246,892,227,768,164,713,142,661,127,608,121,554,126,496,142,432,172,402,193,376,220,354,250,335,281,309,341,295,385"/>
 <area shape="poly" id="edge40_Node000017_Node000009" title=" " alt="" coords="308,382,361,352,430,325,503,309,578,298,712,291,712,296,579,304,504,314,431,330,364,357,310,386"/>
-<area shape="rect" id="Node000018" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling." alt="" coords="441,384,647,409"/>
+<area shape="rect" id="Node000018" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="441,384,647,409"/>
 <area shape="poly" id="edge27_Node000017_Node000018" title=" " alt="" coords="383,394,427,394,427,399,383,399"/>
 <area shape="rect" id="Node000019" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="431,433,657,459"/>
 <area shape="poly" id="edge31_Node000017_Node000019" title=" " alt="" coords="355,407,464,428,463,433,354,412"/>

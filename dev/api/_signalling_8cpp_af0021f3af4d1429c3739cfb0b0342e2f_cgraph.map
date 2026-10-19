@@ -1,5 +1,5 @@
 <map id="singleTrackRouteHasZone" name="singleTrackRouteHasZone">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,196,55"/>
+<area shape="rect" id="Node000001" title="True when the zone of any limit has a section on the route." alt="" coords="5,29,196,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="67,31,60,21,63,11,77,5,101,3,129,6,141,15,137,20,127,11,101,8,79,10,67,15,65,20,71,28"/>
 <area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a475976cd4cee44735b57bd3aa6b640e3" title=" " alt="" coords="244,29,372,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="197,39,230,39,230,45,197,45"/>

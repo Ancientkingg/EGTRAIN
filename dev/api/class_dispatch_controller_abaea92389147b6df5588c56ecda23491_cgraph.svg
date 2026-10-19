@@ -206,7 +206,7 @@
 <!-- Node40 -->
 <g id="Node000040" class="node">
 <title>Node40</title>
-<g id="a_Node000040"><a xlink:href="_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" target="_top" xlink:title=" ">
+<g id="a_Node000040"><a xlink:href="_rolling_stock_8cpp.html#ad48e1118a615ff310e32fea0135151a4" target="_top" xlink:title="Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC),...">
 <polygon fill="white" stroke="#666666" points="368,-283.5 208,-283.5 208,-264.5 368,-264.5 368,-283.5"/>
 <text text-anchor="middle" x="288" y="-271.5" font-family="Helvetica,sans-Serif" font-size="10.00">ReportAllTrainPositionsToRBC</text>
 </a>
@@ -523,7 +523,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="_rolling_stock_8cpp.html#abcd8c987e25c21897927edef7865281d" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="_rolling_stock_8cpp.html#abcd8c987e25c21897927edef7865281d" target="_top" xlink:title="Updates occupancy and pending entry reservations from the positions of step step. Every changed zone ...">
 <polygon fill="white" stroke="#666666" points="583.5,-542.5 449.5,-542.5 449.5,-523.5 583.5,-523.5 583.5,-542.5"/>
 <text text-anchor="middle" x="516.5" y="-530.5" font-family="Helvetica,sans-Serif" font-size="10.00">updateSingleTrackLocks</text>
 </a>
@@ -577,7 +577,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="_signalling_8cpp.html#af0021f3af4d1429c3739cfb0b0342e2f" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="_signalling_8cpp.html#af0021f3af4d1429c3739cfb0b0342e2f" target="_top" xlink:title="True when the zone of any limit has a section on the route.">
 <polygon fill="white" stroke="#666666" points="817,-590.5 674,-590.5 674,-571.5 817,-571.5 817,-590.5"/>
 <text text-anchor="middle" x="745.5" y="-578.5" font-family="Helvetica,sans-Serif" font-size="10.00">singleTrackRouteHasZone</text>
 </a>
@@ -668,7 +668,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
+<g id="a_Node000020"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1240,-424.5 1086,-424.5 1086,-405.5 1240,-405.5 1240,-424.5"/>
 <text text-anchor="middle" x="1163" y="-412.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>
@@ -894,7 +894,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
+<g id="a_Node000030"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1425,-310.5 1284,-310.5 1284,-291.5 1425,-291.5 1425,-310.5"/>
 <text text-anchor="middle" x="1354.5" y="-298.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>

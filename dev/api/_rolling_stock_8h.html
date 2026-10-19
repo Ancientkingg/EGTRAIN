@@ -152,11 +152,15 @@ Functions</h2></td></tr>
 <tr class="memitem:aea9297830b5672f714105f48b351dd48" id="r_aea9297830b5672f714105f48b351dd48"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aea9297830b5672f714105f48b351dd48">resetNativeOperationsState</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memdesc:aea9297830b5672f714105f48b351dd48"><td class="mdescLeft">&#160;</td><td class="mdescRight">The reset between scene runs, which is the same as preparing a new run.  <br /></td></tr>
 <tr class="memitem:afad804c52cb5f74014fcc0162b015f89" id="r_afad804c52cb5f74014fcc0162b015f89"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afad804c52cb5f74014fcc0162b015f89">trainPassengerCapacity</a> (double numberOfWagons)</td></tr>
+<tr class="memdesc:afad804c52cb5f74014fcc0162b015f89"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_passenger.html">Passenger</a> capacity of a train: 300 for the traction unit and 300 for each wagon.  <br /></td></tr>
 <tr class="memitem:a4321f0d14635cb369fa4b53e960a81bd" id="r_a4321f0d14635cb369fa4b53e960a81bd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4321f0d14635cb369fa4b53e960a81bd">passengerOccupancyRatio</a> (int passengers, int capacity)</td></tr>
 <tr class="memitem:a8629a8afffc521451b0ac8d789af22c1" id="r_a8629a8afffc521451b0ac8d789af22c1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8629a8afffc521451b0ac8d789af22c1">isShortOfBrakingPoint</a> (double position, double brakingPoint)</td></tr>
+<tr class="memdesc:a8629a8afffc521451b0ac8d789af22c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when position (m) is short of the hold-back position before brakingPoint (m), beyond the tolerance.  <br /></td></tr>
 <tr class="memitem:a2c8aeb5be2d71d06848277209c39a470" id="r_a2c8aeb5be2d71d06848277209c39a470"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c8aeb5be2d71d06848277209c39a470">isPastStopHoldback</a> (double position, double stoppingPoint)</td></tr>
+<tr class="memdesc:a2c8aeb5be2d71d06848277209c39a470"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when position (m) is past the hold-back position before stoppingPoint (m), beyond the tolerance.  <br /></td></tr>
 <tr class="memitem:a4b973a830e5e044443d37d4e5b727d47" id="r_a4b973a830e5e044443d37d4e5b727d47"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b973a830e5e044443d37d4e5b727d47">Occupy_Block_Sections_Of_Route</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int i)</td></tr>
 <tr class="memitem:ad48e1118a615ff310e32fea0135151a4" id="r_ad48e1118a615ff310e32fea0135151a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad48e1118a615ff310e32fea0135151a4">ReportAllTrainPositionsToRBC</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int i, double ETCS3SafetyMargin)</td></tr>
+<tr class="memdesc:ad48e1118a615ff310e32fea0135151a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC), with the margin ETCS3SafetyMargin (m).  <br /></td></tr>
 <tr class="memitem:ae90a5fc832fc3e392c9170627eb84c36" id="r_ae90a5fc832fc3e392c9170627eb84c36"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae90a5fc832fc3e392c9170627eb84c36">PrintTrainBlockingTimes</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, std::string MainFolder)</td></tr>
 <tr class="memitem:a6b74d3558b9288fab745e0cf74f84d42" id="r_a6b74d3558b9288fab745e0cf74f84d42"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6b74d3558b9288fab745e0cf74f84d42">PrintTimetablePoints</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, std::string MainFolder)</td></tr>
 <tr class="memitem:ad9c39d7c6f43673001b963dd20746e1d" id="r_ad9c39d7c6f43673001b963dd20746e1d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad9c39d7c6f43673001b963dd20746e1d">ComputeBlockingTimesInMixedSignallingForAllTrains</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement)</td></tr>
@@ -255,6 +259,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Computes the blocking times of every train (<a class="el" href="class_train.html#ad6828d6b18fa11657a1d1b9ec96344ba">Train::ComputeBlockingTimesInMixedSignallingAreas</a>, same arguments) and writes BlockingTimes.txt to OutputFolder. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -289,6 +294,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when position (m) is past the hold-back position before stoppingPoint (m), beyond the tolerance. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -323,6 +330,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when position (m) is short of the hold-back position before brakingPoint (m), beyond the tolerance. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -349,6 +358,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fills run.blocksOccupied and run.blocksConnected for step i with the sections that every train covers (Det_Section_Occupied_By_Train), then updates the single-track locks. See "What happens in a step" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -375,6 +385,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Occupancy as a ratio of passengers to capacity. An unknown capacity (zero or negative) gives 0, so it never counts as congested. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -424,6 +435,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions (twice), the arrival times and the departure times of its timetable points. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -450,6 +462,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes MainFolder/BlockingTimes.txt: per train, its description and its first N_BlockTimeComplete blocking times (positions m, times s). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -476,6 +489,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections ahead of its head, <a class="el" href="class_station_boundary_section.html#a7078799e22a787219dc330736e9d5ce2">StationBoundarySection::protectEntrance</a> runs for it. A platform is booked only for trains whose last stop is "Alm", "Asd" or "Asdz". It does not run when the entrance is two sections ahead and the section between is occupied. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -507,6 +521,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC), with the margin ETCS3SafetyMargin (m). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -553,6 +569,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_passenger.html">Passenger</a> capacity of a train: 300 for the traction unit and 300 for each wagon. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

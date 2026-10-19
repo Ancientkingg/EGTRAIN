@@ -163,38 +163,32 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a82dd6ebdc170d20a58e48ce77c2f22df" id="r_a82dd6ebdc170d20a58e48ce77c2f22df"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a82dd6ebdc170d20a58e48ce77c2f22df">authorityRoutePosition</a> (const <a class="el" href="class_movement_authority.html">MovementAuthority</a> &amp;authority, const <a class="el" href="class_section.html">Section</a> &amp;section) const</td></tr>
 <tr class="memdesc:a82dd6ebdc170d20a58e48ce77c2f22df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Position in metres of the authority on the route of this train, for an authority on section.  <br /></td></tr>
 <tr class="memitem:af7934345348548b70111ecbb47dd58c7" id="r_af7934345348548b70111ecbb47dd58c7"><td class="memItemLeft">const <a class="el" href="class_movement_authority.html">MovementAuthority</a> *&#160;</td><td class="memItemRight"><a class="el" href="#af7934345348548b70111ecbb47dd58c7">currentFollowingAuthority</a> (double head, double &amp;leaderHead) const</td></tr>
-<tr class="memdesc:af7934345348548b70111ecbb47dd58c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resolve only the selected, currently published forward Tale within the EVC's existing scope.  <br /></td></tr>
 <tr class="memitem:a56bc8158e3c8ee2b4cc8f0cfaab6f9a3" id="r_a56bc8158e3c8ee2b4cc8f0cfaab6f9a3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a56bc8158e3c8ee2b4cc8f0cfaab6f9a3">checkIfMovementAuthorityStillValid</a> (double speed, double head, const <a class="el" href="class_section.html">Section</a> &amp;section)</td></tr>
-<tr class="memdesc:a56bc8158e3c8ee2b4cc8f0cfaab6f9a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validate before current target selection so an invalid old hold cannot clear new metadata.  <br /></td></tr>
 <tr class="memitem:a53e9517a26b451c8ebd49e4895bb8921" id="r_a53e9517a26b451c8ebd49e4895bb8921"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a53e9517a26b451c8ebd49e4895bb8921">leaveFollowingModeWhenLeaderIsGone</a> (int time_seconds)</td></tr>
 <tr class="memitem:ae67e8c5e364a38ec05fe9fd268b1a064" id="r_ae67e8c5e364a38ec05fe9fd268b1a064"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#ae67e8c5e364a38ec05fe9fd268b1a064">BrakingDistanceFastComputation</a> (double V1, double V2, double X1, double X2, <a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
 <tr class="memitem:a9919b5df2c04fa5c9be99f738d5471f3" id="r_a9919b5df2c04fa5c9be99f738d5471f3"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a9919b5df2c04fa5c9be99f738d5471f3">AccelerationTimeFollowingMode</a> (double V1, double V2, double X1, double X2, <a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
 <tr class="memitem:a57f7e9d2d2b854fa1214fda170635bbc" id="r_a57f7e9d2d2b854fa1214fda170635bbc"><td class="memItemLeft">const <a class="el" href="class_arc.html">Arc</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a57f7e9d2d2b854fa1214fda170635bbc">brakingArc</a> (double head, <a class="el" href="class_section.html">Section</a> *sections, int count, double *safeUpper=nullptr) const</td></tr>
 <tr class="memdesc:a57f7e9d2d2b854fa1214fda170635bbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arc under head in metres on the given sections, or null; a fresh <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> lookup.  <br /></td></tr>
 <tr class="memitem:ab5547152846ad249a7121a1678375531" id="r_ab5547152846ad249a7121a1678375531"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab5547152846ad249a7121a1678375531">brakingCurveSpeed</a> (double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc)</td></tr>
-<tr class="memdesc:ab5547152846ad249a7121a1678375531"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every curve step samples force at the actual start and uses the right endpoint for distance.  <br /></td></tr>
 <tr class="memitem:a2683359b1354760a2ec1e27a63a00f8c" id="r_a2683359b1354760a2ec1e27a63a00f8c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2683359b1354760a2ec1e27a63a00f8c">inverseBrakingStep</a> (double nextHead, double nextSpeed, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;head, double &amp;speed)</td></tr>
 <tr class="memitem:a9af946ff334ff93ba3b214da13ae0050" id="r_a9af946ff334ff93ba3b214da13ae0050"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9af946ff334ff93ba3b214da13ae0050">predictBraking</a> (double head, double speed, double targetSpeed, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;end, std::vector&lt; double &gt; *positions=nullptr, std::vector&lt; double &gt; *speeds=nullptr)</td></tr>
 <tr class="memitem:a518c09b45fe8dd0df01a9ce6be22c2c7" id="r_a518c09b45fe8dd0df01a9ce6be22c2c7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a518c09b45fe8dd0df01a9ce6be22c2c7">predictBrakingPrefix</a> (double head, double speed, int steps, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;end, double &amp;endSpeed, std::vector&lt; double &gt; *positions=nullptr, std::vector&lt; double &gt; *speeds=nullptr)</td></tr>
 <tr class="memitem:a8845fd02024c04e5f02f9f87e352c57d" id="r_a8845fd02024c04e5f02f9f87e352c57d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8845fd02024c04e5f02f9f87e352c57d">brakingTerminalUpper</a> (double head, double speed, double ceiling, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;upper)</td></tr>
-<tr class="memdesc:a8845fd02024c04e5f02f9f87e352c57d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upper end of the reachable terminal-coordinate interval at a positive ceiling.  <br /></td></tr>
 <tr class="memitem:a34b9e3944d6a89b3ce1310cfa1e07633" id="r_a34b9e3944d6a89b3ce1310cfa1e07633"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a34b9e3944d6a89b3ce1310cfa1e07633">constructBrakingTerminal</a> (double head, double speed, double anchor, double ceiling, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;terminal)</td></tr>
 <tr class="memitem:ab7c0931ae832319456ae4b4f65acd580" id="r_ab7c0931ae832319456ae4b4f65acd580"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab7c0931ae832319456ae4b4f65acd580">planPositiveBraking</a> (double head, double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, <a class="el" href="class_section.html">Section</a> *sections, int count, int suggested)</td></tr>
 <tr class="memdesc:ab7c0931ae832319456ae4b4f65acd580"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths around suggested.  <br /></td></tr>
 <tr class="memitem:a7db162f3326726463763a63d6190bd9f" id="r_a7db162f3326726463763a63d6190bd9f"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a7db162f3326726463763a63d6190bd9f">BrakDist_Block</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memitem:a54fc076df66c661dccd1a701273efd19" id="r_a54fc076df66c661dccd1a701273efd19"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a54fc076df66c661dccd1a701273efd19">needsSingleTrackReservation</a> (double head, double speed, double entry, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a384f38f04a720e0a4f01338d6465ac84" id="r_a384f38f04a720e0a4f01338d6465ac84"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a384f38f04a720e0a4f01338d6465ac84">cachedBrakingSuccessor</a> (int previousInstant, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, double target, double targetSpeed)</td></tr>
-<tr class="memdesc:a384f38f04a720e0a4f01338d6465ac84"><td class="mdescLeft">&#160;</td><td class="mdescRight">A cached successor is a proposal only from its exact actual state and historical target.  <br /></td></tr>
 <tr class="memitem:ad8b349c94f8a0f31bdff97899672573d" id="r_ad8b349c94f8a0f31bdff97899672573d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad8b349c94f8a0f31bdff97899672573d">europeanVitalComputerWithListsImproved</a> (double S, double V, int PreviousInstant, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, bool &amp;continueCached)</td></tr>
 <tr class="memitem:adda58a2a6872fa9512e72cbec2abb7e0" id="r_adda58a2a6872fa9512e72cbec2abb7e0"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#adda58a2a6872fa9512e72cbec2abb7e0">DrawBrakingCurve</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
-<tr class="memdesc:adda58a2a6872fa9512e72cbec2abb7e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Native inverse plan shares the exact actual-start step with BrakDist_Block.  <br /></td></tr>
 <tr class="memitem:a632ba10791abd58a3febb922e8d60ae6" id="r_a632ba10791abd58a3febb922e8d60ae6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a632ba10791abd58a3febb922e8d60ae6">planBraking</a> (double head, double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a1af634b7447d29cd8696899f0d900f03" id="r_a1af634b7447d29cd8696899f0d900f03"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1af634b7447d29cd8696899f0d900f03">brakingStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memdesc:a1af634b7447d29cd8696899f0d900f03"><td class="mdescLeft">&#160;</td><td class="mdescRight">One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force.  <br /></td></tr>
 <tr class="memitem:a9ed1da2ac786a644ff5e8fd001c8d4e1" id="r_a9ed1da2ac786a644ff5e8fd001c8d4e1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9ed1da2ac786a644ff5e8fd001c8d4e1">fullBrakingStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As)</td></tr>
 <tr class="memitem:a2daf71d16057b5847a8640522272a793" id="r_a2daf71d16057b5847a8640522272a793"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a2daf71d16057b5847a8640522272a793">PrintTrajectory</a> ()</td></tr>
-<tr class="memdesc:a2daf71d16057b5847a8640522272a793"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function for printing <a class="el" href="class_train.html">Train</a> Trajectory Data.  <br /></td></tr>
 <tr class="memitem:aa6129d2e460d7abdfb98939484357f09" id="r_aa6129d2e460d7abdfb98939484357f09"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#aa6129d2e460d7abdfb98939484357f09">~Train</a> ()</td></tr>
+<tr class="memdesc:aa6129d2e460d7abdfb98939484357f09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does nothing.  <br /></td></tr>
 <tr class="memitem:a7fb86eca790a418b0ef476f89e77e36b" id="r_a7fb86eca790a418b0ef476f89e77e36b"><td class="memItemLeft">virtual std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7fb86eca790a418b0ef476f89e77e36b">DetermineOccupiedTDS</a> (int timeinstant, bool IsRouteReversed)</td></tr>
 <tr class="memdesc:a7fb86eca790a418b0ef476f89e77e36b"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.  <br /></td></tr>
 <tr class="memitem:aae86e0228dcc9da75848221be573a189" id="r_aae86e0228dcc9da75848221be573a189"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aae86e0228dcc9da75848221be573a189">recordDirectIncidentId</a> (const std::string &amp;incidentId, double timeSeconds, double locationMeters)</td></tr>
@@ -204,61 +198,46 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af83706fc0c810785c1570b044d91a7d7" id="r_af83706fc0c810785c1570b044d91a7d7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af83706fc0c810785c1570b044d91a7d7">recordDirectSignalFailure</a> (const <a class="el" href="class_movement_authority.html">MovementAuthority</a> &amp;authority, double timeSeconds)</td></tr>
 <tr class="memdesc:af83706fc0c810785c1570b044d91a7d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records the incident behind a signal failure authority.  <br /></td></tr>
 <tr class="memitem:a301604736506a528db15b8e4a1bd32e4" id="r_a301604736506a528db15b8e4a1bd32e4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a301604736506a528db15b8e4a1bd32e4">effectiveIncidentSpeedLimit</a> (double candidate, int timestepIndex)</td></tr>
-<tr class="memdesc:a301604736506a528db15b8e4a1bd32e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The speed limit candidate in m/s, lowered to the speed cap of an active breakdown of this train at the step.  <br /></td></tr>
 <tr class="memitem:a09e55bf615f21184e4a57367932d4a61" id="r_a09e55bf615f21184e4a57367932d4a61"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a09e55bf615f21184e4a57367932d4a61">trajectoryComputationIncludingMovingBlock</a> (int time_seconds, double signalCode1, double signalCode2, double signalCode3)</td></tr>
-<tr class="memdesc:a09e55bf615f21184e4a57367932d4a61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Simulate the <a class="el" href="class_train.html">Train</a> Trajectory: computes step time_seconds from step time_seconds - 1.  <br /></td></tr>
 <tr class="memitem:a4b084c4974815396a1675e0ebab3350e" id="r_a4b084c4974815396a1675e0ebab3350e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b084c4974815396a1675e0ebab3350e">computeArrivalAndDepartureAtLocation</a> (double LocationPosition, <a class="el" href="class_train_event.html">TrainEvent</a> &amp;PassingPoint)</td></tr>
-<tr class="memdesc:a4b084c4974815396a1675e0ebab3350e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to compute the arrival and departure of a train from a location with a specific position expressed in [m].  <br /></td></tr>
 <tr class="memitem:a0f2a4c491a15ae2c8f1e4401f58dd5b0" id="r_a0f2a4c491a15ae2c8f1e4401f58dd5b0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0f2a4c491a15ae2c8f1e4401f58dd5b0">ComputeTimetablingPoints</a> ()</td></tr>
-<tr class="memdesc:a0f2a4c491a15ae2c8f1e4401f58dd5b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to compute the passing time of a train over each timetable point (i.e. stations, junctions and or relevant signals).  <br /></td></tr>
 <tr class="memitem:a788c9e9175a97051d8b5cf0322a9b756" id="r_a788c9e9175a97051d8b5cf0322a9b756"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a788c9e9175a97051d8b5cf0322a9b756">Det_Section_Occupied_By_Train</a> (int i, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
-<tr class="memdesc:a788c9e9175a97051d8b5cf0322a9b756"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Determine which Block <a class="el" href="class_section.html">Section</a> is Occupied by the train.  <br /></td></tr>
 <tr class="memitem:a5f35386ac7d65c9b6ed1dc85932f1cdf" id="r_a5f35386ac7d65c9b6ed1dc85932f1cdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5f35386ac7d65c9b6ed1dc85932f1cdf">ReportPositionToRBC</a> (int i, <a class="el" href="class_section.html">Section</a> *BS, int N_BS, double ETCS3SafetyMargin)</td></tr>
-<tr class="memdesc:a5f35386ac7d65c9b6ed1dc85932f1cdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Report <a class="el" href="class_train.html">Train</a> Position to RBC (the ETCS3 Safety Margin must be given in m).  <br /></td></tr>
 <tr class="memitem:a875f0eaa5ed019bfe9e9ec44486874e8" id="r_a875f0eaa5ed019bfe9e9ec44486874e8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a875f0eaa5ed019bfe9e9ec44486874e8">ComputeBlockingTimeForSingleLocation</a> (int IndexCurrentBS, std::string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement)</td></tr>
-<tr class="memdesc:a875f0eaa5ed019bfe9e9ec44486874e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Compute Blocking Times for a single Block <a class="el" href="class_section.html">Section</a>. This Function allows us to compute blocking time in area with mixed signalling system.  <br /></td></tr>
 <tr class="memitem:a20daa1ddd39245f4bca371639115a2ce" id="r_a20daa1ddd39245f4bca371639115a2ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a20daa1ddd39245f4bca371639115a2ce">ComputeBlockTime_ETCSLevel_3_ForSection</a> (int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement)</td></tr>
 <tr class="memdesc:a20daa1ddd39245f4bca371639115a2ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually enters the network in the simulation).  <br /></td></tr>
 <tr class="memitem:a5d3788a334ff231b4e9fa35a96a5cb4a" id="r_a5d3788a334ff231b4e9fa35a96a5cb4a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5d3788a334ff231b4e9fa35a96a5cb4a">ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved</a> (int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement)</td></tr>
-<tr class="memdesc:a5d3788a334ff231b4e9fa35a96a5cb4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Compute the Blocking Times in Virtual Coupling (EntryTime is the time the train actually enters the network in the simulation).  <br /></td></tr>
 <tr class="memitem:a645056dd24bb65948f221b5bbe429c6a" id="r_a645056dd24bb65948f221b5bbe429c6a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a645056dd24bb65948f221b5bbe429c6a">ConnectBlockTimesOfSwitchesForTrainCentricSignalling</a> ()</td></tr>
 <tr class="memitem:ad6828d6b18fa11657a1d1b9ec96344ba" id="r_ad6828d6b18fa11657a1d1b9ec96344ba"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad6828d6b18fa11657a1d1b9ec96344ba">ComputeBlockingTimesInMixedSignallingAreas</a> (double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsRTSupp, double PercRTSupp)</td></tr>
-<tr class="memdesc:ad6828d6b18fa11657a1d1b9ec96344ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to Compute the Blocking times in mixed signalling areas.  <br /></td></tr>
 <tr class="memitem:adc0264bf5618b838c3ca1f6027038102" id="r_adc0264bf5618b838c3ca1f6027038102"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adc0264bf5618b838c3ca1f6027038102">Det_Run_Start_Time</a> ()</td></tr>
 <tr class="memitem:ab6f07eedb95d755447484b05016ee360" id="r_ab6f07eedb95d755447484b05016ee360"><td class="memItemLeft">const <a class="el" href="class_train_event.html">TrainEvent</a> *&#160;</td><td class="memItemRight"><a class="el" href="#ab6f07eedb95d755447484b05016ee360">timetablePointOfStop</a> (int stopIndex) const</td></tr>
 <tr class="memitem:a4bd81ea0b726a82a615d4dc9dc3571c2" id="r_a4bd81ea0b726a82a615d4dc9dc3571c2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4bd81ea0b726a82a615d4dc9dc3571c2">Determine_Actual_Station_Arrivals</a> ()</td></tr>
 <tr class="memitem:a3d76fb79bafd9bb1683d32c403b94a32" id="r_a3d76fb79bafd9bb1683d32c403b94a32"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3d76fb79bafd9bb1683d32c403b94a32">computeArrivalDelaysAtStations</a> ()</td></tr>
-<tr class="memdesc:a3d76fb79bafd9bb1683d32c403b94a32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function compute Arrival delays at stations for a train.  <br /></td></tr>
 <tr class="memitem:ad16806b65057677a073571752ae4789a" id="r_ad16806b65057677a073571752ae4789a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad16806b65057677a073571752ae4789a">Compute_Pos_And_Neg_Arrival_Delays_At_Stations</a> ()</td></tr>
-<tr class="memdesc:ad16806b65057677a073571752ae4789a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to calculate train delays taking into account both the positive and negative (arrival ahead the schedule) delays.  <br /></td></tr>
+<tr class="memdesc:ad16806b65057677a073571752ae4789a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Like computeArrivalDelaysAtStations, but an early arrival keeps its negative delay, and TotalInputDelays is not changed.  <br /></td></tr>
 <tr class="memitem:a84f34505ebfd5f1fc6262171d58013cb" id="r_a84f34505ebfd5f1fc6262171d58013cb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a84f34505ebfd5f1fc6262171d58013cb">recordCurrentServiceStopArrival</a> (int time_seconds)</td></tr>
-<tr class="memdesc:a84f34505ebfd5f1fc6262171d58013cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records time_seconds as the arrival at the current stop when that stop has no arrival yet.  <br /></td></tr>
+<tr class="memdesc:a84f34505ebfd5f1fc6262171d58013cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that has none yet.  <br /></td></tr>
 <tr class="memitem:a22255939ce42a6ec89ecefebac067afc" id="r_a22255939ce42a6ec89ecefebac067afc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a22255939ce42a6ec89ecefebac067afc">stationIsOnRoute</a> (int stationIndex, const std::vector&lt; std::string &gt; &amp;allowedBlockIds={}) const</td></tr>
 <tr class="memdesc:a22255939ce42a6ec89ecefebac067afc"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty.  <br /></td></tr>
 <tr class="memitem:a0d6cd4ebf34919bba10e689f614e7ee0" id="r_a0d6cd4ebf34919bba10e689f614e7ee0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0d6cd4ebf34919bba10e689f614e7ee0">stationRoutePositionMeters</a> (int stationIndex) const</td></tr>
-<tr class="memdesc:a0d6cd4ebf34919bba10e689f614e7ee0"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> position in metres of stop stationIndex; -1 when it is not on the route.  <br /></td></tr>
 <tr class="memitem:ad957a56a73a52d5cf0cc904fa651c356" id="r_ad957a56a73a52d5cf0cc904fa651c356"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad957a56a73a52d5cf0cc904fa651c356">recordStationPassagesAtTime</a> (int time_seconds)</td></tr>
-<tr class="memdesc:ad957a56a73a52d5cf0cc904fa651c356"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records time_seconds as the arrival at each stop without an arrival that the head passed in this step, within 5 m.  <br /></td></tr>
 <tr class="memitem:a23977edf7b951918b731c0164af29425" id="r_a23977edf7b951918b731c0164af29425"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a23977edf7b951918b731c0164af29425">stationNameForArrivalStats</a> (int stationIndex) const</td></tr>
 <tr class="memdesc:a23977edf7b951918b731c0164af29425"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of stop stationIndex for the arrival statistics; "None" for an index outside the stops.  <br /></td></tr>
 <tr class="memitem:a0c3821bc1613a0ef5b42a3031099ed34" id="r_a0c3821bc1613a0ef5b42a3031099ed34"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0c3821bc1613a0ef5b42a3031099ed34">checkTrainArrDep</a> (int trainIdx, int t)</td></tr>
-<tr class="memdesc:a0c3821bc1613a0ef5b42a3031099ed34"><td class="mdescLeft">&#160;</td><td class="mdescRight">check train arrival/departure at/from destination/origin  <br /></td></tr>
 <tr class="memitem:af9e8f39bd094820ec5cb7eee001b996c" id="r_af9e8f39bd094820ec5cb7eee001b996c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af9e8f39bd094820ec5cb7eee001b996c">printTrainServicePathDiagram</a> (std::string FolderName, int nextServiceRouteID)</td></tr>
-<tr class="memdesc:af9e8f39bd094820ec5cb7eee001b996c"><td class="mdescLeft">&#160;</td><td class="mdescRight">print train service path diagram to file  <br /></td></tr>
 <tr class="memitem:a129221a8c97a0156389b2bfda0522dc8" id="r_a129221a8c97a0156389b2bfda0522dc8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a129221a8c97a0156389b2bfda0522dc8">printTrainArrDepMsg</a> (std::string stationName, std::string msgType, int trainIdx, int t, std::string FolderName)</td></tr>
-<tr class="memdesc:a129221a8c97a0156389b2bfda0522dc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">print train arrival at terminal station (append to file)  <br /></td></tr>
+<tr class="memdesc:a129221a8c97a0156389b2bfda0522dc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends "egtrain,&lt;stationName&gt;,&lt;msgType&gt;,&lt;dispLineID&gt;,&lt;trainIdx&gt;,&lt;t&gt;" to FolderName/EGTRAINOutput.txt and then waits 5 ms.  <br /></td></tr>
 <tr class="memitem:a30e47997e3c286ecf68dc457f1b99a67" id="r_a30e47997e3c286ecf68dc457f1b99a67"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a30e47997e3c286ecf68dc457f1b99a67">trainXPosition</a> (int t, int wagon=0)</td></tr>
-<tr class="memdesc:a30e47997e3c286ecf68dc457f1b99a67"><td class="mdescLeft">&#160;</td><td class="mdescRight">computes train X position in kilometres (works with routes acrossing different regions); -1 when that point is on no section  <br /></td></tr>
 <tr class="memitem:a2227178ed28567e80def50fba1b5f44f" id="r_a2227178ed28567e80def50fba1b5f44f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2227178ed28567e80def50fba1b5f44f">speedKmhAt</a> (int t) const</td></tr>
 <tr class="memdesc:a2227178ed28567e80def50fba1b5f44f"><td class="mdescLeft">&#160;</td><td class="mdescRight">instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samples  <br /></td></tr>
 <tr class="memitem:acb99d1b5acd1bc8aaa1a6bb5196614bf" id="r_acb99d1b5acd1bc8aaa1a6bb5196614bf"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#acb99d1b5acd1bc8aaa1a6bb5196614bf">positionKmAt</a> (int t) const</td></tr>
-<tr class="memdesc:acb99d1b5acd1bc8aaa1a6bb5196614bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">position in km at GUI time t, mirroring trainXPosition index mapping; 0 outside the samples  <br /></td></tr>
+<tr class="memdesc:acb99d1b5acd1bc8aaa1a6bb5196614bf"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_route.html">Route</a> position of the head in step t in km; 0 outside the samples.  <br /></td></tr>
 <tr class="memitem:a35281388c1449d2ffe98bcd5313f2326" id="r_a35281388c1449d2ffe98bcd5313f2326"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a35281388c1449d2ffe98bcd5313f2326">trajectorySize</a> () const</td></tr>
-<tr class="memdesc:a35281388c1449d2ffe98bcd5313f2326"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of trajectory samples available  <br /></td></tr>
+<tr class="memdesc:a35281388c1449d2ffe98bcd5313f2326"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of trajectory samples, one per step.  <br /></td></tr>
 <tr class="memitem:ae4f1399d1ae60d6156405abb657b5799" id="r_ae4f1399d1ae60d6156405abb657b5799"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae4f1399d1ae60d6156405abb657b5799">recordEarliestActiveTrajectoryIndex</a> (int index)</td></tr>
 <tr class="memdesc:ae4f1399d1ae60d6156405abb657b5799"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets earliestActiveTrajectoryIndex to index when it is unset and the train has entered.  <br /></td></tr>
 <tr class="memitem:a1be5fcc56d9f6ff038fb56cb2d50bebc" id="r_a1be5fcc56d9f6ff038fb56cb2d50bebc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1be5fcc56d9f6ff038fb56cb2d50bebc">setTrainVectorSizesFromInput</a> (int vec_size)</td></tr>
-<tr class="memdesc:a1be5fcc56d9f6ff038fb56cb2d50bebc"><td class="mdescLeft">&#160;</td><td class="mdescRight">set vector sizes with length of simulation from user input: vec_size samples, and End_Time to the last  <br /></td></tr>
+<tr class="memdesc:a1be5fcc56d9f6ff038fb56cb2d50bebc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sizes every per-step vector to vec_size samples of 0 and sets End_Time to the last step.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -518,6 +497,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Does nothing. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -567,7 +548,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Function to quickly compute the time in seconds to accelerate between two speeds; -99999 when the resistances exceed the tractive effort. Arguments as in BrakingDistanceFastComputation. </p>
+<p>Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in (X1, X2] (m), summed over 200 speed steps. When the train cannot accelerate there it is taken on a flat gradient, and when it cannot accelerate on that either the result is -99999. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -648,7 +629,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Returns an actual-start braking point. Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow. </p>
+<p>The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m). X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found. Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -721,8 +702,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Every curve step samples force at the actual start and uses the right endpoint for distance. </p>
+<p>Speed (m/s) after one full braking step from speed (m/s) on arc. Every curve step samples force at the actual start and uses the right endpoint for distance. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -777,7 +757,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Function to compute the braking distance in a faster way using the closed formula and average gradient and curvature values (This function has shown the best match to simulated braking curves) V1 and X1 are the current train speed and position while X2 and V2 are the target position and speed, BS and N_BS are the list of Block Sections and the number of Block Sections along the train route </p>
+<p>Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in (X1, X2] (m). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -889,8 +869,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Upper end of the reachable terminal-coordinate interval at a positive ceiling. </p>
+<p>The furthest head (m) that one step from head and speed (m/s) reaches with at most full traction and a speed capped at ceiling (m/s); upper receives it. False when no arc holds head. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -927,8 +906,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>A cached successor is a proposal only from its exact actual state and historical target. </p>
+<p>The index in Sbrak and Vbrak of the next state of the stored braking plan, when the train is exactly at a state of it in step previousInstant with the same target (target m, targetSpeed m/s) and that next step is feasible on arc; -1 otherwise. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -951,7 +929,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Pre-compute the (block section, <a class="el" href="class_arc.html" title="A directed piece of track between two nodes.">Arc</a>) index for each station <a class="el" href="class_node.html">Node</a>. Called after <a class="el" href="class_stations.html">Stations</a> or route changes; eliminates the O(N_BS*total_arcs*numStations) triple scan from the per-timestep hot path. </p>
+<p>Fills stationBlockSection and stationArc: for each stop, the index of the route section and of the arc whose end node is the station, or -1. Called after <a class="el" href="class_stations.html">Stations</a> or the route change, so that a step does not search the route for the stations. </p>
 
 </div>
 </div>
@@ -973,7 +951,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Check the entrance possibility: sets CanEnter when the step i has reached departure_time and the first section BS[0] allows entry. </p>
+<p>Lets the waiting train enter its route BS in step i (s): CanEnter becomes true once i &gt;= departure_time and the first section allows it. Where the first section has a level, the entering train occupies it at once. The rules are under "Route entry" in docs/architecture/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1005,8 +983,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Validate before current target selection so an invalid old hold cannot clear new metadata. </p>
+<p>When IsTrainStoppedForEoA is set, keeps it only while the train stands (speed 0) on section, the section of the authority it stopped at, with its head (m) less than 4 m before it, and that authority still applies to this train and is still in run.etcsMa; otherwise clears it and BrakingForEoA. Does nothing when IsTrainStoppedForEoA is false. Called before a new target is chosen, so that an old hold cannot clear the new one. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1033,8 +1010,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>check train arrival/departure at/from destination/origin </p>
+<p>In step t, logs the arrival of the train at its last stop and its departure from its first stop. An arrival is also appended to EGTRAINOutput.txt in the Rescheduling output folder (printTrainArrDepMsg). A first or last stop with X 0 takes its X from run.infra.stations. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1089,7 +1065,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Function to calculate train delays taking into account both the positive and negative (arrival ahead the schedule) delays. </p>
+<p>Like computeArrivalDelaysAtStations, but an early arrival keeps its negative delay, and TotalInputDelays is not changed. </p>
 
 </div>
 </div>
@@ -1111,8 +1087,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Function to compute the arrival and departure of a train from a location with a specific position expressed in [m]. </p>
+<p>Finds the steps in which the head reaches and leaves the route position LocationPosition (m) and writes them to PassingPoint as Time and Time2 (s), with Position in the coordinates of the original direction. Nothing is written when the train never gets there, and Time2 is left when it does not leave. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1135,8 +1110,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Function compute Arrival delays at stations for a train. </p>
+<p>Sets StationDelay, the arrival less the planned arrival, and StationConsecDelay, that delay less the entrance delay and the dwell disturbances of the earlier stops, for every stop with an arrival and a planned arrival (s); negative values become 0. Also sums TotalInputDelays. </p>
 
 </div>
 </div>
@@ -1188,9 +1162,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Function to Compute Blocking Times for a single Block <a class="el" href="class_section.html">Section</a>. This Function allows us to compute blocking time in area with mixed signalling system. </p>
-<p>IndexCurrentBS is the index of the Block <a class="el" href="class_section.html">Section</a> in the route of the train. SignallingType is "Conventional" or "ETCS2". </p>
+<p>Appends the blocking time of route section IndexCurrentBS at a fixed-block level; SignallingType "Conventional" or "ETCS2" picks the approach rule. Times are simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and reaction times are seconds. AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement. </p>
 
 </div>
 </div>
@@ -1232,8 +1204,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Function to Compute the Blocking times in mixed signalling areas. </p>
+<p>Computes the blocking times of the route section by section with the rule of the section's level: per section at levels 0 ("Conventional") and 2 ("ETCS2"), per infrastructure element at levels 3 and 4. Sections at level 1, level 5 or no level get none. The search starts at Det_Run_Start_Time; the arguments are those of ComputeBlockingTimeForSingleLocation, SafetyMargin in m. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1290,9 +1261,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Function to Compute the Blocking Times in Virtual Coupling (EntryTime is the time the train actually enters the network in the simulation). </p>
-<p>This function uses a principle of max capacity where trains travel at a minimum safety distance from each other over the entire shared route, splitting apart by an absolute braking distance only at those junctions where they diverge or converge </p>
+<p>Appends a level 4 (virtual coupling) blocking time for each infrastructure element of section IndexCurrentBS, with trains at the minimum safety distance SafetyMargin (m) except at diverging or converging junctions; the other arguments are those of ComputeBlockingTimeForSingleLocation. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1422,7 +1391,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function to compute dwell times based on the interaction with passengers By default the dwell time is computed based on the microscopic dwell time model by Fernandez et al. (2007) which extends the model by Gibson et al. (1989) </p>
+<p>Passenger-dependent dwell time (s) by the Fernandez et al. (2007) extension of Gibson et al. (1989), with passengers spread over the doors at random; 0 when nobody boards or alights. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1445,8 +1414,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Function to compute the passing time of a train over each timetable point (i.e. stations, junctions and or relevant signals). </p>
+<p>Fills TimetablePoints, when it is empty, with the arrival and departure at every arc end node of the route that has a station name (stations and junctions), in route order. The first node of the route is not included. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1469,7 +1437,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function to Connect the Blocking Times of edges of diverging switches for ETCS Level 3 and Virtual Coupling. In this case the diverging switch needs to be considered as a single block section, that is why blocking times of connected edges need to be accordingly modified </p>
+<p>Gives the two edges of each diverging switch at level 3 or 4 one blocking time, from the start of occupation of the first edge to the end of the second, so that the switch counts as one block section. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1521,7 +1489,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Select a new terminal control within the actual-state force interval and ceiling. Rounded addition need not be exactly inverted by subtraction and division. </p>
+<p>The speed (m/s) of one step from head and speed that ends at anchor (m), between full braking and full traction and not above ceiling; terminal receives it. False when the step cannot end at anchor up to rounding. Rounded addition need not be exactly inverted by subtraction and division. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1548,8 +1516,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Resolve only the selected, currently published forward Tale within the EVC's existing scope. </p>
+<p>The "TrainEnd" "Tale" authority of this step that matches Last_Received_MA, on a level 4 section from the one at head (m) to eight sections further, and lies ahead of head; nullptr when there is none. leaderHead receives its route position (m). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1599,7 +1566,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function to evaluate the time instant in which for the first time the train Starts to accelerate (It's the time corresponding to the first non-zero speed value) </p>
+<p>Sets RunStartTime to the step before the first nonzero speed and returns it in seconds. When the train does not move before End_Time, RunStartTime keeps its value. </p>
 
 </div>
 </div>
@@ -1634,8 +1601,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Function to Determine which Block <a class="el" href="class_section.html">Section</a> is Occupied by the train. </p>
+<p>Adds the sections that the train covers from tail to head in step i to run.blocksOccupied, with its double switches and diverging switches, and releases its last section when it has left the route. BS holds the Blocks sections of its route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1658,7 +1624,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function to setup the station arrivals of the trains from the arrival at their timetable points. That is the arrival the timetable results report, so the delay statistics use the same event. A stop whose timetable point has no arrival (the train did not get there) has no arrival. The positions recorded during the run only serve a stop that has no timetable point at all. </p>
+<p>Sets the station arrivals from the arrivals at the timetable points. That is the arrival the timetable results report, so the delay statistics use the same event. A stop whose timetable point has no arrival (the train did not get there) has no arrival. The positions recorded during the run only serve a stop that has no timetable point at all. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1739,8 +1705,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Native inverse plan shares the exact actual-start step with BrakDist_Block. </p>
+<p>Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1767,8 +1732,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The speed limit candidate in m/s, lowered to the speed cap of an active breakdown of this train at the step. </p>
+<p>The lower of candidate (m/s) and the reduced speed of an active breakdown of this train in step timestepIndex. A cap that applies is recorded as a direct incident. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1842,7 +1806,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>This Function simulate the capacity of the train driver to react to the first most severe service limit (i.e. it calculates the braking distance and the braking point for satisfying the most severe running operation limit) </p>
+<p>The route position (m) where the train at S (m) and V (m/s) has to start braking for the most restrictive target ahead, or a very large value when there is none. Sets Xobmin and Vobmin to that target; continueCached is true when the stored braking plan goes on. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2004,7 +1968,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Strahl and Sauthoff resistance are quadratic in speed. Invert only the increasing branch of v - dt*a(v), connected to the ordinary small-dt solution. The other quadratic root lies beyond the fold and is not a unique inverse flow. For nextSpeed == 0, q(v) == 0 selects the stopping threshold, not the entire saturated preimage of max(0, q(v)); smaller terminal speeds are valid forward states. </p>
+<p>The state one full braking step before nextHead (m) and nextSpeed (m/s); head and speed receive it. The resistance is quadratic in speed, and only the root on the increasing branch of v - dt a(v) counts, so false when there is no unique one. For nextSpeed == 0, q(v) == 0 selects the stopping threshold, not the entire saturated preimage of max(0, q(v)); smaller terminal speeds are valid forward states. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2112,7 +2076,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Request before the next movement can consume the last opportunity to brake for the entry. The movement bound uses the same force/resistance model and starting-effort bound as acceleration and virtual coupling. </p>
+<p>True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next movement could pass the last point where it can still brake for the entry. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2180,7 +2144,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Establish a first speed within the actual force range, then predict every subsequent full model step. No linear fractional phase is carried forward. </p>
+<p>Plans braking from head (m) and speed (m/s) to Vobmin 0.002 m before Xobmin (m): a first speed within the actual force range, then full braking steps. On success Sbrak, Vbrak and BrakStep hold the plan. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2260,7 +2224,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>position in km at GUI time t, mirroring trainXPosition index mapping; 0 outside the samples </p>
+<p><a class="el" href="class_route.html">Route</a> position of the head in step t in km; 0 outside the samples. </p>
 
 </div>
 </div>
@@ -2312,7 +2276,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Predict complete full-force continuation after a phase-specific first step. Optional vectors store only a successfully evaluated plan, in driving order. </p>
+<p>Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m). False when that takes 1999 steps or more or leaves the arcs of the sections. positions and speeds, when given, receive every state in driving order. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2374,7 +2338,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Fixed-length forward prefix for a positive target whose native plan may dip below the target and recover. Crossing below the target is not completion. </p>
+<p>Runs steps full braking steps from head (m) and speed (m/s), even below a positive target; end and endSpeed receive the last state. False when the steps leave the arcs of the sections. positions and speeds as for predictBraking. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2417,7 +2381,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>print train arrival at terminal station (append to file) </p>
+<p>Appends "egtrain,&lt;stationName&gt;,&lt;msgType&gt;,&lt;dispLineID&gt;,&lt;trainIdx&gt;,&lt;t&gt;" to FolderName/EGTRAINOutput.txt and then waits 5 ms. </p>
 
 </div>
 </div>
@@ -2439,8 +2403,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>print train service path diagram to file </p>
+<p>Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2471,8 +2434,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Function for printing <a class="el" href="class_train.html">Train</a> Trajectory Data. </p>
+<p>Writes Traj_Train_&lt;trainDescription&gt;.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2496,7 +2458,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Records time_seconds as the arrival at the current stop when that stop has no arrival yet. </p>
+<p>Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that has none yet. </p>
 
 </div>
 </div>
@@ -2635,8 +2597,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Records time_seconds as the arrival at each stop without an arrival that the head passed in this step, within 5 m. </p>
+<p>Records time_seconds * timestep as the arrival (s) at each stop without an arrival whose route position lies within 5 m of the head's movement in this step. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2673,8 +2634,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Function to Report <a class="el" href="class_train.html">Train</a> Position to RBC (the ETCS3 Safety Margin must be given in m). </p>
+<p>Adds the ends of authority of the train in step i on the level 3 and 4 sections of its route to run.etcsMa: the tail less ETCS3SafetyMargin (m) as "Tale", the head plus the margin as "Front", and the locks of the switches it covers. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2716,7 +2676,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>set vector sizes with length of simulation from user input: vec_size samples, and End_Time to the last </p>
+<p>Sizes every per-step vector to vec_size samples of 0 and sets End_Time to the last step. </p>
 
 </div>
 </div>
@@ -2803,8 +2763,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p><a class="el" href="class_route.html">Route</a> position in metres of stop stationIndex; -1 when it is not on the route. </p>
+<p>The route position (m) of stop stationIndex from its geographic position, or -1 when the stop is not on the route. When no section holds that position, the geographic position in metres. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2895,7 +2854,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function to calculate Total Energy Consumed with and without regenrative braking (the inputs are the Eta of the Substation and the Eta of the regenerative braking) </p>
+<p>Sets the energy totals of the train (MJ) from its samples between departure_time and End_Time: the energy consumed plus 10 % for auxiliaries, the energy requested from the substation (divided by EtaSubst), and both again with the braking power regenerated at the factor EtaRegBrak. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2993,9 +2952,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>computes train X position in kilometres (works with routes acrossing different regions); -1 when that point is on no section </p>
-<p>wagon = 0 by default to return head position </p>
+<p>The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it; -1 when it is on no section of the route. Works on routes that cross regions. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -3040,8 +2997,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Function to Simulate the <a class="el" href="class_train.html">Train</a> Trajectory: computes step time_seconds from step time_seconds - 1. </p>
+<p>Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1, signalCode2 and signalCode3 are not read. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -3073,7 +3029,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>number of trajectory samples available </p>
+<p>Number of trajectory samples, one per step. </p>
 
 </div>
 </div>

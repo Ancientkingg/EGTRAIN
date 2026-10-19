@@ -1,5 +1,5 @@
 <map id="areBlocksConnected" name="areBlocksConnected">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,160,55"/>
+<area shape="rect" id="Node000001" title="True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share..." alt="" coords="5,29,160,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,31,41,21,45,11,59,5,83,3,112,6,123,15,120,20,110,11,83,8,61,10,49,15,46,20,53,28"/>
 <area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" title="True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a bloc..." alt="" coords="208,29,375,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="160,39,195,39,195,45,160,45"/>

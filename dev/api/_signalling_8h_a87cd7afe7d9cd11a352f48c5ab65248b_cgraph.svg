@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.">
 <polygon fill="#999999" stroke="#666666" points="49,-74 0,-74 0,-55 49,-55 49,-74"/>
 <text text-anchor="middle" x="24.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">setList</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" target="_top" xlink:title="True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share...">
 <polygon fill="white" stroke="#666666" points="231,-154 115,-154 115,-135 231,-135 231,-154"/>
 <text text-anchor="middle" x="173" y="-142" font-family="Helvetica,sans-Serif" font-size="10.00">areBlocksConnected</text>
 </a>

@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title="A cached successor is a proposal only from its exact actual state and historical target.">
+<g id="a_Node000002"><a xlink:href="class_train.html#a384f38f04a720e0a4f01338d6465ac84" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="487.5,-435 320.5,-435 320.5,-416 487.5,-416 487.5,-435"/>
 <text text-anchor="middle" x="404" y="-423" font-family="Helvetica,sans-Serif" font-size="10.00">Train::cachedBrakingSuccessor</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title="Native inverse plan shares the exact actual&#45;start step with BrakDist_Block.">
+<g id="a_Node000010"><a xlink:href="class_train.html#adda58a2a6872fa9512e72cbec2abb7e0" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="280,-228 143,-228 143,-209 280,-209 280,-228"/>
 <text text-anchor="middle" x="211.5" y="-216" font-family="Helvetica,sans-Serif" font-size="10.00">Train::DrawBrakingCurve</text>
 </a>
@@ -147,7 +147,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title="Every curve step samples force at the actual start and uses the right endpoint for distance.">
+<g id="a_Node000003"><a xlink:href="class_train.html#ab5547152846ad249a7121a1678375531" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="666,-170 525,-170 525,-151 666,-151 666,-170"/>
 <text text-anchor="middle" x="595.5" y="-158" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingCurveSpeed</text>
 </a>
@@ -437,7 +437,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling.">
+<g id="a_Node000018"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="481,-283 327,-283 327,-264 481,-264 481,-283"/>
 <text text-anchor="middle" x="404" y="-271" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>

@@ -1,5 +1,5 @@
 <map id="TrainEvent::operator=" name="TrainEvent::operator=">
 <area shape="rect" id="Node000001" title="Copies every member." alt="" coords="5,5,169,31"/>
-<area shape="rect" id="Node000002" href="$class_train_event.html#a2c514a571b7a3aab5eb2fe00b1101b8f" title=" " alt="" coords="217,5,384,31"/>
+<area shape="rect" id="Node000002" href="$class_train_event.html#a2c514a571b7a3aab5eb2fe00b1101b8f" title="Sets the times, the position and the acceleration to &#45;10000, the speed to &#45;1 and the IDs and the stat..." alt="" coords="217,5,384,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,15,204,15,204,21,170,21"/>
 </map>

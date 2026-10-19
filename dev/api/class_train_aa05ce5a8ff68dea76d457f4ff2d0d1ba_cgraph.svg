@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_rolling_stock_8cpp.html#afad804c52cb5f74014fcc0162b015f89" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_rolling_stock_8cpp.html#afad804c52cb5f74014fcc0162b015f89" target="_top" xlink:title="Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.">
 <polygon fill="white" stroke="#666666" points="236,-19 105,-19 105,0 236,0 236,-19"/>
 <text text-anchor="middle" x="170.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">trainPassengerCapacity</text>
 </a>

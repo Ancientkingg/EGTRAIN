@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Function to compute the passing time of a train over each timetable point (i.e. stations,...">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="149,-51.5 0,-51.5 0,-21.5 149,-21.5 149,-51.5"/>
 <text text-anchor="start" x="8" y="-39.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::ComputeTimetabling</text>
 <text text-anchor="middle" x="74.5" y="-28.5" font-family="Helvetica,sans-Serif" font-size="10.00">Points</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a4b084c4974815396a1675e0ebab3350e" target="_top" xlink:title="Function to compute the arrival and departure of a train from a location with a specific position exp...">
+<g id="a_Node000002"><a xlink:href="class_train.html#a4b084c4974815396a1675e0ebab3350e" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="325,-51.5 185,-51.5 185,-21.5 325,-21.5 325,-51.5"/>
 <text text-anchor="start" x="193" y="-39.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::computeArrivalAnd</text>
 <text text-anchor="middle" x="255" y="-28.5" font-family="Helvetica,sans-Serif" font-size="10.00">DepartureAtLocation</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470" target="_top" xlink:title="True when position (m) is past the hold&#45;back position before stoppingPoint (m), beyond the tolerance.">
 <polygon fill="white" stroke="#666666" points="479.5,-74 366.5,-74 366.5,-55 479.5,-55 479.5,-74"/>
 <text text-anchor="middle" x="423" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">isPastStopHoldback</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1" target="_top" xlink:title="True when position (m) is short of the hold&#45;back position before brakingPoint (m),...">
 <polygon fill="white" stroke="#666666" points="485,-19 361,-19 361,0 485,0 485,-19"/>
 <text text-anchor="middle" x="423" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">isShortOfBrakingPoint</text>
 </a>

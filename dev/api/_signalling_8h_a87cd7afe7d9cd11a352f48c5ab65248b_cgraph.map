@@ -1,6 +1,6 @@
 <map id="setList" name="setList">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,143,71,168"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" title=" " alt="" coords="159,36,313,61"/>
+<area shape="rect" id="Node000001" title="Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input." alt="" coords="5,143,71,168"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982" title="True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share..." alt="" coords="159,36,313,61"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="47,140,76,108,117,76,146,63,148,68,120,80,80,112,51,144"/>
 <area shape="rect" id="Node000004" href="$_signalling_8cpp.html#a4386e78bc457a96e80cdc76c3843df3f" title=" " alt="" coords="119,115,353,140"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="70,148,132,139,133,145,71,153"/>

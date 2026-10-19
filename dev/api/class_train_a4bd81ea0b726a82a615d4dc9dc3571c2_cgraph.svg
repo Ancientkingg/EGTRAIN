@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a0d6cd4ebf34919bba10e689f614e7ee0" target="_top" xlink:title="Route position in metres of stop stationIndex; &#45;1 when it is not on the route.">
+<g id="a_Node000002"><a xlink:href="class_train.html#a0d6cd4ebf34919bba10e689f614e7ee0" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="319,-141.5 172,-141.5 172,-111.5 319,-111.5 319,-141.5"/>
 <text text-anchor="start" x="180" y="-129.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::stationRoutePosition</text>
 <text text-anchor="middle" x="245.5" y="-118.5" font-family="Helvetica,sans-Serif" font-size="10.00">Meters</text>
@@ -58,7 +58,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_train.html#a30e47997e3c286ecf68dc457f1b99a67" target="_top" xlink:title="computes train X position in kilometres (works with routes acrossing different regions); &#45;1 when that...">
+<g id="a_Node000006"><a xlink:href="class_train.html#a30e47997e3c286ecf68dc457f1b99a67" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="302.5,-56 188.5,-56 188.5,-37 302.5,-37 302.5,-56"/>
 <text text-anchor="middle" x="245.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">Train::trainXPosition</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_train.html#a35281388c1449d2ffe98bcd5313f2326" target="_top" xlink:title="number of trajectory samples available">
+<g id="a_Node000008"><a xlink:href="class_train.html#a35281388c1449d2ffe98bcd5313f2326" target="_top" xlink:title="Number of trajectory samples, one per step.">
 <polygon fill="white" stroke="#666666" points="302,-19 189,-19 189,0 302,0 302,-19"/>
 <text text-anchor="middle" x="245.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Train::trajectorySize</text>
 </a>

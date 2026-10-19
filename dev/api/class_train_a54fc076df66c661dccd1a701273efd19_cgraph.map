@@ -8,7 +8,7 @@
 <area shape="poly" id="edge30_Node000001_Node000011" title=" " alt="" coords="144,314,198,265,284,197,336,161,392,127,451,98,513,74,585,56,660,47,732,43,795,42,795,48,732,48,661,52,586,62,514,79,454,103,395,132,339,166,287,202,201,269,147,318"/>
 <area shape="rect" id="Node000017" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="340,467,431,492"/>
 <area shape="poly" id="edge27_Node000001_Node000017" title=" " alt="" coords="155,339,352,457,350,462,153,344"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title="Upper end of the reachable terminal&#45;coordinate interval at a positive ceiling." alt="" coords="524,89,729,115"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="524,89,729,115"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,213,444,169,477,144,512,124,530,117,532,121,515,128,480,149,448,173,400,216"/>
 <area shape="rect" id="Node000012" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="513,139,740,164"/>
 <area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="414,212,513,174,547,165,549,170,514,179,416,217"/>
@@ -35,7 +35,7 @@
 <area shape="poly" id="edge12_Node000012_Node000004" title=" " alt="" coords="740,149,803,149,803,154,740,154"/>
 <area shape="poly" id="edge15_Node000012_Node000006" title=" " alt="" coords="693,136,788,123,883,113,925,113,977,123,1029,145,1074,172,1072,176,1027,149,975,129,924,119,883,118,788,129,693,141"/>
 <area shape="poly" id="edge16_Node000012_Node000011" title=" " alt="" coords="707,136,739,124,753,114,762,103,772,91,787,80,818,65,820,70,789,84,775,95,766,106,757,118,741,128,709,141"/>
-<area shape="rect" id="Node000013" href="$class_train.html#ab5547152846ad249a7121a1678375531" title="Every curve step samples force at the actual start and uses the right endpoint for distance." alt="" coords="788,240,976,265"/>
+<area shape="rect" id="Node000013" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="788,240,976,265"/>
 <area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="699,162,741,174,800,201,851,230,848,235,798,206,739,179,697,167"/>
 <area shape="poly" id="edge14_Node000013_Node000006" title=" " alt="" coords="940,237,1033,216,1035,222,941,243"/>
 <area shape="poly" id="edge18_Node000014_Node000004" title=" " alt="" coords="691,187,803,164,804,169,692,192"/>
