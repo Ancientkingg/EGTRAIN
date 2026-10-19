@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 		"timeline font has fixed character widths");
 
 	const int beforeInput = bar.value();
-	QMouseEvent mouse(QEvent::MouseButtonPress, QPointF(10.0, 10.0), Qt::LeftButton,
+	QMouseEvent mouse(QEvent::MouseButtonPress, QPointF(10.0, 10.0), bar.mapToGlobal(QPoint(10, 10)), Qt::LeftButton,
 		Qt::LeftButton, Qt::NoModifier);
 	QApplication::sendEvent(&bar, &mouse);
 	QWheelEvent wheel(QPointF(10.0, 10.0), QPointF(10.0, 10.0), QPoint(0, 0), QPoint(0, 120),

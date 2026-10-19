@@ -214,8 +214,13 @@ int main(int argc, char** argv) {
 
 	view.fitToTopology();
 	updates = 0;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, nullptr, 2, wheelPos, wheelPos,
+		view.viewport()->mapToGlobal(wheelPos), 0.05, QPointF(), 1);
+#else
 	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, nullptr, wheelPos, wheelPos,
 		view.viewport()->mapToGlobal(wheelPos), 0.05, 1, 0);
+#endif
 	QApplication::sendEvent(view.viewport(), &pinch);
 	ok &= expect(near(view.zoomRatio(), 1.05, 1e-5), "native trackpad pinch zooms continuously");
 	ok &= expect(updates == 1, "one pinch event emits one viewport update");

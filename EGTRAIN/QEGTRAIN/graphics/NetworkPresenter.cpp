@@ -1774,7 +1774,7 @@ bool NetworkPresenter::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolyg
 	if (!trainPolygonItemList)
 		return false;
 	// get the polygon of each wagon
-	const int wagons = std::min(train.wagonCount + 1, trainPolygonItemList->size());
+	const int wagons = std::min(train.wagonCount + 1, static_cast<int>(trainPolygonItemList->size()));
 	std::vector<QPolygonF> polygons(static_cast<std::size_t>(std::max(wagons, 0)));
 	bool changed = false;
 	bool hasVisibleGeometry = false;

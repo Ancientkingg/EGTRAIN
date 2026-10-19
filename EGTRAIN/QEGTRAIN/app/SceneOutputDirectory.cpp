@@ -1,6 +1,6 @@
-#include "app/SceneOutputDirectory.h"
-
 #include "scene/SceneModel.h"
+
+#include "app/SceneOutputDirectory.h"
 #include <QDir>
 #include <QStandardPaths>
 

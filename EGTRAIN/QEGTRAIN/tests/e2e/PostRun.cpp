@@ -715,11 +715,11 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	const bool wheelSeek = w.m_replayRequestedTime != middle + 1;
 	w.seekReplay(first);
 	const QPoint replayClick(w.m_replaySlider->width() - 8, w.m_replaySlider->height() / 2);
-	QMouseEvent click(QEvent::MouseButtonPress, replayClick,
+	QMouseEvent click(QEvent::MouseButtonPress, replayClick, w.m_replaySlider->mapToGlobal(replayClick),
 		Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 	QApplication::sendEvent(w.m_replaySlider, &click);
 	const bool mouseSeek = w.m_replayRequestedTime > first;
-	QMouseEvent release(QEvent::MouseButtonRelease, replayClick,
+	QMouseEvent release(QEvent::MouseButtonRelease, replayClick, w.m_replaySlider->mapToGlobal(replayClick),
 		Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 	QApplication::sendEvent(w.m_replaySlider, &release);
 	w.seekReplay(first);

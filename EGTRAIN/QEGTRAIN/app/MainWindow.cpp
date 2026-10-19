@@ -73,7 +73,9 @@
 #include <sstream>
 #include <tuple>
 #include <unordered_map>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 QT_CHARTS_USE_NAMESPACE
+#endif
 #include "util/TimeFormat.h"
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"

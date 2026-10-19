@@ -71,7 +71,7 @@ private:
 	std::streambuf* m_oldCout = nullptr;
 	std::streambuf* m_oldCerr = nullptr;
 	std::string m_buffer;
-	QMutex m_mutex{QMutex::Recursive};
+	QRecursiveMutex m_mutex;
 	bool m_installed = false;
 	ProxyStreambuf m_coutProxy;
 	ProxyStreambuf m_cerrProxy;
