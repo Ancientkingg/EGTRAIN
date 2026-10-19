@@ -13,6 +13,7 @@ class ManualWindow : public QWidget {
 public:
 	// Opens the help file helpFile. The window shows nothing when the file cannot be read.
 	explicit ManualWindow(const QString& helpFile, QWidget* parent = nullptr);
+	~ManualWindow() override;
 
 	// Shows the page of a section, or the start page for a section without one. False when the help file could not be read.
 	bool showSection(const QString& section);

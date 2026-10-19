@@ -80,8 +80,6 @@ ManualWindow::ManualWindow(const QString& helpFile, QWidget* parent) : QWidget(p
 	searchLayout->addWidget(search->resultWidget(), 1);
 	connect(search->queryWidget(), &QHelpSearchQueryWidget::search, search, [search] { search->search(search->queryWidget()->searchInput()); });
 	connect(search->resultWidget(), &QHelpSearchResultWidget::requestShowLink, this, [this](const QUrl& url) { m_browser->setSource(url); });
-	connect(search, &QHelpSearchEngine::indexingStarted, search->queryWidget(), [search] { search->queryWidget()->setEnabled(false); });
-	connect(search, &QHelpSearchEngine::indexingFinished, search->queryWidget(), [search] { search->queryWidget()->setEnabled(true); });
 	QHelpContentWidget* contents = m_engine->contentWidget();
 	connect(contents, &QHelpContentWidget::linkActivated, this, [this](const QUrl& url) { m_browser->setSource(url); });
 	connect(m_engine->contentModel(), &QHelpContentModel::contentsCreated, contents, [contents] { contents->expandToDepth(0); });
@@ -102,12 +100,17 @@ ManualWindow::ManualWindow(const QString& helpFile, QWidget* parent) : QWidget(p
 		search->reindexDocumentation();
 }
 
+ManualWindow::~ManualWindow() {
+	// The engine closes the collection file before m_collectionDir removes it, which Windows refuses for an open file.
+	delete m_engine;
+}
+
 bool ManualWindow::showSection(const QString& section) {
 	if (m_namespace.isEmpty())
 		return false;
 	const QString root = QStringLiteral("qthelp://%1/doc/").arg(m_namespace);
 	QUrl url(root + pageOf(section));
-	if (!m_engine->findFile(url).isValid())
+	if (m_engine->fileData(url).isEmpty())
 		url = QUrl(root + QStringLiteral("index.html"));
 	m_browser->setSource(url);
 	return true;

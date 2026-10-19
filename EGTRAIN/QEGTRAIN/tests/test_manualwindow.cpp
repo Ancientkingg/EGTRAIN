@@ -83,6 +83,9 @@ int main(int argc, char** argv) {
 	// A section without a page opens the start page.
 	window.showSection(QStringLiteral("no-such-section"));
 	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")), "an unknown section did not open the start page");
+	// So does a section whose page is not in the help file.
+	window.showSection(QStringLiteral("main-window"));
+	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")), "a missing page did not open the start page");
 
 	// Contents and search read the help file.
 	ok &= check(waitFor([engine] { return engine->contentModel()->rowCount() == 1; }), "the contents are empty");
