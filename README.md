@@ -68,6 +68,8 @@ The Speed / distance result window of Milano_Brescia (baseline, 47 trains) after
 
 The counts are the numbers of entries in `infrastructure.json` (tracks), `stations.json` (stations) and `services.json` (services), so they can differ from the number of trains in a result window. The scene folders are in `EGTRAIN/QEGTRAIN/Scenes` in the repository and inside the application packages.
 
+The source, changes and terms of each case study are in [DATA.md](DATA.md).
+
 ## Credits and research background
 
 EGTRAIN was originally developed by Dr.ir. [Egidio Quaglietta](https://orcid.org/0000-0002-7936-5832) as a microscopic railway simulation model. Its foundations and early applications are described in his [doctoral thesis](https://doi.org/10.6092/unina/fedoa/8599).
@@ -104,4 +106,5 @@ EGTRAIN's source code is licensed under the
 Third-party components retain their own licenses, which
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) lists for the libraries in the release packages. The code license does not
 cover case-study datasets or grant rights to third-party assets; their
-respective terms and permissions apply.
+respective terms and permissions apply. The terms of each case study are in
+[DATA.md](DATA.md).
