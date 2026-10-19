@@ -14,7 +14,7 @@ html_theme = "furo"
 html_title = "EGTRAIN documentation"
 
 # The manual of the application (the CMake target manual) builds with -t manual and the qthelp builder: the start page and
-# docs/guides only. Its start page leaves out the developer contents, and the landing page README is not part of it.
+# docs/guides only. Its start page leaves out the developer paragraph and contents, and the landing page README is not part of it.
 if tags.has("manual"):
     include_patterns = ["index.md", "guides/**"]
     suppress_warnings += ["toc.not_readable"]
@@ -32,7 +32,7 @@ def link_local_api(app, doctree, docname):
 
 def drop_developer_contents(app, docname, source):
     if docname == "index":
-        cut = source[0].find("```{toctree}\n:caption: Developer")
+        cut = source[0].find("The developer pages")
         if cut >= 0:
             source[0] = source[0][:cut]
 

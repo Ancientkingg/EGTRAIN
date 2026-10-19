@@ -1,6 +1,6 @@
 # EGTRAIN documentation
 
-EGTRAIN is a railway micro-simulation desktop application. The manual is for people who run and edit case studies; the developer pages explain how the application is built, tested and structured, next to the [C++ reference](https://ancientkingg.github.io/EGTRAIN/latest/api/index.html).
+EGTRAIN is a railway micro-simulation desktop application. The manual is for people who run and edit case studies.
 
 ```{toctree}
 :caption: Manual
@@ -10,6 +10,8 @@ EGTRAIN is a railway micro-simulation desktop application. The manual is for peo
 README
 guides/*
 ```
+
+The developer pages explain how the application is built, tested and structured, next to the [C++ reference](https://ancientkingg.github.io/EGTRAIN/latest/api/index.html).
 
 ```{toctree}
 :caption: Developer
