@@ -46,6 +46,7 @@ canonical model.
 - [Getting started as a developer](development/getting-started.md): the tools you need, a first build and run, a map of the sources, the path from opening a case to saving it, which checks to run, and a first change to a test.
 - [Build and test guide](development/build-and-test.md): configure recipes for each system, common setup failures, test labels and smokes, where output goes, and CI.
 - [Coding guidelines](development/coding-guidelines.md)
+- [Documentation decision](development/documentation-decision.md): how the docs are structured, built, checked and shipped in the app, the options compared, the screenshot process and the map of every page.
 - [QEGTRAIN source layout](architecture/source-layout.md): the folders of `EGTRAIN/QEGTRAIN` and what each holds, the libraries and the renames.
 - [Scene model design](architecture/scene-model.md)
 - [Scene editor flow](architecture/scene-editor-flow.md): how the editor creates, opens, validates, runs and saves a case, with the main window layout and the edit panes.
