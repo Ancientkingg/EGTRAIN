@@ -151,6 +151,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	addHeading(physicalPage, physicalPageLayout, "Rolling stock unit characteristics");
 	QFormLayout* physicalLayout = new QFormLayout();
 	physicalLayout->setRowWrapPolicy(QFormLayout::WrapLongRows);
+	physicalLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	const char* physicalLabels[PhysicalFieldCount] = {
 		"Traction-unit mass (kg)", "Wagon mass (kg)", "Wagon count",
 		"Maximum speed (m/s)", "Maximum deceleration (m/s²)", "Frontal area (m²)",
