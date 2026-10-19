@@ -87,7 +87,7 @@ To open a result window, click **Open result view...** in the dock and choose an
 - **Speed / distance** (**Diagrams > Speed / distance**) plots the speed of each train against the distance it covered. Hover a line to read a value, click a line to select its train, and drag a rectangle to zoom. [Inspecting diagrams](../ui/diagram-navigation.md) describes the controls.
 - **Timetable** (**Diagrams > Timetable**) lists each stop of each train with its planned and simulated arrival and departure and the delays.
 
-The other entries are listed in [How-to](how-to.md#results-and-exports). Both menus use the same name for each view. The entries stay disabled until a run has ended.
+The other entries are listed in [How-to](how-to.md#results-and-exports). The entries stay disabled until a run has ended.
 
 ![Run Results dock after a completed run, with the Open result view menu open. It lists twelve views in three groups of four: timetable, speed and distance, and train paths and capacity. Below it are the Export CSV and Export PNG buttons and the results table with both trains and the Network total.](../images/guide-run-results.png)
 
