@@ -45,6 +45,7 @@ canonical model.
 - [Getting started as a developer](development/getting-started.md): the tools you need, a first build and run, a map of the sources, the path from opening a case to saving it, which checks to run, and a first change to a test.
 - [Build and test guide](development/build-and-test.md): configure recipes for each system, common setup failures, test labels and smokes, where output goes, and CI.
 - [Coding guidelines](development/coding-guidelines.md)
+- [Error handling](development/error-handling.md): where exceptions are caught or escape, the fatal paths, what the user sees and what is logged for each failure, the safety nets, and the crashes seen in October 2026.
 - [Documentation decision](development/documentation-decision.md): how the docs are structured, built, checked and shipped in the app, the options compared, the screenshot process and the map of every page.
 
 - [Code documentation investigation](development/code-documentation-investigation.md): the comment coverage per source folder, the legacy simulation core, the unstated units and conventions, dead or misleading comments, open questions and the order of the follow-up work.
