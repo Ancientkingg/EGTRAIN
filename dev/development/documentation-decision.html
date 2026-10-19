@@ -1,0 +1,664 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Documentation page map" href="documentation-page-map.html"><link rel="prev" title="Coding guidelines" href="coding-guidelines.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Documentation decision - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-properties.html">V1 scene properties</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-corridor.html">Assignment corridor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/feature-status.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/documentation-decision.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="documentation-decision">
+<h1>Documentation decision<a class="headerlink" href="#documentation-decision" title="Link to this heading">¶</a></h1>
+<p>How the documentation is structured, written, built, checked and shipped, and the options that were compared. The place of every existing page is in the <a class="reference internal" href="documentation-page-map.html"><span class="std std-doc">page map</span></a>. Decided in #915 on 2026-10-19.</p>
+<section id="decision">
+<h2>Decision<a class="headerlink" href="#decision" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Question</p></th>
+<th class="head"><p>Choice</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Structure</p></td>
+<td><p>Two sections split by audience: the manual (<code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code>) for users and the developer docs (<code class="docutils literal notranslate"><span class="pre">docs/development/</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/architecture/</span></code>). The page kinds of Diataxis (tutorial, how-to, reference, explanation) describe a page inside a section; they are not folders.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Site</p></td>
+<td><p>Sphinx with MyST-Parser, so the sources stay Markdown, and the Furo theme.</p></td>
+</tr>
+<tr class="row-even"><td><p>C++ reference</p></td>
+<td><p>Doxygen, built into the same site under <code class="docutils literal notranslate"><span class="pre">api/</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Manual in the app</p></td>
+<td><p>The same Markdown pages of <code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code>, built a second time with Sphinx’s <code class="docutils literal notranslate"><span class="pre">qthelp</span></code> builder and Qt’s <code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> into a <code class="docutils literal notranslate"><span class="pre">.qch</span></code> file that the app shows with <code class="docutils literal notranslate"><span class="pre">QHelpEngine</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Versions</p></td>
+<td><p>One copy of the site per release tag, built by the publish job. No versioning plugin.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Screenshots</p></td>
+<td><p>Produced by a test program in offscreen mode and listed in a manifest that <code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code> reads.</p></td>
+</tr>
+<tr class="row-even"><td><p>Checks</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tools/docs/check_docs.py</span></code> stays the gate, together with <code class="docutils literal notranslate"><span class="pre">sphinx-build</span> <span class="pre">-W</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<p>From the issue and the owner’s comments:</p>
+<ol class="arabic simple">
+<li><p>Sources are Markdown in <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and comments in the code. Links are relative and no GitHub-only Markdown feature is used.</p></li>
+<li><p>The built site is static HTML that any web host serves and a browser opens from disk.</p></li>
+<li><p>One command builds the whole site (guides and C++ reference) into the build folder, and one command serves a live preview.</p></li>
+<li><p>Tool versions are pinned in a file in the repository.</p></li>
+<li><p>The same manual is used offline in the app (#917) without writing the text twice.</p></li>
+<li><p>The maintenance status of each tool is checked before choosing.</p></li>
+<li><p>The site has a developer section and a user section, and keeps one copy per release.</p></li>
+</ol>
+</section>
+<section id="options-compared">
+<h2>Options compared<a class="headerlink" href="#options-compared" title="Link to this heading">¶</a></h2>
+<p>Release dates and versions were read on 2026-10-19 from GitHub and PyPI.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Search</p></th>
+<th class="head"><p>Copy per release</p></th>
+<th class="head"><p>Offline and in the app</p></th>
+<th class="head"><p>Link checking</p></th>
+<th class="head"><p>Maintenance</p></th>
+<th class="head"><p>Effort</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Plain Markdown on GitHub</p></td>
+<td><p>GitHub code search only</p></td>
+<td><p>A Git tag shows the docs of that tag</p></td>
+<td><p>No HTML, so nothing to show in the app</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code></p></td>
+<td><p>Not applicable</p></td>
+<td><p>None, but no manual in the app and no C++ reference</p></td>
+</tr>
+<tr class="row-odd"><td><p>MkDocs with Material</p></td>
+<td><p>Built in</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mike</span></code> plugin</p></td>
+<td><p>Offline plugin; the theme needs JavaScript, which Qt’s text widgets do not run; no <code class="docutils literal notranslate"><span class="pre">.qch</span></code></p></td>
+<td><p>Validation settings</p></td>
+<td><p>MkDocs 1.6.1 on 2024-08-30 is the last release. Material 9.7.7 on 2026-07-17, maintenance only</p></td>
+<td><p>Low, plus a second pipeline for the app</p></td>
+</tr>
+<tr class="row-even"><td><p>Zensical (successor of Material)</p></td>
+<td><p>Built in</p></td>
+<td><p>Not built in; a fork of <code class="docutils literal notranslate"><span class="pre">mike</span></code>, described as transitional</p></td>
+<td><p>Offline plugin; no <code class="docutils literal notranslate"><span class="pre">.qch</span></code></p></td>
+<td><p>Reported broken anchors on the current pages</p></td>
+<td><p>0.0.71 on 2026-10-16, before its first 0.1 release</p></td>
+<td><p>Low, but the tool still changes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sphinx with MyST</p></td>
+<td><p>Built in</p></td>
+<td><p>Build each tag into its own folder</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">qthelp</span></code> builder is part of Sphinx; <code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> comes with Qt</p></td>
+<td><p>Warnings for missing pages and anchors; <code class="docutils literal notranslate"><span class="pre">-W</span></code> turns them into errors</p></td>
+<td><p>Sphinx 9.1.0 on 2025-12-31, MyST-Parser 5.1.0 on 2026-05-13, both active</p></td>
+<td><p>Low to medium</p></td>
+</tr>
+<tr class="row-even"><td><p>Docusaurus</p></td>
+<td><p>Built in through a plugin or a hosted service</p></td>
+<td><p>Copies the docs into <code class="docutils literal notranslate"><span class="pre">versioned_docs/</span></code> for each version</p></td>
+<td><p>No <code class="docutils literal notranslate"><span class="pre">.qch</span></code></p></td>
+<td><p>Broken link check at build</p></td>
+<td><p>3.10.2 on 2026-07-10, active</p></td>
+<td><p>Medium; adds Node and React to a C++ and Python repository</p></td>
+</tr>
+<tr class="row-odd"><td><p>Doxygen alone</p></td>
+<td><p>Built in</p></td>
+<td><p>One output folder per release</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GENERATE_QHP</span></code> writes Qt Help input</p></td>
+<td><p>Warnings for unresolved references</p></td>
+<td><p>1.18.0 on 2026-08-13, active</p></td>
+<td><p>Low for code; the page tree follows folders and ordering 45 pages of prose needs Doxygen commands in the Markdown</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>MkDocs and Material. The Material team has stopped feature work and calls MkDocs unmaintained since August 2024 (<a class="reference external" href="https://squidfunk.github.io/mkdocs-material/blog/2025/11/05/zensical/">announcement</a>). The announcement ends critical fixes on 2027-05-05; the Material README gives 2026-11-05. Either date is too near for a new site.</p></li>
+<li><p>Zensical. It reads <code class="docutils literal notranslate"><span class="pre">mkdocs.yml</span></code> and builds Material projects (<a class="reference external" href="https://zensical.org/docs/compatibility/mkdocs/">compatibility</a>). Versioning is listed on its <a class="reference external" href="https://zensical.org/roadmap/">roadmap</a> as planned. A new site would depend on features that do not exist yet.</p></li>
+<li><p>Docusaurus. A version is a copy of the docs inside the repository (<a class="reference external" href="https://docusaurus.io/docs/versioning">versioning</a>), so old copies would need the same reviews as current pages.</p></li>
+<li><p>Doxygen alone stays the fallback if Sphinx proves too heavy.</p></li>
+</ul>
+</section>
+<section id="why-sphinx-with-myst">
+<h2>Why Sphinx with MyST<a class="headerlink" href="#why-sphinx-with-myst" title="Link to this heading">¶</a></h2>
+<p>It is the only option that gives the site and the app’s manual from one Markdown source. Measured on 2026-10-19 on macOS with Sphinx 9.1.0, MyST-Parser 5.1.0, Furo 2025.12.19 and Qt 5.15.19, using the <code class="docutils literal notranslate"><span class="pre">docs/</span></code> folder unchanged:</p>
+<ul class="simple">
+<li><p>The site built in about 6 seconds with 54 warnings: 47 pages not yet in a table of contents and 7 links to files outside <code class="docutils literal notranslate"><span class="pre">docs/</span></code>. With <code class="docutils literal notranslate"><span class="pre">myst_heading_anchors</span> <span class="pre">=</span> <span class="pre">4</span></code> no heading anchor was missing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sphinx-build</span> <span class="pre">-b</span> <span class="pre">qthelp</span></code> and <code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> made a 3.9 MB <code class="docutils literal notranslate"><span class="pre">.qch</span></code> from all of <code class="docutils literal notranslate"><span class="pre">docs/</span></code>. A small Qt program opened it with <code class="docutils literal notranslate"><span class="pre">QHelpEngine</span></code> and showed a page in a <code class="docutils literal notranslate"><span class="pre">QTextBrowser</span></code> with headings, lists, bold text, links and a PNG screenshot. Tables, the contents tree and search were not checked.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">qthelp</span></code> builder uses a plain theme, so the site can use Furo while the app gets simple HTML. Qt’s text widgets support a subset of HTML 4 and CSS 2.1 (<a class="reference external" href="https://doc.qt.io/qt-5/richtext-html-subset.html">Qt</a>).</p></li>
+<li><p>A build of the manual alone, with the developer folders excluded through a tag in <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>, warns on every link from a manual page to a developer page. This keeps the manual self-contained.</p></li>
+<li><p>Zensical 0.0.71 built the same pages in about 2 seconds with 5 link issues.</p></li>
+</ul>
+<p>The cost is four pinned Python packages and Doxygen, against none for plain Markdown.</p>
+</section>
+<section id="hosting">
+<h2>Hosting<a class="headerlink" href="#hosting" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The sources are Markdown in <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and comments in the code. The output is static HTML with relative links that opens from disk.</p></li>
+<li><p>Only the publish job depends on GitHub Pages. It builds each release tag into <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;/</span></code>, keeps <code class="docutils literal notranslate"><span class="pre">latest/</span></code>, and writes a root page that lists the versions.</p></li>
+<li><p>Moving to another host needs a new publish step and, for each old path, a stub page that redirects with a meta refresh.</p></li>
+<li><p>The app’s <code class="docutils literal notranslate"><span class="pre">.qch</span></code> is built from the same tag, so the manual in the app matches its version (<code class="docutils literal notranslate"><span class="pre">EGTRAIN_VERSION</span></code> in <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>).</p></li>
+<li><p>If Qt Help cannot be packaged on a platform, #917 falls back to opening the shipped HTML in the system browser. That loses the in-app contents and search.</p></li>
+</ul>
+</section>
+<section id="local-build-and-preview">
+<h2>Local build and preview<a class="headerlink" href="#local-build-and-preview" title="Link to this heading">¶</a></h2>
+<p>#918 adds both commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>docs
+cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>docs-preview
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">docs</span></code> runs Doxygen and Sphinx into <code class="docutils literal notranslate"><span class="pre">build/docs/</span></code>; open <code class="docutils literal notranslate"><span class="pre">build/docs/index.html</span></code>. <code class="docutils literal notranslate"><span class="pre">docs-preview</span></code> runs <code class="docutils literal notranslate"><span class="pre">sphinx-autobuild</span></code>, which serves the site on a local port and rebuilds a page when its Markdown changes. The C++ reference is refreshed by <code class="docutils literal notranslate"><span class="pre">docs</span></code>.</p>
+<p>The site keeps its table of contents in <code class="docutils literal notranslate"><span class="pre">docs/index.md</span></code>, the only Sphinx directive in the sources. <code class="docutils literal notranslate"><span class="pre">docs/README.md</span></code> stays a short landing page for readers on GitHub.</p>
+</section>
+<section id="pinned-versions">
+<h2>Pinned versions<a class="headerlink" href="#pinned-versions" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Version</p></th>
+<th class="head"><p>Pinned in</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sphinx</p></td>
+<td><p>9.1.0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/requirements.txt</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>MyST-Parser</p></td>
+<td><p>5.1.0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/requirements.txt</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Furo</p></td>
+<td><p>2025.12.19</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/requirements.txt</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>sphinx-autobuild</p></td>
+<td><p>2025.08.25</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/requirements.txt</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Python</p></td>
+<td><p>3.12 or newer, which Sphinx 9.1.0 needs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/requirements.txt</span></code> comment</p></td>
+</tr>
+<tr class="row-odd"><td><p>Doxygen</p></td>
+<td><p>1.18.0</p></td>
+<td><p>version check in the <code class="docutils literal notranslate"><span class="pre">docs</span></code> target</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code></p></td>
+<td><p>the Qt 5 of the build</p></td>
+<td><p>already a build requirement</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="screenshots">
+<h2>Screenshots<a class="headerlink" href="#screenshots" title="Link to this heading">¶</a></h2>
+<p>What exists. The offscreen smokes already save the main window and some dialogs with <code class="docutils literal notranslate"><span class="pre">grab()</span></code> (<code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/VisualPolish.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/Dialogs.cpp</span></code>). No script makes the 12 <code class="docutils literal notranslate"><span class="pre">docs/images/guide-*.png</span></code> files or the two README images, and the window sizes differ. The application has no dark theme.</p>
+<p>Process:</p>
+<ol class="arabic simple">
+<li><p>A test program in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/</span></code> opens a named case, puts the window in a named state and saves each picture with <code class="docutils literal notranslate"><span class="pre">grab()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tools/docs/capture_screenshots.sh</span></code> runs it with <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code> on macOS arm64 and writes <code class="docutils literal notranslate"><span class="pre">docs/images/</span></code> and <code class="docutils literal notranslate"><span class="pre">docs/images/captures.json</span></code>. Running it again regenerates every capture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">captures.json</span></code> lists, for each file, its case, state, size and the application version. A picture that cannot be scripted is marked manual there, with the steps to take it.</p></li>
+<li><p>Names are <code class="docutils literal notranslate"><span class="pre">&lt;page&gt;-&lt;subject&gt;.png</span></code>, lower case with hyphens, for example <code class="docutils literal notranslate"><span class="pre">getting-started-open-a-case.png</span></code>.</p></li>
+<li><p>Window captures are 1200 by 750 pixels at a device pixel ratio of 1. Dialogs keep their natural size. Nothing is wider than 1200 pixels.</p></li>
+<li><p>Alt text says what the picture shows and in which state.</p></li>
+<li><p>Light only, until the application has a dark theme.</p></li>
+<li><p>Dated comparison pictures under <code class="docutils literal notranslate"><span class="pre">docs/ui/images/</span></code> are records and are not regenerated.</p></li>
+</ol>
+<p>A stale picture is found in two ways:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code> fails when a PNG under <code class="docutils literal notranslate"><span class="pre">docs/images/</span></code> is not in <code class="docutils literal notranslate"><span class="pre">captures.json</span></code>, an entry has no file, a size differs from the manifest, or the recorded version differs from <code class="docutils literal notranslate"><span class="pre">EGTRAIN_VERSION</span></code> in its major or minor part.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">capture_screenshots.sh</span> <span class="pre">--check</span></code> captures again into a temporary folder and lists pictures where more than 2 percent of the pixels differ. It runs from the release checklist, not on every pull request, because fonts differ between systems.</p></li>
+</ul>
+</section>
+<section id="onboarding-path">
+<h2>Onboarding path<a class="headerlink" href="#onboarding-path" title="Link to this heading">¶</a></h2>
+<p>A new developer reads, in this order:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>, then the developer section of the site.</p></li>
+<li><p><a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started as a developer</span></a>: tools, clone, configure, build and run. A first full build with tests took about 14 minutes on an Apple silicon laptop and about 7 minutes in a Linux container with 10 CPUs.</p></li>
+<li><p>The first change in the same page: one test assertion, then the quick unit tests.</p></li>
+<li><p><a class="reference internal" href="../architecture/source-layout.html"><span class="std std-doc">Source layout</span></a>, then the <a class="reference internal" href="../architecture/scene-model.html"><span class="std std-doc">scene model</span></a>, then the C++ reference of the folder being changed.</p></li>
+<li><p>The build and test pages, the <a class="reference internal" href="coding-guidelines.html"><span class="std std-doc">coding guidelines</span></a> and the checks a pull request must pass.</p></li>
+</ol>
+<p>The target is a first passing change on a clean machine within one hour. #916 measures it on one platform and writes the time in the getting started page.</p>
+</section>
+<section id="writing-guide">
+<h2>Writing guide<a class="headerlink" href="#writing-guide" title="Link to this heading">¶</a></h2>
+<p>Voice and form:</p>
+<ul class="simple">
+<li><p>Write to the reader as “you”, in the present tense. One action per step, in the order the reader does it.</p></li>
+<li><p>Plain English and short sentences. Sentence-case headings. No em or en dashes and no marketing words.</p></li>
+<li><p>Start each page with one sentence on what the reader gets from it.</p></li>
+<li><p>The manual describes what the current release does. Dated test notes go to the records, and features that are not built are left out.</p></li>
+</ul>
+<p>Terms:</p>
+<ul class="simple">
+<li><p>Use the words of the <a class="reference internal" href="../guides/glossary.html"><span class="std std-doc">glossary</span></a>. A case study is what the user opens, edits and runs. Say scene only where the application does, as in <strong>File &gt; Open Scene Folder…</strong>, and for the data files.</p></li>
+<li><p>Add a new term to the glossary before using it, and link its first use on a page.</p></li>
+</ul>
+<p>Units:</p>
+<ul class="simple">
+<li><p>Write the unit after every number: 9000 s, 30 km/h, 1.5 m. Times of day are <code class="docutils literal notranslate"><span class="pre">HH:MM:SS</span></code>.</p></li>
+<li><p>Say what a time counts from. Planned times are elapsed seconds from the base time of the case.</p></li>
+<li><p>Field labels keep the unit the application shows, as in <strong>Minimum dwell (s)</strong>.</p></li>
+</ul>
+<p>Menus and controls:</p>
+<ul class="simple">
+<li><p>Bold only names that exist in the application, spelled as shown, with its capitals and ellipsis: <strong>File &gt; Open Case Study…</strong>. Join menu levels with <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>.</p></li>
+<li><p>Name the kind of control the first time: the dock <strong>Run Results</strong>, the dialog <strong>Run simulation</strong>, the button <strong>Export CSV…</strong>.</p></li>
+<li><p>Use code format for file names, keys in files, commands and paths. Shortcuts read Ctrl+R; a page that lists shortcuts says once that Ctrl is Command on macOS.</p></li>
+<li><p>Do not use bold for emphasis, so every bold span can be checked against the application.</p></li>
+</ul>
+</section>
+<section id="what-check-docs-py-checks">
+<h2>What check_docs.py checks<a class="headerlink" href="#what-check-docs-py-checks" title="Link to this heading">¶</a></h2>
+<p>It already checks relative links, heading anchors, empty alt text, orphan images, pages that <code class="docutils literal notranslate"><span class="pre">docs/README.md</span></code> does not reach, <code class="docutils literal notranslate"><span class="pre">bash</span></code>, <code class="docutils literal notranslate"><span class="pre">sh</span></code> and <code class="docutils literal notranslate"><span class="pre">json</span></code> examples, dashes and local paths. #916 adds:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">github-only</span></code>: GitHub alerts (<code class="docutils literal notranslate"><span class="pre">&gt;</span> <span class="pre">[!NOTE]</span></code>), <code class="docutils literal notranslate"><span class="pre">&lt;details&gt;</span></code>, links that start with <code class="docutils literal notranslate"><span class="pre">/</span></code>, and links to <code class="docutils literal notranslate"><span class="pre">github.com/Ancientkingg/EGTRAIN/blob/</span></code> for files in the repository.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">heading</span></code>: one <code class="docutils literal notranslate"><span class="pre">#</span></code> heading, first in the file, and no skipped levels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">manual-link</span></code>: a page in <code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code> links only to pages in <code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code>: the name pattern, the width and the <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> rules above.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ui-name</span></code>: every bold span in <code class="docutils literal notranslate"><span class="pre">docs/guides/</span></code> is in a list of menu paths, dock, dialog, button and field names that a test writes from the running application. The list is a build output, so the check is skipped without it and runs in the CI job that builds the application.</p></li>
+</ol>
+<p>Each new check gets one case in <code class="docutils literal notranslate"><span class="pre">tools/docs/test_check_docs.py</span></code>. Prose style is not checked by machine beyond the dash rule.</p>
+</section>
+<section id="follow-up">
+<h2>Follow-up<a class="headerlink" href="#follow-up" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>#918: <code class="docutils literal notranslate"><span class="pre">docs/conf.py</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/requirements.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/index.md</span></code>, the Doxygen configuration, the <code class="docutils literal notranslate"><span class="pre">docs</span></code> and <code class="docutils literal notranslate"><span class="pre">docs-preview</span></code> targets, a CI job that builds the site on changes under <code class="docutils literal notranslate"><span class="pre">docs/</span></code>, and the publish job.</p></li>
+<li><p>#916: the new checks, the moves of the page map, the capture program, then a review of each manual and developer page against the application.</p></li>
+<li><p>#917: the manual-only build, the <code class="docutils literal notranslate"><span class="pre">.qch</span></code> target, the help window with contents and search, the <code class="docutils literal notranslate"><span class="pre">.qch</span></code> in each package, and context help.</p></li>
+</ul>
+</section>
+<section id="open-questions">
+<h2>Open questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>How a Markdown page links to a generated C++ reference page. MyST does not resolve <code class="docutils literal notranslate"><span class="pre">../api/classFoo.html</span></code> as a document. To settle in #918.</p></li>
+<li><p>Whether Sphinx search works from <code class="docutils literal notranslate"><span class="pre">file://</span></code>. The index is a script, but result summaries are fetched, which some browsers block from disk. To settle in #918.</p></li>
+<li><p>Whether QtHelp, <code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> and Qt’s SQLite plugin are in the Windows Qt install of CI (it installs only <code class="docutils literal notranslate"><span class="pre">qtcharts</span></code> as an extra module) and in the AppImage. To settle in #917.</p></li>
+<li><p>Furo’s last release is from 2025-12-19 and sphinx-autobuild’s from 2025-08-25. Both can be replaced: Sphinx’s own <code class="docutils literal notranslate"><span class="pre">alabaster</span></code> theme, and a plain web server.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="documentation-page-map.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Documentation page map</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="coding-guidelines.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Coding guidelines</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Documentation decision</a><ul>
+<li><a class="reference internal" href="#decision">Decision</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#options-compared">Options compared</a></li>
+<li><a class="reference internal" href="#why-sphinx-with-myst">Why Sphinx with MyST</a></li>
+<li><a class="reference internal" href="#hosting">Hosting</a></li>
+<li><a class="reference internal" href="#local-build-and-preview">Local build and preview</a></li>
+<li><a class="reference internal" href="#pinned-versions">Pinned versions</a></li>
+<li><a class="reference internal" href="#screenshots">Screenshots</a></li>
+<li><a class="reference internal" href="#onboarding-path">Onboarding path</a></li>
+<li><a class="reference internal" href="#writing-guide">Writing guide</a></li>
+<li><a class="reference internal" href="#what-check-docs-py-checks">What check_docs.py checks</a></li>
+<li><a class="reference internal" href="#follow-up">Follow-up</a></li>
+<li><a class="reference internal" href="#open-questions">Open questions</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

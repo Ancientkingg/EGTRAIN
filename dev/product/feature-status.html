@@ -1,0 +1,1180 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Usage and diagnostics wire contract (version 1)" href="../telemetry/README.html"><link rel="prev" title="TU Delft assignment workflow in EGTRAIN" href="assignment-workflow.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Feature status 2026-10-17 - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-properties.html">V1 scene properties</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-corridor.html">Assignment corridor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/product/feature-status.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="feature-status-2026-10-17">
+<h1>Feature status 2026-10-17<a class="headerlink" href="#feature-status-2026-10-17" title="Link to this heading">¶</a></h1>
+<p>This page records what was checked in EGTRAIN on one day, and what the check found. It is a dated snapshot, like the <a class="reference internal" href="../development/release-rehearsal-2026-08-23.html"><span class="std std-doc">release rehearsal of 2026-08-23</span></a>. It is not a specification and it is not kept up to date. Later changes are not reflected here.</p>
+<section id="snapshot">
+<h2>Snapshot<a class="headerlink" href="#snapshot" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Date</p></td>
+<td><p>2026-10-17</p></td>
+</tr>
+<tr class="row-odd"><td><p>Commit</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">c59b0314</span></code> on <code class="docutils literal notranslate"><span class="pre">main</span></code> (“Correct the messages for opening and importing cases”, #888)</p></td>
+</tr>
+<tr class="row-even"><td><p>Version shown by About EGTRAIN</p></td>
+<td><p>1.0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Platforms</p></td>
+<td><p>macOS 26.6.2 on Apple silicon, Windows 11 (an Arm64 virtual machine that runs the x64 build by emulation), Linux (Ubuntu 24.04)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The test names in the tables are the tests that <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-N</span></code> lists at this commit in a configuration with tests on. The pull request checks of #888 passed on Linux, macOS and Windows. The last Release workflow run, 39019990227, ran on <code class="docutils literal notranslate"><span class="pre">950b145c</span></code>, four commits earlier, and all its validation and package jobs passed. That run also executed the smokes that the pull request checks leave out: <code class="docutils literal notranslate"><span class="pre">headless_smoke.py</span></code> on all six scenes, the editor, scene render, track preview and visual polish smokes, and the round trip, bundle, assignment and incident smokes. The tests were not run again for this page.</p>
+<section id="how-to-read-the-tables">
+<h3>How to read the tables<a class="headerlink" href="#how-to-read-the-tables" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Verdict</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>tested</p></td>
+<td><p>The feature works as intended. A test named in the evidence covers it, or a manual run named in the evidence used it.</p></td>
+</tr>
+<tr class="row-odd"><td><p>untested</p></td>
+<td><p>No test and no manual run covers it. It may work.</p></td>
+</tr>
+<tr class="row-even"><td><p>partial</p></td>
+<td><p>It works only in part. The evidence says which part.</p></td>
+</tr>
+<tr class="row-odd"><td><p>placeholder</p></td>
+<td><p>The control exists and does nothing useful.</p></td>
+</tr>
+<tr class="row-even"><td><p>unreachable</p></td>
+<td><p>The code exists and a user of the shipped application cannot get to it.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A cell that starts with a test name is a CTest test. Some tests are registered on some platforms only: the Bash smokes are not registered on Windows, and the visual polish smokes run on macOS only. The <a class="reference internal" href="../development/build-and-test.html#platform-coverage"><span class="std std-ref">platform coverage table</span></a> lists them.</p>
+</section>
+<section id="manual-sessions">
+<h3>Manual sessions<a class="headerlink" href="#manual-sessions" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Label in the evidence</p></th>
+<th class="head"><p>Session</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>manual run, 2026-10-17, macOS (audit)</p></td>
+<td><p>Lume virtual machine, macOS 26.6.2, 1280 by 800, build of <code class="docutils literal notranslate"><span class="pre">main</span></code> at <code class="docutils literal notranslate"><span class="pre">487449da</span></code>. Items 1 to 8, 15 to 19, 21 and 22 of the audit list.</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, macOS (rehearsal)</p></td>
+<td><p>Same machine, release candidate from Release run 38954910966 (<code class="docutils literal notranslate"><span class="pre">58680987</span></code>), ad hoc signed disk image. Clean-install steps 1 to 9 and rows M1 to M4, R1 to R12.</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-16, Windows</p></td>
+<td><p>Virtual machine, Windows 11 Arm64 build 26300 under QEMU, 1024 by 768, no GPU. A pull request build (run 38906665248) in the afternoon, then the rehearsal of release candidate 38954910966 (<code class="docutils literal notranslate"><span class="pre">58680987</span></code>) in the evening: Setup and portable archive, rows W1 to W9 and R1 to R12.</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, Windows</p></td>
+<td><p>Same machine. A recheck of candidate 39019990227 (<code class="docutils literal notranslate"><span class="pre">950b145c</span></code>), and a session on the toolbar, the dialogs and the update from version 1.0.2 (<code class="docutils literal notranslate"><span class="pre">main</span></code> at <code class="docutils literal notranslate"><span class="pre">950b145c</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-17, Linux (developer setup)</p></td>
+<td><p>Fresh Ubuntu 24.04 container on arm64: install, configure, build, CTest, headless run.</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, Linux (E3)</p></td>
+<td><p>Docker container on arm64, Ubuntu 24.04, Xvfb 1280 by 800, Openbox, no GPU, build of <code class="docutils literal notranslate"><span class="pre">main</span></code> at <code class="docutils literal notranslate"><span class="pre">d0ed3a5e</span></code>. Items 20 and 23 to 30 of the audit list: GUI runs of all cases, an incident against the baseline, seeds, playback, replay, Follow, zoom, layers, station names.</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-17, Linux (E4)</p></td>
+<td><p>Same kind of machine, <code class="docutils literal notranslate"><span class="pre">d0ed3a5e</span></code>. Items 31 to 36: plotted and tabulated results compared with the raw output files, delay comparison, blocking-time overlay, capacity analysis, exports.</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, Linux (E5)</p></td>
+<td><p>Same kind of machine, <code class="docutils literal notranslate"><span class="pre">d0ed3a5e</span></code>. Items 9 to 14: the minimal tutorial case end to end, every Infrastructure facet, stop edit, passengers import, incident fields, the Copenhagen Infrastructure table.</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-17, macOS (C)</p></td>
+<td><p>A second Lume virtual machine, macOS 26.6.2, 1280 by 800, build of <code class="docutils literal notranslate"><span class="pre">main</span></code> at <code class="docutils literal notranslate"><span class="pre">ba14be46</span></code>. Editor review for #392, partly done: nothing ran at 150 percent text, and the machine stopped three times, once right after the native file picker opened.</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, Linux (C)</p></td>
+<td><p>Same kind of machine as E3, <code class="docutils literal notranslate"><span class="pre">c59b0314</span></code>. The Linux completion of the editor review (six items), including all docks at <code class="docutils literal notranslate"><span class="pre">QT_SCALE_FACTOR=1.5</span></code> and Qt file pickers for the source links and the passenger import.</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-17, Linux (D1)</p></td>
+<td><p>Same kind of machine, <code class="docutils literal notranslate"><span class="pre">b6e2da81</span></code>. The result window review (items 1 to 7) and the button order, default button, Enter and Escape of the dialogs.</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, macOS (D2)</p></td>
+<td><p>Lume virtual machine, 1280 by 800, build of <code class="docutils literal notranslate"><span class="pre">main</span></code> at <code class="docutils literal notranslate"><span class="pre">d0ed3a5e</span></code>, plus release candidate run 39032467694 copied into the guest. Inspectors, case chooser, <code class="docutils literal notranslate"><span class="pre">otool</span></code> check of the package, update dialogs, toolbar.</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-17, macOS (D2b)</p></td>
+<td><p>Same machine as D2, build of <code class="docutils literal notranslate"><span class="pre">main</span></code> at <code class="docutils literal notranslate"><span class="pre">c59b0314</span></code>. Train, Passenger, Connection and Signal inspectors, Follow from a click, and the selection across zoom, layers, Stop and a case change. A live run of Netherlands left the window unresponsive for more than 10 minutes on this virtual machine; on Linux (E3) the same case ran in about 17 s.</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, macOS (M6)</p></td>
+<td><p>A second Lume virtual machine, release candidate run 39032467694 copied into the guest. The first File &gt; Open Case Study and File &gt; Open Scene Folder after a first start, and the Copenhagen Infrastructure table.</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-17, Windows (WIN-C)</p></td>
+<td><p>The Windows virtual machine of 2026-10-16, 1024 by 768, 100 percent scaling, release candidate 39032467694 (<code class="docutils literal notranslate"><span class="pre">b6e2da81</span></code>), Setup installed per user. Default buttons, release notes, case chooser, scope dialogs with a 300-character route id, and the editor review (docks, Infrastructure, Services, Incidents, Passengers).</p></td>
+</tr>
+<tr class="row-odd"><td><p>manual run, 2026-10-17, Windows (WIN-E)</p></td>
+<td><p>Same machine and candidate. Opening all cases, Recent Scenes, drag and drop, run to the end, playback, replay, Follow, zoom, exports, Save As and crash recovery.</p></td>
+</tr>
+<tr class="row-even"><td><p>manual run, 2026-10-17, Linux (B)</p></td>
+<td><p>Same kind of machine as E3. The dialogs before #389 (<code class="docutils literal notranslate"><span class="pre">82aca41e</span></code>) and after it (<code class="docutils literal notranslate"><span class="pre">c59b0314</span></code>), compared in pairs, at 100 percent and at 1.5 times the text.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rehearse Linux job</p></td>
+<td><p>The job of the Release workflow that starts the AppImage under a virtual display and runs steps 1 to 9 of the rehearsal. It is an automated run, not a manual one.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The Windows machine has no physical x64 PC and no GPU, so timings and drawing speed from it do not describe a real PC. The macOS machine is a virtual machine with 4 GiB of memory.</p>
+</section>
+</section>
+<section id="menus-and-scene-lifecycle">
+<h2>Menus and scene lifecycle<a class="headerlink" href="#menus-and-scene-lifecycle" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Verdict</p></th>
+<th class="head"><p>Evidence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>File &gt; New Case Study…</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 6): an editable case with 9 validation errors, “No trains defined” and Run disabled</p></td>
+</tr>
+<tr class="row-odd"><td><p>Open a Case window (bundled cases, recent cases, Other ways to open…)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_casechooserdialog</span></code>, <code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code>; manual run, 2026-10-17, macOS (audit item 1): it appears over Netherlands, Continue keeps the case; manual run, 2026-10-16, Windows; Rehearse Linux job step 1. The window has no Cancel button (#391). On Windows an Unavailable recent row could not be selected and Enter opened the first bundled case; #887 changed that after the session and it was not checked by hand. manual run, 2026-10-17, macOS (D2, before #887): the Unavailable row did not react to a click or double-click, Down skipped it and Enter opened the selected available row. A 140-character recent name is elided in the middle without a horizontal scroll bar on macOS (D2) and on Windows (WIN-C; the tooltip shows the whole name and the path). Linux (D1): Open is the default, Escape keeps the current case</p></td>
+</tr>
+<tr class="row-even"><td><p>File &gt; Open Case Study… and Open Scene Folder…</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code>, <code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code>, <code class="docutils literal notranslate"><span class="pre">test_sceneopenrequest</span></code>; manual run, 2026-10-17, macOS (audit item 3): all six cases as <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> and as folder; manual run, 2026-10-16, Windows</p></td>
+</tr>
+<tr class="row-odd"><td><p>File &gt; Recent Scenes</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 4). A deleted case showed “Unavailable” only after the next open; #888 rebuilds the menu each time it opens, and that was not checked by hand. manual run, 2026-10-17, Windows (WIN-E): after another case was opened, a deleted file showed as “Unavailable: Gone.egscene” and a click did nothing. The entry is not greyed, and the menu shows file names with the extension where the chooser shows names without it (no issue yet)</p></td>
+</tr>
+<tr class="row-even"><td><p>Drag and drop of a case</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code>, <code class="docutils literal notranslate"><span class="pre">test_openrequestrelay</span></code>; manual run, 2026-10-17, macOS (rehearsal row R2): one bundle dropped on the window. manual run, 2026-10-17, Windows (WIN-E): a bundle dropped on a case with unsaved edits asked Save, Discard or Cancel; Cancel kept the edit and Discard opened the dropped case. A dropped folder showed “Drop rejected: drop an .egscene file, not a directory. Scene unchanged.” for about 2 s. The prompt opened behind the Explorer window and was visible only through the taskbar (no issue yet). The Save branch and a multi-file drop were not run</p></td>
+</tr>
+<tr class="row-odd"><td><p>Save Scene, Save Case Study As…, Save Scene As Folder…</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scenewriter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scenebundle</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scenesavepolicy</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-17, macOS (audit items 15 and 16); manual run, 2026-10-17, Windows (row R11): an installed example is refused with “Installed example scenes cannot be overwritten”; Rehearse Linux job step 5. Ctrl+S on a bundled case opens Save As (fixed by #614). manual run, 2026-10-17, Windows (WIN-E): Ctrl+S on an edited Paimpol opened Save As in Documents, saving as <code class="docutils literal notranslate"><span class="pre">PaimpolE</span></code> added <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> (18563 bytes), the installed folder kept its size, and Recent Scenes reopened the copy with the edit. manual run, 2026-10-17, Linux (E5): Save Scene As Folder wrote the seven JSON files of a new case and the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> had 2213 bytes; a name typed without an extension gave no <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> (a folder of that name already existed, so the cause is unclear)</p></td>
+</tr>
+<tr class="row-even"><td><p>Unsaved-changes prompt (open, drop, quit)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 5 and rehearsal rows M2 and R3); manual run, 2026-10-16, Windows (rows R3, W7). The macOS sheet offers Save, Cancel and Don’t Save; Windows and Linux offer Save, Discard and Cancel</p></td>
+</tr>
+<tr class="row-odd"><td><p>Edit &gt; Undo and Redo</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scenehistory</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 19): named steps, a new edit clears Redo, both are off during a run. Not confirmed: the unsaved mark after undoing past the saved state</p></td>
+</tr>
+<tr class="row-even"><td><p>Autosave and crash recovery</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_recoverystore</span></code>, <code class="docutils literal notranslate"><span class="pre">test_recoverystore_process</span></code>, <code class="docutils literal notranslate"><span class="pre">test_recoverycontroller</span></code>, <code class="docutils literal notranslate"><span class="pre">test_recoveryprompt</span></code>, <code class="docutils literal notranslate"><span class="pre">test_recovery_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 19): a copy about 30 s after an edit, Recover after a shutdown and after <code class="docutils literal notranslate"><span class="pre">kill</span> <span class="pre">-9</span></code>, Discard asks twice. Not run: the limit of 20 copies, a copy whose original changed. manual run, 2026-10-17, Windows (WIN-E): a copy about 26 s after an edit; after the process was ended, Recover Unsaved Work offered Recover, Discard and Decide Later, Recover kept the edit (“Recovered Paimpol. It is not saved: choose Save As to keep it.”), and Discard asked again with Confirm Discard. While an incident was half filled, Linux (E3), macOS (C) and Windows (WIN-C) showed “Autosave unavailable: Cannot write the recovery copy (scene.field.missing)”; fixed after this snapshot by #894, which names the incomplete entry</p></td>
+</tr>
+<tr class="row-odd"><td><p>Older case: “Upgrade a Copy…”</p></td>
+<td><p>unreachable</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scenecompatibility</span></code> with a registry that exists only in the test. The shipped registry is empty and the schema version is 1, so no scene offers an upgrade (#447 settled the policy)</p></td>
+</tr>
+<tr class="row-even"><td><p>Older case that has no migration: “Older Scene Not Supported”</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scenecompatibility</span></code>; manual run, 2026-10-17, Windows: the dialog appears for an edited copy</p></td>
+</tr>
+<tr class="row-odd"><td><p>Newer case: “Newer Scene” with Check for Updates…</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scenecompatibility</span></code>; manual run, 2026-10-17, macOS (audit item 8): schema 99 shows the supported and found versions; manual run, 2026-10-17, Windows</p></td>
+</tr>
+<tr class="row-even"><td><p>Damaged or foreign file or folder</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_cannotopenmessage</span></code>, <code class="docutils literal notranslate"><span class="pre">test_sceneopenrequest</span></code>, <code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code>; manual run, 2026-10-17, macOS (audit item 8 and rehearsal rows M3 and R4); manual run, 2026-10-17, Windows (row W9): the title and text are the same at start and while a case is open. The folder wording was fixed by #888 and not checked by hand</p></td>
+</tr>
+<tr class="row-odd"><td><p>File &gt; Load Legacy Case… and Import Legacy Case…</p></td>
+<td><p>partial</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_sceneimporter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_legacy_import_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 7): a legacy export imports, a folder that is not legacy writes nothing. The lost layout of the imported <code class="docutils literal notranslate"><span class="pre">views.json</span></code> was fixed by #884 and not checked by hand. The stale status message after a failed import was fixed by #888 and not checked by hand</p></td>
+</tr>
+<tr class="row-even"><td><p>File &gt; Set Output Folder…</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_output_folder</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Quit and closing the window during a run</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_close_during_run_smoke</span></code>; manual run, 2026-10-17, macOS (rehearsal row R3): Quit with a pending edit asks first</p></td>
+</tr>
+<tr class="row-even"><td><p>Help &gt; About EGTRAIN</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_aboutdialog</span></code>; manual run, 2026-10-16, Windows: Version 1.0.0; manual run, 2026-10-17, macOS (rehearsal); manual run, 2026-10-17, Linux (D1): Enter moved focus to the link button instead of closing the window (fixed after this snapshot by #891)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Help &gt; Privacy &amp; diagnostics…</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_telemetryconsent</span></code>, <code class="docutils literal notranslate"><span class="pre">test_telemetryoperations</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>. In a build without a telemetry address the window says that nothing is collected</p></td>
+</tr>
+<tr class="row-even"><td><p>First-start question about automatic update checks</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_updatetelemetrycontroller</span></code>; manual run, 2026-10-17, macOS (rehearsal row R7) and manual run, 2026-10-16, Windows: asked once, not again after a restart. manual run, 2026-10-17, Linux (E3, E4) and Windows (WIN-E): the question came after the first case was opened, not at launch; on Windows (WIN-C) it came at start-up after the <code class="docutils literal notranslate"><span class="pre">updates</span></code> registry key was deleted. The default is Check Automatically</p></td>
+</tr>
+<tr class="row-odd"><td><p>Help &gt; Check for Updates… and the automatic check</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_updatechecker</span></code>, <code class="docutils literal notranslate"><span class="pre">test_updatetransport_https_cases</span></code>, <code class="docutils literal notranslate"><span class="pre">test_updateprompttext</span></code>, <code class="docutils literal notranslate"><span class="pre">test_releasenotes</span></code>; manual run, 2026-10-17, Windows (row R8) and manual run, 2026-10-17, macOS (rehearsal row R8): the dialog offers version 1.0.2. The list in the release notes ran into one paragraph in earlier builds; #873 fixed it: manual run, 2026-10-17, macOS (D2) and Windows (WIN-C) show a paragraph, a two-item list and a link, and Linux (B) shows raw markdown with backticks before and rich text with a link and a bullet list after. The buttons are not clipped on macOS (D2) or Windows (WIN-C, #874). On macOS the focused default button was Stop Checking, so Enter would turn off update checks (D2; Enter was not pressed); fixed after this snapshot by #890. With automatic checks on, the dialog comes back at every start after Later</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="simulation-playback-and-canvas">
+<h2>Simulation, playback and canvas<a class="headerlink" href="#simulation-playback-and-canvas" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Verdict</p></th>
+<th class="head"><p>Evidence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Run (Simulation menu, toolbar, File &gt; Run Scene) and the Run simulation review</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_gui_autostart_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_dialog_presentation_contract</span></code>; manual run, 2026-10-17, macOS (rehearsal step 6), manual run, 2026-10-16, Windows and the Rehearse Linux job step 6: Paimpol runs to “Completed”. manual run, 2026-10-17, Linux (E3): all six bundled cases ran to “Simulation complete” at the default speed, with selected in period 2 (Paimpol, about 4.5 s), 40 (Netherlands, 17 s), 4 (Amsterdam_Hilversum_Student, 13 s), 22 (Assignment, 6 s), 47 (Milano_Brescia, 9 s) and 185 (Copenhagen, 131 s). manual run, 2026-10-17, Windows (WIN-E): Paimpol 12 s, Milano_Brescia 36 s, Assignment 9 s. The Paimpol dialog and results table match the getting-started guide. In Milano_Brescia trains still running at the end get the end time 07:34:59 and the status stays Completed</p></td>
+</tr>
+<tr class="row-odd"><td><p>Run of all six committed cases without a window</p></td>
+<td><p>tested</p></td>
+<td><p>Release run 39019990227, <code class="docutils literal notranslate"><span class="pre">headless_smoke.py</span></code> on cases 1 to 5 and 7; <code class="docutils literal notranslate"><span class="pre">test_headless_scene_smoke</span></code> (Paimpol), <code class="docutils literal notranslate"><span class="pre">test_simulation_determinism</span></code>, <code class="docutils literal notranslate"><span class="pre">test_runtime_memory_safety</span></code>, <code class="docutils literal notranslate"><span class="pre">test_station_departure</span></code> (Netherlands), <code class="docutils literal notranslate"><span class="pre">test_simulationworker</span></code> (Assignment), <code class="docutils literal notranslate"><span class="pre">test_gui_autostart_smoke</span></code> (Copenhagen) and the <code class="docutils literal notranslate"><span class="pre">characterization_</span></code> tests</p></td>
+</tr>
+<tr class="row-even"><td><p>Run of a scenario with incidents, compared with the baseline</p></td>
+<td><p>tested</p></td>
+<td><p>Release run 39019990227, <code class="docutils literal notranslate"><span class="pre">incident_smoke.py</span></code>; <code class="docutils literal notranslate"><span class="pre">test_editor_scenario</span></code>, <code class="docutils literal notranslate"><span class="pre">test_delayanalysis</span></code>; manual run, 2026-10-17, Linux (E3) on Assignment: one train_breakdown (IC1723-2, start 2400 s, recovery end 3000 s) in a copy of the baseline; IC1723-2 ended 08:20:07 in the baseline and 08:20:31 with the incident, and the delay window read “Final arrival later: 3, same: 14, earlier: 0, not available: 7”, net +87 s, direct evidence “Yes: new_incident”, which agrees with <code class="docutils literal notranslate"><span class="pre">TimetablePoints.txt</span></code> (4805 against 4829). manual run, 2026-10-17, Linux (D1): a breakdown scenario gave “Final arrival later: 2, same: 15”, +285 s. Not tried: a speed cap, an entrance delay in a run on Assignment, an incident on a signal</p></td>
+</tr>
+<tr class="row-odd"><td><p>Selecting occurrences for a run</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_runselection</span></code>; manual run, 2026-10-17, macOS (audit item 21): “Selected in period 1”, result “Occurrences: 1/2 selected”</p></td>
+</tr>
+<tr class="row-even"><td><p>Stop during a run</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_close_during_run_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 22): “Simulation stopped”, the diagrams stay off, the next run completes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pause and Resume</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-17, Linux (E3): Pause held the clock at step 1290 (07:32:09) over two captures four seconds apart and Resume went on to step 1557; manual run, 2026-10-17, Windows (WIN-E): Pause froze step 1,690 at 07:38:49 for more than 5 s. While paused the toolbar grew and clipped the zoom-out icon; fixed after this snapshot by #892</p></td>
+</tr>
+<tr class="row-even"><td><p>Speed slider</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>; manual run, 2026-10-17, Linux (E3): about 40 steps/s in the middle and 7540 of 9000 steps in about 5 s at the fast end; manual run, 2026-10-17, Windows (WIN-E): about 95, 18 and 2 to 3 steps/s at the fast end, the middle and the slow end, and a click on the groove does not move the handle</p></td>
+</tr>
+<tr class="row-odd"><td><p>Replay row (Start, End, Play, slider)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_guisimulationsnapshot</span></code>, <code class="docutils literal notranslate"><span class="pre">test_replaycoverage</span></code>, <code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay</span></code>; manual run, 2026-10-17, Linux (E3) and Windows (WIN-E): Start, Play, End and the slider work; the label reads “Whole run, 0 to 8999 s, a frame every 5 s.” and “Replay at 8985 s” or “Replay at 8999 s” at the end, Play moved 5 s in about 5 s, and a slider drag gave “Replay at 1790 s”</p></td>
+</tr>
+<tr class="row-even"><td><p>Select a train, Follow, Stop following, context menus</p></td>
+<td><p>partial</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_followavailability</span></code>, <code class="docutils literal notranslate"><span class="pre">test_followcamera</span></code>, <code class="docutils literal notranslate"><span class="pre">test_networkscene_selection</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay</span></code>; manual run, 2026-10-17, Linux (E3) and Windows (WIN-E): choosing a train in the list and Follow works (”… is running. The view follows it.”, the view centres on the train) and Follow again gives “Follow disabled” in WIN-E. By hand a train could not be selected with a click: at Fit it is not visible, at about 12x it is a dash of 8 px and a signal takes the click first (E3, WIN-E); on macOS (D2) no train could be selected at Fit or at 5.4x (no issue yet). In E3 the sentence “The view follows it.” stayed after Follow was switched off; probably a lagging capture, #892 added a check. manual run, 2026-10-17, macOS (D2b): on Amsterdam_Hilversum_Student at 24.9x a train is a stroke of about 25 px; a click on it opens Train Info with a blue ring and starts Follow (“IC_ASD_HVS_DEMO-1 is running. The view follows it.”), and the ring moves with the train after Resume. At 6.2x it is still a thin sliver (#822). The context menus were not reported by any session</p></td>
+</tr>
+<tr class="row-odd"><td><p>Find stations, signals and trains (Edit &gt; Find…)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>, <code class="docutils literal notranslate"><span class="pre">test_track_preview_smoke</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Zoom In, Zoom Out, Fit, wheel and drag</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_networkview</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>; manual run, 2026-10-17, Linux (E3) and Windows (WIN-E): the wheel zooms around the pointer (four clicks gave 1.7x, six gave 2.3x in E3), the toolbar buttons, Ctrl++, Ctrl+- and Ctrl+0 work, and a drag pans (a 200 px drag moved the view about 140 px at 1.3x); at Fit there is no pan range. Real pointer and trackpad scrolling needs a person</p></td>
+</tr>
+<tr class="row-odd"><td><p>Station marks and names at overview zoom (#428)</p></td>
+<td><p>partial</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_stationoverlay</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_stations</span></code>; manual run, 2026-10-17, Linux (E3) on Copenhagen: at Fit about a dozen of roughly 100 station names are drawn and the stations lie in one overlapping band; at 2.3x more names appear but some stations have none and some labels collide with icons. #428 is closed, so the owner has to judge this</p></td>
+</tr>
+<tr class="row-even"><td><p>Case and Layers dock, layer switches</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_networklegend</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>; manual run, 2026-10-17, Linux (E3): Stations and platforms, Station names, Signals and Passengers each took effect; Station names off hid only the names</p></td>
+</tr>
+<tr class="row-odd"><td><p>Passengers layer, passenger markers and platform bars</p></td>
+<td><p>partial</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scene_render_smoke</span></code>. At the snapshot the markers existed only when the program started with <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code>, and the layer switch controlled nothing without it. Since #782 View &gt; Show Passengers and the layer switch are one switch, off at the first start and disabled for a case without passengers; a run shows the markers, counters and platform bars when it starts with it on. manual run, 2026-10-17, Linux (E3): without <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code> the Map key has no “Passenger count”; with it the key shows it. No passenger marker was visible on Paimpol at Fit, because its journeys have no route-choice legs, so the marker and the platform bar were not seen</p></td>
+</tr>
+<tr class="row-even"><td><p>Map key</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_networklegend</span></code>; manual run, 2026-10-17, Linux (E3): the key lists the high speed, mainline and local track types, Station, the signal states and Train. It shows a large arrow for Train, while the train is a dash of a few pixels at 6.2x and not visible at Fit (E3, WIN-E; no issue yet)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Simulation Info dock (node, station, arc, connection, signal, train)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_inspectorpanel</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-17, macOS (D2): the title is “Preview: Node B1.node.28 (not running)” before a run and “Node Info”, “Arc Info” or “Signalling Info” during one, never “Simulation Info” (the docs were corrected by #890). At run time the Node’s Name, Region, Connected tracks and Signalled fields are blank; an arc shows Length 2000.00 and Speed Limit 36.11; a signal in Paimpol shows Aspect Proceed and block length 250.00. Long values are cut (“Unavailable before R”, “Permissive signalling…”, “&#64;6-B0&#64;, &#64;7-B0&#64;,”); the tooltip text exists but was not displayed (#393). Stop cleared the ring but left the dock with old values; fixed after this snapshot by #890. manual run, 2026-10-17, Linux (D1): a 100-character station name leaves only the first fields visible in a height-limited dock. manual run, 2026-10-17, macOS (D2b): a connection shows “Preview: Connection connection.604 (not running)” before a run and “Connection Info” during one, with the two track ids and the X of both nodes. Train Info shows ID, Type, Length (m) and Number of wagons; the ID (1) is not the name the Follow list uses (IC_ASD_HVS_DEMO-1), and a long Type is cut with the full text in the tooltip (#393). The passenger inspector is an orange callout on the canvas (Pax ID, Status, Next train, Next destination; in replay also “Replay: journey details unavailable”), shown only when the run starts with passengers on, with <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code> or View &gt; Show Passengers (#782). No place with several signals was found, and no aspect changed while its dock was shown. The selection survives a zoom change and a layer change; switching the Trains layer off removes the ring and Follow says the layer is off; opening another case closes the dock</p></td>
+</tr>
+<tr class="row-even"><td><p>Log pane (Ctrl+Shift+L)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_consolestream</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Main window toolbar and window size on Windows</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>, macOS offscreen: a little below the toolbar’s own width the group separators keep their size, the extension button shows its arrow and expands the toolbar to a second row that holds Fit, and the restored window fits the screen (#883). Not run again on Windows or Linux since. manual run, 2026-10-17, Windows: the separators flip between lines and grey blocks with the window width, zoom buttons disappear below about 900 px, and the restored window (1044 by 788) is larger than a 1024 by 768 screen (changed after this snapshot by #883). manual run, 2026-10-17, Windows (WIN-C): the restored window is still larger than the 1024 by 768 screen (changed after this snapshot by #883). manual run, 2026-10-17, Linux (E3): the toolbar widened while the button read Resume (fixed after this snapshot by #892). manual run, 2026-10-17, Linux (C): at 1.5 times the text only one zoom icon stays visible, Zoom out and Fit are cut, and Fit stays available in the status bar (after this snapshot the extension button reaches them, #883). manual run, 2026-10-17, macOS (D2): the icons draw at both sizes, and the separator after Pause and Stop was not visible (changed after this snapshot by #883)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="editors">
+<h2>Editors<a class="headerlink" href="#editors" title="Link to this heading">¶</a></h2>
+<p>The editors are panels in <code class="docutils literal notranslate"><span class="pre">editors/</span></code>. They are docks under View or Editors.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Editor</p></th>
+<th class="head"><p>Verdict</p></th>
+<th class="head"><p>Evidence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Case Settings</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_casesettings</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>; manual run, 2026-10-17, macOS (rehearsal step 4): the horizon edit survives save and reopen. manual run, 2026-10-17, Linux (C): docked and floated, at 100 percent and at 1.5 times the text, nothing is cut. A description typed and the dock closed gave a changed title and Ctrl+Z restored it (“Undid Edit”). manual run, 2026-10-17, Windows (WIN-C): fits at 1024 by 768 docked and floated without scrolling. macOS (C): never captured alone; docked beside Infrastructure it is squeezed to about six rows</p></td>
+</tr>
+<tr class="row-odd"><td><p>Infrastructure (13 facets, route sections)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_topology</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_stations</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_signals</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_blocks</span></code>, <code class="docutils literal notranslate"><span class="pre">test_infrastructureguidance</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>. manual run, 2026-10-17, macOS (C), Linux (C) and Windows (WIN-C): all 13 facets work on Assignment, and a new case shows a guidance line in every facet (13 of 13 on Windows; 9 of 13 on macOS, where the Entity list kept resetting, and the other four on Linux). On Windows a new case stacks Case Settings and Infrastructure and the Add and Delete buttons are cut off until Case Settings is closed (#392). At 1.5 times the text Routes scrolls both ways and the route section buttons are below the fold (Linux, C). manual run, 2026-10-17, Linux (E5): on a Paimpol copy every facet’s Add made a row and every Delete asked to confirm. Deleting the referenced track B0 gave a box 417 by 15004 px; fixed after this snapshot by #895, which lists at most ten references. With the referenced station Gourland selected, Delete stayed grey; #895 made Delete follow the selection</p></td>
+</tr>
+<tr class="row-even"><td><p>Rolling stock units, traction rows, plot, source links</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_trainunit</span></code>, <code class="docutils literal notranslate"><span class="pre">test_trainunitsourcelinker</span></code>, <code class="docutils literal notranslate"><span class="pre">test_tractioncurve</span></code>; manual run, 2026-10-17, macOS (audit item 17): a linked parameter file and traction file show Up to date, Reloaded and Keep local. The spin boxes accept values up to the largest double (#885). manual run, 2026-10-17, Linux (C): a linked traction file and a parameter file show “Up to date”, then “Reloaded” after the file changed (Length 70 to 80); a local edit that conflicts opens “Linked source changed” with Reload and Keep local, Keep local gives “Kept local; Retry available” and Reload takes the file value. A deleted file reads “Rejected: The physical source could not be read; Retry available”; no state is called Missing, and after Keep local the label stays the same (no issue yet). A 12-digit value shows as 1.23457e+11, which relates to #885. The plot is titled “Input traction characteristic”. At the default dock width, at 1.5 times the text and in a 312 px dock on Windows (WIN-C) Unlink, Retry, Plot and Delete Traction Row are cut or need sideways scrolling (#392). macOS (C) saw only the unlinked state, because the file picker stopped the machine</p></td>
+</tr>
+<tr class="row-odd"><td><p>Compositions</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_composition</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>. manual run, 2026-10-17, macOS (C): the right-hand buttons are cut off at the default dock width and a new composition shows no empty text for the unit list; Linux (C) at 1.5 times the text shows “Move Down” cut with a horizontal scroll bar; Windows (WIN-C) in a 312 px dock clips “Add Composition” to “d Compositi”. The buttons and the empty text were fixed after this snapshot by #895</p></td>
+</tr>
+<tr class="row-even"><td><p>Services</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_service</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>; manual run, 2026-10-17, Windows: docked and floated. manual run, 2026-10-17, macOS (C): the tabs Service, Timetable and Run occurrences; the timetable columns Station, Stop platform, Minimum dwell (s), Planned arrival and Planned departure fit at the default dock width; Clock time switches the sentence to “Case base 07:00:00; clock times include explicit day offsets” but truncates the time columns (“07:24…”), fixed after this snapshot by #895; a new service shows “No stops. Use Add Stop.”; Run occurrences reads “Configured total: 24; Number of services in sim.: 22; Selected: 24; Selected in period: 22.”. In a 312 px dock on Windows (WIN-C) some headers are clipped (“Planned epartur”, “lanned arrival”); in a 480 px dock on Linux (C) “olatform” and “Planned arrival” are cut; #392</p></td>
+</tr>
+<tr class="row-odd"><td><p>Timetable stops and the stop dialog</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_timetablestops</span></code>, <code class="docutils literal notranslate"><span class="pre">test_stopinsertion</span></code>, <code class="docutils literal notranslate"><span class="pre">test_stopdwell</span></code>; manual run, 2026-10-17, macOS (audit item 18): Cancel changes nothing and adds no undo step; manual run, 2026-10-17, Windows: OK and Cancel work, but the invalid-platform notice does not block OK. manual run, 2026-10-17, Linux (E5): arrival 1823 changed to 1830 shows in the table and adds the warning scene.dwell.exceeds_window; “abc” and “-5” give “Planned arrival is invalid. Enter a non-negative elapsed value or HH:MM:SS[.fraction] with an explicit +Nd day prefix.” and the dialog stays open; Cancel after typing 9999 leaves 2350 and 2500; an added stop with blank times shows a dash in both columns. On ALL-STOPS Add Stop says “No reachable stop: No station visit is available between any of the current stops…”. manual run, 2026-10-17, Windows (WIN-C): the last field, Minimum dwell (s), is partly cut at the bottom of the dialog</p></td>
+</tr>
+<tr class="row-even"><td><p>Scenarios, Incidents and Entrance delays (three tabs)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_scenario</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_incident</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_entrancedelay</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>; scenario JSON import and export is in <code class="docutils literal notranslate"><span class="pre">test_editor_scenario</span></code>. manual run, 2026-10-17, macOS (C), Linux (E5) and Windows (WIN-C), with #878: a “Scenario: baseline (Baseline)” header above the tabs Scenario, Incidents and Entrance delays; empty texts “This scenario has no incidents. Use Add Incident.” and “This scenario has no entrance delays. Use Add.”; types signal_failure and train_breakdown; Linux (E5) set a breakdown (start 300, recovery end 900, speed cap 40 km/h), a signal failure on block 5-B0 and an entrance delay of 120 s, and Duplicate made baseline_copy. The Target list is a long popup of block ids. Runs with an incident are under the incident row above. Selecting a real target on macOS, and scenario JSON import and export by hand, were not done</p></td>
+</tr>
+<tr class="row-odd"><td><p>Passengers and Import…</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_passenger</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>. manual run, 2026-10-17, Linux (C) with Qt pickers: a blank origin cannot be loaded (“Invalid origin. Error count: 1.”) and shows as “Invalid: (empty)” in a new case; an unknown origin gives the error “Journey refers to unknown origin station”; a swapped leg gives a warning about the stop pattern together with two errors; a malformed DAS and route-choice pair gave an Import results table of eight rows (Rejected, Accepted, Unresolved). Linux (E5): an exact pair imported into Paimpol is Rejected for colliding IDs; into Paimpol without <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> it is Accepted with the warning that journeys have no legs. The Import results table sits far down a tall dock and its Detail column is cut, with about 3.5 rows visible (no issue yet). Legs tab with nothing selected: Add and the Occurrence box are enabled (no issue yet). Errors and warnings shared one red callout; fixed after this snapshot by #894. On Paimpol the warning “Journey has no route-choice legs” repeats hundreds of times and pushes the Journeys and Legs tabs out of sight (macOS C, Linux C; no issue yet)</p></td>
+</tr>
+<tr class="row-even"><td><p>Scene Validation and Loaded Data</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_validation</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>; manual run, 2026-10-17, macOS (rehearsal step 3) and manual run, 2026-10-16, Windows (step 3). The window runs the runnable validation, which also warns about final blocks longer than their track (13 in Copenhagen, 2 in Paimpol). Plain <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code> skips that check, so it reports 496 and 369 warnings where the window shows 509 and 371; <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span> <span class="pre">--runnable</span></code> matches the window, as <code class="docutils literal notranslate"><span class="pre">how-to.md</span></code> says. Without View &gt; Advanced / Developer details the status bar shows a count only when there are errors</p></td>
+</tr>
+<tr class="row-odd"><td><p>View &gt; Advanced / Developer details</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_dialog_presentation_contract</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_validation</span></code>; manual run, 2026-10-17, macOS (audit item 2): the status bar shows the warning count only with this on</p></td>
+</tr>
+<tr class="row-even"><td><p>Authoring a case from an empty one, large input</p></td>
+<td><p>tested</p></td>
+<td><p>manual run, 2026-10-17, Linux (E5): the minimal tutorial case was built from File &gt; New Case Study, validation was empty and Run was enabled, <code class="docutils literal notranslate"><span class="pre">TimetablePoints.txt</span></code> lists station_2 with arrival 242 and departure 243 as the guide says, it saved as a folder and as <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>, both reopened and ran, <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span> <span class="pre">--runnable</span></code> returned 0 and a headless run ended with “End of Simulation”. The Timetable view number was not read in the window. On Copenhagen the Infrastructure dock opened in about 3 s and the Arcs table (4444 rows) in about 1.4 s, but 30 wheel clicks needed 3 to 8 s to settle and showed mixed rows (row 1 showed a speed limit of 33.33 instead of 16.67 on screen); a saved copy was identical to the bundled case, so it was painting only. manual run, 2026-10-17, macOS (M6): on a virtual machine with native drawing the same table settled within 0.6 s of a scroll and showed the same rows in two captures, so the delay on Linux comes from software rendering without a GPU</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="results-and-exports">
+<h2>Results and exports<a class="headerlink" href="#results-and-exports" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Verdict</p></th>
+<th class="head"><p>Evidence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Run Results dock and table</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_runresults</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-17, macOS (audit item 21), manual run, 2026-10-16, Windows (step 6) and Rehearse Linux job step 6. manual run, 2026-10-17, Linux (D1): with Run Results, Loaded Data and Scene Validation docked the main window stayed 1280 by 779 and the result table sits below the replay row; “Open result view…” lists twelve entries (the audit expected ten), also at 1.5 times the text. After another case was opened the dock title and status message of the previous case stayed on screen once, perhaps a repaint effect of software rendering (no issue yet)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Speed / distance, Speed / time, Time / distance, Tractive effort / distance</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_diagramwindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_trajectory</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-16, Windows opened Speed vs Time; Rehearse Linux job step 7. manual run, 2026-10-17, Linux (E4): Speed / Distance on Paimpol, 6122 CSV rows, positions equal <code class="docutils literal notranslate"><span class="pre">TrainServicePathDiagram.txt</span></code> to within 0.0499 m and 0.0500 m (the file stores 0.05 m steps), the last positions match, and speeds derived from positions differ from <code class="docutils literal notranslate"><span class="pre">Speed[m/s]</span></code> by 0.10 m/s on average and 0.93 m/s at most; the top of 19.444 m/s is the 70 km/h of the axis. manual run, 2026-10-17, Linux (D1): the four views open with a context line; the sentence “Planned: dashed; actual: solid.” is absent on them, as they have no planned series</p></td>
+</tr>
+<tr class="row-even"><td><p>Timetable graph and Train paths</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_routediagramcoordinates</span></code>, <code class="docutils literal notranslate"><span class="pre">test_operationsbuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">test_route_diagram_smoke</span></code>. manual run, 2026-10-17, Linux (D1): both open with a context line, and the sentence about planned and actual is on the Timetable graph but not on Train paths. manual run, 2026-10-17, Linux (E4): the graph shows a simulated point at Guingamp for ALL-STOPS, so the audit’s claim of no simulated departure at origin stations was not reproduced. At 1.5 times the text the axis labels collapse to “…” (#889)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Timetable</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_timetabletablewindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-17, macOS (rehearsal step 7), manual run, 2026-10-16, Windows (step 7) and Rehearse Linux job step 7. manual run, 2026-10-17, Linux (E4): Paimpol has 13 rows; all 26 planned times equal <code class="docutils literal notranslate"><span class="pre">services.json</span></code> (base 07:10:40 plus 1823 s is 07:41:03), the simulated times equal <code class="docutils literal notranslate"><span class="pre">TimetablePoints.txt</span></code>, and every delay equals simulated minus planned</p></td>
+</tr>
+<tr class="row-even"><td><p>Delays</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_runresults</span></code>, <code class="docutils literal notranslate"><span class="pre">test_delayanalysis</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-16, Windows opened it; Rehearse Linux job step 7. manual run, 2026-10-17, Linux (E4): the Delays chart (arrival delay in minutes) plots the table values (+42 s as 0.70 min, -24 s as -0.40)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Delay analysis window, delay baseline and comparison</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_delayanalysis</span></code>, <code class="docutils literal notranslate"><span class="pre">test_delayanalysiswindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>. manual run, 2026-10-17, Linux (E4): Summary for Paimpol shows 13 calls, 11 available, 6 early and 5 late, sum +42 s, mean +3.82 s, which agrees with <code class="docutils literal notranslate"><span class="pre">Stats_Stations.txt</span></code> and the exported <code class="docutils literal notranslate"><span class="pre">delay_summary.csv</span></code>; the signed delay (Gourland -21 s) differs from the early-set-to-0 value in the file, as the guide says. An entrance delay of 120 s at Guingamp in a duplicated scenario moved the final arrival at Paimpol from 4866 to 4911 (+45 s) and the Guingamp departure by +120 s, with the other service at 0; so the delay acts on the simulation. manual run, 2026-10-17, Linux (D1) and (E3): the Against baseline tab on Assignment, see the incident row above</p></td>
+</tr>
+<tr class="row-even"><td><p>Blocking time and scope dialog</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_blockingtimediagram</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-16, Windows opened it; Rehearse Linux job step 7. manual run, 2026-10-17, Linux (E4): the scope dialog offers route, first and last block and start and end after the case base; the default window covers 07:10:40 to 09:40:40 and notes 3 unmapped endpoints or events; the exported <code class="docutils literal notranslate"><span class="pre">blocking.csv</span></code> (6354 rows) matches <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> for the first two blocks (1549 to 1780 s for block <code class="docutils literal notranslate"><span class="pre">&#64;0-B3&#64;</span></code>). A scope that starts at 8000 s gave “No complete envelope could be projected in this scope.”; the time axis still began at 07:10:40, fixed after this snapshot by #891. manual run, 2026-10-17, Linux (D1): a 300-character route id is elided in the middle in the scope list</p></td>
+</tr>
+<tr class="row-odd"><td><p>Capacity and Capacity by area</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_capacityanalysis</span></code>, <code class="docutils literal notranslate"><span class="pre">test_areacapacity</span></code>, <code class="docutils literal notranslate"><span class="pre">test_areacapacitywindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>. manual run, 2026-10-17, Linux (E4): on Amsterdam_Hilversum_Student, DEMO-1 and DEMO-2 on route32 gave “cycle 131.5 s, 3.7% of period; not network capacity”; 131.5 / 3600 is 3.65%, and the CSV has a scheduled headway of 1800, a minimum of 131.5 and a buffer of 1668.5. Only the arithmetic was checked; the capacity rule itself needs the owner’s source. On Paimpol the services use different routes and OK gave “Select at least two ordered occurrences with a common entry block.” With exactly two trains OK was refused until the second was chosen as the cycle-closing occurrence; fixed after this snapshot by #891. manual run, 2026-10-17, Linux (D1): on Assignment “cycle 397.5 s, 11.0% of period”; a scene without signalling areas gives an information box, and Netherlands does have an area</p></td>
+</tr>
+<tr class="row-even"><td><p>Export CSV and Export PNG, from the dock and every window</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_csvwriter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_csv_export_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_diagramwindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_timetabletablewindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>; manual run, 2026-10-17, macOS (rehearsal step 8), manual run, 2026-10-16, Windows (step 8) and Rehearse Linux job step 8. manual run, 2026-10-17, Linux (E4): CSV and PNG from the dock and from ten windows, each with a <code class="docutils literal notranslate"><span class="pre">.provenance.json</span></code> (case, scenario, selected occurrences, timestep, seed, pax mode); <code class="docutils literal notranslate"><span class="pre">run_summary.csv</span></code> agrees with the dock. Not exported: Train paths, Capacity by area, the compressed blocking diagram. The table picture showed only the visible columns with the scroll bar; fixed after this snapshot by #891. manual run, 2026-10-17, Windows (WIN-E): the CSV holds seconds from the case base. No session opened an export in a spreadsheet, because the machines have none</p></td>
+</tr>
+<tr class="row-odd"><td><p>Provenance file next to every export</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_csv_export_smoke</span></code>; seen next to the exports in the macOS, Windows and Linux rehearsals</p></td>
+</tr>
+<tr class="row-even"><td><p>Names of the result views</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code>: the Diagrams menu and the Run Results menu list the same names, apart from the ellipsis of an entry that asks for input</p></td>
+</tr>
+<tr class="row-odd"><td><p>Result window presentation (heading, context, size limits)</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_diagramwindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_timetabletablewindow</span></code>, <code class="docutils literal notranslate"><span class="pre">test_delayanalysiswindow</span></code>. manual run, 2026-10-17, Linux (D1): each view has a context line and, except the Timetable, a help sentence; with a 300-character route id the chooser elides the id, the context line wraps over two lines, the tooltip is one line wider than the screen and the blocking-time axis title is cut with “…” (#889); <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> in ids and station names show as typed; two runs open at once keep their own context line; Enter selects a train, Escape closes the window, Ctrl+wheel and drag zoom and Reset zoom work. manual run, 2026-10-17, Windows (WIN-C): the Blocking-time scope and Capacity analysis dialogs with 300-character ids are about 920 px wide and fit, but the mouse wheel over a combo changes its value (no issue yet)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="command-line-tools-and-cases">
+<h2>Command line, tools and cases<a class="headerlink" href="#command-line-tools-and-cases" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Verdict</p></th>
+<th class="head"><p>Evidence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-n</span></code>, <code class="docutils literal notranslate"><span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">-g</span></code>, <code class="docutils literal notranslate"><span class="pre">--scene</span></code>, <code class="docutils literal notranslate"><span class="pre">--seed</span></code>, a file name</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_headless_scene_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_simulation_determinism</span></code>, <code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scene_version_run_*</span></code>; manual run, 2026-10-17, Linux (E3): Copenhagen with <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">3</span> <span class="pre">-g</span> <span class="pre">0</span> <span class="pre">-h</span> <span class="pre">300</span> <span class="pre">-TSM</span> <span class="pre">0</span> <span class="pre">-RC</span> <span class="pre">0</span></code> and seed 12345 twice gave identical output apart from <code class="docutils literal notranslate"><span class="pre">Computing_Times.txt</span></code>, and seed 54321 also (no passengers); Paimpol <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">2</span></code> with the same seed gave identical <code class="docutils literal notranslate"><span class="pre">PassengerStatus.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">JourneyDelays.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">TimetablePoints.txt</span></code>, and with seed 54321 the first two differ</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-b</span></code> and <code class="docutils literal notranslate"><span class="pre">-c</span></code></p></td>
+<td><p>untested</p></td>
+<td><p>No test or run sets them (covered after this snapshot by <code class="docutils literal notranslate"><span class="pre">test_simulation_determinism</span></code>: Paimpol with <code class="docutils literal notranslate"><span class="pre">-b</span> <span class="pre">30</span></code> and with <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">10</span></code> each give a <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> that differs from the default run)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code> in the window</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--live</span></code>, <code class="docutils literal notranslate"><span class="pre">--live-every</span></code>, <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code></p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_liveframe</span></code>, <code class="docutils literal notranslate"><span class="pre">test_livecommand</span></code>, <code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code>, <code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code>, <code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code> (macOS only)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-TSM</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span> <span class="pre">1</span></code></p></td>
+<td><p>partial</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_external_sharing_no_listener</span></code>, <code class="docutils literal notranslate"><span class="pre">test_route_choice_missing_data</span></code>, <code class="docutils literal notranslate"><span class="pre">test_rttp</span></code>. Tested only without a listener; deprecated</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--interactive</span></code></p></td>
+<td><p>untested</p></td>
+<td><p>No test or run uses the questions (covered after this snapshot by <code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code>, macOS and Linux; the <code class="docutils literal notranslate"><span class="pre">-pax</span></code> question is not tested)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--help</span></code></p></td>
+<td><p>placeholder</p></td>
+<td><p>The option does not exist. An unknown option is ignored and the window starts (#783, fixed after this snapshot)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> import, pack, unpack, export, validate</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_scene_tool_diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">test_sceneimporter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_sceneexporter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scenebundle</span></code>; Release run 39019990227, <code class="docutils literal notranslate"><span class="pre">roundtrip_smoke.py</span></code> and <code class="docutils literal notranslate"><span class="pre">bundle_smoke.py</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Six committed cases</p></td>
+<td><p>tested</p></td>
+<td><p>Release run 39019990227 (<code class="docutils literal notranslate"><span class="pre">headless_smoke.py</span></code>); manual run, 2026-10-17, macOS (audit item 2): all six open with 0 errors; manual run, 2026-10-16, Windows (row R6) opened the Assignment case; manual run, 2026-10-17, Windows (WIN-E): all six open as folders and as bundles with 0 errors and these warnings: Amsterdam_Hilversum_Student 26, Assignment 0, Copenhagen 509, Milano_Brescia 11, Netherlands 56, Paimpol 371. Every case has one network-wide signalling area at level 0 and no signals</p></td>
+</tr>
+<tr class="row-odd"><td><p>Playback profiler and start-up timing</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_playbackprofiler</span></code>, <code class="docutils literal notranslate"><span class="pre">test_playback_profile</span></code> (developer tools)</p></td>
+</tr>
+<tr class="row-even"><td><p>Developer setup on Linux</p></td>
+<td><p>tested</p></td>
+<td><p>manual run, 2026-10-17, Linux (developer setup): install, configure, build and the headless run work. Of 307 tests one failed, <code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code>, in a container whose first process does not reap children; #875 changed the test to count a zombie as exited</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="packages-installation-and-updates">
+<h2>Packages, installation and updates<a class="headerlink" href="#packages-installation-and-updates" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Verdict</p></th>
+<th class="head"><p>Evidence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>macOS disk image: layout, contents, libraries</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_make_dmg</span></code>; manual run, 2026-10-17, macOS (rehearsal): the window shows the app and the Applications link; the app uses only bundled libraries; manual run, 2026-10-17, macOS (D2): no <code class="docutils literal notranslate"><span class="pre">/opt/homebrew</span></code> or <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code> path in the libraries, install ids or RPATHs of 39 Mach-O files of an app copy taken from the guest (#842)</p></td>
+</tr>
+<tr class="row-odd"><td><p>macOS first start of an ad hoc signed build</p></td>
+<td><p>partial</p></td>
+<td><p>manual run, 2026-10-17, macOS (rehearsal row M4): “Not Opened”, then Open Anyway in Privacy &amp; Security, then a request for an administrator password. The step after the password was not done. A Developer ID build was not rehearsed (the candidate was ad hoc signed)</p></td>
+</tr>
+<tr class="row-even"><td><p>macOS update to a newer release</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_updatepreparation</span></code>, <code class="docutils literal notranslate"><span class="pre">test_selfupdater</span></code>; manual run, 2026-10-17, macOS (rehearsal row R9): the second attempt updated to 1.0.2 and kept <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app.egtrain-old</span></code>; the first attempt hit a download timeout</p></td>
+</tr>
+<tr class="row-odd"><td><p>Windows installer: install, upgrade, uninstall</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_installer_script</span></code>; manual run, 2026-10-16, Windows (rows W2, W3, W4) and 2026-10-17 (row W5): per-user install, licence page, optional desktop shortcut, an older Setup replaced in place, clean uninstall that keeps the user’s files. manual run, 2026-10-17, Windows (WIN-C): the per-user install through the GUI and the uninstall (“Are you sure you want to completely remove EGTRAIN and all of its components?”, default No). SmartScreen shows “Unknown publisher” because the candidate runs skipped the signing jobs</p></td>
+</tr>
+<tr class="row-even"><td><p>Windows portable archive</p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_package_start_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_pe_imports</span></code>; manual run, 2026-10-16, Windows (row W6): extracted, started with no warning, steps 1 to 9 pass</p></td>
+</tr>
+<tr class="row-odd"><td><p>Windows update from the portable copy</p></td>
+<td><p>partial</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_selfupdater</span></code>, <code class="docutils literal notranslate"><span class="pre">test_updatestaging</span></code>, <code class="docutils literal notranslate"><span class="pre">test_updatehelper</span></code>, <code class="docutils literal notranslate"><span class="pre">test_updaterecord</span></code>; manual run, 2026-10-17, Windows (row R9): on the virtual machine the update did not install in three tries, and the user is now told that it was not applied or was rolled back. The cause is not confirmed (a start of the staged program failed with “Insufficient system resources”). #886 changed the time limit and the cleanup after the session; it was not rechecked. It was not rechecked for this page.</p></td>
+</tr>
+<tr class="row-even"><td><p>Windows update of an installed copy</p></td>
+<td><p>partial</p></td>
+<td><p>The dialog says “No automatic update package is available for this platform” and offers the release page (#405)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Windows double-click on <code class="docutils literal notranslate"><span class="pre">.egscene</span></code></p></td>
+<td><p>tested</p></td>
+<td><p>manual run, 2026-10-16, Windows (row W7): opens in the running window; the association goes away on uninstall. Registration in the other packages is #416</p></td>
+</tr>
+<tr class="row-even"><td><p>macOS double-click on <code class="docutils literal notranslate"><span class="pre">.egscene</span></code></p></td>
+<td><p>tested</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code>; manual run, 2026-10-17, macOS (rehearsal rows M1, M2)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Linux AppImage start, open, run, export, save</p></td>
+<td><p>partial</p></td>
+<td><p>Rehearse Linux job steps 1 to 9 under a virtual display. Manual runs on a Linux desktop container (Ubuntu 24.04, Xvfb) used a build from source, not the AppImage. Update on Linux: untested</p></td>
+</tr>
+<tr class="row-even"><td><p>Licence and third-party notices in packages</p></td>
+<td><p>partial</p></td>
+<td><p>The Windows installer and portable archive carry <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>; the notices are missing everywhere (#784)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Assignment case with source-backed infrastructure and rolling stock</p></td>
+<td><p>placeholder</p></td>
+<td><p>The committed case is synthetic. The source data are not in the repository (#181, #182, #228)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="limitations-and-deferred">
+<h2>Limitations and deferred<a class="headerlink" href="#limitations-and-deferred" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The Windows evidence comes from an Arm64 virtual machine that emulates x64. The update to version 1.0.2 failed there on the candidates of this page; a later candidate installed it (see <a class="reference internal" href="#checks-after-this-snapshot">Checks after this snapshot</a>). Timings and drawing speed on that machine do not stand for a physical PC.</p></li>
+<li><p>The Linux evidence for the packaged application is the automated rehearsal under a virtual display and a start of the AppImage by hand in a container (see <a class="reference internal" href="#checks-after-this-snapshot">Checks after this snapshot</a>); the manual Linux runs of the editors and results used a build from source in a container. Nobody has used the AppImage on a Linux desktop with a graphics card.</p></li>
+<li><p>No scene has signals. Every committed case has one network-wide signalling area at level 0, so signal-based separation is not exercised by any of them.</p></li>
+<li><p>A case saved by this version cannot be upgraded from an older schema, because there is no older schema. The upgrade flow is code that the shipped application cannot reach.</p></li>
+<li><p>The replay keeps every frame of a run (#460). The scrolling of the canvas, the trackpad and the wheel cannot be proved from tool output, also not on a physical Mac, where the test tool reaches only the accessible controls and the canvas has none; a person has to check them. <code class="docutils literal notranslate"><span class="pre">test_networkview</span></code> and the visual polish smoke cover them in code.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code> are deprecated and have no supported consumer. The live stream replaces them.</p></li>
+<li><p>The macOS and Windows packages of the release candidates were not signed in the runs that were rehearsed. A signed and notarized build has not been rehearsed (#402 and #404 are closed; the rehearsals used runs that skip signing).</p></li>
+<li><p>Applying a downloaded update on a Windows installed copy is not supported; the release page is the way (#405).</p></li>
+<li><p>The source-backed Assignment case is deferred until the OpenTrack data are available (#181, #182, #228).</p></li>
+<li><p>Undo and recovery have limits: the application keeps the newest 20 recovery copies and warns about a copy whose original changed, is newer or is missing (see <a class="reference internal" href="#checks-after-this-snapshot">Checks after this snapshot</a>).</p></li>
+</ul>
+</section>
+<section id="checks-after-this-snapshot">
+<h2>Checks after this snapshot<a class="headerlink" href="#checks-after-this-snapshot" title="Link to this heading">¶</a></h2>
+<p>These checks ran later on 2026-10-17, on newer builds of <code class="docutils literal notranslate"><span class="pre">main</span></code> and on release candidate run 39049264770 (<code class="docutils literal notranslate"><span class="pre">2c8f41c9</span></code>), which passed every job of the Release workflow.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Check</p></th>
+<th class="head"><p>Machine</p></th>
+<th class="head"><p>Result</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Row R9, the in-app update of the portable copy to 1.0.2</p></td>
+<td><p>Windows virtual machine, candidate 39049264770</p></td>
+<td><p>Installed 1.0.2 at the first attempt and kept the backup <code class="docutils literal notranslate"><span class="pre">EGTRAIN.egtrain-old</span></code>. A hidden staging folder with only the update helper stayed, because 1.0.2 predates the cleanup that removes it.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Row M6, folder access questions at the first File &gt; Open Case Study</p></td>
+<td><p>A fresh macOS virtual machine, candidate 39032467694</p></td>
+<td><p>No question with the app in Applications. A copy inside the home folder asks for Desktop, Documents and Downloads at once, because the column view of the file dialog lists the home folder; the getting-started guide says so.</p></td>
+</tr>
+<tr class="row-even"><td><p>A live run of Netherlands</p></td>
+<td><p>A physical Mac with 16 GB</p></td>
+<td><p>At the default speed the run ends within about a second and the window answers throughout; at the slowest speed the window answered every check within half a second. The hang of more than ten minutes on the 4 GB virtual machine is a limit of that machine.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The Copenhagen Infrastructure table</p></td>
+<td><p>A macOS virtual machine</p></td>
+<td><p>Settled within 0.6 s of a scroll with the same rows in two captures; the slow painting seen on Linux comes from software rendering.</p></td>
+</tr>
+<tr class="row-even"><td><p>The AppImage of the candidate</p></td>
+<td><p>An x86_64 Ubuntu 24.04 container</p></td>
+<td><p>Headless runs of Paimpol and Copenhagen ended normally, and a window start under a virtual display ran 20 s without errors. A minimal system needed <code class="docutils literal notranslate"><span class="pre">libgl1</span></code>, <code class="docutils literal notranslate"><span class="pre">libharfbuzz0b</span></code> and <code class="docutils literal notranslate"><span class="pre">libfontconfig1</span></code>; the README now says so.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The developer setup on Linux</p></td>
+<td><p>A fresh Ubuntu 24.04 container</p></td>
+<td><p>The steps of the developer guide ran as written and all 314 tests passed, <code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code> included.</p></td>
+</tr>
+<tr class="row-even"><td><p>The editors at 1280 by 800 and 1920 by 1080</p></td>
+<td><p>Linux desktop container</p></td>
+<td><p>The fixes of #902 and #904 seen working; the remaining sizing faults were fixed in #913.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The guides and tutorials followed in the application</p></td>
+<td><p>Linux desktop container, macOS virtual machines</p></td>
+<td><p>Every step was followed; the differences found were corrected in #900, and the guides got screenshots in #908.</p></td>
+</tr>
+<tr class="row-even"><td><p>Recovery limits</p></td>
+<td><p>Linux desktop container</p></td>
+<td><p>With 22 recovery copies the prompt listed the newest 20 and said that an older copy was removed. A copy whose original changed, is newer or is missing shows that note, and Recover opens it as an unsaved case; saving over the original asks first.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The remaining how-to recipes</p></td>
+<td><p>Linux desktop container</p></td>
+<td><p>Rolling stock, the baseline buttons and their reasons, Capacity and Blocking time, opening another case during a run (Stopping simulation…) and Save Scene As Folder into a non-empty folder behave as the guide says; during a run the Incidents editor is disabled too, which the guides now say.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="gaps">
+<h2>Gaps<a class="headerlink" href="#gaps" title="Link to this heading">¶</a></h2>
+<p>Each gap links one issue. Issues that were closed later the same day are marked as closed.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Issue</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Start Time in the Simulation menu does not change the run</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/781">#781</a> (closed on 2026-10-19)</p></td>
+</tr>
+<tr class="row-odd"><td><p>The Passengers layer does nothing without <code class="docutils literal notranslate"><span class="pre">-pax</span> <span class="pre">1</span></code></p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/782">#782</a> (fixed after this snapshot)</p></td>
+</tr>
+<tr class="row-even"><td><p>No <code class="docutils literal notranslate"><span class="pre">--help</span></code>; unknown options are ignored</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/783">#783</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Packages carry no licence text or third-party notices</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/784">#784</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Unused golden-master scripts</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/785">#785</a> (closed on 2026-10-19)</p></td>
+</tr>
+<tr class="row-odd"><td><p>The remaining smokes and the documentation check do not run on pull requests</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/786">#786</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Toolbar separators and window size on Windows, and toolbar commands cut at 1.5 times the text</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/883">#883</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Trains are hard to see at the full view</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/822">#822</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Timetable graph axis labels collapse at 1.5 times the font, and long identifiers in tooltips</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/889">#889</a> (closed on 2026-10-17)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Legacy import loses the layout</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/884">#884</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Rolling stock spin boxes accept any value up to the largest double</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/885">#885</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>The Open a Case window has no Cancel button and does not match the dialog style</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/391">#391</a> (closed on 2026-10-17)</p></td>
+</tr>
+<tr class="row-even"><td><p>Dialog presentation across the application</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/389">#389</a> (closed on 2026-10-17)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Editor sizing, dense layouts and empty states</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/392">#392</a> (closed on 2026-10-17)</p></td>
+</tr>
+<tr class="row-even"><td><p>Result windows and inspectors do not match the desktop UI</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/393">#393</a> (closed on 2026-10-17)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Self-update for installed and portable copies, and its failure on Windows</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/405">#405</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Windows installer and portable archive as release assets; macOS disk image</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/401">#401</a>, <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/403">#403</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>File associations as an install step</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/416">#416</a> (closed on 2026-10-17)</p></td>
+</tr>
+<tr class="row-even"><td><p>Unused Qt modules in packages</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/488">#488</a> (closed on 2026-10-17)</p></td>
+</tr>
+<tr class="row-odd"><td><p>The release rehearsal on Windows and Linux is not complete</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/74">#74</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Source-backed assignment infrastructure and rolling stock</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/181">#181</a>, <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/182">#182</a>, <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/228">#228</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Guides and onboarding</p></td>
+<td><p><a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/issues/408">#408</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="gaps-without-an-issue-yet">
+<h3>Gaps without an issue yet<a class="headerlink" href="#gaps-without-an-issue-yet" title="Link to this heading">¶</a></h3>
+<p>None. Every gap that the sessions found has an issue in the table above or a fix in the table below.</p>
+</section>
+<section id="observations-not-filed">
+<h3>Observations not filed<a class="headerlink" href="#observations-not-filed" title="Link to this heading">¶</a></h3>
+<p>These were seen in the sessions and are not faults, or are too small for an issue on their own:</p>
+<ul class="simple">
+<li><p>Passenger icons are about 6 pixels high even when zoomed in, and the platform bar label “Pax on platform: N” counts passengers rather than naming the platform.</p></li>
+<li><p>The Connection form shows only the X positions of its two nodes.</p></li>
+<li><p>With route ids of 300 characters the Blocking-time scope and Capacity options dialogs widen to 90 percent of a 1920 pixel screen; their fields hold the ids.</p></li>
+<li><p>Cancelling the question about a newer or older scene that <code class="docutils literal notranslate"><span class="pre">--scene</span></code> named ends the program with exit code 1, as the command-line guide says for a scene that does not load; a file opened by name instead falls back to the default case.</p></li>
+<li><p>The Open a Case window closes after a file dialog opened from it is cancelled; the open case and its unsaved edits are kept.</p></li>
+<li><p>Two rows of the passenger import results can have the same detail text; the Source and Row columns tell them apart.</p></li>
+<li><p>Redo after an Undo did not bring back a typed recovery end of an incident in one session.</p></li>
+</ul>
+</section>
+<section id="fixed-after-the-sessions-that-found-them">
+<h3>Fixed after the sessions that found them<a class="headerlink" href="#fixed-after-the-sessions-that-found-them" title="Link to this heading">¶</a></h3>
+<p>The first three rows were found on release candidates older than <code class="docutils literal notranslate"><span class="pre">c59b0314</span></code> and were merged into <code class="docutils literal notranslate"><span class="pre">main</span></code> before it. The Windows (WIN-C) and macOS (D2) rechecks on later builds confirm the first two. The other rows were merged after <code class="docutils literal notranslate"><span class="pre">c59b0314</span></code>; they were not rechecked by hand.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Gap</p></th>
+<th class="head"><p>Fix</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Default buttons are clipped on Windows (Open, Save, No, Check for Updates…, Check Automatically, Open Release Page); the Run details area and the stop dialog hide their last field</p></td>
+<td><p>Buttons: #874, not clipped in WIN-C and D2. The two hidden fields were not reported again as fixed; the stop dialog still cuts Minimum dwell (s) in WIN-C.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Release notes in the update dialog lose their list</p></td>
+<td><p>#873, a paragraph and a two-item list in D2 and WIN-C.</p></td>
+</tr>
+<tr class="row-even"><td><p>A failed Windows update leaves a large staging folder next to the portable copy (WIN-C)</p></td>
+<td><p>#886, already in this snapshot, clears the staging folder of a failed update on the next try; not rechecked on Windows for this page</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code> fails in a Docker container with no init process</p></td>
+<td><p>#875, the test counts a zombie as exited. Not rerun in a container.</p></td>
+</tr>
+<tr class="row-even"><td><p>The update prompt on macOS makes Stop Checking the Enter default</p></td>
+<td><p>#890</p></td>
+</tr>
+<tr class="row-odd"><td><p>Stop leaves the inspector dock open with old values</p></td>
+<td><p>#890</p></td>
+</tr>
+<tr class="row-even"><td><p>Enter in the About window does not close it</p></td>
+<td><p>#891</p></td>
+</tr>
+<tr class="row-odd"><td><p>The Run Results table picture shows only the visible columns</p></td>
+<td><p>#891</p></td>
+</tr>
+<tr class="row-even"><td><p>The blocking-time axis ignores the start of the scope; two checked occurrences are refused as capacity input</p></td>
+<td><p>#891</p></td>
+</tr>
+<tr class="row-odd"><td><p>The toolbar grows and clips Zoom out while paused; Run Results counts differ from the run dialog without explanation</p></td>
+<td><p>#892</p></td>
+</tr>
+<tr class="row-even"><td><p>Errors and warnings share one red callout in the Passengers editor; the autosave message shows an internal code</p></td>
+<td><p>#894</p></td>
+</tr>
+<tr class="row-odd"><td><p>Clock times are cut in the Timetable tab; Compositions buttons are cut and an empty composition has no text; the referenced-delete box is taller than the screen</p></td>
+<td><p>#895</p></td>
+</tr>
+<tr class="row-even"><td><p>The Unsaved Scene prompt opens behind Explorer after a drop on Windows (WIN-E)</p></td>
+<td><p>#896 raises and activates the window before the prompt</p></td>
+</tr>
+<tr class="row-odd"><td><p>The mouse wheel changes a combo box in the Capacity analysis dialog (WIN-C)</p></td>
+<td><p>#893: dialog fields change with the wheel only when they have focus</p></td>
+</tr>
+<tr class="row-even"><td><p>The Editors menu shows “Rolling stock units” checked at start-up (Linux C)</p></td>
+<td><p>#897: the check marks follow the docks from the start</p></td>
+</tr>
+<tr class="row-odd"><td><p>A deleted linked source has no Missing state (Linux C)</p></td>
+<td><p>#902: a Missing state with the path and Retry</p></td>
+</tr>
+<tr class="row-even"><td><p>The Passengers editor shows scene-wide lines and a truncated import results table (macOS C, Linux C and E5)</p></td>
+<td><p>#902: only the messages of the selected passenger, capped; import rows told apart with full text in tooltips</p></td>
+</tr>
+<tr class="row-odd"><td><p>The Legs tab allows Add and Occurrence with nothing selected (Linux C)</p></td>
+<td><p>Add needs a selected journey and Occurrence follows the leg fields; #902 added a test for it</p></td>
+</tr>
+<tr class="row-even"><td><p>Disabled menu entries, such as an unavailable case in Recent Scenes, look like live ones (WIN-E, Linux F1)</p></td>
+<td><p>#903: disabled menu entries are grey</p></td>
+</tr>
+<tr class="row-odd"><td><p>The Run simulation default button looks different from other default buttons on Windows (WIN-C)</p></td>
+<td><p>#893 styles the footer buttons again after a dialog is built; not rechecked on Windows for this page</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../telemetry/README.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Usage and diagnostics wire contract (version 1)</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="assignment-workflow.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">TU Delft assignment workflow in EGTRAIN</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Feature status 2026-10-17</a><ul>
+<li><a class="reference internal" href="#snapshot">Snapshot</a><ul>
+<li><a class="reference internal" href="#how-to-read-the-tables">How to read the tables</a></li>
+<li><a class="reference internal" href="#manual-sessions">Manual sessions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#menus-and-scene-lifecycle">Menus and scene lifecycle</a></li>
+<li><a class="reference internal" href="#simulation-playback-and-canvas">Simulation, playback and canvas</a></li>
+<li><a class="reference internal" href="#editors">Editors</a></li>
+<li><a class="reference internal" href="#results-and-exports">Results and exports</a></li>
+<li><a class="reference internal" href="#command-line-tools-and-cases">Command line, tools and cases</a></li>
+<li><a class="reference internal" href="#packages-installation-and-updates">Packages, installation and updates</a></li>
+<li><a class="reference internal" href="#limitations-and-deferred">Limitations and deferred</a></li>
+<li><a class="reference internal" href="#checks-after-this-snapshot">Checks after this snapshot</a></li>
+<li><a class="reference internal" href="#gaps">Gaps</a><ul>
+<li><a class="reference internal" href="#gaps-without-an-issue-yet">Gaps without an issue yet</a></li>
+<li><a class="reference internal" href="#observations-not-filed">Observations not filed</a></li>
+<li><a class="reference internal" href="#fixed-after-the-sessions-that-found-them">Fixed after the sessions that found them</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

@@ -1,0 +1,9 @@
+<map id="passengersWaitingAtPlatform" name="passengersWaitingAtPlatform">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,220,55"/>
+<area shape="rect" id="Node000002" href="$_simulation_8cpp.html#a15561587cf3c4f3cdfc40c7a48b32d47" title=" " alt="" coords="268,29,483,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,39,254,39,254,45,220,45"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="333,31,324,21,329,11,346,5,375,3,413,7,423,12,427,18,422,20,419,16,411,12,375,8,347,10,332,15,329,20,337,27"/>
+<area shape="rect" id="Node000003" href="$_infrastructure_8cpp.html#a27a9014643a094735169e467c3ccd9fc" title=" " alt="" coords="531,29,749,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="483,39,517,39,517,45,483,45"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="597,31,588,21,593,11,611,5,640,3,678,7,688,12,692,18,687,20,685,16,676,12,640,8,612,10,596,15,593,20,601,27"/>
+</map>

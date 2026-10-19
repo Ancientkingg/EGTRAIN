@@ -1,0 +1,10 @@
+<map id="loadTrackPreview" name="loadTrackPreview">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,141,55"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="38,31,30,21,34,11,49,5,73,3,103,6,115,15,112,20,101,11,73,8,50,10,38,15,36,20,42,28"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="189,29,392,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,39,175,39,175,45,141,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="255,31,248,21,252,11,266,5,291,3,321,6,333,15,329,20,319,11,291,8,268,10,255,15,253,20,259,28"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="440,29,664,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="392,39,426,39,426,45,392,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="510,31,501,21,505,11,523,5,552,3,589,7,600,12,603,18,599,20,596,16,588,12,552,8,524,10,509,15,506,20,514,27"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="SceneSession::drop" name="SceneSession::drop">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,153,62"/>
+<area shape="rect" id="Node000002" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="201,29,404,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,47,187,47,187,52,154,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="261,30,259,20,265,10,280,5,303,3,329,6,343,13,340,18,327,11,303,8,281,10,269,15,264,21,266,28"/>
+</map>

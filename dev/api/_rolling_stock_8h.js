@@ -1,0 +1,25 @@
+var _rolling_stock_8h =
+[
+    [ "BlockingTimes", "class_blocking_times.html", "class_blocking_times" ],
+    [ "BlockingTimeList", "class_blocking_time_list.html", "class_blocking_time_list" ],
+    [ "Train", "class_train.html", "class_train" ],
+    [ "Train::BrakingArcCursor", "struct_train_1_1_braking_arc_cursor.html", "struct_train_1_1_braking_arc_cursor" ],
+    [ "Regional", "class_regional.html", "class_regional" ],
+    [ "buildOperationsFromScene", "_rolling_stock_8h.html#aecaefd86ea2ed1c4c1fd7f0e0777dfbf", null ],
+    [ "ComputeBlockingTimesInMixedSignallingForAllTrains", "_rolling_stock_8h.html#ad9c39d7c6f43673001b963dd20746e1d", null ],
+    [ "isPastStopHoldback", "_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470", null ],
+    [ "isShortOfBrakingPoint", "_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1", null ],
+    [ "Occupy_Block_Sections_Of_Route", "_rolling_stock_8h.html#a4b973a830e5e044443d37d4e5b727d47", null ],
+    [ "passengerOccupancyRatio", "_rolling_stock_8h.html#a4321f0d14635cb369fa4b53e960a81bd", null ],
+    [ "prepareNativeOperationsState", "_rolling_stock_8h.html#ace6c56d9374dcbbf72c1b3ff79719a17", null ],
+    [ "PrintTimetablePoints", "_rolling_stock_8h.html#a6b74d3558b9288fab745e0cf74f84d42", null ],
+    [ "PrintTrainBlockingTimes", "_rolling_stock_8h.html#ae90a5fc832fc3e392c9170627eb84c36", null ],
+    [ "protectStationAreas", "_rolling_stock_8h.html#a623d4a090f128a2181adcae4698fc80b", null ],
+    [ "ReportAllTrainPositionsToRBC", "_rolling_stock_8h.html#ad48e1118a615ff310e32fea0135151a4", null ],
+    [ "resetNativeOperationsState", "_rolling_stock_8h.html#aea9297830b5672f714105f48b351dd48", null ],
+    [ "trainPassengerCapacity", "_rolling_stock_8h.html#afad804c52cb5f74014fcc0162b015f89", null ],
+    [ "initial_variables", "_rolling_stock_8h.html#a0cb1070595eb7517fc0ce8c19e4f6159", null ],
+    [ "kStopHoldbackM", "_rolling_stock_8h.html#a7127463c50ed7ba35fa1b3255f59a98e", null ],
+    [ "kStopHoldbackToleranceM", "_rolling_stock_8h.html#a9f86635ac87cf8141e7bf654ed066448", null ],
+    [ "Max_N_Reg", "_rolling_stock_8h.html#aa7521653f8bbc95f20a5edb74a0de58f", null ]
+];

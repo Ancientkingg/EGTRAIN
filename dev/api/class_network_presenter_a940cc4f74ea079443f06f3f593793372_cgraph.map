@@ -1,0 +1,18 @@
+<map id="NetworkPresenter::paintStationOverlay" name="NetworkPresenter::paintStationOverlay">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,65,232,105"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" title=" " alt="" coords="513,5,663,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,63,280,51,394,37,500,28,500,33,395,42,280,56,212,68"/>
+<area shape="rect" id="Node000003" href="$class_station_mark_item.html#a3325809cbc714dab4aa4ae00f098389f" title=" " alt="" coords="280,65,465,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,83,266,83,266,88,232,88"/>
+<area shape="rect" id="Node000004" href="$class_station_overlay_item.html#a3fc77e5aa0720ff49d0ea9cb1928379e" title=" " alt="" coords="294,131,451,171"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,103,282,125,280,130,196,108"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="441,128,464,115,479,101,487,86,496,71,512,55,519,50,522,54,515,59,500,74,492,89,483,104,467,119,443,133"/>
+<area shape="rect" id="Node000005" href="$class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" title=" " alt="" coords="513,69,663,109"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="443,128,504,111,505,116,444,133"/>
+<area shape="rect" id="Node000006" href="$class_station_overlay_item.html#af08a4a63689f7ba4b61c46f1c5ac886a" title=" " alt="" coords="513,133,663,173"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="451,149,499,150,499,155,451,154"/>
+<area shape="rect" id="Node000007" href="$class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" title=" " alt="" coords="513,197,663,237"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="439,168,510,191,509,196,437,173"/>
+<area shape="rect" id="Node000008" href="$class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" title=" " alt="" coords="513,261,663,301"/>
+<area shape="poly" id="edge8_Node000004_Node000008" title=" " alt="" coords="401,169,452,207,515,247,526,253,523,258,512,252,449,211,398,173"/>
+</map>

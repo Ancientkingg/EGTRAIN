@@ -1,0 +1,6 @@
+<map id="InfrastructurePanel::setDocument" name="InfrastructurePanel::setDocument">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,151,69"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a893cdf9d2324e3abdc6e465a8c3fd7e5" title=" " alt="" coords="199,29,344,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,47,184,47,184,52,151,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="235,30,233,20,239,11,252,5,271,3,294,6,306,13,304,17,292,11,271,8,253,10,242,15,238,21,240,28"/>
+</map>

@@ -1,0 +1,26 @@
+var struct_run_infrastructure =
+[
+    [ "reset", "struct_run_infrastructure.html#ab02b49f237201f2f52c106335b33a17c", null ],
+    [ "blockSets", "struct_run_infrastructure.html#a7388cba275b8a9d0873fb86a474baa97", null ],
+    [ "connections", "struct_run_infrastructure.html#a210b9ad3456f36654f7db08dfc35c355", null ],
+    [ "derivedSectionsExceedPlan", "struct_run_infrastructure.html#adf481bb1a15371de519c4759835a432b", null ],
+    [ "detectionSections", "struct_run_infrastructure.html#a2c629868c25cd1060430eaff9cb94832", null ],
+    [ "infraEvents", "struct_run_infrastructure.html#ad6e4a268fde25e9db4efbc4ec114816b", null ],
+    [ "numBlocks", "struct_run_infrastructure.html#a64ad319b8e23952c785c262dedcd3a5e", null ],
+    [ "numConnections", "struct_run_infrastructure.html#afa192fca82add88ed2a3572cd6c16c8d", null ],
+    [ "numRoutes", "struct_run_infrastructure.html#adfd0b2d7067ca014bcc1477e97931632", null ],
+    [ "numStations", "struct_run_infrastructure.html#ae2d4e5d638311e8e4aae0692b91a6367", null ],
+    [ "numTrackLines", "struct_run_infrastructure.html#aa69f2ae0bd40a351ef082b169364ed3d", null ],
+    [ "routes", "struct_run_infrastructure.html#a0cb8232a9dcda2b336d6e4d630db2d2a", null ],
+    [ "sections", "struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd", null ],
+    [ "singleTrackHeld", "struct_run_infrastructure.html#ac6ac68be509d4713e2cf5e85905a660f", null ],
+    [ "singleTrackLimits", "struct_run_infrastructure.html#a1f10e19f97a6364caea2a91f8c04459b", null ],
+    [ "singleTrackReservations", "struct_run_infrastructure.html#a218c547282b77b893c07290baa001304", null ],
+    [ "singleTrackRouteZone", "struct_run_infrastructure.html#abf5827b15fd5bfed74e574a1c88d1251", null ],
+    [ "singleTrackZoneLimits", "struct_run_infrastructure.html#a1bc3259514cb8827c7d59a5063e9eeef", null ],
+    [ "singleTrackZoneRoutes", "struct_run_infrastructure.html#a093c89c6fd9229839a16da0ff6a79219", null ],
+    [ "singleTrackZones", "struct_run_infrastructure.html#abae102d56bc166fa5684b4687f360d6d", null ],
+    [ "singleTrackZonesDerived", "struct_run_infrastructure.html#a3dc8e54cd8a3dbb57b3585ed0650266d", null ],
+    [ "stationBoundaries", "struct_run_infrastructure.html#a10fc2f3d7d97a1ac78ec329c5c6e1214", null ],
+    [ "stations", "struct_run_infrastructure.html#a5364f1e44e3bd5ef76df177fe0a7c717", null ]
+];

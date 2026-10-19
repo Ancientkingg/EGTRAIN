@@ -1,0 +1,11 @@
+<map id="SignalItem::SignalItem" name="SignalItem::SignalItem">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,176,55"/>
+<area shape="rect" id="Node000002" href="$class_signal_item.html#af7f57fe8d66c5ada8f59a96694a38b21" title=" " alt="" coords="224,29,421,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,39,210,39,210,45,176,45"/>
+<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61" title=" " alt="" coords="469,29,624,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="422,39,456,39,456,45,422,45"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="515,31,508,21,512,11,525,5,547,3,573,6,584,15,581,19,571,11,547,8,526,10,516,15,513,20,519,28"/>
+<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title=" " alt="" coords="672,29,808,55"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="624,39,658,39,658,45,624,45"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="708,31,702,21,705,11,718,5,740,3,766,6,777,15,774,19,764,11,740,8,720,10,709,15,707,20,713,28"/>
+</map>

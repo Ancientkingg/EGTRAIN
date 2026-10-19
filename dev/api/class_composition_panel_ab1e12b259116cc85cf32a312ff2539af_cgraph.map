@@ -1,0 +1,30 @@
+<map id="CompositionPanel::deleteComposition" name="CompositionPanel::deleteComposition">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,85,193,125"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="256,5,453,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,82,188,61,240,41,274,31,275,36,242,46,190,66,142,87"/>
+<area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="241,55,468,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,91,227,87,228,93,194,97"/>
+<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title=" " alt="" coords="258,120,451,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="194,112,245,118,244,123,193,118"/>
+<area shape="rect" id="Node000006" href="$_scene_references_8cpp.html#a08f3f60ca755346a82a46d9013729e12" title=" " alt="" coords="247,208,462,233"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="146,122,314,200,312,205,144,127"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="591,105,685,131"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="451,125,577,118,577,124,452,130"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="593,107,583,97,588,87,607,81,638,79,679,83,689,88,693,94,688,97,686,92,677,88,638,84,608,86,592,91,588,96,597,103"/>
+<area shape="poly" id="edge16_Node000006_Node000006" title=" " alt="" coords="314,210,305,200,309,190,326,184,355,181,390,185,401,190,404,196,400,199,397,194,389,190,355,187,327,189,313,194,310,199,318,206"/>
+<area shape="rect" id="Node000007" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="537,179,739,204"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="462,207,522,201,523,206,462,212"/>
+<area shape="rect" id="Node000009" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="553,229,723,269"/>
+<area shape="poly" id="edge11_Node000006_Node000009" title=" " alt="" coords="462,229,539,236,538,242,462,234"/>
+<area shape="rect" id="Node000012" href="$_scene_references_8cpp.html#afd2c3e61a4aab31cc52d4e37e6e2ecbb" title=" " alt="" coords="516,317,760,343"/>
+<area shape="poly" id="edge14_Node000006_Node000012" title=" " alt="" coords="390,231,593,310,591,315,388,236"/>
+<area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="593,180,583,170,588,160,607,154,638,152,679,156,689,161,693,168,688,170,686,165,677,161,638,157,608,159,592,164,588,170,597,177"/>
+<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="808,179,1032,204"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="739,189,795,189,795,194,739,194"/>
+<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="875,180,865,170,870,160,889,154,920,152,961,156,971,161,975,168,970,170,968,165,959,161,920,157,890,159,874,164,870,170,879,177"/>
+<area shape="rect" id="Node000010" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title=" " alt="" coords="835,229,1005,269"/>
+<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="724,246,821,246,821,251,724,251"/>
+<area shape="rect" id="Node000011" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title=" " alt="" coords="835,293,1005,333"/>
+<area shape="poly" id="edge13_Node000009_Node000011" title=" " alt="" coords="724,265,822,288,821,293,723,271"/>
+<area shape="poly" id="edge15_Node000012_Node000012" title=" " alt="" coords="593,319,583,309,588,299,607,293,638,291,679,295,689,300,693,306,688,309,686,304,677,300,638,296,608,298,592,303,588,308,597,315"/>
+</map>

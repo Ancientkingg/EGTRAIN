@@ -1,0 +1,20 @@
+<map id="UpdateTelemetryController::startTelemetryAfterInitialConsent" name="UpdateTelemetryController::startTelemetryAfterInitialConsent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,174,252,214"/>
+<area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508" title=" " alt="" coords="301,29,512,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,172,213,118,254,88,299,64,317,56,319,61,301,68,257,93,216,122,152,176"/>
+<area shape="rect" id="Node000004" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title=" " alt="" coords="308,79,505,104"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="166,171,228,142,299,113,326,105,327,110,301,118,230,146,169,176"/>
+<area shape="rect" id="Node000005" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title=" " alt="" coords="319,152,494,177"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="252,178,305,173,306,178,253,184"/>
+<area shape="rect" id="Node000006" href="$class_telemetry_consent.html#a1441ab8158feface13517d832495d246" title=" " alt="" coords="306,202,507,242"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="253,204,292,208,292,213,252,209"/>
+<area shape="rect" id="Node000007" href="$class_telemetry_consent.html#aa2a6f614789138e111424c8b482d3b4e" title=" " alt="" coords="307,267,507,292"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="183,212,301,251,335,261,334,266,299,257,182,217"/>
+<area shape="rect" id="Node000008" href="$class_telemetry_consent.html#a1161805fdedf0ed960795b8c607b2a9a" title=" " alt="" coords="300,317,513,357"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="158,212,221,256,301,301,321,309,319,314,299,306,219,260,155,216"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="363,31,353,21,358,11,376,5,407,3,446,7,456,12,460,18,455,20,453,16,444,12,407,8,377,10,362,15,359,20,367,27"/>
+<area shape="rect" id="Node000003" href="$_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c" title=" " alt="" coords="561,29,800,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="512,39,548,39,548,45,512,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="637,31,627,21,632,11,650,5,681,3,720,7,730,12,734,18,729,20,727,16,718,12,681,8,651,10,636,15,633,20,641,27"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="363,154,353,144,358,134,376,127,407,125,446,129,456,134,460,140,455,143,453,138,444,135,407,131,377,133,362,138,359,143,367,150"/>
+</map>

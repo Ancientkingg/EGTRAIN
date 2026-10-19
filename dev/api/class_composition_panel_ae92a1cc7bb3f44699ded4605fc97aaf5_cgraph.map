@@ -1,0 +1,15 @@
+<map id="CompositionPanel::addComposition" name="CompositionPanel::addComposition">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,259,117"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="321,5,519,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,89,306,41,342,31,344,36,307,46,166,95"/>
+<area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="307,55,533,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,89,293,86,293,91,257,95"/>
+<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title=" " alt="" coords="323,120,517,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="259,114,310,119,309,125,259,120"/>
+<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title=" " alt="" coords="320,193,520,219"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="170,115,371,186,369,191,169,120"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="581,120,676,145"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="517,130,568,130,568,135,517,135"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="595,122,587,112,591,102,605,96,629,93,658,97,669,106,666,110,656,102,629,99,607,101,595,105,592,111,599,118"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="386,195,379,185,382,175,397,169,420,167,449,170,460,179,457,184,447,175,420,172,398,174,386,179,384,184,390,192"/>
+</map>

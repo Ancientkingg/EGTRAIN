@@ -1,0 +1,695 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Inspecting diagrams" href="../ui/diagram-navigation.html"><link rel="prev" title="Signalling levels" href="signalling-levels.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>QEGTRAIN source layout - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-properties.html">V1 scene properties</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-corridor.html">Assignment corridor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/feature-status.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/architecture/source-layout.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="qegtrain-source-layout">
+<h1>QEGTRAIN source layout<a class="headerlink" href="#qegtrain-source-layout" title="Link to this heading">¶</a></h1>
+<p>The C++ sources live under <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code>, grouped by responsibility.
+Before the reorganization tracked in #91, all 108 sources sat in that one
+directory with names taken from their Qt base class. This document records the
+folders and the renames so the next reader does not have to reconstruct them.
+<a class="reference internal" href="../development/getting-started.html"><span class="std std-doc">Getting started as a developer</span></a> shows how to build the
+application and how to find the code behind a screen.</p>
+<section id="repository-layout">
+<h2>Repository layout<a class="headerlink" href="#repository-layout" title="Link to this heading">¶</a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed below
+EGTRAIN/QEGTRAIN/Scenes/  The committed case studies
+EGTRAIN/QEGTRAIN/tests/   C++ regression tests and their fixtures
+installer/                Inno Setup script of the Windows installer and its README
+tools/e2e/                Smoke tests and Python tests
+tools/release/            Version, package check, release asset and disk image scripts
+tools/memory/             Peak-memory measurement and the ownership inventory
+tools/performance/        Startup timing and playback profiling scripts
+tools/format.py           Checks or applies the code format of the C++ sources
+tools/tidy.py             Runs clang-tidy on the C++ sources outside simulation/
+tools/docs/               Checks the Markdown documentation
+docs/                     Guides and architecture, development, product, telemetry and UI documentation
+.github/workflows/        GitHub Actions workflows: build and test, format, tidy, packages, releases and the telemetry contract check
+</pre></div>
+</div>
+</section>
+<section id="folders">
+<h2>Folders<a class="headerlink" href="#folders" title="Link to this heading">¶</a></h2>
+<p>Paths are relative to <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code>. A file named without its extension has a <code class="docutils literal notranslate"><span class="pre">.h</span></code> and usually a <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Folder</p></th>
+<th class="head"><p>Holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code></p></td>
+<td><p>The program and its main window. <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> reads the command line, loads and validates the scene and starts the window or a run without one. <a class="reference external" href="../api/class_main_window.html"><code class="docutils literal notranslate"><span class="pre">MainWindow</span></code></a> is the window, with <code class="docutils literal notranslate"><span class="pre">MainWindowSupport.h</span></code> (constants it shares with the scripted runs) and <code class="docutils literal notranslate"><span class="pre">MainWindowTestHooks.h</span></code> (the entry points of those runs, empty in a normal run). <a class="reference external" href="../api/class_dispatch_controller.html"><code class="docutils literal notranslate"><span class="pre">DispatchController</span></code></a> prepares a scene and runs it; <a class="reference external" href="../api/struct_gui_simulation_snapshot.html"><code class="docutils literal notranslate"><span class="pre">GuiSimulationSnapshot</span></code></a> is the state of one step that it hands to the window, <a class="reference external" href="../api/class_gui_replay_history.html"><code class="docutils literal notranslate"><span class="pre">GuiReplayHistory</span></code></a> the frames kept for replay, <a class="reference external" href="../api/struct_replay_coverage.html"><code class="docutils literal notranslate"><span class="pre">ReplayCoverage</span></code></a> the words of the replay row and <a class="reference external" href="../api/struct_follow_availability.html"><code class="docutils literal notranslate"><span class="pre">FollowAvailability</span></code></a> the rule for following a train. <a class="reference external" href="../api/class_run_selection.html"><code class="docutils literal notranslate"><span class="pre">RunSelection</span></code></a> holds the selected scenario and the service occurrences that a run leaves out. <code class="docutils literal notranslate"><span class="pre">SceneOpenRequest</span></code> checks the file that a command line asks to open, <a class="reference external" href="../api/class_open_request_relay.html"><code class="docutils literal notranslate"><span class="pre">OpenRequestRelay</span></code></a> hands such a file to a window that is already running, and <code class="docutils literal notranslate"><span class="pre">CannotOpenMessage</span></code> is the text shown when a case does not open. <a class="reference external" href="../api/class_scene_session.html"><code class="docutils literal notranslate"><span class="pre">SceneSession</span></code></a> holds where the open scene came from and was saved, and opens, creates, saves and imports a scene. <a class="reference external" href="../api/class_update_telemetry_controller.html"><code class="docutils literal notranslate"><span class="pre">UpdateTelemetryController</span></code></a> holds the update checks, the self update, the privacy dialogs and the telemetry sender of the window. <a class="reference external" href="../api/class_run_controller.html"><code class="docutils literal notranslate"><span class="pre">RunController</span></code></a> holds the run review, the preparation, start and stop of a run, and the status, completed data and delay baseline that it leaves. <a class="reference external" href="../api/class_result_views.html"><code class="docutils literal notranslate"><span class="pre">ResultViews</span></code></a> opens the windows that show the completed run (the per-train charts, the route, timetable, delay, blocking-time and capacity views) and <a class="reference external" href="../api/class_run_results_dock.html"><code class="docutils literal notranslate"><span class="pre">RunResultsDock</span></code></a> is the Run Results dock with its table, exports and delay baseline buttons. <code class="docutils literal notranslate"><span class="pre">SceneOutputDirectory</span></code> and <code class="docutils literal notranslate"><span class="pre">DialogFolders</span></code> choose folders, and <code class="docutils literal notranslate"><span class="pre">SceneSavePolicy</span></code> protects the installed scenes from being overwritten. <code class="docutils literal notranslate"><span class="pre">RuntimeGeometryFromRun</span></code> is the geometry source of the canvas that reads the run of <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code>. <code class="docutils literal notranslate"><span class="pre">UpdatePromptText</span></code> and <code class="docutils literal notranslate"><span class="pre">ReleaseNotesText</span></code> hold the texts of the update message boxes, and <code class="docutils literal notranslate"><span class="pre">TelemetrySmokeSupport</span></code> the hooks of the isolated telemetry smoke. <code class="docutils literal notranslate"><span class="pre">resources.qrc</span></code> embeds <code class="docutils literal notranslate"><span class="pre">resources/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code></p></td>
+<td><p>The simulation engine and domain: <code class="docutils literal notranslate"><span class="pre">Simulation</span></code>, <a class="reference external" href="../api/struct_simulation_run.html"><code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code></a> (the infrastructure and routes that a scene builds), <a class="reference external" href="../api/class_simulation_worker.html"><code class="docutils literal notranslate"><span class="pre">SimulationWorker</span></code></a> and <a class="reference external" href="../api/class_run_control.html"><code class="docutils literal notranslate"><span class="pre">RunControl</span></code></a> (the run on its own thread and its pause and stop), <code class="docutils literal notranslate"><span class="pre">RollingStock</span></code> with <code class="docutils literal notranslate"><span class="pre">RollingStockBlockingTimes</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockBraking</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockDynamics</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockOccupation</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockStops</span></code> and <code class="docutils literal notranslate"><span class="pre">RollingStockTrajectory</span></code>, <code class="docutils literal notranslate"><span class="pre">Infrastructure</span></code>, <code class="docutils literal notranslate"><span class="pre">Signalling</span></code>, <code class="docutils literal notranslate"><span class="pre">Optimisation</span></code>, <code class="docutils literal notranslate"><span class="pre">Passengers</span></code>, <a class="reference external" href="../api/class_number_generator.html"><code class="docutils literal notranslate"><span class="pre">NumberGenerator</span></code></a> and <a class="reference external" href="../api/class_initial_parameters.html"><code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code></a> (the options of a run)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/builders/</span></code></p></td>
+<td><p>The builders that fill a run from a scene: <code class="docutils literal notranslate"><span class="pre">InfrastructureBuilder</span></code> (infrastructure and signalling) and <code class="docutils literal notranslate"><span class="pre">OperationsBuilder</span></code> (trains, platforms and passengers). <code class="docutils literal notranslate"><span class="pre">InfrastructureBuilderInternal.h</span></code> holds the two declarations that the first shares with <code class="docutils literal notranslate"><span class="pre">Signalling.cpp</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code></p></td>
+<td><p>The canonical scene model. <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> is the model and the loader of a scene folder; <code class="docutils literal notranslate"><span class="pre">SceneBundle</span></code> reads and writes <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> files; <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code> saves a folder; <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> and <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> convert from and to the legacy files; <code class="docutils literal notranslate"><span class="pre">SceneValidator</span></code> checks a model; <code class="docutils literal notranslate"><span class="pre">SceneCompatibility</span></code> and <code class="docutils literal notranslate"><span class="pre">SceneMigration</span></code> decide which scenes open; <a class="reference external" href="../api/struct_scene_diagnostic.html"><code class="docutils literal notranslate"><span class="pre">SceneDiagnostic</span></code></a> is a finding. Also <code class="docutils literal notranslate"><span class="pre">SceneFields</span></code>, <a class="reference external" href="../api/class_scene_field_reader.html"><code class="docutils literal notranslate"><span class="pre">SceneFieldReader</span></code></a>, <code class="docutils literal notranslate"><span class="pre">RuntimeLimits</span></code>, <a class="reference external" href="../api/class_scene_history.html"><code class="docutils literal notranslate"><span class="pre">SceneHistory</span></code></a> (Undo and Redo), <code class="docutils literal notranslate"><span class="pre">SceneIds</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneReferences</span></code>, <code class="docutils literal notranslate"><span class="pre">SectionInventory</span></code>, <code class="docutils literal notranslate"><span class="pre">SignallingLevel</span></code>, <code class="docutils literal notranslate"><span class="pre">SignallingLevelNames</span></code>, <a class="reference external" href="../api/struct_staged_directory.html"><code class="docutils literal notranslate"><span class="pre">StagedDirectory</span></code></a>, <code class="docutils literal notranslate"><span class="pre">StopInsertion</span></code>, <code class="docutils literal notranslate"><span class="pre">TrackPreview</span></code> and <code class="docutils literal notranslate"><span class="pre">Utf8Path</span></code>. <code class="docutils literal notranslate"><span class="pre">SceneTool.cpp</span></code> is the source of the <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> program</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code></p></td>
+<td><p>The scene editors. <a class="reference external" href="../api/class_scene_document.html"><code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code></a> is the open scene with its dirty state and revision, and <a class="reference external" href="../api/class_scene_editor_panel.html"><code class="docutils literal notranslate"><span class="pre">SceneEditorPanel</span></code></a> the interface of a panel. The panels are <a class="reference external" href="../api/class_case_settings_panel.html"><code class="docutils literal notranslate"><span class="pre">CaseSettingsPanel</span></code></a>, <a class="reference external" href="../api/class_composition_panel.html"><code class="docutils literal notranslate"><span class="pre">CompositionPanel</span></code></a>, <a class="reference external" href="../api/class_train_unit_panel.html"><code class="docutils literal notranslate"><span class="pre">TrainUnitPanel</span></code></a> (rolling stock units), <a class="reference external" href="../api/class_service_panel.html"><code class="docutils literal notranslate"><span class="pre">ServicePanel</span></code></a>, <a class="reference external" href="../api/class_timetable_stops_panel.html"><code class="docutils literal notranslate"><span class="pre">TimetableStopsPanel</span></code></a>, <a class="reference external" href="../api/class_passenger_panel.html"><code class="docutils literal notranslate"><span class="pre">PassengerPanel</span></code></a>, <a class="reference external" href="../api/class_scenario_panel.html"><code class="docutils literal notranslate"><span class="pre">ScenarioPanel</span></code></a>, <a class="reference external" href="../api/class_incident_panel.html"><code class="docutils literal notranslate"><span class="pre">IncidentPanel</span></code></a>, <a class="reference external" href="../api/class_entrance_delay_panel.html"><code class="docutils literal notranslate"><span class="pre">EntranceDelayPanel</span></code></a> and <a class="reference external" href="../api/class_infrastructure_panel.html"><code class="docutils literal notranslate"><span class="pre">InfrastructurePanel</span></code></a>. <a class="reference external" href="../api/class_validation_panel.html"><code class="docutils literal notranslate"><span class="pre">ValidationPanel</span></code></a> holds the validation table, the loaded data tree and the validation status; it is not an editor. <a class="reference external" href="../api/class_train_unit_source_linker.html"><code class="docutils literal notranslate"><span class="pre">TrainUnitSourceLinker</span></code></a> keeps the links from rolling stock units to the files they came from</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">editors/infrastructure/</span></code></p></td>
+<td><p>The kinds of entity that <code class="docutils literal notranslate"><span class="pre">InfrastructurePanel</span></code> shows as tables. <a class="reference external" href="../api/class_infrastructure_facet.html"><code class="docutils literal notranslate"><span class="pre">InfrastructureFacet</span></code></a> is the interface of one kind, <code class="docutils literal notranslate"><span class="pre">ListFacet</span></code> and <code class="docutils literal notranslate"><span class="pre">SectionRowsFacet</span></code> are bases for facets over a list of the model, and the facets are <code class="docutils literal notranslate"><span class="pre">TopologyFacets</span></code> (tracks, nodes, arcs and connections), <code class="docutils literal notranslate"><span class="pre">BlockRouteFacets</span></code> (blocks, routes, block dependencies and single-track restrictions), <code class="docutils literal notranslate"><span class="pre">StationFacets</span></code> (stations, platforms and station boundaries) and <code class="docutils literal notranslate"><span class="pre">SignalFacets</span></code> (signals and signalling areas)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">graphics/</span></code></p></td>
+<td><p>The network canvas. <a class="reference external" href="../api/class_network_presenter.html"><code class="docutils literal notranslate"><span class="pre">NetworkPresenter</span></code></a> draws the track preview and the items of a run and shows each step on them; <a class="reference external" href="../api/class_runtime_geometry_source.html"><code class="docutils literal notranslate"><span class="pre">RuntimeGeometrySource</span></code></a> is the interface through which it reads the infrastructure of a run. <a class="reference external" href="../api/class_network_scene.html"><code class="docutils literal notranslate"><span class="pre">NetworkScene</span></code></a> and <a class="reference external" href="../api/class_network_view.html"><code class="docutils literal notranslate"><span class="pre">NetworkView</span></code></a> are the scene and the view, <a class="reference external" href="../api/class_follow_camera.html"><code class="docutils literal notranslate"><span class="pre">FollowCamera</span></code></a> moves the view after a train, <a class="reference external" href="../api/struct_signal_geometry.html"><code class="docutils literal notranslate"><span class="pre">SignalGeometry</span></code></a> and <code class="docutils literal notranslate"><span class="pre">AnnotationPlacement</span></code> place signal heads and station labels, <code class="docutils literal notranslate"><span class="pre">SignalItemRoles</span></code> names the item data roles of a signal, and <code class="docutils literal notranslate"><span class="pre">VisualPolish</span></code> holds the visual style tables</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">graphics/items/</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">QGraphicsItem</span></code> classes that draw the network, named after what they draw (see <a class="reference internal" href="#renames">Renames</a>), and the items of the selection cue (<a class="reference external" href="../api/class_selection_cue_item.html"><code class="docutils literal notranslate"><span class="pre">SelectionCueItem</span></code></a>, <a class="reference external" href="../api/class_highlight_effect.html"><code class="docutils literal notranslate"><span class="pre">HighlightEffect</span></code></a>), the station overlay (<a class="reference external" href="../api/class_station_overlay_item.html"><code class="docutils literal notranslate"><span class="pre">StationOverlayItem</span></code></a>) and the train badge (<a class="reference external" href="../api/class_train_badge_item.html"><code class="docutils literal notranslate"><span class="pre">TrainBadgeItem</span></code></a>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">widgets/</span></code></p></td>
+<td><p>Dock widgets, dialogs and small controls: <a class="reference external" href="../api/class_console_widget.html"><code class="docutils literal notranslate"><span class="pre">ConsoleWidget</span></code></a>, <a class="reference external" href="../api/class_info_dock_widget.html"><code class="docutils literal notranslate"><span class="pre">InfoDockWidget</span></code></a>, <a class="reference external" href="../api/class_inspector_panel.html"><code class="docutils literal notranslate"><span class="pre">InspectorPanel</span></code></a> (the inspector dock on the right, whose title names the selected item: the form of the selected item and the selection that the window marks), <a class="reference external" href="../api/class_time_progress_bar.html"><code class="docutils literal notranslate"><span class="pre">TimeProgressBar</span></code></a>, <a class="reference external" href="../api/class_about_dialog.html"><code class="docutils literal notranslate"><span class="pre">AboutDialog</span></code></a>, <a class="reference external" href="../api/class_case_chooser_dialog.html"><code class="docutils literal notranslate"><span class="pre">CaseChooserDialog</span></code></a>, <code class="docutils literal notranslate"><span class="pre">FindDialog</span></code>, <a class="reference external" href="../api/class_network_legend_widget.html"><code class="docutils literal notranslate"><span class="pre">NetworkLegendWidget</span></code></a>, <a class="reference external" href="../api/class_color_choice_button.html"><code class="docutils literal notranslate"><span class="pre">ColorChoiceButton</span></code></a>, <a class="reference external" href="../api/class_choice_combo_box.html"><code class="docutils literal notranslate"><span class="pre">ChoiceComboBox</span></code></a>, <a class="reference external" href="../api/class_compact_double_spin_box.html"><code class="docutils literal notranslate"><span class="pre">CompactDoubleSpinBox</span></code></a>, <code class="docutils literal notranslate"><span class="pre">DialogLayout</span></code>, <code class="docutils literal notranslate"><span class="pre">EditorLayout</span></code>, <a class="reference external" href="../api/class_elided_label.html"><code class="docutils literal notranslate"><span class="pre">ElidedLabel</span></code></a> and <a class="reference external" href="../api/class_user_prompts.html"><code class="docutils literal notranslate"><span class="pre">UserPrompts</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diagrams/</span></code></p></td>
+<td><p>Result views and their data. <code class="docutils literal notranslate"><span class="pre">CompletedRunCapture</span></code> copies a finished run into <a class="reference external" href="../api/struct_completed_run_data.html"><code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code></a>; <a class="reference external" href="../api/struct_run_results.html"><code class="docutils literal notranslate"><span class="pre">RunResults</span></code></a> builds the Run Results table; <code class="docutils literal notranslate"><span class="pre">RunExports</span></code> writes the CSV files. The windows are <a class="reference external" href="../api/class_diagram_window.html"><code class="docutils literal notranslate"><span class="pre">DiagramWindow</span></code></a>, <a class="reference external" href="../api/class_timetable_table_window.html"><code class="docutils literal notranslate"><span class="pre">TimetableTableWindow</span></code></a>, <code class="docutils literal notranslate"><span class="pre">BlockingTimeDiagram</span></code>, <a class="reference external" href="../api/class_delay_analysis_window.html"><code class="docutils literal notranslate"><span class="pre">DelayAnalysisWindow</span></code></a> and <a class="reference external" href="../api/class_area_capacity_window.html"><code class="docutils literal notranslate"><span class="pre">AreaCapacityWindow</span></code></a>, over <a class="reference external" href="../api/struct_blocking_time_scope.html"><code class="docutils literal notranslate"><span class="pre">BlockingTimeScope</span></code></a>, <code class="docutils literal notranslate"><span class="pre">CapacityAnalysis</span></code>, <code class="docutils literal notranslate"><span class="pre">CapacityScope</span></code>, <code class="docutils literal notranslate"><span class="pre">AreaCapacity</span></code> and <code class="docutils literal notranslate"><span class="pre">DelayAnalysis</span></code>. Also <code class="docutils literal notranslate"><span class="pre">RouteDiagramCoordinates</span></code>, <a class="reference external" href="../api/struct_route_reference_choice.html"><code class="docutils literal notranslate"><span class="pre">RouteReferenceChoice</span></code></a>, <code class="docutils literal notranslate"><span class="pre">TractionCurve</span></code>, <code class="docutils literal notranslate"><span class="pre">TrainColors</span></code>, <a class="reference external" href="../api/class_train_filter_button.html"><code class="docutils literal notranslate"><span class="pre">TrainFilterButton</span></code></a> and <code class="docutils literal notranslate"><span class="pre">SimulationHeaders</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">io/</span></code></p></td>
+<td><p>Interoperability formats. <code class="docutils literal notranslate"><span class="pre">RttpXml</span></code> is the XML of the legacy channels and <code class="docutils literal notranslate"><span class="pre">ExternalState</span></code> the sender of that XML. <code class="docutils literal notranslate"><span class="pre">LiveFrame</span></code> (the JSON frames of the live contract in <code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code>), <a class="reference external" href="../api/struct_live_command.html"><code class="docutils literal notranslate"><span class="pre">LiveCommand</span></code></a> (the requests of its clients and the checks on them) and <a class="reference external" href="../api/class_live_server.html"><code class="docutils literal notranslate"><span class="pre">LiveServer</span></code></a> (the ZeroMQ transport) make the live stream. The vendored pugixml and miniz are in <code class="docutils literal notranslate"><span class="pre">io/third_party/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">util/</span></code></p></td>
+<td><p>Helpers used everywhere: <code class="docutils literal notranslate"><span class="pre">Log</span></code> (the logging core), <code class="docutils literal notranslate"><span class="pre">Util.hpp</span></code>, <code class="docutils literal notranslate"><span class="pre">timeutil.hpp</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeFormat</span></code>, <code class="docutils literal notranslate"><span class="pre">SpeedFormat</span></code>, <code class="docutils literal notranslate"><span class="pre">CsvWriter</span></code>, <code class="docutils literal notranslate"><span class="pre">TrajectoryUtil</span></code>, <a class="reference external" href="../api/class_playback_profiler.html"><code class="docutils literal notranslate"><span class="pre">PlaybackProfiler</span></code></a>, <code class="docutils literal notranslate"><span class="pre">Version</span></code>, <code class="docutils literal notranslate"><span class="pre">portability.h</span></code> and <code class="docutils literal notranslate"><span class="pre">QtMsvcCompat.h</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">update/</span></code></p></td>
+<td><p>Release check, package download and self-update: <a class="reference external" href="../api/class_update_checker.html"><code class="docutils literal notranslate"><span class="pre">UpdateChecker</span></code></a>, <a class="reference external" href="../api/class_http_transport.html"><code class="docutils literal notranslate"><span class="pre">HttpTransport</span></code></a>, <code class="docutils literal notranslate"><span class="pre">WinHttpTransport</span></code>, <code class="docutils literal notranslate"><span class="pre">ReleaseInfo</span></code>, <code class="docutils literal notranslate"><span class="pre">Distribution</span></code>, <a class="reference external" href="../api/class_self_updater.html"><code class="docutils literal notranslate"><span class="pre">SelfUpdater</span></code></a>, <code class="docutils literal notranslate"><span class="pre">UpdatePreparation</span></code>, <code class="docutils literal notranslate"><span class="pre">UpdateSettings</span></code>, <a class="reference external" href="../api/struct_update_record.html"><code class="docutils literal notranslate"><span class="pre">UpdateRecord</span></code></a>, <code class="docutils literal notranslate"><span class="pre">UpdateNotices</span></code> and <code class="docutils literal notranslate"><span class="pre">WindowsStaging.h</span></code>. <code class="docutils literal notranslate"><span class="pre">UpdateHelper.cpp</span></code> is the source of the <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code> program</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">telemetry/</span></code></p></td>
+<td><p>Consent, queue and sender for usage and diagnostics events: <a class="reference external" href="../api/class_telemetry_consent.html"><code class="docutils literal notranslate"><span class="pre">TelemetryConsent</span></code></a>, <a class="reference external" href="../api/class_telemetry_consent_dialog.html"><code class="docutils literal notranslate"><span class="pre">TelemetryConsentDialog</span></code></a>, <code class="docutils literal notranslate"><span class="pre">TelemetryEvent</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetryOperation</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetryQueue</span></code> and <code class="docutils literal notranslate"><span class="pre">TelemetrySender</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">recovery/</span></code></p></td>
+<td><p>Recovery copies of a scene with unsaved edits. <a class="reference external" href="../api/class_recovery_store.html"><code class="docutils literal notranslate"><span class="pre">RecoveryStore</span></code></a> keeps them below a folder that the caller names, <a class="reference external" href="../api/class_recovery_controller.html"><code class="docutils literal notranslate"><span class="pre">RecoveryController</span></code></a> writes them on a timer on one worker thread, and <a class="reference external" href="../api/class_recovery_prompt.html"><code class="docutils literal notranslate"><span class="pre">RecoveryPrompt</span></code></a> offers the copies that an earlier run left behind. It has nothing to do with the recovery time of a timetable</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">resources/</span></code></p></td>
+<td><p>Icons (<code class="docutils literal notranslate"><span class="pre">icons/</span></code>), the application icons for each system (<code class="docutils literal notranslate"><span class="pre">app/</span></code>) and the style sheet (<code class="docutils literal notranslate"><span class="pre">styles/egtrain.qss</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Scenes/</span></code></p></td>
+<td><p>The committed case studies, one folder each</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tests/</span></code></p></td>
+<td><p>One <code class="docutils literal notranslate"><span class="pre">test_&lt;name&gt;.cpp</span></code> for each test executable, with <code class="docutils literal notranslate"><span class="pre">fixtures/</span></code> (test data), <code class="docutils literal notranslate"><span class="pre">characterization/</span></code> (the characterization tests with their <code class="docutils literal notranslate"><span class="pre">expected/</span></code> files), <code class="docutils literal notranslate"><span class="pre">e2e/</span></code> (the runner of the scripted window scenarios), <code class="docutils literal notranslate"><span class="pre">live/</span></code> and the helper programs <code class="docutils literal notranslate"><span class="pre">update_probe*.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">live_client.cpp</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code> has 3,916 lines (measured with <code class="docutils literal notranslate"><span class="pre">wc</span> <span class="pre">-l</span></code> on 2026-10-17, after the move of the result views and the Run Results dock), well under the 5,000 that the move of the shell services aimed at.</p>
+</section>
+<section id="completed-run-data">
+<h2>Completed-run data<a class="headerlink" href="#completed-run-data" title="Link to this heading">¶</a></h2>
+<p>When a run ends, <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> (<code class="docutils literal notranslate"><span class="pre">diagrams/CompletedRunCapture.cpp</span></code>) copies what the result views need out of the
+simulation into one <code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code>, and <code class="docutils literal notranslate"><span class="pre">RunController</span></code> holds it as <code class="docutils literal notranslate"><span class="pre">m_completedRun</span></code>, a
+<code class="docutils literal notranslate"><span class="pre">std::shared_ptr&lt;const</span> <span class="pre">CompletedRunData&gt;</span></code>. The Run Results dock reads it, and every result window and CSV export keeps
+its own pointer. So a window that was opened for one run goes on showing and exporting that run after another run has
+replaced the simulation state. The code in <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> reads the simulation only in <code class="docutils literal notranslate"><span class="pre">CompletedRunCapture.cpp</span></code> and
+<code class="docutils literal notranslate"><span class="pre">RunResults.cpp</span></code>. <code class="docutils literal notranslate"><span class="pre">tools/e2e/test_diagrams_no_sim_globals.py</span></code> fails when another file of <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">app/MainWindowSupport.h</span></code>, includes a header of <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> or names <code class="docutils literal notranslate"><span class="pre">regional_train</span></code>, <code class="docutils literal notranslate"><span class="pre">train_route</span></code>, <code class="docutils literal notranslate"><span class="pre">numRegions</span></code> or
+<code class="docutils literal notranslate"><span class="pre">initial_variables</span></code>. It also fails when <code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code> or <code class="docutils literal notranslate"><span class="pre">app/MainWindow.h</span></code> names one of them: the window reads the
+settings of the process through <code class="docutils literal notranslate"><span class="pre">RunController</span></code>.</p>
+</section>
+<section id="includes">
+<h2>Includes<a class="headerlink" href="#includes" title="Link to this heading">¶</a></h2>
+<p>Includes are path-qualified against the source root, for example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">"graphics/items/NodeItem.h"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"simulation/Signalling.h"</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> puts <code class="docutils literal notranslate"><span class="pre">SRC_DIR</span></code> (<code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code>) on the include path with
+<code class="docutils literal notranslate"><span class="pre">include_directories(${SRC_DIR})</span></code>, so those paths resolve for the main target,
+<code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>, and every test.</p>
+</section>
+<section id="libraries">
+<h2>Libraries<a class="headerlink" href="#libraries" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> builds the code that more than one target uses once, as static libraries.
+The application, <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> and the tests link them.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Library</p></th>
+<th class="head"><p>Sources</p></th>
+<th class="head"><p>Depends on</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code> except <code class="docutils literal notranslate"><span class="pre">SceneTool.cpp</span></code></p></td>
+<td><p>nlohmann-json, <code class="docutils literal notranslate"><span class="pre">egtrain_miniz</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code> except <code class="docutils literal notranslate"><span class="pre">RunControl</span></code> and <code class="docutils literal notranslate"><span class="pre">SimulationWorker</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">util/*.cpp</span></code></p></td>
+<td><p>nlohmann-json</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_rttp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">io/RttpXml.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">io/ExternalState.cpp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">egtrain_pugixml</span></code>, cppzmq</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_pugixml</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">io/third_party/pugixml.cpp</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_live</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">io/LiveCommand.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code></p></td>
+<td><p>nlohmann-json, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code>, cppzmq</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_graphics</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">graphics/</span></code></p></td>
+<td><p>Qt Core, Gui and Widgets, <code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_widgets</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">widgets/*.cpp</span></code></p></td>
+<td><p>Qt Core, Gui and Widgets, <code class="docutils literal notranslate"><span class="pre">egtrain_graphics</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_editors</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code></p></td>
+<td><p>Qt Core, Gui and Widgets, <code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_diagrams</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_widgets</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_runselection</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_http</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">update/HttpTransport</span></code>, and on Windows <code class="docutils literal notranslate"><span class="pre">WinHttpTransport</span></code></p></td>
+<td><p>Qt Core and Network, and on Windows WinHTTP and Crypt32</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_update</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">update/Distribution</span></code>, <code class="docutils literal notranslate"><span class="pre">ReleaseInfo</span></code>, <code class="docutils literal notranslate"><span class="pre">UpdateChecker</span></code>, <code class="docutils literal notranslate"><span class="pre">UpdatePreparation</span></code>, <code class="docutils literal notranslate"><span class="pre">UpdateRecord</span></code>, <code class="docutils literal notranslate"><span class="pre">UpdateSettings</span></code></p></td>
+<td><p>Qt Core and Network, <code class="docutils literal notranslate"><span class="pre">egtrain_http</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_runselection</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/RunSelection.cpp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_sceneopen</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/SceneOpenRequest.cpp</span></code></p></td>
+<td><p>Qt Core</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_openrelay</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/OpenRequestRelay.cpp</span></code></p></td>
+<td><p>Qt Core, Gui and Network</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_recovery</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">recovery/</span></code></p></td>
+<td><p>Qt Core, Gui and Widgets, <code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_telemetry</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">telemetry/</span></code> except <code class="docutils literal notranslate"><span class="pre">TelemetryConsentDialog</span></code></p></td>
+<td><p>Qt Core, Gui, Network and Widgets, <code class="docutils literal notranslate"><span class="pre">egtrain_http</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_dispatch</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/GuiReplayHistory.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RunControl.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/SimulationWorker.cpp</span></code></p></td>
+<td><p>Qt Core, Gui and Widgets, <code class="docutils literal notranslate"><span class="pre">egtrain_rttp</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_diagrams</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">diagrams/</span></code></p></td>
+<td><p>Qt Core, Gui, Network, Widgets and Charts, <code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">egtrain_miniz</span></code> holds the vendored zip code. The first six libraries and
+<code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> use no Qt. The dependencies point one way; no library depends on <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code>.
+<code class="docutils literal notranslate"><span class="pre">egtrain_recovery</span></code> is linked by <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, <code class="docutils literal notranslate"><span class="pre">test_recoverystore</span></code>, <code class="docutils literal notranslate"><span class="pre">test_recoverycontroller</span></code> and <code class="docutils literal notranslate"><span class="pre">test_recoveryprompt</span></code>.</p>
+<p>The update code and the telemetry sender make their HTTP requests through <code class="docutils literal notranslate"><span class="pre">HttpTransport</span></code>
+(<code class="docutils literal notranslate"><span class="pre">update/HttpTransport.h</span></code>), a GET for the update code and a POST for the sender. The
+function <code class="docutils literal notranslate"><span class="pre">createHttpTransport</span></code> selects the implementation that the application uses: Qt’s network
+manager, or on Windows <code class="docutils literal notranslate"><span class="pre">WinHttpTransport</span></code>, because Qt 5.15 has no TLS library there. The WinHTTP
+transport fetches https addresses only. A test passes <code class="docutils literal notranslate"><span class="pre">allowLoopbackHttp</span></code> to reach <code class="docutils literal notranslate"><span class="pre">http://127.0.0.1</span></code>
+as well. <code class="docutils literal notranslate"><span class="pre">UpdateChecker</span></code> can take any transport, so <code class="docutils literal notranslate"><span class="pre">test_updatechecker</span></code> gives it a fake one, and
+<code class="docutils literal notranslate"><span class="pre">test_httptransport</span></code> runs the transport of the application, for a GET and a POST, against a server on the loopback address.
+<code class="docutils literal notranslate"><span class="pre">test_updatetransport_https</span></code> sends one real request to the GitHub release list through that transport
+(<a class="reference internal" href="../development/build-and-test.html#https-update-check"><span class="std std-ref">HTTPS update check</span></a>).</p>
+<p>The telemetry sources also build with test hooks, which add members and a constructor
+parameter to <code class="docutils literal notranslate"><span class="pre">TelemetrySender</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetryConsent</span></code> and <code class="docutils literal notranslate"><span class="pre">TelemetryQueue</span></code>. These flavours
+compile the same sources again: <code class="docutils literal notranslate"><span class="pre">egtrain_telemetry_hooks</span></code> (all hooks) when tests are built,
+and <code class="docutils literal notranslate"><span class="pre">egtrain_telemetry_smoke</span></code> (the sender hook) in the isolated telemetry smoke
+configuration, for the application. A target links one telemetry library, never two.
+<code class="docutils literal notranslate"><span class="pre">egtrain_diagrams</span></code> links no telemetry library, because its windows call only
+<code class="docutils literal notranslate"><span class="pre">OperationObservation</span></code>, whose symbols do not depend on the hooks. In the isolated
+telemetry smoke configuration it is built with the sender hook, as the rest of the
+application is. The moc object of <code class="docutils literal notranslate"><span class="pre">egtrain_diagrams</span></code> references both windows, so a target
+that uses <code class="docutils literal notranslate"><span class="pre">TrainFilterButton</span></code>, <code class="docutils literal notranslate"><span class="pre">DiagramWindow</span></code>, <code class="docutils literal notranslate"><span class="pre">TimetableTableWindow</span></code> or
+<a class="reference external" href="../api/class_route_reference_dialog.html"><code class="docutils literal notranslate"><span class="pre">RouteReferenceDialog</span></code></a> also links one telemetry library.</p>
+<p>Still compiled in more than one target: the telemetry sources of the hook flavours,
+<code class="docutils literal notranslate"><span class="pre">TelemetryConsentDialog.cpp</span></code>, which the application builds without the consent hook
+and <code class="docutils literal notranslate"><span class="pre">test_telemetryconsent</span></code> with it, <code class="docutils literal notranslate"><span class="pre">SelfUpdater.cpp</span></code>, which <code class="docutils literal notranslate"><span class="pre">test_selfupdater</span></code>
+builds with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_UPDATE_TEST_HOOK</span></code>, and <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>, which
+<code class="docutils literal notranslate"><span class="pre">test_updatetelemetrycontroller</span></code> builds again without the hooks. The update hook lets <code class="docutils literal notranslate"><span class="pre">test_selfupdater</span></code> replace the
+capability of the running copy and the base of the package URLs, and lets its transport
+fetch over http, so that it can update from a server on the loopback address into a folder
+of its own. Only the application
+builds the rest of <code class="docutils literal notranslate"><span class="pre">app/</span></code> and <code class="docutils literal notranslate"><span class="pre">UpdateNotices</span></code>. When tests are built, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> also
+compiles <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code>.</p>
+</section>
+<section id="renames">
+<h2>Renames<a class="headerlink" href="#renames" title="Link to this heading">¶</a></h2>
+<p>The graphics classes were named after their Qt base type. They are now named
+after what they draw.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Old</p></th>
+<th class="head"><p>New</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsScene</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NetworkScene</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsView</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NetworkView</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsEllipseItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_node_item.html"><code class="docutils literal notranslate"><span class="pre">NodeItem</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsRectItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_station_node_item.html"><code class="docutils literal notranslate"><span class="pre">StationNodeItem</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsLineItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_track_line_item.html"><code class="docutils literal notranslate"><span class="pre">TrackLineItem</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsPixmapItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_icon_item.html"><code class="docutils literal notranslate"><span class="pre">IconItem</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsColorizeEffect</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HighlightEffect</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">connectionQGraphicsLineItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_connection_item.html"><code class="docutils literal notranslate"><span class="pre">ConnectionItem</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">passengerQGraphicsPixmapItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_passenger_item.html"><code class="docutils literal notranslate"><span class="pre">PassengerItem</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">platformQGraphicsRectItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_platform_item.html"><code class="docutils literal notranslate"><span class="pre">PlatformItem</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">signallingQGraphicsEllipseItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_signal_item.html"><code class="docutils literal notranslate"><span class="pre">SignalItem</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trainQGraphicsItemGroup</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_train_item_group.html"><code class="docutils literal notranslate"><span class="pre">TrainItemGroup</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">trainQGraphicsPolygonItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_train_body_item.html"><code class="docutils literal notranslate"><span class="pre">TrainBodyItem</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">virtualArcQGraphicsLineItem</span></code></p></td>
+<td><p><a class="reference external" href="../api/class_virtual_arc_item.html"><code class="docutils literal notranslate"><span class="pre">VirtualArcItem</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">timeQProgressBar</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TimeProgressBar</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">infoQDockWidget</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">InfoDockWidget</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code> (class)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DispatchController</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IOClass</span></code> (file)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RttpXml</span></code> and <code class="docutils literal notranslate"><span class="pre">ExternalState</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">initial_parameters</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code> rename touched the class only. The project name, the <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>
+target, the <code class="docutils literal notranslate"><span class="pre">EGTRAIN_*</span></code> CMake options, and the <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code> window title,
+organization name, and home directory are unchanged.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Widget.{cpp,h,ui}</span></code> demo, a <code class="docutils literal notranslate"><span class="pre">QWidget</span></code> with one button that nothing
+constructed, was removed.</p>
+</section>
+<section id="build">
+<h2>Build<a class="headerlink" href="#build" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmake</span> <span class="o">-</span><span class="n">S</span> <span class="o">.</span> <span class="o">-</span><span class="n">B</span> <span class="n">build</span> <span class="o">-</span><span class="n">DEGTRAIN_BUILD_TESTS</span><span class="o">=</span><span class="n">ON</span>
+<span class="n">cmake</span> <span class="o">--</span><span class="n">build</span> <span class="n">build</span>
+<span class="n">ctest</span> <span class="o">--</span><span class="n">test</span><span class="o">-</span><span class="nb">dir</span> <span class="n">build</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">failure</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../ui/diagram-navigation.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Inspecting diagrams</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="signalling-levels.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Signalling levels</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">QEGTRAIN source layout</a><ul>
+<li><a class="reference internal" href="#repository-layout">Repository layout</a></li>
+<li><a class="reference internal" href="#folders">Folders</a></li>
+<li><a class="reference internal" href="#completed-run-data">Completed-run data</a></li>
+<li><a class="reference internal" href="#includes">Includes</a></li>
+<li><a class="reference internal" href="#libraries">Libraries</a></li>
+<li><a class="reference internal" href="#renames">Renames</a></li>
+<li><a class="reference internal" href="#build">Build</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

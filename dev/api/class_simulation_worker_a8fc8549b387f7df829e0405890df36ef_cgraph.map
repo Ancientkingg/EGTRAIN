@@ -1,0 +1,6 @@
+<map id="SimulationWorker::active" name="SimulationWorker::active">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,191,62"/>
+<area shape="rect" id="Node000002" href="$class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" title=" " alt="" coords="239,29,453,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,47,225,47,225,52,191,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="300,30,297,20,305,10,321,5,346,3,375,6,391,13,388,18,373,11,346,8,322,10,308,15,302,21,305,28"/>
+</map>

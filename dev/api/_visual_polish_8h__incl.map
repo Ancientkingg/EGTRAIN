@@ -1,0 +1,15 @@
+<map id="graphics/VisualPolish.h" name="graphics/VisualPolish.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="163,5,335,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,72,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,33,86,77,84,72,215,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,79,155,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,33,159,74,156,69,228,28"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="179,79,235,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="245,32,223,68,218,66,240,30"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="259,79,328,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="259,30,281,66,277,68,254,32"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="353,79,423,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="273,28,354,70,352,75,270,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="448,79,507,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="287,28,435,74,434,79,285,33"/>
+</map>

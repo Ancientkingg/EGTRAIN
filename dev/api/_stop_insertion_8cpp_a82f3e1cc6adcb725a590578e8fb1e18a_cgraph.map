@@ -1,0 +1,19 @@
+<map id="sceneRemainingStopTraversal" name="sceneRemainingStopTraversal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,224,92"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="74,68,65,58,69,48,86,42,115,40,150,44,161,49,164,54,160,57,157,53,149,49,115,45,87,47,73,52,70,58,78,65"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#af454f6ad805e4782da5b9ee9d8a43dbe" title=" " alt="" coords="272,29,465,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,64,268,54,269,59,202,69"/>
+<area shape="rect" id="Node000003" href="$_stop_insertion_8cpp.html#aae8ae02ee8c37ce93108e5fae52bf3ea" title=" " alt="" coords="285,103,452,128"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="205,89,272,99,271,104,204,95"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="330,31,321,21,326,11,342,5,369,3,402,7,415,16,412,20,400,11,369,8,343,10,329,15,327,20,334,27"/>
+<area shape="poly" id="edge11_Node000003_Node000003" title=" " alt="" coords="330,104,321,94,326,84,342,78,369,76,402,80,415,89,412,94,400,85,369,81,343,83,329,88,327,94,334,101"/>
+<area shape="rect" id="Node000004" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title=" " alt="" coords="513,103,704,128"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="452,113,499,113,499,118,452,118"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="570,104,561,94,566,84,582,78,609,76,642,80,655,89,652,94,640,85,609,81,583,83,569,88,567,94,574,101"/>
+<area shape="rect" id="Node000005" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="752,103,955,128"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="704,113,738,113,738,118,704,118"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="814,104,805,94,810,84,826,78,853,76,888,80,897,85,901,90,897,93,894,89,886,85,853,81,827,83,813,88,811,94,818,101"/>
+<area shape="rect" id="Node000006" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="1003,103,1227,128"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="955,113,989,113,989,118,955,118"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="1072,104,1063,94,1068,84,1085,78,1115,76,1152,80,1162,85,1166,91,1161,94,1159,89,1151,85,1115,81,1087,83,1072,88,1069,94,1076,101"/>
+</map>

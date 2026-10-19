@@ -1,0 +1,10 @@
+<map id="NetworkView::zoomBy" name="NetworkView::zoomBy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,25,175,50"/>
+<area shape="rect" id="Node000002" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title=" " alt="" coords="501,18,723,58"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,22,222,10,338,3,454,10,488,13,487,19,453,15,338,8,223,15,145,28"/>
+<area shape="rect" id="Node000003" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title=" " alt="" coords="223,25,453,50"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,35,209,35,209,40,175,40"/>
+<area shape="rect" id="Node000004" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title=" " alt="" coords="245,74,431,100"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,48,261,69,260,74,154,53"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="409,72,487,57,488,63,410,77"/>
+</map>

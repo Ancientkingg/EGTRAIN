@@ -1,0 +1,13 @@
+<map id="followAvailability" name="followAvailability">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,140,92"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="43,68,37,58,40,49,53,42,73,40,97,44,107,52,104,56,95,48,73,45,54,47,44,52,42,58,48,65"/>
+<area shape="rect" id="Node000002" href="$_follow_availability_8h.html#ac3c9513914945351da9cdb7fae14bcb2" title=" " alt="" coords="199,29,301,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="133,64,185,53,186,58,134,69"/>
+<area shape="rect" id="Node000004" href="$_time_format_8cpp.html#a6903059349242c88f94f30ba656a03b1" title=" " alt="" coords="188,103,312,128"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="136,89,175,97,174,103,135,95"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="221,31,215,21,218,11,230,5,250,3,274,6,284,15,281,19,272,11,250,8,231,10,222,15,220,20,225,28"/>
+<area shape="rect" id="Node000003" href="$_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57" title=" " alt="" coords="360,29,555,55"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="301,39,346,39,346,45,301,45"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="424,31,416,21,420,11,434,5,457,3,486,6,497,15,494,20,484,11,457,8,435,10,424,15,422,20,428,28"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="221,104,215,94,218,85,230,78,250,76,274,80,284,88,281,92,272,84,250,81,231,83,222,88,220,94,225,101"/>
+</map>

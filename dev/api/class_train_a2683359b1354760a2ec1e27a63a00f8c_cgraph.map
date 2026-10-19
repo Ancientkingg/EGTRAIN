@@ -1,0 +1,20 @@
+<map id="Train::inverseBrakingStep" name="Train::inverseBrakingStep">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,62,193,87"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" title=" " alt="" coords="270,13,401,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,59,260,38,261,44,161,65"/>
+<area shape="rect" id="Node000004" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="241,62,429,87"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="194,72,227,72,227,77,194,77"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Calculation of the sum of all Train Resistances." alt="" coords="501,87,629,127"/>
+<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="160,85,242,97,371,105,487,106,487,111,371,110,241,103,159,90"/>
+<area shape="rect" id="Node000003" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title=" " alt="" coords="477,5,652,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="401,23,463,23,463,28,401,28"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="427,85,487,93,487,99,427,90"/>
+<area shape="rect" id="Node000006" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Calculation of Train Resistances due to Track Curvature." alt="" coords="700,15,904,41"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="610,84,699,49,726,42,728,47,701,55,612,89"/>
+<area shape="rect" id="Node000007" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Calculation of Train Resistances due to Track Gradient." alt="" coords="704,65,900,90"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="629,96,690,89,690,94,629,101"/>
+<area shape="rect" id="Node000008" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="731,115,873,155"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="629,112,717,122,717,127,629,117"/>
+<area shape="rect" id="Node000009" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Calculation of Train Wagons Resistances using the Sauthoff Formula." alt="" coords="706,179,898,205"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="607,124,701,164,730,173,729,178,699,169,605,129"/>
+</map>

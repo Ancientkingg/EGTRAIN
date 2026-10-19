@@ -1,0 +1,25 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,252,80,277"/>
+<area shape="rect" id="Node000001" href="$class_about_dialog.html" title=" " alt="" coords="172,5,275,31"/>
+<area shape="poly" id="edge12_Node000000_Node000001" title=" " alt="" coords="44,238,50,194,65,141,89,87,106,62,126,40,147,27,171,19,173,24,150,32,130,44,110,65,94,89,70,143,56,196,49,238"/>
+<area shape="rect" id="Node000002" href="$class_area_capacity_scope_dialog.html" title=" " alt="" coords="128,55,319,80"/>
+<area shape="poly" id="edge13_Node000000_Node000002" title=" " alt="" coords="47,238,56,204,72,164,95,124,126,89,145,78,148,82,130,93,99,127,77,166,61,206,52,239"/>
+<area shape="rect" id="Node000003" href="$class_area_capacity_window.html" title=" " alt="" coords="143,104,304,129"/>
+<area shape="poly" id="edge14_Node000000_Node000003" title=" " alt="" coords="52,238,80,187,101,161,126,138,148,127,151,132,130,143,105,165,85,190,57,241"/>
+<area shape="rect" id="Node000004" href="$class_case_chooser_dialog.html" title=" " alt="" coords="149,153,298,179"/>
+<area shape="poly" id="edge15_Node000000_Node000004" title=" " alt="" coords="63,239,91,212,127,188,154,176,156,181,129,192,95,216,66,243"/>
+<area shape="rect" id="Node000005" href="$class_delay_analysis_window.html" title=" " alt="" coords="140,203,307,228"/>
+<area shape="poly" id="edge16_Node000000_Node000005" title=" " alt="" coords="92,247,127,237,170,225,171,231,129,242,94,252"/>
+<area shape="rect" id="Node000006" href="$class_diagram_window.html" title=" " alt="" coords="158,252,289,277"/>
+<area shape="poly" id="edge17_Node000000_Node000006" title=" " alt="" coords="94,262,158,262,158,267,94,267"/>
+<area shape="rect" id="Node000007" href="$class_find_dialog.html" title=" " alt="" coords="178,301,269,327"/>
+<area shape="poly" id="edge18_Node000000_Node000007" title=" " alt="" coords="94,276,129,286,179,300,177,305,127,291,93,281"/>
+<area shape="rect" id="Node000008" href="$class_recovery_prompt.html" title=" " alt="" coords="158,351,289,376"/>
+<area shape="poly" id="edge19_Node000000_Node000008" title=" " alt="" coords="66,285,95,312,129,336,160,348,158,353,127,340,91,316,63,289"/>
+<area shape="rect" id="Node000009" href="$class_route_reference_dialog.html" title=" " alt="" coords="139,400,307,425"/>
+<area shape="poly" id="edge20_Node000000_Node000009" title=" " alt="" coords="57,289,85,338,106,364,130,385,153,398,151,402,126,390,102,367,81,341,52,291"/>
+<area shape="rect" id="Node000010" href="$class_telemetry_consent_dialog.html" title=" " alt="" coords="132,449,315,475"/>
+<area shape="poly" id="edge21_Node000000_Node000010" title=" " alt="" coords="52,290,62,324,77,363,100,402,130,435,150,447,148,452,126,439,95,405,73,365,57,325,47,292"/>
+<area shape="rect" id="Node000011" href="$class_timetable_table_window.html" title=" " alt="" coords="136,499,311,524"/>
+<area shape="poly" id="edge22_Node000000_Node000011" title=" " alt="" coords="49,291,56,333,70,385,94,439,110,463,130,484,149,496,146,501,126,488,106,466,89,441,65,387,51,334,44,292"/>
+</map>

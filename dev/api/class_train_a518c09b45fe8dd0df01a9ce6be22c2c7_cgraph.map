@@ -1,0 +1,17 @@
+<map id="Train::predictBrakingPrefix" name="Train::predictBrakingPrefix">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,113,199,139"/>
+<area shape="rect" id="Node000002" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="247,84,435,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,111,233,107,234,112,199,117"/>
+<area shape="rect" id="Node000008" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title=" " alt="" coords="253,134,428,174"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="199,135,240,140,239,145,199,140"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Calculation of the sum of all Train Resistances." alt="" coords="483,77,611,117"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,94,469,94,469,99,435,99"/>
+<area shape="rect" id="Node000004" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Calculation of Train Resistances due to Track Curvature." alt="" coords="659,5,863,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="582,74,658,40,682,32,684,37,660,44,585,79"/>
+<area shape="rect" id="Node000005" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Calculation of Train Resistances due to Track Gradient." alt="" coords="663,55,859,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="610,85,654,79,655,85,611,91"/>
+<area shape="rect" id="Node000006" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="689,105,832,145"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="611,102,676,111,675,116,610,108"/>
+<area shape="rect" id="Node000007" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Calculation of Train Wagons Resistances using the Sauthoff Formula." alt="" coords="665,169,857,195"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="581,114,618,135,660,154,686,163,684,168,658,159,616,140,579,119"/>
+</map>

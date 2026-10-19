@@ -1,0 +1,8 @@
+<map id="Train::currentFollowingAuthority" name="Train::currentFollowingAuthority">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,43,235,68"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" title=" " alt="" coords="283,5,493,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,40,282,30,283,35,212,45"/>
+<area shape="rect" id="Node000003" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title=" " alt="" coords="343,79,433,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,65,330,81,329,86,215,71"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="345,80,336,70,340,60,358,54,388,52,426,56,437,61,440,67,436,70,433,65,425,61,388,57,359,59,344,64,341,70,349,77"/>
+</map>

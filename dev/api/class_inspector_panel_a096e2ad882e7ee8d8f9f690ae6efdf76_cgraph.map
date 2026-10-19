@@ -1,0 +1,11 @@
+<map id="InspectorPanel::displayArcInfo" name="InspectorPanel::displayArcInfo">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,224,134"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="272,5,477,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,106,271,55,293,47,295,52,273,60,146,111"/>
+<area shape="rect" id="Node000003" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title=" " alt="" coords="282,69,467,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,106,268,100,268,105,218,111"/>
+<area shape="rect" id="Node000004" href="$class_track_line_item.html#aa41b680d18b2297565423a2a126a818d" title=" " alt="" coords="277,133,472,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="218,131,264,137,264,142,218,137"/>
+<area shape="rect" id="Node000005" href="$class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" title=" " alt="" coords="305,197,444,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="146,132,273,183,295,191,293,196,271,188,144,137"/>
+</map>

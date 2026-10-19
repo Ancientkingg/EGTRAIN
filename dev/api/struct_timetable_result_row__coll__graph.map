@@ -1,0 +1,5 @@
+<map id="TimetableResultRow" name="TimetableResultRow">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,201,163,227"/>
+<area shape="rect" id="Node000002" href="$struct_run_result_value.html" title=" " alt="" coords="22,5,146,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,44,87,201,81,201,81,44"/>
+</map>

@@ -1,0 +1,21 @@
+<map id="StationOverlayItem::priorityLess" name="StationOverlayItem::priorityLess">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,101,155,141"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a5725b662eed349037e4e458eb93a78b5" title=" " alt="" coords="207,5,356,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,99,202,55,216,49,218,53,204,60,119,103"/>
+<area shape="rect" id="Node000003" href="$class_station_overlay_item.html#a3d7bca99fb07700aa7762a0fead80045" title=" " alt="" coords="207,69,356,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,107,193,101,193,106,155,112"/>
+<area shape="rect" id="Node000004" href="$class_station_overlay_item.html#a0bea953d546c7ef979fb212e7c3fd28d" title=" " alt="" coords="207,133,356,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,131,193,137,193,142,154,136"/>
+<area shape="rect" id="Node000005" href="$class_station_overlay_item.html#a3fc77e5aa0720ff49d0ea9cb1928379e" title=" " alt="" coords="203,197,360,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="119,139,204,183,218,189,216,194,202,188,116,144"/>
+<area shape="rect" id="Node000006" href="$class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" title=" " alt="" coords="408,69,557,109"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="340,195,358,183,373,168,382,152,391,136,406,119,413,114,416,119,410,123,395,139,386,155,378,171,362,187,343,199"/>
+<area shape="rect" id="Node000007" href="$class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" title=" " alt="" coords="408,133,557,173"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="344,195,405,175,407,180,346,200"/>
+<area shape="rect" id="Node000008" href="$class_station_overlay_item.html#af08a4a63689f7ba4b61c46f1c5ac886a" title=" " alt="" coords="408,197,557,237"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="360,215,394,215,394,220,360,220"/>
+<area shape="rect" id="Node000009" href="$class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" title=" " alt="" coords="408,261,557,301"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="346,235,407,255,405,260,344,240"/>
+<area shape="rect" id="Node000010" href="$class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" title=" " alt="" coords="408,325,557,365"/>
+<area shape="poly" id="edge9_Node000005_Node000010" title=" " alt="" coords="307,235,353,273,409,311,420,317,418,322,407,316,350,277,304,240"/>
+</map>

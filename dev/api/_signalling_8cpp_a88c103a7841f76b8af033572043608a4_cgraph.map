@@ -1,0 +1,11 @@
+<map id="createBlockConn" name="createBlockConn">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,137,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="39,31,32,21,35,11,49,5,71,3,98,6,110,15,106,19,96,11,71,8,50,10,39,15,37,20,43,28"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="403,29,627,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="137,31,185,27,270,25,355,27,389,29,389,34,355,33,270,30,185,33,138,37"/>
+<area shape="rect" id="Node000003" href="$_signalling_8cpp.html#ac4a294eef644fcf6b45b6ab8f60da05b" title=" " alt="" coords="185,67,355,92"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="138,52,189,61,188,67,137,57"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="475,31,467,21,471,11,488,5,515,3,549,7,559,11,562,17,558,20,555,15,548,12,515,8,489,10,475,15,472,20,479,27"/>
+<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="353,64,417,54,418,59,354,69"/>
+<area shape="poly" id="edge6_Node000003_Node000003" title=" " alt="" coords="237,68,231,58,234,48,248,42,270,40,297,44,308,52,305,57,295,48,270,45,249,47,238,52,236,58,242,65"/>
+</map>

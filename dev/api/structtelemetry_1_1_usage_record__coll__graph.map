@@ -1,0 +1,7 @@
+<map id="telemetry::UsageRecord" name="telemetry::UsageRecord">
+<area shape="rect" id="Node000001" title=" " alt="" coords="13,212,192,237"/>
+<area shape="rect" id="Node000002" href="$structtelemetry_1_1_telemetry_event.html" title=" " alt="" coords="5,116,200,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,155,105,212,100,212,100,155"/>
+<area shape="rect" id="Node000003" href="$structtelemetry_1_1_telemetry_event_input.html" title=" " alt="" coords="5,5,200,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,59,105,116,100,116,100,59"/>
+</map>

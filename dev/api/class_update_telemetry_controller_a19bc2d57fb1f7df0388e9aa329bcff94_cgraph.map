@@ -1,0 +1,12 @@
+<map id="UpdateTelemetryController::startUpdateCheck" name="UpdateTelemetryController::startUpdateCheck">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,95,204,135"/>
+<area shape="rect" id="Node000002" href="$_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" title=" " alt="" coords="291,29,463,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,93,251,63,288,55,289,60,253,69,160,98"/>
+<area shape="rect" id="Node000003" href="$_update_settings_8cpp.html#aafad3b22f25264ecfe072e5b38a4c751" title=" " alt="" coords="287,103,466,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="204,113,273,113,273,118,204,118"/>
+<area shape="rect" id="Node000004" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="252,176,501,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="180,133,316,170,315,175,179,138"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="333,31,324,21,329,11,347,5,377,3,415,7,426,12,429,18,425,20,422,16,414,12,377,8,348,10,332,15,329,20,337,27"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="333,104,324,94,329,84,347,78,377,76,415,80,426,85,429,91,425,94,422,89,414,85,377,81,348,83,332,88,329,94,337,101"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="333,178,324,168,329,158,347,151,377,149,415,153,426,158,429,164,425,167,422,162,414,159,377,155,348,157,332,162,329,167,337,174"/>
+</map>

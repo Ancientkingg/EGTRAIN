@@ -1,0 +1,15 @@
+<map id="graphics/items/TrainBodyItem.h" name="graphics/items/TrainBodyItem.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="385,5,572,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,176,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="386,48,161,93,160,88,385,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="200,93,277,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="422,48,288,92,286,87,420,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="301,93,496,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="461,47,422,85,419,82,457,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="521,93,599,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="500,44,540,82,536,85,497,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="623,93,715,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="525,43,630,86,628,91,523,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="739,93,810,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="550,43,727,89,725,94,549,48"/>
+</map>

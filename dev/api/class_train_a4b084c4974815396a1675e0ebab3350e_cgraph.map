@@ -1,0 +1,9 @@
+<map id="Train::computeArrivalAndDepartureAtLocation" name="Train::computeArrivalAndDepartureAtLocation">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,192,99"/>
+<area shape="rect" id="Node000002" href="$_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470" title=" " alt="" coords="247,29,398,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,61,233,54,234,59,193,66"/>
+<area shape="rect" id="Node000003" href="$_rolling_stock_8h.html#a8629a8afffc521451b0ac8d789af22c1" title=" " alt="" coords="240,103,405,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="193,92,230,98,230,103,192,97"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="286,31,278,21,282,11,298,5,323,3,354,7,366,16,363,20,352,11,323,8,299,10,286,15,283,20,290,27"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="286,104,278,94,282,84,298,78,323,76,354,80,366,89,363,93,352,85,323,81,299,83,286,88,283,94,290,101"/>
+</map>

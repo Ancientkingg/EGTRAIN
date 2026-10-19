@@ -1,0 +1,8 @@
+<map id="CompositionPanel::plotSelectedUnitTraction" name="CompositionPanel::plotSelectedUnitTraction">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,233,91"/>
+<area shape="rect" id="Node000002" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title=" " alt="" coords="307,29,453,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,56,293,49,293,54,234,61"/>
+<area shape="rect" id="Node000003" href="$class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8" title=" " alt="" coords="281,79,479,119"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="234,81,268,85,267,90,233,86"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="338,31,329,21,334,11,351,5,380,3,417,7,427,11,431,17,426,20,423,15,415,12,380,8,352,10,337,15,334,20,342,27"/>
+</map>

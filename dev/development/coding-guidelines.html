@@ -1,0 +1,883 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Documentation decision" href="documentation-decision.html"><link rel="prev" title="Code signing" href="code-signing.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Coding guidelines - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-properties.html">V1 scene properties</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-corridor.html">Assignment corridor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/feature-status.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/coding-guidelines.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="coding-guidelines">
+<h1>Coding guidelines<a class="headerlink" href="#coding-guidelines" title="Link to this heading">¶</a></h1>
+<p>This guide records the conventions that new code follows. The newer modules (<code class="docutils literal notranslate"><span class="pre">scene/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">update/</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/</span></code>, <code class="docutils literal notranslate"><span class="pre">widgets/</span></code>, <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code>) set the style.
+<code class="docutils literal notranslate"><span class="pre">simulation/</span></code> is legacy code with different naming, fixed-size arrays and
+<code class="docutils literal notranslate"><span class="pre">std::list</span></code> containers; new code follows the newer modules, including when it is added to
+<code class="docutils literal notranslate"><span class="pre">simulation/</span></code>. These rules do not ask for a rename of legacy code.</p>
+<p>Formatting follows <code class="docutils literal notranslate"><span class="pre">.clang-format</span></code> and <code class="docutils literal notranslate"><span class="pre">.editorconfig</span></code> in the repository root.
+<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/format.py</span> <span class="pre">--fix</span></code> formats every C++ source under <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/format.py</span></code> checks them and lists the files that differ. The pull request
+checks run the same check. The script needs clang-format 23.1.3, because other releases
+format some constructs differently: <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">clang-format==23.1.3</span></code>
+installs it, and the environment variable <code class="docutils literal notranslate"><span class="pre">CLANG_FORMAT</span></code> names the executable when it is
+not the <code class="docutils literal notranslate"><span class="pre">clang-format</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. The vendored code in <code class="docutils literal notranslate"><span class="pre">io/third_party/</span></code> is listed in
+<code class="docutils literal notranslate"><span class="pre">.clang-format-ignore</span></code> and is not reformatted.</p>
+<p>The formatter keeps the line breaks of the author and sets no column limit. It keeps a
+break before a binary operator, and a break inside an argument only when that argument
+starts on a line of its own. A statement that is wrapped elsewhere comes out as one long
+line, so wrap it at one of those places.</p>
+<p><code class="docutils literal notranslate"><span class="pre">.git-blame-ignore-revs</span></code> lists the commits that only changed the format.
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">config</span> <span class="pre">blame.ignoreRevsFile</span> <span class="pre">.git-blame-ignore-revs</span></code> makes <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">blame</span></code> skip them, and
+the blame view of GitHub skips them without a setting.</p>
+<section id="static-checks">
+<h2>Static checks<a class="headerlink" href="#static-checks" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/tidy.py</span></code> runs clang-tidy on the sources of the modules outside <code class="docutils literal notranslate"><span class="pre">simulation/</span></code>
+and lists the findings; it exits with 1 on any finding. The pull request checks run the
+same script. It configures a Ninja build in <code class="docutils literal notranslate"><span class="pre">build_tidy/</span></code> (<code class="docutils literal notranslate"><span class="pre">--build-dir</span></code> changes it), builds
+the files that Qt generates (moc, uic and resources), and analyses the sources of the build
+in parallel. It needs CMake, Ninja, Qt 5 and clang-tidy 23.1, the release that the findings
+are agreed for: <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">llvm</span></code> on macOS, or the <code class="docutils literal notranslate"><span class="pre">llvm.sh</span></code> script of apt.llvm.org on
+Ubuntu (PyPI has no clang-tidy 23). The environment variable <code class="docutils literal notranslate"><span class="pre">CLANG_TIDY</span></code> names the
+executable when it is not the <code class="docutils literal notranslate"><span class="pre">clang-tidy</span></code> on PATH. The script adds the macOS SDK path
+itself.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/tidy.py</span></code> analyses every source.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/tidy.py</span> <span class="pre">FILE...</span></code> analyses the named sources.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/tidy.py</span> <span class="pre">--changed-from</span> <span class="pre">REV</span></code> analyses the sources that changed since <code class="docutils literal notranslate"><span class="pre">REV</span></code>
+and the sources that include a changed header. The pull request check passes the base
+of the pull request. It analyses every source when <code class="docutils literal notranslate"><span class="pre">.clang-tidy</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/tidy.py</span></code>, a
+<code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>, a <code class="docutils literal notranslate"><span class="pre">.ui</span></code> or <code class="docutils literal notranslate"><span class="pre">.qrc</span></code> file, or the workflow changed. The nightly and the
+manual run of the Tidy workflow analyse every source.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--no-build</span></code> reuses the configured build directory, which is faster when only a source
+changed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">N</span></code> sets the number of parallel clang-tidy processes (default: the number of CPUs).</p></li>
+</ul>
+<p>The checks are selected in <code class="docutils literal notranslate"><span class="pre">.clang-tidy</span></code>, and they apply to every analysed module:
+<code class="docutils literal notranslate"><span class="pre">app/</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code>, <code class="docutils literal notranslate"><span class="pre">editors/</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery/</span></code>, <code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">update/</span></code>, <code class="docutils literal notranslate"><span class="pre">util/</span></code>, <code class="docutils literal notranslate"><span class="pre">widgets/</span></code> and <code class="docutils literal notranslate"><span class="pre">tests/</span></code>. Two places differ. <code class="docutils literal notranslate"><span class="pre">tests/.clang-tidy</span></code>
+inherits them and switches off the performance checks and a few others for the tests, with
+the reason of each next to it. <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> is not analysed yet, and its headers are not
+in the header filter, so a finding in one of them does not fail a source that includes it.
+<code class="docutils literal notranslate"><span class="pre">io/third_party/</span></code> has its own <code class="docutils literal notranslate"><span class="pre">.clang-tidy</span></code> that switches the analysis off.</p>
+<p>A finding is fixed in the code. When the check is wrong for one place, the line carries
+<code class="docutils literal notranslate"><span class="pre">//</span> <span class="pre">NOLINT(check-name):</span> <span class="pre">reason</span></code>. These checks are switched off for every module because
+their findings are style or noise that a rewrite would not repay, or because the check
+cannot see how Qt owns objects.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Check</p></th>
+<th class="head"><p>Why it is off</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-signed-bitwise</span></code></p></td>
+<td><p>Qt flags, hashes and masks computed in <code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-exception-escape</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">main</span></code>, destructors and lambdas of slots; the application does not throw across them</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-throwing-static-initialization</span></code></p></td>
+<td><p>Statics that hold a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> or a mutex</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-implicit-widening-of-multiplication-result</span></code></p></td>
+<td><p>Products of small values, such as milliseconds per second</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-unchecked-string-to-number-conversion</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">atoi</span></code> and <code class="docutils literal notranslate"><span class="pre">atof</span></code> on command line values in <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-nondeterministic-pointer-iteration-order</span></code></p></td>
+<td><p>Vectors of pointers that are sorted by a field, not by address</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-derived-method-shadowing-base-method</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NetworkView::centerOn</span></code> hides the Qt method on purpose</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-misplaced-widening-cast</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">static_cast&lt;std::size_t&gt;(index</span> <span class="pre">+</span> <span class="pre">1)</span></code> on a checked index</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">clang-analyzer-cplusplus.NewDeleteLeaks</span></code></p></td>
+<td><p>A Qt parent owns the object that <code class="docutils literal notranslate"><span class="pre">new</span></code> creates</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">clang-analyzer-optin.core.EnumCastOutOfRange</span></code></p></td>
+<td><p>In <code class="docutils literal notranslate"><span class="pre">zmq.hpp</span></code>, which is not ours</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">performance-enum-size</span></code></p></td>
+<td><p>Style</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">performance-avoid-endl</span></code></p></td>
+<td><p>The log wants the flush</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">performance-inefficient-vector-operation</span></code></p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">reserve</span></code> that would save little</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">performance-inefficient-string-concatenation</span></code></p></td>
+<td><p>A few temporaries in code that is not hot</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">performance-faster-string-find</span></code>, <code class="docutils literal notranslate"><span class="pre">performance-prefer-single-char-overloads</span></code></p></td>
+<td><p>Micro-optimisations</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two checks are not selected, because their findings are not worth fixing. Counts are from
+clang-tidy 23.1.3 over all analysed modules.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Check</p></th>
+<th class="head"><p>Findings</p></th>
+<th class="head"><p>Why it is not selected</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">readability-implicit-bool-conversion</span></code></p></td>
+<td><p>2269, of which 1407 in <code class="docutils literal notranslate"><span class="pre">tests/</span></code></p></td>
+<td><p>Almost all are a pointer or an integer used as a condition (<code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">(ptr)</span></code>, <code class="docutils literal notranslate"><span class="pre">!ptr</span></code>), the idiom of the Qt code and of this code. With those conditions allowed, 455 remain, mostly the same idiom inside a larger expression such as <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">&amp;&amp;</span> <span class="pre">!m_worker</span></code>. <code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/</span></code> and <code class="docutils literal notranslate"><span class="pre">util/</span></code> have 44, all of the first kind</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cppcoreguidelines-owning-memory</span></code></p></td>
+<td><p>918, of which 183 in <code class="docutils literal notranslate"><span class="pre">tests/</span></code></p></td>
+<td><p>The check follows <code class="docutils literal notranslate"><span class="pre">gsl::owner</span></code>, and nearly every finding is <code class="docutils literal notranslate"><span class="pre">new</span></code> for a widget, layout, action or thread that a Qt parent owns. <code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/</span></code> and <code class="docutils literal notranslate"><span class="pre">util/</span></code>, which do not use Qt ownership, have none</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="warnings">
+<h2>Warnings<a class="headerlink" href="#warnings" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">egtrain_target_warnings(&lt;target&gt;</span> <span class="pre">[STRICT])</span></code> in the root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> adds <code class="docutils literal notranslate"><span class="pre">-Wall</span> <span class="pre">-Wextra</span></code>
+(<code class="docutils literal notranslate"><span class="pre">/W4</span></code> with MSVC) to the C++ sources of one target. The flags are private to the target, so a
+target that links a library does not get them.</p>
+<ul class="simple">
+<li><p>Strict targets build without a warning: <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_live</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_http</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update</span></code>,
+<code class="docutils literal notranslate"><span class="pre">egtrain_sceneopen</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_openrelay</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_recovery</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_graphics</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_widgets</span></code>, the <code class="docutils literal notranslate"><span class="pre">egtrain_telemetry</span></code> libraries, <code class="docutils literal notranslate"><span class="pre">egtrain_diagrams</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code> and the tests that use only these libraries. When
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_WARNINGS_AS_ERRORS</span></code> is ON they also get <code class="docutils literal notranslate"><span class="pre">-Werror</span></code> (<code class="docutils literal notranslate"><span class="pre">/WX</span></code> with MSVC), so a new
+warning fails the build.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">egtrain_dispatch</span></code> has the flags only. Its own sources are clean, and the warnings in its
+build log come from the simulation headers.</p></li>
+<li><p>These have no flags: the vendored <code class="docutils literal notranslate"><span class="pre">egtrain_pugixml</span></code> and <code class="docutils literal notranslate"><span class="pre">egtrain_miniz</span></code>, the legacy
+<code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code> and <code class="docutils literal notranslate"><span class="pre">egtrain_rttp</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, and the test executables that use the
+simulation. A comment next to the calls gives the number of warnings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update/SelfUpdater.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code> and
+<code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryConsentDialog.cpp</span></code> build inside <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, so they get no flags yet.
+<code class="docutils literal notranslate"><span class="pre">update/SelfUpdater.cpp</span></code> is the exception in the strict <code class="docutils literal notranslate"><span class="pre">test_selfupdater</span></code>, and <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code> in the strict
+<code class="docutils literal notranslate"><span class="pre">test_updatetelemetrycontroller</span></code>, which compile them with the flags.</p></li>
+</ul>
+<p>To give a new target the flags, call <code class="docutils literal notranslate"><span class="pre">egtrain_target_warnings(&lt;target&gt;</span> <span class="pre">STRICT)</span></code> after its
+<code class="docutils literal notranslate"><span class="pre">add_library</span></code> or <code class="docutils literal notranslate"><span class="pre">add_executable</span></code>, or add a test to the list of strict tests in the test block,
+and fix its warnings first. A source in a strict target that needs <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>
+or <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h</span></code> includes <code class="docutils literal notranslate"><span class="pre">diagrams/SimulationHeaders.h</span></code> instead, because those
+headers still give warnings and that header keeps them out of the build. A function that a
+platform does not use, such as the update stagers in <code class="docutils literal notranslate"><span class="pre">update/UpdatePreparation.cpp</span></code>, is marked
+<code class="docutils literal notranslate"><span class="pre">[[maybe_unused]]</span></code>.</p>
+<p>To treat these warnings as errors in a local build, configure with the option:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DEGTRAIN_WARNINGS_AS_ERRORS<span class="o">=</span>ON
+</pre></div>
+</div>
+<p>The option is OFF by default, so a newer compiler cannot break a local build with a warning
+that the code did not give before. The pull request checks configure with the option ON on
+macOS, Linux and Windows.</p>
+<p>The three compilers do not report the same things. MSVC <code class="docutils literal notranslate"><span class="pre">/W4</span></code> also reports a local name that
+hides a class member, a global variable or a local of an enclosing scope (C4456 to C4459), and
+a 32-bit shift that is widened to 64 bits (C4334). Clang and GCC accept both with
+<code class="docutils literal notranslate"><span class="pre">-Wall</span> <span class="pre">-Wextra</span></code>, so such code passes a local build on macOS or Linux and fails the Windows
+check. A target with the flags is compiled with <code class="docutils literal notranslate"><span class="pre">_CRT_SECURE_NO_WARNINGS</span></code> on Windows, because
+MSVC otherwise reports standard functions such as <code class="docutils literal notranslate"><span class="pre">std::getenv</span></code> as deprecated.</p>
+</section>
+<section id="file-layout">
+<h2>File layout<a class="headerlink" href="#file-layout" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="../architecture/source-layout.html"><span class="std std-doc">Source layout</span></a> describes the folders and the include
+convention. Use this table to decide where a new file goes. Paths are relative to
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code> unless noted.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Folder</p></th>
+<th class="head"><p>Put here</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code></p></td>
+<td><p>Entry point, main window and the controller that prepares and runs a scene</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code></p></td>
+<td><p>The simulation engine and the builders that fill its runtime data from a <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> (legacy style)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code></p></td>
+<td><p>The canonical scene model: load, validate, write, import, export, bundle and migrate</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">graphics/</span></code></p></td>
+<td><p>The network canvas and view; <code class="docutils literal notranslate"><span class="pre">graphics/items/</span></code> holds the <code class="docutils literal notranslate"><span class="pre">QGraphicsItem</span></code> subclasses</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">widgets/</span></code></p></td>
+<td><p>Dock widgets, dialogs and small controls</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diagrams/</span></code></p></td>
+<td><p>Result windows, charts and the run-result data they show</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">io/</span></code></p></td>
+<td><p>Exchange formats for external tools; vendored libraries in <code class="docutils literal notranslate"><span class="pre">io/third_party/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">util/</span></code></p></td>
+<td><p>Helpers shared by several folders: formatting, CSV output, versions, profiling</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">update/</span></code></p></td>
+<td><p>Release check, package download, self-update and the <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code> executable</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">telemetry/</span></code></p></td>
+<td><p>Consent, queue and sender for usage and diagnostics events, see the <a class="reference internal" href="../telemetry/README.html"><span class="std std-doc">wire contract</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">recovery/</span></code></p></td>
+<td><p>Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the controller that writes them in the background</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tests/</span></code></p></td>
+<td><p>C++ test executables, one per file, with data in <code class="docutils literal notranslate"><span class="pre">tests/fixtures/</span></code>. The folder <code class="docutils literal notranslate"><span class="pre">tests/e2e/</span></code> is the runner of the scripted GUI scenarios, compiled into <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> itself and not a test executable</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tools/</span></code></p></td>
+<td><p>At the repository root: Python and shell tests and helpers (<code class="docutils literal notranslate"><span class="pre">e2e/</span></code>, <code class="docutils literal notranslate"><span class="pre">memory/</span></code>, <code class="docutils literal notranslate"><span class="pre">performance/</span></code>, <code class="docutils literal notranslate"><span class="pre">release/</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>Add a new <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> to the library that holds its folder (<a class="reference internal" href="../architecture/source-layout.html#libraries"><span class="std std-ref">Libraries</span></a>),
+or to <code class="docutils literal notranslate"><span class="pre">EGTRAIN_SOURCES</span></code> when only the application uses it. Add a new <code class="docutils literal notranslate"><span class="pre">.h</span></code> to <code class="docutils literal notranslate"><span class="pre">EGTRAIN_HEADERS</span></code>
+unless it belongs to a library source. Both lists are in the root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>.</p></li>
+<li><p>Include project headers with quotes and a path from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code>, for example
+<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;scene/SceneModel.h&quot;</span></code>. Qt and standard headers use angle brackets.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code> and <code class="docutils literal notranslate"><span class="pre">util/</span></code> contain no Qt types, and <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> links no Qt. Code that needs
+Qt goes elsewhere and converts at the boundary, for example with <code class="docutils literal notranslate"><span class="pre">QString::fromStdString</span></code>.</p></li>
+<li><p>New headers use <code class="docutils literal notranslate"><span class="pre">.h</span></code> and <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">once</span></code>. Guard styles are mixed today (<code class="docutils literal notranslate"><span class="pre">#ifndef</span></code> in
+<code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> and most of <code class="docutils literal notranslate"><span class="pre">update/</span></code>; <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">once</span></code> in <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">update/HttpTransport.h</span></code> and part of <code class="docutils literal notranslate"><span class="pre">widgets/</span></code>), and <code class="docutils literal notranslate"><span class="pre">.hpp</span></code> appears only in older <code class="docutils literal notranslate"><span class="pre">util/</span></code>
+files and the vendored code.</p></li>
+</ul>
+</section>
+<section id="naming">
+<h2>Naming<a class="headerlink" href="#naming" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Files: PascalCase, named after the main type or group of functions
+(<code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.h</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/items/NodeItem.cpp</span></code>). The lower-case exceptions are
+<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">util/portability.h</span></code> and <code class="docutils literal notranslate"><span class="pre">util/timeutil.hpp</span></code>.</p></li>
+<li><p>Types: PascalCase (<code class="docutils literal notranslate"><span class="pre">UpdateChecker</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneDiagnostic</span></code>). New enumerations are
+<code class="docutils literal notranslate"><span class="pre">enum</span> <span class="pre">class</span></code> with PascalCase values (<code class="docutils literal notranslate"><span class="pre">SceneSeverity::Warning</span></code>). Plain enums appear where
+Qt expects integers, such as <code class="docutils literal notranslate"><span class="pre">enum</span> <span class="pre">{</span> <span class="pre">Type</span> <span class="pre">=</span> <span class="pre">UserType</span> <span class="pre">+</span> <span class="pre">N</span> <span class="pre">}</span></code> in <code class="docutils literal notranslate"><span class="pre">graphics/items/</span></code>.</p></li>
+<li><p>Functions, methods, variables and parameters: camelCase (<code class="docutils literal notranslate"><span class="pre">loadScene</span></code>,
+<code class="docutils literal notranslate"><span class="pre">classifyTrackSpeed</span></code>). Accessors have no <code class="docutils literal notranslate"><span class="pre">get</span></code> prefix (<code class="docutils literal notranslate"><span class="pre">stationName()</span></code>), setters start
+with <code class="docutils literal notranslate"><span class="pre">set</span></code>, and boolean queries start with <code class="docutils literal notranslate"><span class="pre">is</span></code> or <code class="docutils literal notranslate"><span class="pre">has</span></code> (<code class="docutils literal notranslate"><span class="pre">isChecking()</span></code>).</p></li>
+<li><p>Class data members: <code class="docutils literal notranslate"><span class="pre">m_</span></code> prefix (<code class="docutils literal notranslate"><span class="pre">m_transport</span></code>, <code class="docutils literal notranslate"><span class="pre">m_reply</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateChecker.h</span></code>). A
+few classes use a trailing underscore (<code class="docutils literal notranslate"><span class="pre">app/GuiReplayHistory.h</span></code>); new code uses <code class="docutils literal notranslate"><span class="pre">m_</span></code>.
+Public fields of plain data structs have no prefix (<code class="docutils literal notranslate"><span class="pre">SceneDiagnostic::itemId</span></code>).</p></li>
+<li><p>Constants are <code class="docutils literal notranslate"><span class="pre">constexpr</span></code> with a <code class="docutils literal notranslate"><span class="pre">k</span></code> prefix: <code class="docutils literal notranslate"><span class="pre">kUpdateCheckTimeoutMs</span></code> in an anonymous
+namespace in <code class="docutils literal notranslate"><span class="pre">update/UpdateChecker.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">kCurrentSceneSchemaVersion</span></code> as <code class="docutils literal notranslate"><span class="pre">inline</span> <span class="pre">constexpr</span></code>
+in <code class="docutils literal notranslate"><span class="pre">scene/SceneModel.h</span></code>. Helpers used by one <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> file also go in an anonymous namespace.</p></li>
+<li><p>Mark overriding virtual functions <code class="docutils literal notranslate"><span class="pre">override</span></code>, as <code class="docutils literal notranslate"><span class="pre">graphics/items/StationOverlayItem.h</span></code>
+does. <code class="docutils literal notranslate"><span class="pre">modernize-use-override</span></code> checks it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code> mixes snake_case, Mixed_Case and camelCase (<code class="docutils literal notranslate"><span class="pre">signalling_block_sections</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Signalling_Level</span></code>, <code class="docutils literal notranslate"><span class="pre">numTrackLines</span></code>). Do not copy those forms.</p></li>
+</ul>
+</section>
+<section id="ownership">
+<h2>Ownership<a class="headerlink" href="#ownership" title="Link to this heading">¶</a></h2>
+<p>New code adds no owning raw pointers. Choose the owner by what the object is.</p>
+<ul class="simple">
+<li><p>QObjects, widgets and dialogs: the parent owns its children. Pass the parent when you
+create a child and keep only a non-owning pointer (<code class="docutils literal notranslate"><span class="pre">m_toggle</span> <span class="pre">=</span> <span class="pre">new</span> <span class="pre">QToolButton(this)</span></code> in
+<code class="docutils literal notranslate"><span class="pre">widgets/NetworkLegendWidget.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">QThread(this)</span></code> in <code class="docutils literal notranslate"><span class="pre">update/SelfUpdater.cpp</span></code>). A
+constructor that can have a parent takes <code class="docutils literal notranslate"><span class="pre">QObject*</span> <span class="pre">parent</span> <span class="pre">=</span> <span class="pre">nullptr</span></code> and passes it to
+the base class (<code class="docutils literal notranslate"><span class="pre">UpdateChecker</span></code>). Use <code class="docutils literal notranslate"><span class="pre">QPointer</span></code> for a pointer whose target another owner
+can delete (<code class="docutils literal notranslate"><span class="pre">m_reply</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateChecker.h</span></code>) and <code class="docutils literal notranslate"><span class="pre">deleteLater()</span></code> for an object
+without a parent.</p></li>
+<li><p>Graphics items: the scene owns an item after <code class="docutils literal notranslate"><span class="pre">scene-&gt;addItem(item)</span></code>, and a child item
+gets its parent item when it is created (<code class="docutils literal notranslate"><span class="pre">graphics/items/SignalItem.cpp</span></code>). Pointers to
+scene items held elsewhere only observe them: <code class="docutils literal notranslate"><span class="pre">NetworkPresenter::clear</span></code> calls
+<code class="docutils literal notranslate"><span class="pre">scene-&gt;clear()</span></code>, which deletes the items, then clears the lists that point at them
+(<code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp</span></code>, documented in <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.h</span></code>).</p></li>
+<li><p>Everything else: <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> for collections and arrays, <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> for one owned
+object that is not a QObject. <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> holds its entity lists in <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> members,
+<code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.h</span></code> owns a <code class="docutils literal notranslate"><span class="pre">std::unique_ptr&lt;ConsoleStreambuf&gt;</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryQueue.h</span></code> owns a <code class="docutils literal notranslate"><span class="pre">std::unique_ptr&lt;QLockFile&gt;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code> keeps the state of a run in <code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code> and not in <code class="docutils literal notranslate"><span class="pre">extern</span></code> globals. Do not add
+any. <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code>, the settings that the window edits, is the one that is left.
+State that a run builds up and the next run must not see is a member of <code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code>
+(<code class="docutils literal notranslate"><span class="pre">simulation/SimulationRun.h</span></code>). <code class="docutils literal notranslate"><span class="pre">SimulationRun::reset()</span></code> clears every member except the
+infrastructure in place. A new member needs a line in <code class="docutils literal notranslate"><span class="pre">reset()</span></code>.
+The routines of <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> take the run they work on as a <code class="docutils literal notranslate"><span class="pre">SimulationRun&amp;</span></code> parameter, and the
+member functions of a <code class="docutils literal notranslate"><span class="pre">Train</span></code> reach it through <code class="docutils literal notranslate"><span class="pre">Train::run_</span></code>, which <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code>
+sets. The window and <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> read the run
+through <code class="docutils literal notranslate"><span class="pre">DispatchController::run()</span></code>, and <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> takes it as a parameter. The canvas takes
+<code class="docutils literal notranslate"><span class="pre">mutableRun()</span></code> because it writes its layout into the tracks, stations and connections. A test that
+calls the builders itself passes them <code class="docutils literal notranslate"><span class="pre">defaultRun()</span></code> or a <code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code> of its own.
+<code class="docutils literal notranslate"><span class="pre">SimulationRun::settings</span></code> is the copy of <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> that <code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code>
+takes once the scene is built. <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> and the routines of <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> read the
+buffer time, the recovery time, the output folder and the other settings of a run from the copy,
+so a change to <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> afterwards does not reach the run. The builders and <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>
+read <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> because they make the copy. <code class="docutils literal notranslate"><span class="pre">timestep</span></code> and <code class="docutils literal notranslate"><span class="pre">signalCode1</span></code> to
+<code class="docutils literal notranslate"><span class="pre">signalCode3</span></code> are <code class="docutils literal notranslate"><span class="pre">constexpr</span></code> values in <code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h</span></code>.
+<code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code> builds the scene into a staged <code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code> and puts it in the
+place of the run of the controller with <code class="docutils literal notranslate"><span class="pre">SimulationRun::adopt()</span></code>, which points the trains at the
+run and builds the indexes again; a member that points at another member of the run needs a line
+there. A scene that fails leaves the controller with a new run. While the worker thread steps a run
+the window sees it only through the snapshots, which <code class="docutils literal notranslate"><span class="pre">buildGuiSimulationSnapshot(const</span> <span class="pre">SimulationRun&amp;,</span> <span class="pre">int)</span></code>
+makes. After the worker has joined, <code class="docutils literal notranslate"><span class="pre">DispatchController::run()</span></code> gives the results as a <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">SimulationRun&amp;</span></code>.
+The infrastructure and the routes are <code class="docutils literal notranslate"><span class="pre">SimulationRun::infra</span></code>, a <code class="docutils literal notranslate"><span class="pre">RunInfrastructure</span></code>: the
+tracks, connections and stations (<code class="docutils literal notranslate"><span class="pre">blockSets</span></code>, <code class="docutils literal notranslate"><span class="pre">connections</span></code> and <code class="docutils literal notranslate"><span class="pre">stations</span></code>, vectors with
+a fixed number of elements that nothing resizes), the block sections, the detection sections,
+the single-track data, with the zones that <code class="docutils literal notranslate"><span class="pre">singleTrackZone</span></code> derives from it, and the routes.
+The scene builder replaces them and the previous ones
+stay until then, so <code class="docutils literal notranslate"><span class="pre">resetInfrastructure()</span></code> is a separate call, and a build that fails puts the
+earlier infrastructure back as it was. The canvas keeps <code class="docutils literal notranslate"><span class="pre">Node*</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc*</span></code> and <code class="docutils literal notranslate"><span class="pre">Connections*</span></code> into
+the arrays, so <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code> removes its items before a reset or a build. A new member of the
+infrastructure needs a line in <code class="docutils literal notranslate"><span class="pre">RunInfrastructure::reset()</span></code>.
+<code class="docutils literal notranslate"><span class="pre">SimulationRun::trains</span></code> is the <code class="docutils literal notranslate"><span class="pre">std::vector&lt;Regional&gt;</span></code> of the run, created with the
+number of trains of the scene; <code class="docutils literal notranslate"><span class="pre">Max_N_Reg</span></code> is
+only the limit that validation and the editor enforce on that number. A <code class="docutils literal notranslate"><span class="pre">Train</span></code> keeps
+the stops of its service in a <code class="docutils literal notranslate"><span class="pre">std::vector&lt;Node&gt;</span></code>, and <code class="docutils literal notranslate"><span class="pre">trains</span></code> is created once
+per build and not grown while the trains are live. A <code class="docutils literal notranslate"><span class="pre">Section</span></code> keeps the nodes of its block
+section in a <code class="docutils literal notranslate"><span class="pre">std::shared_ptr&lt;const</span> <span class="pre">std::vector&lt;Node&gt;&gt;</span></code> that the section and its copies,
+including those in the routes, share, and the last of them frees it. A reversed route
+section holds no list. A <code class="docutils literal notranslate"><span class="pre">Route</span></code> holds the sections
+of its route in a <code class="docutils literal notranslate"><span class="pre">std::vector&lt;Section&gt;</span></code> with exactly <code class="docutils literal notranslate"><span class="pre">N_Block_Sections</span></code> elements, set when
+the route is built; code that takes a <code class="docutils literal notranslate"><span class="pre">Section*</span></code> and a count gets <code class="docutils literal notranslate"><span class="pre">data()</span></code> and that count.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">tools/memory/ownership_inventory.py</span></code> lists owning allocations, Qt parent allocations,
+arrays of 100 or more elements and raw pointers, and its <code class="docutils literal notranslate"><span class="pre">CONFIRMED_OBSERVERS</span></code> table names
+the pointers known to be non-owning. <code class="docutils literal notranslate"><span class="pre">test_ownership_inventory</span></code> runs the scanner on the real
+tree and a fixture, and <code class="docutils literal notranslate"><span class="pre">test_raii_contract</span></code> checks that the delay statistics in
+<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code> use <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instead of <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">double[]</span></code>, that the retired
+<code class="docutils literal notranslate"><span class="pre">setupEgtrain</span></code> and <code class="docutils literal notranslate"><span class="pre">prepareSimulation</span></code> stay out of <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code> and that
+<code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> writes each train trajectory file once, as its last stage, and leaves
+<code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> to <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingForAllTrains</span></code>. When
+<code class="docutils literal notranslate"><span class="pre">test_raii_contract</span></code> fails, remove the raw allocation, the restored path or the repeated
+write instead of editing the test; when <code class="docutils literal notranslate"><span class="pre">test_ownership_inventory</span></code> fails after a pointer in
+<code class="docutils literal notranslate"><span class="pre">CONFIRMED_OBSERVERS</span></code> was renamed or removed, update the table and the test in the same change.</p>
+</section>
+<section id="error-reporting">
+<h2>Error reporting<a class="headerlink" href="#error-reporting" title="Link to this heading">¶</a></h2>
+<p>Scene loading, validation, import, export, bundles, migration and the native builders report
+problems as <code class="docutils literal notranslate"><span class="pre">SceneDiagnostic</span></code> values (<code class="docutils literal notranslate"><span class="pre">scene/SceneDiagnostic.h</span></code>). A new check does the same:
+it adds a diagnostic to the vector its function returns or to the <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code> member of
+the result struct (<code class="docutils literal notranslate"><span class="pre">SceneLoadResult</span></code>), and it does not throw to the caller, print or log. An
+exception from a library is caught where it happens: <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneModel.cpp</span></code>
+turns a JSON parse failure into <code class="docutils literal notranslate"><span class="pre">scene.json.parse</span></code> with its local <code class="docutils literal notranslate"><span class="pre">addError</span></code> helper. Put a
+new check in the layer it belongs to
+(<a class="reference internal" href="../architecture/scene-model.html#validation-layers"><span class="std std-ref">Validation layers</span></a>). Each diagnostic
+carries these fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">code</span></code>: a stable id, lower case with dots, <code class="docutils literal notranslate"><span class="pre">scene.&lt;area&gt;.&lt;problem&gt;</span></code>, for example
+<code class="docutils literal notranslate"><span class="pre">scene.ref.unresolved</span></code>, <code class="docutils literal notranslate"><span class="pre">scene.id.duplicate</span></code> or <code class="docutils literal notranslate"><span class="pre">scene.time.order</span></code>. Import, export, bundle,
+migration, compatibility and runtime-builder checks use the areas <code class="docutils literal notranslate"><span class="pre">import</span></code>, <code class="docutils literal notranslate"><span class="pre">export</span></code>,
+<code class="docutils literal notranslate"><span class="pre">bundle</span></code>, <code class="docutils literal notranslate"><span class="pre">migration</span></code>, <code class="docutils literal notranslate"><span class="pre">compatibility</span></code> and <code class="docutils literal notranslate"><span class="pre">native</span></code>. Reuse an existing code for the same
+kind of problem; tests match on codes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">severity</span></code>: <code class="docutils literal notranslate"><span class="pre">Error</span></code> fails the operation (<code class="docutils literal notranslate"><span class="pre">hasErrors</span></code>) and disables Run, <code class="docutils literal notranslate"><span class="pre">Warning</span></code> marks
+data that still runs (historical schedules), and <code class="docutils literal notranslate"><span class="pre">Info</span></code> notes what an import or export did.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">message</span></code> is one sentence that names the item. <code class="docutils literal notranslate"><span class="pre">file</span></code>, <code class="docutils literal notranslate"><span class="pre">itemType</span></code>, <code class="docutils literal notranslate"><span class="pre">itemId</span></code> and <code class="docutils literal notranslate"><span class="pre">path</span></code>
+locate it: the scene file, the kind and id of the item, and the place inside the file
+(<code class="docutils literal notranslate"><span class="pre">nodes[0].track</span></code>). <code class="docutils literal notranslate"><span class="pre">relatedId</span></code> is the other item involved, such as the unresolved target.
+<code class="docutils literal notranslate"><span class="pre">suggestedFix</span></code> is the smallest fix, when one is known.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">DiagnosticBuilder</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.cpp</span></code> takes these fields in that order, with the
+severity chosen by <code class="docutils literal notranslate"><span class="pre">error</span></code> or <code class="docutils literal notranslate"><span class="pre">warning</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">hasId</span><span class="p">(</span><span class="n">trackIds</span><span class="p">,</span><span class="w"> </span><span class="n">node</span><span class="p">.</span><span class="n">trackId</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="n">diagnostics</span><span class="p">.</span><span class="n">error</span><span class="p">(</span><span class="s">"scene.ref.unresolved"</span><span class="p">,</span><span class="w"> </span><span class="s">"Node refers to unknown track"</span><span class="p">,</span><span class="w"> </span><span class="s">"infrastructure.json"</span><span class="p">,</span>
+<span class="w">			</span><span class="s">"node"</span><span class="p">,</span><span class="w"> </span><span class="n">node</span><span class="p">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">".track"</span><span class="p">,</span><span class="w"> </span><span class="n">node</span><span class="p">.</span><span class="n">trackId</span><span class="p">,</span>
+<span class="w">			</span><span class="s">"Add track "</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">node</span><span class="p">.</span><span class="n">trackId</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">" or reference an existing track"</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
+<p>Console output comes from the logging core in <code class="docutils literal notranslate"><span class="pre">util/Log.h</span></code> and from older code that writes
+to the console directly.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">util/Log.h</span></code> is a categorised logging core without Qt. <code class="docutils literal notranslate"><span class="pre">EG_LOG(category,</span> <span class="pre">level)</span> <span class="pre">&lt;&lt;</span> <span class="pre">...</span></code>
+writes one message: the category is one of <code class="docutils literal notranslate"><span class="pre">SimSetup</span></code>, <code class="docutils literal notranslate"><span class="pre">SimStep</span></code>, <code class="docutils literal notranslate"><span class="pre">SimEvents</span></code>, <code class="docutils literal notranslate"><span class="pre">SimPax</span></code>,
+<code class="docutils literal notranslate"><span class="pre">IoRailml</span></code>, <code class="docutils literal notranslate"><span class="pre">IoZmq</span></code>, <code class="docutils literal notranslate"><span class="pre">AppRun</span></code>, <code class="docutils literal notranslate"><span class="pre">AppUi</span></code> and <code class="docutils literal notranslate"><span class="pre">Update</span></code> (named <code class="docutils literal notranslate"><span class="pre">sim.setup</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.step</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sim.events</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.pax</span></code>, <code class="docutils literal notranslate"><span class="pre">io.railml</span></code>, <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code>, <code class="docutils literal notranslate"><span class="pre">app.run</span></code>, <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> and <code class="docutils literal notranslate"><span class="pre">update</span></code>), and the
+level is <code class="docutils literal notranslate"><span class="pre">Debug</span></code>, <code class="docutils literal notranslate"><span class="pre">Info</span></code>, <code class="docutils literal notranslate"><span class="pre">Warning</span></code> or <code class="docutils literal notranslate"><span class="pre">Error</span></code>. The text is delivered as streamed, so the
+caller writes the newline. A disabled message evaluates none of its arguments. Every pair is
+enabled by default except <code class="docutils literal notranslate"><span class="pre">sim.step</span></code> at <code class="docutils literal notranslate"><span class="pre">debug</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eglog::configure(rules)</span></code> switches pairs on and off with the syntax of <code class="docutils literal notranslate"><span class="pre">QT_LOGGING_RULES</span></code>:
+rules separated by <code class="docutils literal notranslate"><span class="pre">;</span></code> or a newline, each <code class="docutils literal notranslate"><span class="pre">pattern=true</span></code> or <code class="docutils literal notranslate"><span class="pre">pattern=false</span></code>, where the
+pattern is a category name or a name with a <code class="docutils literal notranslate"><span class="pre">*</span></code> at the start or the end (<code class="docutils literal notranslate"><span class="pre">sim.*</span></code>, <code class="docutils literal notranslate"><span class="pre">*.run</span></code>,
+<code class="docutils literal notranslate"><span class="pre">*step*</span></code>), with an optional level suffix (<code class="docutils literal notranslate"><span class="pre">sim.setup.warning=false</span></code>). A later rule wins, a
+malformed rule is skipped and makes the function return false, and <code class="docutils literal notranslate"><span class="pre">configure(&quot;&quot;)</span></code> restores
+the defaults. <code class="docutils literal notranslate"><span class="pre">eglog::configureFromEnvironment()</span></code> applies the variable <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code>. The
+variable has no effect unless the program calls that function, and the caller reports a
+false result.</p></li>
+<li><p>The default sink writes the text unchanged to <code class="docutils literal notranslate"><span class="pre">std::cout</span></code>, for every category and level.
+<code class="docutils literal notranslate"><span class="pre">eglog::setSink</span></code> replaces it; a sink must not call the logging core.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">installConsoleLogging()</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.h</span></code>) is called at the start of <code class="docutils literal notranslate"><span class="pre">main()</span></code>, right after the startup timer starts. It installs
+the sink <code class="docutils literal notranslate"><span class="pre">consoleLogSink</span></code> and the Qt message handler <code class="docutils literal notranslate"><span class="pre">qtMessageToLog</span></code>, applies <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code>
+with <code class="docutils literal notranslate"><span class="pre">eglog::configureFromEnvironment()</span></code> and opens the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code>. It
+returns a warning for <code class="docutils literal notranslate"><span class="pre">main()</span></code> to print on <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> when a rule is malformed or the file
+cannot be opened. The sink writes the text unchanged, with no prefix, to the same streams as
+the default sink, except that <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> goes to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> while the Console Log dock is not
+installed, because Qt’s own handler writes there. The dock shows <code class="docutils literal notranslate"><span class="pre">level</span> <span class="pre">category:</span> </code> in front of
+each message that comes through the core, taken from the values the core passes; text written
+to <code class="docutils literal notranslate"><span class="pre">std::cout</span></code> or <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> directly shows as written. The log file gets the same lines
+(<code class="docutils literal notranslate"><span class="pre">warning</span> <span class="pre">app.ui:</span> <span class="pre">text</span></code>), each message on a line of its own, appended, with no size limit.</p></li>
+<li><p>Every Qt message (<code class="docutils literal notranslate"><span class="pre">qDebug()</span></code>, <code class="docutils literal notranslate"><span class="pre">qInfo()</span></code>, <code class="docutils literal notranslate"><span class="pre">qWarning()</span></code>, <code class="docutils literal notranslate"><span class="pre">qCritical()</span></code>, <code class="docutils literal notranslate"><span class="pre">qFatal()</span></code>) reaches the
+core as <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> at the matching level, with the text that Qt’s own handler prints, so
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code> switches Qt messages on and off per level and <code class="docutils literal notranslate"><span class="pre">QT_MESSAGE_PATTERN</span></code> still
+applies. A <code class="docutils literal notranslate"><span class="pre">qFatal()</span></code> message is never filtered. The handler writes to the console streams
+only, not to the system log.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/</span></code> and <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code> write through <code class="docutils literal notranslate"><span class="pre">EG_LOG</span></code>, except for the
+marker line <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_NATIVE_DETAIL</span></code>. <code class="docutils literal notranslate"><span class="pre">BlockingTimeList::checkIndex</span></code> logs a negative index as
+<code class="docutils literal notranslate"><span class="pre">sim.setup</span></code> at <code class="docutils literal notranslate"><span class="pre">error</span></code> and calls <code class="docutils literal notranslate"><span class="pre">eglog::flush()</span></code>, which flushes <code class="docutils literal notranslate"><span class="pre">std::cout</span></code> and <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code>,
+before <code class="docutils literal notranslate"><span class="pre">std::abort()</span></code>: the sinks write <code class="docutils literal notranslate"><span class="pre">std::cout</span></code> without a flush. The command-line entry
+points (<code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">scene/SceneTool.cpp</span></code>) write to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code>. <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code> also
+writes the line <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">of</span> <span class="pre">Simulation</span></code> of a run without a window to <code class="docutils literal notranslate"><span class="pre">std::cout</span></code> itself: scripts
+read it, so no logging rule may hide it. A run in the window logs the same line as <code class="docutils literal notranslate"><span class="pre">app.run</span></code>.</p></li>
+<li><p>The code in <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> uses <code class="docutils literal notranslate"><span class="pre">sim.setup</span></code> for the set-up of a run (the selected case, the
+route set-up) and for problems found in the scene data or the model while it is built or
+while the blocking times are computed. It uses <code class="docutils literal notranslate"><span class="pre">sim.events</span></code> for virtual coupling and
+following mode, arrivals, departures and the failure to write an arrival message,
+<code class="docutils literal notranslate"><span class="pre">sim.step</span></code> at <code class="docutils literal notranslate"><span class="pre">debug</span></code>, which is off by default, for messages written once per step by a
+train in the trajectory code, and <code class="docutils literal notranslate"><span class="pre">sim.pax</span></code> for passengers. The application uses <code class="docutils literal notranslate"><span class="pre">app.run</span></code>
+for the banners and the progress of a run. <code class="docutils literal notranslate"><span class="pre">io/RttpXml.cpp</span></code> uses <code class="docutils literal notranslate"><span class="pre">io.railml</span></code>, and the legacy
+sender (<code class="docutils literal notranslate"><span class="pre">io/ExternalState.cpp</span></code> and the XML that <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code> sends) uses
+<code class="docutils literal notranslate"><span class="pre">io.zmq</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">update/</span></code> and <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code> neither log nor print, apart from their entry points.
+They return the problem, as a <code class="docutils literal notranslate"><span class="pre">SceneDiagnostic</span></code> or an <code class="docutils literal notranslate"><span class="pre">error</span></code> field (<code class="docutils literal notranslate"><span class="pre">UpdateCheckResult</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tools/e2e/test_logging_contract.py</span></code> counts the console write statements per file
+(<code class="docutils literal notranslate"><span class="pre">cout</span></code>, <code class="docutils literal notranslate"><span class="pre">cerr</span></code>, <code class="docutils literal notranslate"><span class="pre">clog</span></code>, <code class="docutils literal notranslate"><span class="pre">printf</span></code> and <code class="docutils literal notranslate"><span class="pre">fprintf</span></code> to <code class="docutils literal notranslate"><span class="pre">stdout</span></code> or <code class="docutils literal notranslate"><span class="pre">stderr</span></code>)
+and compares them with the list <code class="docutils literal notranslate"><span class="pre">ALLOWED</span></code> in both directions. A new console write fails the
+test; when statements are removed, lower the entry of the file to the new number and delete it
+at zero. The writes that stay are counted in <code class="docutils literal notranslate"><span class="pre">ALLOWED</span></code> and named in a comment there: the
+command-line output of <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code> and the marker lines of the profiling switches and of
+scripted runs (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_TIMING</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_NATIVE_DETAIL</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_PLAYBACK_PROFILE</span></code>,
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED</span></code>), which start with a fixed word and carry no level or category.
+The files that write the console on purpose are listed in <code class="docutils literal notranslate"><span class="pre">EXEMPT_FILES</span></code> with the reason. The
+test also checks that the code still writes the stdout lines that scripts read.</p></li>
+</ul>
+<p>New code follows the newer modules: return the problem to the caller, and print only at the
+top level, with <code class="docutils literal notranslate"><span class="pre">qWarning()</span></code> in Qt code and <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> with <code class="docutils literal notranslate"><span class="pre">toDisplayText()</span></code> in
+command-line code. A message from <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> or <code class="docutils literal notranslate"><span class="pre">io/</span></code> that cannot be returned uses <code class="docutils literal notranslate"><span class="pre">EG_LOG</span></code>.
+Do not add another logging helper.</p>
+</section>
+<section id="tests">
+<h2>Tests<a class="headerlink" href="#tests" title="Link to this heading">¶</a></h2>
+<p>C++ tests live in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/</span></code> as <code class="docutils literal notranslate"><span class="pre">test_&lt;name&gt;.cpp</span></code>, one executable each, with
+shared data in <code class="docutils literal notranslate"><span class="pre">tests/fixtures/</span></code>. Register one in the <code class="docutils literal notranslate"><span class="pre">if(EGTRAIN_BUILD_TESTS)</span></code> block of the
+root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>. The executable links the library that holds the code it tests
+(<a class="reference internal" href="../architecture/source-layout.html#libraries"><span class="std std-ref">Libraries</span></a>), or lists the sources itself when
+they are in no library, instead of linking the application. The telemetry tests that use a test
+hook link <code class="docutils literal notranslate"><span class="pre">egtrain_telemetry_hooks</span></code>. The CTest name equals the target name:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_executable</span><span class="p">(</span><span class="s">test_timeformat</span><span class="w"> </span><span class="o">${</span><span class="nv">SRC_DIR</span><span class="o">}</span><span class="s">/tests/test_timeformat.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">test_timeformat</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">egtrain_util</span><span class="p">)</span>
+<span class="nb">add_test</span><span class="p">(</span><span class="s">NAME</span><span class="w"> </span><span class="s">test_timeformat</span><span class="w"> </span><span class="s">COMMAND</span><span class="w"> </span><span class="s">test_timeformat</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then add the name to <code class="docutils literal notranslate"><span class="pre">egtrain_label_tests(unit</span> <span class="pre">...)</span></code> or <code class="docutils literal notranslate"><span class="pre">egtrain_label_tests(integration</span> <span class="pre">...)</span></code>
+lower in that block, and to the <code class="docutils literal notranslate"><span class="pre">gui</span></code> and <code class="docutils literal notranslate"><span class="pre">slow</span></code> lists where they apply
+(<a class="reference internal" href="build-and-test.html#test-labels"><span class="std std-ref">Test labels</span></a>). Configuration fails when a test has neither
+<code class="docutils literal notranslate"><span class="pre">unit</span></code> nor <code class="docutils literal notranslate"><span class="pre">integration</span></code>, or both. A test that needs a Qt platform plugin also sets
+<code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span> <span class="pre">&quot;QT_QPA_PLATFORM=offscreen&quot;</span></code>.</p>
+<ul class="simple">
+<li><p>Tests are plain programs with a <code class="docutils literal notranslate"><span class="pre">main()</span></code> and no test framework. Most define a local
+<code class="docutils literal notranslate"><span class="pre">expect(bool,</span> <span class="pre">const</span> <span class="pre">char*)</span></code> that prints <code class="docutils literal notranslate"><span class="pre">failed:</span> <span class="pre">&lt;message&gt;</span></code>, combine results with
+<code class="docutils literal notranslate"><span class="pre">ok</span> <span class="pre">&amp;=</span> <span class="pre">expect(...)</span></code> and return a non-zero exit code on failure (<code class="docutils literal notranslate"><span class="pre">tests/test_timeformat.cpp</span></code>).</p></li>
+<li><p>Assertions must still run in a Release build, the default. The telemetry tests put
+<code class="docutils literal notranslate"><span class="pre">#undef</span> <span class="pre">NDEBUG</span></code> before <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;cassert&gt;</span></code> (<code class="docutils literal notranslate"><span class="pre">tests/test_telemetryqueue.cpp</span></code>).</p></li>
+<li><p>A logic change comes with the smallest test that fails without it. For a validation rule,
+build a model that breaks the rule and assert the diagnostic code, plus severity or path
+where they matter (<code class="docutils literal notranslate"><span class="pre">hasCodeAndSeverity</span></code> in <code class="docutils literal notranslate"><span class="pre">tests/test_scenevalidator.cpp</span></code>).</p></li>
+<li><p>The gate to run depends on the kind of change (UI or rendering, simulation or scene
+model, scene format); see <a class="reference internal" href="build-and-test.html#verification-gates"><span class="std std-ref">Verification Gates</span></a>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">tests/e2e/CMakeLists.txt</span></code> adds the sources of the scripted GUI scenarios to <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> when
+tests are built. <code class="docutils literal notranslate"><span class="pre">MainWindowTestAccess</span></code> is the friend of <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code> for them, a scenario with its
+own file there (<code class="docutils literal notranslate"><span class="pre">LegacyImport.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneDrop.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">OutputFolder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneRender.cpp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">StationOverlay.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">TrackPreview.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">VisualPolish.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">EditorSmoke.cpp</span></code>,
+<code class="docutils literal notranslate"><span class="pre">CreatorAcceptance.cpp</span></code>) is a member of
+it, and the table in <code class="docutils literal notranslate"><span class="pre">tests/e2e/E2ERunner.cpp</span></code> starts a scenario from its <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_</span></code> variable.
+<code class="docutils literal notranslate"><span class="pre">PostRun.cpp</span></code> holds the autostart and the checks that follow a run, which the window calls through
+the hooks of <code class="docutils literal notranslate"><span class="pre">MainWindowTestHooks</span></code>, and <code class="docutils literal notranslate"><span class="pre">Dialogs.cpp</span></code> answers the dialogs that the window opens. A source
+that a build without tests compiles must not name a <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_</span></code> variable, print an <code class="docutils literal notranslate"><span class="pre">E2E_</span></code> marker or
+assert with <code class="docutils literal notranslate"><span class="pre">failures</span> <span class="pre">&lt;&lt;</span></code>: put such code in <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code> and give the window a hook.
+<code class="docutils literal notranslate"><span class="pre">tools/e2e/test_no_e2e_in_product.py</span></code> fails otherwise.</p>
+</section>
+<section id="avoid-in-new-code">
+<h2>Avoid in new code<a class="headerlink" href="#avoid-in-new-code" title="Link to this heading">¶</a></h2>
+<p>Application code outside <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> and <code class="docutils literal notranslate"><span class="pre">io/third_party/</span></code> has no <code class="docutils literal notranslate"><span class="pre">std::list</span></code>, no
+<code class="docutils literal notranslate"><span class="pre">::iterator</span></code> declarations and no <code class="docutils literal notranslate"><span class="pre">empty()</span></code> compared to 0 or 1. New code avoids these idioms:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">std::list</span></code> for random-access data: use <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>.</p></li>
+<li><p>An explicit <code class="docutils literal notranslate"><span class="pre">::iterator</span></code> loop where a range-for works: use a range-for or an <code class="docutils literal notranslate"><span class="pre">&lt;algorithm&gt;</span></code>
+function such as <code class="docutils literal notranslate"><span class="pre">std::count_if</span></code>.</p></li>
+<li><p>A bool compared to 0 or 1 (<code class="docutils literal notranslate"><span class="pre">Name.empty()</span> <span class="pre">!=</span> <span class="pre">1</span></code>): write <code class="docutils literal notranslate"><span class="pre">!Name.empty()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">strcpy_s</span></code>, <code class="docutils literal notranslate"><span class="pre">sprintf_s</span></code> and <code class="docutils literal notranslate"><span class="pre">char</span></code> buffers: use <code class="docutils literal notranslate"><span class="pre">std::string</span></code> or <code class="docutils literal notranslate"><span class="pre">QString</span></code>.</p></li>
+<li><p>C-style casts: use <code class="docutils literal notranslate"><span class="pre">static_cast&lt;T&gt;</span></code>, or <code class="docutils literal notranslate"><span class="pre">qobject_cast</span></code> and <code class="docutils literal notranslate"><span class="pre">qgraphicsitem_cast</span></code> for Qt types.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> as a null pointer (<code class="docutils literal notranslate"><span class="pre">QWidget*</span> <span class="pre">parent</span> <span class="pre">=</span> <span class="pre">0</span></code>): use <code class="docutils literal notranslate"><span class="pre">nullptr</span></code>. <code class="docutils literal notranslate"><span class="pre">modernize-use-nullptr</span></code> checks it.</p></li>
+<li><p>New owning raw pointers and <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">T[n]</span></code>: see <a class="reference internal" href="#ownership">Ownership</a>.</p></li>
+<li><p>New global variables: pass state as arguments and return results, as
+<code class="docutils literal notranslate"><span class="pre">validateScene(const</span> <span class="pre">SceneModel&amp;)</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.h</span></code> does.</p></li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">#define</span></code> constants: use <code class="docutils literal notranslate"><span class="pre">constexpr</span></code> with a <code class="docutils literal notranslate"><span class="pre">k</span></code> prefix.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">scene/</span></code>, a file name read as a path with <code class="docutils literal notranslate"><span class="pre">std::filesystem::path(text)</span></code> and a path turned into text with
+<code class="docutils literal notranslate"><span class="pre">path.string()</span></code>: MSVC uses the system code page for both. File names cross the scene API as UTF-8, as
+<code class="docutils literal notranslate"><span class="pre">QString::toStdString</span></code> gives them. Use <code class="docutils literal notranslate"><span class="pre">pathFromUtf8</span></code> from <code class="docutils literal notranslate"><span class="pre">scene/Utf8Path.h</span></code> and <code class="docutils literal notranslate"><span class="pre">path.u8string()</span></code>.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="documentation-decision.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Documentation decision</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="code-signing.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Code signing</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Coding guidelines</a><ul>
+<li><a class="reference internal" href="#static-checks">Static checks</a></li>
+<li><a class="reference internal" href="#warnings">Warnings</a></li>
+<li><a class="reference internal" href="#file-layout">File layout</a></li>
+<li><a class="reference internal" href="#naming">Naming</a></li>
+<li><a class="reference internal" href="#ownership">Ownership</a></li>
+<li><a class="reference internal" href="#error-reporting">Error reporting</a></li>
+<li><a class="reference internal" href="#logging">Logging</a></li>
+<li><a class="reference internal" href="#tests">Tests</a></li>
+<li><a class="reference internal" href="#avoid-in-new-code">Avoid in new code</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

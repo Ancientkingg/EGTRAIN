@@ -1,0 +1,19 @@
+<map id="UpdateTelemetryController::showPrivacySettings" name="UpdateTelemetryController::showPrivacySettings">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,123,204,163"/>
+<area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508" title=" " alt="" coords="252,29,463,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,121,251,72,295,56,297,61,253,76,145,126"/>
+<area shape="rect" id="Node000004" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title=" " alt="" coords="526,171,734,196"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="201,121,260,112,326,107,395,107,463,115,534,136,594,162,592,167,532,141,462,121,395,113,327,113,261,118,202,126"/>
+<area shape="rect" id="Node000005" href="$struct_telemetry_context.html#a79d77337cb2f2e19a4495a56b6f03941" title=" " alt="" coords="260,131,455,156"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="204,141,246,141,246,146,204,146"/>
+<area shape="rect" id="Node000006" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title=" " alt="" coords="270,204,445,229"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="175,161,300,198,299,203,174,166"/>
+<area shape="rect" id="Node000007" href="$class_telemetry_consent.html#a2a83addd5760a40db273657a4eae3bd4" title=" " alt="" coords="260,254,455,294"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="133,161,186,201,253,240,270,247,268,252,251,244,183,205,129,166"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="317,31,308,21,312,11,329,5,357,3,393,7,403,11,407,17,402,20,399,15,391,12,357,8,330,10,316,15,313,20,321,27"/>
+<area shape="rect" id="Node000003" href="$_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c" title=" " alt="" coords="511,29,749,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="463,39,497,39,497,45,463,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="586,31,577,21,582,11,600,5,630,3,669,7,680,12,683,18,679,20,676,16,668,12,630,8,601,10,585,15,582,20,590,27"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="317,206,308,196,312,186,329,180,357,177,393,181,403,186,407,192,402,195,399,190,391,186,357,183,330,185,316,190,313,195,321,202"/>
+<area shape="poly" id="edge10_Node000007_Node000004" title=" " alt="" coords="425,251,462,239,580,198,582,203,464,245,426,256"/>
+</map>

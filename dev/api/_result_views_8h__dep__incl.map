@@ -1,0 +1,14 @@
+<map id="app/ResultViews.h" name="app/ResultViews.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="213,5,355,31"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,152,165,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,35,154,52,133,65,114,80,102,97,95,117,88,152,83,151,89,115,97,95,110,77,129,60,152,47,198,30"/>
+<area shape="rect" id="Node000003" href="$_main_window_8h.html" title=" " alt="" coords="123,79,269,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="261,41,212,81,209,76,258,37"/>
+<area shape="rect" id="Node000005" href="$_result_views_8cpp.html" title=" " alt="" coords="293,79,451,104"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="310,37,359,76,356,81,307,41"/>
+<area shape="rect" id="Node000006" href="$_run_results_dock_8cpp.html" title=" " alt="" coords="475,79,658,104"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="343,31,522,76,520,81,342,37"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="168,114,105,154,102,150,165,109"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="190,152,301,177"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="214,114,240,150,235,153,210,117"/>
+</map>

@@ -1,0 +1,26 @@
+var class_inspector_panel =
+[
+    [ "Host", "class_inspector_panel_1_1_host.html", "class_inspector_panel_1_1_host" ],
+    [ "InspectorPanel", "class_inspector_panel.html#a213e1873baec2f8501fe85ac610f69d2", null ],
+    [ "clearPreviewInspection", "class_inspector_panel.html#aaf2e3b1dac2cf67d123fc7275c8d1536", null ],
+    [ "clearSelectedStation", "class_inspector_panel.html#a9a109a422f4f9f2912e891693c5e6ad4", null ],
+    [ "clearSelectedTrain", "class_inspector_panel.html#ab9a03d5071a7ccc8da32baa474cdba99", null ],
+    [ "displayArcInfo", "class_inspector_panel.html#a096e2ad882e7ee8d8f9f690ae6efdf76", null ],
+    [ "displayConnectionInfo", "class_inspector_panel.html#a9def868a85f375bc122f6d86f6a42cb3", null ],
+    [ "displayNodeInfo", "class_inspector_panel.html#a15c7d92113eb29ee3e8a93ed16f6a21d", null ],
+    [ "displayPassengerInfo", "class_inspector_panel.html#a9314119dab81cb034a25ba76406e5edb", null ],
+    [ "displayPreviewInfo", "class_inspector_panel.html#a8a9e6e714c6f2d156223355a4b198652", null ],
+    [ "displaySignallingInfo", "class_inspector_panel.html#a1d3af9cc3aaa238887b6a9d3ced84b0c", null ],
+    [ "displayStationNodeInfo", "class_inspector_panel.html#a3cdc32714b92ead207f9aeb2267f80cf", null ],
+    [ "displayTrainDetails", "class_inspector_panel.html#a7a5fe31a4b6297e89acad9fe507f0e30", null ],
+    [ "displayTrainInfo", "class_inspector_panel.html#a94b73d93204564c7ebd6754649bb1a87", null ],
+    [ "dock", "class_inspector_panel.html#aabe6e0307ce74101ed993b16c0d454e8", null ],
+    [ "handleCloseInfoDockWidget", "class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df", null ],
+    [ "handleDisableHighlight", "class_inspector_panel.html#adaa566081ff6821ac1fb51c12e265d3a", null ],
+    [ "refreshInspectedSignal", "class_inspector_panel.html#a1c228f1b0177d21df567b8a2e07bf0e1", null ],
+    [ "resolvePreviewItem", "class_inspector_panel.html#a67a007ec5ee5574d0fed91f11e9f71f5", null ],
+    [ "selectedTrainIndex", "class_inspector_panel.html#a02bd5bbe9b096cf801424032ea1219fc", null ],
+    [ "selectsStationOverlay", "class_inspector_panel.html#aa7ee083994ac6f6cd244f6cfd9789bd4", null ],
+    [ "to_string_precision", "class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b", null ],
+    [ "MainWindowTestAccess", "class_inspector_panel.html#a07d58747d59f49d1ff6b222687ecbf39", null ]
+];

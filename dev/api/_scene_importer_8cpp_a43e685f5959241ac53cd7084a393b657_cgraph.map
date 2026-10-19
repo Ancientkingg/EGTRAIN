@@ -1,0 +1,7 @@
+<map id="baseTimeForCase" name="baseTimeForCase">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,144,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="47,31,42,21,45,11,56,5,75,3,97,6,107,15,103,19,95,11,75,8,58,10,49,15,47,20,52,28"/>
+<area shape="rect" id="Node000002" href="$_scene_importer_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="192,29,283,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="144,39,178,39,178,45,144,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="210,31,204,21,207,11,219,5,237,3,260,6,269,15,266,19,257,11,237,8,220,10,211,15,210,20,215,28"/>
+</map>

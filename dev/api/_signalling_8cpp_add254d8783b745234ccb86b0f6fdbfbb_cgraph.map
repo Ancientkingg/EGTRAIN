@@ -1,0 +1,7 @@
+<map id="occupySingleTrackForRoute" name="occupySingleTrackForRoute">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,205,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="71,31,63,21,67,11,82,5,105,3,135,6,146,15,143,20,133,11,105,8,83,10,71,15,69,20,75,28"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a475976cd4cee44735b57bd3aa6b640e3" title=" " alt="" coords="253,29,381,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="206,39,239,39,239,45,206,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="283,31,275,21,279,11,294,5,317,3,347,6,358,15,355,20,345,11,317,8,295,10,283,15,281,20,287,28"/>
+</map>

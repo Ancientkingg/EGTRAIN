@@ -1,0 +1,25 @@
+<map id="TrainUnitPanel::commitPendingEditors" name="TrainUnitPanel::commitPendingEditors">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,73,231,113"/>
+<area shape="rect" id="Node000002" href="$class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" title=" " alt="" coords="298,185,509,211"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,110,356,178,354,183,172,115"/>
+<area shape="rect" id="Node000007" href="$class_train_unit_panel.html#a882a356aa1d9d93d9489e4f1e9c716bf" title=" " alt="" coords="290,5,517,31"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="176,70,278,39,316,31,317,36,279,45,178,75"/>
+<area shape="rect" id="Node000008" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title=" " alt="" coords="291,104,515,129"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="231,99,278,103,277,109,231,105"/>
+<area shape="rect" id="Node000010" href="$class_train_unit_panel.html#ac674d4e2b476c628f5da33a0c3ae806f" title=" " alt="" coords="279,55,528,80"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="231,80,265,77,265,82,231,85"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="598,47,795,72"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="443,183,485,165,526,140,541,125,549,111,558,96,575,82,590,75,592,79,577,87,562,100,554,114,545,129,530,144,487,170,445,188"/>
+<area shape="rect" id="Node000004" href="$_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" title=" " alt="" coords="576,185,817,211"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="509,195,562,195,562,201,509,201"/>
+<area shape="rect" id="Node000005" href="$class_train_unit_panel.html#ad92b14ab276828fc66c1b0806a4d3520" title=" " alt="" coords="603,235,790,275"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="470,208,590,232,589,237,469,213"/>
+<area shape="rect" id="Node000006" href="$class_train_unit_panel.html#a6f2dcc415fba70e4380cb8998f04734e" title=" " alt="" coords="591,300,802,325"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="426,209,492,246,577,285,608,294,606,299,575,290,489,251,424,213"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="650,187,639,177,645,167,664,161,697,159,739,163,750,168,754,174,749,177,747,172,738,168,697,164,665,166,648,171,645,176,653,183"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="494,28,593,42,592,47,493,33"/>
+<area shape="poly" id="edge10_Node000008_Node000003" title=" " alt="" coords="469,101,617,72,618,77,470,107"/>
+<area shape="rect" id="Node000009" href="$class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" title=" " alt="" coords="577,97,816,137"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="515,114,564,114,564,119,515,119"/>
+<area shape="poly" id="edge13_Node000010_Node000003" title=" " alt="" coords="528,61,584,60,584,65,528,67"/>
+</map>

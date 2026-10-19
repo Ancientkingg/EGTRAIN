@@ -1,0 +1,5 @@
+<map id="TrainBadgeItem::maximumWidth" name="TrainBadgeItem::maximumWidth">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,243,31"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" title=" " alt="" coords="291,5,505,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,15,277,15,277,21,243,21"/>
+</map>

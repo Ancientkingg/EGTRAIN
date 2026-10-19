@@ -1,0 +1,8 @@
+<map id="DiagramWindow::DiagramWindow" name="DiagramWindow::DiagramWindow">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,251,38"/>
+<area shape="rect" id="Node000002" href="$class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db" title=" " alt="" coords="484,5,623,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="251,19,436,19,471,20,470,25,436,24,251,25"/>
+<area shape="rect" id="Node000003" href="$class_train_filter_button.html#a63cb6ba918cf5701ce73849f4a366252" title=" " alt="" coords="299,33,436,73"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,35,285,41,285,46,236,41"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="436,40,470,35,471,40,437,46"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="BaselineOccurrence" name="BaselineOccurrence">
+<area shape="rect" id="Node000001" title=" " alt="" coords="36,237,187,263"/>
+<area shape="rect" id="Node000002" href="$struct_delay_difference.html" title=" " alt="" coords="200,141,327,167"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,176,132,239,129,235,232,172"/>
+<area shape="rect" id="Node000003" href="$struct_run_result_value.html" title=" " alt="" coords="5,5,129,31"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="64,44,56,101,56,134,62,166,81,205,103,235,99,239,76,208,57,167,51,134,51,100,59,43"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,36,248,139,245,144,94,40"/>
+</map>

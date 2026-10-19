@@ -1,0 +1,9 @@
+<map id="DispatchController::startLive" name="DispatchController::startLive">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,148,63"/>
+<area shape="rect" id="Node000002" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="196,31,325,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,41,182,41,182,46,148,46"/>
+<area shape="rect" id="Node000003" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title=" " alt="" coords="373,5,521,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="325,32,359,27,360,33,326,37"/>
+<area shape="rect" id="Node000004" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="384,55,511,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="326,49,371,55,370,60,325,54"/>
+</map>

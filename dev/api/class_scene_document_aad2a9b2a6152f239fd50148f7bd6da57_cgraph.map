@@ -1,0 +1,9 @@
+<map id="SceneDocument::markChanged" name="SceneDocument::markChanged">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,232,56"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="280,5,471,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,29,266,26,267,31,232,35"/>
+<area shape="rect" id="Node000003" href="$class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" title=" " alt="" coords="281,55,469,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,51,268,55,267,60,232,57"/>
+<area shape="rect" id="Node000004" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title=" " alt="" coords="519,55,741,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="469,65,505,65,505,70,469,70"/>
+</map>

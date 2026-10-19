@@ -1,0 +1,9 @@
+<map id="RunInfrastructure::reset" name="RunInfrastructure::reset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,148,87"/>
+<area shape="rect" id="Node000002" href="$class_block_set.html#ae8900f58f7303f7e02a1588e640aeb3f" title=" " alt="" coords="219,5,363,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,48,221,31,223,36,149,54"/>
+<area shape="rect" id="Node000003" href="$class_connections.html#ac88d39f818e8a52e8c630cb388ed520c" title=" " alt="" coords="196,55,387,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,65,182,65,182,70,148,70"/>
+<area shape="rect" id="Node000004" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title=" " alt="" coords="223,104,359,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,81,223,98,221,103,147,86"/>
+</map>

@@ -1,0 +1,358 @@
+name: CMake
+
+on:
+  pull_request:
+    branches: [main]
+  # One run a night on main. A scheduled run uses the default branch.
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+# A newer push to the same pull request replaces its running checks. A scheduled or manual run has
+# a group of its own and no other run cancels it.
+concurrency:
+  group: cmake-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Every pull request to main starts this workflow, so that the result job below always reports and main can require
+  # it. A pull request that changes only Markdown files, docs/, LICENSE or the issue templates needs no build; any other
+  # event always builds.
+  changes:
+    name: Select the CMake jobs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.select.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job, and an
+      # empty list of files builds.
+      - name: Select the build from the changed files
+        id: select
+        run: |
+          build=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
+            build=false
+            while IFS= read -r file; do
+              case "$file" in
+                *.md) ;;
+                docs/*) ;;
+                LICENSE) ;;
+                .github/ISSUE_TEMPLATE/*) ;;
+                *) build=true ;;
+              esac
+            done <<< "$files"
+          fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+  # CTest runs the same check, but the build job skips CTest for a pull request that changes only documentation.
+  docs:
+    name: Check the documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the documentation check
+        run: python3 tools/docs/check_docs.py
+
+  # A skipped matrix job is listed under its unexpanded name, so the legs always start and each step checks the output
+  # of the changes job.
+  build:
+    name: build (${{ matrix.name }})
+    needs: changes
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+            jobs: 3
+            cache: ccache
+          - name: Windows
+            os: windows-latest
+            jobs: 4
+            cache: sccache
+          - name: Linux
+            os: ubuntu-latest
+            jobs: 4
+            cache: ccache
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.jobs }}
+      PYTHONUTF8: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+        if: needs.changes.outputs.build == 'true'
+
+      - uses: actions/setup-python@v5
+        if: needs.changes.outputs.build == 'true'
+        with:
+          python-version: '3.12'
+
+      # The runner image fixes the compiler and, on Windows, the vcpkg checkout. Its version is part of the key of the
+      # compiler cache and of the vcpkg binary cache, so a new image starts a new entry.
+      - name: Identify the runner image
+        if: needs.changes.outputs.build == 'true'
+        id: image
+        shell: pwsh
+        run: |
+          "id=$($env:ImageOS ?? 'unknown')-$($env:ImageVersion ?? 'unknown')" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+
+      # CTest GUI checks write logs to the platform temp dir; point it at
+      # runner.temp so failure diagnostics can find them.
+      - name: Route temp files to runner.temp
+        if: needs.changes.outputs.build == 'true' && runner.os != 'Windows'
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - name: Route temp files to runner.temp (Windows)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "TEMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          "TMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: Install Qt (macOS)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
+        run: brew install qt@5 zeromq cppzmq nlohmann-json
+
+      - name: Install dependencies (Linux)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+
+      - name: Install Qt (Windows)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15.2'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          modules: qtcharts
+          cache: true
+
+      - name: Set up MSVC environment
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # vcpkg names an archive by an ABI hash that covers its own checkout, its CMake and the compiler. A runner image with
+      # another vcpkg commit restores no archive from an older entry, so the key has the image version and a new image
+      # writes a new entry. Raise v1 to start over.
+      - name: Restore vcpkg binary cache
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        id: vcpkg-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-${{ steps.image.outputs.id }}-v1
+
+      - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $cache = "$env:RUNNER_TEMP/vcpkg-binary-cache"
+          New-Item -ItemType Directory -Force -Path $cache | Out-Null
+          $env:VCPKG_DEFAULT_BINARY_CACHE = $cache
+          vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
+
+      - name: Save vcpkg binary cache
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-${{ steps.image.outputs.id }}-v1
+
+      # The tests find the vcpkg and Qt DLLs here, so the build copies none next to each executable.
+      - name: Add runtime DLL directories to PATH (Windows)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+          "$env:QT_ROOT_DIR/bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+
+      # Compiled objects are cached: ccache on macOS and Linux, sccache on Windows. The post step of the action prints the
+      # hits and misses of the job and saves a new entry under the key and a timestamp. A run restores the newest entry of
+      # its leg and image, or else of its leg. A pull request sees its own earlier entries and those of main, which only
+      # the nightly run writes. That is enough: a pull request compiles again what changed since the last night or since
+      # its previous run, and a push trigger would add a full run after every merge.
+      - name: Set up compiler cache
+        if: needs.changes.outputs.build == 'true'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          variant: ${{ matrix.cache }}
+          key: ${{ matrix.name }}-${{ steps.image.outputs.id }}
+          restore-keys: |
+            ${{ matrix.name }}
+
+      # The pull request checks build without interprocedural optimization (-DEGTRAIN_IPO=OFF). Linking with it generates the code of
+      # the whole program again for every test executable, which a compiler cache cannot store. The package and release workflows
+      # still build with it, so the shipped binaries and the package checks use it.
+      - name: Configure (macOS)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
+        run: >
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF
+          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
+          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+
+      - name: Configure (Linux)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
+        run: >
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
+
+      # The Visual Studio generator ignores a compiler launcher, so this leg builds with Ninja in the MSVC environment set
+      # up above, and names cl because CMake would otherwise take the gcc of the runner image. The Release configuration
+      # adds no /Zi, so sccache can store the objects. The executable is build/QEGTRAIN.exe.
+      - name: Configure (Windows)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        shell: pwsh
+        run: >
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_NETWORK_TESTS=ON -DEGTRAIN_IPO=OFF
+          -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DVCPKG_APPLOCAL_DEPS=OFF
+          -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+
+      - name: Build
+        if: needs.changes.outputs.build == 'true'
+        run: cmake --build build --config Release
+
+      # Prints SizeOfImage in the job summary. test_windows_image_size enforces the limit.
+      - name: Report Windows image size
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        shell: pwsh
+        run: python tools/release/pe_image_size.py build/QEGTRAIN.exe --max-bytes 4294967295 | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+
+      - name: Test
+        if: needs.changes.outputs.build == 'true'
+        shell: bash
+        run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
+
+      # One real request to the GitHub release list through the update transport, WinHTTP on Windows, where Qt 5.15 has no TLS
+      # library. It fails when no HTTPS response arrives. When GitHub answers with its rate limit or an outage, the test is skipped.
+      - name: Check HTTPS (Windows)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        shell: bash
+        run: ctest --test-dir build -C Release -L network --no-tests=error --output-on-failure
+
+      # The same files as the Windows release package, started with only the operating
+      # system directories on PATH: a DLL or plugin missing from the package fails here.
+      # The runner has the Visual C++ runtime installed, so the import check of the package workflow
+      # finds a runtime DLL missing from the package, not this step.
+      - name: Start an assembled Windows package
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = "$env:RUNNER_TEMP/package/QEGTRAIN"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          Copy-Item build/QEGTRAIN.exe "$dist/QEGTRAIN.exe"
+          Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-angle --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"
+          Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
+          python tools/release/package_start_smoke.py $dist --exports
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-${{ matrix.name }}-diagnostics
+          path: |
+            ${{ runner.temp }}/ctest.log
+            ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
+            ${{ runner.temp }}/qegtrain-incident-*.log
+            tools/e2e/headless_case_*.log
+          if-no-files-found: ignore
+
+  # LeakSanitizer finds the leaks and double frees that a normal run does not show. It does not run on
+  # macOS with Apple silicon, so this job uses Linux. The Debug build with sanitizers and the
+  # instrumented runs take longer than the pull request checks, so only the nightly and manual runs
+  # start it. Start it by hand for a branch with: gh workflow run cmake.yml --ref BRANCH
+  leak-check:
+    name: leak check (Linux)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+      PYTHONUTF8: "1"
+      ASAN_OPTIONS: detect_leaks=1
+      LSAN_OPTIONS: suppressions=${{ github.workspace }}/tools/e2e/lsan_suppressions.txt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+
+      # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
+      - name: Lower address space randomization
+        run: sudo sysctl -w vm.mmap_rnd_bits=28
+
+      - name: Configure with sanitizers
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=1500
+
+      - name: Build with sanitizers
+        id: build
+        run: cmake --build build --target QEGTRAIN test_characterization test_networkpresenter test_runtimecanvas
+
+      # Every scene runs once and the script reports all failing scenes together. The log of each run is kept.
+      - name: Run the committed scenes headless
+        run: python3 tools/e2e/leak_check_smoke.py build/QEGTRAIN "$RUNNER_TEMP/leak-check"
+
+      # Each test runs scenes one after the other in one process, so that every run builds its scene,
+      # resets and builds the next one again.
+      - name: Reload scenes in one process
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/leak-check"
+          ctest --test-dir build --parallel 2 --no-tests=error --output-on-failure \
+            --output-log "$RUNNER_TEMP/leak-check/ctest-reload.log" \
+            -R '^(characterization_repeatable|characterization_repeat_paimpol|characterization_repeat_milano_paimpol|characterization_repeat_netherlands)$'
+
+      # The canvas is drawn, filled with the steps of a run and of its replay, and cleared again and again in one process.
+      - name: Rebuild the canvas in one process
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/leak-check"
+          ctest --test-dir build --no-tests=error --output-on-failure \
+            --output-log "$RUNNER_TEMP/leak-check/ctest-canvas.log" \
+            -R '^(test_networkpresenter|test_runtimecanvas)$'
+
+      - name: Upload leak check logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: leak-check-logs
+          path: ${{ runner.temp }}/leak-check
+          if-no-files-found: ignore
+
+  # The one check that main requires. It succeeds when every job above succeeded or was skipped.
+  result:
+    name: CMake result
+    if: always()
+    needs: [changes, docs, build, leak-check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail when a job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

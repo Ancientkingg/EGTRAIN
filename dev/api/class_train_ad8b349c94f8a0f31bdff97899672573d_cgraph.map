@@ -1,0 +1,61 @@
+<map id="Train::europeanVitalComputerWithListsImproved" name="Train::europeanVitalComputerWithListsImproved">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,282,221,322"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" title=" " alt="" coords="269,138,480,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,280,192,231,229,204,268,180,305,165,307,170,271,185,232,208,195,235,137,284"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a7db162f3326726463763a63d6190bd9f" title=" " alt="" coords="295,239,455,264"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,280,295,264,296,270,217,285"/>
+<area shape="rect" id="Node000016" href="$class_train.html#a9af946ff334ff93ba3b214da13ae0050" title=" " alt="" coords="563,338,719,363"/>
+<area shape="poly" id="edge38_Node000001_Node000016" title=" " alt="" coords="222,305,480,325,550,334,550,339,480,330,221,311"/>
+<area shape="rect" id="Node000018" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="530,51,753,76"/>
+<area shape="poly" id="edge28_Node000001_Node000018" title=" " alt="" coords="149,280,204,252,268,224,301,214,329,210,379,206,426,199,451,189,478,172,494,155,502,137,510,118,526,99,564,79,566,83,530,103,514,121,507,139,499,158,482,177,453,194,427,204,379,212,330,215,302,220,270,229,206,256,151,285"/>
+<area shape="rect" id="Node000019" href="$_signalling_level_8h.html#ab08ef98cad36a5df962e8d6d677a2c9a" title=" " alt="" coords="299,364,451,390"/>
+<area shape="poly" id="edge32_Node000001_Node000019" title=" " alt="" coords="185,320,317,358,315,363,183,325"/>
+<area shape="rect" id="Node000020" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title=" " alt="" coords="596,412,687,438"/>
+<area shape="poly" id="edge36_Node000001_Node000020" title=" " alt="" coords="139,320,196,363,232,384,270,400,353,420,438,429,517,430,582,428,582,433,517,436,438,434,352,425,269,405,230,389,193,367,136,325"/>
+<area shape="rect" id="Node000021" href="$class_train.html#a5fc5143e0d84fee869df7af936bc20aa" title=" " alt="" coords="295,466,455,491"/>
+<area shape="poly" id="edge37_Node000001_Node000021" title=" " alt="" coords="133,321,190,382,229,415,271,444,304,459,302,464,268,449,225,419,186,386,129,325"/>
+<area shape="rect" id="Node000004" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="539,114,744,139"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="432,237,479,217,493,207,502,196,526,174,589,142,592,147,530,178,506,200,496,211,481,222,435,242"/>
+<area shape="rect" id="Node000013" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="528,188,755,214"/>
+<area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="442,236,560,214,561,219,443,242"/>
+<area shape="rect" id="Node000015" href="$class_train.html#a2683359b1354760a2ec1e27a63a00f8c" title=" " alt="" coords="547,239,735,264"/>
+<area shape="poly" id="edge18_Node000003_Node000015" title=" " alt="" coords="455,249,534,249,534,254,455,254"/>
+<area shape="poly" id="edge22_Node000003_Node000016" title=" " alt="" coords="433,262,481,281,496,292,506,303,515,313,529,323,551,332,549,337,527,327,512,317,502,307,493,296,479,286,431,267"/>
+<area shape="rect" id="Node000017" href="$class_train.html#a518c09b45fe8dd0df01a9ce6be22c2c7" title=" " alt="" coords="545,288,738,314"/>
+<area shape="poly" id="edge25_Node000003_Node000017" title=" " alt="" coords="444,262,559,283,558,289,443,267"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" title=" " alt="" coords="831,188,962,214"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="687,137,840,182,839,187,685,142"/>
+<area shape="rect" id="Node000007" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Calculation of the sum of all Train Resistances." alt="" coords="1062,130,1190,170"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="744,122,862,123,991,129,1049,136,1048,141,990,134,862,128,744,127"/>
+<area shape="rect" id="Node000012" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="823,36,970,62"/>
+<area shape="poly" id="edge11_Node000004_Node000012" title=" " alt="" coords="684,111,839,63,841,69,685,116"/>
+<area shape="rect" id="Node000006" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title=" " alt="" coords="1039,333,1213,373"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="918,212,1085,323,1082,328,915,216"/>
+<area shape="rect" id="Node000008" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Calculation of Train Resistances due to Track Curvature." alt="" coords="1261,59,1465,84"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1171,128,1260,93,1288,85,1289,91,1262,98,1173,133"/>
+<area shape="rect" id="Node000009" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Calculation of Train Resistances due to Track Gradient." alt="" coords="1265,108,1461,134"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="1190,140,1251,132,1252,138,1191,145"/>
+<area shape="rect" id="Node000010" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="1292,158,1435,198"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="1191,155,1279,166,1278,171,1190,161"/>
+<area shape="rect" id="Node000011" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Calculation of Train Wagons Resistances using the Sauthoff Formula." alt="" coords="1267,223,1459,248"/>
+<area shape="poly" id="edge10_Node000007_Node000011" title=" " alt="" coords="1169,168,1262,208,1292,217,1290,222,1260,213,1167,173"/>
+<area shape="poly" id="edge13_Node000013_Node000005" title=" " alt="" coords="755,198,818,198,818,204,755,204"/>
+<area shape="poly" id="edge16_Node000013_Node000007" title=" " alt="" coords="715,186,802,173,932,160,1048,152,1048,157,933,166,803,178,715,191"/>
+<area shape="poly" id="edge17_Node000013_Node000012" title=" " alt="" coords="674,186,753,148,816,107,867,69,871,73,819,112,756,153,677,191"/>
+<area shape="rect" id="Node000014" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="803,290,991,315"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="714,211,756,224,815,251,865,280,863,285,812,256,754,229,712,216"/>
+<area shape="poly" id="edge15_Node000014_Node000007" title=" " alt="" coords="946,287,989,268,1049,224,1096,179,1100,183,1052,228,992,273,948,292"/>
+<area shape="poly" id="edge19_Node000015_Node000005" title=" " alt="" coords="706,236,818,214,819,219,707,242"/>
+<area shape="poly" id="edge21_Node000015_Node000007" title=" " alt="" coords="735,253,858,247,925,238,990,223,1040,202,1085,176,1087,180,1043,206,991,228,926,243,859,252,736,258"/>
+<area shape="poly" id="edge20_Node000015_Node000014" title=" " alt="" coords="707,262,819,284,818,290,706,267"/>
+<area shape="poly" id="edge24_Node000016_Node000006" title=" " alt="" coords="720,360,803,369,897,373,990,369,1025,366,1025,371,991,374,897,379,802,374,719,365"/>
+<area shape="poly" id="edge23_Node000016_Node000014" title=" " alt="" coords="709,335,815,315,816,320,710,340"/>
+<area shape="poly" id="edge27_Node000017_Node000006" title=" " alt="" coords="716,311,803,324,1025,344,1024,349,802,329,715,316"/>
+<area shape="poly" id="edge26_Node000017_Node000014" title=" " alt="" coords="738,299,789,299,789,305,738,304"/>
+<area shape="poly" id="edge30_Node000018_Node000007" title=" " alt="" coords="672,48,732,28,813,9,858,4,903,3,948,9,992,21,1027,40,1058,65,1105,117,1101,121,1054,69,1024,45,990,26,947,14,903,9,858,9,814,14,734,33,674,54"/>
+<area shape="poly" id="edge31_Node000018_Node000012" title=" " alt="" coords="753,55,809,51,810,57,753,60"/>
+<area shape="poly" id="edge29_Node000018_Node000014" title=" " alt="" coords="714,74,736,84,756,99,770,115,778,130,784,160,789,190,805,224,833,255,865,280,861,284,830,259,800,227,784,192,779,161,773,132,765,118,753,103,734,89,711,79"/>
+<area shape="poly" id="edge33_Node000019_Node000019" title=" " alt="" coords="332,366,323,356,328,346,345,340,375,338,412,342,422,347,426,353,421,356,419,351,411,347,375,343,347,345,332,350,329,355,336,362"/>
+<area shape="poly" id="edge34_Node000019_Node000020" title=" " alt="" coords="446,387,583,412,582,417,445,392"/>
+<area shape="poly" id="edge35_Node000020_Node000020" title=" " alt="" coords="600,414,591,404,596,394,613,388,641,386,677,390,687,395,691,400,687,403,684,399,676,395,641,391,614,393,600,398,597,403,604,411"/>
+</map>

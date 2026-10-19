@@ -1,0 +1,1010 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Code signing" href="code-signing.html"><link rel="prev" title="Build And Test" href="build-and-test.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Code documentation investigation - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-properties.html">V1 scene properties</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-corridor.html">Assignment corridor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/feature-status.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/code-documentation-investigation.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="code-documentation-investigation">
+<h1>Code documentation investigation<a class="headerlink" href="#code-documentation-investigation" title="Link to this heading">¶</a></h1>
+<p>This page records what the source under <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code> says about itself before documentation comments are written. It covers the comment counts per folder, the legacy simulation core, conventions the code uses without stating them, comments that are dead or misleading, questions the code does not answer, and the order in which the folders should be documented.</p>
+<p>Counts and line numbers are for <code class="docutils literal notranslate"><span class="pre">main</span></code> at commit <code class="docutils literal notranslate"><span class="pre">f299a252</span></code> (19 October 2026). Paths are relative to <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code> unless they start with <code class="docutils literal notranslate"><span class="pre">docs/</span></code>. Line numbers move with every edit, so check a reference against the current file before relying on it.</p>
+<section id="how-the-numbers-were-made">
+<h2>How the numbers were made<a class="headerlink" href="#how-the-numbers-were-made" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Folders: <code class="docutils literal notranslate"><span class="pre">app/</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code>, <code class="docutils literal notranslate"><span class="pre">editors/</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery/</span></code>, <code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/</span></code>, <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code>, <code class="docutils literal notranslate"><span class="pre">update/</span></code>, <code class="docutils literal notranslate"><span class="pre">util/</span></code> and <code class="docutils literal notranslate"><span class="pre">widgets/</span></code>, with their subfolders. Excluded: <code class="docutils literal notranslate"><span class="pre">tests/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/third_party/</span></code>, and generated Qt files (none are tracked).</p></li>
+<li><p>Lines: every line of every <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">.h</span></code> and <code class="docutils literal notranslate"><span class="pre">.hpp</span></code> file, as <code class="docutils literal notranslate"><span class="pre">wc</span> <span class="pre">-l</span></code> counts them.</p></li>
+<li><p>Documentation comment lines: lines with <code class="docutils literal notranslate"><span class="pre">///</span></code>, <code class="docutils literal notranslate"><span class="pre">//!</span></code> or <code class="docutils literal notranslate"><span class="pre">/**</span></code> followed by anything but <code class="docutils literal notranslate"><span class="pre">*</span></code>. A banner such as <code class="docutils literal notranslate"><span class="pre">/*****</span></code> is not counted. Doxygen was not run, so its count of undocumented members is not available yet.</p></li>
+<li><p>Ordinary comments: lines that hold only a <code class="docutils literal notranslate"><span class="pre">//</span></code> or <code class="docutils literal notranslate"><span class="pre">/*</span> <span class="pre">*/</span></code> comment, as a share of all lines. Comments after code are counted apart.</p></li>
+<li><p>Classes: <code class="docutils literal notranslate"><span class="pre">class</span></code> and <code class="docutils literal notranslate"><span class="pre">struct</span></code> definitions in headers, nested ones included, enums excluded. Public functions: function declarations and inline definitions in headers that are free or in a public section. The count of public functions is approximate.</p></li>
+</ul>
+</section>
+<section id="coverage-per-folder">
+<h2>Coverage per folder<a class="headerlink" href="#coverage-per-folder" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Folder</p></th>
+<th class="head"><p>Files</p></th>
+<th class="head"><p>Lines</p></th>
+<th class="head"><p>Classes</p></th>
+<th class="head"><p>Public functions</p></th>
+<th class="head"><p>Doc comment lines</p></th>
+<th class="head"><p>Comment-only lines</p></th>
+<th class="head"><p>Share</p></th>
+<th class="head"><p>Comments after code</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code></p></td>
+<td><p>40</p></td>
+<td><p>12,420</p></td>
+<td><p>36</p></td>
+<td><p>230</p></td>
+<td><p>0</p></td>
+<td><p>953</p></td>
+<td><p>7.7 %</p></td>
+<td><p>78</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diagrams/</span></code></p></td>
+<td><p>37</p></td>
+<td><p>8,424</p></td>
+<td><p>68</p></td>
+<td><p>113</p></td>
+<td><p>0</p></td>
+<td><p>462</p></td>
+<td><p>5.5 %</p></td>
+<td><p>83</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code></p></td>
+<td><p>40</p></td>
+<td><p>10,260</p></td>
+<td><p>20</p></td>
+<td><p>87</p></td>
+<td><p>0</p></td>
+<td><p>537</p></td>
+<td><p>5.2 %</p></td>
+<td><p>42</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">graphics/</span></code></p></td>
+<td><p>44</p></td>
+<td><p>6,745</p></td>
+<td><p>34</p></td>
+<td><p>268</p></td>
+<td><p>0</p></td>
+<td><p>547</p></td>
+<td><p>8.1 %</p></td>
+<td><p>86</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">io/</span></code></p></td>
+<td><p>10</p></td>
+<td><p>1,225</p></td>
+<td><p>4</p></td>
+<td><p>24</p></td>
+<td><p>0</p></td>
+<td><p>144</p></td>
+<td><p>11.8 %</p></td>
+<td><p>25</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">recovery/</span></code></p></td>
+<td><p>6</p></td>
+<td><p>1,481</p></td>
+<td><p>10</p></td>
+<td><p>18</p></td>
+<td><p>0</p></td>
+<td><p>159</p></td>
+<td><p>10.7 %</p></td>
+<td><p>34</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code></p></td>
+<td><p>39</p></td>
+<td><p>13,638</p></td>
+<td><p>80</p></td>
+<td><p>174</p></td>
+<td><p>0</p></td>
+<td><p>377</p></td>
+<td><p>2.8 %</p></td>
+<td><p>74</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code></p></td>
+<td><p>31</p></td>
+<td><p>12,872</p></td>
+<td><p>36</p></td>
+<td><p>251</p></td>
+<td><p>13</p></td>
+<td><p>1,254</p></td>
+<td><p>9.7 %</p></td>
+<td><p>742</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">telemetry/</span></code></p></td>
+<td><p>12</p></td>
+<td><p>2,231</p></td>
+<td><p>22</p></td>
+<td><p>71</p></td>
+<td><p>0</p></td>
+<td><p>65</p></td>
+<td><p>2.9 %</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">update/</span></code></p></td>
+<td><p>22</p></td>
+<td><p>3,282</p></td>
+<td><p>17</p></td>
+<td><p>52</p></td>
+<td><p>0</p></td>
+<td><p>264</p></td>
+<td><p>8.0 %</p></td>
+<td><p>11</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">util/</span></code></p></td>
+<td><p>18</p></td>
+<td><p>1,370</p></td>
+<td><p>10</p></td>
+<td><p>66</p></td>
+<td><p>4</p></td>
+<td><p>103</p></td>
+<td><p>7.5 %</p></td>
+<td><p>19</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">widgets/</span></code></p></td>
+<td><p>25</p></td>
+<td><p>3,364</p></td>
+<td><p>23</p></td>
+<td><p>109</p></td>
+<td><p>0</p></td>
+<td><p>306</p></td>
+<td><p>9.1 %</p></td>
+<td><p>34</p></td>
+</tr>
+<tr class="row-even"><td><p>Total</p></td>
+<td><p>324</p></td>
+<td><p>77,312</p></td>
+<td><p>360</p></td>
+<td><p>about 1,460</p></td>
+<td><p>17</p></td>
+<td><p>5,171</p></td>
+<td><p>6.7 %</p></td>
+<td><p>1,244</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>What the counts show:</p>
+<ul class="simple">
+<li><p>Seventeen documentation comment lines exist. Thirteen are <code class="docutils literal notranslate"><span class="pre">//!</span></code> and <code class="docutils literal notranslate"><span class="pre">/**</span></code> lines in <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code> (lines 300, 301, 304, 307, 310, 313, 318, 346 to 348, 494, 503 and 551) and four are XML-style <code class="docutils literal notranslate"><span class="pre">///</span></code> lines inside the function body of <code class="docutils literal notranslate"><span class="pre">simulationTime</span></code> in <code class="docutils literal notranslate"><span class="pre">util/timeutil.hpp</span></code> (lines 9 to 12). The <code class="docutils literal notranslate"><span class="pre">/***</span></code> banner at <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:143</span></code> makes the first count 14 if banners are not excluded.</p></li>
+<li><p>One more Doxygen-style member comment exists: <code class="docutils literal notranslate"><span class="pre">/*!&lt;</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">Wagons*/</span></code> at <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:172</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code> has 742 comments after code: 209 in <code class="docutils literal notranslate"><span class="pre">Signalling.cpp</span></code>, 128 in <code class="docutils literal notranslate"><span class="pre">RollingStockBlockingTimes.cpp</span></code>, 92 in <code class="docutils literal notranslate"><span class="pre">RollingStock.h</span></code> (the members of <code class="docutils literal notranslate"><span class="pre">Train</span></code>) and 58 in <code class="docutils literal notranslate"><span class="pre">Infrastructure.h</span></code>. They carry most of the units and meanings, but Doxygen reads a comment after a member only in the forms <code class="docutils literal notranslate"><span class="pre">///&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">//!&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">/**&lt;</span></code> or <code class="docutils literal notranslate"><span class="pre">/*!&lt;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code> and <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code> have the lowest comment share (2.8 % and 2.9 %). <code class="docutils literal notranslate"><span class="pre">scene/</span></code> has the most classes (80).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code> has 620 lines, <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code> 3,431 and <code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code> 3,946. Most of the logic with the least explanation sits in the first two.</p></li>
+</ul>
+</section>
+<section id="what-each-folder-does-and-who-calls-it">
+<h2>What each folder does and who calls it<a class="headerlink" href="#what-each-folder-does-and-who-calls-it" title="Link to this heading">¶</a></h2>
+<p>“Used by” is the set of other folders, tests excluded, that include a header of the folder, found by searching for <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;&lt;folder&gt;/</span></code> in the source. The numbers are counts of include lines. The descriptions come from <a class="reference internal" href="../architecture/source-layout.html"><span class="std std-doc">Source layout</span></a>, which lists every file.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Folder</p></th>
+<th class="head"><p>What it does</p></th>
+<th class="head"><p>Main classes</p></th>
+<th class="head"><p>Used by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code></p></td>
+<td><p>Program entry, main window, and the controllers that open, run and save a scene</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MainWindow</span></code>, <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code>, <code class="docutils literal notranslate"><span class="pre">RunController</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneSession</span></code>, <code class="docutils literal notranslate"><span class="pre">ResultViews</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code> (5), <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> (4), <code class="docutils literal notranslate"><span class="pre">graphics/</span></code>, <code class="docutils literal notranslate"><span class="pre">io/</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> and <code class="docutils literal notranslate"><span class="pre">widgets/</span></code> (1 each); see below</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diagrams/</span></code></p></td>
+<td><p>Copies a finished run into <code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code>, builds the Run Results table, the CSV exports and the chart windows</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CompletedRunCapture</span></code>, <code class="docutils literal notranslate"><span class="pre">RunResults</span></code>, <code class="docutils literal notranslate"><span class="pre">RunExports</span></code>, <code class="docutils literal notranslate"><span class="pre">DiagramWindow</span></code>, <code class="docutils literal notranslate"><span class="pre">DelayAnalysis</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> (24), <code class="docutils literal notranslate"><span class="pre">editors/</span></code> (1), <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:2</span></code> (for <code class="docutils literal notranslate"><span class="pre">energyMJKWh</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code></p></td>
+<td><p>The scene editor panels and the open scene with its unsaved state</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneEditorPanel</span></code>, the <code class="docutils literal notranslate"><span class="pre">*Panel</span></code> classes, <code class="docutils literal notranslate"><span class="pre">InfrastructureFacet</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> only (20)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">graphics/</span></code></p></td>
+<td><p>The network canvas: scene, view, items, follow camera</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NetworkPresenter</span></code>, <code class="docutils literal notranslate"><span class="pre">NetworkScene</span></code>, <code class="docutils literal notranslate"><span class="pre">NetworkView</span></code>, <code class="docutils literal notranslate"><span class="pre">RuntimeGeometrySource</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> (28), <code class="docutils literal notranslate"><span class="pre">widgets/</span></code> (15)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">io/</span></code></p></td>
+<td><p>Live stream (JSON frames, commands, ZeroMQ server) and the legacy XML channels</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LiveFrame</span></code>, <code class="docutils literal notranslate"><span class="pre">LiveCommand</span></code>, <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code>, <code class="docutils literal notranslate"><span class="pre">RttpXml</span></code>, <code class="docutils literal notranslate"><span class="pre">ExternalState</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> (4). <code class="docutils literal notranslate"><span class="pre">scene/SceneBundle.cpp:3</span></code> includes the vendored <code class="docutils literal notranslate"><span class="pre">miniz</span></code> from <code class="docutils literal notranslate"><span class="pre">io/third_party/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">recovery/</span></code></p></td>
+<td><p>Recovery copies of a scene with unsaved edits</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RecoveryStore</span></code>, <code class="docutils literal notranslate"><span class="pre">RecoveryController</span></code>, <code class="docutils literal notranslate"><span class="pre">RecoveryPrompt</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> (3)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code></p></td>
+<td><p>The canonical scene model, its loading, validation, saving, bundling, import and export</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneValidator</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneBundle</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code> (41), <code class="docutils literal notranslate"><span class="pre">app/</span></code> (32), <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> (17), <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery/</span></code>, <code class="docutils literal notranslate"><span class="pre">widgets/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code></p></td>
+<td><p>The simulation engine, the builders that fill a run from a scene, and the run state</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code>, <code class="docutils literal notranslate"><span class="pre">Train</span></code>, <code class="docutils literal notranslate"><span class="pre">Regional</span></code>, <code class="docutils literal notranslate"><span class="pre">Section</span></code>, <code class="docutils literal notranslate"><span class="pre">Route</span></code>, <code class="docutils literal notranslate"><span class="pre">Passenger</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> (<code class="docutils literal notranslate"><span class="pre">DispatchController</span></code>, <code class="docutils literal notranslate"><span class="pre">RunController</span></code>, <code class="docutils literal notranslate"><span class="pre">main</span></code>, <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code>, <code class="docutils literal notranslate"><span class="pre">RuntimeGeometryFromRun</span></code>), <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> (<code class="docutils literal notranslate"><span class="pre">CompletedRunCapture</span></code>, <code class="docutils literal notranslate"><span class="pre">RunResults.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SimulationHeaders.h</span></code>), <code class="docutils literal notranslate"><span class="pre">graphics/</span></code> (items and <code class="docutils literal notranslate"><span class="pre">NetworkPresenter</span></code>), <code class="docutils literal notranslate"><span class="pre">io/RttpXml.cpp</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">telemetry/</span></code></p></td>
+<td><p>Consent, queue and sender for usage and diagnostics events</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TelemetryConsent</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetryQueue</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetrySender</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> (7), <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> (4)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">update/</span></code></p></td>
+<td><p>Release check, package download and self-update</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">UpdateChecker</span></code>, <code class="docutils literal notranslate"><span class="pre">SelfUpdater</span></code>, <code class="docutils literal notranslate"><span class="pre">HttpTransport</span></code>, <code class="docutils literal notranslate"><span class="pre">UpdatePreparation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/</span></code> (7), <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code> (1)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">util/</span></code></p></td>
+<td><p>Logging, time and speed formatting, CSV, trajectory helpers, playback profiler</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Log</span></code>, <code class="docutils literal notranslate"><span class="pre">PlaybackProfiler</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeFormat</span></code>, <code class="docutils literal notranslate"><span class="pre">CsvWriter</span></code></p></td>
+<td><p>Every other folder except <code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery/</span></code> and <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">widgets/</span></code></p></td>
+<td><p>Dock widgets, dialogs and small controls</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">InspectorPanel</span></code>, <code class="docutils literal notranslate"><span class="pre">ConsoleWidget</span></code>, <code class="docutils literal notranslate"><span class="pre">CaseChooserDialog</span></code>, <code class="docutils literal notranslate"><span class="pre">NetworkLegendWidget</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code> (36), <code class="docutils literal notranslate"><span class="pre">app/</span></code> (25), <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> (12), <code class="docutils literal notranslate"><span class="pre">recovery/</span></code>, <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Some includes run from a lower folder into <code class="docutils literal notranslate"><span class="pre">app/</span></code> or <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code>, and they will show in the generated include graphs:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">app/DialogFolders.h</span></code> from four windows in <code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> and from <code class="docutils literal notranslate"><span class="pre">editors/ScenarioPanel.cpp:3</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app/RunSelection.h</span></code> from four headers in <code class="docutils literal notranslate"><span class="pre">editors/</span></code> (it is its own library, <code class="docutils literal notranslate"><span class="pre">egtrain_runselection</span></code>);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app/GuiSimulationSnapshot.h</span></code> from <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.h:4</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp:15</span></code> and <code class="docutils literal notranslate"><span class="pre">widgets/InspectorPanel.cpp:13</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app/DispatchController.h</span></code> from <code class="docutils literal notranslate"><span class="pre">simulation/SimulationWorker.cpp:2</span></code>, which is built in the same library;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diagrams/RunResults.h</span></code> from <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:2</span></code>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">DialogFolders.h</span></code> and <code class="docutils literal notranslate"><span class="pre">GuiSimulationSnapshot.h</span></code> have no source file, and <code class="docutils literal notranslate"><span class="pre">energyMJKWh</span></code> is an inline function, so the libraries still link one way as <a class="reference internal" href="../architecture/source-layout.html#libraries"><span class="std std-ref">Source layout</span></a> says.</p>
+</section>
+<section id="the-legacy-simulation-core">
+<h2>The legacy simulation core<a class="headerlink" href="#the-legacy-simulation-core" title="Link to this heading">¶</a></h2>
+<p>The folder is <code class="docutils literal notranslate"><span class="pre">simulation/</span></code>. Existing pages that explain a part: <a class="reference internal" href="../architecture/signalling-levels.html"><span class="std std-doc">Signalling levels</span></a> (the step, the codes, every level), <a class="reference internal" href="../architecture/scene-model.html"><span class="std std-doc">Scene model</span></a> and <a class="reference internal" href="../architecture/scene-schema.html"><span class="std std-doc">Scene schema</span></a> (the input, units of the input keys, dwell rule), <a class="reference internal" href="../architecture/external-sharing.html"><span class="std std-doc">External state sharing</span></a> (the <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code> payloads) and <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">Run output</span></a> (the files). No page describes the data structures or the equations of motion.</p>
+<section id="files">
+<h3>Files<a class="headerlink" href="#files" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Files</p></th>
+<th class="head"><p>Lines</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SimulationRun.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code></p></td>
+<td><p>161, 82</p></td>
+<td><p>The state of one run: trains, infrastructure, passengers, statistics</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Infrastructure.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code></p></td>
+<td><p>289, 180</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Node</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc</span></code>, <code class="docutils literal notranslate"><span class="pre">BlockSet</span></code>, <code class="docutils literal notranslate"><span class="pre">Connections</span></code>, <code class="docutils literal notranslate"><span class="pre">Stations</span></code>, <code class="docutils literal notranslate"><span class="pre">StationPlatform</span></code>, the constant <code class="docutils literal notranslate"><span class="pre">timestep</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Signalling.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code></p></td>
+<td><p>456, 3,431</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Section</span></code>, <code class="docutils literal notranslate"><span class="pre">Route</span></code>, <code class="docutils literal notranslate"><span class="pre">TDS</span></code>, <code class="docutils literal notranslate"><span class="pre">MovementAuthority</span></code>, event records, and the routines that set codes and authorities</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RollingStock.h</span></code></p></td>
+<td><p>620</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Train</span></code> and <code class="docutils literal notranslate"><span class="pre">Regional</span></code>, <code class="docutils literal notranslate"><span class="pre">BlockingTimes</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockDynamics.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockTrajectory.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockBraking.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockOccupation.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockStops.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStockBlockingTimes.cpp</span></code></p></td>
+<td><p>4,032 together</p></td>
+<td><p>The members of <code class="docutils literal notranslate"><span class="pre">Train</span></code>: setup and outputs, forces and energy, the step, braking, occupied sections, timetable points, blocking times after the run</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Simulation.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code></p></td>
+<td><p>63, 560</p></td>
+<td><p>Delay statistics, energy outputs, the passenger and train interaction of a step</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Passengers.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code></p></td>
+<td><p>126, 157</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Trip</span></code>, <code class="docutils literal notranslate"><span class="pre">Journey</span></code>, <code class="docutils literal notranslate"><span class="pre">Passenger</span></code>, lookup indexes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">InitialParameters.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">NumberGenerator.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Optimisation.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code></p></td>
+<td><p>48, 21, 42, 63, 9, 76</p></td>
+<td><p>Process options, random numbers, departure time spacing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RunControl.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">SimulationWorker.h</span></code>, <code class="docutils literal notranslate"><span class="pre">.cpp</span></code></p></td>
+<td><p>79, 79, 54, 44</p></td>
+<td><p>Pause, stop and delay of a run on its own thread</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">builders/</span></code></p></td>
+<td><p>1,068 and 1,121</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">InfrastructureBuilder</span></code> and <code class="docutils literal notranslate"><span class="pre">OperationsBuilder</span></code> fill a run from a <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="main-data-structures">
+<h3>Main data structures<a class="headerlink" href="#main-data-structures" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/SimulationRun.h:77</span></code>) holds everything one run builds and the next must not see: <code class="docutils literal notranslate"><span class="pre">trains</span></code>, <code class="docutils literal notranslate"><span class="pre">platforms</span></code>, <code class="docutils literal notranslate"><span class="pre">passengers</span></code>, the delay statistics, <code class="docutils literal notranslate"><span class="pre">etcsMa</span></code> (movement authorities of the step), <code class="docutils literal notranslate"><span class="pre">blocksOccupied</span></code> and <code class="docutils literal notranslate"><span class="pre">blocksConnected</span></code> (lists that a step fills and clears), <code class="docutils literal notranslate"><span class="pre">incidents</span></code>, and <code class="docutils literal notranslate"><span class="pre">infra</span></code>. Its comment (lines 66 to 76) says that a new member must be cleared in <code class="docutils literal notranslate"><span class="pre">reset()</span></code> and, if it points at another member, in <code class="docutils literal notranslate"><span class="pre">adopt()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RunInfrastructure</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/SimulationRun.h:24</span></code>) holds <code class="docutils literal notranslate"><span class="pre">blockSets</span></code> (tracks), <code class="docutils literal notranslate"><span class="pre">connections</span></code>, <code class="docutils literal notranslate"><span class="pre">stations</span></code>, <code class="docutils literal notranslate"><span class="pre">sections</span></code> (block sections), <code class="docutils literal notranslate"><span class="pre">routes</span></code>, the detection sections and the single-track data. The arrays of tracks, connections and stations have the fixed sizes <code class="docutils literal notranslate"><span class="pre">kMaxTrackLines</span></code> 268, <code class="docutils literal notranslate"><span class="pre">kMaxConnections</span></code> 708 and <code class="docutils literal notranslate"><span class="pre">kMaxStations</span></code> 95 (<code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:208</span></code> to <code class="docutils literal notranslate"><span class="pre">210</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Node</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc</span></code>, <code class="docutils literal notranslate"><span class="pre">BlockSet</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:71</span></code>, <code class="docutils literal notranslate"><span class="pre">151</span></code>, <code class="docutils literal notranslate"><span class="pre">190</span></code>): a track is a chain of nodes joined by arcs. An arc carries <code class="docutils literal notranslate"><span class="pre">length</span></code>, <code class="docutils literal notranslate"><span class="pre">curvature</span></code>, <code class="docutils literal notranslate"><span class="pre">gradient</span></code>, <code class="docutils literal notranslate"><span class="pre">speedLimit</span></code> and <code class="docutils literal notranslate"><span class="pre">signalSpeedLimit</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Section</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:134</span></code>) is a block section: up to 20 arcs, a <code class="docutils literal notranslate"><span class="pre">code</span></code>, a <code class="docutils literal notranslate"><span class="pre">state</span></code> (<code class="docutils literal notranslate"><span class="pre">SignalState</span></code>), a <code class="docutils literal notranslate"><span class="pre">SignallingLevel</span></code>, and the connected sections. <code class="docutils literal notranslate"><span class="pre">Route</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:280</span></code>) is a sequence of copies of sections, plus <code class="docutils literal notranslate"><span class="pre">reversed_direction</span></code> for a route driven against its definition.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Train</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:168</span></code>) holds the physical data, one vector per sampled quantity indexed by step (<code class="docutils literal notranslate"><span class="pre">instant_train_speed</span></code>, <code class="docutils literal notranslate"><span class="pre">instant_spatial_position</span></code>, <code class="docutils literal notranslate"><span class="pre">instant_train_power_consumption</span></code>, <code class="docutils literal notranslate"><span class="pre">instant_train_energy_consumption</span></code>, <code class="docutils literal notranslate"><span class="pre">Eq</span></code>, <code class="docutils literal notranslate"><span class="pre">BX</span></code>, <code class="docutils literal notranslate"><span class="pre">Xob</span></code>, <code class="docutils literal notranslate"><span class="pre">Vob</span></code>), the stop and station arrays (capacity 40, <code class="docutils literal notranslate"><span class="pre">RuntimeLimits::kMaxTimetableStops</span></code>), the braking plan (<code class="docutils literal notranslate"><span class="pre">Sbrak</span></code>, <code class="docutils literal notranslate"><span class="pre">Vbrak</span></code>, 2,000 entries each, line 251), and the flags of movement authority and virtual coupling. <code class="docutils literal notranslate"><span class="pre">Regional</span></code> adds no member (<code class="docutils literal notranslate"><span class="pre">static_assert</span></code> at line 600). A train reaches its run through <code class="docutils literal notranslate"><span class="pre">run_</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MovementAuthority</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:317</span></code>) is an end of authority for levels 3 and 4 and for a failed signal at every level. <code class="docutils literal notranslate"><span class="pre">TrainEvent</span></code> and <code class="docutils literal notranslate"><span class="pre">InfraEvent</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:46</span></code>, <code class="docutils literal notranslate"><span class="pre">80</span></code>) record passages.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BlockingTimes</span></code> and <code class="docutils literal notranslate"><span class="pre">BlockingTimeList</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:64</span></code>, <code class="docutils literal notranslate"><span class="pre">114</span></code>) hold the post-run blocking times of one train.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Passenger</span></code>, <code class="docutils literal notranslate"><span class="pre">Journey</span></code>, <code class="docutils literal notranslate"><span class="pre">Trip</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Passengers.h:57</span></code>, <code class="docutils literal notranslate"><span class="pre">32</span></code>, <code class="docutils literal notranslate"><span class="pre">12</span></code>): a passenger has journeys, a journey has trips (legs). <code class="docutils literal notranslate"><span class="pre">PassengerIndex</span></code> and <code class="docutils literal notranslate"><span class="pre">PlatformIndex</span></code> look entries up by ID.</p></li>
+</ul>
+</section>
+<section id="from-scene-to-run">
+<h3>From scene to run<a class="headerlink" href="#from-scene-to-run" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:223</span></code>) validates the scene and builds a run apart from the live one with <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code> and <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code> (lines 280 and 294; declared at <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:19</span></code> and <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:45</span></code>), then swaps it in with <code class="docutils literal notranslate"><span class="pre">SimulationRun::adopt</span></code> (line 336; <code class="docutils literal notranslate"><span class="pre">simulation/SimulationRun.h:136</span></code> to <code class="docutils literal notranslate"><span class="pre">140</span></code>). <a class="reference internal" href="getting-started.html#from-open-to-saved"><span class="std std-ref">Getting started</span></a> step 4 shows the path from the window. The vectors of a train get one slot per step, <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">timestep)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:979</span></code>).</p>
+</section>
+<section id="the-time-step-loop">
+<h3>The time step loop<a class="headerlink" href="#the-time-step-loop" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:663</span></code>) runs <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span> <span class="pre">while</span> <span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">settings.times</span></code> (line 682). <code class="docutils literal notranslate"><span class="pre">timestep</span></code> is 1 second (<code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:25</span></code>). One step does this, in this order:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">RunControl::beginStep</span></code> applies queued pause, stop and delay commands (line 684).</p></li>
+<li><p>Passengers whose journey starts at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">+</span> <span class="pre">startingSimulationTime</span></code> enter the network (<code class="docutils literal notranslate"><span class="pre">checkJourneyStartForAllPassengers</span></code>, line 698). With the passenger view on, every platform’s waiting list is refreshed (line 704).</p></li>
+<li><p>Every train moves, in the order of the run except that trains that are due and still waiting take the places of the others in order of due time (lines 715 to 725). Each calls <code class="docutils literal notranslate"><span class="pre">trajectoryComputationIncludingMovingBlock(t,</span> <span class="pre">...)</span></code>, then records its station passages and its arrival or departure at the ends of its route (lines 726 to 733).</p></li>
+<li><p>For every train, <code class="docutils literal notranslate"><span class="pre">Simulate_Train_Passenger_Interactions</span></code> lets passengers alight and board and may lengthen the stop (line 744). With <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> it also builds the traffic state payload (line 750).</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> or <code class="docutils literal notranslate"><span class="pre">-RC</span></code>, the XML is sent to ZeroMQ ports 5555 and 5556 (lines 773 to 787).</p></li>
+<li><p>The signalling for the next step: <code class="docutils literal notranslate"><span class="pre">etcsMa</span></code> is cleared, then <code class="docutils literal notranslate"><span class="pre">Occupy_Block_Sections_Of_Route</span></code>, <code class="docutils literal notranslate"><span class="pre">Apply_Signal_Failures_Mixed_Signalling</span></code>, <code class="docutils literal notranslate"><span class="pre">Apply_Single_Track_Authorities_Mixed_Signalling</span></code>, <code class="docutils literal notranslate"><span class="pre">ReportAllTrainPositionsToRBC</span></code> (margin 50 m), <code class="docutils literal notranslate"><span class="pre">protectStationAreas</span></code>, <code class="docutils literal notranslate"><span class="pre">releaseMixedSignallingSystem</span></code>, <code class="docutils literal notranslate"><span class="pre">activateMixedSignallingSystem</span></code> and <code class="docutils literal notranslate"><span class="pre">unlockDoubleSwitches</span></code> run, and the occupied and connected lists are cleared (lines 792 to 816). <a class="reference internal" href="../architecture/signalling-levels.html#what-happens-in-a-step"><span class="std std-ref">Signalling levels</span></a> explains each.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">publishSimulationSnapshot(t)</span></code> hands the step to the window (line 823).</p></li>
+</ol>
+<p>After the loop the passenger status file is written (line 832). <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:532</span></code>) sets every <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> to <code class="docutils literal notranslate"><span class="pre">scheduled_departure_time</span></code> before the loop (line 571) and then runs the stages after the steps: energy totals (580), timetable points (604), delay statistics (607 to 622), blocking times (632), and the optional per-train files (645 to 652). Between the stages it checks for a stop request.</p>
+</section>
+<section id="what-one-train-does-in-a-step">
+<h3>What one train does in a step<a class="headerlink" href="#what-one-train-does-in-a-step" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Train::trajectoryComputationIncludingMovingBlock</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:321</span></code>) reads the previous step (<code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">-</span> <span class="pre">1</span></code>) and writes step <code class="docutils literal notranslate"><span class="pre">t</span></code>:</p>
+<ol class="arabic simple">
+<li><p>At <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code> it only sets the start state (line 323). A train under a breakdown incident holds its state and sets <code class="docutils literal notranslate"><span class="pre">Eq</span> <span class="pre">=</span> <span class="pre">5</span></code> (336 to 346).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">checkEntrance</span></code> (line 38) lets the train enter when <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">&gt;=</span> <span class="pre">departure_time</span></code> and the first section allows it: code 270 or 180 at the fixed-block levels, no movement authority of another train at the start at levels 3 and 4. A waiting train is also held back by a failed first section and, at a signalling level, by a first section that another train entered in this step or by a crossover conflict (lines 43 to 50).</p></li>
+<li><p>It finds its section and arc from the position, and takes the speed limit as the lowest of its own maximum, the arc limit and the signal limit, then applies an incident cap (379 to 388).</p></li>
+<li><p>It computes the candidate acceleration step (lines 434 to 465) and asks <code class="docutils literal notranslate"><span class="pre">europeanVitalComputerWithListsImproved</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp:491</span></code>) for the next braking point (line 467).</p></li>
+<li><p>It accelerates (line 474), brakes (499) or cruises (548). Braking uses a stored curve (<code class="docutils literal notranslate"><span class="pre">Sbrak</span></code>, <code class="docutils literal notranslate"><span class="pre">Vbrak</span></code>) or <code class="docutils literal notranslate"><span class="pre">fullBrakingStep</span></code>.</p></li>
+<li><p>For a train in virtual coupling it checks coupling and following, and may replace the step by one that follows the leader (lines 566 to 669).</p></li>
+<li><p>If the train passed the end of its route it records <code class="docutils literal notranslate"><span class="pre">End_Time</span></code>, sets its position to -9999 and leaves the simulation (673 to 687).</p></li>
+<li><p>If it stands within 4 m of the end of an arc it holds there for a station dwell, a checkpoint, a red state or an authority (692 to 828), and then updates the infrastructure elements it passed (830 to 838).</p></li>
+</ol>
+</section>
+<section id="signalling-levels">
+<h3>Signalling levels<a class="headerlink" href="#signalling-levels" title="Link to this heading">¶</a></h3>
+<p>The model has levels 0 to 5 and “no level” (<code class="docutils literal notranslate"><span class="pre">scene/SignallingLevel.h:5</span></code> to <code class="docutils literal notranslate"><span class="pre">16</span></code>). Levels 0, 1, 2 and 5 are fixed block: after each step the sections behind an occupied one get a code (270, 180, 75, 751 or 0), a state and a signal speed limit (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:2744</span></code> to <code class="docutils literal notranslate"><span class="pre">2835</span></code>). Levels 3 and 4 are moving block: positions go to a radio block centre (<code class="docutils literal notranslate"><span class="pre">ReportPositionToRBC</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockOccupation.cpp:93</span></code>) and become movement authorities that the train brakes for. Level 4 adds following a leader. The codes, each level, mixed routes, areas and known limits are in <a class="reference internal" href="../architecture/signalling-levels.html"><span class="std std-doc">Signalling levels</span></a>; none of it is repeated here.</p>
+</section>
+<section id="braking-and-traction">
+<h3>Braking and traction<a class="headerlink" href="#braking-and-traction" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Tractive effort is a quadratic of speed per speed band, <code class="docutils literal notranslate"><span class="pre">c0</span> <span class="pre">+</span> <span class="pre">c1</span> <span class="pre">v</span> <span class="pre">+</span> <span class="pre">c2</span> <span class="pre">v^2</span></code>, scaled by the service performance percentage (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:6</span></code> to <code class="docutils literal notranslate"><span class="pre">16</span></code>). The band limits are the first two numbers of each traction curve row (<a class="reference internal" href="../architecture/scene-schema.html#rolling-stock-json"><span class="std std-ref">Scene schema</span></a>).</p></li>
+<li><p>Resistance is the sum of a traction unit term, a wagon term (Sauthoff, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:304</span></code>), a gradient term <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">m</span> <span class="pre">G</span></code> and a curvature term <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">m</span> <span class="pre">700</span> <span class="pre">/</span> <span class="pre">(R</span> <span class="pre">1000)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:28</span></code> to <code class="docutils literal notranslate"><span class="pre">58</span></code>).</p></li>
+<li><p>Acceleration uses <code class="docutils literal notranslate"><span class="pre">v'</span> <span class="pre">=</span> <span class="pre">v</span> <span class="pre">+</span> <span class="pre">(F</span> <span class="pre">-</span> <span class="pre">R)</span> <span class="pre">/</span> <span class="pre">(m</span> <span class="pre">k)</span> <span class="pre">dt</span></code>, where <code class="docutils literal notranslate"><span class="pre">k</span></code> is <code class="docutils literal notranslate"><span class="pre">massFactor</span></code>, capped at the speed limit (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:439</span></code> to <code class="docutils literal notranslate"><span class="pre">448</span></code>).</p></li>
+<li><p>Braking effort ramps with the jerk: <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">k</span> <span class="pre">min(jerk</span> <span class="pre">t,</span> <span class="pre">a_max)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:18</span></code> to <code class="docutils literal notranslate"><span class="pre">26</span></code>). A braking step with full force decelerates by <code class="docutils literal notranslate"><span class="pre">a_max</span> <span class="pre">+</span> <span class="pre">R</span> <span class="pre">/</span> <span class="pre">(m</span> <span class="pre">k)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp:855</span></code> to <code class="docutils literal notranslate"><span class="pre">863</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">europeanVitalComputerWithListsImproved</span></code> collects the nodes of the arcs ahead in the train’s own section and the eight sections after it (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp:530</span></code>), adds the closest end of authority of levels 3 and 4 and of a failed signal, and returns the braking point of the target that needs the earliest braking. It keeps a stored plan (<code class="docutils literal notranslate"><span class="pre">Sbrak</span></code>, <code class="docutils literal notranslate"><span class="pre">Vbrak</span></code>) while the plan stays valid (lines 491 to 752). <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:441</span></code> describes it as the reaction of the driver to the most severe service limit.</p></li>
+<li><p>Energy: the power sample is force times the speed of the previous step (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:481</span></code>); energy adds the mean of two samples times <code class="docutils literal notranslate"><span class="pre">timestep</span></code>, divided by 10^6, so the vector is in MJ (lines 15 to 28). Negative power counts as zero. Totals add 10 % for auxiliaries and divide by the substation efficiency 0.8; regenerated power is scaled by 0.7 (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:80</span></code> to <code class="docutils literal notranslate"><span class="pre">117</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:188</span></code>).</p></li>
+</ul>
+</section>
+<section id="dwell-and-passengers">
+<h3>Dwell and passengers<a class="headerlink" href="#dwell-and-passengers" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>A train that stands at a station arc counts from <code class="docutils literal notranslate"><span class="pre">stop</span></code>. It leaves when <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">-</span> <span class="pre">stop</span> <span class="pre">&gt;</span> <span class="pre">StopTime</span></code>, <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">&gt;</span> <span class="pre">ScheduledDepartures[s]</span></code> and no authority holds it, and at a stop with an order to respect also when the aspect is not restrictive, and at a platform at the end of a block also when the signal is not red (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:698</span></code> to <code class="docutils literal notranslate"><span class="pre">762</span></code>). The dwell rule is in <a class="reference internal" href="../architecture/scene-schema.html#services-json"><span class="std std-ref">Scene schema</span></a>.</p></li>
+<li><p>Passengers alight if they are on this train and their arrival station is the stop, then board in the order of the platform’s waiting list, which is sorted by the actual departure time of the trip each passenger waits for (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.h:47</span></code> to <code class="docutils literal notranslate"><span class="pre">49</span></code>), while the train has room. Capacity is 300 for the unit and 300 for each wagon (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:100</span></code> to <code class="docutils literal notranslate"><span class="pre">103</span></code>). A transfer to a platform two or more numbers away adds 30 seconds per number of difference (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:449</span></code> to <code class="docutils literal notranslate"><span class="pre">457</span></code>).</p></li>
+<li><p>When a stop has its first step, the passenger-dependent dwell replaces <code class="docutils literal notranslate"><span class="pre">StopTime</span></code> if it is longer (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:543</span></code> to <code class="docutils literal notranslate"><span class="pre">558</span></code>). The model is the one named in the comment at <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:112</span></code> (Fernandez et al. 2007, extending Gibson et al. 1989), with eight parameters set in <code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:253</span></code>. Congestion flags switch on at platform occupancy above 0.65 and train occupancy above 0.7 (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:121</span></code>, <code class="docutils literal notranslate"><span class="pre">127</span></code>).</p></li>
+<li><p>A passenger who cannot board only produces a log line (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:531</span></code> to <code class="docutils literal notranslate"><span class="pre">535</span></code>).</p></li>
+</ul>
+</section>
+<section id="global-state-the-code-depends-on">
+<h3>Global state the code depends on<a class="headerlink" href="#global-state-the-code-depends-on" title="Link to this heading">¶</a></h3>
+<p>The routines take the run as a parameter, and <code class="docutils literal notranslate"><span class="pre">Train::run_</span></code> points at it (<a class="reference internal" href="../architecture/source-layout.html#completed-run-data"><span class="std std-ref">Source layout</span></a>). Process-wide state remains in these places:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>State</p></th>
+<th class="head"><p>Defined</p></th>
+<th class="head"><p>Used for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> (<code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.cpp:9</span></code>, declared <code class="docutils literal notranslate"><span class="pre">extern</span></code> at <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:38</span></code></p></td>
+<td><p>Options of the process: case name, duration override, seed, output folder, live stream settings. <code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:283</span></code>, <code class="docutils literal notranslate"><span class="pre">328</span></code>, <code class="docutils literal notranslate"><span class="pre">963</span></code> and <code class="docutils literal notranslate"><span class="pre">1105</span></code> read and write it. <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code> copies it into <code class="docutils literal notranslate"><span class="pre">run.settings</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:335</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation</span></code> (<code class="docutils literal notranslate"><span class="pre">DispatchController</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:212</span></code>, declared at <code class="docutils literal notranslate"><span class="pre">app/DispatchController.h:119</span></code></p></td>
+<td><p>The controller that <code class="docutils literal notranslate"><span class="pre">SimulationWorker(QObject*)</span></code> uses (<code class="docutils literal notranslate"><span class="pre">simulation/SimulationWorker.cpp:9</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">defaultRun()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/SimulationRun.cpp:80</span></code></p></td>
+<td><p>The run of the process; its address never changes. A test may pass its own run</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SimulationWorker::s_active</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/SimulationWorker.cpp:6</span></code></p></td>
+<td><p>Lets <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> find its worker’s <code class="docutils literal notranslate"><span class="pre">RunControl</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:547</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">timestep</span></code>, <code class="docutils literal notranslate"><span class="pre">signalCode1</span></code> to <code class="docutils literal notranslate"><span class="pre">3</span></code>, <code class="docutils literal notranslate"><span class="pre">kMax*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:25</span></code>, <code class="docutils literal notranslate"><span class="pre">27</span></code>, <code class="docutils literal notranslate"><span class="pre">208</span></code> to <code class="docutils literal notranslate"><span class="pre">210</span></code></p></td>
+<td><p>Constants: 1 s, 11.111 m/s, 0 and 0, and the array sizes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Logging state</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">util/Log.cpp:25</span></code>, <code class="docutils literal notranslate"><span class="pre">35</span></code></p></td>
+<td><p>Category mask and sinks</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PlaybackProfiler::instance()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">util/PlaybackProfiler.h</span></code>, called at <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:508</span></code> and <code class="docutils literal notranslate"><span class="pre">529</span></code></p></td>
+<td><p>Playback timing</p></td>
+</tr>
+<tr class="row-odd"><td><p>A static counter</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:230</span></code></p></td>
+<td><p>Counts calls of <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code> for the startup timing detail, which two environment variables switch on</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="names-units-and-conventions-the-code-uses-without-saying-so">
+<h2>Names, units and conventions the code uses without saying so<a class="headerlink" href="#names-units-and-conventions-the-code-uses-without-saying-so" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Convention</p></th>
+<th class="head"><p>Source</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A step index <code class="docutils literal notranslate"><span class="pre">t</span></code> is seconds from the start of the run. Vectors of a train are indexed by it and <code class="docutils literal notranslate"><span class="pre">timestep</span></code> is 1 s. <code class="docutils literal notranslate"><span class="pre">departure_time</span></code>, <code class="docutils literal notranslate"><span class="pre">StationArrivals</span></code> and <code class="docutils literal notranslate"><span class="pre">ScheduledDepartures</span></code> are in the same seconds. They are relative to the base time of the scene (<a class="reference internal" href="../architecture/scene-schema.html#services-json"><span class="std std-ref">Scene schema</span></a>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:24</span></code> to <code class="docutils literal notranslate"><span class="pre">25</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:979</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Passenger times are seconds since midnight: the step plus <code class="docutils literal notranslate"><span class="pre">startingSimulationTime</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:277</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/architecture/scene-schema.md</span></code> (journey windows)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Node::X</span></code> and <code class="docutils literal notranslate"><span class="pre">Node::Y</span></code> are kilometres, and a position in metres is <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">*</span> <span class="pre">1000</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp:679</span></code> (<code class="docutils literal notranslate"><span class="pre">xKm</span></code>), <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:326</span></code> (<code class="docutils literal notranslate"><span class="pre">Start_Node_X</span> <span class="pre">*</span> <span class="pre">1000</span></code>), <code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.cpp:77</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">instant_spatial_position[t]</span></code> is the head position in metres along the route, and -9999 after the train has left</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:679</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Train::trainXPosition</span></code> returns kilometres and -1 when the head is on no section</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:621</span></code> to <code class="docutils literal notranslate"><span class="pre">649</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/architecture/external-sharing.md</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Arc::length</span></code> is metres, <code class="docutils literal notranslate"><span class="pre">Section::length</span></code> is a difference of kilometre coordinates</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.cpp:77</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp:812</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Arc::gradient</span></code> is rise per length (0.01 is a 1 % slope), although the scene key and field are called <code class="docutils literal notranslate"><span class="pre">gradient_percent</span></code> and <code class="docutils literal notranslate"><span class="pre">gradientPercent</span></code>. The schema says this, and that a route driven in reverse sees the opposite sign; the code does not</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene/SceneModel.h:47</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp:692</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:42</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/architecture/scene-schema.md</span></code> (arcs)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Arc::curvature</span></code> holds the radius of curvature in metres (<code class="docutils literal notranslate"><span class="pre">curvature_radius_m</span></code>), and 0 means straight</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp:691</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:46</span></code> to <code class="docutils literal notranslate"><span class="pre">51</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Speeds are m/s inside the simulation and km/h at the edges (<code class="docutils literal notranslate"><span class="pre">configuredMaximumSpeedKmh</span></code>, <code class="docutils literal notranslate"><span class="pre">speedKmhAt</span></code>). Forces are N, power W, energy vectors MJ, text outputs kWh with the factor 0.27778</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:183</span></code> to <code class="docutils literal notranslate"><span class="pre">185</span></code>, <code class="docutils literal notranslate"><span class="pre">555</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/RunResults.h:146</span></code> to <code class="docutils literal notranslate"><span class="pre">147</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Mass is kg. <code class="docutils literal notranslate"><span class="pre">massFactor</span></code> multiplies the mass in the equation of motion. <code class="docutils literal notranslate"><span class="pre">massPerWagonAxle</span></code> holds the total mass of the wagons, not a mass per axle</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:237</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:442</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Section::code</span></code> 270, 180, 75, 751 and 0 are aspect codes: 270 green, 180 yellow, 75 red, 751 red-red, and 0 on an occupied or failed section</p></td>
+<td><p><a class="reference internal" href="../architecture/signalling-levels.html#codes-and-what-they-do-to-a-following-train"><span class="std std-ref">Signalling levels</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>A signalling level is 0 to 5, and -99999999 means none</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene/SignallingLevel.h:16</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Route::reversed_direction</span></code> is true when the train runs against the direction in which the route is defined. Positions on a reversed route are measured from the other end, and outputs subtract them from <code class="docutils literal notranslate"><span class="pre">OriginalRefReversedRoute</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:287</span></code> to <code class="docutils literal notranslate"><span class="pre">289</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:141</span></code> to <code class="docutils literal notranslate"><span class="pre">148</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>A stopped train is parked 0.0001 m short of the stop point and released at 0.0001 m/s and 0.0001 m past it. A train within 4 m of the end of an arc counts as standing at it</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:153</span></code> to <code class="docutils literal notranslate"><span class="pre">166</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:699</span></code>, <code class="docutils literal notranslate"><span class="pre">730</span></code> to <code class="docutils literal notranslate"><span class="pre">731</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Train::Eq[t]</span></code> is a label of the branch that produced step <code class="docutils literal notranslate"><span class="pre">t</span></code>: 1 accelerate, 12 cruise, 5 breakdown hold or station dwell, 6 at a signal, 52, 53 and 55 braking from a stored or a new plan, 54 full braking, 323 hold at an authority, 532 and 534 checkpoint release and hold, 958 zero speed limit, 1002 following a leader. Only 54 is read outside tests</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:344</span></code>, <code class="docutils literal notranslate"><span class="pre">479</span></code> to <code class="docutils literal notranslate"><span class="pre">820</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp:827</span></code> to <code class="docutils literal notranslate"><span class="pre">862</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:520</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Train::temp</span></code> is the last step before braking began and <code class="docutils literal notranslate"><span class="pre">Train::stop</span></code> the last step in which the train moved, which starts the dwell count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:483</span></code> to <code class="docutils literal notranslate"><span class="pre">484</span></code>, <code class="docutils literal notranslate"><span class="pre">535</span></code>, <code class="docutils literal notranslate"><span class="pre">716</span></code> to <code class="docutils literal notranslate"><span class="pre">717</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MovementAuthority::type</span></code> and <code class="docutils literal notranslate"><span class="pre">typePart</span></code> are strings (“SignalFailure”, “TrainEnd”, “TrainUncoupled”; “Front”, “Tale”) and a passenger’s <code class="docutils literal notranslate"><span class="pre">CurrentStatus</span></code> is one of “None”, “OnPlatform”, “OnBoard”. “None” is the empty value of many ID strings, and -9999 or -10000 of many numbers</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:84</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Passengers.h:24</span></code>, <code class="docutils literal notranslate"><span class="pre">26</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:78</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Fixed capacities: 20 arcs per section, 10 connected sections, 40 ETCS 3 braking points, 20 speed bands, 40 timetable stops</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:140</span></code>, <code class="docutils literal notranslate"><span class="pre">154</span></code>, <code class="docutils literal notranslate"><span class="pre">161</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:178</span></code>, <code class="docutils literal notranslate"><span class="pre">scene/RuntimeLimits.h:10</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Constants of the model: 50 m margin of levels 3 and 4, 30 m and 0.278 m/s of coupling, eight sections of look-ahead, the blocking time arguments 5, 3 plus the buffer time, 0.5 and 50 for setup, release, sight reaction time and safety margin, with no unit stated at the call</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:632</span></code>, <code class="docutils literal notranslate"><span class="pre">804</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:574</span></code> to <code class="docutils literal notranslate"><span class="pre">575</span></code>, <code class="docutils literal notranslate"><span class="pre">623</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp:530</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="dead-or-misleading-comments">
+<h2>Dead or misleading comments<a class="headerlink" href="#dead-or-misleading-comments" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Where</p></th>
+<th class="head"><p>Problem</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:329</span></code> to <code class="docutils literal notranslate"><span class="pre">344</span></code></p></td>
+<td><p>A commented-out earlier <code class="docutils literal notranslate"><span class="pre">checkEntrance</span></code> with IDs such as 111 and 113. The current <code class="docutils literal notranslate"><span class="pre">checkEntrance</span></code> is at <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:38</span></code> and works differently</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:346</span></code> to <code class="docutils literal notranslate"><span class="pre">348</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">//!</span></code> comment “Check the entrance possibility” is above <code class="docutils literal notranslate"><span class="pre">entryConflictsWithCrossover</span></code>, not <code class="docutils literal notranslate"><span class="pre">checkEntrance</span></code> (line 351)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:258</span></code></p></td>
+<td><p>Says <code class="docutils literal notranslate"><span class="pre">Eq</span></code> is the “Number of speed interval of the Traction curve function”. It holds the branch label of each step (see the conventions above)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:44</span></code></p></td>
+<td><p>Says errors leave “operation globals” intact. The function writes the run and, at its end, one global, <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:1105</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:17</span></code></p></td>
+<td><p>“Build the infrastructure/signalling globals”: the function writes <code class="docutils literal notranslate"><span class="pre">run.infra</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:156</span></code></p></td>
+<td><p>Says <code class="docutils literal notranslate"><span class="pre">speedInBraking</span></code> is the mean speed in the braking zone. The code sets it to the speed to reach at the end of the arc: the limit of the next arc (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:2702</span></code> to <code class="docutils literal notranslate"><span class="pre">2716</span></code>), the lower of the next section’s limits or 0 before an occupied section (<code class="docutils literal notranslate"><span class="pre">2839</span></code> to <code class="docutils literal notranslate"><span class="pre">2895</span></code>), and 0 before a station (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:398</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:156</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">brakingDistance</span></code> is set to 0 (<code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.cpp:73</span></code>) and only copied and compared afterwards; nothing gives it another value</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:321</span></code></p></td>
+<td><p>Says <code class="docutils literal notranslate"><span class="pre">typePart</span></code> is “Front or Tail”. The code writes and compares “Tale” (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:84</span></code>, <code class="docutils literal notranslate"><span class="pre">304</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp:580</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:247</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">friend</span> <span class="pre">void</span> <span class="pre">SetBlockSpeed();</span></code> names a function that does not exist</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h:244</span></code>, <code class="docutils literal notranslate"><span class="pre">266</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:243</span></code></p></td>
+<td><p>Parameters named <code class="docutils literal notranslate"><span class="pre">blockSets</span></code> are a section (to reverse, to compare) and a pair of passenger and time. <code class="docutils literal notranslate"><span class="pre">areBlocksConnected</span></code> tests overlap (<code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:808</span></code> to <code class="docutils literal notranslate"><span class="pre">811</span></code>), not connection</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Passengers.h:65</span></code>, <code class="docutils literal notranslate"><span class="pre">68</span></code></p></td>
+<td><p>Name the status “Onboard”. The code uses “OnBoard” (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:354</span></code>, <code class="docutils literal notranslate"><span class="pre">505</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Passengers.h:70</span></code></p></td>
+<td><p>Says <code class="docutils literal notranslate"><span class="pre">IsIntheNetwork</span></code> is true when a passenger enters and also when it has exited. The code sets it false on exit (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:390</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:236</span></code>, <code class="docutils literal notranslate"><span class="pre">243</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">IsTrainCoupling</span></code> is described as an int that “counts the number of times” but is a <code class="docutils literal notranslate"><span class="pre">bool</span></code> that is set and cleared (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp:493</span></code>, <code class="docutils literal notranslate"><span class="pre">747</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:578</span></code>). <code class="docutils literal notranslate"><span class="pre">delayed</span></code> is an <code class="docutils literal notranslate"><span class="pre">int</span></code> described as a boolean</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:191</span></code></p></td>
+<td><p>“the departure time in the initial timetable not the actual scheduled_departure_time” names the member it describes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:274</span></code> to <code class="docutils literal notranslate"><span class="pre">275</span></code></p></td>
+<td><p>“from dispatching tool”. Nothing in the repository sets <code class="docutils literal notranslate"><span class="pre">dispLineID</span></code> or <code class="docutils literal notranslate"><span class="pre">arrivalPlatform</span></code>; they stay at -1, and are only written to output files (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:568</span></code>, <code class="docutils literal notranslate"><span class="pre">606</span></code>) compared (<code class="docutils literal notranslate"><span class="pre">693</span></code>) and copied into <code class="docutils literal notranslate"><span class="pre">reservedPlatform</span></code> (<code class="docutils literal notranslate"><span class="pre">750</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:263</span></code>, <code class="docutils literal notranslate"><span class="pre">268</span></code> to <code class="docutils literal notranslate"><span class="pre">270</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">numOverlaps</span></code>, <code class="docutils literal notranslate"><span class="pre">ConflictingTrains</span></code>, <code class="docutils literal notranslate"><span class="pre">N_ConflictingTrains</span></code> and <code class="docutils literal notranslate"><span class="pre">ETCS3StoppingPoint</span></code> have comments but no use beyond their initial values (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:67</span></code>, <code class="docutils literal notranslate"><span class="pre">72</span></code>, <code class="docutils literal notranslate"><span class="pre">81</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Simulation.h:32</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:262</span></code></p></td>
+<td><p>“computing time of ROMA and EGTRAIN for each combination RI-PH”. <code class="docutils literal notranslate"><span class="pre">compTimeRoma</span></code> is never set outside the tests, so the column is always 0 (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:269</span></code>). <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">Run output</span></a> lists the column</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:450</span></code></p></td>
+<td><p>“probably needs also to be added the overall simulation starting time” is on a line that adds it</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:525</span></code></p></td>
+<td><p>“break the loop over the journey once the active one has been found” sits after the closing brace of the <code class="docutils literal notranslate"><span class="pre">if</span></code>, so the loop that records the waiting time of a boarding passenger ends after the first journey whether or not it is the active one</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:534</span></code></p></td>
+<td><p>“Call Route Choice Function TO BE ADDED”: the only marker of unfinished work in the source</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:700</span></code> to <code class="docutils literal notranslate"><span class="pre">702</span></code></p></td>
+<td><p>Advises to comment out a line and use <code class="docutils literal notranslate"><span class="pre">Update_List_Passengers_Waiting_At_Platform</span></code>, which no longer exists</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:624</span></code></p></td>
+<td><p>“Originally I had <code class="docutils literal notranslate"><span class="pre">IsTrainInFollowingMode</span> <span class="pre">=</span> <span class="pre">false;</span></code>” is history, not a description</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">simulation/RollingStockTrajectory.cpp:492</span></code> to <code class="docutils literal notranslate"><span class="pre">497</span></code>, <code class="docutils literal notranslate"><span class="pre">512</span></code> to <code class="docutils literal notranslate"><span class="pre">518</span></code>, <code class="docutils literal notranslate"><span class="pre">541</span></code> to <code class="docutils literal notranslate"><span class="pre">546</span></code>; <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBlockingTimes.cpp:643</span></code> to <code class="docutils literal notranslate"><span class="pre">654</span></code>; <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:1993</span></code> to <code class="docutils literal notranslate"><span class="pre">1999</span></code></p></td>
+<td><p>Commented-out blocks of earlier code. Single commented-out statements remain at <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:302</span></code>, <code class="docutils literal notranslate"><span class="pre">306</span></code>, <code class="docutils literal notranslate"><span class="pre">390</span></code>, <code class="docutils literal notranslate"><span class="pre">1688</span></code>, <code class="docutils literal notranslate"><span class="pre">1689</span></code>, <code class="docutils literal notranslate"><span class="pre">1972</span></code>, <code class="docutils literal notranslate"><span class="pre">2447</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBlockingTimes.cpp:265</span></code>, <code class="docutils literal notranslate"><span class="pre">313</span></code>, <code class="docutils literal notranslate"><span class="pre">433</span></code>, <code class="docutils literal notranslate"><span class="pre">547</span></code>, <code class="docutils literal notranslate"><span class="pre">755</span></code>, <code class="docutils literal notranslate"><span class="pre">896</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:551</span></code> and <code class="docutils literal notranslate"><span class="pre">simulation/RollingStockOccupation.cpp:41</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">util/timeutil.hpp:7</span></code> to <code class="docutils literal notranslate"><span class="pre">12</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">///</span></code> block documents a parameter <code class="docutils literal notranslate"><span class="pre">tm</span></code> that the function does not have. The comments say “CEST”, but the result is a date and time without a zone (<code class="docutils literal notranslate"><span class="pre">strftime</span></code> at line 22), counted from midnight of the current day</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="open-questions">
+<h2>Open questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
+<p>The code and its tests do not settle these. Each needs an answer from the owner of the model or from a source, not a guess in a comment.</p>
+<ol class="arabic simple">
+<li><p>Where do the constants of <code class="docutils literal notranslate"><span class="pre">traction_unit_resistences</span></code> (4.2, 0.72, 4.17, 3.6) and <code class="docutils literal notranslate"><span class="pre">wagons_resistances</span></code> (1.9, 4.8, 2.7, 4.17, 10) come from? The header names “Modified Strahl” and “Sauthoff” (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h:300</span></code> to <code class="docutils literal notranslate"><span class="pre">305</span></code>) but no source or unit (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:28</span></code> to <code class="docutils literal notranslate"><span class="pre">38</span></code>).</p></li>
+<li><p>What is the formula <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">m</span> <span class="pre">700</span> <span class="pre">/</span> <span class="pre">(R</span> <span class="pre">1000)</span></code> for curvature resistance, and is <code class="docutils literal notranslate"><span class="pre">R</span></code> meant in metres, as the builder stores it (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:50</span></code>)?</p></li>
+<li><p>Which unit do the speed bounds of a traction curve row have? The code compares them with m/s (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockDynamics.cpp:9</span></code>) and the validator gives them the range of <code class="docutils literal notranslate"><span class="pre">max_speed_ms</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneFields.h:57</span></code> to <code class="docutils literal notranslate"><span class="pre">59</span></code>), but the schema does not say (<a class="reference internal" href="../architecture/scene-schema.html#rolling-stock-json"><span class="std std-ref">Scene schema</span></a>).</p></li>
+<li><p>Where do the eight dwell parameters <code class="docutils literal notranslate"><span class="pre">7,</span> <span class="pre">0.32,</span> <span class="pre">18.23,</span> <span class="pre">0.564,</span> <span class="pre">4.838,</span> <span class="pre">22.24,</span> <span class="pre">0.04,</span> <span class="pre">0.562</span></code> come from, and which is which (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:253</span></code>)?</p></li>
+<li><p>Is <code class="docutils literal notranslate"><span class="pre">changeTrainDepartureTimesForHourlyTimetabling</span></code> needed? It runs at the end of every build (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:1112</span></code>) and spaces departures over one hour, but <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> sets every <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> back to <code class="docutils literal notranslate"><span class="pre">scheduled_departure_time</span></code> before the first step (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp:571</span></code>). Does anything read <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> in between?</p></li>
+<li><p>What are ROMA and “RI-PH”? Both appear in output and comments (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:262</span></code> to <code class="docutils literal notranslate"><span class="pre">269</span></code>) and in <a class="reference internal" href="../guides/v1-scene-migration-matrix.html"><span class="std std-doc">Scene migration matrix</span></a> as inactive, but are explained nowhere.</p></li>
+<li><p>What is the platform booking for the stations “Alm”, “Asd” and “Asdz” meant to do now that <code class="docutils literal notranslate"><span class="pre">arrivalPlatform</span></code> is never set (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp:681</span></code> to <code class="docutils literal notranslate"><span class="pre">696</span></code>, <code class="docutils literal notranslate"><span class="pre">750</span></code>)? Both sides of the comparison are -1.</p></li>
+<li><p>Is it intended that the waiting time of a boarding passenger is recorded only when the active journey is the passenger’s first (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:525</span></code>)? The alighting loop breaks inside the match (line 469).</p></li>
+<li><p>Why does <code class="docutils literal notranslate"><span class="pre">ComputeEnergyConsumptionForAllTrains</span></code> use fixed efficiencies of 0.8 and 0.7? Its own comment says they belong to the substation and the train (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp:188</span></code>).</p></li>
+<li><p>Where do the 4 m standing window, the 30 m and 0.278 m/s coupling limits and the look-ahead of eight sections come from? <a class="reference internal" href="../architecture/signalling-levels.html#what-is-not-established"><span class="std std-ref">Signalling levels</span></a> already lists the coupling limits as constants of the model.</p></li>
+<li><p>Can <code class="docutils literal notranslate"><span class="pre">Train::direction</span></code> go? It is assigned at <code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp:225</span></code> and never read; the code uses <code class="docutils literal notranslate"><span class="pre">Route::reversed_direction</span></code> instead.</p></li>
+<li><p>Which <code class="docutils literal notranslate"><span class="pre">Eq</span></code> values besides 54 does anything outside the tests rely on, and can the model’s author confirm their meanings in the conventions table? They were read from the assignments, not from a description.</p></li>
+</ol>
+</section>
+<section id="follow-up-tasks-in-order">
+<h2>Follow-up tasks, in order<a class="headerlink" href="#follow-up-tasks-in-order" title="Link to this heading">¶</a></h2>
+<p>One task per subsystem. The order follows the dependencies: the scene data every part uses, then the run, then the results and the window. Each task adds documentation comments to the public headers of its subsystem, writes the conventions that the table above names where they apply, resolves the entries of the dead and misleading list for that subsystem, and records any new question instead of guessing. A task is done when Doxygen reports no undocumented public member in its headers.</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code>: <code class="docutils literal notranslate"><span class="pre">SceneModel.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneValidator.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneDiagnostic.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneWriter.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneBundle.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneImporter.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneExporter.h</span></code>. Units of every field, the name <code class="docutils literal notranslate"><span class="pre">gradientPercent</span></code>, the diagnostic codes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">util/</span></code>: <code class="docutils literal notranslate"><span class="pre">Log.h</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeFormat.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SpeedFormat.h</span></code>, <code class="docutils literal notranslate"><span class="pre">CsvWriter.h</span></code>, <code class="docutils literal notranslate"><span class="pre">TrajectoryUtil.h</span></code>, <code class="docutils literal notranslate"><span class="pre">PlaybackProfiler.h</span></code>, and the wrong comment in <code class="docutils literal notranslate"><span class="pre">timeutil.hpp</span></code>. Small, and most other folders use it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code> entry points: <code class="docutils literal notranslate"><span class="pre">SimulationRun.h</span></code>, <code class="docutils literal notranslate"><span class="pre">InitialParameters.h</span></code>, <code class="docutils literal notranslate"><span class="pre">RunControl.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SimulationWorker.h</span></code>, <code class="docutils literal notranslate"><span class="pre">NumberGenerator.h</span></code>, the builders’ public functions, and <code class="docutils literal notranslate"><span class="pre">app/DispatchController.h</span></code>. Run lifetime, the global state table, threads.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code> data types: <code class="docutils literal notranslate"><span class="pre">Infrastructure.h</span></code>, <code class="docutils literal notranslate"><span class="pre">Signalling.h</span></code> (types only), <code class="docutils literal notranslate"><span class="pre">RollingStock.h</span></code> (members of <code class="docutils literal notranslate"><span class="pre">Train</span></code>), <code class="docutils literal notranslate"><span class="pre">Passengers.h</span></code>. Units, sentinels, string values, fixed capacities, and the stale comments of the previous section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code> behaviour: the functions of <code class="docutils literal notranslate"><span class="pre">Signalling.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">RollingStock*.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">Simulation.cpp</span></code>, in this order: the step functions, braking, occupation and blocking times. Link to <a class="reference internal" href="../architecture/signalling-levels.html"><span class="std std-doc">Signalling levels</span></a> instead of restating it. Remove or explain the commented-out blocks. Depends on the answers to the open questions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diagrams/</span></code>: <code class="docutils literal notranslate"><span class="pre">CompletedRunData.h</span></code>, <code class="docutils literal notranslate"><span class="pre">RunResults.h</span></code>, <code class="docutils literal notranslate"><span class="pre">RunExports.h</span></code>, <code class="docutils literal notranslate"><span class="pre">DelayAnalysis.h</span></code>, the capacity classes. Which numbers are seconds, metres or kWh in each row.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app/</span></code>: <code class="docutils literal notranslate"><span class="pre">RunController</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneSession</span></code>, <code class="docutils literal notranslate"><span class="pre">ResultViews</span></code>, <code class="docutils literal notranslate"><span class="pre">GuiSimulationSnapshot</span></code>, <code class="docutils literal notranslate"><span class="pre">GuiReplayHistory</span></code>, <code class="docutils literal notranslate"><span class="pre">RunSelection</span></code>, and the public part of <code class="docutils literal notranslate"><span class="pre">MainWindow.h</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code>: <code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneEditorPanel</span></code>, <code class="docutils literal notranslate"><span class="pre">InfrastructureFacet</span></code> and the facet bases, then the panel classes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">graphics/</span></code>: <code class="docutils literal notranslate"><span class="pre">NetworkPresenter.h</span></code>, <code class="docutils literal notranslate"><span class="pre">RuntimeGeometrySource.h</span></code>, <code class="docutils literal notranslate"><span class="pre">NetworkScene.h</span></code>, <code class="docutils literal notranslate"><span class="pre">NetworkView.h</span></code>, then <code class="docutils literal notranslate"><span class="pre">graphics/items/</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">widgets/</span></code>: the dock widgets and dialogs, then the small controls.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">io/</span></code>: <code class="docutils literal notranslate"><span class="pre">LiveFrame.h</span></code>, <code class="docutils literal notranslate"><span class="pre">LiveCommand.h</span></code>, <code class="docutils literal notranslate"><span class="pre">LiveServer.h</span></code>, <code class="docutils literal notranslate"><span class="pre">RttpXml.h</span></code>, <code class="docutils literal notranslate"><span class="pre">ExternalState.h</span></code>. Link to <a class="reference internal" href="../architecture/external-sharing.html"><span class="std std-doc">External state sharing</span></a> and <code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">recovery/</span></code>: <code class="docutils literal notranslate"><span class="pre">RecoveryStore.h</span></code>, <code class="docutils literal notranslate"><span class="pre">RecoveryController.h</span></code>, <code class="docutils literal notranslate"><span class="pre">RecoveryPrompt.h</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update/</span></code>: <code class="docutils literal notranslate"><span class="pre">UpdateChecker.h</span></code>, <code class="docutils literal notranslate"><span class="pre">SelfUpdater.h</span></code>, <code class="docutils literal notranslate"><span class="pre">HttpTransport.h</span></code>, <code class="docutils literal notranslate"><span class="pre">UpdatePreparation.h</span></code>, <code class="docutils literal notranslate"><span class="pre">Distribution.h</span></code>, <code class="docutils literal notranslate"><span class="pre">ReleaseInfo.h</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">telemetry/</span></code>: <code class="docutils literal notranslate"><span class="pre">TelemetryConsent.h</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetryQueue.h</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetrySender.h</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetryEvent.h</span></code>. Link to the <a class="reference internal" href="../telemetry/README.html"><span class="std std-doc">telemetry contract</span></a>.</p></li>
+</ol>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="code-signing.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Code signing</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="build-and-test.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Build And Test</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Code documentation investigation</a><ul>
+<li><a class="reference internal" href="#how-the-numbers-were-made">How the numbers were made</a></li>
+<li><a class="reference internal" href="#coverage-per-folder">Coverage per folder</a></li>
+<li><a class="reference internal" href="#what-each-folder-does-and-who-calls-it">What each folder does and who calls it</a></li>
+<li><a class="reference internal" href="#the-legacy-simulation-core">The legacy simulation core</a><ul>
+<li><a class="reference internal" href="#files">Files</a></li>
+<li><a class="reference internal" href="#main-data-structures">Main data structures</a></li>
+<li><a class="reference internal" href="#from-scene-to-run">From scene to run</a></li>
+<li><a class="reference internal" href="#the-time-step-loop">The time step loop</a></li>
+<li><a class="reference internal" href="#what-one-train-does-in-a-step">What one train does in a step</a></li>
+<li><a class="reference internal" href="#signalling-levels">Signalling levels</a></li>
+<li><a class="reference internal" href="#braking-and-traction">Braking and traction</a></li>
+<li><a class="reference internal" href="#dwell-and-passengers">Dwell and passengers</a></li>
+<li><a class="reference internal" href="#global-state-the-code-depends-on">Global state the code depends on</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#names-units-and-conventions-the-code-uses-without-saying-so">Names, units and conventions the code uses without saying so</a></li>
+<li><a class="reference internal" href="#dead-or-misleading-comments">Dead or misleading comments</a></li>
+<li><a class="reference internal" href="#open-questions">Open questions</a></li>
+<li><a class="reference internal" href="#follow-up-tasks-in-order">Follow-up tasks, in order</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

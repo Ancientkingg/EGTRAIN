@@ -1,0 +1,53 @@
+<map id="telemetry/TelemetryOperation.h" name="telemetry/TelemetryOperation.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1207,5,1437,31"/>
+<area shape="rect" id="Node000002" href="$_run_controller_8h.html" title=" " alt="" coords="1145,79,1296,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1296,41,1239,81,1236,76,1293,36"/>
+<area shape="rect" id="Node000009" href="$_scene_session_8h.html" title=" " alt="" coords="553,79,704,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1193,33,717,81,704,83,704,77,716,76,1193,28"/>
+<area shape="rect" id="Node000011" href="$_update_telemetry_controller_8h.html" title=" " alt="" coords="291,79,529,104"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="1193,31,541,81,529,82,529,77,540,76,1192,26"/>
+<area shape="rect" id="Node000013" href="$_area_capacity_window_8h.html" title=" " alt="" coords="1551,79,1789,104"/>
+<area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="1392,31,1614,76,1613,81,1391,36"/>
+<area shape="rect" id="Node000015" href="$_delay_analysis_window_8h.html" title=" " alt="" coords="729,79,971,104"/>
+<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="1233,35,926,81,926,76,1232,30"/>
+<area shape="rect" id="Node000017" href="$_diagram_window_8h.html" title=" " alt="" coords="1320,79,1527,104"/>
+<area shape="poly" id="edge23_Node000001_Node000017" title=" " alt="" coords="1351,36,1408,76,1405,81,1348,41"/>
+<area shape="rect" id="Node000019" href="$_timetable_table_window_8h.html" title=" " alt="" coords="1813,79,2063,104"/>
+<area shape="poly" id="edge27_Node000001_Node000019" title=" " alt="" coords="1435,30,1839,76,1838,81,1434,35"/>
+<area shape="rect" id="Node000021" href="$_telemetry_operation_8cpp.html" title=" " alt="" coords="2088,79,2335,104"/>
+<area shape="poly" id="edge30_Node000001_Node000021" title=" " alt="" coords="1451,27,2076,76,2088,77,2088,82,2075,81,1451,32"/>
+<area shape="rect" id="Node000003" href="$_main_window_8h.html" title=" " alt="" coords="997,152,1143,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1185,112,1096,154,1094,149,1183,107"/>
+<area shape="rect" id="Node000006" href="$_result_views_8cpp.html" title=" " alt="" coords="1670,152,1827,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="1310,102,1670,150,1669,155,1310,107"/>
+<area shape="rect" id="Node000007" href="$_run_controller_8cpp.html" title=" " alt="" coords="525,152,690,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="1132,105,702,155,691,156,690,151,702,149,1131,100"/>
+<area shape="rect" id="Node000008" href="$_run_results_dock_8cpp.html" title=" " alt="" coords="1167,152,1349,177"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="1235,115,1254,151,1250,153,1231,117"/>
+<area shape="rect" id="Node000004" href="$_main_window_8cpp.html" title=" " alt="" coords="910,225,1070,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1049,188,1005,227,1001,223,1045,184"/>
+<area shape="rect" id="Node000005" href="$main_8cpp.html" title=" " alt="" coords="1095,225,1205,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="1095,184,1139,223,1135,227,1091,188"/>
+<area shape="poly" id="edge9_Node000009_Node000003" title=" " alt="" coords="713,104,999,149,998,155,713,109"/>
+<area shape="poly" id="edge10_Node000009_Node000007" title=" " alt="" coords="624,118,613,153,608,151,619,117"/>
+<area shape="rect" id="Node000010" href="$_scene_session_8cpp.html" title=" " alt="" coords="333,152,500,177"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="583,111,452,154,450,149,581,106"/>
+<area shape="poly" id="edge13_Node000011_Node000004" title=" " alt="" coords="371,112,346,126,326,142,317,159,317,167,322,175,351,189,406,201,567,219,752,228,910,233,910,238,752,234,566,224,405,207,349,194,319,179,312,169,312,158,322,139,343,122,368,108"/>
+<area shape="poly" id="edge14_Node000011_Node000007" title=" " alt="" coords="455,106,576,149,574,154,454,111"/>
+<area shape="poly" id="edge15_Node000011_Node000010" title=" " alt="" coords="415,118,418,152,413,152,410,118"/>
+<area shape="rect" id="Node000012" href="$_update_telemetry_controller_8cpp.html" title=" " alt="" coords="5,152,257,177"/>
+<area shape="poly" id="edge16_Node000011_Node000012" title=" " alt="" coords="353,110,177,154,176,149,352,105"/>
+<area shape="poly" id="edge18_Node000013_Node000006" title=" " alt="" coords="1695,111,1738,150,1734,154,1691,115"/>
+<area shape="rect" id="Node000014" href="$_area_capacity_window_8cpp.html" title=" " alt="" coords="1852,152,2104,177"/>
+<area shape="poly" id="edge19_Node000013_Node000014" title=" " alt="" coords="1733,104,1929,149,1928,154,1732,110"/>
+<area shape="poly" id="edge21_Node000015_Node000007" title=" " alt="" coords="799,110,647,154,646,149,797,105"/>
+<area shape="rect" id="Node000016" href="$_delay_analysis_window_8cpp.html" title=" " alt="" coords="714,152,973,177"/>
+<area shape="poly" id="edge22_Node000015_Node000016" title=" " alt="" coords="850,118,847,152,842,152,845,118"/>
+<area shape="poly" id="edge24_Node000017_Node000004" title=" " alt="" coords="1415,118,1394,150,1379,166,1362,180,1251,201,1071,228,1070,223,1250,196,1360,175,1375,163,1389,147,1410,115"/>
+<area shape="poly" id="edge25_Node000017_Node000006" title=" " alt="" coords="1489,104,1697,149,1695,154,1488,110"/>
+<area shape="rect" id="Node000018" href="$_diagram_window_8cpp.html" title=" " alt="" coords="1425,152,1646,177"/>
+<area shape="poly" id="edge26_Node000017_Node000018" title=" " alt="" coords="1455,109,1518,150,1516,154,1452,114"/>
+<area shape="poly" id="edge28_Node000019_Node000006" title=" " alt="" coords="1896,111,1781,154,1779,149,1894,106"/>
+<area shape="rect" id="Node000020" href="$_timetable_table_window_8cpp.html" title=" " alt="" coords="2128,152,2393,177"/>
+<area shape="poly" id="edge29_Node000019_Node000020" title=" " alt="" coords="2004,104,2209,149,2208,154,2002,110"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="buildTimetableResults" name="buildTimetableResults">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,173,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="51,31,43,21,47,11,63,5,89,3,122,7,135,16,132,20,120,11,89,8,64,10,51,15,48,20,55,27"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a23977edf7b951918b731c0164af29425" title=" " alt="" coords="221,22,429,62"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="174,39,208,39,208,45,174,45"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="StationOverlayItem::attachArtwork" name="StationOverlayItem::attachArtwork">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,155,45"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#afd53a492910276319c68e115c587bc54" title=" " alt="" coords="203,5,352,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,23,189,23,189,28,155,28"/>
+</map>

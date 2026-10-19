@@ -1,0 +1,21 @@
+<map id="widgets/NetworkLegendWidget.h" name="widgets/NetworkLegendWidget.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="277,5,515,31"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8h.html" title=" " alt="" coords="163,79,335,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="374,33,287,75,284,70,371,28"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="359,79,433,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="399,31,399,65,393,65,393,31"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="457,79,535,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="414,29,470,68,467,73,411,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,72,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="216,107,86,150,84,145,215,101"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="96,152,155,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="231,106,159,147,156,143,228,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="179,152,235,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="245,106,223,142,218,139,240,103"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="259,152,328,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="259,103,281,139,277,142,254,106"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="353,152,423,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="273,102,354,143,352,148,270,106"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="448,152,507,177"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="287,101,435,148,434,153,285,107"/>
+</map>

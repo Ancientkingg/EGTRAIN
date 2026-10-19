@@ -1,0 +1,5 @@
+<map id="TrainRunResult" name="TrainRunResult">
+<area shape="rect" id="Node000001" title=" " alt="" coords="8,261,127,287"/>
+<area shape="rect" id="Node000002" href="$struct_run_result_value.html" title=" " alt="" coords="5,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,44,70,261,65,261,65,44"/>
+</map>

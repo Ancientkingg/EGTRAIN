@@ -1,0 +1,7 @@
+<map id="TrainBadgeItem::speedTextRect" name="TrainBadgeItem::speedTextRect">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,232,56"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a1219a7b09ea494dcb15de7eee9487ffd" title=" " alt="" coords="286,5,487,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,30,272,26,272,31,232,35"/>
+<area shape="rect" id="Node000003" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title=" " alt="" coords="280,55,493,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,51,267,54,266,59,232,56"/>
+</map>

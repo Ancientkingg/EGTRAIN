@@ -1,0 +1,10 @@
+<map id="Train::effectiveIncidentSpeedLimit" name="Train::effectiveIncidentSpeedLimit">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,176,87"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a6d72671eb860f0e25ba7801ee719f689" title=" " alt="" coords="230,29,411,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,55,216,51,217,56,176,61"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a0b494c5d366434dc4514c43a6926e180" title=" " alt="" coords="224,79,417,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="176,74,211,77,210,82,176,79"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="283,31,275,21,279,11,295,5,321,3,353,7,365,16,362,20,351,11,321,8,296,10,283,15,280,20,287,27"/>
+<area shape="rect" id="Node000004" href="$class_train.html#aae86e0228dcc9da75848221be573a189" title=" " alt="" coords="465,79,671,104"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="418,89,451,89,451,94,418,94"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="ComputeBlockingTimesInMixedSignallingForAllTrains" name="ComputeBlockingTimesInMixedSignallingForAllTrains">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,233,111"/>
+<area shape="rect" id="Node000002" href="$_rolling_stock_8cpp.html#a41dc54213b765c5d5b6363607e97e701" title=" " alt="" coords="281,29,509,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,71,267,66,268,71,234,76"/>
+<area shape="rect" id="Node000004" href="$_rolling_stock_8cpp.html#a623d4a090f128a2181adcae4698fc80b" title=" " alt="" coords="320,118,471,143"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="234,105,307,115,306,120,233,110"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="349,30,346,20,353,10,370,5,395,3,424,6,440,13,438,18,423,11,395,8,371,10,356,15,351,21,354,28"/>
+<area shape="rect" id="Node000003" href="$_rolling_stock_8cpp.html#a2ca32310c7b2a9fa6808228e2e52e827" title=" " alt="" coords="557,37,736,62"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="509,47,544,47,544,52,509,52"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="606,38,597,28,602,18,619,12,647,10,682,14,692,19,696,24,691,27,689,23,681,19,647,15,620,17,605,22,603,28,610,35"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="355,120,346,110,350,100,367,94,395,91,431,95,441,100,445,106,440,109,437,104,429,100,395,97,368,99,354,104,351,109,359,116"/>
+</map>

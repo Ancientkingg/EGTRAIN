@@ -1,0 +1,15 @@
+<map id="widgets/TimeProgressBar.cpp" name="widgets/TimeProgressBar.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="191,5,405,31"/>
+<area shape="rect" id="Node000002" href="$_time_progress_bar_8h.html" title=" " alt="" coords="5,79,204,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="268,33,150,76,148,71,266,28"/>
+<area shape="rect" id="Node000004" href="$_time_format_8h.html" title=" " alt="" coords="229,79,367,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="301,31,301,65,295,65,295,31"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="391,79,514,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="324,28,416,70,414,75,322,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="49,152,160,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,104,107,138,102,138,102,104"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="226,152,285,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="293,106,271,142,267,139,289,103"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="309,152,383,177"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="308,103,333,139,328,142,304,106"/>
+</map>

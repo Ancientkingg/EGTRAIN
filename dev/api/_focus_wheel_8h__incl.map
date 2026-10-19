@@ -1,0 +1,17 @@
+<map id="widgets/FocusWheel.h" name="widgets/FocusWheel.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="374,5,541,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,144,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="396,33,151,79,150,73,395,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="169,79,271,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="420,33,272,77,271,72,418,28"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="295,79,398,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="441,33,378,73,375,69,438,28"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="423,79,492,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="460,31,460,65,455,65,455,31"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="516,79,591,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="474,29,528,68,525,72,471,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="615,79,684,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="489,28,606,71,604,76,487,33"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="709,79,787,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="505,28,696,75,695,80,503,33"/>
+</map>

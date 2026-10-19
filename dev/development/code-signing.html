@@ -1,0 +1,1019 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Coding guidelines" href="coding-guidelines.html"><link rel="prev" title="Code documentation investigation" href="code-documentation-investigation.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Code signing - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-properties.html">V1 scene properties</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-corridor.html">Assignment corridor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../product/feature-status.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/code-signing.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="code-signing">
+<h1>Code signing<a class="headerlink" href="#code-signing" title="Link to this heading">¶</a></h1>
+<p>This document covers Authenticode signing of the Windows program files and the Windows installer, and the two modes of
+the macOS release (see <a class="reference internal" href="#macos-releases">macOS releases</a>). It records state, ownership and checks. It states no decision
+of any signing service: every fact that only the owner can give is a field that reads Not recorded.</p>
+<section id="current-state">
+<h2>Current state<a class="headerlink" href="#current-state" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>No Windows file is signed, and the owner has decided to release them unsigned for now (see
+<a class="reference internal" href="#windows-releases">Windows releases</a>). The package workflow has two jobs that sign the three program files and then
+the installer through SignPath, and both are skipped unless the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>
+(see <a class="reference internal" href="#signing-in-ci">Signing in CI</a>). Every run of
+the package workflow reports the signature state of the program files with <code class="docutils literal notranslate"><span class="pre">tools/release/verify_signatures.ps1</span></code> and
+fails for no file. Without the setup, the workflows use no credential other than the token that GitHub gives to each
+run.</p></li>
+<li><p>The Windows downloads are the installer <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> and the portable ZIP
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code>.</p></li>
+<li><p>The macOS app is signed by <code class="docutils literal notranslate"><span class="pre">tools/release/sign_macos.sh</span></code> in the package workflow. The signature is ad hoc unless the
+environment <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code> holds a Developer ID certificate (see the
+<a class="reference internal" href="build-and-test.html#macos-signing-script"><span class="std std-ref">macOS signing script</span></a>). An ad-hoc signature carries no publisher identity.
+With notarization credentials in the same environment, <code class="docutils literal notranslate"><span class="pre">tools/release/notarize_macos.sh</span></code> also notarizes and staples the
+app and the disk image (see the
+<a class="reference internal" href="build-and-test.html#macos-notarization-script"><span class="std std-ref">macOS notarization script</span></a>); without them nothing is notarized. The two
+modes, the settings that the owner adds and what a user sees at the first start are in
+<a class="reference internal" href="#macos-releases">macOS releases</a>. The Linux AppImage is not signed.</p></li>
+<li><p>The in-app update checks the SHA-256 and the size of the downloaded package against <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code>, an asset
+of the same release. On Windows it checks no signature, so these checks detect a damaged download and do not show who
+published the package. On macOS the staged app is also checked with <code class="docutils literal notranslate"><span class="pre">codesign</span> <span class="pre">--verify</span></code>, which an ad-hoc signature
+passes.</p></li>
+<li><p>A release page does not say whether the macOS app is notarized or whether the Windows files are signed. The release
+text, built by the Prepare release step of the release job in <code class="docutils literal notranslate"><span class="pre">.github/workflows/release.yml</span></code>, says nothing about
+signing. <a class="reference internal" href="#release-text">Release text</a> has the lines for macOS.</p></li>
+</ul>
+</section>
+<section id="what-would-be-signed">
+<h2>What would be signed<a class="headerlink" href="#what-would-be-signed" title="Link to this heading">¶</a></h2>
+<p>The files are <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and the Windows installer. The ZIP and the
+installer must contain the same signed program files, so signing happens before the ZIP is built and before the
+installer is compiled. The Windows finalize job writes the ZIP and compiles the installer from the directory that the
+Windows package job uploads, so that directory must already hold the signed files. The signing job does this: it
+replaces the uploaded directory with one that holds the signed files. The installer can be signed only once it is
+compiled, so a second job signs it and replaces the uploaded installer. The release job takes the SHA-256 and the size
+of each file it publishes for <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code>. A ZIP file carries no Authenticode signature of its own.
+Signatures use SHA-256 and a trusted timestamp where the signing service supports them.</p>
+<p>This project does not sign the Qt, ZeroMQ and other runtime libraries and plugins in the package; they keep whatever
+signature they have, which may be none. The scenes, the guide and the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case studies are data and are never
+signed.</p>
+</section>
+<section id="choosing-a-signing-path">
+<h2>Choosing a signing path<a class="headerlink" href="#choosing-a-signing-path" title="Link to this heading">¶</a></h2>
+<p>This is the route to follow if signing is enabled later; it is not pursued for now (see
+<a class="reference internal" href="#windows-releases">Windows releases</a>).</p>
+<p>The first choice is the SignPath Foundation free programme for open-source projects, if the project meets its
+conditions.</p>
+<p>The fallback is a paid service or certificate. It is chosen only after the reason the free path does not work is written
+in the fallback record below, and then it is the lowest-cost option that works with GitHub Actions.</p>
+<section id="eligibility-record">
+<h3>Eligibility record<a class="headerlink" href="#eligibility-record" title="Link to this heading">¶</a></h3>
+<p>The programme publishes its own conditions. Whoever applies reads the current published conditions, records the link and
+the date, and fills the table. Not recorded means that nothing has been recorded.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Record</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Repository</p></td>
+<td><p>Public, owned by the GitHub user account Ancientkingg, not a fork (from <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Built where</p></td>
+<td><p>GitHub Actions workflows in the repository</p></td>
+</tr>
+<tr class="row-even"><td><p>Licence in the repository</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> is the GNU General Public License version 3, and the README names it as GPL-3.0-only for the source code</p></td>
+</tr>
+<tr class="row-odd"><td><p>Owner confirms that this is the intended OSI-approved licence</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> in the commits that a release is built from (the release workflow builds pushes to <code class="docutils literal notranslate"><span class="pre">production</span></code> and <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags). Check: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">fetch</span></code>, then <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">ls-tree</span> <span class="pre">origin/production</span> <span class="pre">LICENSE</span></code> prints one line when the file is there and nothing when it is not</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Third-party components in the Windows package and their licences</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Licence of the case-study data (the README says the code licence does not cover the case-study datasets; that is a separate decision)</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Link to the programme’s published conditions and the date they were read</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Application: date, submitted by, link to the application or reply</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Result (accepted, declined, pending) and date</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Project and signing policy names as issued</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Signer name exactly as issued, to be shown in the certificate subject</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Certificate issuer name as shown on a signed file</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The signer name is whatever the service issues. Documents and release text must not say or imply that it identifies an
+individual developer or the project when it does not. The version information of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> names EGTRAIN as
+company (<code class="docutils literal notranslate"><span class="pre">CompanyName</span></code> in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in</span></code>), and the installer names EGTRAIN as publisher
+(<code class="docutils literal notranslate"><span class="pre">AppPublisher</span></code> in <code class="docutils literal notranslate"><span class="pre">installer/egtrain.iss</span></code>). Neither text is a signer.</p>
+</section>
+<section id="fallback-record">
+<h3>Fallback record<a class="headerlink" href="#fallback-record" title="Link to this heading">¶</a></h3>
+<p>Fill this before any paid option is chosen.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Record</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Why the free path is unavailable or unsuitable</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Date</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Options considered and their cost</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Decision taken, and by whom</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Who pays and who holds the account</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="ownership">
+<h2>Ownership<a class="headerlink" href="#ownership" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Held by</p></th>
+<th class="head"><p>Responsible for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Signing owner (the repository owner)</p></td>
+<td><p>Not recorded</p></td>
+<td><p>Applies to the programme or buys the service, accepts its terms, receives its mail, creates and maintains the protected environment and its credentials in the repository settings, and answers any approval step the service requires</p></td>
+</tr>
+<tr class="row-odd"><td><p>Second contact with access</p></td>
+<td><p>Not recorded</p></td>
+<td><p>Takes over if the owner is not available</p></td>
+</tr>
+<tr class="row-even"><td><p>Maintainers</p></td>
+<td><p>Anyone who changes the workflows</p></td>
+<td><p>Change the workflows and the signature check; never handle credentials</p></td>
+</tr>
+<tr class="row-odd"><td><p>Reviewers</p></td>
+<td><p>Anyone who reviews such a change</p></td>
+<td><p>Check that no change exposes a credential</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Nobody but the signing owner and the second contact may hold the credentials.</p>
+</section>
+<section id="repository-authorization">
+<h2>Repository authorization<a class="headerlink" href="#repository-authorization" title="Link to this heading">¶</a></h2>
+<p>These rules apply to any signing that is set up for this repository.</p>
+<ul class="simple">
+<li><p>Credentials exist only in the GitHub environments <code class="docutils literal notranslate"><span class="pre">windows-signing</span></code> and <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code>, which only the <code class="docutils literal notranslate"><span class="pre">production</span></code>
+branch and <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags may use. They are never in the repository, in workflow logs, in workflow artifacts or in release
+assets. No certificate, private key, password or token is committed.</p></li>
+<li><p>Signing runs only for pushes to <code class="docutils literal notranslate"><span class="pre">production</span></code> and for <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags. Pull requests, including pull requests from forks and
+the pull request from <code class="docutils literal notranslate"><span class="pre">main</span></code> to <code class="docutils literal notranslate"><span class="pre">production</span></code>, and manual runs never sign and never need credentials. Ordinary
+development builds and the checks of pull requests stay unsigned and fully testable.</p></li>
+<li><p>A signing step is skipped, not failed, when nothing is configured, so the portable ZIP and the installer stay usable
+unsigned and the macOS app stays ad hoc. A macOS certificate or notarization group that is only partly configured
+fails the job instead (see <a class="reference internal" href="#what-the-owner-adds">What the owner adds</a>).</p></li>
+<li><p>When signing is configured, the release fails if a required file is unsigned, invalid or signed by an unexpected
+signer, and the ZIP and the installer are built from the files that were checked.</p></li>
+</ul>
+</section>
+<section id="signing-in-ci">
+<h2>Signing in CI<a class="headerlink" href="#signing-in-ci" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> job of <code class="docutils literal notranslate"><span class="pre">.github/workflows/package.yml</span></code> signs <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code> and
+<code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> through the SignPath action <code class="docutils literal notranslate"><span class="pre">signpath/github-action-submit-signing-request</span></code>. It runs only for a push
+to <code class="docutils literal notranslate"><span class="pre">production</span></code> or a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag, and only when the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>. In every other run
+it is skipped, and the Windows finalize job builds the installer and the ZIP from the unsigned files.</p>
+<p>The job downloads the payload artifact, uploads the three program files alone as the artifact
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN-windows-x64-unsigned</span></code> (so no Qt or other library can be signed), submits the signing request for that
+artifact, copies the three signed files into the payload, runs <code class="docutils literal notranslate"><span class="pre">verify_signatures.ps1</span> <span class="pre">-Require</span></code> on the payload and
+replaces the artifact <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-windows-x64-payload</span></code> with it. The finalize job and the release job read that artifact.
+When the request is rejected or times out, or a check fails, the job fails and the finalize job does not run, so no
+installer or ZIP is built from unsigned files. A re-run of the failed job replaces the artifacts of the first attempt.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">sign-windows-installer</span></code> job runs after the finalize job, and only when <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> succeeded, so every run that
+did not sign the program files skips it and keeps the unsigned installer. It downloads the installer that the finalize
+job compiled from the signed files and uploaded unsigned, uploads that file alone as the artifact
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN-windows-x64-installer-unsigned</span></code>, and submits a second signing request for it. It then runs
+<code class="docutils literal notranslate"><span class="pre">verify_signatures.ps1</span> <span class="pre">-Require</span></code> on the signed installer and on the three program files of the payload, and replaces the
+artifact <code class="docutils literal notranslate"><span class="pre">EGTRAIN-windows-x64-installer</span></code> with the signed installer only after both checks passed. When the request or a
+check fails, the job fails, and the release job, which waits for the whole package workflow, does not run. The installer
+smoke of the finalize job installs the installer before it is signed, and nothing in CI installs the signed file. Only the
+compiled installer is signed here; whether the uninstaller that Setup writes carries a signature has not been checked.</p>
+<p>SignPath Foundation needs a person to approve each request, so a signed release needs two approvals, one for the program
+files and one for the installer, and each signing step waits up to one hour for its approval.</p>
+<p>The names below are the placeholders that the workflow reads. The owner creates them in the repository settings and in
+SignPath. The SignPath documentation (https://docs.signpath.io/trusted-build-systems/github) describes the inputs. It
+asks for the predefined GitHub.com trusted build system to be added to the SignPath organization and linked to the
+project, and for the SignPath GitHub App to be installed when audit log checks are used.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Kind</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code></p></td>
+<td><p>Repository variable</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signpath</span></code> turns the job on. Anything else, or nothing, leaves it off</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_ORGANIZATION_ID</span></code></p></td>
+<td><p>Repository variable</p></td>
+<td><p>The organization id that SignPath issues</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_PROJECT_SLUG</span></code></p></td>
+<td><p>Repository variable</p></td>
+<td><p>The project slug that SignPath issues</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_SIGNING_POLICY_SLUG</span></code></p></td>
+<td><p>Repository variable</p></td>
+<td><p>The slug of the release signing policy</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_ARTIFACT_CONFIGURATION_SLUG</span></code></p></td>
+<td><p>Repository variable</p></td>
+<td><p>The slug of the artifact configuration of the program files below. It must be set</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG</span></code></p></td>
+<td><p>Repository variable</p></td>
+<td><p>The slug of the artifact configuration of the installer below. It must be set</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING_SUBJECT</span></code></p></td>
+<td><p>Repository variable</p></td>
+<td><p>The subject of the signing certificate as <code class="docutils literal notranslate"><span class="pre">Get-AuthenticodeSignature</span></code> prints it. The check fails for any other signer</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SIGNPATH_API_TOKEN</span></code></p></td>
+<td><p>Secret of the environment <code class="docutils literal notranslate"><span class="pre">windows-signing</span></code></p></td>
+<td><p>The API token of a SignPath user who may submit requests for the policy</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">windows-signing</span></code></p></td>
+<td><p>Environment</p></td>
+<td><p>Deployment branches and tags limited to <code class="docutils literal notranslate"><span class="pre">production</span></code> and <code class="docutils literal notranslate"><span class="pre">v*</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A called workflow receives only the secrets that its caller passes, so the release workflow passes the token to
+<code class="docutils literal notranslate"><span class="pre">package.yml</span></code> by name (<code class="docutils literal notranslate"><span class="pre">secrets:</span> <span class="pre">SIGNPATH_API_TOKEN:</span> <span class="pre">${{</span> <span class="pre">secrets.SIGNPATH_API_TOKEN</span> <span class="pre">}}</span></code>) and passes no other secret. The
+package check passes none, so it never holds the token. The jobs <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> and <code class="docutils literal notranslate"><span class="pre">sign-windows-installer</span></code> set the
+environment, so they read the value stored in the environment <code class="docutils literal notranslate"><span class="pre">windows-signing</span></code>, and the token needs no other place.</p>
+<p>The signing action reads the run and downloads the uploaded files with the token of its job, which its documentation says
+needs <code class="docutils literal notranslate"><span class="pre">actions:</span> <span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">contents:</span> <span class="pre">read</span></code>. Each of the two jobs therefore has its own <code class="docutils literal notranslate"><span class="pre">permissions</span></code> block with those two
+read permissions. A called workflow cannot hold more than its caller grants, so the <code class="docutils literal notranslate"><span class="pre">package</span></code> job of the release workflow
+and the <code class="docutils literal notranslate"><span class="pre">package</span></code> job of the package check have the same block. No workflow has a write permission except the release
+job (<code class="docutils literal notranslate"><span class="pre">contents:</span> <span class="pre">write</span></code>).</p>
+<p>The artifact configuration of the program files in SignPath lists exactly the three program files at the top of the
+artifact, which GitHub uploads as a ZIP file:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;artifact-configuration</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">"http://signpath.io/artifact-configuration/v1"</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;zip-file&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pe-file-set&gt;</span>
+<span class="w">      </span><span class="nt">&lt;include</span><span class="w"> </span><span class="na">path=</span><span class="s">"QEGTRAIN.exe"</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;include</span><span class="w"> </span><span class="na">path=</span><span class="s">"egtrain_update_helper.exe"</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;include</span><span class="w"> </span><span class="na">path=</span><span class="s">"scene_tool.exe"</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;for-each&gt;</span>
+<span class="w">        </span><span class="nt">&lt;authenticode-sign/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/for-each&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/pe-file-set&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/zip-file&gt;</span>
+<span class="nt">&lt;/artifact-configuration&gt;</span>
+</pre></div>
+</div>
+<p>The artifact configuration of the installer lists the one file, whose name <code class="docutils literal notranslate"><span class="pre">kAssetPatterns</span></code> in
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/update/ReleaseInfo.cpp</span></code> fixes:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;artifact-configuration</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">"http://signpath.io/artifact-configuration/v1"</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;zip-file&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pe-file-set&gt;</span>
+<span class="w">      </span><span class="nt">&lt;include</span><span class="w"> </span><span class="na">path=</span><span class="s">"EGTRAIN-Setup-*-x64.exe"</span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;for-each&gt;</span>
+<span class="w">        </span><span class="nt">&lt;authenticode-sign/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/for-each&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/pe-file-set&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/zip-file&gt;</span>
+<span class="nt">&lt;/artifact-configuration&gt;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">tools/release/verify_signatures.ps1</span></code> checks the signatures. Its usage and the rules for a file to pass are in
+<a class="reference internal" href="build-and-test.html#signature-check"><span class="std std-ref">Signature check</span></a>. The installer is checked by naming it with <code class="docutils literal notranslate"><span class="pre">-Name</span></code> in the
+directory that holds it. Every run of the package workflow uses <code class="docutils literal notranslate"><span class="pre">-Report</span></code> on the unsigned package. The job
+<code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> uses <code class="docutils literal notranslate"><span class="pre">-Require</span></code> on the payload, and the job <code class="docutils literal notranslate"><span class="pre">sign-windows-installer</span></code> uses <code class="docutils literal notranslate"><span class="pre">-Require</span></code> on the signed
+installer and again on the payload.</p>
+<p><code class="docutils literal notranslate"><span class="pre">test_verify_signatures</span></code> runs on Windows only. It creates a self-signed code-signing certificate in the certificate
+store of the current user, signs copies of <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> with it and expects the check to pass for a SHA-256
+signature and to fail for an unsigned copy, a SHA-1 signature, another signer, a missing file, an untrusted chain and a
+missing timestamp. The certificate is never exported or trusted, and it is removed when the test ends. The test runs in
+the Windows leg of the pull request checks. <code class="docutils literal notranslate"><span class="pre">tools/e2e/test_ci_workflow.py</span></code> reads <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and pins the order of the
+signing: the finalize job reads the payload that <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> replaced and signs nothing, the installer job runs only
+after a successful <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code>, checks the installer and the program files before it replaces the installer artifact,
+and the release job runs only after the whole package workflow succeeded. The signing requests themselves have not run
+against a real SignPath project, and a pull request run shows the signing jobs as skipped.</p>
+</section>
+<section id="renewal-and-maintenance">
+<h2>Renewal and maintenance<a class="headerlink" href="#renewal-and-maintenance" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Record</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Validity period of the certificate or of the service agreement</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Who watches the expiry, and how</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Rotation of the access token of the signing service (interval, last done, next due)</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>What to update when the signer name or the service changes (the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING_SUBJECT</span></code>, which holds the expected signer name used by the check, and the SignPath names in the table above)</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>If no signing is configured when a release is due, the release is published unsigned and its release text says so. No
+other certificate is used unless the fallback record is filled first.</p>
+</section>
+<section id="checking-a-download">
+<h2>Checking a download<a class="headerlink" href="#checking-a-download" title="Link to this heading">¶</a></h2>
+<p>These checks need a Windows machine with PowerShell. Unpack the ZIP first for the three program files, and check the
+installer as downloaded. Run the commands for each of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and
+the installer, with the file name changed.</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="nv">$sig</span> <span class="p">=</span> <span class="nb">Get-AuthenticodeSignature</span> <span class="n">-FilePath</span> <span class="p">.\</span><span class="n">QEGTRAIN</span><span class="p">.</span><span class="n">exe</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">Status</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">StatusMessage</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">SignerCertificate</span><span class="p">.</span><span class="n">Subject</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">SignerCertificate</span><span class="p">.</span><span class="n">Issuer</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">TimeStamperCertificate</span><span class="p">.</span><span class="n">Subject</span>
+</pre></div>
+</div>
+<p>For a signed release, <code class="docutils literal notranslate"><span class="pre">Status</span></code> is <code class="docutils literal notranslate"><span class="pre">Valid</span></code>, the <code class="docutils literal notranslate"><span class="pre">Subject</span></code> shows the signer name and the <code class="docutils literal notranslate"><span class="pre">Issuer</span></code> shows the issuer name of
+the eligibility record (both rows read Not recorded until the owner fills them), and the time stamper line is not empty.
+<code class="docutils literal notranslate"><span class="pre">StatusMessage</span></code> gives the status in words. For an unsigned file, <code class="docutils literal notranslate"><span class="pre">Status</span></code> is <code class="docutils literal notranslate"><span class="pre">NotSigned</span></code> and the three certificate lines
+are empty. Any other status means the file must not be trusted.</p>
+<p>In a shell where <code class="docutils literal notranslate"><span class="pre">signtool</span></code> is available (it comes with the Windows SDK), run <code class="docutils literal notranslate"><span class="pre">signtool</span> <span class="pre">verify</span> <span class="pre">/pa</span> <span class="pre">/v</span> <span class="pre">QEGTRAIN.exe</span></code>; use
+the same command for each file. The output shows the signing chain and whether the signature is timestamped. An exit
+code of 0 means that it verified. Compare the Issued to and Issued by lines of the signing certificate with the record
+and ignore the other lines.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Valid</span></code> means that the file is unchanged since it was signed and that the chain is trusted on this machine. It does not
+mean that the program is free of defects or that it matches a given source revision. The checks apply once a release is
+signed. Until signing is enabled and a release is built with it, the Windows downloads show <code class="docutils literal notranslate"><span class="pre">NotSigned</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tools/release/verify_signatures.ps1</span> <span class="pre">-Directory</span> <span class="pre">DIR</span> <span class="pre">-Report</span></code> prints the same findings for the three program files of an
+unpacked ZIP, together with the digest algorithm and the timestamp (see <a class="reference internal" href="#signing-in-ci">Signing in CI</a>).</p>
+</section>
+<section id="windows-releases">
+<h2>Windows releases<a class="headerlink" href="#windows-releases" title="Link to this heading">¶</a></h2>
+<p>Windows releases are not signed. The installer <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> and the files in the portable ZIP carry
+no Authenticode signature, and Windows shows no publisher for them.</p>
+<section id="decision">
+<h3>Decision<a class="headerlink" href="#decision" title="Link to this heading">¶</a></h3>
+<p>On 2026-10-16 the owner decided to ship Windows releases unsigned. Neither the SignPath Foundation programme nor a paid
+certificate is pursued for now. The <a class="reference internal" href="#fallback-record">fallback record</a> stays empty, because no paid option was chosen.
+The signing jobs <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> and <code class="docutils literal notranslate"><span class="pre">sign-windows-installer</span></code> stay in <code class="docutils literal notranslate"><span class="pre">.github/workflows/package.yml</span></code> and are skipped
+unless the repository variable <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> is <code class="docutils literal notranslate"><span class="pre">signpath</span></code>, so releases and pull request checks need nothing extra.</p>
+<p>To enable signing later, the owner:</p>
+<ol class="arabic simple">
+<li><p>Applies to the SignPath Foundation, or chooses another service after filling the fallback record. The programme asks
+for a code signing policy section on the project page, multi-factor authentication for everyone with access, and the
+application itself. The <a class="reference internal" href="#eligibility-record">eligibility record</a> and the <a class="reference internal" href="#ownership">ownership table</a> get their
+values.</p></li>
+<li><p>Creates the variables, the secret and the environment <code class="docutils literal notranslate"><span class="pre">windows-signing</span></code> that <a class="reference internal" href="#signing-in-ci">Signing in CI</a> lists.</p></li>
+<li><p>Sets <code class="docutils literal notranslate"><span class="pre">WINDOWS_SIGNING</span></code> to <code class="docutils literal notranslate"><span class="pre">signpath</span></code>. The next push to <code class="docutils literal notranslate"><span class="pre">production</span></code> or <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag then signs the program files and the
+installer, and the release text says which Windows files are signed.</p></li>
+</ol>
+</section>
+<section id="first-start-of-an-unsigned-build">
+<h3>First start of an unsigned build<a class="headerlink" href="#first-start-of-an-unsigned-build" title="Link to this heading">¶</a></h3>
+<p>This was observed on 2026-10-16 on a clean Windows 11 (build 26300, ARM64, running the x64 files through Windows’
+emulation) as a standard user, for files that carried the download mark that a browser sets (<code class="docutils literal notranslate"><span class="pre">ZoneId=3</span></code>). Double-clicking <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-1.0.0-x64.exe</span></code> shows:</p>
+<ol class="arabic simple">
+<li><p>A dialog headed <code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">protected</span> <span class="pre">your</span> <span class="pre">PC</span></code>. Its text is
+<code class="docutils literal notranslate"><span class="pre">Microsoft</span> <span class="pre">Defender</span> <span class="pre">SmartScreen</span> <span class="pre">prevented</span> <span class="pre">an</span> <span class="pre">unrecognized</span> <span class="pre">app</span> <span class="pre">from</span> <span class="pre">starting.</span> <span class="pre">Running</span> <span class="pre">this</span> <span class="pre">app</span> <span class="pre">might</span> <span class="pre">put</span> <span class="pre">your</span> <span class="pre">PC</span> <span class="pre">at</span> <span class="pre">risk.</span></code>
+It has a <strong>More info</strong> link and a <strong>Don’t run</strong> button.</p></li>
+<li><p>After <strong>More info</strong>, the dialog shows <code class="docutils literal notranslate"><span class="pre">App:</span> <span class="pre">EGTRAIN-Setup-1.0.0-x64.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">Publisher:</span> <span class="pre">Unknown</span> <span class="pre">publisher</span></code>, with the
+buttons <strong>Run anyway</strong> and <strong>Don’t run</strong>.</p></li>
+<li><p><strong>Run anyway</strong> starts Setup. No prompt for an administrator follows.</p></li>
+</ol>
+<p>The dialog appears at every start of Setup. The portable <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, extracted with <strong>Extract All</strong> from the ZIP,
+carried the download mark too and started without any warning. The wording and the options depend on the Windows
+version, and whether a warning appears may depend on other checks of Windows that this project has not observed.</p>
+<p><strong>Run anyway</strong> is the normal Windows override for an app without a publisher. No workflow and no release script removes
+the download mark, and no document tells a user to turn SmartScreen off, because that lowers the protection of the whole
+PC.</p>
+<p>A valid signature would show who signed a file. Whether Windows still warns for a signed program is not known, and this
+document makes no promise either way. When a release is signed, its release text must say which Windows files are signed.</p>
+</section>
+</section>
+<section id="macos-releases">
+<h2>macOS releases<a class="headerlink" href="#macos-releases" title="Link to this heading">¶</a></h2>
+<p>The macOS download is the disk image <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code>. The package workflow builds it in one of two
+modes. A push to <code class="docutils literal notranslate"><span class="pre">production</span></code> or a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag runs the macOS job in the environment <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code>, and what that
+environment holds decides the mode. Every other run, including every pull request, has no environment and builds the ad
+hoc mode, so a pull request or a development build needs no credential. A paid Apple Developer membership is not needed
+to release in the ad hoc mode.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>Ad hoc, not notarized</p></th>
+<th class="head"><p>Developer ID, notarized</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>What <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code> holds</p></td>
+<td><p>None of the settings in <a class="reference internal" href="#what-the-owner-adds">What the owner adds</a></p></td>
+<td><p>The signing certificate and notarization credentials</p></td>
+</tr>
+<tr class="row-odd"><td><p>Signature of the app</p></td>
+<td><p>Ad hoc (<code class="docutils literal notranslate"><span class="pre">Signature=adhoc</span></code>). It keeps the app runnable on Apple silicon and names no developer.</p></td>
+<td><p>Every nested file, then the app, signed with the Developer ID identity, the hardened runtime and a secure timestamp</p></td>
+</tr>
+<tr class="row-even"><td><p>Disk image</p></td>
+<td><p>Not signed</p></td>
+<td><p>Signed with the same identity</p></td>
+</tr>
+<tr class="row-odd"><td><p>Notarization</p></td>
+<td><p>None</p></td>
+<td><p>Apple notarizes the app and then the image, and the ticket is stapled to both</p></td>
+</tr>
+<tr class="row-even"><td><p>First start</p></td>
+<td><p>macOS refuses it until the owner of the Mac allows it in System Settings (<a class="reference internal" href="#first-start-of-an-ad-hoc-build">details</a>)</p></td>
+<td><p>Expected: only the confirmation that macOS asks for an app that was downloaded, and no other dialog. Not yet observed (<a class="reference internal" href="#first-start-of-a-notarized-build">details</a>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Set the certificate and the notarization credentials together. A certificate alone signs the app and the image with the
+Developer ID and notarizes nothing. That is neither mode, and what macOS shows for it has not been observed.
+Notarization credentials without a certificate fail the job, because Apple accepts only a Developer ID signature and
+<code class="docutils literal notranslate"><span class="pre">tools/release/notarize_macos.sh</span></code> stops when it finds none. With credentials, a failing step fails the job, so a file
+that Apple refused is never published as notarized. Without credentials the job succeeds and the files are not
+notarized.</p>
+<section id="what-the-owner-adds">
+<h3>What the owner adds<a class="headerlink" href="#what-the-owner-adds" title="Link to this heading">¶</a></h3>
+<p>The owner adds these to the environment <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code> in the repository settings and limits the environment to the
+<code class="docutils literal notranslate"><span class="pre">production</span></code> branch and <code class="docutils literal notranslate"><span class="pre">v*</span></code> tags, the runs that use it. A secret is stored as a secret of the environment and a
+variable as a variable of it. None of them is committed, and the scripts print none of the values. The job imports the
+certificate into a keychain of its own and deletes that keychain in its last step.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Kind</p></th>
+<th class="head"><p>What it holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_CERTIFICATE</span></code></p></td>
+<td><p>Secret</p></td>
+<td><p>The Developer ID Application certificate with its private key, as a <code class="docutils literal notranslate"><span class="pre">.p12</span></code> file, base64 encoded</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_CERTIFICATE_PASSWORD</span></code></p></td>
+<td><p>Secret</p></td>
+<td><p>The password of the <code class="docutils literal notranslate"><span class="pre">.p12</span></code> file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_SIGNING_IDENTITY</span></code></p></td>
+<td><p>Variable</p></td>
+<td><p>The name of the identity, as <code class="docutils literal notranslate"><span class="pre">security</span> <span class="pre">find-identity</span></code> prints it</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_NOTARY_KEY</span></code></p></td>
+<td><p>Secret</p></td>
+<td><p>For an App Store Connect API key: the text of the <code class="docutils literal notranslate"><span class="pre">.p8</span></code> file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_NOTARY_KEY_ID</span></code></p></td>
+<td><p>Variable</p></td>
+<td><p>For an API key: the key id</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_NOTARY_ISSUER_ID</span></code></p></td>
+<td><p>Variable</p></td>
+<td><p>For an API key: the issuer id</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_NOTARY_APPLE_ID</span></code></p></td>
+<td><p>Variable</p></td>
+<td><p>For an Apple ID: the Apple ID</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_NOTARY_TEAM_ID</span></code></p></td>
+<td><p>Variable</p></td>
+<td><p>For an Apple ID: the team id</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MACOS_NOTARY_PASSWORD</span></code></p></td>
+<td><p>Secret</p></td>
+<td><p>For an Apple ID: an app-specific password</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Notarization needs all three entries of one group, the API key or the Apple ID. The API key is used when both groups are
+complete. A group that is only partly set, with the other group not complete, fails the job and names what is missing.
+A certificate without its password or without the identity name fails it too. The scripts are described in
+<a class="reference internal" href="build-and-test.html#macos-signing-script"><span class="std std-ref">macOS signing script</span></a> and
+<a class="reference internal" href="build-and-test.html#macos-notarization-script"><span class="std std-ref">macOS notarization script</span></a>. The roles in <a class="reference internal" href="#ownership">Ownership</a> and the
+rules in <a class="reference internal" href="#repository-authorization">Repository authorization</a> apply to these values.</p>
+</section>
+<section id="apple-developer-identity-record">
+<h3>Apple Developer identity record<a class="headerlink" href="#apple-developer-identity-record" title="Link to this heading">¶</a></h3>
+<p>Before anyone buys a personal Apple Developer Program membership, someone asks whether an institutional or distributor
+team can sign for EGTRAIN and whether a fee waiver of the programme applies. These are messages to people, for example
+at the university, and the table records the answers. Not recorded means that nothing has been recorded. Without the
+settings above the release is built in the ad hoc mode.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Record</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Who was asked about an institutional or distributor Apple Developer team, the date, and the link to the answer</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Result: a team that can sign for EGTRAIN, or none</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Who was asked about a fee waiver of the Apple Developer Program, the date, and the link to the answer</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Result: a waiver, or none</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Decision taken, and by whom (a team, a waiver, a personal membership, or staying ad hoc)</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Developer ID Application identity as issued, and the team id</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Notarization credentials used (API key or Apple ID)</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-odd"><td><p>Expiry date of the certificate, and who watches it</p></td>
+<td><p>Not recorded</p></td>
+</tr>
+<tr class="row-even"><td><p>Environment <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code> created and limited to <code class="docutils literal notranslate"><span class="pre">production</span></code> and <code class="docutils literal notranslate"><span class="pre">v*</span></code></p></td>
+<td><p>Not recorded</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="first-start-of-an-ad-hoc-build">
+<h3>First start of an ad hoc build<a class="headerlink" href="#first-start-of-an-ad-hoc-build" title="Link to this heading">¶</a></h3>
+<p>This was observed on 2026-10-16 on a clean macOS 26.6.2 with the setting <strong>Allow applications from</strong> at <strong>App Store &amp;
+Known Developers</strong>, for a disk image that carried the download mark that a browser sets. Opening the image shows a
+Finder window named <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code> with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> and <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, and no warning. After the app is copied to the
+Applications folder, opening it from there shows:</p>
+<ol class="arabic simple">
+<li><p>A dialog titled <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">Not</span> <span class="pre">Opened</span></code>. Its text is
+<code class="docutils literal notranslate"><span class="pre">Apple</span> <span class="pre">could</span> <span class="pre">not</span> <span class="pre">verify</span> <span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">is</span> <span class="pre">free</span> <span class="pre">of</span> <span class="pre">malware</span> <span class="pre">that</span> <span class="pre">may</span> <span class="pre">harm</span> <span class="pre">your</span> <span class="pre">Mac</span> <span class="pre">or</span> <span class="pre">compromise</span> <span class="pre">your</span> <span class="pre">privacy.</span></code>
+Its buttons are <strong>Move to Trash</strong> and <strong>Done</strong>. It has no <strong>Open</strong> button.</p></li>
+<li><p><strong>System Settings &gt; Privacy &amp; Security</strong>, in the section <strong>Security</strong>, shows
+<code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">was</span> <span class="pre">blocked</span> <span class="pre">to</span> <span class="pre">protect</span> <span class="pre">your</span> <span class="pre">Mac.</span></code> with the button <strong>Open Anyway</strong>.</p></li>
+<li><p><strong>Open Anyway</strong> opens a dialog titled <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">&quot;QEGTRAIN&quot;?</span></code> with the buttons <strong>Move to Trash</strong>, <strong>Open Anyway</strong> and
+<strong>Done</strong>.</p></li>
+<li><p><strong>Open Anyway</strong> in that dialog asks for an administrator’s name and password:
+<code class="docutils literal notranslate"><span class="pre">Enter</span> <span class="pre">an</span> <span class="pre">administrator's</span> <span class="pre">username</span> <span class="pre">and</span> <span class="pre">password</span> <span class="pre">to</span> <span class="pre">allow</span> <span class="pre">this.</span></code> The exception needs an administrator. What follows
+the password was not observed.</p></li>
+</ol>
+<p>This is the normal macOS override for an app from an unidentified developer, and the only way to open an ad hoc build
+that this project documents. No workflow and no release script removes the download mark (the quarantine attribute) or
+turns Gatekeeper off, and no document tells a user to, because that lowers the protection of the whole Mac.
+<code class="docutils literal notranslate"><span class="pre">tools/e2e/test_ci_workflow.py</span></code> checks the workflows and the release scripts.</p>
+</section>
+<section id="first-start-of-a-notarized-build">
+<h3>First start of a notarized build<a class="headerlink" href="#first-start-of-a-notarized-build" title="Link to this heading">¶</a></h3>
+<p>The app and the image carry a Developer ID signature and a ticket from Apple that is stapled to each. A user who opens
+the image, drags the app onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code> and opens it is expected to see no dialog beyond the confirmation that
+macOS asks for an app that was downloaded, and to need no visit to System Settings and no administrator password. No
+release of EGTRAIN has been built in this mode, so this has not been observed. Row M5 of the
+<a class="reference internal" href="release-testing-checklist.html#macos-app"><span class="std std-ref">release testing checklist</span></a> records it for the first release that has one.</p>
+</section>
+<section id="release-text">
+<h3>Release text<a class="headerlink" href="#release-text" title="Link to this heading">¶</a></h3>
+<p>The release text that the Prepare release step writes says nothing about signing. After a release is published, the owner
+adds one of these paragraphs to its description on the releases page. The first is for a release whose app is signed ad
+hoc: the log of the step <strong>Verify the signature</strong> of the package job shows <code class="docutils literal notranslate"><span class="pre">Signature=adhoc</span></code>. The second is only for one
+whose app and image are notarized: the logs of the steps <strong>Notarize the app</strong> and <strong>Notarize the disk image</strong> each end
+with a line <code class="docutils literal notranslate"><span class="pre">OK:</span> <span class="pre">...</span> <span class="pre">is</span> <span class="pre">notarized,</span> <span class="pre">stapled</span> <span class="pre">and</span> <span class="pre">accepted</span> <span class="pre">by</span> <span class="pre">Gatekeeper</span></code>. A Developer ID signature with the line
+<code class="docutils literal notranslate"><span class="pre">Notarization</span> <span class="pre">skipped</span></code> is neither, and needs a sentence of its own.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings &gt; Privacy &amp; Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the README: https://github.com/Ancientkingg/EGTRAIN#macos-disk-image
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS is expected to ask only for the usual confirmation for an app that was downloaded.
+</pre></div>
+</div>
+</section>
+<section id="checking-a-macos-download">
+<h3>Checking a macOS download<a class="headerlink" href="#checking-a-macos-download" title="Link to this heading">¶</a></h3>
+<p>Run these on the copy of the app in the Applications folder. They do not start the app.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>codesign<span class="w"> </span>-dvv<span class="w"> </span>/Applications/QEGTRAIN.app
+xcrun<span class="w"> </span>stapler<span class="w"> </span>validate<span class="w"> </span>/Applications/QEGTRAIN.app
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">codesign</span></code> shows <code class="docutils literal notranslate"><span class="pre">Signature=adhoc</span></code> for an ad hoc build. For a Developer ID build it shows a line
+<code class="docutils literal notranslate"><span class="pre">Authority=Developer</span> <span class="pre">ID</span> <span class="pre">Application:</span></code> with the name of the signer, and a <code class="docutils literal notranslate"><span class="pre">TeamIdentifier</span></code>. <code class="docutils literal notranslate"><span class="pre">stapler</span> <span class="pre">validate</span></code> succeeds
+only when the app carries a ticket and fails for an ad hoc build. Before it uploads the image, the package job checks the
+signature in the step <strong>Verify the signature</strong> and, for a notarized build, the ticket in the step <strong>Notarize the app</strong>.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="coding-guidelines.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Coding guidelines</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="code-documentation-investigation.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Code documentation investigation</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Code signing</a><ul>
+<li><a class="reference internal" href="#current-state">Current state</a></li>
+<li><a class="reference internal" href="#what-would-be-signed">What would be signed</a></li>
+<li><a class="reference internal" href="#choosing-a-signing-path">Choosing a signing path</a><ul>
+<li><a class="reference internal" href="#eligibility-record">Eligibility record</a></li>
+<li><a class="reference internal" href="#fallback-record">Fallback record</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ownership">Ownership</a></li>
+<li><a class="reference internal" href="#repository-authorization">Repository authorization</a></li>
+<li><a class="reference internal" href="#signing-in-ci">Signing in CI</a></li>
+<li><a class="reference internal" href="#renewal-and-maintenance">Renewal and maintenance</a></li>
+<li><a class="reference internal" href="#checking-a-download">Checking a download</a></li>
+<li><a class="reference internal" href="#windows-releases">Windows releases</a><ul>
+<li><a class="reference internal" href="#decision">Decision</a></li>
+<li><a class="reference internal" href="#first-start-of-an-unsigned-build">First start of an unsigned build</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#macos-releases">macOS releases</a><ul>
+<li><a class="reference internal" href="#what-the-owner-adds">What the owner adds</a></li>
+<li><a class="reference internal" href="#apple-developer-identity-record">Apple Developer identity record</a></li>
+<li><a class="reference internal" href="#first-start-of-an-ad-hoc-build">First start of an ad hoc build</a></li>
+<li><a class="reference internal" href="#first-start-of-a-notarized-build">First start of a notarized build</a></li>
+<li><a class="reference internal" href="#release-text">Release text</a></li>
+<li><a class="reference internal" href="#checking-a-macos-download">Checking a macOS download</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

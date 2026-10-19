@@ -1,0 +1,11 @@
+<map id="MainWindow::showStartupChooser" name="MainWindow::showStartupChooser">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,252,80"/>
+<area shape="rect" id="Node000002" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title=" " alt="" coords="316,29,491,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,53,302,49,302,54,252,59"/>
+<area shape="rect" id="Node000003" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title=" " alt="" coords="300,79,507,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="252,75,286,78,286,84,252,81"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="370,31,363,21,367,11,380,5,403,3,432,6,443,16,439,20,429,11,403,8,382,10,370,15,368,20,374,28"/>
+<area shape="rect" id="Node000004" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="555,79,661,104"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="507,89,541,89,541,94,507,94"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="575,80,568,70,571,60,585,54,608,52,636,56,648,65,644,69,634,61,608,57,586,59,575,64,573,70,579,77"/>
+</map>
