@@ -133,8 +133,8 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		});
 	layout->addWidget(scroll, 1);
 	layout->addWidget(actions);
-	// In a footer laid out for macOS, Return presses the default button wherever the focus is, as in native dialogs, so
-	// a footer button that gets the focus does not take the default. Elsewhere it does, and Return presses that button.
+	// In a footer laid out for macOS a footer button that gets the focus does not take the default, as in native dialogs,
+	// so Return still presses the default button. Elsewhere it does, and Return presses that button.
 	const bool macFooter = actions->style()->styleHint(QStyle::SH_DialogButtonLayout, nullptr, actions) == QDialogButtonBox::MacLayout;
 	// The button that is the default when the dialog opens: the one the caller chose, else the first accept button,
 	// which the button box makes the default when it is shown.

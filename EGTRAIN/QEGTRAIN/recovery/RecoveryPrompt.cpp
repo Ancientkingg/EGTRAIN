@@ -194,9 +194,10 @@ RecoveryPrompt::RecoveryPrompt(const RecoveryScan& scan, QWidget* parent, const 
 	}
 	if (first < 0 && !m_candidates.isEmpty())
 		first = 0;
-	if (first >= 0)
+	if (first >= 0) {
 		selectors.at(first)->setChecked(true);
-	else
+		selectors.at(first)->setFocus();
+	} else
 		selectRow(-1);
 }
 

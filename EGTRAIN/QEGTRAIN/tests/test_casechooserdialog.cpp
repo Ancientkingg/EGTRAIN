@@ -129,7 +129,7 @@ void checkFits(const QString& scenario, const CaseChooserDialog& dialog, const Q
 	check(buttons && scroll && buttons->isVisible() && dialog.rect().contains(buttons->geometry())
 			&& scroll->geometry().bottom() < buttons->geometry().top(),
 		scenario, "the footer is not visible below the body");
-	// With nothing to open, Open is disabled and Qt hands the default to the focused button.
+	// With nothing to open, Open is disabled and, outside a macOS footer, Qt hands the default to the focused button.
 	if (dialog.openButton()->isEnabled()) {
 		check(dialog.openButton()->isDefault(), scenario, "Open is enabled but not the default button");
 		check(faceGray(dialog.openButton()) + 60 < faceGray(dialog.continueButton()), scenario, "Open does not have the dark face of the default button");
