@@ -259,7 +259,16 @@ bool exercisePopupHeight() {
 	QApplication::processEvents();
 	QAbstractItemView* list = f.mode->view();
 	// A list that cuts its last item can scroll, so a list that cannot scroll shows every item whole.
-	ok &= check(list->isVisible() && list->verticalScrollBar()->maximum() == 0, "the list of a field with focus scrolls");
+	const bool whole = list->isVisible() && list->verticalScrollBar()->maximum() == 0;
+	if (!whole) {
+		int rows = 0;
+		for (int row = 0; row < f.mode->count(); ++row)
+			rows += list->visualRect(f.mode->model()->index(row, 0)).height();
+		std::cerr << "the list of a field with focus scrolls: the popup is " << list->window()->height() << " px, its list "
+				  << list->viewport()->height() << " px for " << rows << " px of items, and it scrolls by "
+				  << list->verticalScrollBar()->maximum() << '\n';
+	}
+	ok &= whole;
 	f.mode->hidePopup();
 	return ok;
 }
