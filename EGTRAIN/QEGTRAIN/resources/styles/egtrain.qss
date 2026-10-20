@@ -461,19 +461,20 @@ QLabel[dialogStatus="error"] {
     padding: 8px;
 }
 
-/* A link of the About dialog reads as a link: underlined text without the face and border of a button. */
+/* A link of the About dialog reads as a link: underlined text without the face and border of a button. Its text starts
+   1 px inside a 2 px border that shows only with keyboard focus. AboutDialog sets the text of its labels 3 px in, so the
+   links line up with the text above them. */
 QDialog#aboutDialog QPushButton[aboutLink="true"] {
     background: transparent;
-    border-color: transparent;
+    border: 2px solid transparent;
     color: #315a70;
     text-decoration: underline;
     text-align: left;
-    padding: 2px 4px;
+    padding: 1px;
 }
 
 QDialog#aboutDialog QPushButton[aboutLink="true"]:focus {
-    border: 2px solid #2e7491;
-    padding: 1px 3px;
+    border-color: #2e7491;
 }
 
 /* A button that opens a menu, such as Other ways to open..., shows the arrow of a drop-down list at its right. */

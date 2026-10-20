@@ -94,7 +94,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 - **Status labels:** neutral, warning and error keep their colours, with a 6 px radius and 8 px padding.
 - **Default button:** the default button of a dialog footer or a message box is filled with the action colour and has white text. Run simulation in the run review has the same look.
 - **Footer buttons:** the buttons of a dialog footer and of a message box show only their text. The sheet turns off the icons that some desktop themes give OK, Cancel and Close, which would be hard to see on the filled default button.
-- **Links:** the links of About EGTRAIN are underlined accent text without a button face or border.
+- **Links:** the links of About EGTRAIN are underlined accent text without a button face or border. The text of a link starts 1 px inside a 2 px border that shows only with keyboard focus, and `AboutDialog` sets the text of its labels as far in, so the links line up with the text above them.
 
 ## Exceptions
 
