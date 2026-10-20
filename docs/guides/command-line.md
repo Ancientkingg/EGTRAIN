@@ -2,7 +2,7 @@
 
 This page is for scripts, headless runs and developers; you do not need it to run EGTRAIN from a downloaded package.
 
-For the executable paths of a local build see Run a local build, and for how the Windows program behaves in a terminal see Windows headless runs, both in the build and test guide of the developer documentation.
+In a build from source the program is `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS, `build/Release/QEGTRAIN.exe` or `build/QEGTRAIN.exe` on Windows and `build/QEGTRAIN` on Linux, below the root of the source folder. On Windows the program prints nothing in a terminal, and PowerShell does not wait for it: start it from PowerShell with `Start-Process -Wait -PassThru` and send its output to two different files with `-RedirectStandardOutput` and `-RedirectStandardError`.
 
 ## Options
 
@@ -17,11 +17,11 @@ For the executable paths of a local build see Run a local build, and for how the
 | `-pax` | 0 or 1 | the last choice of **View > Show Passengers**, 0 at the first start | Read only when `-g` is 1; any nonzero number counts as 1. In the window, a run that starts with 1 creates the passenger markers, counters and platform bars; **View > Show Passengers** (the same switch as the Passengers check box in the Case and Layers dock) changes it while the program runs: off hides them at once, on shows them from the next run; the list of passengers waiting at a platform is updated at every time step in a run that starts with 1 and at the boarding step of a train in one that starts with 0; the provenance file records the value of the run as `pax_mode`. |
 | `--interactive` (also `-interactive`) | none | off | Restores the legacy questions: asks on standard input for each of `-n`, `-g` and `-pax` that the command line leaves out; `-pax` is asked only when the window is on. Without `--interactive` the defaults of this table apply. |
 | `--detailed-trajectories` | none | off | Also writes the per-train files in `TEMP` and `TrainTrajectories/TrainPathDiagram.txt`; see [Run output](run-output.md#detailed-trajectories). |
-| `--live` | a port from 0 to 65535 | off | Publishes the state of every run of the process to a ZeroMQ socket on `127.0.0.1`; 0 takes a free port. The endpoints go to `live-endpoint.json` in the [output folder](#output-folder), and the start prints them on standard error. A value that is not a port stops the start with exit code 1, and a port that is in use stops it with exit code 2. The live stream is described in External state sharing in the developer documentation. |
+| `--live` | a port from 0 to 65535 | off | Publishes the state of every run of the process to a ZeroMQ socket on `127.0.0.1`; 0 takes a free port. The endpoints go to `live-endpoint.json` in the [output folder](#output-folder), and the start prints them on standard error. The program removes the file when it exits. A value that is not a port stops the start with exit code 1, and a port that is in use stops it with exit code 2. |
 | `--live-every` | a whole number from 1 | 1 | With `--live`: a state frame for every N-th step. Without `--live` it stops the start with exit code 1. |
-| `--live-commands` | none | off | With `--live`: also binds the command socket and writes the access token to `live-endpoint.json`. A client can then pause, resume and stop the run and set its step delay; see Commands in External state sharing in the developer documentation. Without `--live` it stops the start with exit code 1. |
+| `--live-commands` | none | off | With `--live`: also binds the command socket and writes the access token to `live-endpoint.json`. A client can then pause, resume and stop the run and set its step delay. Without this option, `command` and `token` in the file are `null`. Without `--live` it stops the start with exit code 1. |
 | `--seed` | a whole number from 1 to 2147483646 | 789350715 | Sets the seed of the random draws; see [Random seed](#random-seed). Any other value stops the start with `ERROR: --seed requires a whole number from 1 to 2147483646.` and exit code 1. |
-| `--help` | none | off | Prints every option with its default and exits with code 0, without opening a window. On Windows the text reaches a terminal only when the output is redirected; see Windows headless runs in the build and test guide of the developer documentation. |
+| `--help` | none | off | Prints every option with its default and exits with code 0, without opening a window. On Windows the text reaches a terminal only when the output is redirected, as the start of this page describes. |
 
 The values of `-n`, `-h`, `-g`, `-pax`, `--live` and `--live-every` are read as whole numbers, those of `-b` and `-c` as decimal numbers. An option that is not in this table prints `ERROR: Unknown option <name>. Run QEGTRAIN --help to list the options.` and stops the start with exit code 1. The removed options `-TSM` and `-RC` stop the start with exit code 1 and an error that names `--live`. In a launch with a window, the options of Qt, such as `-platform` and `-style`, are accepted as well.
 
@@ -85,7 +85,11 @@ EGTRAIN_LOG='app.ui.debug=false' QEGTRAIN -n 2
 
 To get the line of every stopped train back, set `EGTRAIN_LOG=sim.step=true`.
 
-A malformed rule is skipped and the other rules apply. The program prints one `WARNING: EGTRAIN_LOG has a malformed rule` line on standard error and starts as usual; the exit code does not change.
+A malformed rule is skipped and the other rules apply. The program prints this line on standard error and starts as usual; the exit code does not change.
+
+```text
+WARNING: EGTRAIN_LOG has a malformed rule. It was skipped and the other rules apply. A rule is <pattern>=true or <pattern>=false, and rules are separated by ';'.
+```
 
 `EGTRAIN_LOG_FILE` names a file. The program appends every message that goes through the core to it, as `level category: text` (`warning app.ui: text`), each message on a line of its own, without a limit on its size. When the file cannot be opened, the program prints a `WARNING` line on standard error and writes no file.
 
@@ -121,6 +125,6 @@ Usage:
 
 Each command exits with 0 on success and 1 otherwise, also when a path cannot be read or an unexpected error stops the command; the reason is printed on standard error. There is no `migrate` command.
 
-The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder. A build from source also produces it, as the build and test guide of the developer documentation describes.
+The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder. A build from source puts it in the build folder.
 
 [Opening an `.egscene` case study](opening-a-case-study.md#instructor-and-command-line-use) has examples of `pack`, `validate` and `unpack`, including the rule that the unpack destination must be a new path.

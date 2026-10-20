@@ -76,7 +76,7 @@ You need an open case. EGTRAIN checks it when it opens, after every edit and bef
 1. Read the line under **Current case study** in the dock **Case and Layers**. It says **Ready to run**, or it shows the first error.
 2. Choose **View > Scene Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**.
 
-   ![The dock Scene Validation of Paimpol after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view.](../images/how-to-scene-validation.png)
+   ![The dock Scene Validation of Paimpol practice, a copy of Paimpol, after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view.](../images/how-to-scene-validation.png)
 3. Fix the first error in the editor that matches its **File** and **Path** (menu **Editors**), and read the table again. It updates after each edit.
 4. Repeat until no error is left. **Run** is then enabled.
 
@@ -139,7 +139,7 @@ The two buttons say why they are disabled in their tooltips and in the line abov
 - **Pan.** Drag the view. On a trackpad, two fingers move it.
 - **Select.** Click a track, connection, node, station, signal, train or passenger. The information panel for it opens and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.
 - **Find.** Choose **Edit > Find...** (Ctrl+F, Cmd+F on macOS) and type part of the name or ID of a station, signal or train. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.
-- **Context menu.** Right-click an item. A train offers **Show details**, **Center in view**, **Follow train** and **Copy train index**. Most other items offer **Show details**, **Center in view** and a copy command. Right-click the empty view for **Fit whole network**, **Clear selection** and **Stop following train**.
+- **Context menu.** Right-click an item. A train offers **Show details**, **Center in view**, **Follow train**, **Copy train index** and the disabled entry **Planned route and related infrastructure**. Most other items offer **Show details**, **Center in view** and a copy command. Right-click the empty view for **Fit whole network**, **Clear selection** and **Stop following train**.
 - **Layers.** The check boxes in **Case and Layers** hide stations, station names, trains, speed labels, signals and passengers. **Passengers** is the same switch as **View > Show Passengers**. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.
 - **Follow.** Choose a train in the list next to **Follow** in the toolbar and click **Follow**. The view moves with the train, also while the run is paused. Click **Follow** again, or choose **Stop following train**, to stop.
 
@@ -161,9 +161,9 @@ Train, station and signal selections stay across seeks. A train that has no posi
 
 ## Results and exports
 
-You need a run that reached its end. Until then the result commands are disabled and read `Run a simulation to enable this diagram`.
+You need a run that reached its end. Until then the result commands are disabled.
 
-1. The dock **Run Results** opens when the run ends. If you closed it, choose **View > Run Results**.
+1. The dock **Run Results** opens when the run ends. If it is closed, choose its entry in the menu **View**, which starts with Run Results.
 2. Click **Open result view...** and choose an entry, or use the menu **Diagrams**. An entry in **Diagrams** that asks for more input ends in an ellipsis.
 3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that share the entry of a section: choose a route and a first block that both trains pass.
 4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](diagram-navigation.md).
@@ -230,4 +230,4 @@ EGTRAIN keeps the 10 newest notes that it has reported.
 | **Compare delays** | There is no baseline, or the completed run has neither an incident nor an entrance delay | Same |
 | **Follow** | No run has started, or the case has no services | Run the case and choose a train |
 
-When **Run** is enabled but **Cannot Run Scene** appears, the message names the problem: validation errors, or no selected service occurrence. In the tab **Run occurrences** of **Services**, tick **Include** for at least one occurrence.
+When **Run** is enabled but a message refuses the run, it names the problem, for example `Select at least one generated service occurrence before running.` On Windows and Linux the message is titled **Cannot Run Scene**. In the tab **Run occurrences** of **Services**, tick **Include** for at least one occurrence.

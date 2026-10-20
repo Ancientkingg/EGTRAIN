@@ -115,10 +115,10 @@ The Windows entry follows the rule of Qt for the application data folder. **File
 ## If something goes wrong
 
 - **Run is disabled.** No case is open, a run is active, or validation reports an error. Open **View > Scene Validation** and read the first error. [How-to](how-to.md#why-a-command-is-disabled) lists the reasons for the other disabled commands.
-- **Cannot Run Scene.** The message names the problem: validation errors, or no selected service occurrence.
+- **A message refuses the run.** It names the problem, for example `The scene has N validation error(s) that must be fixed before running.` or `Select at least one generated service occurrence before running.` On Windows and Linux it is titled **Cannot Run Scene**.
 - **Cannot Open Case Study.** The file is damaged or is not an EGTRAIN case. Keep the message, and download the file again. [Opening an `.egscene` case study](opening-a-case-study.md#scenes-that-do-not-open) lists the other dialogs for a scene that does not open.
 - **Unsaved Scene.** Before EGTRAIN replaces a case that has unsaved edits, it asks **Save**, **Discard** or **Cancel**. On macOS this is a sheet without a title, and the buttons are **Save**, **Cancel** and **Don't Save**. **Cancel** keeps the case and its edits. For an installed example case, **Save** asks for a new `.egscene` file and never writes into the installation.
-- **Recover Unsaved Work.** While a case has unsaved edits, EGTRAIN keeps a recovery copy and updates it about every 30 seconds. If EGTRAIN closed before you saved, the next start offers **Recover**, **Discard** and **Decide Later**. **Recover** opens the copy as an unsaved case. Choose **File > Save Case Study As...** to keep it.
+- **Recover Unsaved Work.** While a case has unsaved edits, EGTRAIN keeps a recovery copy and updates it about every 30 seconds. While an entry of the case is incomplete, for example a new service without a composition, no copy is written and the status bar says `Autosave unavailable: ...`. If EGTRAIN closed before you saved, the next start offers **Recover**, **Discard** and **Decide Later**. **Recover** opens the copy as an unsaved case. Choose **File > Save Case Study As...** to keep it.
 - **Undo.** The **Edit** menu has **Undo** and **Redo** for edits of the case.
 - **Nothing happened after a run.** If you stopped the run, there are no results. Run it again and let it end.
 
@@ -131,7 +131,7 @@ The Windows entry follows the rule of Qt for the application data folder. **File
 
 ## Next
 
-This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its contents and search, and F1 opens the section about the window you are in when the manual has one, otherwise its start page.
+This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its contents and search, and F1 opens the section about the window you are in when the manual has one, otherwise its start page. A build without the manual opens the manual on the project website instead.
 
 - [How-to](how-to.md): recipes for opening and saving, editing a timetable, scenarios and baselines, canvas navigation, results and legacy cases.
 - [Opening an `.egscene` case study](opening-a-case-study.md): bundles, version checks and opening by double-click.

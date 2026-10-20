@@ -30,7 +30,7 @@ A new case holds one scenario, `baseline`, and nothing else. **Run** stays disab
 
 ## 2. Infrastructure, in dependency order
 
-Everything in this part happens in the dock **Infrastructure**. The list **Entity** chooses the table. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. A line of text above the table says what the table lists. While the table is empty, the line says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
+Everything in this part happens in the dock **Infrastructure**. The list **Entity** chooses the table. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. While a table is empty, a line of text above it says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
 
 1. **Tracks.** Choose **Add**. The track is `track`.
 2. **Nodes.** Choose **Add** three times. The nodes `node`, `node_2` and `node_3` go on the first track, at **X (km)** 0, 1 and 2 and **Y (km)** 0. The proposed positions are the ones you want.
@@ -99,7 +99,7 @@ Choose **Run**, check the dialog **Run simulation** (**Selected in period** 1, *
 ## 8. Save as a folder and as a bundle
 
 1. Choose **File > Save Scene As Folder...**. In the dialog **Save Scene As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a scene](scene-schema.md#version-and-files)).
-2. Choose **File > Save Case Study As...**. In the dialog **Save Case Study As**, name the file `minimal-line.egscene` and save it. EGTRAIN adds the extension when you leave it out. After this, **File > Save Scene** writes to this bundle.
+2. Choose **File > Save Case Study As...**. In the dialog **Save Case Study As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save Scene** writes to this bundle.
 
 Both are now listed under **File > Recent Scenes**.
 
@@ -110,7 +110,7 @@ Both are now listed under **File > Recent Scenes**.
 
 ## 10. Check the saved scene outside the window
 
-`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in Run a local build in the build and test guide of the developer documentation. With the macOS app and the folder and bundle in the current folder:
+`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the folder and bundle in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS
