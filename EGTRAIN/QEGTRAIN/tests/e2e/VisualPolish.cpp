@@ -3132,11 +3132,20 @@ void MainWindowTestAccess::visualPolishFrame(MainWindow& w, bool historical) {
 		runVisualPolish(w);
 }
 
+// Exported by Qt Gui, both versions, and declared by QtTest for its key clicks.
+Q_GUI_EXPORT bool qt_sendShortcutOverrideEvent(QObject* o, ulong timestamp, int k, Qt::KeyboardModifiers mods,
+	const QString& text = QString(), bool autorep = false, ushort count = 1);
+
 // Finds a station, a signal and, with expectTrain, a train: Ctrl+F or the Edit menu action, the kind set in the field,
 // Down to the second match, and Enter in the field or, for the signal, in the result list. The view must then show that
 // item at the detail zoom and the item must carry the selection ring. Esc closes the dialog. The view is fitted and nothing is selected or followed after.
 bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& failure) {
 	const auto key = [](QObject* receiver, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
+		// A shortcut goes first, as with a real key press: Qt 6 no longer looks for one when a key event is sent.
+		if (qt_sendShortcutOverrideEvent(receiver, 0, code, modifiers)) {
+			QApplication::processEvents();
+			return;
+		}
 		QKeyEvent press(QEvent::KeyPress, code, modifiers);
 		QKeyEvent release(QEvent::KeyRelease, code, modifiers);
 		QApplication::sendEvent(receiver, &press);
@@ -3149,6 +3158,9 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 			[&prefix](const NetworkPresenter::FindTarget& target) { return target.label.startsWith(prefix); });
 		return found == targets.cend() ? NetworkPresenter::FindTarget{QString(), nullptr, QPointF()} : *found;
 	};
+	// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
+	w.activateWindow();
+	QApplication::processEvents();
 	bool viaShortcut = true;
 	for (const QString& kind : {QStringLiteral("Station: "), QStringLiteral("Signal: "), QStringLiteral("Train: ")}) {
 		const NetworkPresenter::FindTarget target = targetLabelled(kind);
