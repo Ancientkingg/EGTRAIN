@@ -57,7 +57,8 @@ public:
 	/// An empty window with the given title.
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
 	/// Shows the chart and takes ownership of it. Numeric axes that keep the ticks Qt gives them get ticks on round
-	/// values. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series
+	/// values, and their range widens to the first round tick past each end; a range that starts at zero keeps that
+	/// start. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series
 	/// the chart has when it is set: the "layer" property of a series, else planned or simulated by its name.
 	void setChart(QChart* chart);
 	/// Sets the window title to `heading` and shows `context` and `warning` in labels of their own; an empty text hides
@@ -82,8 +83,8 @@ public:
 	void setTrainListColors(const QHash<QString, QColor>& colors);
 	/// Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus `startOffsetSeconds`, the clock time
 	/// of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is in range.
-	/// False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller; reset
-	/// restores the bounds at setChart.
+	/// False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller, without
+	/// the round widening of setChart; reset restores those bounds.
 	void setTimeAxisY(bool on, long long startOffsetSeconds = 0);
 	/// As setTimeAxisY, for the X axis.
 	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);
@@ -91,7 +92,8 @@ public:
 	/// Supply raw source data for CSV export. The provider receives the ids of the
 	/// trains currently visible so it can export only what the user is looking at.
 	/// `trainIds` adds to the train filter the trains that have CSV rows but no plotted series.
-	/// An empty return means there is nothing to export. The CSV button is shown only while a provider is set.
+	/// An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save
+	/// names the file in the status bar of the main window that is the parent of this window.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
 		const QString& suggestedFileName, const QStringList& trainIds = {});
 	/// Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A
@@ -170,6 +172,7 @@ private:
 	QPointer<QGraphicsObject> m_sectionOverlay;
 	QPointer<QGraphicsObject> m_lineLegend;
 	QHash<QAbstractAxis*, QPair<double, double>> m_fullBounds;
+	QHash<QAbstractAxis*, QPair<double, double>> m_builderBounds; // ranges of the widened axes as the chart builder set them
 	long long m_startOffset = 0;
 	QVector<SeriesGroup> m_groups;
 	QHash<QAbstractSeries*, QPen> m_basePens;

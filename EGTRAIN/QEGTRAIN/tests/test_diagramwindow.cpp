@@ -5,8 +5,13 @@
 #include <QApplication>
 #include <QGraphicsObject>
 #include <QFontMetricsF>
+#include <QDir>
 #include <QFile>
+#include <QFileDialog>
 #include <QFileInfo>
+#include <QMainWindow>
+#include <QStatusBar>
+#include <QTemporaryDir>
 #include <QScreen>
 #include <QCategoryAxis>
 #include <QLabel>
@@ -916,7 +921,7 @@ static bool exerciseBlockSections() {
 	QMetaObject::invokeMethod(&window, "resetZoom");
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));
-	ok &= expect(x->min() == 0 && x->max() == 10 && tooltip->isVisible() && boundaryPainted(), "reset retains original section alignment");
+	ok &= expect(x->min() == 0 && x->max() == 12 && tooltip->isVisible() && boundaryPainted(), "reset retains original section alignment");
 	hover(headerPoint(6.5, 5));
 	ok &= expect(tooltip->isVisible() && tooltip->text().contains("@reverse@") && tooltip->text().contains("Directed X: 8 to 5 km"),
 		"a section towards decreasing X reports its directed ends in hover");
@@ -1159,7 +1164,7 @@ static bool exerciseStationAxis() {
 			ok &= expect(!labelled.isEmpty() && drawn == labelled.size(), qPrintable(what + ": the station labels are drawn whole"));
 			// Zoomed in, the stations of the new range are named and the labels are still whole.
 			auto* view = window.findChild<QChartView*>();
-			for (int step = 0; step < 6; ++step)
+			for (int step = 0; step < 7; ++step)
 				wheel(view, {}, {0, 120}, Qt::ControlModifier, view->chart()->plotArea().topLeft() + QPointF(20, 20));
 			texts = drawnChartTexts(window);
 			const auto denBosch = std::find_if(texts.begin(), texts.end(), [](const QString& text) { return text.startsWith("Den Bosch"); });
@@ -1220,29 +1225,34 @@ static bool exerciseLegend() {
 }
 
 // Numeric axes that keep the ticks Qt gives them get round ticks: at most eight steps of 1, 2 or 5 times a power of ten,
-// labelled with the decimals of the step, zero as "0.0" and not "-0.0", a tick at each end of the range that is a round
-// value, none overlapping at the size of the window on a 1280 by 800 screen. The range stays as the chart builder set it,
-// and a zoom picks a smaller step.
+// labelled with the decimals of the step, zero as "0.0" and not "-0.0", none overlapping at the size of the window on a
+// 1280 by 800 screen. The range widens to the first tick past each end, so both ends are labelled and a line at an end
+// keeps clear of the plot edge; a range from zero keeps zero as its start. A zoom picks a smaller step.
 static bool exerciseRoundTicks() {
+	// Arrival delays in minutes by journey order, like those of Paimpol / baseline.
 	DiagramWindow window("Round ticks");
 	auto* chart = new QChart;
-	auto* series = new QLineSeries;
-	series->setName("A");
-	series->append(10.3, -0.35);
-	series->append(11.0, 0.4);
-	chart->addSeries(series);
+	for (const auto& points : {QList<QPointF>{{2, -0.35}, {3, 0.7}, {4, 0.48}, {5, 0.55}, {6, 0.45}, {7, -0.4}, {9, -0.2}, {10, -0.07}},
+			 QList<QPointF>{{2, 0.22}, {3, -0.38}}}) {
+		auto* series = new QLineSeries;
+		series->setName(chart->series().isEmpty() ? "A" : "B");
+		series->append(points);
+		chart->addSeries(series);
+	}
 	chart->createDefaultAxes();
 	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	window.setChart(chart);
 	window.setMaximumSize(1152, 640);
 	window.resize(1152, 640);
 	window.show();
 	const QStringList texts = drawnChartTexts(window);
-	bool ok = expect(x->min() == 10.3 && x->max() == 11.0, "round ticks leave the range as it was");
+	bool ok = expect(x->min() == 0 && x->max() == 12 && std::abs(y->min() + 0.6) < 1e-9 && std::abs(y->max() - 0.8) < 1e-9,
+		"the range widens to the first round tick past the data at each end");
 	bool labelled = !texts.contains("-0.0");
-	for (const char* label : {"10.3", "10.4", "10.5", "10.6", "10.7", "10.8", "10.9", "11.0", "-0.3", "-0.2", "-0.1", "0.0", "0.1", "0.2", "0.3", "0.4"})
+	for (const char* label : {"0", "2", "4", "6", "8", "10", "12", "-0.6", "-0.4", "-0.2", "0.0", "0.2", "0.4", "0.6", "0.8"})
 		labelled = labelled && texts.contains(label);
-	ok &= expect(labelled, "the ticks are round, with the decimals of their step");
+	ok &= expect(labelled, "the ticks are round, with the decimals of their step, and both ends are labelled");
 	const QList<QRectF> labels = drawnTextRects(window);
 	bool apart = true;
 	for (int a = 0; a < labels.size(); ++a)
@@ -1250,22 +1260,65 @@ static bool exerciseRoundTicks() {
 	ok &= expect(apart, "no two texts of the chart overlap");
 	auto* view = window.findChild<QChartView*>();
 	for (int step = 0; step < 6; ++step) wheel(view, {}, {0, 120}, Qt::ControlModifier);
-	ok &= expect(x->tickType() == QValueAxis::TicksDynamic && x->tickInterval() > 0 && x->tickInterval() < 0.09 && x->max() - x->min() < 0.5,
+	ok &= expect(x->tickType() == QValueAxis::TicksDynamic && x->tickInterval() > 0 && x->tickInterval() < 1 && x->max() - x->min() < 4,
 		"zooming in picks a smaller round step");
+	// Speeds from a stop up to a line speed of 70 km/h.
+	DiagramWindow speeds("Round ticks from zero");
+	auto* speedChart = new QChart;
+	auto* speed = new QLineSeries;
+	speed->append({{0, 0}, {1, 70}, {2, 70}, {3, 0}});
+	speedChart->addSeries(speed);
+	speedChart->createDefaultAxes();
+	speeds.setChart(speedChart);
+	auto* speedAxis = qobject_cast<QValueAxis*>(speedChart->axes(Qt::Vertical).first());
+	ok &= expect(speedAxis->min() == 0 && speedAxis->max() == 80, "a range from zero keeps its start and a line at 70 gets room below 80");
 	return ok;
 }
 
-// The clock axis puts its ticks on round clock times and keeps one at elapsed zero, the run start; a round tick less than
-// a step after it is left out.
+// The clock axis puts its ticks on round clock times and keeps one at elapsed zero, the run start. A round tick less than
+// a step after it stays where their labels have room in the plot, as 07:30:00 after a start at 07:10:40, and is left out
+// where the labels would overlap.
 static bool exerciseClockTicks() {
-	DiagramWindow window("Clock ticks");
-	QChart* chart = makeNamedChart({"A"});
-	qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first())->setRange(0, 3600);
-	window.setChart(chart);
-	window.setTimeAxisY(true, 7 * 3600 + 25 * 60);
-	auto* clock = qobject_cast<QCategoryAxis*>(chart->axes(Qt::Vertical).first());
-	return expect(clock && clock->categoriesLabels() == QStringList({"07:25:00", "07:40:00", "07:50:00", "08:00:00", "08:10:00", "08:20:00"}),
-		"clock ticks are round, with the run start labelled");
+	const auto clockLabels = [](long long startOffset) {
+		DiagramWindow window("Clock ticks");
+		QChart* chart = makeNamedChart({"A"});
+		qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first())->setRange(0, 9000);
+		window.setChart(chart);
+		window.setTimeAxisY(true, startOffset);
+		window.setMaximumSize(1152, 640);
+		window.resize(1152, 640);
+		window.show();
+		drawnChartTexts(window);
+		auto* clock = qobject_cast<QCategoryAxis*>(chart->axes(Qt::Vertical).first());
+		return clock ? clock->categoriesLabels() : QStringList();
+	};
+	bool ok = expect(clockLabels(7 * 3600 + 10 * 60 + 40).mid(0, 3) == QStringList({"07:10:40", "07:30:00", "08:00:00"}),
+		"a round tick whose label has room stays next to the run start");
+	ok &= expect(clockLabels(7 * 3600 + 29 * 60 + 50).mid(0, 2) == QStringList({"07:29:50", "08:00:00"}),
+		"a round tick whose label would overlap the run start is left out");
+	return ok;
+}
+
+// Once Export CSV... has saved the file, the status bar of the main window names it.
+static bool exerciseCsvSavedMessage() {
+	QMainWindow mainWindow;
+	auto* window = new DiagramWindow("Saved message", &mainWindow);
+	window->setChart(buttonTestChart());
+	window->setCsvProvider([](const QStringList&) { return std::string("Train\nA\n"); }, "saved.csv");
+	window->show();
+	QTemporaryDir directory;
+	const QString path = QDir(directory.path()).filePath("saved.csv");
+	QTimer::singleShot(0, window, [path] {
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				dialog->setDirectory(QFileInfo(path).absolutePath());
+				dialog->selectFile(QFileInfo(path).fileName());
+				static_cast<QDialog*>(dialog)->accept(); // QFileDialog::accept is protected
+			}
+	});
+	topButton(*window, "Export CSV...")->click();
+	return expect(QFile::exists(path) && mainWindow.statusBar()->currentMessage().contains(QDir::toNativeSeparators(path)),
+		"the status bar of the main window names the saved CSV file");
 }
 
 // A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.
@@ -1419,8 +1472,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(std::abs(x->max() - x->min() - nativeSpan / 1.1) < 1e-8, "Qt pinch scale event");
 	QMetaObject::invokeMethod(&window, "resetZoom");
 	wheel(view, QPoint(100000, 100000), {});
-	ok &= expect(x->min() >= 0 && y->min() >= 0 && x->max() <= 100 && y->max() <= 100,
-		"pan stays inside original bounds");
+	ok &= expect(x->min() >= 0 && y->min() >= 0 && x->max() <= 100 && y->max() <= 120,
+		"pan stays inside the full bounds");
 	QMetaObject::invokeMethod(&window, "resetZoom");
 	view->setFocus();
 	QKeyEvent plus(QEvent::KeyPress, Qt::Key_Plus, Qt::NoModifier, "+");
@@ -1455,8 +1508,8 @@ int main(int argc, char* argv[]) {
 	if (list) list->item(1)->setCheckState(Qt::Unchecked);
 	ok &= expect(!other->isVisible() && !tooltip->isVisible(), "filter hides series and tooltip");
 	QMetaObject::invokeMethod(&window, "resetZoom");
-	ok &= expect(x->min() == 0 && x->max() == 100 && y->min() == 0 && y->max() == 100,
-		"reset restores caller bounds rather than data bounds");
+	ok &= expect(x->min() == 0 && x->max() == 100 && y->min() == 0 && y->max() == 120,
+		"reset restores the caller bounds, widened to round ticks where Qt sets the ticks, rather than data bounds");
 	ok &= expect(!other->isVisible() && selected == "A" && series->pen().widthF() > 2,
 		"reset preserves filter and pin");
 
@@ -1525,8 +1578,8 @@ int main(int argc, char* argv[]) {
 	wheel(emptyView, {}, QPoint(0, 120), Qt::ControlModifier);
 	for (auto* button : empty.findChildren<QPushButton*>())
 		if (button->text() == "Reset zoom") button->click();
-	ok &= expect(emptyX->min() == 0 && emptyX->max() == 160 && emptyY->max() == 500,
-		"no-data non-time reset retains caller ranges");
+	ok &= expect(emptyX->min() == 0 && emptyX->max() == 200 && emptyY->max() == 600,
+		"no-data non-time reset retains the round caller ranges");
 
 	auto* rectangle = new QLineSeries;
 	rectangle->setName("Block occupation");
@@ -1617,8 +1670,8 @@ int main(int argc, char* argv[]) {
 	dual.show();
 	app.processEvents();
 	auto* dualView = dual.findChild<QChartView*>();
+	const double expectedSpan = (dualY->max() - dualY->min()) / std::exp(0.2);
 	wheel(dualView, {}, QPoint(0, 120), Qt::ControlModifier);
-	const double expectedSpan = 100 / std::exp(0.2);
 	ok &= expect(std::abs((dualY->max() - dualY->min()) - expectedSpan) < 0.01 && std::abs((dualCategory->max() - dualCategory->min()) - expectedSpan) < 0.01,
 		"numeric and category Y axes zoom exactly once from original ranges");
 	// Route charts keep singleton events visible and allow zero/negative station X.
@@ -1813,6 +1866,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseLongAxisTitle();
 	ok &= exerciseRoundTicks();
 	ok &= exerciseClockTicks();
+	ok &= exerciseCsvSavedMessage();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

@@ -17,14 +17,17 @@
 #include <QGestureEvent>
 #include <QPinchGesture>
 #include <QShortcut>
+#include <QStatusBar>
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QAreaSeries>
 #include <algorithm>
 #include <QColor>
+#include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
@@ -137,6 +140,30 @@ void roundTicks(QValueAxis* axis) {
 	axis->setTickAnchor(low <= 0 && high >= 0 ? 0.0 : std::round((low + high) / 2 / step) * step);
 	const int decimals = std::max(0, static_cast<int>(-std::floor(std::log10(step) + 1e-9)));
 	axis->setLabelFormat(QStringLiteral("%.%1f").arg(decimals));
+}
+
+// Widens the range of a numeric axis to round ticks past its ends, so that both ends carry a label and a line at an end
+// keeps clear of the plot edge. Each end moves out to the first tick beyond it; an end within a thousandth of the range of
+// a tick counts as on it. A range that starts at zero keeps zero as its start, also when it starts that hair below zero,
+// as a chart builder's margin. The step is the smallest one that keeps the widened range to eight steps, which is the
+// step that roundTicks gives the widened range.
+void widenToRoundTicks(QValueAxis* axis) {
+	const double low = axis->min();
+	const double high = axis->max();
+	const double span = high - low;
+	if (!(span > 0.0) || !std::isfinite(span)) return;
+	const double hair = span / 1000;
+	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
+	for (const double factor : {1.0, 2.0, 5.0, 10.0, 20.0}) {
+		const double step = factor * power;
+		double start = std::floor((low - hair) / step) * step;
+		if (low >= -hair) start = std::max(start, 0.0);
+		const double end = std::ceil((high + hair) / step) * step;
+		if (std::lround((end - start) / step) <= 8) {
+			axis->setRange(start, end);
+			return;
+		}
+	}
 }
 
 // A legend below the plot with an entry for each kind of line of the chart: a short sample and the name of the kind. The
@@ -690,6 +717,7 @@ void DiagramWindow::setChart(QChart* chart) {
 	delete m_numericAxis.data(); // detached axis belongs to this window, not the old chart
 	m_numericAxis = nullptr;
 	m_fullBounds.clear();
+	m_builderBounds.clear();
 	m_clockAxis = nullptr;
 	m_stationAxis = nullptr;
 	m_stations.clear();
@@ -709,15 +737,20 @@ void DiagramWindow::setChart(QChart* chart) {
 	if (property("inputTrainUnitId").isValid()) setRollingStockSubject(true);
 	rebuildFilterGroups();
 	refreshLegend();
-	if (chart)
+	if (chart) {
 		for (auto* axis : chart->axes())
 			if (auto* value = qobject_cast<QValueAxis*>(axis)) {
-				m_fullBounds.insert(axis, {value->min(), value->max()});
 				// Round ticks for every numeric axis whose ticks the chart builder left as Qt sets them.
 				if (qobject_cast<QCategoryAxis*>(axis) || value->tickType() != QValueAxis::TicksFixed) continue;
+				m_builderBounds.insert(axis, {value->min(), value->max()});
+				widenToRoundTicks(value);
 				roundTicks(value);
 				connect(value, &QValueAxis::rangeChanged, value, [value] { roundTicks(value); });
 			}
+		// Taken once every axis is widened, since an axis that shares a series with a widened one follows its range.
+		for (auto* axis : chart->axes())
+			if (auto* value = qobject_cast<QValueAxis*>(axis)) m_fullBounds.insert(axis, {value->min(), value->max()});
+	}
 	applyTimeAxis();
 }
 
@@ -903,6 +936,12 @@ void DiagramWindow::applyTimeAxis() {
 	auto* seconds = qobject_cast<QValueAxis*>(timeAxes.first());
 	if (!seconds)
 		return;
+	// A clock axis keeps the range the chart builder gave it, since round seconds are no round clock times.
+	if (m_builderBounds.contains(seconds)) {
+		const auto range = m_builderBounds.value(seconds);
+		seconds->setRange(range.first, range.second);
+		m_fullBounds.insert(seconds, range);
+	}
 	const double min = seconds->min();
 	const double max = seconds->max();
 	const double span = max - min;
@@ -940,7 +979,10 @@ void DiagramWindow::applyTimeAxis() {
 	for (QAbstractSeries* series : seriesList)
 		series->attachAxis(clock);
 	m_clockAxis = clock;
-	const auto updateLabels = [this, clock](qreal low, qreal high) {
+	const bool vertical = m_timeOrientation == Qt::Vertical;
+	// A queued update can come after a chart replacement has deleted the chart and before the axis goes.
+	const QPointer<QChart> owner(chart);
+	const auto updateLabels = [this, clock, owner, vertical](qreal low, qreal high) {
 		for (const QString& label : clock->categoriesLabels()) clock->remove(label);
 		const double raw = (high - low) / 6;
 		const double power = std::pow(10.0, std::floor(std::log10(std::max(1.0, raw))));
@@ -952,19 +994,27 @@ void DiagramWindow::applyTimeAxis() {
 			}
 		clock->setStartValue(low - interval);
 		// Ticks fall on round clock times. Elapsed zero, the run start, keeps a tick of its own while it is in range, and a
-		// round tick less than a step from it is left out.
+		// round tick less than a step from it is left out where its label would overlap the label of the run start in the
+		// plot as it is laid out, or while the plot has no size.
 		const bool runStart = low <= 0 && high >= 0;
 		const double offset = static_cast<double>(m_startOffset);
-		std::vector<double> ticks;
-		if (runStart) ticks.push_back(0);
+		const QFontMetricsF metrics(clock->labelsFont());
+		const QRectF plot = owner ? owner->plotArea() : QRectF();
+		const double pixelsPerSecond = (vertical ? plot.height() : plot.width()) / (high - low);
+		std::vector<std::pair<double, QString>> ticks;
+		if (runStart) ticks.emplace_back(0, QString::fromStdString(formatSimTime(0, m_startOffset)));
 		// NOLINTNEXTLINE(bugprone-float-loop-counter,clang-analyzer-security.FloatLoopCounter): ticks are placed at multiples of the interval
-		for (double tick = std::ceil((low + offset) / interval) * interval - offset; tick <= high; tick += interval)
-			if (!runStart || std::abs(tick) >= interval) ticks.push_back(tick);
+		for (double tick = std::ceil((low + offset) / interval) * interval - offset; tick <= high; tick += interval) {
+			const QString label = QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset));
+			const double room = vertical ? metrics.height() : metrics.horizontalAdvance(label);
+			if (!runStart || std::abs(tick) >= interval || std::abs(tick) * pixelsPerSecond >= room) ticks.emplace_back(tick, label);
+		}
 		std::sort(ticks.begin(), ticks.end());
-		for (const double tick : ticks)
-			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
+		for (const auto& tick : ticks) clock->append(tick.second, tick.first);
 	};
 	connect(clock, &QValueAxis::rangeChanged, this, updateLabels);
+	// The plot is laid out when it is shown and whenever it changes size, and an axis must not change in the middle of that.
+	connect(chart, &QChart::plotAreaChanged, clock, [clock, updateLabels] { updateLabels(clock->min(), clock->max()); }, Qt::QueuedConnection);
 	updateLabels(min, max);
 	if (auto* overlay = sectionOverlayOf(m_sectionOverlay)) overlay->watchAxes();
 }
@@ -1185,9 +1235,14 @@ void DiagramWindow::exportCsv() {
 		? m_provenanceWriter(path, "csv", content)
 		: writeArtifact(path, content);
 	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written)
+	if (!written) {
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the data and provenance to:\n%1").arg(path));
+		return;
+	}
+	// The window has no status line of its own, so the main window names the saved file.
+	if (auto* mainWindow = qobject_cast<QMainWindow*>(parentWidget()))
+		mainWindow->statusBar()->showMessage(QStringLiteral("Saved %1").arg(QDir::toNativeSeparators(path)), 8000);
 }
 
 void DiagramWindow::clearTooltip() {
