@@ -144,9 +144,9 @@ void roundTicks(QValueAxis* axis) {
 
 // Widens the range of a numeric axis to round ticks past its ends, so that both ends carry a label and a line at an end
 // keeps clear of the plot edge. Each end moves out to the first tick beyond it; an end within a thousandth of the range of
-// a tick counts as on it. A range that starts at zero keeps zero as its start, also when it starts that hair below zero,
-// as a chart builder's margin. The step is the smallest one that keeps the widened range to eight steps, which is the
-// step that roundTicks gives the widened range.
+// a tick counts as on it. A range that starts at zero keeps zero as its start, also when it starts a little below zero, as
+// a chart builder's margin of 0.01 km does: up to a thousandth of the range or a tenth of the step. The step is the
+// smallest one that keeps the widened range to eight steps, which is the step that roundTicks gives the widened range.
 void widenToRoundTicks(QValueAxis* axis) {
 	const double low = axis->min();
 	const double high = axis->max();
@@ -157,7 +157,7 @@ void widenToRoundTicks(QValueAxis* axis) {
 	for (const double factor : {1.0, 2.0, 5.0, 10.0, 20.0}) {
 		const double step = factor * power;
 		double start = std::floor((low - hair) / step) * step;
-		if (low >= -hair) start = std::max(start, 0.0);
+		if (low >= -std::max(hair, step / 10)) start = std::max(start, 0.0);
 		const double end = std::ceil((high + hair) / step) * step;
 		if (std::lround((end - start) / step) <= 8) {
 			axis->setRange(start, end);

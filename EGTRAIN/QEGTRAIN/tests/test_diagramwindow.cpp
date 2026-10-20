@@ -1272,6 +1272,18 @@ static bool exerciseRoundTicks() {
 	speeds.setChart(speedChart);
 	auto* speedAxis = qobject_cast<QValueAxis*>(speedChart->axes(Qt::Vertical).first());
 	ok &= expect(speedAxis->min() == 0 && speedAxis->max() == 80, "a range from zero keeps its start and a line at 70 gets room below 80");
+
+	// A route of 5 km with the 0.01 km margin of the route charts on each side.
+	DiagramWindow route("Round ticks of a short route");
+	auto* routeChart = new QChart;
+	auto* path = new QLineSeries;
+	path->append({{0, 0}, {5, 1}});
+	routeChart->addSeries(path);
+	routeChart->createDefaultAxes();
+	auto* routeAxis = qobject_cast<QValueAxis*>(routeChart->axes(Qt::Horizontal).first());
+	routeAxis->setRange(-0.01, 5.01);
+	route.setChart(routeChart);
+	ok &= expect(routeAxis->min() == 0 && routeAxis->max() == 6, "a short route keeps zero as its start behind the margin of the route charts");
 	return ok;
 }
 
