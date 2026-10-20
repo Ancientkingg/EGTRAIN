@@ -1252,12 +1252,13 @@ jobs:
       - name: Install the display, the accessibility bus and the test tools
         # xvfb is the display, dbus-x11 the session bus, at-spi2-core the accessibility bus. python3-gi with gir1.2-atspi-2.0
         # drives the widgets, xdotool types the keys and imagemagick reads the screen. The libraries on the last line are the ones
-        # that the AppImage takes from the system and that every desktop has. No Qt package is installed.
+        # that the AppImage takes from the system and that every desktop has; Qt 6 also needs the OpenGL and EGL libraries of
+        # the system, which an AppImage never holds. No Qt package is installed.
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             xvfb xauth xdotool imagemagick dbus-x11 at-spi2-core python3-gi gir1.2-atspi-2.0 \
-            libgl1 libharfbuzz0b libfontconfig1 libfreetype6 fonts-dejavu-core
+            libgl1 libopengl0 libegl1 libharfbuzz0b libfontconfig1 libfreetype6 fonts-dejavu-core
 
       - name: Extract the AppImage and pack the downloaded bundle
         # The bundle is packed from the Paimpol scene of the image by the scene_tool of the image, so the job does not wait for
