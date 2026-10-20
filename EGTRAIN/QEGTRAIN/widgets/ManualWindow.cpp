@@ -1,5 +1,6 @@
 #include "widgets/ManualWindow.h"
 
+#include <QAbstractTextDocumentLayout>
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QDir>
@@ -11,12 +12,20 @@
 #include <QHelpSearchQueryWidget>
 #include <QHelpSearchResultWidget>
 #include <QHBoxLayout>
+#include <QPixmap>
+#include <QResizeEvent>
 #include <QScreen>
 #include <QSplitter>
 #include <QTabWidget>
+#include <QTextBlock>
 #include <QTextBrowser>
+#include <QTextCursor>
+#include <QTextLayout>
 #include <QUrl>
 #include <QVBoxLayout>
+
+#include <algorithm>
+#include <cmath>
 
 namespace {
 
@@ -38,10 +47,16 @@ QString pageOf(const QString& section) {
 	return pages.value(section, QStringLiteral("index.html"));
 }
 
-// Reads the pages, style sheets and images of the manual from the help file.
+// Reads the pages, style sheets and images of the manual from the help file, and fits the pictures to the page.
 class HelpBrowser : public QTextBrowser {
 public:
-	HelpBrowser(QHelpEngine* engine, QWidget* parent) : QTextBrowser(parent), m_engine(engine) {}
+	HelpBrowser(QHelpEngine* engine, QWidget* parent) : QTextBrowser(parent), m_engine(engine) {
+		// Fitting changes the height of the pictures above the anchor, so the page scrolls to the anchor again.
+		connect(this, &QTextBrowser::sourceChanged, this, [this](const QUrl& url) {
+			fitPictures();
+			scrollToAnchor(url.fragment());
+		});
+	}
 
 	QVariant loadResource(int type, const QUrl& name) override {
 		if (name.scheme() == QLatin1String("qthelp"))
@@ -49,7 +64,41 @@ public:
 		return QTextBrowser::loadResource(type, name);
 	}
 
+protected:
+	void resizeEvent(QResizeEvent* event) override {
+		QTextBrowser::resizeEvent(event);
+		if (event->size().width() != event->oldSize().width())
+			fitPictures();
+	}
+
 private:
+	// Shows a picture wider than its line at the width of the line, and the others at their own size. A picture keeps its
+	// aspect ratio and all its pixels, so it stays sharp on a HiDPI screen.
+	void fitPictures() {
+		QTextDocument* page = document();
+		// Qt lays a long page out in steps, and a change before the last step leaves the rest of the page without lines, so
+		// the whole page is laid out first.
+		page->documentLayout()->documentSize();
+		const QString object(QChar::ObjectReplacementCharacter);
+		for (QTextCursor found = page->find(object); !found.isNull(); found = page->find(object, found)) {
+			QTextImageFormat format = found.charFormat().toImageFormat();
+			if (!format.isValid())
+				continue;
+			const QPixmap picture = page->resource(QTextDocument::ImageResource, QUrl(format.name())).value<QPixmap>();
+			const QTextBlock block = found.block();
+			const QTextLine line = block.layout()->lineForTextPosition(found.selectionStart() - block.position());
+			if (picture.isNull() || !line.isValid())
+				continue;
+			// A line widens with a picture that does not fit, so its room is the page less the margins of the line.
+			const qreal room = std::floor(page->textWidth() - 2 * page->documentMargin() - line.x() - block.blockFormat().rightMargin());
+			const qreal width = std::max(1.0, std::min(room, picture.width() / picture.devicePixelRatio()));
+			if (format.width() != width) {
+				format.setWidth(width);
+				found.setCharFormat(format);
+			}
+		}
+	}
+
 	QHelpEngine* m_engine;
 };
 
