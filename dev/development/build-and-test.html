@@ -342,8 +342,8 @@ packages installed and the Qt 5.15 <code class="docutils literal notranslate"><s
 </pre></div>
 </div>
 <p>CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
-one the packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request must
-pass those jobs too.
+one the release packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request
+must pass those jobs too. The package check builds the packages with Qt 6.8.3 as well.
 CMake searches a folder in <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> before the system folders, so the examples above use Qt 5
 even when Qt 6 is installed elsewhere. To try Qt 6, configure a separate build
 folder with <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> set to the Qt 6 folder, for example <code class="docutils literal notranslate"><span class="pre">~/Qt/6.8.3/macos</span></code>. With Homebrew, add
@@ -2233,7 +2233,9 @@ package check (<code class="docutils literal notranslate"><span class="pre">pack
 and can be started by hand, which covers changes that reach the packages
 through other files, such as the root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>. The check selects the version as a release run that does not publish does (the CMake
 baseline, through <code class="docutils literal notranslate"><span class="pre">tools/release/version.py</span></code>) and calls the reusable workflow
-<code class="docutils literal notranslate"><span class="pre">package.yml</span></code>. A green check proves that the macOS, Windows and Linux packages
+<code class="docutils literal notranslate"><span class="pre">package.yml</span></code> twice: with <code class="docutils literal notranslate"><span class="pre">qt:</span> <span class="pre">'5'</span></code>, as the release workflow does, and with <code class="docutils literal notranslate"><span class="pre">qt:</span> <span class="pre">'6'</span></code> in the job
+<code class="docutils literal notranslate"><span class="pre">Qt</span> <span class="pre">6</span> <span class="pre">packages</span> <span class="pre">(not</span> <span class="pre">required)</span></code>, whose artifact names end in <code class="docutils literal notranslate"><span class="pre">-qt6</span></code> and which
+<code class="docutils literal notranslate"><span class="pre">Package</span> <span class="pre">check</span> <span class="pre">result</span></code> does not wait for. A green check proves that the macOS, Windows and Linux packages
 build, pass the completeness checks of their jobs and are uploaded as
 artifacts of the run. The Windows package job also fails when the software
 OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
