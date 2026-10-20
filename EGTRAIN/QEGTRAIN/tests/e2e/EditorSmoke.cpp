@@ -93,6 +93,7 @@
 #include <QRectF>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QScreen>
 #include <QScrollArea>
 #include <QSlider>
 #include <QScrollBar>
@@ -104,6 +105,7 @@
 #include <QStringList>
 #include <QStyle>
 #include <QStyleOptionViewItem>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -4525,6 +4527,32 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const QString timetableFailure = timetableTabFailure();
 			if (!timetableFailure.isEmpty())
 				facetFailure(ok, "presentation", timetableFailure + " at 1280 by 698 pixels");
+
+			// Beside Case and Layers in a window of 819 by 614 pixels (1024 by 768 at 125 percent) the Services dock opens at the
+			// width of its size hint, and its content fits without a horizontal scroll bar. Tabs that do not fit scroll and keep their
+			// whole names. Floated, the dock opens inside the screen, as wide as its content.
+			w.resize(819, 614);
+			w.m_caseLayersDock->show();
+			w.m_serviceDock->widget()->updateGeometry();
+			QApplication::processEvents();
+			w.resizeDocks({w.m_serviceDock}, {w.m_serviceDock->sizeHint().width()}, Qt::Horizontal);
+			QApplication::processEvents();
+			auto* serviceScroll = w.m_serviceDock->findChild<QScrollArea*>("editorContentScroll");
+			const QTabBar* serviceTabs = w.m_servicePanel->pages()->tabBar();
+			const int lastTabRight = serviceTabs->tabRect(serviceTabs->count() - 1).right();
+			if (serviceScroll->horizontalScrollBar()->isVisible() || w.m_servicePanel->width() > serviceScroll->viewport()->width())
+				facetFailure(ok, "presentation", "the Services dock scrolls sideways at 819 by 614 pixels");
+			else if (lastTabRight >= serviceTabs->width() && (!serviceTabs->usesScrollButtons() || serviceTabs->elideMode() != Qt::ElideNone))
+				facetFailure(ok, "presentation",
+					QString("the tabs of the Services dock need %1 of %2 pixels and are cut at 819 by 614 pixels").arg(lastTabRight + 1).arg(serviceTabs->width()));
+			w.m_serviceDock->setFloating(true);
+			QApplication::processEvents();
+			if (!w.m_serviceDock->screen()->availableGeometry().contains(w.m_serviceDock->frameGeometry())
+				|| serviceScroll->horizontalScrollBar()->isVisible())
+				facetFailure(ok, "presentation", "the floated Services dock opens outside the screen or narrower than its content");
+			w.m_serviceDock->setFloating(false);
+			w.m_caseLayersDock->hide();
+			w.resize(1280, 698);
 			w.m_serviceDock->hide();
 
 			// The Compositions dock at the same size: its buttons are inside the dock, docked and floating.

@@ -1337,18 +1337,34 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	QApplication::processEvents();
 	if (!endKept)
 		return fail(QStringLiteral("End moved when Play read Pause"));
-	// Opened in a maximised window on a 1024 by 768 screen, Run Results shows the header and three rows of its table.
+	// Opened in a window of 1280 by 800 pixels, Run Results shows the header and a row of its table. In a window of 819 by 614
+	// pixels (1024 by 768 at 125 percent) it takes at most half of the height that it shares with the network view, and the
+	// window can be lower than a screen of 683 by 464 pixels (1024 by 768 at 150 percent) less its frame.
 	const QSize sizeBefore = w.size();
-	w.m_runResultsDock->hide();
-	w.resize(1024, 690);
-	QApplication::processEvents();
-	w.m_runResultsPanel->refresh();
-	QApplication::processEvents();
+	const auto openResults = [&w](int width, int height) {
+		w.m_runResultsDock->hide();
+		w.resize(width, height);
+		QApplication::processEvents();
+		w.m_runResultsPanel->refresh();
+		QApplication::processEvents();
+	};
+	openResults(1280, 800);
 	const int rowsHeight = w.m_runResultsTable->viewport()->height();
+	openResults(819, 614);
+	const int resultsHeight = w.m_runResultsDock->height();
+	const int centralHeight = w.centralWidget->height();
+	const int canvasHeight = w.networkView->height();
+	const int minimumHeight = w.minimumSizeHint().height();
+	std::fprintf(stdout, "E2E_RUN_RESULTS_SMALL_WINDOW results=%d canvas=%d central=%d minimum_height=%d rows_1280=%d\n", resultsHeight,
+		canvasHeight, centralHeight, minimumHeight, rowsHeight);
 	w.resize(sizeBefore);
 	QApplication::processEvents();
-	if (rowsHeight < 3 * w.m_runResultsTable->verticalHeader()->defaultSectionSize())
-		return fail(QStringLiteral("the table of Run Results shows rows %1 px high at 1024 x 690").arg(rowsHeight));
+	if (rowsHeight < w.m_runResultsTable->verticalHeader()->defaultSectionSize())
+		return fail(QStringLiteral("the table of Run Results shows rows %1 px high at 1280 x 800").arg(rowsHeight));
+	if (resultsHeight > canvasHeight + 2)
+		return fail(QStringLiteral("Run Results is %1 px high below a network view of %2 px at 819 x 614").arg(resultsHeight).arg(canvasHeight));
+	if (minimumHeight > 400)
+		return fail(QStringLiteral("the window after a run needs %1 px of height").arg(minimumHeight));
 	// Tab goes Start, Play, End and the slider, leaves the table of Run Results for the buttons after it and comes back to Start
 	// through the layer check boxes. No stop is a dock tab bar or the scroll area of a dock, which show no focus.
 	w.m_replayStartButton->setFocus(Qt::TabFocusReason);

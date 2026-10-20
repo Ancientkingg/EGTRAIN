@@ -459,6 +459,22 @@ int countTrackLineDirs(const QString& inputDir) {
 	return entries.size();
 }
 
+// A dock floated with its button or a double click opens inside the screen area, as wide and high as its content asks where
+// the screen allows. A dock that the mouse drags out keeps the place where the user drops it.
+void fitFloatingDock(QDockWidget* dock, bool floating) {
+	if (!floating || QGuiApplication::mouseButtons() != Qt::NoButton)
+		return;
+	const QRect available = dock->screen()->availableGeometry();
+	const QSize frame = dock->frameGeometry().size() - dock->size();
+	dock->resize(dock->size().expandedTo(dock->sizeHint()).boundedTo(available.size() - frame));
+	QRect outer = dock->frameGeometry();
+	outer.moveRight(std::min(outer.right(), available.right()));
+	outer.moveBottom(std::min(outer.bottom(), available.bottom()));
+	outer.moveLeft(std::max(outer.left(), available.left()));
+	outer.moveTop(std::max(outer.top(), available.top()));
+	dock->move(outer.topLeft());
+}
+
 } // namespace
 
 QString crashNoteFolder() {
@@ -1648,6 +1664,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			dock->widget()->updateGeometry();
 			if (dock->width() < dock->sizeHint().width())
 				resizeDocks({dock}, {dock->sizeHint().width()}, Qt::Horizontal); }, Qt::QueuedConnection);
+		connect(dock, &QDockWidget::topLevelChanged, this, [dock](bool floating) { fitFloatingDock(dock, floating); });
 	}
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();

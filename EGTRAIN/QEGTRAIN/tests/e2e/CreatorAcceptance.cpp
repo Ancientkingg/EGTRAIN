@@ -2165,6 +2165,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		if (capacity)
 			for (QPushButton* button : capacity->findChildren<QPushButton*>())
 				if (button->text() == QStringLiteral("Export capacity CSV...")) capacityExport = button;
+		// Return presses no button of the window.
+		const QList<QPushButton*> capacityButtons = capacity ? capacity->findChildren<QPushButton*>() : QList<QPushButton*>();
+		const bool capacityAutoDefault = std::any_of(capacityButtons.cbegin(), capacityButtons.cend(),
+			[](const QPushButton* pushButton) { return pushButton->autoDefault(); });
 		auto* capacityTabs = capacity ? capacity->findChild<QTabWidget*>() : nullptr;
 		auto* pairTable = capacityTabs ? qobject_cast<QTableWidget*>(capacityTabs->widget(0)) : nullptr;
 		auto* compressionTable = capacityTabs && capacityTabs->count() > 1
@@ -2178,6 +2182,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !compressionTable || compressionTable->columnCount() != 7
 			|| !criticalTable || criticalTable->columnCount() != 5
 			|| !boundedResultDialog(capacity, pairTable, capacityExport)
+			|| capacityAutoDefault
 			|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
 			return;

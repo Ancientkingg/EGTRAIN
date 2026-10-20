@@ -8,8 +8,16 @@
 #include <QMenu>
 #include <QPixmap>
 #include <QPushButton>
+#include <QScreen>
 #include <QVBoxLayout>
 #include <QWidgetAction>
+
+#include <algorithm>
+
+namespace {
+// The height of the list when the screen has room for it.
+constexpr int kListHeight = 320;
+} // namespace
 
 TrainFilterButton::TrainFilterButton(QWidget* parent)
 	: QToolButton(parent) {
@@ -39,7 +47,7 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 
 	m_list = new QListWidget(panel);
 	m_list->setSelectionMode(QAbstractItemView::SingleSelection);
-	m_list->setMinimumSize(240, 320);
+	m_list->setMinimumSize(240, kListHeight);
 	// Fit the 16 px check box of egtrain.qss (14 px and a 1 px border); with the small Qt 6 font on Linux a row is 14 px.
 	m_list->setStyleSheet(QStringLiteral("QListView::item { min-height: 16px; }"));
 	connect(m_list, &QListWidget::itemChanged, this, [this](QListWidgetItem*) {
@@ -54,6 +62,21 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 	action->setDefaultWidget(panel);
 	menu->addAction(action);
 	setMenu(menu);
+	// The list takes the room that is free below or above the button, so the menu does not cover the button, and scrolls.
+	connect(menu, &QMenu::aboutToShow, this, [this, menu, action]() {
+		const QRect available = screen()->availableGeometry();
+		const QRect button(mapToGlobal(QPoint(0, 0)), size());
+		const int room = std::max(available.bottom() - button.bottom(), button.top() - available.top());
+		// The menu measures its entries again after a change of an action.
+		const auto setListHeight = [this, action](int height) {
+			m_list->setMinimumHeight(height);
+			action->setVisible(false);
+			action->setVisible(true);
+		};
+		setListHeight(kListHeight);
+		const int besideList = menu->sizeHint().height() - kListHeight;
+		setListHeight(std::clamp(room - besideList, kListHeight / 4, kListHeight));
+	});
 	updateCaption();
 }
 

@@ -816,6 +816,9 @@ void ResultViews::showCapacityAnalysis() {
 				QString::number(result.cyclePercentage, 'f', 1)),
 		QString("Section: %1\nRun: %2").arg(sectionLabel, completedRunContext(provenance)),
 		body, closeButtons);
+	// No button of the window is a default button, so Return presses none.
+	for (QPushButton* button : dialog->findChildren<QPushButton*>())
+		button->setAutoDefault(false);
 	dialog->show();
 }
 

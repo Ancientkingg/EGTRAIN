@@ -8,7 +8,7 @@ The dock **Infrastructure** has a list **Entity** that chooses the table: tracks
 
 ## Services
 
-The dock **Services** has a list of services and three tabs: **Service** for the fields of the selected service, **Timetable** for its stops and the display of planned times, and **Run occurrences** for the occurrences a run includes.
+The dock **Services** has a list of services above three tabs: **Service** for the fields of the selected service, **Timetable** for its stops and the display of planned times, and **Run occurrences** for the occurrences a run includes.
 
 In Services, Category offers Intercity, Regional, High speed/international,
 Freight, Metro/urban, Suburban and No category. Unknown imported values remain
