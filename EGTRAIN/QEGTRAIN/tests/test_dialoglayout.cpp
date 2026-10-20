@@ -16,6 +16,7 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTableWidget>
@@ -871,6 +872,36 @@ bool exerciseDefaultButtonWidth(qreal scale) {
 #endif
 }
 
+// Fusion with the icons that the GNOME and KDE themes give the standard buttons of a dialog footer.
+class FooterIconStyle : public QProxyStyle {
+public:
+	FooterIconStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		return hint == SH_DialogButtonBox_ButtonsHaveIcons ? 1 : QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
+
+// OK, Cancel and Close of a dialog footer and of a message box show no icon, also under a theme that gives them one.
+bool exerciseFooterWithoutIcons() {
+	FooterIconStyle style;
+	QDialog dialog;
+	dialog.setStyle(&style);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Close, &dialog);
+	DialogLayout::install(dialog, QStringLiteral("Icons"), QString(), new QWidget, buttons, QRect(0, 0, 1280, 800));
+	QList<QAbstractButton*> shown = buttons->buttons();
+#ifndef Q_OS_WIN
+	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	QMessageBox box;
+	box.setStyle(&style);
+	box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel | QMessageBox::Close);
+	shown += box.buttons();
+#endif
+	bool ok = check(shown.size() >= 3, "the footers have no standard buttons");
+	for (const QAbstractButton* button : shown)
+		ok &= check(button->icon().isNull(), "a standard button of a dialog footer or a message box shows an icon");
+	return ok;
+}
+
 // A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow.
 bool exerciseMenuButtonRoom() {
 	QToolButton plain;
@@ -981,8 +1012,9 @@ int main(int argc, char** argv) {
 	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
+	const bool footerIcons = exerciseFooterWithoutIcons();
 	return small && scaledSmall && large && footerKeys && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
-			&& scaledDefaultWidth
+			&& scaledDefaultWidth && footerIcons
 		? 0
 		: 1;
 }

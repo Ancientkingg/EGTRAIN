@@ -26,6 +26,12 @@ QDialog QGroupBox::title {
     padding: 0;
 }
 
+/* The buttons of a dialog footer and of a message box show only their text. Some desktop themes give OK, Cancel and Close
+   a dark icon, which would be hard to see on the filled default button. */
+QDialogButtonBox {
+    dialogbuttonbox-buttons-have-icons: 0;
+}
+
 QToolBar {
     background: #f8fafb;
     border: 0;
