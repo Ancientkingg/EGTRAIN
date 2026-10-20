@@ -251,6 +251,13 @@ void showReplayPlaying(QPushButton* button, bool playing) {
 class ElidedComboBox : public QComboBox {
 public:
 	explicit ElidedComboBox(QWidget* parent) : QComboBox(parent) {}
+	// As in ChoiceComboBox: the list was made before the field had focus, so it is brought up to date with the padding of
+	// the focused field first; else it opens too short and scrolls.
+	void showPopup() override {
+		QEvent styleChange(QEvent::StyleChange);
+		QCoreApplication::sendEvent(view()->window(), &styleChange);
+		QComboBox::showPopup();
+	}
 protected:
 	void paintEvent(QPaintEvent*) override {
 		QStylePainter painter(this);
