@@ -128,9 +128,10 @@ AreaCapacityWindow makeWindow(const AreaCapacityResult& result) {
 	return AreaCapacityWindow(result, "R / main / @0-B0@ to @7-B0@", lineRun().provenance);
 }
 
+// The result line of the window: the first line of its context, below the window title.
 QString heading(const AreaCapacityWindow& window) {
-	const auto* label = window.findChild<QLabel*>("dialogHeading");
-	return label ? label->text() : QString();
+	const auto* label = window.findChild<QLabel*>("dialogContext");
+	return label && window.windowTitle() == "Capacity by area" ? label->text().section('\n', 0, 0) : QString();
 }
 
 QTableWidget* table(const AreaCapacityWindow& window, const char* name) {

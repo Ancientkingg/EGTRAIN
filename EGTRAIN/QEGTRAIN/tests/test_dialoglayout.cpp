@@ -138,12 +138,12 @@ bool exercise(const QRect& screen, qreal scale) {
 	scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());
 	ok &= check(buttons->isVisible() && buttons->geometry().bottom() <= dialog.height() && scroll->geometry().bottom() <= buttons->geometry().top(),
 		"footer must remain reachable outside the scrolling body");
-	auto* heading = dialog.findChild<QLabel*>(QStringLiteral("dialogHeading"));
 	auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-	ok &= check(
-		heading && heading->font().pointSizeF() > font.pointSizeF() && heading->textFormat() == Qt::PlainText && context
-			&& context->textFormat() == Qt::PlainText && context->parentWidget() == scroll->widget(),
-		"heading scales, authored labels remain plain and context scrolls");
+	ok &= check(dialog.windowTitle() == QStringLiteral("Review <simulation> & ") + longName.left(120)
+			&& !dialog.findChild<QLabel*>(QStringLiteral("dialogHeading")),
+		"the heading is the window title and is not repeated in the dialog");
+	ok &= check(context && context->textFormat() == Qt::PlainText && context->parentWidget() == scroll->widget(),
+		"the context remains plain text and scrolls");
 	buttons->button(QDialogButtonBox::Ok)->setFocus();
 	scroll->verticalScrollBar()->setValue(0);
 	QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);

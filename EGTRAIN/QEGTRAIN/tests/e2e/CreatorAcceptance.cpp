@@ -2093,12 +2093,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (!dialog || !table || !secondary) return false;
 			auto* scroll = dialog->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 			auto* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
-			auto* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
 			auto* buttons = dialog->findChild<QDialogButtonBox*>();
-			if (!scroll || !context || !heading || !buttons || !buttons->button(QDialogButtonBox::Close)
-				|| !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
-				|| scroll->isAncestorOf(buttons) || !context->wordWrap()
-				|| context->textFormat() != Qt::PlainText || heading->textFormat() != Qt::PlainText)
+			if (!scroll || !context || dialog->findChild<QLabel*>(QStringLiteral("dialogHeading")) || !buttons
+				|| !buttons->button(QDialogButtonBox::Close) || !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
+				|| scroll->isAncestorOf(buttons) || !context->wordWrap() || context->textFormat() != Qt::PlainText)
 				return false;
 			QScreen* screen = QGuiApplication::screenAt(dialog->mapToGlobal(QPoint(0, 0)));
 			if (!screen) screen = QGuiApplication::primaryScreen();
@@ -2198,9 +2196,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity calculation details have an invalid percentage unit"));
 			return;
 		}
-		const auto* capacityHeading = capacity->findChild<QLabel*>(QStringLiteral("dialogHeading"));
-		if (!capacityHeading || !capacityHeading->text().startsWith(QStringLiteral("Selected train chain: cycle "))
-			|| !capacityHeading->text().endsWith(QStringLiteral("% of period; not network capacity"))) {
+		// The result leads the context line, below the window title.
+		const auto* capacityContext = capacity->findChild<QLabel*>(QStringLiteral("dialogContext"));
+		const QString capacityResult = capacityContext ? capacityContext->text().section(QLatin1Char('\n'), 0, 0) : QString();
+		if (!capacityResult.startsWith(QStringLiteral("Selected train chain: cycle "))
+			|| !capacityResult.endsWith(QStringLiteral("% of period; not network capacity"))) {
 			fail(QStringLiteral("capacity analysis does not say that it describes the selected train chain"));
 			return;
 		}
@@ -2379,11 +2379,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		DelayAnalysisWindow* laterWindow = openComparison();
 		QTableWidget* laterOccurrences = delayTable(laterWindow, "delayBaselineOccurrences");
 		QPushButton* laterExport = qobject_cast<QPushButton*>(delayChild(laterWindow, "delayAnalysisExport"));
-		const auto* laterHeading = laterWindow ? laterWindow->findChild<QLabel*>(QStringLiteral("dialogHeading")) : nullptr;
 		const auto* laterContext = laterWindow ? laterWindow->findChild<QLabel*>(QStringLiteral("dialogContext")) : nullptr;
 		const QString laterTotals = delayLabelText(laterWindow, "delayBaselineTotals");
-		const bool laterOk = laterOccurrences && laterOccurrences->rowCount() == 2 && laterHeading
-			&& laterHeading->text().startsWith(QStringLiteral("Delay analysis")) && laterContext
+		const bool laterOk = laterOccurrences && laterOccurrences->rowCount() == 2
+			&& laterWindow->windowTitle() == QStringLiteral("Delay analysis") && laterContext
 			&& laterContext->text().contains("Run:") && laterContext->text().contains("Baseline:")
 			&& laterTotals.contains(QStringLiteral("Positive additional delay: +"))
 			&& boundedResultDialog(laterWindow, laterOccurrences, laterExport);

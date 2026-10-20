@@ -97,7 +97,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	QPushButton* close = buttons->button(QDialogButtonBox::Close);
 	close->setDefault(true);
-	DialogLayout::install(*this, tr("EGTRAIN"),
+	DialogLayout::install(*this, tr("About EGTRAIN"),
 		tr("Version %1\nMicroscopic railway simulation for students and researchers.")
 			.arg(QCoreApplication::applicationVersion()),
 		body, buttons);

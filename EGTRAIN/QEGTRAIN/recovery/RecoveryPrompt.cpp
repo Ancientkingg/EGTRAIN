@@ -178,7 +178,7 @@ RecoveryPrompt::RecoveryPrompt(const RecoveryScan& scan, QWidget* parent, const 
 			  "EGTRAIN closed before these cases were saved. Choose one to recover. "
 			  "Recovering opens the copy as an unsaved case. The originals stay unchanged until you save. "
 			  "Copies you leave are offered again at the next start.");
-	DialogLayout::install(*this, QStringLiteral("Recover unsaved work"), context, body, actions, availableGeometry);
+	DialogLayout::install(*this, QStringLiteral("Recover Unsaved Work"), context, body, actions, availableGeometry);
 
 	// The confirmation sits above the buttons, outside the scrolling list, so that it is always in view.
 	m_confirmation = new QLabel(this);
