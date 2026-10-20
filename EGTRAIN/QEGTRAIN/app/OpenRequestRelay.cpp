@@ -171,8 +171,7 @@ void OpenRequestRelay::readRequest(QLocalSocket* socket) {
 	socket->flush();
 	if (!accepted)
 		return;
-	// A newer request replaces one that waits.
-	m_postponeTimer.stop();
-	m_postponed.clear();
-	emit openRequested(path);
+	// The request is emitted from the event loop, not from the signal of the socket: the receiver may open a dialog,
+	// and the sender disconnects meanwhile, which deletes the socket. A newer request replaces one that waits.
+	hold(path, 0);
 }

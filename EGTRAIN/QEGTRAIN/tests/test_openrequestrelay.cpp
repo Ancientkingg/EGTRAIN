@@ -15,6 +15,7 @@
 #include <QStringList>
 #include <QTemporaryDir>
 #include <QThread>
+#include <QTimer>
 #include <QUrl>
 
 #include <cstdlib>
@@ -132,6 +133,26 @@ static bool testForwardFromSecondProcess() {
 	for (int i = 0; i < 8; ++i)
 		ok &= expect(forwardFromChild(name, kDir, QStringLiteral("/data/next-%1.egscene").arg(i)) == 0, "every further request is accepted");
 	ok &= expect(waitFor([&received] { return received.paths.size() == 10; }, 5000), "and arrives");
+	return ok;
+}
+
+// The receiver may open a dialog, whose event loop runs while the sender reads the answer and disconnects, which
+// deletes the connection. The relay must not use the connection when the dialog closes.
+static bool testReceiverWithDialog() {
+	const QString name = serverName("dialog");
+	OpenRequestRelay relay;
+	bool ok = expect(relay.listen(name, kDir), "the instance listens");
+	QStringList paths;
+	QObject::connect(&relay, &OpenRequestRelay::openRequested, &relay, [&paths](const QString& path) {
+		QEventLoop dialog;
+		QTimer::singleShot(1500, &dialog, &QEventLoop::quit);
+		dialog.exec();
+		paths.append(path);
+	});
+	ok &= expect(forwardFromChild(name, kDir, QStringLiteral("/data/dialog.egscene")) == 0, "the sender gets its answer");
+	ok &= expect(waitFor([&paths] { return !paths.isEmpty(); }, 5000), "the receiver gets the path after its dialog");
+	settle(300);
+	ok &= expect(paths == QStringList{QStringLiteral("/data/dialog.egscene")}, "once");
 	return ok;
 }
 
@@ -417,6 +438,7 @@ int main(int argc, char** argv) {
 
 	bool ok = true;
 	ok &= testForwardFromSecondProcess();
+	ok &= testReceiverWithDialog();
 	ok &= testNoRunningInstance();
 	ok &= testOtherApplicationDir();
 	ok &= testSecondServerLeavesRunningOne();
