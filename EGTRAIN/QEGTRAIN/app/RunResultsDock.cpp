@@ -141,6 +141,12 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	resultViews->addWidget(exportPngBtn);
 	resultViews->addStretch();
 	containerLayout->addLayout(resultViews);
+	// The table takes the height that the other lines and buttons leave, at least its header and one row. In a lower dock the
+	// whole content scrolls, so the dock leaves the canvas its room, and the delay comparison below the table keeps the table
+	// in view.
+	m_table->setSizePolicy(m_table->sizePolicy().horizontalPolicy(), QSizePolicy::Ignored);
+	m_table->setMinimumHeight(tableHeight(*m_table, 1));
+	containerLayout->addWidget(m_table, 1);
 	QHBoxLayout* delayRow = new QHBoxLayout();
 	auto* delayCaption = new QLabel(container);
 	delayCaption->setObjectName("delayComparisonCaption");
@@ -161,11 +167,6 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	delayRow->addWidget(m_compareDelayButton);
 	delayRow->addStretch();
 	containerLayout->addLayout(delayRow);
-	// The table takes the height that the lines and buttons above it leave, at least its header and one row. In a lower dock
-	// the whole content scrolls, so the dock leaves the canvas its room.
-	m_table->setSizePolicy(m_table->sizePolicy().horizontalPolicy(), QSizePolicy::Ignored);
-	m_table->setMinimumHeight(tableHeight(*m_table, 1));
-	containerLayout->addWidget(m_table, 1);
 	auto* scroll = new EditorLayout::VerticalScrollArea(m_dock);
 	scroll->setFocusPolicy(Qt::NoFocus);
 	scroll->setWidget(container);
