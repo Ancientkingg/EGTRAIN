@@ -68,7 +68,8 @@ inline int heightForContent(QDialog& dialog, int width) {
 /// the body. The footer buttons are styled again, because the caller named them and made one
 /// the default after they were built, and a style cached by then misses the rules that name it.
 /// The first field of body takes the focus, else the default button, so that the dialog opens with
-/// the default that the caller chose. In a footer laid out for macOS the buttons are not auto default.
+/// the default that the caller chose. In a footer laid out for macOS the buttons are not auto default. The scroll
+/// area takes no focus, and Tab visits the footer buttons in the order the footer shows them.
 inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	const QString& context, QWidget* body,
 	QDialogButtonBox* actions,
@@ -113,6 +114,8 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	scroll->setWidgetResizable(true);
 	scroll->setFrameShape(QFrame::NoFrame);
 	scroll->setMinimumSize(0, 0);
+	// The scroll area draws no focus, so it is no Tab stop, and a click on the body leaves the focus where it is.
+	scroll->setFocusPolicy(Qt::NoFocus);
 	scroll->setWidget(content);
 	QObject::connect(qApp, &QApplication::focusChanged, scroll,
 		[scroll, content](QWidget*, QWidget* focused) {
@@ -121,6 +124,17 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		});
 	layout->addWidget(scroll, 1);
 	layout->addWidget(actions);
+	// Tab enters the footer at the first button of its layout, to which the button box passes the focus, and goes on in
+	// the order the buttons were added, which can put a button before that one and out of reach. The buttons follow each
+	// other in the order of the layout, so that Tab and Shift+Tab visit each one once.
+	QWidget* previous = nullptr;
+	for (int i = 0; i < actions->layout()->count(); ++i) {
+		if (QWidget* button = actions->layout()->itemAt(i)->widget()) {
+			if (previous)
+				QWidget::setTabOrder(previous, button);
+			previous = button;
+		}
+	}
 	// In a footer laid out for macOS a footer button that gets the focus does not take the default, as in native dialogs,
 	// so Return still presses the default button. Elsewhere it does, and Return presses that button.
 	const bool macFooter = actions->style()->styleHint(QStyle::SH_DialogButtonLayout, nullptr, actions) == QDialogButtonBox::MacLayout;

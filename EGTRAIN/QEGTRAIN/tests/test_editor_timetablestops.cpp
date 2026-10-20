@@ -36,6 +36,11 @@
 #include <utility>
 #include <vector>
 
+// QtGui exports this function for Qt Test. It delivers a mouse event as the window system does, so that a click gives the
+// focus as a click of the user does.
+Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
+	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
+
 static bool expect(bool condition, const char* message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";
@@ -632,7 +637,18 @@ int main(int argc, char** argv) {
 		run = runDialog(
 			panel,
 			[&](QDialog& dialog) {
-				ok &= expect(combo(dialog, "stopEditorStationCombo")->currentData().toString() == "station-c", "clicking a row edits that stop");
+				QComboBox* station = combo(dialog, "stopEditorStationCombo");
+				ok &= expect(station->currentData().toString() == "station-c", "clicking a row edits that stop");
+				ok &= expect(dialog.focusWidget() == station, "the stop dialog opened from a row does not focus its first field");
+				// The second click of a double click on the row lands on the dialog that the first click opened, here on its
+				// context line.
+				const QLabel* context = label(dialog, "dialogContext");
+				const QPoint point = context->mapTo(&dialog, context->rect().center());
+				int clickTime = 1000000;
+				for (const QEvent::Type type : {QEvent::MouseButtonPress, QEvent::MouseButtonRelease})
+					qt_handleMouseEvent(dialog.windowHandle(), point, dialog.mapToGlobal(point),
+						type == QEvent::MouseButtonPress ? Qt::LeftButton : Qt::NoButton, Qt::LeftButton, type, Qt::NoModifier, ++clickTime);
+				ok &= expect(dialog.focusWidget() == station, "a click on the body of the stop dialog takes the focus from its first field");
 				click(dialog, "stopEditorCancelButton");
 			},
 			[&] { emit panel.table()->cellClicked(2, 0); });
