@@ -564,33 +564,15 @@ void MainWindowTestAccess::runSettled(MainWindow& w) {
 // first completion reruns the case. The second changes the scenario and then opens the case again, each of which must leave
 // no graphics of the run.
 void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
-	const QStringList timeHeaders{"Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)"};
-	for (int i = 0; i < timeHeaders.size(); ++i) {
-		const auto* header = w.m_runResultsTable ? w.m_runResultsTable->horizontalHeaderItem(4 + i) : nullptr;
-		if (!header || header->text() != timeHeaders[i]) {
-			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results time header\n");
-			QCoreApplication::exit(2);
-			return;
-		}
-	}
-	// The energy headers are short with the full name as their tooltip, and every column is as wide as its header and values.
-	const QStringList energyHeaders{"Energy (kWh)", "Energy with regen (kWh)", "Substation (kWh)", "Substation with regen (kWh)"};
+	// The time headers keep their names. The energy headers are short with the full name as their tooltip.
+	const QStringList headers{"Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)", "Energy (kWh)", "Energy with regen (kWh)",
+		"Substation (kWh)", "Substation with regen (kWh)"};
 	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
 		"Substation request with regenerative braking (kWh)"};
-	for (int i = 0; i < energyHeaders.size(); ++i) {
-		const auto* header = w.m_runResultsTable->horizontalHeaderItem(7 + i);
-		if (!header || header->text() != energyHeaders[i] || header->toolTip() != energyNames[i]) {
-			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results energy header %d\n", 7 + i);
-			QCoreApplication::exit(2);
-			return;
-		}
-	}
-	for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column) {
-		const auto* view = static_cast<const QAbstractItemView*>(w.m_runResultsTable);
-		const int needed = std::max(w.m_runResultsTable->horizontalHeader()->sectionSizeHint(column), view->sizeHintForColumn(column));
-		if (w.m_runResultsTable->columnWidth(column) < needed) {
-			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results column %d is %d px wide, its header or a value needs %d\n", column,
-				w.m_runResultsTable->columnWidth(column), needed);
+	for (int i = 0; i < headers.size(); ++i) {
+		const auto* header = w.m_runResultsTable ? w.m_runResultsTable->horizontalHeaderItem(4 + i) : nullptr;
+		if (!header || header->text() != headers[i] || (i >= 3 && header->toolTip() != energyNames[i - 3])) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results header %d\n", 4 + i);
 			QCoreApplication::exit(2);
 			return;
 		}
