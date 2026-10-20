@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import contextlib
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -9,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from check_docs import Finding, ToolError, check, format_finding, main as run_main, tracked_files
+from check_docs import Finding, ToolError, check, check_captures, format_finding, main as run_main, tracked_files
 
 LANDING = "docs/README.md"
 EM_DASH = "\u2014"
@@ -501,6 +502,47 @@ class ReferenceTests(TreeTestCase):
         self.assertEqual(self.found(files), [])
 
 
+def png(width, height):
+    return b"\x89PNG\r\n\x1a\n" + (13).to_bytes(4, "big") + b"IHDR" + width.to_bytes(4, "big") + height.to_bytes(4, "big")
+
+
+class CaptureTests(TreeTestCase):
+    def test_each_capture_rule_is_reported(self):
+        def entry(name, width, height, version="1.2.0"):
+            return {"file": name, "case": "Paimpol", "state": "loaded", "width": width, "height": height, "version": version}
+
+        manifest = [
+            entry("guide-good.png", 1200, 750),
+            entry("guide-missing.png", 10, 10),
+            entry("guide-size.png", 100, 60),
+            entry("guide-old.png", 10, 10, "1.1.9"),
+            entry("Guide_Shot.png", 10, 10),
+            entry("guide-wide.png", 1201, 10),
+        ]
+        files = {
+            "CMakeLists.txt": 'set(EGTRAIN_VERSION "1.2.3" CACHE STRING "Application version for this build")\n',
+            "docs/images/captures.json": json.dumps({"captures": manifest}),
+            "docs/images/guide-good.png": png(1200, 750),
+            "docs/images/guide-unlisted.png": png(10, 10),
+            "docs/images/guide-size.png": png(100, 50),
+            "docs/images/guide-old.png": png(10, 10),
+            "docs/images/Guide_Shot.png": png(10, 10),
+            "docs/images/guide-wide.png": png(1201, 10),
+        }
+        found = sorted((finding.path, finding.message) for finding in check_captures(self.root, self.write(files)))
+        self.assertEqual(
+            found,
+            [
+                ("docs/images/Guide_Shot.png", "name is not <page>-<subject>.png in lower case with hyphens"),
+                ("docs/images/captures.json", "guide-old.png was taken with version 1.1.9, not 1.2"),
+                ("docs/images/captures.json", "no such file: guide-missing.png"),
+                ("docs/images/guide-size.png", "100x50 pixels, captures.json says 100x60"),
+                ("docs/images/guide-unlisted.png", "not listed in captures.json"),
+                ("docs/images/guide-wide.png", "1201 pixels wide, more than 1200"),
+            ],
+        )
+
+
 class OutputTests(TreeTestCase):
     def test_findings_are_sorted_by_path_line_kind_and_message(self):
         files = {
@@ -612,6 +654,12 @@ class GitTests(TreeTestCase):
         self.assertEqual(lines[0], "docs/README.md:3: [link] no such file or directory: gone.md")
         self.assertEqual(lines[1], "docs/README.md:4: [link] no such file or directory: lost.md")
         self.assertEqual(lines[2:], ["2 findings"])
+
+    def test_main_checks_the_pictures_against_captures_json(self):
+        self.write({LANDING: doc("# Docs", "", "![Shot](images/guide-shot.png)"), "docs/images/guide-shot.png": png(10, 10)})
+        code, out, _ = self.call_main(self.root)
+        self.assertEqual(code, 1)
+        self.assertIn("docs/images/guide-shot.png:1: [capture] not listed in captures.json", out)
 
     def test_main_counts_one_finding_in_the_singular(self):
         self.write({LANDING: doc("# Docs", "", "[a](gone.md)")})

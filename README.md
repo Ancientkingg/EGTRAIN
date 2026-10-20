@@ -4,7 +4,7 @@ EGTRAIN is a desktop application for microscopic railway simulation. It covers r
 
 [Download](https://github.com/Ancientkingg/EGTRAIN/releases) | [Install](docs/guides/install.md) | [Getting started](docs/guides/getting-started.md) | [Documentation](docs/README.md) | [Report an issue](https://github.com/Ancientkingg/EGTRAIN/issues)
 
-![The EGTRAIN main window with the loaded network of Milano_Brescia before a run](docs/images/main-window-milano-brescia.png)
+![The main window with Milano_Brescia loaded and not yet run, the whole network in view, and the dock Case and Layers with its map key on the left](docs/images/readme-main-window.png)
 
 The loaded network of Milano_Brescia in the main window before a run.
 

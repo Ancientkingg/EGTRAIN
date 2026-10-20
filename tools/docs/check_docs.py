@@ -23,6 +23,10 @@ The kinds of finding are:
                 github.com/Ancientkingg/EGTRAIN/blob/ for a file in the repository
   heading       a file that does not start with its one # heading, or a heading that skips a level
   manual-link   a link from a page in docs/guides/, the manual, to a file outside docs/guides/ and docs/images/
+  capture       a PNG under docs/images/ that docs/images/captures.json does not list, an entry of it
+                without its file, a size that differs from the entry, a version whose major or minor part
+                differs from EGTRAIN_VERSION in CMakeLists.txt, a name that is not <page>-<subject>.png in
+                lower case with hyphens, or a picture wider than 1200 pixels
 
 The heading check skips .github/, whose issue templates start with front matter.
 
@@ -66,6 +70,11 @@ LOCAL_PATH = re.compile(r"/Users/|/home/[A-Za-z]|[A-Za-z]:[\\/]Users[\\/]")
 ALERT = re.compile(r"^ {0,3}> *\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]", re.IGNORECASE)
 DETAILS = re.compile(r"<details[\s>]", re.IGNORECASE)
 BLOB_LINK = re.compile(r"^https?://github\.com/Ancientkingg/EGTRAIN/blob/[^/]+/([^?#]+)", re.IGNORECASE)
+IMAGES = "docs/images/"
+CAPTURES = IMAGES + "captures.json"
+CAPTURE_NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)+\.png$")
+CAPTURE_MAX_WIDTH = 1200
+VERSION = re.compile(r'^set\(EGTRAIN_VERSION "(\d+)\.(\d+)\.\d+"', re.MULTILINE)
 
 Finding = namedtuple("Finding", "path line kind message")
 Document = namedtuple("Document", "lines anchors links blocks headings")
@@ -344,6 +353,48 @@ def check_manual_links(refs: list) -> list:
     ]
 
 
+def png_size(path):
+    """Returns the width and height of a PNG file."""
+    with open(path, "rb") as image:
+        header = image.read(24)
+    return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
+
+
+def check_captures(root, files) -> list:
+    """Checks the pictures under docs/images/ against docs/images/captures.json, which the screenshot script writes."""
+    listed = set(files)
+    root = Path(root)
+    findings = []
+    entries = {}
+    if CAPTURES in listed:
+        try:
+            entries = {entry["file"]: entry for entry in json.loads((root / CAPTURES).read_text("utf-8"))["captures"]}
+        except (ValueError, KeyError, TypeError) as error:
+            return [Finding(CAPTURES, 1, "capture", f"not a list of captures: {error}")]
+    cmake = root / "CMakeLists.txt"
+    version = VERSION.search(cmake.read_text("utf-8")) if cmake.is_file() else None
+    for path in sorted(name for name in listed if name.startswith(IMAGES) and name.lower().endswith(".png")):
+        name = path[len(IMAGES):]
+        size = png_size(root / path)
+        if name not in entries:
+            findings.append(Finding(path, 1, "capture", "not listed in captures.json"))
+        if not CAPTURE_NAME.match(name):
+            findings.append(Finding(path, 1, "capture", "name is not <page>-<subject>.png in lower case with hyphens"))
+        if size[0] > CAPTURE_MAX_WIDTH:
+            findings.append(Finding(path, 1, "capture", f"{size[0]} pixels wide, more than {CAPTURE_MAX_WIDTH}"))
+        elif name in entries and size != (entries[name].get("width"), entries[name].get("height")):
+            listed_size = f"{entries[name].get('width')}x{entries[name].get('height')}"
+            findings.append(Finding(path, 1, "capture", f"{size[0]}x{size[1]} pixels, captures.json says {listed_size}"))
+    for name, entry in sorted(entries.items()):
+        if IMAGES + name not in listed:
+            findings.append(Finding(CAPTURES, 1, "capture", f"no such file: {name}"))
+        taken = str(entry.get("version", "")).split(".")[:2]
+        if version and taken != list(version.groups()):
+            expected = ".".join(version.groups())
+            findings.append(Finding(CAPTURES, 1, "capture", f"{name} was taken with version {entry.get('version')}, not {expected}"))
+    return findings
+
+
 def check(root, files) -> list:
     """Returns the findings for the listed files, relative to root, sorted by path, line, kind and message."""
     listed = set(files)
@@ -380,7 +431,8 @@ def main(argv=None) -> int:
     )
     arguments = parser.parse_args(argv)
     try:
-        findings = check(arguments.root, tracked_files(arguments.root))
+        files = tracked_files(arguments.root)
+        findings = sorted(check(arguments.root, files) + check_captures(arguments.root, files))
     except ToolError as error:
         print(f"check_docs: {error}", file=sys.stderr)
         return 2

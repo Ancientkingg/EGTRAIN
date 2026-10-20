@@ -1524,6 +1524,17 @@ if(EGTRAIN_BUILD_TESTS)
 			egtrain_add_visual_polish_smoke(signals 45 300 signals)
 			egtrain_add_visual_polish_smoke(live 35 300 dpr1 color dpr2)
 			egtrain_add_visual_polish_smoke(stations 30 240 stations)
+			# Takes the pictures of docs/images into a temporary folder and checks that each has the size that
+			# docs/images/captures.json gives. Pixels are not compared, because fonts differ between systems. The
+			# pictures are taken with Qt 5, so a Qt 6 build does not run it: the offscreen font of Qt 6 has another
+			# height, and dialogs take their size from it.
+			add_test(NAME test_capture_screenshots
+				COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/docs/capture_screenshots.sh --sizes)
+			string(COMPARE EQUAL "${QT_VERSION_MAJOR}" 6 egtrain_qt6)
+			set_tests_properties(test_capture_screenshots PROPERTIES
+				ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>"
+				TIMEOUT 300
+				DISABLED ${egtrain_qt6})
 		endif()
 	endif()
 	if(APPLE)
@@ -1717,7 +1728,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke
 		test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
 		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke ${egtrain_visual_polish_smokes}
-		${egtrain_e2e_smokes}
+		test_capture_screenshots ${egtrain_e2e_smokes}
 		test_scene_version_run_main-82.1 test_scene_version_run_production-107.1 test_scene_version_run_v1.0.2 test_scene_version_run_main-81.1
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
 		test_sign_macos)
@@ -1729,8 +1740,8 @@ if(EGTRAIN_BUILD_TESTS)
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
-		${egtrain_visual_polish_smokes})
-	egtrain_label_tests(slow test_gui_autostart_smoke test_dialog_presentation_contract ${egtrain_visual_polish_smokes})
+		test_capture_screenshots ${egtrain_visual_polish_smokes})
+	egtrain_label_tests(slow test_gui_autostart_smoke test_dialog_presentation_contract test_capture_screenshots ${egtrain_visual_polish_smokes})
 	egtrain_label_tests(network test_updatetransport_https)
 
 	# Fail configuration unless a test has exactly one of the unit and integration labels.
