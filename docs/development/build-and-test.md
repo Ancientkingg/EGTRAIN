@@ -2428,7 +2428,8 @@ workflow runs it on every pull request. It checks
 relative links, heading anchors, image references and alt text, images below
 `docs/` that no document uses, documents below `docs/` that `docs/README.md`
 does not reach through links and the table of contents in `docs/index.md`, links from
-a page of the manual, `docs/guides/`, to a file outside `docs/guides/` and `docs/images/`, the syntax of `bash`, `sh` and `json` examples
+a page of the manual, `docs/guides/`, to a file outside `docs/guides/` and `docs/images/`, bold names in the manual
+that are not strings of the application source, the syntax of `bash`, `sh` and `json` examples
 (a `bash` or `sh` example with a here-document is skipped), em dashes and en
 dashes, absolute local paths, Markdown that only GitHub renders (alerts,
 `<details>`, links that start with `/`, and GitHub links to files in the

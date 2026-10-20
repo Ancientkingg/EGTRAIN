@@ -24,7 +24,7 @@ The minimum dwell is 60 s at both stops and the running performance is 100 %. Th
 
 ## Open the case and keep your own copy
 
-1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select **Amsterdam_Hilversum_Student** under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case Study...** instead; see [Opening an `.egscene` case study](opening-a-case-study.md).
+1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select `Amsterdam_Hilversum_Student` under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case Study...** instead; see [Opening an `.egscene` case study](opening-a-case-study.md).
 2. Choose **File > Save Case Study As...** and save a `.egscene` file in a folder of your own. For an installed case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Scene saved** and your file is the open case.
 3. From then on **File > Save Scene** saves to your file. If you edit an installed case before making a copy, **Save Scene** asks for a new `.egscene` file instead of overwriting the installed case. Cancelling keeps the edit and the current case.
 
@@ -88,7 +88,7 @@ Explain whether the changed delay comes from faster movement, a changed target o
 
 1. On **Run occurrences**, click **Select all**. The text contains "Selected: 4" and "Selected in period: 4". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
 2. Run as in steps 2 and 3 of task 2. **Selected in period** in **Run simulation** is 4.
-3. Open **Timetable**. Its train filter button reads **Trains (4/4)** while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
+3. Open **Timetable**. Its train filter button reads `Trains (4/4)` while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
 4. Click **Export CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
 
 Report results per run. The **Network total** row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its **Travel time (h:mm:ss)** is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.

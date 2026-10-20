@@ -21,9 +21,9 @@ The Timetable graph (Run Results > Open result view > Timetable graph) draws the
 These words mean the same in the Delay analysis window, in its CSV files and in this guide. Every value is in seconds.
 
 - **Event.** The arrival or the departure of one call of an occurrence. A call is an authored stop of a service, and an occurrence is one run of a service, so a service that repeats has several. Passing a station without a stop is not an event.
-- **Planned lateness**, shown as Delay. The simulated time of an event minus its planned time, signed: negative is early, 0 is on time, positive is late. The stored value has no tolerance. The only tolerances are the thresholds of the summary. The planned time is the authored one ([units](#units-and-the-reference-timetable)): for the departure of a stop that an entrance delay moved, the window takes the shift back.
+- **Planned lateness.** The window shows it as Delay. The simulated time of an event minus its planned time, signed: negative is early, 0 is on time, positive is late. The stored value has no tolerance. The only tolerances are the thresholds of the summary. The planned time is the authored one ([units](#units-and-the-reference-timetable)): for the departure of a stop that an entrance delay moved, the window takes the shift back.
 - **Not available.** An event has no delay when its plan is missing (No plan), when the train did not reach it in the run (Not reached), or both. The delay is then "-" in the window and an empty field in the files. These events are counted next to the figures and are never taken as 0.
-- **Entrance delay**, also the input delay and the primary delay. The seconds that a scenario adds to the planned departure of one stop of one occurrence. The author sets it, so it is an input and not a measurement. No other delay is called primary: an incident does not make a delay primary.
+- **Entrance delay.** It is also called the input delay and the primary delay. The seconds that a scenario adds to the planned departure of one stop of one occurrence. The author sets it, so it is an input and not a measurement. No other delay is called primary: an incident does not make a delay primary.
 - **Additional delay.** The simulated time of an event in the scenario run minus the simulated time of the same call of the same occurrence in the baseline run. It needs a compatible baseline ([rules](#delay-comparison-against-a-baseline)). It can be negative (Earlier) or 0 (Same).
 - **Secondary delay.** The additional delay at the final arrival of an occurrence minus its entrance delay, when the stop that the entrance delay moved comes before the final call. Without an entrance delay, or when the moved stop is the final call, it equals the additional delay. It is a difference of two numbers. It says nothing about why the train was late and it can be negative.
 - **Direct incident evidence.** The scenario run recorded that an incident acted directly on the occurrence ([which cases](#limits), item 7). "None recorded" means that no direct effect was recorded. It does not show that another train caused the delay, and the window does not call such a delay propagated.
@@ -82,7 +82,7 @@ An unavailable value in a CSV is an empty field.
 
 ## The Delay analysis window
 
-**Diagrams > Delay analysis** and **Run Results > Open result view > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Under its heading it names the run and the baseline.
+**Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Under its heading it names the run and the baseline.
 
 Three choices sit above the tabs. **Occurrences** and **Stations** list what the run has; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls and Summary between arrivals and departures. The choice of occurrences applies to all three tabs, the choice of stations to Calls, Summary and the call rows of Against baseline, and the choice of events to Calls and Summary only.
 
@@ -120,7 +120,7 @@ The Occurrences table has one row for each occurrence: the input delay (the entr
 
 Two cases of the line fixture show how to read it. In both, the baseline is `follow-level-0` and the occurrences are the services F1 and F2.
 
-**A signal failure** (`sf-forward-level-0`, the incident `inc.fwd` from 400 s to 1000 s):
+A signal failure (`sf-forward-level-0`, the incident `inc.fwd` from 400 s to 1000 s):
 
 | Service | Input delay | Direct incident evidence | Final station | Baseline final arrival | Scenario final arrival | Additional delay | Change | Secondary delay |
 | --- | ---: | --- | --- | ---: | ---: | ---: | --- | ---: |
@@ -129,7 +129,7 @@ Two cases of the line fixture show how to read it. In both, the baseline is `fol
 
 The totals are two occurrences later, a positive additional delay of 508 s and a net additional delay of 508 s. F1 arrived 285 s later and the run recorded that the failure held it. F2 arrived 223 s later, at B its arrival was 49 s later and its departure 136 s later, and the run recorded no direct effect on it. The window shows both numbers and does not call the 223 s propagated: the number is a difference and the evidence column says only what the run recorded.
 
-**An entrance delay** (`entrance-delay-f2-level-0`, 120 s for F2 at A):
+An entrance delay (`entrance-delay-f2-level-0`, 120 s for F2 at A):
 
 | Service | Input delay | Input delay at | Final station | Baseline final arrival | Scenario final arrival | Additional delay | Change | Secondary delay |
 | --- | ---: | --- | --- | ---: | ---: | ---: | --- | ---: |

@@ -16,6 +16,7 @@ guides/main-window
 guides/updates
 guides/privacy-and-diagnostics
 guides/glossary
+guides/keyboard-shortcuts
 guides/command-line
 guides/run-output
 guides/amsterdam-hilversum-student-case
