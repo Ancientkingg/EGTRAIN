@@ -5677,5 +5677,14 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	expect(unavailable == 1, "the window reported the failed autosave " + QString::number(unavailable) + " times");
 	expect(w.m_document->isDirty() && w.m_history->undoCount() == steps + 2 && w.m_document->mutableModel().name == "E2E unwritable two",
 		"a failed autosave stopped the editing");
+
+	// A copy that is written again ends the message.
+	w.m_recovery->shutdown();
+	qputenv("QEGTRAIN_RECOVERY_DIR", QDir(outFolder).filePath("recovery-writable").toUtf8());
+	w.startRecovery();
+	editCase("E2E writable again");
+	settle();
+	expect(!w.m_recoveryFailureShown && !w.statusBar()->currentMessage().startsWith("Autosave unavailable"),
+		"the message about the failed autosave stayed after a copy was written");
 	return finish();
 }
