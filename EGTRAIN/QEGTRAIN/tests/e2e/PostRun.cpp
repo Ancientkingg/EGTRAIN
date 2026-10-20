@@ -43,6 +43,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QGraphicsItem>
+#include <QHeaderView>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineF>
@@ -60,12 +61,14 @@
 #include <QPolygonF>
 #include <QPushButton>
 #include <QRectF>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QSize>
 #include <QSlider>
 #include <QStatusBar>
 #include <QString>
 #include <QStringList>
+#include <QTabBar>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QTimer>
@@ -803,7 +806,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return w.m_followAction->isChecked() && w.m_followTrainIndex == followedIndex
 				&& w.m_followTrainCombo->currentData().toInt() == followedIndex;
 		};
-		const auto sentence = [&w]() { return w.m_followStatusLabel->text(); };
+		// The status bar shows one clause; its tooltip holds the whole explanation.
+		const auto sentence = [&w]() { return w.m_followStatusLabel->toolTip(); };
 		const auto fail = [](const char* what) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: historical Follow, %s\n", what);
 			QCoreApplication::exit(2);
@@ -823,8 +827,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			|| pixelsBetween(cameraBefore, staleItem->sceneBoundingRect().center()) <= 20.0)
 			return fail("before the entry, the train has no hidden item with the geometry of its run away from the view");
 		w.setFollowTrain(followedIndex);
-		const bool waiting = stillFollowing() && w.statusBar()->currentMessage() == notEntered + "Follow starts when it enters."
-			&& sentence() == w.statusBar()->currentMessage()
+		const bool waiting = stillFollowing() && w.statusBar()->currentMessage() == name + " enters at " + scheduled
+			&& w.m_followStatusLabel->text() == w.statusBar()->currentMessage()
 			&& w.m_followTrainCombo->itemText(followedRow) == name + " (scheduled " + scheduled + ")"
 			&& std::none_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 				[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
@@ -1180,7 +1184,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		const QString runFirst = QStringLiteral("Run the case first, then you can follow a train.");
 		if (w.m_followTrainCombo->count() != 1 || w.m_followTrainCombo->currentData().toInt() != -1
 			|| w.m_followTrainCombo->currentText() != "Run the case to follow trains" || w.m_followAction->isEnabled()
-			|| w.m_followAction->isChecked() || w.m_followStatusLabel->text() != runFirst || w.m_followAction->toolTip() != runFirst) {
+			|| w.m_followAction->isChecked() || w.m_followStatusLabel->toolTip() != runFirst || w.m_followAction->toolTip() != runFirst) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: Follow after the scenario changed\n");
 			QCoreApplication::exit(2);
 			return;
@@ -1299,7 +1303,7 @@ QSize MainWindowTestAccess::replayRowSizeAt(MainWindow& w, int time) {
 // that dropped its first part and for one that kept no frame. Those histories are built here, the
 // first from the frames of the run with a budget that holds about half of them, and go through the
 // code that fills the row after a run. The history of the run is put back, and the window shows
-// the frame at the middle again.
+// the frame at the middle again. It also checks the width of Play and the Tab order after a run.
 bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& failure) {
 	if (!checkReplayWholeRun(w, middle, failure))
 		return false;
@@ -1310,6 +1314,52 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		failure = why;
 		return false;
 	};
+
+	// Play keeps its width when it reads Pause, so End does not move.
+	auto* endButton = w.m_replayBar->findChild<QPushButton*>("replayEndButton");
+	const int endX = endButton ? endButton->x() : -1;
+	w.m_replayPlayButton->click();
+	QApplication::processEvents();
+	QApplication::processEvents();
+	const bool endKept = w.m_replayPlayButton->text() == QLatin1String("Pause") && endButton && endButton->x() == endX;
+	w.m_replayPlayButton->click();
+	QApplication::processEvents();
+	if (!endKept)
+		return fail(QStringLiteral("End moved when Play read Pause"));
+	// Opened in a maximised window on a 1024 by 768 screen, Run Results shows the header and three rows of its table.
+	const QSize sizeBefore = w.size();
+	w.m_runResultsDock->hide();
+	w.resize(1024, 690);
+	QApplication::processEvents();
+	w.m_runResultsPanel->refresh();
+	QApplication::processEvents();
+	const int rowsHeight = w.m_runResultsTable->viewport()->height();
+	w.resize(sizeBefore);
+	QApplication::processEvents();
+	if (rowsHeight < 3 * w.m_runResultsTable->verticalHeader()->defaultSectionSize())
+		return fail(QStringLiteral("the table of Run Results shows rows %1 px high at 1024 x 690").arg(rowsHeight));
+	// Tab goes Start, Play, End and the slider, leaves the table of Run Results for the buttons after it and comes back to Start
+	// through the layer check boxes. No stop is a dock tab bar or the scroll area of a dock, which show no focus.
+	w.m_replayStartButton->setFocus(Qt::TabFocusReason);
+	QApplication::processEvents();
+	QList<QWidget*> order;
+	QWidget* focused = QApplication::focusWidget();
+	while (focused && order.size() < 60 && !order.contains(focused)) {
+		order << focused;
+		QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+		QApplication::sendEvent(focused, &tab);
+		QApplication::processEvents();
+		focused = QApplication::focusWidget();
+	}
+	const QList<QWidget*> replayRow{w.m_replayStartButton, w.m_replayPlayButton, endButton, w.m_replaySlider};
+	const int table = order.indexOf(w.m_runResultsTable);
+	QStringList names;
+	for (QWidget* widget : order)
+		names << QStringLiteral("%1(%2)").arg(widget->metaObject()->className(), widget->objectName());
+	if (focused != w.m_replayStartButton || order.mid(0, replayRow.size()) != replayRow || table < 0
+		|| order.value(table + 1) != w.findChild<QWidget*>("runResultsViewsButton") || !order.contains(w.m_signalLayerCheck)
+		|| std::any_of(order.cbegin(), order.cend(), [](QWidget* widget) { return qobject_cast<QTabBar*>(widget) || qobject_cast<QScrollArea*>(widget); }))
+		return fail(QStringLiteral("the Tab order after a run is %1").arg(names.join(QStringLiteral(", "))));
 
 	// The same run with its first part dropped.
 	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> frames;

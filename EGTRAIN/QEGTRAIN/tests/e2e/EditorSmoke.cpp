@@ -4659,15 +4659,18 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				|| !insidePeriod.contains("\nOccurrences: 196/196 selected\nStatus: Completed"))
 				facetFailure(ok, "presentation", "the occurrences line of Run Results does not say how many selected occurrences are in the run period");
 
-			// With a short run identity the dock opens at a third of the window height, or at its minimum height when that is more.
+			// With a short run identity the dock opens at a third of the window height, or higher only as far as the table needs to
+			// show three rows.
 			completed.provenance.caseName = "Paimpol";
 			w.m_runController->m_completedRun = std::make_shared<const CompletedRunData>(completed);
 			w.m_runController->m_delayBaseline.reset();
 			w.m_runResultsDock->hide();
 			w.refreshRunResults();
 			QApplication::processEvents();
-			if (results->height() > std::max(w.height() / 3, results->minimumSizeHint().height()))
-				facetFailure(ok, "presentation", QString("Run Results opens %1 pixels high in a window %2 pixels high").arg(results->height()).arg(w.height()));
+			const int shownRows = w.m_runResultsTable->viewport()->height() / w.m_runResultsTable->verticalHeader()->defaultSectionSize();
+			if (results->height() > w.height() / 3 && shownRows > 3)
+				facetFailure(ok, "presentation",
+					QString("Run Results opens %1 pixels high with %2 rows in a window %3 pixels high").arg(results->height()).arg(shownRows).arg(w.height()));
 
 			w.m_runController->m_completedRun.reset();
 			w.m_runController->m_delayBaseline.reset();

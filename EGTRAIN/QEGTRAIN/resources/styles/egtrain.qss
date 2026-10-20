@@ -456,6 +456,10 @@ QGraphicsView#networkView {
     border: 1px solid #3a4a54;
 }
 
+QGraphicsView#networkView:focus {
+    border-color: #5f8fa8;
+}
+
 QScrollBar:vertical, QScrollBar:horizontal {
     background: #e3eaee;
     border: 0;

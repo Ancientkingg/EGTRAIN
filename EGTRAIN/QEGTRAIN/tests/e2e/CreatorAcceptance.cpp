@@ -80,6 +80,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStatusBar>
 #include <QString>
 #include <QTabWidget>
 #include <QTableWidget>
@@ -902,7 +903,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		// The first service changes why Follow is off: the case has trains to run but has not run.
 		if (!noServicesBefore || w.m_followTrainCombo->currentText() != "Run the case to follow trains" || w.m_followAction->isEnabled()
-			|| w.m_followStatusLabel->text() != "Run the case first, then you can follow a train.") {
+			|| w.m_followStatusLabel->toolTip() != "Run the case first, then you can follow a train.") {
 			fail(QStringLiteral("Follow does not explain a case that has services and has not run"));
 			return;
 		}

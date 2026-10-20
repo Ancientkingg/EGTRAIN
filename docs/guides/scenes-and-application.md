@@ -222,11 +222,11 @@ shows its scheduled entry time, as in "Rail-1 (scheduled 08:25:50)"; the time is
 the schedule, not the actual entry. After that a train is "(running)",
 "(finished)", "(hidden)" while the Trains layer is off, or "(no position)" when
 it has none to draw. The list keeps its width in the toolbar and asks for a popup as
-wide as the longest entry. The label at the right of the status bar says in one
-sentence whether the selected train is followed and why not, and the tooltips of
-**Follow** and of the list say the same. The label starts with the state of the
-train and its scheduled time and cuts a long sentence at its end; the tooltip has
-the whole sentence. A train that has not entered yet remains armed: the view does
+wide as the longest entry. The label at the right of the status bar names the
+state of the selected train in one short clause, such as "Rail-1 enters at
+08:25:50" or "Following Rail-1", and ends a clause that does not fit with an
+ellipsis. Its tooltip, and the tooltips of **Follow** and of the list, say in full
+whether the train is followed and why not. A train that has not entered yet remains armed: the view does
 not move, and Follow starts when the train enters. While the Trains layer is off
 the view does not move either, and the nearest station is not emphasised; both
 return when the layer is switched on. Before a case has run, and in a case

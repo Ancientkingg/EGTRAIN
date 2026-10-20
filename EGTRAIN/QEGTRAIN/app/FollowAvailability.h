@@ -12,10 +12,9 @@
 // The window asks this unit whether the control is offered (controlEnabled), whether Follow
 // can be switched on for the train (canArm), whether it has to be switched off (switchOff),
 // whether the view and the station emphasis follow the train (canAct), whether the view
-// glides to the train or cuts to it (glide) and which text is shown (entryText, statusText).
-// The sentences are true whether Follow is on or off. They say the state of the train first
-// and the part about Follow last, so that a status area that is too narrow elides the part
-// about Follow first.
+// glides to the train or cuts to it (glide) and which text is shown (entryText, statusClause,
+// statusText). The status bar shows the one clause; the tooltips hold the whole explanation,
+// which is true whether Follow is on or off.
 
 /// Where the selected train stands, as far as Follow is concerned.
 enum class FollowPhase {
@@ -59,7 +58,9 @@ struct FollowAvailability {
 	FollowPhase phase = FollowPhase::NoServices; ///< Where the train stands.
 	/// Text of the list entry. It does not depend on the state of Follow.
 	std::string entryText;
-	/// Sentence for the status area, worded for the state of Follow.
+	/// One clause for the status bar: the state of the train, or that the view follows it.
+	std::string statusClause;
+	/// The whole explanation, worded for the state of Follow, for the tooltips.
 	std::string statusText;
 	/// The Follow control is offered. It is not when there is nothing to follow yet.
 	bool controlEnabled = false;
@@ -101,10 +102,12 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 	switch (out.phase) {
 		case FollowPhase::NoServices:
 			out.entryText = "No trains to follow";
+			out.statusClause = "No trains to follow";
 			out.statusText = "This case has no trains to follow.";
 			break;
 		case FollowPhase::NoRun:
 			out.entryText = "Run the case to follow trains";
+			out.statusClause = "Run the case to follow trains";
 			out.statusText = "Run the case first, then you can follow a train.";
 			break;
 		case FollowPhase::NotEntered: {
@@ -116,10 +119,12 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			if (in.train) {
 				const std::string entry = formatSimTime(in.train->departureTime, in.clockOffsetSeconds);
 				out.entryText = name + " (scheduled " + entry + ")";
+				out.statusClause = name + (afterRun ? " enters after this run" : " enters at " + entry);
 				out.statusText = name + " is scheduled to enter at " + entry
 					+ (afterRun ? std::string(", after the end of this run, so the view cannot follow it.") : ". " + tail);
 			} else {
 				out.entryText = name + " (not entered yet)";
+				out.statusClause = name + " has not entered yet";
 				out.statusText = name + " has not entered the network yet. " + tail;
 			}
 			break;
@@ -127,10 +132,12 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 		case FollowPhase::Running:
 			out.canArm = true;
 			out.entryText = name + " (running)";
+			out.statusClause = in.followOn ? "Following " + name : name + " is running";
 			out.statusText = name + " is running. " + (in.followOn ? "The view follows it." : "Follow can be switched on now.");
 			break;
 		case FollowPhase::Finished:
 			out.entryText = name + " (finished)";
+			out.statusClause = name + " has left the network";
 			if (in.replay) {
 				out.canArm = true;
 				out.statusText = name + " has left the network at this time. "
@@ -143,6 +150,7 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 		case FollowPhase::HiddenByLayer:
 			out.canArm = true;
 			out.entryText = name + " (hidden)";
+			out.statusClause = name + " is hidden by the Trains layer";
 			out.statusText = name + " is running, but the Trains layer is switched off"
 				+ (in.followOn ? ", so the view does not follow it."
 							   : ". Follow can be switched on now and moves the view when the layer is switched on.");
@@ -150,6 +158,7 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 		case FollowPhase::NotDrawable:
 			out.canArm = true;
 			out.entryText = name + " (no position)";
+			out.statusClause = name + " has no position on the map";
 			out.statusText = name + " is running, but it has no position on the map to follow.";
 			break;
 	}

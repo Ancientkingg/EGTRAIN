@@ -22,6 +22,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QTableWidget>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -43,6 +44,8 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 		"Substation (kWh)", "Substation with regen (kWh)"});
 	m_table->setAlternatingRowColors(true);
 	m_table->horizontalHeader()->setStretchLastSection(true);
+	// Tab leaves the table for the buttons after it; the arrow keys move between the cells.
+	m_table->setTabKeyNavigation(false);
 
 	QWidget* container = new QWidget(m_dock);
 	QVBoxLayout* containerLayout = new QVBoxLayout(container);
@@ -212,9 +215,15 @@ void RunResultsDock::refresh() {
 	const bool openingResults = !m_dock->isVisible();
 	m_dock->show();
 	m_dock->raise();
-	if (openingResults && !m_dock->isFloating()
-		&& m_window->dockWidgetArea(m_dock) == Qt::BottomDockWidgetArea)
+	if (openingResults && !m_dock->isFloating() && m_window->dockWidgetArea(m_dock) == Qt::BottomDockWidgetArea) {
 		m_window->resizeDocks({m_dock}, {m_window->height() / 3}, Qt::Vertical);
+		// Higher than a third when the table would show fewer than its header and three rows.
+		m_window->layout()->activate();
+		const int threeRows = m_table->horizontalHeader()->sizeHint().height() + 3 * m_table->verticalHeader()->defaultSectionSize()
+			+ m_table->horizontalScrollBar()->sizeHint().height() + 2 * m_table->frameWidth();
+		if (m_table->height() < threeRows)
+			m_window->resizeDocks({m_dock}, {m_dock->height() + threeRows - m_table->height()}, Qt::Vertical);
+	}
 	m_host.runResultsRefreshed();
 }
 
