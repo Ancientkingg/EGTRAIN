@@ -312,6 +312,13 @@ void ResultViews::showDelayAnalysis() {
 		showWindow(window);
 }
 
+void ResultViews::showDelayComparison() {
+	if (DelayAnalysisWindow* window = m_runController->openDelayAnalysis()) {
+		showWindow(window);
+		window->showBaselineTab();
+	}
+}
+
 void ResultViews::showTimetableTable() {
 	if (!m_runController->hasRunResults()) {
 		m_host.resultMessage("Run a simulation to open diagrams", 5000);

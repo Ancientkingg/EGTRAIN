@@ -2304,6 +2304,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the delay analysis did not open on its Calls tab and export through public controls"));
 			return;
 		}
+		// Compare delays opens its window a step below and to the right of the delay analysis that is still open.
+		compareButton->click();
+		process();
+		DelayAnalysisWindow* comparisonWindow = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<DelayAnalysisWindow*>(widget); window && window != callsWindow && window->isVisible())
+				comparisonWindow = window;
+		if (!comparisonWindow || comparisonWindow->pos() != callsWindow->pos() + QPoint(32, 32)) {
+			fail(QStringLiteral("Compare delays does not open the delay analysis a step away from the open one"));
+			return;
+		}
+		comparisonWindow->close();
 		callsWindow->close();
 		process();
 

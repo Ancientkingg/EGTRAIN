@@ -95,6 +95,8 @@ public slots:
 	void showDelayDiagram();
 	/// Opens ResultViewName::kDelayAnalysis through RunController::openDelayAnalysis().
 	void showDelayAnalysis();
+	/// Opens ResultViewName::kDelayAnalysis on its baseline comparison.
+	void showDelayComparison();
 	/// Asks for the scope and opens ResultViewName::kBlockingTime.
 	void showBlockingTimeDiagram();
 	/// Asks for the scope, starting at the first section with two occurrences that share an entry block, and opens
