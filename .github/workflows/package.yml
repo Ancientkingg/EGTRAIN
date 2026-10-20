@@ -91,9 +91,9 @@ jobs:
           "$QT_ROOT_DIR/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
           cp build/egtrain_update_helper build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
           chmod +x build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
-          # Some Homebrew libraries name their own dependencies as @rpath/<name> (for example brotli and webp).
-          # macdeployqt copies the library but neither the dependency nor an rpath, so copy each missing
-          # dependency from the Homebrew prefix and point the reference at the copy.
+          # A Homebrew library can name its own dependencies as @rpath/<name>. macdeployqt copies the library but
+          # neither the dependency nor an rpath, so copy each missing dependency from the Homebrew prefix and point
+          # the reference at the copy.
           frameworks=build/QEGTRAIN.app/Contents/Frameworks
           copied=1
           while [ "$copied" = 1 ]; do
@@ -133,8 +133,8 @@ jobs:
           }
           report_size "before trimming"
           # The application is a Widgets program that draws with the raster engine, loads no QML, WebP or TIFF file and takes
-          # keyboard input from the system. macdeployqt deploys the virtual keyboard input plugin with the Quick and QML
-          # frameworks it links, and the WebP and TIFF image plugins with their libraries.
+          # keyboard input from the system. The Qt install of this job has no virtual keyboard, WebP or TIFF plugin, so these
+          # removals only keep them out of the app if a later install has them.
           rm -rf "$APP/Contents/PlugIns/virtualkeyboard" "$APP/Contents/PlugIns/platforminputcontexts"
           rm -rf "$APP/Contents/PlugIns/imageformats/libqwebp.dylib" "$APP/Contents/PlugIns/imageformats/libqtiff.dylib"
           rm -rf "$APP/Contents/Frameworks/QtVirtualKeyboard.framework" "$APP/Contents/Frameworks/QtQuick.framework" \

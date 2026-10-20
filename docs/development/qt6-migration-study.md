@@ -193,16 +193,10 @@ the Qt 6 jobs ran the same tests as the Qt 5 jobs.
 For step 4 the package check built the Qt 6 packages in a job that was not required; the Qt 6 `windeployqt` line drops
 `--no-angle` and `--no-virtualkeyboard` and adds `--no-system-dxc-compiler`.
 
-Step 6: v1.0.4 is the last release built with Qt 5, from a release branch cut before this step. Since then CI, the
-package check and the release workflow build with Qt 6.8.3 only, with one CMake leg per platform. `CMakeLists.txt` finds
-Qt 6 only and stops with a message that names Qt 6 when it finds none; `util/QtMsvcCompat.h`, the MSVC `_HAS_STD_BYTE`
-define and the Qt 5 `QT_VERSION` branches are gone. The updater requires the Qt 6 DLLs in a Windows package
-(`update/WindowsStaging.h`), and the Setup deletes the Qt 5 files that an installation of v1.0.4 or older holds. A
-portable copy of v1.0.3 or earlier cannot update itself to a Qt 6 release; the [install guide](../guides/install.md)
-says to unzip the new archive instead. The AppImage needs glibc 2.38, not the 2.34 of the Qt binaries, because it is
-built on Ubuntu 24.04: `objdump -T` of the Qt 6 AppImage of e7adb56a shows `QEGTRAIN` and bundled libraries such as
-`libzmq.so.5` calling `__isoc23_strtol` and other functions of glibc 2.38. The Qt 6.4.2 of Ubuntu 24.04 also builds the
-application and the tests. The release rehearsal on all three platforms has not been run with Qt 6 yet.
+Step 6, done on 2026-10-20: v1.0.4 is the last release built with Qt 5. CI, the package check and the release
+workflow build with Qt 6.8.3 only, and Setup deletes the Qt 5 files of an older installation. The AppImage needs
+glibc 2.38 because it is built on Ubuntu 24.04. The release rehearsal on all three platforms has not been run with
+Qt 6 yet.
 
 Step 7, decided on 2026-10-20: keep Qt Charts while Qt ships it. It is deprecated since Qt 6.10 and still part of
 Qt 6.12. Qt Graphs is a QML module and would bring Qt Quick and QML into every package. Revisit the choice when a Qt
