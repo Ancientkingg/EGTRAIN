@@ -137,6 +137,7 @@ jobs:
       contents: read
     with:
       version: ${{ needs.version.outputs.version }}
+      qt: '5'
     secrets:
       SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
 
