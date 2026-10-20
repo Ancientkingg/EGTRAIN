@@ -74,9 +74,7 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Reference route** | **OK** | **Cancel** |
 | **About EGTRAIN** | **Close** | **Close** |
 | **Unsaved Scene** | **Save** | **Cancel** |
-| **Save Scene As Folder** | **No** | **No** |
-| **Import Legacy Case** | **No** | **No** |
-| The delete questions of the editors, such as **Delete Service** and **Delete Scenario** | **No** | **No** |
+| **Save Scene As Folder**, **Import Legacy Case**, and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
 | **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
 | EGTRAIN *version* is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
 | **Linked source changed** | **Keep local** | **Keep local** |
@@ -91,8 +89,6 @@ The chart windows of **Diagrams**, such as **Speed / distance**, **Delays**, **T
 | - | Zoom out |
 | 0 or Home | Return to the whole chart |
 | Left, Right, Up, Down | Move the view |
-
-Return and Enter do not start an export in a result window.
 
 ## Editors
 
