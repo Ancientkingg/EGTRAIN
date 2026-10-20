@@ -26,7 +26,7 @@ There are two weights, normal and 600. Qt 5 turns `font-weight: 600` into `QFont
 ## Spacing and shape
 
 - The padding of table headers, tabs, menu items and status labels, and the margins of toolbar separators, are multiples of 4 px.
-- Controls keep the padding that gives them the usual control height: buttons, combo boxes and line edits 5 by 7 px inside a 1 px border, toolbar buttons 3 by 6 px with a height from 24 to 32 px, check boxes 5 by 2 px, dock titles 6 by 8 px. The toolbar, the case name, the About links and the signalling details box keep small offsets of 1 to 6 px.
+- Controls keep the padding that gives them the usual platform control height; the exact values are in the sheet.
 - Corners have a 2 px radius. The slider handle is round.
 - Scroll bars are 10 px wide, without arrow buttons.
 
@@ -75,7 +75,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` and `#d
 
 - The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on `QHeaderView`. Qt sizes header sections with the header font but paints them with the body font, so `MainWindow` gives `QHeaderView` the body font in place of the smaller platform header font of macOS, which would cut the titles.
 - Cells are on the field colour with alternate rows and band-coloured grid lines.
-- Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that `DelayAnalysisWindow` and `AreaCapacityWindow` name as numeric. Names, ids, codes and statuses are aligned to the left. Qt 5 cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.
+- Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that `DelayAnalysisWindow` and `AreaCapacityWindow` name as numeric, and the headways, references, shifts and gaps of the capacity analysis dialog. Names, ids, codes and statuses are aligned to the left. Qt 5 cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.
 - Delays in the timetable results are signed and coloured with the delay tokens.
 - The stops table of the Services dock shares the width of the dock among its columns and can cut a header when the dock is narrow; each header has its full text as a tooltip.
 
