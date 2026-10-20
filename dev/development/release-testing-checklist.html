@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="External state sharing" href="../architecture/external-sharing.html"><link rel="prev" title="Release rehearsal" href="release-rehearsal-template.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Release rehearsal" href="release-rehearsal-template.html"><link rel="prev" title="Qt 6 migration study" href="qt6-migration-study.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Release Testing Checklist - EGTRAIN documentation</title>
@@ -190,64 +190,78 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/live-sharing.html">Sharing a live run</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/v1-native-cutover-report.html">V1 native cutover report</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-properties.html">V1 scene properties</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
-<ul class="current">
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
-<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
-<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
-<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
-<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Release Testing Checklist</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../product/assignment-corridor.html">Assignment corridor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../product/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../product/feature-status.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="live-sharing.html">Sharing a live run</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
 </ul>
 
 </div>
@@ -828,7 +842,7 @@ list of installed apps shows only what the archive itself adds.</p>
 </tr>
 <tr class="row-odd"><td><p>W2 Install</p></td>
 <td><p>Double-click the Setup. Read the licence page and accept the licence. Keep the default folder and leave the desktop shortcut box unticked. When it has finished, start EGTRAIN from the Start Menu and run the steps 1 to 9 of the clean-install rehearsal on this copy.</p></td>
-<td><p>No prompt asks for an administrator password or for confirmation to run as administrator. The unsigned Setup shows the SmartScreen dialog <code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">protected</span> <span class="pre">your</span> <span class="pre">PC</span></code> (<code class="docutils literal notranslate"><span class="pre">Microsoft</span> <span class="pre">Defender</span> <span class="pre">SmartScreen</span> <span class="pre">prevented</span> <span class="pre">an</span> <span class="pre">unrecognized</span> <span class="pre">app</span> <span class="pre">from</span> <span class="pre">starting.</span> <span class="pre">Running</span> <span class="pre">this</span> <span class="pre">app</span> <span class="pre">might</span> <span class="pre">put</span> <span class="pre">your</span> <span class="pre">PC</span> <span class="pre">at</span> <span class="pre">risk.</span></code>); <strong>More info</strong> shows <code class="docutils literal notranslate"><span class="pre">Publisher:</span> <span class="pre">Unknown</span> <span class="pre">publisher</span></code> and <strong>Run anyway</strong>, which starts Setup (see <a class="reference internal" href="code-signing.html#first-start-of-an-unsigned-build"><span class="std std-ref">Code signing</span></a>). Record any other warning, and any wording that differs, as shown. The first page shows the GNU General Public License version 3, and Setup goes on only after the licence is accepted. The folder page offers <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\Programs\EGTRAIN</span></code>. The Start Menu has the entry <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code>. The list of installed apps in Windows Settings has <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code>: record the version, which must be the one of the candidate, and the publisher. There is no desktop shortcut. Nothing is installed below <code class="docutils literal notranslate"><span class="pre">Program</span> <span class="pre">Files</span></code>. The installation folder holds <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>.</p></td>
+<td><p>No prompt asks for an administrator password or for confirmation to run as administrator. The unsigned Setup shows the SmartScreen dialog <code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">protected</span> <span class="pre">your</span> <span class="pre">PC</span></code> (<code class="docutils literal notranslate"><span class="pre">Microsoft</span> <span class="pre">Defender</span> <span class="pre">SmartScreen</span> <span class="pre">prevented</span> <span class="pre">an</span> <span class="pre">unrecognized</span> <span class="pre">app</span> <span class="pre">from</span> <span class="pre">starting.</span> <span class="pre">Running</span> <span class="pre">this</span> <span class="pre">app</span> <span class="pre">might</span> <span class="pre">put</span> <span class="pre">your</span> <span class="pre">PC</span> <span class="pre">at</span> <span class="pre">risk.</span></code>); <strong>More info</strong> shows <code class="docutils literal notranslate"><span class="pre">Publisher:</span> <span class="pre">Unknown</span> <span class="pre">publisher</span></code> and <strong>Run anyway</strong>, which starts Setup (see <a class="reference internal" href="../guides/install.html#first-start-of-an-unsigned-build"><span class="std std-ref">Installing EGTRAIN</span></a>). Record any other warning, and any wording that differs, as shown. The first page shows the GNU General Public License version 3, and Setup goes on only after the licence is accepted. The folder page offers <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\Programs\EGTRAIN</span></code>. The Start Menu has the entry <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code>. The list of installed apps in Windows Settings has <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code>: record the version, which must be the one of the candidate, and the publisher. There is no desktop shortcut. Nothing is installed below <code class="docutils literal notranslate"><span class="pre">Program</span> <span class="pre">Files</span></code>. The installation folder holds <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>.</p></td>
 <td><p>Windows</p></td>
 </tr>
 <tr class="row-even"><td><p>W3 Uninstall</p></td>
@@ -895,11 +909,9 @@ the release provides the asset.</p>
 <section id="result-record">
 <h2>Result record<a class="headerlink" href="#result-record" title="Link to this heading">¶</a></h2>
 <p>Copy <a class="reference internal" href="release-rehearsal-template.html"><span class="std std-doc">the template</span></a> to
-<code class="docutils literal notranslate"><span class="pre">docs/development/release-rehearsal-&lt;date&gt;.md</span></code>, with the date of the rehearsal,
+<code class="docutils literal notranslate"><span class="pre">docs/development/records/release-rehearsal-&lt;date&gt;.md</span></code>, with the date of the rehearsal,
 and fill it. Link every failed row to one focused defect issue. The record of
-<a class="reference internal" href="release-rehearsal-2026-08-23.html"><span class="std std-doc">2026-08-23</span></a> is an earlier filled record of a
-macOS rehearsal of an older candidate. The record of
-<a class="reference internal" href="release-rehearsal-2026-10-17.html"><span class="std std-doc">2026-10-17</span></a> covers all three platforms.</p>
+<a class="reference internal" href="records/release-rehearsal-2026-10-17.html"><span class="std std-doc">2026-10-17</span></a> is a filled record that covers all three platforms.</p>
 <p>The release gate passes only after every required row passes on all three
 platforms or is marked not applicable with a case-specific reason. The rows W1
 to W9 belong to Windows only and the rows M1 to M6 to macOS only. Open one
@@ -913,23 +925,23 @@ to issue #74.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../architecture/external-sharing.html">
+          <a class="next-page" href="release-rehearsal-template.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">External state sharing</div>
+                <div class="title">Release rehearsal</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="release-rehearsal-template.html">
+          <a class="prev-page" href="qt6-migration-study.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Release rehearsal</div>
+                <div class="title">Qt 6 migration study</div>
                 
               </div>
             </a>

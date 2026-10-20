@@ -258,8 +258,8 @@ What the repository itself shows:
   [Required checks on `main`](build-and-test.md#required-checks-on-main) the checks that must pass.
 - Code follows [Coding guidelines](coding-guidelines.md). `.clang-format` and `.editorconfig` set the
   format: tabs, braces attached, no column limit.
-- Documentation changes pass `python3 tools/docs/check_docs.py`, and every guide is reachable from
-  [docs/README.md](../README.md).
+- Documentation changes pass `python3 tools/docs/check_docs.py`, and every page is in the table of contents,
+  [docs/index.md](../index.md).
 
 ## Related documents
 

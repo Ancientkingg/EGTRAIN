@@ -278,7 +278,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Writes the codes, states and speed limits of every route for the next step from run.blocksOccupied, with the routine of each level the route has. See "What happens in a step" in docs/architecture/signalling-levels.md. </p>
+<p>Writes the codes, states and speed limits of every route for the next step from run.blocksOccupied, with the routine of each level the route has. See "What happens in a step" in docs/guides/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -413,7 +413,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Applies the signal_failure incidents of step timestepIndex: each failed section joins run.blocksOccupied, and every route that contains it gets an end of authority in front of it. In the step after a failure ends, its sections go to run.blocksConnected to be released. See "Common behaviour" in docs/architecture/signalling-levels.md. </p>
+<p>Applies the signal_failure incidents of step timestepIndex: each failed section joins run.blocksOccupied, and every route that contains it gets an end of authority in front of it. In the step after a failure ends, its sections go to run.blocksConnected to be released. See "Common behaviour" in docs/guides/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1095,7 +1095,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Clears each route section flagged in connected (one flag per route section, nonzero when in BlocksConnected) and the sections behind it. See "Codes and what they do to a following train" in docs/architecture/signalling-levels.md. </p>
+<p>Clears each route section flagged in connected (one flag per route section, nonzero when in BlocksConnected) and the sections behind it. See "Codes and what they do to a following train" in docs/guides/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1641,7 +1641,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Frees the double switches that would hold a train in their middle; see "Double switches" under "Common behaviour" in docs/architecture/signalling-levels.md. </p>
+<p>Frees the double switches that would hold a train in their middle; see "Double switches" under "Common behaviour" in docs/guides/signalling-levels.md. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

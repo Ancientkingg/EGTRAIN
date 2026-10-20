@@ -1,0 +1,437 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Tutorial: modify a supplied case" href="tutorial-modify-a-case.html"><link rel="prev" title="How capacity is analysed" href="capacity-analysis.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Inspecting diagrams - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/diagram-navigation.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="inspecting-diagrams">
+<h1>Inspecting diagrams<a class="headerlink" href="#inspecting-diagrams" title="Link to this heading">¶</a></h1>
+<p>This page describes the result windows: hover, select, zoom, pan and the data behind the charts. <a class="reference internal" href="how-to.html#results-and-exports"><span class="std std-ref">How-to</span></a> lists the result windows and the exports, <a class="reference internal" href="how-to.html#move-around-the-network-view-and-follow-a-train"><span class="std std-ref">How-to</span></a> covers the network view, and <a class="reference internal" href="#timetable-graphs-and-train-paths">Timetable graphs and train paths</a> describes what the two route charts plot.</p>
+<p>Hover near a plotted line or event marker to inspect its nearest <strong>recorded sample</strong>. The tooltip shows that sample’s values, units and available station, call or block context. A line between samples is useful for finding a train, but the tooltip does not interpolate a value at the pointer. Filled occupation regions can be inspected inside their boundaries when marked as such by the chart; ordinary closed outlines cannot.</p>
+<p>Click a line or marker to select its train. The train filter controls visibility; neither filtering nor navigation changes the underlying CSV data schema. Drag a rectangle to zoom into an area. Two-finger scrolling pans by the supplied pixel distance; an ordinary wheel pans using wheel steps. Ctrl or Command plus wheel zooms around the pointer. Pinch zooms on devices that deliver native or Qt pinch gestures. Use + or - to zoom, arrow keys to pan while the chart has focus, and Home, 0 or Reset zoom to return to the chart’s initial bounds. Reset does not remove a train selection or change filters.</p>
+<p>A result window shows and exports the run it was opened for. A later run does not change an open window or its CSV export.</p>
+<p>When the service of a train has a visualization colour, <code class="docutils literal notranslate"><span class="pre">DiagramWindow::setTrainColors</span></code> gives the series of that train the colour, keyed by the train id that groups the series. The line width, the dash pattern and the alpha of a filled region stay as the chart builder set them. Selecting and clearing a train keeps the colour, and the train filter shows it as the swatch of the train. A train without a colour keeps the colours the chart gave it, and its swatch is the pen colour of its first series. <code class="docutils literal notranslate"><span class="pre">DiagramWindow::setTrainListColors</span></code> changes the swatches only: the blocking-time charts use it, because the colours of their envelopes show the block type. <code class="docutils literal notranslate"><span class="pre">TimetableTableWindow::setTrainColors</span></code> shows the same swatch in the filter of the timetable table. The application builds the colours from the completed run and the scene that was run; the input traction characteristic has no trains and is not recoloured.</p>
+<p>Timetable graphs plot planned and simulated station arrival/departure events and dwell; train-path graphs plot continuous simulated trajectory samples. Both use reference-route runtime X in kilometres horizontally and elapsed simulation time vertically, increasing downward from run start (0 s). Choose a reference from the routes used in the run; each choice lists the station ids the route passes in travel order (<code class="docutils literal notranslate"><span class="pre">route0</span> <span class="pre">--&gt;</span> <span class="pre">Gvc</span> <span class="pre">-</span> <span class="pre">Gdg</span> <span class="pre">-</span> <span class="pre">Ut</span></code>), and the tooltip holds the full text. The short graph title identifies the reference route and elapsed-zero origin. The horizontal axis shows the route-coordinate origin and travel direction. The station names stand above the plot, each with its position in kilometres where there is room. Only as many as fit side by side are named, so that no name is shortened, and zooming in names more of them. The chart shortens the title of an axis that is wider than the chart, for example one with a long route id; the tooltip over that title holds all of it. A wrapped note below the controls explains the runtime coordinate basis and omitted mapping. These are runtime route coordinates, not authored absolute chainage: scene nodes have X/Y and stations may have <code class="docutils literal notranslate"><span class="pre">position_km</span></code>, but the scene has no explicit chainage datum. The native infrastructure builder copies node X into runtime nodes, the route builder derives route sections from those nodes, and the operations builder retains the resolved stop node in each train. Shared canonical node or station IDs anchor other routes; mapping is limited to monotonic shared-anchor intervals. Unmapped or ambiguous portions are omitted rather than extrapolated. The graph CSV files (<code class="docutils literal notranslate"><span class="pre">timetable_graph.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">train_path_graph.csv</span></code>) contain <code class="docutils literal notranslate"><span class="pre">Train</span></code>, <code class="docutils literal notranslate"><span class="pre">Reference</span> <span class="pre">route</span></code>, <code class="docutils literal notranslate"><span class="pre">Source</span> <span class="pre">route</span></code>, <code class="docutils literal notranslate"><span class="pre">Event</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Journey</span> <span class="pre">order</span></code>, <code class="docutils literal notranslate"><span class="pre">Call</span></code>, <code class="docutils literal notranslate"><span class="pre">Elapsed</span> <span class="pre">time[s]</span></code>, <code class="docutils literal notranslate"><span class="pre">Reference</span> <span class="pre">route</span> <span class="pre">X[km]</span></code>. Missing event times and unavailable projected positions are blank; CSV uses the displayed reference and currently visible trains. Existing timetable table and raw trajectory CSV schemas are unchanged.</p>
+<p>Blocking-time charts draw each complete calculated blocking envelope as a translucent rectangle between the directed block endpoints and its displayed start/end times. A zero-length block is a thin boundary line. They do not measure occupation or reservation independently: the model combines approach minus setup and sight reaction through clearance plus release and run margin. The standard chart places recorded trajectory samples above the envelopes and planned station arrival/departure references in dashed lines; the compressed capacity chart shifts envelopes only and does not claim compressed train movement. All use reference-route runtime X horizontally and downward elapsed time vertically, including 0 s. For all routes, the first used route is the stated reference; segments and stops that cannot be projected from shared anchors, and incomplete blocks or missing clearance, are omitted rather than extrapolated. Selecting a route, train, block section or time window limits the displayed envelopes and recorded samples. The CSV keeps original and clipped envelope times, directed mapped endpoints and available components as separate columns; absent components stay blank. Trajectory rows identify actual recorded samples; planned event rows remain distinct. Filtering the visible trains also filters the export. Both blocking-time charts also draw neutral dotted physical boundaries and a narrow extent strip labelled <code class="docutils literal notranslate"><span class="pre">order:ID</span></code> over the native directed section endpoints. These are physical distance extents, not time envelopes. Labels keep their screen size, shorten long IDs and thin collisions as the chart zooms; hover the strip or a boundary for full IDs, route order and directed coordinates. Repeated/coincident sections remain separate occurrences in hover and export. The strip and any geometry notice occupy reserved chart space above the time plot, so they never hide early samples. They stay anchored while time pans, remain when every train is hidden, and appear in PNG export. Hovering a shortened or expanded visible label reports that label’s full ID. Unusable or absent geometry has an in-chart notice instead of invented widths.</p>
+<p>The CSV lists the displayed physical sections once after the train rows (Layer “block section extent”, or “block section extent (geometry missing)”), even with no visible trains or envelopes. Section scopes retain route occurrence indices, not first-match IDs. Unavailable coordinates are blank. An envelope that cannot be projected onto the reference route is listed without X values (Layer “unmapped blocking envelope”). Trains with only unmapped rows still appear in the filter and can be exported without adding a plotted series. The last column, “Reference section”, is the 1-based order of a unique matching reference section. Exact ID and interval matches take precedence over shared-resource overlaps; several candidates leave the order blank and the hover text reports ambiguity. The model never matches by interval alone. Capacity analysis refuses scopes whose selected resource also appears outside the selected occurrence range or whose entry resource has several candidate occurrences; unrelated repeated sections do not block a representable scope. It does not change the capacity calculation to guess an occurrence.</p>
+<p>Time axes display clock labels without changing the simulation-second values. The diagram title also annotates elapsed zero when the clock starts at a nonzero time. A tooltip gets a break opportunity after every 32 characters of a run without a space, such as a long identifier, so that it wraps within the screen; the break opportunities are not drawn. A tooltip is dismissed when the pointer leaves the chart, its series is filtered, the window closes, or the chart is replaced.</p>
+<section id="timetable-graphs-and-train-paths">
+<h2>Timetable graphs and train paths<a class="headerlink" href="#timetable-graphs-and-train-paths" title="Link to this heading">¶</a></h2>
+<p>These two <strong>Diagrams</strong> and <strong>Run Results &gt; Open result view…</strong> actions use the
+same reference-route distance axis, but show different data:</p>
+<ul class="simple">
+<li><p><strong>Timetable graph</strong> connects available planned
+and simulated station arrivals and departures in separate series and shows
+dwell at each stop as a vertical segment. Planned lines are dashed, simulated
+lines solid. Connections between stops are not continuous train movement.</p></li>
+<li><p><strong>Train paths</strong> plots recorded position samples against
+simulation time. It does not plot planned timetable events.</p></li>
+</ul>
+<p>Both ask for a reference route in a list of the routes used in the run. Each row
+shows the route id and the stations the route passes in travel order, for
+example <code class="docutils literal notranslate"><span class="pre">route0</span> <span class="pre">--&gt;</span> <span class="pre">Gvc</span> <span class="pre">-</span> <span class="pre">Gdg</span> <span class="pre">-</span> <span class="pre">Ut</span></code>. The list uses station ids; hover a row for
+the full text; a very long row is shortened in the middle. A route whose station
+order cannot be resolved shows <code class="docutils literal notranslate"><span class="pre">(station</span> <span class="pre">order</span> <span class="pre">unavailable)</span></code> and one without
+stations shows <code class="docutils literal notranslate"><span class="pre">(no</span> <span class="pre">stations</span> <span class="pre">on</span> <span class="pre">this</span> <span class="pre">route)</span></code>; both can still be chosen.
+Double-click a row, or select it and press Enter, to open the diagram.</p>
+<p>Distance increases to the right; time increases downward, with clock labels
+offset by the case base time (elapsed <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">s</span></code> is run start). Other routes are
+projected using shared node/station anchors. Ambiguous or unmapped portions are
+omitted without extrapolation; lines break at missing events or unprojectable
+samples. Train filtering, selection, zoom, and CSV/PNG
+export remain available. Diagrams have no Technical details panels. A concise,
+word-wrapped warning strip above the plot keeps scientific qualifications
+separate from the bounded run/reference identity context.</p>
+<p>Blocking-time diagrams show calculated envelopes, not independently observed
+occupation. The envelope extends from approach minus setup and sight reaction
+through clearance plus release and run margin. Incomplete, missing-clearance,
+or unprojectable blocks are omitted. Recorded movement is sampled only within
+the scoped envelopes; planned station references are a separate dashed layer.
+Compressed blocking-time diagrams shift calculated envelopes, not recorded
+movement. Neither view extrapolates missing route projections.
+Both charts show physical reference sections separately as neutral boundaries and an
+<code class="docutils literal notranslate"><span class="pre">order:ID</span></code> extent strip. Hover shows full IDs and directed runtime coordinates;
+labels thin when crowded and remain with train filters and PNG export. Missing
+geometry is reported inside the chart, never replaced by equal-width blocks.
+Both CSVs list the displayed physical occurrences once, including a section-only
+export when no train is visible. A unique Reference section order is blank when
+matching is ambiguous. Envelopes that cannot be placed on the reference route
+are exported without X values. Capacity analysis reports an unavailable scope
+when its resource-ID calculation cannot distinguish the selected occurrences.</p>
+<p>Input traction plots show rolling-stock input, not simulated effort. Their
+warning remains visible when a curve contains negative effort below the default
+<code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">kN</span></code> lower bound; those values remain in the input, not removed or clamped by
+the plot.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="tutorial-modify-a-case.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Tutorial: modify a supplied case</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="capacity-analysis.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">How capacity is analysed</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Inspecting diagrams</a><ul>
+<li><a class="reference internal" href="#timetable-graphs-and-train-paths">Timetable graphs and train paths</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

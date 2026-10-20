@@ -6,7 +6,7 @@ You need EGTRAIN running, and you should have done [Getting started](getting-sta
 
 ## What the editors do not do
 
-The editors are tables, lists and dialogs. They are not a drawing tool: there is no drag-and-drop track drawing, route painting or automatic signal placement ([scene editor flow](../architecture/scene-editor-flow.md#explicit-out-of-scope-list)). Numbers are typed into cells. For anything larger than this tutorial, or for many similar rows, the supported route is JSON: save the case as a folder, edit the files, and validate them with `scene_tool` ([V1 scene properties](v1-scene-properties.md), [command-line tools](command-line.md#scene_tool)). The window has no JSON text editor.
+The editors are tables, lists and dialogs. They are not a drawing tool: there is no drag-and-drop track drawing, route painting or automatic signal placement. Numbers are typed into cells. For anything larger than this tutorial, or for many similar rows, the supported route is JSON: save the case as a folder, edit the files, and validate them with `scene_tool` ([editing examples](scene-schema.md#editing-examples), [command-line tools](command-line.md#scene_tool)). The window has no JSON text editor.
 
 ## What you build
 
@@ -42,14 +42,14 @@ Everything in this part happens in the dock **Infrastructure**. The list **Entit
 6. **Platforms.** Choose **Add** twice. Both platforms (`platform` and `platform_2`) start at the first station. In the second row, set **Station ID** to `station_2`. Then set **Nodes**, a comma-separated list of nodes: `node` for the first row and `node_3` for the second, so that each platform is at the end node of the track. Leave **Length (m)** and **Width (m)** at their proposed values.
 
    ![The Infrastructure dock on Platforms, with platform at node in station and platform_2 at node_3 in station_2, each 100 m long. The canvas shows the track with a station symbol at each end.](../images/guide-minimal-platforms.png)
-7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](../architecture/signalling-levels.md), and it is the level that the committed Paimpol case uses.
+7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](signalling-levels.md), and it is the level that the committed Paimpol case uses.
 8. **Routes.** Choose **Add**. The route is `route`, and it is selected. Below the table, choose `base block block / track track` in **Section catalog** and choose **Add Section**; then choose `base block block_2 / track track` and **Add Section** again. The list of sections shows both in this order. Leave **Has corridor** and **Reversed** as they are.
 
 The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the committed Paimpol case has no signals either.
 
 ## 3. A rolling stock unit
 
-Open **Editors > Rolling stock units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](../product/assignment-corridor.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
+Open **Editors > Rolling stock units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
 
 On the tab **Physical**, enter these values, pressing Enter after each:
 
@@ -98,7 +98,7 @@ Choose **Run**, check the dialog **Run simulation** (**Selected in period** 1, *
 
 ## 8. Save as a folder and as a bundle
 
-1. Choose **File > Save Scene As Folder...**. In the dialog **Save Scene As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a scene](../architecture/scene-schema.md#version-and-files)).
+1. Choose **File > Save Scene As Folder...**. In the dialog **Save Scene As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a scene](scene-schema.md#version-and-files)).
 2. Choose **File > Save Case Study As...**. In the dialog **Save Case Study As**, name the file `minimal-line.egscene` and save it. EGTRAIN adds the extension when you leave it out. After this, **File > Save Scene** writes to this bundle.
 
 Both are now listed under **File > Recent Scenes**.
@@ -110,7 +110,7 @@ Both are now listed under **File > Recent Scenes**.
 
 ## 10. Check the saved scene outside the window
 
-`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in [Run a local build](../development/build-and-test.md#run-a-local-build). With the macOS app and the folder and bundle in the current folder:
+`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in Run a local build in the build and test guide of the developer documentation. With the macOS app and the folder and bundle in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS
@@ -123,12 +123,12 @@ The two `validate` commands print nothing for a case without diagnostics and exi
 
 ## Limits and the JSON route
 
-- The tutorial case uses no connections, signals, dependencies, restrictions or station boundaries. They are edited in the same dock, and their columns are listed in [V1 scene properties](v1-scene-properties.md).
+- The tutorial case uses no connections, signals, dependencies, restrictions or station boundaries. They are edited in the same dock, and their columns are listed in [editing examples](scene-schema.md#editing-examples).
 - A platform length and width that you do not enter are the defaults of the application (100 m and 2.5 m).
-- The case has no passengers. The dock **Passengers** and the import of the DAS and RouteChoice files are described in [scenes and application](scenes-and-application.md).
-- The unit is a placeholder. For real rolling stock, enter its values, or link a parameter file and a traction file with the buttons on the two tabs. A link lasts for the session; the values that it applies are saved in `rolling_stock.json` ([scenes and application](scenes-and-application.md)).
+- The case has no passengers. The dock **Passengers** and the import of the DAS and RouteChoice files are described in [Editing and validating a case](editing-a-case.md#records-scenarios-and-passengers).
+- The unit is a placeholder. For real rolling stock, enter its values, or link a parameter file and a traction file with the buttons on the two tabs. A link lasts for the session; the values that it applies are saved in `rolling_stock.json` ([main window](main-window.md#review-what-loaded)).
 - The same case as JSON is the folder you saved in step 8. Changing a value there and running `scene_tool validate --runnable` is the way to check a bulk edit before you open it.
-- The creator acceptance smoke test, `tools/e2e/creator_acceptance_smoke.sh`, builds a larger case through the same controls and runs it, which is the automated proof of this path ([build and test guide](../development/build-and-test.md)).
+- The creator acceptance smoke test, `tools/e2e/creator_acceptance_smoke.sh`, builds a larger case through the same controls and runs it, which is the automated proof of this path.
 
 ## If something does not work
 

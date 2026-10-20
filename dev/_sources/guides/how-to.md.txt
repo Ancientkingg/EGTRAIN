@@ -86,7 +86,7 @@ You can save a case that has errors. Warnings do not stop a run, but read them: 
 - A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab **Timetable** of **Services**.
 - A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in **Rolling stock units**.
 
-**Run** stays disabled while any error remains. From a terminal, `scene_tool validate --runnable path/to/scene` prints the same findings ([scene_tool](command-line.md#scene_tool)). [Scene editor flow](../architecture/scene-editor-flow.md#window-flow) describes the validation layers.
+**Run** stays disabled while any error remains. From a terminal, `scene_tool validate --runnable path/to/scene` prints the same findings ([scene_tool](command-line.md#scene_tool)).
 
 ## Answer the unsaved changes question
 
@@ -107,7 +107,7 @@ You need an open case that you have copied ([Copy and save a case](#copy-and-sav
 3. Change the field. **Planned time display** switches the dialog between **Elapsed offsets (s)** (seconds from the base time of the case) and **Clock time**. Blank means the time is absent, and `0` is the start of the simulation.
 4. Click **OK** to apply the fields together, or **Cancel** to leave the stop as it was.
 
-The buttons **Add Stop**, **Insert After Selected**, **Remove Stop**, **Move Up** and **Move Down** change the list of stops. After an edit the validation runs again, and the results, the replay and the delay baseline are discarded. Run again to see the effect. **Edit > Undo** reverts the edit. The rules for the times, the platforms and the insert positions are in [Edit and validate](scenes-and-application.md#edit-and-validate).
+The buttons **Add Stop**, **Insert After Selected**, **Remove Stop**, **Move Up** and **Move Down** change the list of stops. After an edit the validation runs again, and the results, the replay and the delay baseline are discarded. Run again to see the effect. **Edit > Undo** reverts the edit. The rules for the times, the platforms and the insert positions are in [Edit and validate](editing-a-case.md).
 
 For the whole exercise of changing a copy, saving it, opening it again, validating it and running it while the original stays as it was, follow the [tutorial](tutorial-modify-a-case.md).
 
@@ -115,11 +115,11 @@ For the whole exercise of changing a copy, saving it, opening it again, validati
 
 You need an open case that you have copied and no active run. The editors **Rolling stock units** and **Compositions** are not disabled during a run, but an edit there discards the results of that run.
 
-1. Choose **Editors > Rolling stock units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Traction Row**, **Delete Traction Row**). **Plot input traction characteristic** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Scene Validation**. The limits are in [V1 scene properties](v1-scene-properties.md#rolling-stock).
+1. Choose **Editors > Rolling stock units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Traction Row**, **Delete Traction Row**). **Plot input traction characteristic** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Scene Validation**. The limits are in [Rolling stock](scene-schema.md#rolling-stock).
 2. Choose **Editors > Compositions** to put units in order for a train: **Add Composition**, **Add Unit**, **Remove Unit**, **Move Up**, **Move Down**.
 3. Choose the composition of a service in **Editors > Services**.
 
-**Link parameter file...** and **Link traction file...** in the editor of a unit read the values of a unit from a text file. The links last for the session: **Unlink** removes one, and reopening or replacing the case clears them. [Review what loaded](scenes-and-application.md#review-what-loaded) gives the file formats and the rules for a changed file.
+**Link parameter file...** and **Link traction file...** in the editor of a unit read the values of a unit from a text file. The links last for the session: **Unlink** removes one, and reopening or replacing the case clears them. [Review what loaded](main-window.md#review-what-loaded) gives the file formats and the rules for a changed file.
 
 ## Compare a scenario with a baseline
 
@@ -131,7 +131,7 @@ A scenario is a named set of incidents and entrance delays. **Set delay baseline
 4. Select the scenario with the incident in the list **Scenarios**. This keeps the baseline and discards the results. Run it.
 5. Click **Compare delays**. The window **Delay analysis** opens on the tab **Against baseline**.
 
-The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same scene revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenes-and-application.md#scenario-library-and-student-loop) describes the library. **Import JSON...** and **Export JSON...** in the dock move a single scenario between cases.
+The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same scene revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenarios.md) describes the library. **Import JSON...** and **Export JSON...** in the dock move a single scenario between cases.
 
 ## Move around the network view and follow a train
 
@@ -143,7 +143,7 @@ The two buttons say why they are disabled in their tooltips and in the line abov
 - **Layers.** The check boxes in **Case and Layers** hide stations, station names, trains, speed labels, signals and passengers. **Passengers** is the same switch as **View > Show Passengers**. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.
 - **Follow.** Choose a train in the list next to **Follow** in the toolbar and click **Follow**. The view moves with the train, also while the run is paused. Click **Follow** again, or choose **Stop following train**, to stop.
 
-**Follow** is disabled before a run and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example `Rail-1 (scheduled 08:25:50)`, and Follow starts when it enters. The label at the right of the status bar names the state of the selected train, and its tooltip says whether the train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. [Scenario library and student loop](scenes-and-application.md#scenario-library-and-student-loop) describes the camera in detail. For the result windows, see [Inspecting diagrams](../ui/diagram-navigation.md).
+**Follow** is disabled before a run and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example `Rail-1 (scheduled 08:25:50)`, and Follow starts when it enters. The label at the right of the status bar names the state of the selected train, and its tooltip says whether the train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. [Scenario library and student loop](scenarios.md) describes the camera in detail. For the result windows, see [Inspecting diagrams](diagram-navigation.md).
 
 ## Replay a completed run
 
@@ -166,7 +166,7 @@ You need a run that reached its end. Until then the result commands are disabled
 1. The dock **Run Results** opens when the run ends. If you closed it, choose **View > Run Results**.
 2. Click **Open result view...** and choose an entry, or use the menu **Diagrams**. An entry in **Diagrams** that asks for more input ends in an ellipsis.
 3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that share the entry of a section: choose a route and a first block that both trains pass.
-4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](../ui/diagram-navigation.md).
+4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](diagram-navigation.md).
 
 The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message **Export failed** names the path.
 
@@ -187,7 +187,7 @@ scene_tool import path/to/legacy-case path/to/new-scene SceneName
 scene_tool validate path/to/new-scene
 ```
 
-The window cannot write legacy files. `scene_tool export path/to/scene path/to/legacy-output` writes them for another tool, and edits to those files do not flow back into the scene. [Convert a legacy case](scenes-and-application.md#convert-a-legacy-case) lists what the conversion preserves, and the [migration matrix](v1-scene-migration-matrix.md) says what each legacy file becomes.
+The window cannot write legacy files. `scene_tool export path/to/scene path/to/legacy-output` writes them for another tool, and edits to those files do not flow back into the scene. [Convert a legacy case](scene-schema.md#convert-a-legacy-case) lists what the conversion preserves, and the [migration matrix](v1-scene-migration-matrix.md) says what each legacy file becomes.
 
 ## Close, start a new case or open another during a run
 

@@ -2,8 +2,7 @@
 
 Date:
 
-This record names one candidate. The [record of 2026-08-23](release-rehearsal-2026-08-23.md)
-is historical and belongs to an older candidate. Fill this record while you
+This record names one candidate. Fill this record while you
 follow the [release testing checklist](release-testing-checklist.md).
 
 ## Candidate

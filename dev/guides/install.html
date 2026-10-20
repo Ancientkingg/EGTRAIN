@@ -1,0 +1,514 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Getting started" href="getting-started.html"><link rel="prev" title="Documentation" href="../README.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Installing EGTRAIN - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/install.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="installing-egtrain">
+<h1>Installing EGTRAIN<a class="headerlink" href="#installing-egtrain" title="Link to this heading">¶</a></h1>
+<p>This page says which file to download for your system, how to install and start EGTRAIN, what macOS and Windows show at the first start, and how to check a download. <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> continues with a first run.</p>
+<section id="download-and-start">
+<h2>Download and start<a class="headerlink" href="#download-and-start" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Download the package for your system from the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>: <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code> (Apple silicon Macs with macOS 26 or later; <a class="reference internal" href="#macos-disk-image">details</a>), <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> (64-bit Windows; <a class="reference internal" href="#windows-installer-and-portable-archive">choose one</a>) or <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-linux-x86_64.AppImage</span></code> (64-bit Linux). <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;</span></code> is the version of the release. Download a case study file from the same page too, such as <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>.</p></li>
+<li><p>Start the application.</p>
+<ul class="simple">
+<li><p>macOS: open the disk image, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code> in its window, and open EGTRAIN from there. macOS refuses the first start of an ad hoc signed app; the <a class="reference internal" href="#macos-disk-image">first start</a> below says what to do.</p></li>
+<li><p>Windows: run the installer and open <strong>EGTRAIN</strong> from the Start Menu, or unzip the portable archive into a new, empty folder and run <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> from it. Keep that folder intact. The Windows files are not code signed, so Windows warns before the installer starts; the <a class="reference internal" href="#first-start-of-an-unsigned-build">first start</a> below says what to do, and <a class="reference internal" href="#checking-a-download">Checking a download</a> says how to check a download.</p></li>
+<li><p>Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as <code class="docutils literal notranslate"><span class="pre">libGL.so.1</span></code>, install <code class="docutils literal notranslate"><span class="pre">libgl1</span></code>, <code class="docutils literal notranslate"><span class="pre">libharfbuzz0b</span></code> and <code class="docutils literal notranslate"><span class="pre">libfontconfig1</span></code> first.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="macos-disk-image">
+<h2>macOS disk image<a class="headerlink" href="#macos-disk-image" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code> holds <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> and <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, a shortcut to the Applications folder. It needs an Apple silicon Mac with macOS 26 or later. Releases up to v1.0.2 offer the app as <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-macos-arm64.zip</span></code> instead.</p>
+<ul class="simple">
+<li><p><strong>Install.</strong> Open the image and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, then eject the image. The app is self-contained and needs no installer, so a copy in any other folder that you can write to works the same way. Run EGTRAIN from a copy and not from the image: an app on the image is read-only and cannot update itself.</p></li>
+<li><p><strong>First start.</strong> Unless the release notes say that the app is notarized, expect that it is not notarized by Apple and that macOS refuses the first start with <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">Not</span> <span class="pre">Opened</span></code>, which offers <strong>Move to Trash</strong> and <strong>Done</strong>. To allow the app, choose <strong>Done</strong>, open <strong>System Settings &gt; Privacy &amp; Security</strong> and, in the section <strong>Security</strong>, choose <strong>Open Anyway</strong> for <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">was</span> <span class="pre">blocked</span> <span class="pre">to</span> <span class="pre">protect</span> <span class="pre">your</span> <span class="pre">Mac.</span></code> Choose <strong>Open Anyway</strong> again in <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">&quot;QEGTRAIN&quot;?</span></code>. macOS then asks for the name and password of an administrator. These are the dialogs of macOS 26.6; other versions may word them differently. This is the normal macOS override. Do not turn Gatekeeper off or remove the download mark with a command.</p></li>
+<li><p><strong>Notarized releases.</strong> When the release notes say that the app is signed with a Developer ID and notarized, macOS is expected to ask only for the usual confirmation for an app that was downloaded. <a class="reference internal" href="#first-start-of-a-notarized-build">First start of a notarized build</a> has the details.</p></li>
+<li><p><strong>Open a case study.</strong> Double-click an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Finder to open it in EGTRAIN, or Control-click it and choose <strong>Open With</strong> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>. When EGTRAIN is open, the file opens in its window. <a class="reference internal" href="opening-a-case-study.html#open-by-double-click"><span class="std std-ref">Open by double-click</span></a> has the details.</p></li>
+<li><p><strong>Update.</strong> For a copy outside the image, <strong>Help &gt; Check for Updates…</strong> offers <strong>Update and Restart</strong> when a newer release exists.</p></li>
+<li><p><strong>Remove.</strong> Quit EGTRAIN and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay.</p></li>
+<li><p><strong>Inside the app.</strong> The case studies are in <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app/Contents/Resources/Scenes</span></code> and the command-line tool is <code class="docutils literal notranslate"><span class="pre">Contents/MacOS/scene_tool</span></code> (see <a class="reference internal" href="command-line.html"><span class="std std-doc">Command-line options and scene_tool</span></a>). The image shows no other file.</p></li>
+</ul>
+<section id="first-start-of-an-ad-hoc-build">
+<h3>First start of an ad hoc build<a class="headerlink" href="#first-start-of-an-ad-hoc-build" title="Link to this heading">¶</a></h3>
+<p>This was observed on 2026-10-16 on a clean macOS 26.6.2 with the setting <strong>Allow applications from</strong> at <strong>App Store &amp;
+Known Developers</strong>, for a disk image that carried the download mark that a browser sets. Opening the image shows a
+Finder window named <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span></code> with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> and <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, and no warning. After the app is copied to the
+Applications folder, opening it from there shows:</p>
+<ol class="arabic simple">
+<li><p>A dialog titled <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">Not</span> <span class="pre">Opened</span></code>. Its text is
+<code class="docutils literal notranslate"><span class="pre">Apple</span> <span class="pre">could</span> <span class="pre">not</span> <span class="pre">verify</span> <span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">is</span> <span class="pre">free</span> <span class="pre">of</span> <span class="pre">malware</span> <span class="pre">that</span> <span class="pre">may</span> <span class="pre">harm</span> <span class="pre">your</span> <span class="pre">Mac</span> <span class="pre">or</span> <span class="pre">compromise</span> <span class="pre">your</span> <span class="pre">privacy.</span></code>
+Its buttons are <strong>Move to Trash</strong> and <strong>Done</strong>. It has no <strong>Open</strong> button.</p></li>
+<li><p><strong>System Settings &gt; Privacy &amp; Security</strong>, in the section <strong>Security</strong>, shows
+<code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">was</span> <span class="pre">blocked</span> <span class="pre">to</span> <span class="pre">protect</span> <span class="pre">your</span> <span class="pre">Mac.</span></code> with the button <strong>Open Anyway</strong>.</p></li>
+<li><p><strong>Open Anyway</strong> opens a dialog titled <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">&quot;QEGTRAIN&quot;?</span></code> with the buttons <strong>Move to Trash</strong>, <strong>Open Anyway</strong> and
+<strong>Done</strong>.</p></li>
+<li><p><strong>Open Anyway</strong> in that dialog asks for an administrator’s name and password:
+<code class="docutils literal notranslate"><span class="pre">Enter</span> <span class="pre">an</span> <span class="pre">administrator's</span> <span class="pre">username</span> <span class="pre">and</span> <span class="pre">password</span> <span class="pre">to</span> <span class="pre">allow</span> <span class="pre">this.</span></code> The exception needs an administrator. What follows
+the password was not observed.</p></li>
+</ol>
+<p>This is the normal macOS override for an app from an unidentified developer, and the only way to open an ad hoc build
+that this project documents. No workflow and no release script removes the download mark (the quarantine attribute) or
+turns Gatekeeper off, and no document tells a user to, because that lowers the protection of the whole Mac.</p>
+</section>
+<section id="first-start-of-a-notarized-build">
+<h3>First start of a notarized build<a class="headerlink" href="#first-start-of-a-notarized-build" title="Link to this heading">¶</a></h3>
+<p>The app and the image carry a Developer ID signature and a ticket from Apple that is stapled to each. A user who opens
+the image, drags the app onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code> and opens it is expected to see no dialog beyond the confirmation that
+macOS asks for an app that was downloaded, and to need no visit to System Settings and no administrator password. No
+release of EGTRAIN has been built in this mode, so this has not been observed.</p>
+</section>
+<section id="checking-a-macos-download">
+<h3>Checking a macOS download<a class="headerlink" href="#checking-a-macos-download" title="Link to this heading">¶</a></h3>
+<p>Run these on the copy of the app in the Applications folder. They do not start the app.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>codesign<span class="w"> </span>-dvv<span class="w"> </span>/Applications/QEGTRAIN.app
+xcrun<span class="w"> </span>stapler<span class="w"> </span>validate<span class="w"> </span>/Applications/QEGTRAIN.app
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">codesign</span></code> shows <code class="docutils literal notranslate"><span class="pre">Signature=adhoc</span></code> for an ad hoc build. For a Developer ID build it shows a line
+<code class="docutils literal notranslate"><span class="pre">Authority=Developer</span> <span class="pre">ID</span> <span class="pre">Application:</span></code> with the name of the signer, and a <code class="docutils literal notranslate"><span class="pre">TeamIdentifier</span></code>. <code class="docutils literal notranslate"><span class="pre">stapler</span> <span class="pre">validate</span></code> succeeds
+only when the app carries a ticket and fails for an ad hoc build.</p>
+</section>
+</section>
+<section id="windows-installer-and-portable-archive">
+<h2>Windows installer and portable archive<a class="headerlink" href="#windows-installer-and-portable-archive" title="Link to this heading">¶</a></h2>
+<p>The installer and the portable archive hold the same application files. Choose the installer to have EGTRAIN in the Start Menu and in the list of installed apps. Choose the archive to run EGTRAIN from a folder without installing anything. Releases up to v1.0.2 have no installer and offer the archive as <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-windows-x64.zip</span></code>.</p>
+<ul class="simple">
+<li><p><strong>Install.</strong> <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> installs for the current user and needs no administrator rights. The default folder is <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\Programs\EGTRAIN</span></code>, and the wizard offers another folder on a first install. It adds the Start Menu entry <strong>EGTRAIN</strong>, an entry in the list of installed apps in Windows Settings and, only if you tick it, a desktop shortcut. It also registers EGTRAIN for <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> files of your user, so a double-click opens them in EGTRAIN unless you chose another program for them with <strong>Open with</strong>.</p></li>
+<li><p><strong>First start.</strong> The Windows files are not code signed. On Windows 11 in October 2026, with files that carried the download mark, starting the installer showed the dialog <code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">protected</span> <span class="pre">your</span> <span class="pre">PC</span></code> with the text <code class="docutils literal notranslate"><span class="pre">Microsoft</span> <span class="pre">Defender</span> <span class="pre">SmartScreen</span> <span class="pre">prevented</span> <span class="pre">an</span> <span class="pre">unrecognized</span> <span class="pre">app</span> <span class="pre">from</span> <span class="pre">starting.</span> <span class="pre">Running</span> <span class="pre">this</span> <span class="pre">app</span> <span class="pre">might</span> <span class="pre">put</span> <span class="pre">your</span> <span class="pre">PC</span> <span class="pre">at</span> <span class="pre">risk.</span></code> Its only buttons are a <strong>More info</strong> link and <strong>Don’t run</strong>. <strong>More info</strong> shows <code class="docutils literal notranslate"><span class="pre">App:</span> <span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">Publisher:</span> <span class="pre">Unknown</span> <span class="pre">publisher</span></code>, and adds <strong>Run anyway</strong>, which starts Setup. No administrator prompt follows. The dialog comes back each time you start Setup. The portable <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, extracted with <strong>Extract All</strong>, started without a warning in the same test. Other Windows versions may word this differently. Do not turn SmartScreen off. <a class="reference internal" href="#first-start-of-an-unsigned-build">First start of an unsigned build</a> has the details.</p></li>
+<li><p><strong>Upgrade.</strong> Run the Setup of the newer version over the installed copy. It updates that installation and does not add a second one. Setup offers to close EGTRAIN if it is running. It replaces the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the installation, so keep your own cases outside it. <strong>Update and Restart</strong> in an installed copy does the same for you: it downloads the Setup of the newer version, closes EGTRAIN, runs the Setup without windows and starts EGTRAIN again, which then tells you which version runs.</p></li>
+<li><p><strong>Uninstall.</strong> Remove EGTRAIN from the list of installed apps in Windows Settings. This removes the program files, the shortcuts, the entry in the list and the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> setting that the installer made. Your case studies, your exported CSV and PNG files, the run output (see the <a class="reference internal" href="command-line.html#output-folder"><span class="std std-ref">output folder</span></a>) and the settings of EGTRAIN stay. A file that you or the program put into the installation folder stays, and so does the folder.</p></li>
+<li><p><strong>Portable archive.</strong> <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> needs no installation and no administrator rights. Unzip it into a new, empty folder and run <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>. It adds no Start Menu entry, no shortcut, no entry in the list of installed apps and no setting for <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> files. To remove it, close EGTRAIN and delete the folder. To use a newer version, unzip the newer archive into another new folder, or use <strong>Update and Restart</strong> in EGTRAIN.</p></li>
+</ul>
+<section id="first-start-of-an-unsigned-build">
+<h3>First start of an unsigned build<a class="headerlink" href="#first-start-of-an-unsigned-build" title="Link to this heading">¶</a></h3>
+<p>This was observed on 2026-10-16 on a clean Windows 11 (build 26300, ARM64, running the x64 files through Windows’
+emulation) as a standard user, for files that carried the download mark that a browser sets (<code class="docutils literal notranslate"><span class="pre">ZoneId=3</span></code>). Double-clicking <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-1.0.0-x64.exe</span></code> shows:</p>
+<ol class="arabic simple">
+<li><p>A dialog headed <code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">protected</span> <span class="pre">your</span> <span class="pre">PC</span></code>. Its text is
+<code class="docutils literal notranslate"><span class="pre">Microsoft</span> <span class="pre">Defender</span> <span class="pre">SmartScreen</span> <span class="pre">prevented</span> <span class="pre">an</span> <span class="pre">unrecognized</span> <span class="pre">app</span> <span class="pre">from</span> <span class="pre">starting.</span> <span class="pre">Running</span> <span class="pre">this</span> <span class="pre">app</span> <span class="pre">might</span> <span class="pre">put</span> <span class="pre">your</span> <span class="pre">PC</span> <span class="pre">at</span> <span class="pre">risk.</span></code>
+It has a <strong>More info</strong> link and a <strong>Don’t run</strong> button.</p></li>
+<li><p>After <strong>More info</strong>, the dialog shows <code class="docutils literal notranslate"><span class="pre">App:</span> <span class="pre">EGTRAIN-Setup-1.0.0-x64.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">Publisher:</span> <span class="pre">Unknown</span> <span class="pre">publisher</span></code>, with the
+buttons <strong>Run anyway</strong> and <strong>Don’t run</strong>.</p></li>
+<li><p><strong>Run anyway</strong> starts Setup. No prompt for an administrator follows.</p></li>
+</ol>
+<p>The dialog appears at every start of Setup. The portable <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, extracted with <strong>Extract All</strong> from the ZIP,
+carried the download mark too and started without any warning. The wording and the options depend on the Windows
+version, and whether a warning appears may depend on other checks of Windows that this project has not observed.</p>
+<p><strong>Run anyway</strong> is the normal Windows override for an app without a publisher. Do not turn SmartScreen off: that lowers
+the protection of the whole PC.</p>
+<p>A valid signature would show who signed a file. Whether Windows still warns for a signed program is not known.</p>
+</section>
+<section id="checking-a-download">
+<h3>Checking a download<a class="headerlink" href="#checking-a-download" title="Link to this heading">¶</a></h3>
+<p>These checks need a Windows machine with PowerShell. Unpack the ZIP first for the three program files, and check the
+installer as downloaded. Run the commands for each of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and
+the installer, with the file name changed.</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="nv">$sig</span> <span class="p">=</span> <span class="nb">Get-AuthenticodeSignature</span> <span class="n">-FilePath</span> <span class="p">.\</span><span class="n">QEGTRAIN</span><span class="p">.</span><span class="n">exe</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">Status</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">StatusMessage</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">SignerCertificate</span><span class="p">.</span><span class="n">Subject</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">SignerCertificate</span><span class="p">.</span><span class="n">Issuer</span>
+<span class="nv">$sig</span><span class="p">.</span><span class="n">TimeStamperCertificate</span><span class="p">.</span><span class="n">Subject</span>
+</pre></div>
+</div>
+<p>For a signed release, <code class="docutils literal notranslate"><span class="pre">Status</span></code> is <code class="docutils literal notranslate"><span class="pre">Valid</span></code>, the <code class="docutils literal notranslate"><span class="pre">Subject</span></code> shows the signer name and the <code class="docutils literal notranslate"><span class="pre">Issuer</span></code> shows the issuer name of
+the eligibility record on the code signing page of the developer documentation (both rows read Not recorded until the
+owner fills them), and the time stamper line is not empty.
+<code class="docutils literal notranslate"><span class="pre">StatusMessage</span></code> gives the status in words. For an unsigned file, <code class="docutils literal notranslate"><span class="pre">Status</span></code> is <code class="docutils literal notranslate"><span class="pre">NotSigned</span></code> and the three certificate lines
+are empty. Any other status means the file must not be trusted.</p>
+<p>In a shell where <code class="docutils literal notranslate"><span class="pre">signtool</span></code> is available (it comes with the Windows SDK), run <code class="docutils literal notranslate"><span class="pre">signtool</span> <span class="pre">verify</span> <span class="pre">/pa</span> <span class="pre">/v</span> <span class="pre">QEGTRAIN.exe</span></code>; use
+the same command for each file. The output shows the signing chain and whether the signature is timestamped. An exit
+code of 0 means that it verified. Compare the Issued to and Issued by lines of the signing certificate with the record
+and ignore the other lines.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Valid</span></code> means that the file is unchanged since it was signed and that the chain is trusted on this machine. It does not
+mean that the program is free of defects or that it matches a given source revision. The checks apply once a release is
+signed. Until signing is enabled and a release is built with it, the Windows downloads show <code class="docutils literal notranslate"><span class="pre">NotSigned</span></code>.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="getting-started.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Getting started</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../README.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Documentation</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Installing EGTRAIN</a><ul>
+<li><a class="reference internal" href="#download-and-start">Download and start</a></li>
+<li><a class="reference internal" href="#macos-disk-image">macOS disk image</a><ul>
+<li><a class="reference internal" href="#first-start-of-an-ad-hoc-build">First start of an ad hoc build</a></li>
+<li><a class="reference internal" href="#first-start-of-a-notarized-build">First start of a notarized build</a></li>
+<li><a class="reference internal" href="#checking-a-macos-download">Checking a macOS download</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows-installer-and-portable-archive">Windows installer and portable archive</a><ul>
+<li><a class="reference internal" href="#first-start-of-an-unsigned-build">First start of an unsigned build</a></li>
+<li><a class="reference internal" href="#checking-a-download">Checking a download</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

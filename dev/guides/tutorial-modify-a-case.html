@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Updating EGTRAIN" href="updates.html"><link rel="prev" title="Tutorial: the smallest useful scene" href="tutorial-minimal-scene.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Tutorial: the smallest useful scene" href="tutorial-minimal-scene.html"><link rel="prev" title="Inspecting diagrams" href="diagram-navigation.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Tutorial: modify a supplied case - EGTRAIN documentation</title>
@@ -190,64 +190,78 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Manual</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
-<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
-<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="live-sharing.html">Sharing a live run</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
-<li class="toctree-l1"><a class="reference internal" href="original-case-runtime-parity.html">Original-case native runtime parity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scenes-and-application.html">Using EGTRAIN and authoring scenes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="v1-native-cutover-report.html">V1 native cutover report</a></li>
-<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
-<li class="toctree-l1"><a class="reference internal" href="v1-scene-properties.html">V1 scene properties</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Developer</span></p>
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-2026-08-23.html">Release rehearsal 2026-08-23</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-schema.html">V1 Scene Schema Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../architecture/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/diagram-navigation.html">Inspecting diagrams</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-presentation.html">Custom dialog presentation contract</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/historical-track-comparison.html">Historical track presentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/main-window.html">Main window</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/renderer-style-map.html">Network renderer style map</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../ui/result-window-presentation.html">Result-window presentation seam</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../product/assignment-corridor.html">Assignment corridor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../product/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../product/feature-status.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
 </ul>
 
 </div>
@@ -468,7 +482,7 @@ diff<span class="w"> </span>-r<span class="w"> </span>~/Paimpol.before<span clas
 </section>
 <section id="check-the-copy-outside-the-window">
 <h2>Check the copy outside the window<a class="headerlink" href="#check-the-copy-outside-the-window" title="Link to this heading">¶</a></h2>
-<p>The saved bundle is an ordinary case study (<a class="reference internal" href="command-line.html#scene-tool"><span class="std std-ref">command-line tools</span></a>). The programs are not on the search path. Use their full paths. In the macOS app they are <code class="docutils literal notranslate"><span class="pre">/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool</span></code> and <code class="docutils literal notranslate"><span class="pre">/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code>. In the Windows installation or the unzipped portable folder they are <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> next to each other. In a build from source, run from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> and use <code class="docutils literal notranslate"><span class="pre">../../build/scene_tool</span></code> and <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> (on Linux <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN</span></code>), as in <a class="reference internal" href="../development/build-and-test.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a>. With the macOS app and the bundle in the current folder:</p>
+<p>The saved bundle is an ordinary case study (<a class="reference internal" href="command-line.html#scene-tool"><span class="std std-ref">command-line tools</span></a>). The programs are not on the search path. Use their full paths. In the macOS app they are <code class="docutils literal notranslate"><span class="pre">/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool</span></code> and <code class="docutils literal notranslate"><span class="pre">/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code>. In the Windows installation or the unzipped portable folder they are <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> next to each other. In a build from source, run from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> and use <code class="docutils literal notranslate"><span class="pre">../../build/scene_tool</span></code> and <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> (on Linux <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN</span></code>), as in Run a local build in the build and test guide of the developer documentation. With the macOS app and the bundle in the current folder:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">APP</span><span class="o">=</span>/Applications/QEGTRAIN.app/Contents/MacOS
 <span class="s2">"</span><span class="nv">$APP</span><span class="s2">/scene_tool"</span><span class="w"> </span>validate<span class="w"> </span>--runnable<span class="w"> </span>paimpol-practice.egscene
 <span class="s2">"</span><span class="nv">$APP</span><span class="s2">/QEGTRAIN"</span><span class="w"> </span>--scene<span class="w"> </span>paimpol-practice.egscene<span class="w"> </span>-g<span class="w"> </span><span class="m">0</span>
@@ -480,7 +494,7 @@ diff<span class="w"> </span>-r<span class="w"> </span>~/Paimpol.before<span clas
 <h2>Limits and the JSON route<a class="headerlink" href="#limits-and-the-json-route" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>The editors are tables, lists and dialogs. You cannot place an incident by clicking the canvas. The incident target is a choice in a list.</p></li>
-<li><p>This tutorial changes one value at a time. For many changes at once, save the case with <strong>File &gt; Save Scene As Folder…</strong> and edit the JSON files, then validate with <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>. The keys are in <a class="reference internal" href="v1-scene-properties.html"><span class="std std-doc">V1 scene properties</span></a> and the <a class="reference internal" href="../architecture/scene-schema.html"><span class="std std-doc">schema reference</span></a>.</p></li>
+<li><p>This tutorial changes one value at a time. For many changes at once, save the case with <strong>File &gt; Save Scene As Folder…</strong> and edit the JSON files, then validate with <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>. The keys are in <a class="reference internal" href="scene-schema.html#editing-examples"><span class="std std-ref">editing examples</span></a> and the <a class="reference internal" href="scene-schema.html"><span class="std std-doc">schema reference</span></a>.</p></li>
 <li><p>The same two edits in <code class="docutils literal notranslate"><span class="pre">services.json</span></code> are <code class="docutils literal notranslate"><span class="pre">&quot;performance_percent&quot;:</span> <span class="pre">80</span></code> on the service and <code class="docutils literal notranslate"><span class="pre">&quot;dwell_seconds&quot;:</span> <span class="pre">180</span></code> on its second stop.</p></li>
 <li><p>The same scenario is the object below in the list <code class="docutils literal notranslate"><span class="pre">scenarios</span></code> of <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>. It has the incident id that the editor proposes (<code class="docutils literal notranslate"><span class="pre">new_incident</span></code>) and the scenario id that <strong>Duplicate</strong> proposes. The key <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code> in that file names the scenario that a run without a window uses; set it to <code class="docutils literal notranslate"><span class="pre">baseline_copy</span></code> for that run.</p></li>
 </ul>
@@ -502,7 +516,7 @@ diff<span class="w"> </span>-r<span class="w"> </span>~/Paimpol.before<span clas
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><strong>Import JSON…</strong> and <strong>Export JSON…</strong> in the dock <strong>Incidents</strong> exchange one scenario object like this one (<a class="reference internal" href="scenes-and-application.html"><span class="std std-doc">scenes and application</span></a>).</p></li>
+<li><p><strong>Import JSON…</strong> and <strong>Export JSON…</strong> in the dock <strong>Incidents</strong> exchange one scenario object like this one (<a class="reference internal" href="scenarios.html#scenarios"><span class="std std-ref">scenarios</span></a>).</p></li>
 <li><p>The times in this tutorial are elapsed seconds from the base time of the case, which is 07:10:40 in Paimpol.</p></li>
 </ul>
 </section>
@@ -522,23 +536,23 @@ diff<span class="w"> </span>-r<span class="w"> </span>~/Paimpol.before<span clas
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="updates.html">
+          <a class="next-page" href="tutorial-minimal-scene.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Updating EGTRAIN</div>
+                <div class="title">Tutorial: the smallest useful scene</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="tutorial-minimal-scene.html">
+          <a class="prev-page" href="diagram-navigation.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Tutorial: the smallest useful scene</div>
+                <div class="title">Inspecting diagrams</div>
                 
               </div>
             </a>

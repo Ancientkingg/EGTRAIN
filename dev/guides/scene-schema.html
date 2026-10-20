@@ -1,0 +1,1466 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="V2 Transparent Scene Bundle" href="scene-bundle.html"><link rel="prev" title="Scenarios and the student loop" href="scenarios.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>V1 Scene Schema Reference - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/scene-schema.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="v1-scene-schema-reference">
+<h1>V1 Scene Schema Reference<a class="headerlink" href="#v1-scene-schema-reference" title="Link to this heading">¶</a></h1>
+<p>V1 is a directory of JSON files. JSON keys are case-sensitive. The writer
+emits the preferred keys below; the historical spellings are accepted only
+for compatibility and are listed in <a class="reference internal" href="#historical-compatibility-aliases">Historical compatibility aliases</a>.</p>
+<section id="version-and-files">
+<h2>Version and files<a class="headerlink" href="#version-and-files" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">scene.json.schema_version</span></code> is the integer <code class="docutils literal notranslate"><span class="pre">1</span></code>. Structural loading requires:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>File</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Preferred root and purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene.json</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>scene metadata and simulation settings</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>tracks, nodes, arcs, blocks, and connections</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stations.json</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>stations and platforms</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>signals, routes, and signalling relationships</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rolling_stock.json</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>train units and compositions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">services.json</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>services and planned timetables</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code></p></td>
+<td><p>no</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code> and named scenarios; <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code> always writes it</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">passengers.json</span></code></p></td>
+<td><p>no</p></td>
+<td><p>passenger journeys and legs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">views.json</span></code></p></td>
+<td><p>no</p></td>
+<td><p>display preferences; not simulation input</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">legacy/</span></code> is not part of the runnable V1 contract. The importer may read a
+legacy case directory, and the exporter may write one when explicitly asked,
+but normal loading and simulation use only the canonical files above.</p>
+<p>For a V2 <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle, <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> is required; <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> and
+<code class="docutils literal notranslate"><span class="pre">views.json</span></code> are optional entries. <code class="docutils literal notranslate"><span class="pre">legacy/</span></code>, assets, results, and unknown or
+nested ZIP entries are excluded; see
+<a class="reference internal" href="scene-bundle.html"><span class="std std-doc">V2 Transparent Scene Bundle</span></a>.</p>
+</section>
+<section id="scene-json">
+<h2><code class="docutils literal notranslate"><span class="pre">scene.json</span></code><a class="headerlink" href="#scene-json" title="Link to this heading">¶</a></h2>
+<p>Required keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code>: integer <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: non-empty string.</p></li>
+</ul>
+<p>Optional keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">description</span></code>: string.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">base_time</span></code>: <code class="docutils literal notranslate"><span class="pre">HH:MM:SS</span></code> day-clock origin from <code class="docutils literal notranslate"><span class="pre">00:00:00</span></code> through <code class="docutils literal notranslate"><span class="pre">23:59:59</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">units</span></code>: object containing only <code class="docutils literal notranslate"><span class="pre">distance:</span> <span class="pre">&quot;m&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">time:</span> <span class="pre">&quot;s&quot;</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">speed:</span> <span class="pre">&quot;m/s&quot;</span></code> when present.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation_settings</span></code>: object with optional numeric
+<code class="docutils literal notranslate"><span class="pre">duration_seconds</span></code>, <code class="docutils literal notranslate"><span class="pre">buffer_time_seconds</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">recovery_time_percent</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">import_report</span></code>: array of conversion rows.</p></li>
+</ul>
+<p>Inside a bundle, <code class="docutils literal notranslate"><span class="pre">format</span></code> is the required string <code class="docutils literal notranslate"><span class="pre">&quot;egscene&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> is the required integer <code class="docutils literal notranslate"><span class="pre">1</span></code>. They are optional transport
+metadata for directory scenes and do not change the V1 data schema.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">import_report</span></code> row has <code class="docutils literal notranslate"><span class="pre">category</span></code>, <code class="docutils literal notranslate"><span class="pre">source_count</span></code>, <code class="docutils literal notranslate"><span class="pre">converted_count</span></code>,
+<code class="docutils literal notranslate"><span class="pre">skipped_count</span></code>, and <code class="docutils literal notranslate"><span class="pre">unresolved_references</span></code>; <code class="docutils literal notranslate"><span class="pre">source_file</span></code> is optional. The
+counts describe the conversion source, not simulation results.</p>
+<p>Counts, GUI switches, output paths, and network feature flags from legacy
+<a class="reference external" href="../api/class_initial_parameters.html"><code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code></a> are not V1 scene keys. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> stores the base
+time and the simulation settings in <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code> with the keys
+of <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, and the legacy import reads that file.</p>
+</section>
+<section id="infrastructure-json">
+<h2><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code><a class="headerlink" href="#infrastructure-json" title="Link to this heading">¶</a></h2>
+<p>The preferred root keys are <code class="docutils literal notranslate"><span class="pre">tracks</span></code>, <code class="docutils literal notranslate"><span class="pre">nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">arcs</span></code>, <code class="docutils literal notranslate"><span class="pre">blocks</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">connections</span></code>. <code class="docutils literal notranslate"><span class="pre">nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">arcs</span></code> are required arrays; the other arrays may be
+empty or omitted on input and are emitted by the writer.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tracks[]</span></code>: <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">&quot;id&quot;:</span> <span class="pre">string</span> <span class="pre">}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">x_km</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">y_km</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arcs[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code>, <code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">curvature_radius_m</span></code>,
+<code class="docutils literal notranslate"><span class="pre">gradient_percent</span></code>, and <code class="docutils literal notranslate"><span class="pre">speed_limit_ms</span></code>. The simulation uses
+<code class="docutils literal notranslate"><span class="pre">gradient_percent</span></code> unchanged as rise per length: <code class="docutils literal notranslate"><span class="pre">0.01</span></code> means a 1% slope.
+The key keeps its legacy spelling for compatibility. Loading, editing and
+saving do not rescale the value; the editor labels it “Gradient (rise/length)”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">blocks[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">length_km</span></code>. Block IDs cannot contain <code class="docutils literal notranslate"><span class="pre">/</span></code>,
+which is reserved as the separator in connection-derived section identities.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">connections[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code>, and optional numeric <code class="docutils literal notranslate"><span class="pre">speed_limit_ms</span></code>.</p></li>
+</ul>
+</section>
+<section id="stations-json">
+<h2><code class="docutils literal notranslate"><span class="pre">stations.json</span></code><a class="headerlink" href="#stations-json" title="Link to this heading">¶</a></h2>
+<p>The root key is <code class="docutils literal notranslate"><span class="pre">stations</span></code>. Each station has required string <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">name</span></code>,
+optional numeric <code class="docutils literal notranslate"><span class="pre">position_km</span></code>, and optional <code class="docutils literal notranslate"><span class="pre">platforms</span></code>. A platform has an
+<code class="docutils literal notranslate"><span class="pre">id</span></code>, an optional <code class="docutils literal notranslate"><span class="pre">nodes</span></code> array of node IDs, and optional positive finite
+<code class="docutils literal notranslate"><span class="pre">length_m</span></code> and <code class="docutils literal notranslate"><span class="pre">width_m</span></code> values. Missing dimensions retain the V1 compatibility
+defaults of 100 m by 2.5 m. The passenger runtime derives integer platform
+capacity from the effective dimensions and rejects values that produce less
+than one passenger or exceed its integer capacity field.</p>
+</section>
+<section id="signalling-json">
+<h2><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code><a class="headerlink" href="#signalling-json" title="Link to this heading">¶</a></h2>
+<p>Required root arrays are <code class="docutils literal notranslate"><span class="pre">signals</span></code> and <code class="docutils literal notranslate"><span class="pre">routes</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">signals[]</span></code>: required string <code class="docutils literal notranslate"><span class="pre">id</span></code> and optional string <code class="docutils literal notranslate"><span class="pre">protected_section</span></code>.
+<code class="docutils literal notranslate"><span class="pre">protected_section</span></code> names one exact derived runtime section (a base block
+alias is accepted for V1 compatibility); it is omitted when empty. Signal
+failures resolve through this binding, while direct base-block incident
+targets remain supported. A signal-failure target that matches both a signal
+ID and a section reference is ambiguous and invalid.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">routes[]</span></code>: required <code class="docutils literal notranslate"><span class="pre">id</span></code> and string-array <code class="docutils literal notranslate"><span class="pre">blocks</span></code>; optional string
+<code class="docutils literal notranslate"><span class="pre">corridor</span></code> and boolean <code class="docutils literal notranslate"><span class="pre">reversed</span></code>. A route runs in reverse when its sections
+are listed in reverse order. Validation reports <code class="docutils literal notranslate"><span class="pre">scene.route.direction</span></code> for a
+route marked <code class="docutils literal notranslate"><span class="pre">reversed</span></code> whose sections run forward.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">signalling_areas[]</span></code>: required <code class="docutils literal notranslate"><span class="pre">id</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">start_km</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">end_km</span></code>,
+and integer <code class="docutils literal notranslate"><span class="pre">level</span></code> from 0 through 5; optional <code class="docutils literal notranslate"><span class="pre">track</span></code> refers to a canonical
+track ID. The array is optional. The editor writes -99999999 as the level of an
+area whose system is not chosen yet; the loader reads the number and
+validation reports it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">block_dependencies[]</span></code>: <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">&quot;block&quot;:</span> <span class="pre">string,</span> <span class="pre">&quot;depends_on&quot;:</span> <span class="pre">string</span> <span class="pre">}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">single_track_restrictions[]</span></code>: preferred explicit
+<code class="docutils literal notranslate"><span class="pre">start_block</span></code>, <code class="docutils literal notranslate"><span class="pre">end_block</span></code>, <code class="docutils literal notranslate"><span class="pre">protected_start_block</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">protected_end_block</span></code>. See <a class="reference internal" href="#single-track-restrictions">Single-track restrictions</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">station_boundaries[]</span></code>: required <code class="docutils literal notranslate"><span class="pre">entrance_block</span></code>, optional <code class="docutils literal notranslate"><span class="pre">exit_block</span></code>,
+and optional boolean <code class="docutils literal notranslate"><span class="pre">direction</span></code>.</p></li>
+</ul>
+<p>A signalling area covers a native section only when the section’s complete
+coordinate span lies inside the area. The span is compared with the chainage of
+the section’s own track, and each edge has a tolerance of 1e-8 km. A section
+that an area edge cuts is not covered by that area. Network-wide areas are applied before
+track-scoped areas; a track-scoped value overrides the network-wide value.
+Either connected track matches a derived switch section. Different values at
+the same precedence tier that cover one section are invalid. The builder
+applies areas after base and switch sections exist and before routes copy them.
+A section with no matching area retains the unset signalling value. The loader
+and writer never create a default level. Runnable validation reports the route
+sections without a level in one <code class="docutils literal notranslate"><span class="pre">scene.signalling.level.missing</span></code> warning;
+sections that are on no route are not reported. When the scene has areas, the
+warning’s suggested fix lists the stretches of each track without a level and
+the areas next to each.</p>
+<p>Area diagnostics name the area and give the values behind them:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.range</span></code> (error): the message shows <code class="docutils literal notranslate"><span class="pre">start_km</span></code>, <code class="docutils literal notranslate"><span class="pre">end_km</span></code>
+and the extent of the blocks of the network or of the area’s track.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.level</span></code> (error): the message shows the level that lies
+outside 0 to 5. An area without a chosen system gets the message “has no
+signalling system” instead.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene.ref.unresolved</span></code> on <code class="docutils literal notranslate"><span class="pre">signalling_areas[].track</span></code> (error): the message
+names the unknown track and lists the tracks of the network.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.conflict</span></code> (error, runnable validation): one error for
+each pair of areas that give sections different levels, with the number of
+sections, the first one, its km range and the name of both levels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.splits_section</span></code> (warning, runnable validation): one
+warning for each area edge that lies inside a route section, naming the
+section and its km positions, because that section is not part of the area.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.empty</span></code> (warning, runnable validation): the area
+contains no complete section; the message shows the extent of the blocks.</p></li>
+</ul>
+<p>What each level does, and how signalling areas differ from block sections, is in
+<a class="reference internal" href="signalling-levels.html"><span class="std std-doc">Signalling levels</span></a>.</p>
+<p>Validation reports the arcs of a route that its trains cannot brake or start on
+in one <code class="docutils literal notranslate"><span class="pre">scene.route.gradient.steep</span></code> warning per route and composition that a
+service uses. The braking limit of a composition is
+<code class="docutils literal notranslate"><span class="pre">mass_factor</span> <span class="pre">*</span> <span class="pre">max_deceleration_ms2</span> <span class="pre">/</span> <span class="pre">g</span></code>, applied to descents. The starting
+limit is the tractive effort at 0 m/s divided by <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">*</span> <span class="pre">total_train_mass</span></code>,
+applied to ascents; other resistances are ignored. Both limits are in the unit
+of <code class="docutils literal notranslate"><span class="pre">gradient_percent</span></code>. A route driven in reverse sees the opposite sign of each
+stored value. The warning names the steepest arcs with their stored values. A
+route whose direction cannot be resolved is compared by absolute value with the
+smaller limit.</p>
+<p>Section references are resolved from the transient section inventory derived
+from the authored tracks, blocks, arcs, and connections. Route order is
+authored order. Adjacent sections must remain contiguous and keep one direction
+inside a connected region. Scenes carrying legacy-import provenance retain
+their historical jumps between different regional coordinate systems with a
+validation warning; newly authored scenes require a declared connection.
+Unknown or malformed
+compound section tokens are invalid. The inventory is not persisted as a
+second topology model.</p>
+<section id="single-track-restrictions">
+<h3>Single-track restrictions<a class="headerlink" href="#single-track-restrictions" title="Link to this heading">¶</a></h3>
+<p>A restriction holds a single-track stretch for one direction. <code class="docutils literal notranslate"><span class="pre">start_block</span></code> and
+<code class="docutils literal notranslate"><span class="pre">end_block</span></code> are the first and last plain sections of the stretch, in either order. <code class="docutils literal notranslate"><span class="pre">protected_start_block</span></code> and
+<code class="docutils literal notranslate"><span class="pre">protected_end_block</span></code> are the sections at its two ends where a passing loop
+joins it. The stretch consists of these four sections and every section between
+<code class="docutils literal notranslate"><span class="pre">start_block</span></code> and <code class="docutils literal notranslate"><span class="pre">end_block</span></code> on a route that contains both. A route is affected
+by the sections of the stretch that it contains.</p>
+<p>While a train is in the stretch, trains on routes of the opposite direction see
+all its sections as occupied and wait in front of it, at the loop if their route
+has one. Trains of the same direction are not held and follow under the normal
+signalling rules. The direction of a train follows the order of the sections of its
+route; the optional <code class="docutils literal notranslate"><span class="pre">reversed</span></code> flag has to agree.
+If trains of both directions are already inside, the previous holder keeps
+priority; without a previous holder, the forward direction wins. Pending
+reservations can keep the stretch held after the last occupant leaves.</p>
+<p>A free stretch is reserved before an approaching train’s next movement could
+consume its last opportunity to brake. The calculation uses the existing inverse
+braking curve and an upper bound on next-step speed from the train’s starting
+tractive effort, mass, resistances and current arc. It includes the approach
+speed targets of fixed-block signalling. A stationary train can ask when it could
+accelerate into this braking window. A due route entry asks without trajectory
+samples. One requesting direction reserves the stretch; simultaneous requests
+on a free stretch go to the forward direction. Occupied holders keep priority.</p>
+<p>Pending entries retain the reservation through slowing, dwell, breakdowns and
+other temporary stops. Same-direction followers can commit before their leader
+clears. Passage, termination, removal or a changed route, destination or entry
+identity cancels that owner’s reservation. A failed or non-finite braking lookup,
+or a braking point before the route origin, requests conservatively rather than
+assuming that the train can wait until later.</p>
+<p>At signalling levels 0 to 5 each route against the holder gets an end of authority
+at the end of the section before each signalled stretch on that route. If the
+stretch starts at the route origin, the authority is at that origin. The authority
+uses the existing direction filter, so the holder and same-direction followers
+ignore it. The opposing train stops and continues when the stretch is released.
+Fixed-block aspects remain in effect too. Without a signalling level the
+restriction does not keep opposing trains apart. A train that has to wait needs
+a route that gives it somewhere to wait outside the stretch, such as a loop.
+On a through route without a loop it stops on the track that the other train
+needs; a reservation prevents zone overlap but cannot create a passing place.</p>
+<p>A stub track is a track that trains enter and leave at one end. It has no loop at
+its closed end, so a restriction over a stub gives <code class="docutils literal notranslate"><span class="pre">protected_end_block</span></code> the same
+section as <code class="docutils literal notranslate"><span class="pre">end_block</span></code>. A section named in two roles is one section of the
+stretch. A train of the other direction waits at the entry of its route when the
+first section of its route lies in the held stretch, and in front of the stretch
+otherwise. The stretch is free again when the last train of the holding direction
+has left it. At level 0, without the restriction, trains of opposite directions
+on a stub pass through each other, or stand head to head until the end of the run
+when they meet at a block edge.</p>
+<p>Runnable validation reports each restriction whose start, end or protected
+blocks have no signalling level in one <code class="docutils literal notranslate"><span class="pre">scene.single_track.no_effect</span></code> warning.
+The warning names the restriction by its index in <code class="docutils literal notranslate"><span class="pre">single_track_restrictions</span></code>
+and lists the blocks that have no level.</p>
+</section>
+</section>
+<section id="rolling-stock-json">
+<h2><code class="docutils literal notranslate"><span class="pre">rolling_stock.json</span></code><a class="headerlink" href="#rolling-stock-json" title="Link to this heading">¶</a></h2>
+<p>Required root arrays are <code class="docutils literal notranslate"><span class="pre">train_units</span></code> and <code class="docutils literal notranslate"><span class="pre">compositions</span></code>.</p>
+<p>Each train unit has an <code class="docutils literal notranslate"><span class="pre">id</span></code> and may have:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">physical</span></code>: all nine numeric keys
+<code class="docutils literal notranslate"><span class="pre">mass_of_traction_unit_kg</span></code>, <code class="docutils literal notranslate"><span class="pre">mass_of_a_wagon_kg</span></code>, <code class="docutils literal notranslate"><span class="pre">number_of_wagons</span></code>,
+<code class="docutils literal notranslate"><span class="pre">max_speed_ms</span></code>, <code class="docutils literal notranslate"><span class="pre">max_deceleration_ms2</span></code>, <code class="docutils literal notranslate"><span class="pre">frontal_area_m2</span></code>,
+<code class="docutils literal notranslate"><span class="pre">resistance_coefficient</span></code>, <code class="docutils literal notranslate"><span class="pre">jerk_ms3</span></code>, and <code class="docutils literal notranslate"><span class="pre">length_m</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">traction_curve</span></code>: an array of five-number rows <code class="docutils literal notranslate"><span class="pre">[v_lower,</span> <span class="pre">v_upper,</span> <span class="pre">c0,</span> <span class="pre">c1,</span> <span class="pre">c2]</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: an object whose independent string keys are <code class="docutils literal notranslate"><span class="pre">data_file</span></code> and
+<code class="docutils literal notranslate"><span class="pre">traction_file</span></code>.</p></li>
+</ul>
+<p>The two source paths are explicit relationships. A <code class="docutils literal notranslate"><span class="pre">data_file</span></code> does not imply
+a matching name, prefix, or <code class="docutils literal notranslate"><span class="pre">T_</span></code> file; the same applies in the other direction.</p>
+<p>Each composition has <code class="docutils literal notranslate"><span class="pre">id</span></code> and a string-array <code class="docutils literal notranslate"><span class="pre">units</span></code> of train-unit IDs.</p>
+</section>
+<section id="services-json">
+<h2><code class="docutils literal notranslate"><span class="pre">services.json</span></code><a class="headerlink" href="#services-json" title="Link to this heading">¶</a></h2>
+<p>The root key is <code class="docutils literal notranslate"><span class="pre">services</span></code>. Each service has required <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">composition</span></code>,
+<code class="docutils literal notranslate"><span class="pre">route</span></code>, and <code class="docutils literal notranslate"><span class="pre">stops</span></code>. The ID is the unique cross-file reference and remains
+the stable service identity even when the service is repeated. <code class="docutils literal notranslate"><span class="pre">operating_code</span></code>
+is optional and defaults to the service ID; it may be shared by distinct
+services. Runtime occurrence identity is the pair
+<code class="docutils literal notranslate"><span class="pre">(service_id,</span> <span class="pre">occurrence)</span></code>, with a 1-based occurrence number, and its existing
+display key is <code class="docutils literal notranslate"><span class="pre">service_id-occurrence</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">category</span></code> is optional string metadata in schema V1. Missing or empty means no
+category; the writer omits empty values. The editor offers Intercity, Regional,
+High speed/international, Freight, Metro/urban and Suburban, and preserves
+unknown strings exactly. Category does not affect simulation or inferred train
+display types. Folder and bundle saves preserve it; legacy export omits it
+because the old format has no category field.</p>
+<p><code class="docutils literal notranslate"><span class="pre">visualization_color</span></code> is an optional string in schema V1 that sets a display
+colour for the service. The accepted form is <code class="docutils literal notranslate"><span class="pre">#RRGGBB</span></code>, with six hexadecimal
+digits in either case, for example <code class="docutils literal notranslate"><span class="pre">#3C8DD2</span></code>. The loader keeps the text as
+written. It is for display only and does not affect the simulation. The writer
+omits it when unset, so a scene without it is saved unchanged. Folder and
+bundle saves preserve it; legacy export omits it because the old format has
+no field for it. Any other non-empty text gives the validation warning
+<code class="docutils literal notranslate"><span class="pre">scene.service.color.invalid</span></code>, and the default train colour is used for that
+service.</p>
+<p>Optional runtime controls are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">performance_percent</span></code>: percentage, default <code class="docutils literal notranslate"><span class="pre">100.0</span></code>, finite range <code class="docutils literal notranslate"><span class="pre">1..100</span></code>.
+It scales available tractive effort and the commanded maximum speed, but not
+braking, mass, composition data, recovery, or buffer settings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code>: positive finite speed in km/h. It is a service cap and
+is applied as <code class="docutils literal notranslate"><span class="pre">min(composition</span> <span class="pre">max</span> <span class="pre">speed,</span> <span class="pre">service</span> <span class="pre">cap)</span></code> before performance
+scaling. The writer omits it when it is not configured.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entry_time_seconds</span></code>: finite non-negative seconds relative to the scene
+base-time origin. The historical boolean <code class="docutils literal notranslate"><span class="pre">through</span></code> remains readable and
+writable, but the stop list determines scheduled calls.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">repeat</span></code>: an object with positive finite <code class="docutils literal notranslate"><span class="pre">headway_seconds</span></code> in seconds. Its
+optional positive integer <code class="docutils literal notranslate"><span class="pre">count</span></code> is the total number of occurrences,
+including the base occurrence, and overrides the duration/headway horizon.
+When omitted, the horizon remains <code class="docutils literal notranslate"><span class="pre">ceil(duration_seconds</span> <span class="pre">/</span> <span class="pre">headway_seconds)</span></code>.
+Stop and entry offsets remain <code class="docutils literal notranslate"><span class="pre">(occurrence</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">*</span> <span class="pre">headway_seconds</span></code>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">repeat.operating_code_step</span></code> is optional, nonzero, and valid only when the
+base operating code is decimal digits. It adds the step for each occurrence
+(for example <code class="docutils literal notranslate"><span class="pre">1723</span></code>, <code class="docutils literal notranslate"><span class="pre">1725</span></code>, <code class="docutils literal notranslate"><span class="pre">1727</span></code> with step <code class="docutils literal notranslate"><span class="pre">2</span></code>). Invalid stepped input is
+rejected. Without a step, repeated services expose a readable
+<code class="docutils literal notranslate"><span class="pre">base-operating-code-occurrence</span></code> code. The canonical service ID never
+advances or changes. Run selection uses a set of <code class="docutils literal notranslate"><span class="pre">(service_id,</span> <span class="pre">occurrence)</span></code>
+identities; an empty set builds all occurrences, while a non-empty set must
+name occurrences inside each service’s horizon.</p>
+<p>Each stop has required string <code class="docutils literal notranslate"><span class="pre">station</span></code> and numeric <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code>, plus an
+optional string <code class="docutils literal notranslate"><span class="pre">platform</span></code>. The planned timetable keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code>: optional numeric planned arrival.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code>: optional numeric planned departure.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code>: required finite non-negative planned dwell in seconds.</p></li>
+</ul>
+<p>Arrival and departure are independently optional on every stop. There is no
+last-stop-only departure rule. Legacy timetable <code class="docutils literal notranslate"><span class="pre">-1</span></code> values are preserved as
+missing planned fields; the importer does not synthesize a value from the
+other field. Validation may warn when an intermediate schedule is incomplete.
+These are input plans in seconds relative to the scene’s base-time origin, not
+simulation results.</p>
+<p>A train stands at a stop for <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code>, counted from its arrival in steps
+of one second, and also until the planned departure of the stop when it has
+one. Boarding and alighting passengers can make the stop longer, never shorter:
+the stop lasts the passenger-dependent dwell when that is longer than
+<code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code>. The passenger-dependent dwell is 0 when nobody boards or
+alights, so a stop without passengers lasts exactly its planned dwell, in a
+scene without passengers as well. Otherwise it is a fixed time plus the time of
+the busiest door of the train. A door takes a boarding time and an alighting
+time, both counted per passenger, so a door that nobody uses takes no time
+(<a class="reference external" href="../api/class_train.html"><code class="docutils literal notranslate"><span class="pre">Train::computePaxDependentDwellTimeAtStations</span></code></a>, after Fernandez et al. 2007
+and Gibson et al. 1989).</p>
+<p>An empty <code class="docutils literal notranslate"><span class="pre">stops</span></code> array means no scheduled calls without requiring <code class="docutils literal notranslate"><span class="pre">through</span></code>.
+Nonempty stops take precedence over <code class="docutils literal notranslate"><span class="pre">through:</span> <span class="pre">true</span></code>. Legacy export writes the
+actual stops, or an empty timetable for no calls; legacy import marks an empty
+timetable as through.</p>
+<p>Planned route events must be finite, non-negative, ordered and no earlier than
+explicit entry. Departure before arrival blocks Run. Inert off-route context
+can retain finite historical negative offsets. Missing intermediate departures
+and dwell exceeding the arrival/departure window are advisory warnings, not
+physical running-time predictions.</p>
+</section>
+<section id="scenarios-json">
+<h2><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code><a class="headerlink" href="#scenarios-json" title="Link to this heading">¶</a></h2>
+<p>The preferred root keys are <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code> and <code class="docutils literal notranslate"><span class="pre">scenarios</span></code>. The default
+ID selects one named scenario. Each scenario has required <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">incidents</span></code> array; it may have <code class="docutils literal notranslate"><span class="pre">description</span></code> and <code class="docutils literal notranslate"><span class="pre">entrance_delays</span></code>.</p>
+<p>Each incident is concrete input with <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code> (<code class="docutils literal notranslate"><span class="pre">signal_failure</span></code> or
+<code class="docutils literal notranslate"><span class="pre">train_breakdown</span></code>), <code class="docutils literal notranslate"><span class="pre">target</span></code>, and finite non-negative <code class="docutils literal notranslate"><span class="pre">start_seconds</span></code>.
+<code class="docutils literal notranslate"><span class="pre">end_seconds</span></code> is explicitly optional in the JSON shape, but is required for
+signal failures and legacy full-hold breakdowns. A breakdown with
+<code class="docutils literal notranslate"><span class="pre">reduced_speed_kmh</span></code> may omit <code class="docutils literal notranslate"><span class="pre">end_seconds</span></code>; its positive finite speed cap then
+continues until the target reaches its normal route end. When present, an end
+is recovery time and the breakdown interval is <code class="docutils literal notranslate"><span class="pre">[start_seconds,</span> <span class="pre">end_seconds)</span></code>.
+The optional breakdown fields are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">occurrence</span></code>: positive 1-based service occurrence. When omitted, the
+breakdown targets every occurrence of the canonical <code class="docutils literal notranslate"><span class="pre">target</span></code> service.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reduced_speed_kmh</span></code>: positive finite effective-trajectory speed cap. It
+changes neither composition data nor the canonical service maximum.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">terminate_at_destination</span></code>: boolean request retained after recovery; the
+result is marked when that occurrence reaches its authored route end.</p></li>
+</ul>
+<p>The occurrence must be inside the service’s configured repeat range. Signal
+failures accept only the legacy target/start/end fields. An entrance delay has
+<code class="docutils literal notranslate"><span class="pre">service</span></code>, optional integer <code class="docutils literal notranslate"><span class="pre">occurrence</span></code>, <code class="docutils literal notranslate"><span class="pre">station</span></code>, and numeric
+<code class="docutils literal notranslate"><span class="pre">delay_seconds</span></code>.</p>
+<p>The four-column legacy <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code> exporter cannot represent an enhanced
+breakdown (occurrence, reduced speed, destination termination, or an omitted
+end), so it skips that row with a compatibility diagnostic instead of
+exporting full-hold semantics.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> is absent, loading creates a baseline scenario. A legacy
+<code class="docutils literal notranslate"><span class="pre">incidents.json</span></code> is read into that baseline for compatibility. Saving writes
+the scenario model to <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> and removes the stale flat file.</p>
+<section id="standalone-scenario-json">
+<h3>Standalone scenario JSON<a class="headerlink" href="#standalone-scenario-json" title="Link to this heading">¶</a></h3>
+<p>The scenario editor’s import/export boundary is one scenario object, not a
+scene bundle and not the <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> wrapper:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signal-failure"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Signal failure"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional notes"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"incidents"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"incident-1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signal_failure"</span><span class="p">,</span><span class="w"> </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signal-1"</span><span class="p">,</span>
+<span class="w">     </span><span class="nt">"start_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span><span class="w"> </span><span class="nt">"end_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">600</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"entrance_delays"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="s2">"service-1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"occurrence"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"station"</span><span class="p">:</span><span class="w"> </span><span class="s2">"station-1"</span><span class="p">,</span>
+<span class="w">     </span><span class="nt">"delay_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">description</span></code> and <code class="docutils literal notranslate"><span class="pre">entrance_delays</span></code> are optional; the other fields shown are
+the scenario-only contract. Infrastructure, services, rolling stock, and
+results are deliberately excluded. The same scenario serializer is used for
+the entries inside <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, so incident and entrance-delay values do
+not diverge between the two forms. The editor checks incident types/targets
+and entrance-delay references against the open scene before importing. A
+conflicting scenario or incident ID is never used as-is; the imported object
+is added with a reported unique ID.</p>
+<p>An occurrence-specific reduced-speed breakdown can instead be authored as:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"breakdown-2"</span><span class="p">,</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"train_breakdown"</span><span class="p">,</span><span class="w"> </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="s2">"service-1"</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">"start_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">900</span><span class="p">,</span><span class="w"> </span><span class="nt">"occurrence"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">"reduced_speed_kmh"</span><span class="p">:</span><span class="w"> </span><span class="mi">40</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">"terminate_at_destination"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="delay-comparison-provenance">
+<h3>Delay comparison provenance<a class="headerlink" href="#delay-comparison-provenance" title="Link to this heading">¶</a></h3>
+<p>The results UI can freeze a completed incident-free, no-entrance-delay run as
+the delay baseline, and the delay analysis window compares a later run with it.
+Baseline and scenario results are value snapshots, not runtime train pointers.
+The two runs must agree on scene revision, base time, duration, timestep and
+the selected <code class="docutils literal notranslate"><span class="pre">(service_id,</span> <span class="pre">occurrence)</span></code> identities. The window reports the
+difference and the recorded direct incident evidence, and never states a cause.
+The checks, formulas and limits are in
+<a class="reference internal" href="delay-analysis.html#delay-comparison-against-a-baseline"><span class="std std-ref">How delays are calculated</span></a>.
+The incident IDs, first direct time and location, and termination outcome of
+each train are in <code class="docutils literal notranslate"><span class="pre">run_summary.csv</span></code>.</p>
+</section>
+</section>
+<section id="passengers-json">
+<h2><code class="docutils literal notranslate"><span class="pre">passengers.json</span></code><a class="headerlink" href="#passengers-json" title="Link to this heading">¶</a></h2>
+<p>This file is optional. Its root key is <code class="docutils literal notranslate"><span class="pre">passengers</span></code>. Each passenger has <code class="docutils literal notranslate"><span class="pre">id</span></code>
+and <code class="docutils literal notranslate"><span class="pre">journeys</span></code>. A journey has <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>, <code class="docutils literal notranslate"><span class="pre">destination</span></code>, optional
+<code class="docutils literal notranslate"><span class="pre">activity</span></code>, required <code class="docutils literal notranslate"><span class="pre">planned_departure</span></code> and <code class="docutils literal notranslate"><span class="pre">planned_arrival</span></code> objects, and a
+<code class="docutils literal notranslate"><span class="pre">legs</span></code> array. Each time-window object uses numeric <code class="docutils literal notranslate"><span class="pre">start_seconds</span></code> and
+<code class="docutils literal notranslate"><span class="pre">end_seconds</span></code>, expressed as absolute seconds from midnight, not seconds from
+<code class="docutils literal notranslate"><span class="pre">base_time</span></code>. A journey with an empty activity is written without the <code class="docutils literal notranslate"><span class="pre">activity</span></code>
+key. Each leg has <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>, <code class="docutils literal notranslate"><span class="pre">destination</span></code>, <code class="docutils literal notranslate"><span class="pre">service</span></code>, and an optional
+integer <code class="docutils literal notranslate"><span class="pre">occurrence</span></code> that defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+<p>A leg’s destination must follow its origin in the referenced service’s stop
+order. Repeated stations use the first ordered matching pair. A non-empty run
+selection stages a passenger journey only when all of its legs are selected;
+it never constructs a partial journey. Legacy-import provenance downgrades a
+historical reverse leg to an actionable warning and native staging omits the
+whole affected journey.</p>
+<p>Journey and leg IDs are stable across the scene. A journey may have an empty
+<code class="docutils literal notranslate"><span class="pre">legs</span></code> array when the active legacy route-choice file has no row for it; this
+is reported as a warning rather than inventing a route.</p>
+<p>Random draws and simulation results are not scene input. The explicit legacy
+importer recognizes passenger data only when both exact source files
+<code class="docutils literal notranslate"><span class="pre">Passengers/DAS_FrenchCaseStudy.csv</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Passengers/RouteChoiceFC_EQ1.csv</span></code> exist. Once converted, the native runtime
+uses <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> and does not reopen those CSVs. The passenger editor can
+append records from the same exact file pair. Its transient result table reports
+accepted, unresolved, malformed, and ID-collision rows before the scene is saved.</p>
+</section>
+<section id="views-json-and-runtime-metadata">
+<h2><code class="docutils literal notranslate"><span class="pre">views.json</span></code> and runtime metadata<a class="headerlink" href="#views-json-and-runtime-metadata" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">views.json</span></code> is optional display metadata in directories and bundles. It does not change
+topology, signalling, services, or simulation results:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"tracks"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"B0"</span><span class="p">,</span><span class="w"> </span><span class="nt">"level"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"region"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"visible"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"stations"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"station"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Frederikssund"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"latitude"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"longitude"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0017</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"regions"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"position_km"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.17</span><span class="w"> </span><span class="p">}],</span>
+<span class="w">      </span><span class="nt">"corridors"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Track rows are visible by default. Set <code class="docutils literal notranslate"><span class="pre">visible</span></code> to <code class="docutils literal notranslate"><span class="pre">false</span></code> to keep infrastructure
+available to the simulation while omitting an authored inactive track from the preview.</p>
+<p>Track and station references must identify canonical objects. Levels are
+integers; region IDs are unique non-negative integers; coordinates and region
+positions are finite. Invalid rows are skipped with load warnings. The legacy
+importer creates this file from <code class="docutils literal notranslate"><span class="pre">GUI/caseStudyTrackData.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">GUI/unusedTracks.txt</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">GUI/StationsCoord.txt</span></code>. Directory saves and V2 bundles preserve it when present.</p>
+<p><code class="docutils literal notranslate"><span class="pre">loaded_data</span></code> and <code class="docutils literal notranslate"><span class="pre">sourceFiles</span></code> are derived in-memory metadata; they are
+recomputed when a scene is loaded and are not the source of canonical values.</p>
+</section>
+<section id="historical-compatibility-aliases">
+<h2>Historical compatibility aliases<a class="headerlink" href="#historical-compatibility-aliases" title="Link to this heading">¶</a></h2>
+<p>The loader accepts these old spellings or files when the preferred form is
+absent. New files should use the preferred form, which is what <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code>
+emits.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Historical form</p></th>
+<th class="head"><p>Preferred V1 form</p></th>
+<th class="head"><p>Compatibility behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>stop <code class="docutils literal notranslate"><span class="pre">arrival_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code></p></td>
+<td><p>accepted only when the preferred key is absent</p></td>
+</tr>
+<tr class="row-odd"><td><p>stop <code class="docutils literal notranslate"><span class="pre">departure_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code></p></td>
+<td><p>accepted only when the preferred key is absent</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">incidents.json</span></code></p></td>
+<td><p>scenario <code class="docutils literal notranslate"><span class="pre">incidents</span></code> in <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code></p></td>
+<td><p>loaded into an implicit baseline only when <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> is absent</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The old timetable names are compatibility aliases, not preferred examples or
+model terminology.</p>
+</section>
+<section id="validation-and-conversion">
+<h2>Validation and conversion<a class="headerlink" href="#validation-and-conversion" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">validateSceneStructure</span></code> checks files, JSON shape, required sections, and field
+types without cross-file reference checks. <code class="docutils literal notranslate"><span class="pre">validateScene</span></code> checks semantic
+relationships and values. <code class="docutils literal notranslate"><span class="pre">validateRunnableScene</span></code> checks the minimum complete
+model needed by a simulation. <code class="docutils literal notranslate"><span class="pre">validateSceneDirectory</span></code> loads and performs
+semantic validation; <code class="docutils literal notranslate"><span class="pre">validateRunnableSceneDirectory</span></code> adds runnable-completeness
+checks. Both stop after structural errors to avoid cascaded diagnostics.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> reads legacy <code class="docutils literal notranslate"><span class="pre">trainNames.txt</span></code> entries or enumerated train
+files. A legacy train definition has seven whitespace tokens in this order:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>operating_code entry_time_seconds headway_seconds route_index data_file traction_file timetable_file
+</pre></div>
+</div>
+<p>It maps the explicit physical, traction, and timetable relationships into the
+canonical files, imports numeric <code class="docutils literal notranslate"><span class="pre">Routes/Route&lt;N&gt;.txt</span></code> files as routes, reads
+stations from the legacy track-line station file, and reports skipped or
+unresolved values in <code class="docutils literal notranslate"><span class="pre">scene.json.import_report</span></code>. The importer writes the files
+with the encoders of <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code>, so an imported scene has the form of a saved
+one: <code class="docutils literal notranslate"><span class="pre">signalling_areas</span></code> is absent when the area sidecar lists no area. Import is
+an explicit boundary; the resulting scene must be validated and corrected before
+it is used when the report exposes ambiguous source relationships.</p>
+<p>The reverse exporter remains available for interoperability. It does not make
+legacy files authoritative, and the normal runtime never invokes it. Canonical
+scenario selection and passengers execute directly from <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a>.</p>
+</section>
+<section id="scene-directory">
+<h2>Scene directory<a class="headerlink" href="#scene-directory" title="Link to this heading">¶</a></h2>
+<p>The application loads the six required JSON files, accepts optional scenarios,
+passengers, display metadata in <code class="docutils literal notranslate"><span class="pre">views.json</span></code>, and historical
+compatibility aliases, and validates before a run. Infrastructure, signalling,
+rolling stock, services, the selected
+scenario, and passengers are built directly from <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> in memory.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>File</p></th>
+<th class="head"><p>Status</p></th>
+<th class="head"><p>Contents</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene.json</span></code></p></td>
+<td><p>required</p></td>
+<td><p>schema version, name, units, base time, simulation settings, import report</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></p></td>
+<td><p>required</p></td>
+<td><p>tracks, nodes, arcs, blocks, connections</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stations.json</span></code></p></td>
+<td><p>required</p></td>
+<td><p>stations, positions, platforms, platform nodes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+<td><p>required</p></td>
+<td><p>signals, routes, signalling areas, dependencies, restrictions, boundaries</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rolling_stock.json</span></code></p></td>
+<td><p>required</p></td>
+<td><p>physical/traction rolling stock units and compositions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">services.json</span></code></p></td>
+<td><p>required</p></td>
+<td><p>route/composition links and planned timetable stops</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code></p></td>
+<td><p>optional on load; always written</p></td>
+<td><p>default scenario, named scenarios, incidents, entrance delays</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">passengers.json</span></code></p></td>
+<td><p>optional</p></td>
+<td><p>journeys, absolute midnight-second windows, and legs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">views.json</span></code></p></td>
+<td><p>optional display metadata</p></td>
+<td><p>authored track levels/regions and station display geometry; preserved in folders and bundles</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Signalling areas in <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> give runtime sections their signalling
+level; see <a class="reference internal" href="signalling-levels.html"><span class="std std-doc">Signalling levels</span></a>.</p>
+<p>The writer emits preferred V1 keys. Stop plans use independently optional
+<code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code> and <code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code> on any stop, plus
+required <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code>. Legacy <code class="docutils literal notranslate"><span class="pre">-1</span></code> values remain omitted planned fields;
+they are not treated as results or filled by a last-stop rule. See <a class="reference internal" href="#editing-examples">Editing
+examples</a>.</p>
+<p>Scenario files use <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code>, named <code class="docutils literal notranslate"><span class="pre">scenarios</span></code>, concrete
+<code class="docutils literal notranslate"><span class="pre">incidents</span></code>, and <code class="docutils literal notranslate"><span class="pre">entrance_delays</span></code>. Passenger windows use absolute seconds
+from midnight. The complete key contract and historical aliases are in the
+sections above.</p>
+</section>
+<section id="links-between-records">
+<h2>Links between records<a class="headerlink" href="#links-between-records" title="Link to this heading">¶</a></h2>
+<p>Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
+links consistent:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>service.composition -&gt; rolling_stock.compositions[].id
+service.route       -&gt; signalling.routes[].id
+stop.station        -&gt; stations[].id
+stop.platform       -&gt; platform on that station
+scenario incident   -&gt; signal/block or service target as appropriate
+</pre></div>
+</div>
+</section>
+<section id="versions">
+<h2>Versions<a class="headerlink" href="#versions" title="Link to this heading">¶</a></h2>
+<p>Application version, scene schema version, and bundle version are independent.
+The saved-with application version is provenance and does not by itself prompt
+for an upgrade. An upgrade to a copy is offered only for a scene version that
+has a registered migration, and none exists today; when one is offered, the
+original directory or ZIP remains unchanged. Newer schema or bundle versions
+require a newer app. The compatibility boundary of the scene model in the
+developer documentation lists which scenes open.</p>
+</section>
+<section id="portable-bundles">
+<h2>Portable bundles<a class="headerlink" href="#portable-bundles" title="Link to this heading">¶</a></h2>
+<p>An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file packages the canonical JSON files of a scene in a deterministic ZIP archive.
+The bundle version describes the container; <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> still describes
+the canonical data. Bundles include <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, omit generated results
+and legacy input, and do not replace editable directory scenes.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> to pack, inspect, or unpack a bundle:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./build/scene_tool<span class="w"> </span>pack<span class="w"> </span>path/to/scene<span class="w"> </span>case-study.egscene
+./build/scene_tool<span class="w"> </span>validate<span class="w"> </span>case-study.egscene
+./build/scene_tool<span class="w"> </span>unpack<span class="w"> </span>case-study.egscene<span class="w"> </span>path/to/unpacked-scene
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</span></a> for the student
+workflow and <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">Scene bundle format</span></a> for the
+entry allowlist and size limits.</p>
+</section>
+<section id="convert-a-legacy-case">
+<h2>Convert a legacy case<a class="headerlink" href="#convert-a-legacy-case" title="Link to this heading">¶</a></h2>
+<p>Use the GUI’s <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Load</span> <span class="pre">Legacy</span> <span class="pre">Case...</span></code> or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code>. Select a
+separate destination; the importer never modifies the source. A legacy train
+definition is seven whitespace tokens:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>operating_code entry_time_seconds headway_seconds route_index data_file traction_file timetable_file
+</pre></div>
+</div>
+<p>The importer preserves those explicit physical, traction, and timetable
+relationships, retains the operating code separately from the unique canonical
+service ID, maps numeric <code class="docutils literal notranslate"><span class="pre">Routes/Route&lt;N&gt;.txt</span></code> files to routes, and reads
+stations from the track-line station file. It also preserves legacy
+<code class="docutils literal notranslate"><span class="pre">GUI/caseStudyTrackData.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">GUI/StationsCoord.txt</span></code> layout in <code class="docutils literal notranslate"><span class="pre">views.json</span></code>.
+It reports missing references,
+malformed rows, and preserved source anomalies in <code class="docutils literal notranslate"><span class="pre">scene.json.import_report</span></code>.
+In particular, a timetable
+sentinel of <code class="docutils literal notranslate"><span class="pre">-1</span></code> means the corresponding planned arrival or departure is
+absent; the importer neither synthesizes a result nor changes an inconsistent
+source time.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> is reported in <code class="docutils literal notranslate"><span class="pre">import_report</span></code> and in a
+warning, but its rows are not converted: add the signalling areas in
+Infrastructure &gt; Signalling area.</p>
+<p>Example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./build/scene_tool<span class="w"> </span>import<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>/path/to/legacy-case<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>/tmp/netherlands-v1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>Netherlands
+./build/scene_tool<span class="w"> </span>validate<span class="w"> </span>/tmp/netherlands-v1
+</pre></div>
+</div>
+<p>Inspect importer diagnostics before opening the result. Structural/import
+errors prevent a usable scene from being published; semantic diagnostics stay
+with the scene for repair.</p>
+</section>
+<section id="editing-examples">
+<h2>Editing examples<a class="headerlink" href="#editing-examples" title="Link to this heading">¶</a></h2>
+<p>Use these examples when editing a scene by hand. Keys are case-sensitive and the
+preferred spellings are the ones shown here. The complete type and validation
+reference is in the sections above.</p>
+<section id="id1">
+<h3><code class="docutils literal notranslate"><span class="pre">scene.json</span></code><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"schema_version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Example"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"base_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"08:00:00"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"units"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"distance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"m"</span><span class="p">,</span><span class="w"> </span><span class="nt">"time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"s"</span><span class="p">,</span><span class="w"> </span><span class="nt">"speed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"m/s"</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"simulation_settings"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"duration_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">3600</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"buffer_time_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"recovery_time_percent"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> are required. <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">base_time</span></code>,
+<code class="docutils literal notranslate"><span class="pre">units</span></code>, and <code class="docutils literal notranslate"><span class="pre">simulation_settings</span></code> are optional. An <code class="docutils literal notranslate"><span class="pre">import_report</span></code> array
+records conversion rows with <code class="docutils literal notranslate"><span class="pre">category</span></code>, optional <code class="docutils literal notranslate"><span class="pre">source_file</span></code>,
+<code class="docutils literal notranslate"><span class="pre">source_count</span></code>, <code class="docutils literal notranslate"><span class="pre">converted_count</span></code>, <code class="docutils literal notranslate"><span class="pre">skipped_count</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">unresolved_references</span></code>.</p>
+<p>The four simulation settings above are the scene-level timing controls.
+Legacy counts, GUI/output/network flags, and output paths do not belong here.</p>
+</section>
+<section id="infrastructure-and-stations">
+<h3>Infrastructure and stations<a class="headerlink" href="#infrastructure-and-stations" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code> uses these preferred arrays:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"tracks"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"track.1"</span><span class="p">}],</span>
+<span class="w">  </span><span class="nt">"nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"track.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"x_km"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"y_km"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}],</span>
+<span class="w">  </span><span class="nt">"arcs"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"arc.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"track.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node.2"</span><span class="p">,</span><span class="w"> </span><span class="nt">"curvature_radius_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"gradient_percent"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"speed_limit_ms"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">}],</span>
+<span class="w">  </span><span class="nt">"blocks"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"block.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"track.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"length_km"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">}],</span>
+<span class="w">  </span><span class="nt">"connections"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"connection.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node.2"</span><span class="p">,</span><span class="w"> </span><span class="nt">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node.3"</span><span class="p">,</span><span class="w"> </span><span class="nt">"speed_limit_ms"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">arcs</span></code> are required arrays. <code class="docutils literal notranslate"><span class="pre">tracks</span></code>, <code class="docutils literal notranslate"><span class="pre">blocks</span></code>, and <code class="docutils literal notranslate"><span class="pre">connections</span></code>
+may be empty or omitted on input. A station has <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, optional
+<code class="docutils literal notranslate"><span class="pre">position_km</span></code>, and optional <code class="docutils literal notranslate"><span class="pre">platforms</span></code>; each platform has <code class="docutils literal notranslate"><span class="pre">id</span></code> and a <code class="docutils literal notranslate"><span class="pre">nodes</span></code>
+array of node IDs. Optional positive finite <code class="docutils literal notranslate"><span class="pre">length_m</span></code> and <code class="docutils literal notranslate"><span class="pre">width_m</span></code> values
+control passenger capacity. When either key is absent, its effective value is
+100 m or 2.5 m respectively, preserving existing scenes.</p>
+<p>Block IDs cannot contain <code class="docutils literal notranslate"><span class="pre">/</span></code>. The section catalog reserves that character for
+connection-derived section identities and reports existing conflicting IDs as
+validation errors without preventing the scene from loading.</p>
+</section>
+<section id="signalling">
+<h3>Signalling<a class="headerlink" href="#signalling" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> requires <code class="docutils literal notranslate"><span class="pre">signals</span></code> and <code class="docutils literal notranslate"><span class="pre">routes</span></code> arrays. A signal has <code class="docutils literal notranslate"><span class="pre">id</span></code>
+and may have <code class="docutils literal notranslate"><span class="pre">protected_section</span></code>, an exact section-catalog reference used to
+resolve signal-failure incidents. Empty bindings are omitted by the writer;
+an unbound signal is actionable validation output when used by an incident.
+A direct base-block incident target remains compatible; a target matching both
+a signal and section is rejected as ambiguous. A route has <code class="docutils literal notranslate"><span class="pre">id</span></code>, a
+string-array <code class="docutils literal notranslate"><span class="pre">blocks</span></code>, and optional <code class="docutils literal notranslate"><span class="pre">corridor</span></code> and <code class="docutils literal notranslate"><span class="pre">reversed</span></code>; its block tokens
+are authored in forward or reverse order and are never silently sorted.
+Validation reports <code class="docutils literal notranslate"><span class="pre">scene.route.direction</span></code> for a route marked <code class="docutils literal notranslate"><span class="pre">reversed</span></code> whose
+sections run forward.
+Continuity is required inside one connected region. A scene with legacy-import
+provenance retains historical cross-region coordinate jumps with a warning;
+newly authored scenes require a declared connection. Compound tokens must be
+exact derived section IDs.</p>
+<p>Use these optional arrays for explicit signalling relationships:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">signalling_areas</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">start_km</span></code>, numeric <code class="docutils literal notranslate"><span class="pre">end_km</span></code>, integer
+<code class="docutils literal notranslate"><span class="pre">level</span></code> from 0 through 5, and optional canonical <code class="docutils literal notranslate"><span class="pre">track</span></code>. A section must fit
+completely inside the area; a section that an area edge cuts is not covered.
+Track-scoped areas override network-wide areas; missing coverage remains unset,
+and Run review warns when a route section has no level. See
+<a class="reference internal" href="signalling-levels.html"><span class="std std-doc">Signalling levels</span></a> for what each level
+does.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">block_dependencies</span></code>: <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">&quot;block&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;depends_on&quot;:</span> <span class="pre">&quot;...&quot;</span> <span class="pre">}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">single_track_restrictions</span></code>: <code class="docutils literal notranslate"><span class="pre">start_block</span></code>, <code class="docutils literal notranslate"><span class="pre">end_block</span></code>,
+<code class="docutils literal notranslate"><span class="pre">protected_start_block</span></code>, and <code class="docutils literal notranslate"><span class="pre">protected_end_block</span></code>. While a train is in the
+stretch, trains of the opposite direction wait in front of it. This needs a
+signalling level; see
+<a class="reference internal" href="#single-track-restrictions">Single-track restrictions</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">station_boundaries</span></code>: <code class="docutils literal notranslate"><span class="pre">entrance_block</span></code>, optional <code class="docutils literal notranslate"><span class="pre">exit_block</span></code>, and optional
+boolean <code class="docutils literal notranslate"><span class="pre">direction</span></code>.</p></li>
+</ul>
+<p>Signals, dependencies, virtual signals, and track-detection sections used by
+the current simulator are not interchangeable: derived runtime topology is
+documented in the <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a>.</p>
+</section>
+<section id="rolling-stock">
+<h3>Rolling stock<a class="headerlink" href="#rolling-stock" title="Link to this heading">¶</a></h3>
+<p>Each <code class="docutils literal notranslate"><span class="pre">train_units[]</span></code> item has an <code class="docutils literal notranslate"><span class="pre">id</span></code> and may have <code class="docutils literal notranslate"><span class="pre">physical</span></code>,
+<code class="docutils literal notranslate"><span class="pre">traction_curve</span></code>, and <code class="docutils literal notranslate"><span class="pre">source</span></code>. <code class="docutils literal notranslate"><span class="pre">physical</span></code> uses the exact nine keys:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>mass_of_traction_unit_kg, mass_of_a_wagon_kg, number_of_wagons,
+max_speed_ms, max_deceleration_ms2, frontal_area_m2,
+resistance_coefficient, jerk_ms3, length_m
+</pre></div>
+</div>
+<p>Each traction row is <code class="docutils literal notranslate"><span class="pre">[v_lower,</span> <span class="pre">v_upper,</span> <span class="pre">c0,</span> <span class="pre">c1,</span> <span class="pre">c2]</span></code>. <code class="docutils literal notranslate"><span class="pre">source</span></code> contains the
+independent optional paths <code class="docutils literal notranslate"><span class="pre">data_file</span></code> and <code class="docutils literal notranslate"><span class="pre">traction_file</span></code>; do not infer a
+traction path from <code class="docutils literal notranslate"><span class="pre">LITRA</span></code>, <code class="docutils literal notranslate"><span class="pre">T_</span></code>, or any other filename convention.</p>
+<p>The rolling stock editor refuses a number outside the hard limit of its field.
+Validation warns about a number outside the warning bound
+(<code class="docutils literal notranslate"><span class="pre">scene.train.value.implausible</span></code>, one warning for each number; it does not block
+Run). A file that holds a number beyond a hard limit keeps it: the editor shows
+the nearest limit and leaves the stored number as it is until you type another
+one. The limits guard against nonsense input and are not data of a vehicle.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Hard limit</p></th>
+<th class="head"><p>Warning bound</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mass_of_traction_unit_kg</span></code></p></td>
+<td><p>kg</p></td>
+<td><p>0 to 5e6</p></td>
+<td><p>0 to 5e5</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mass_of_a_wagon_kg</span></code></p></td>
+<td><p>kg</p></td>
+<td><p>0 to 1e6</p></td>
+<td><p>0 to 2e5</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">number_of_wagons</span></code></p></td>
+<td><p>wagons</p></td>
+<td><p>0 to 1000</p></td>
+<td><p>0 to 200</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_speed_ms</span></code></p></td>
+<td><p>m/s</p></td>
+<td><p>0 to 200</p></td>
+<td><p>0 to 120</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_deceleration_ms2</span></code></p></td>
+<td><p>m/s²</p></td>
+<td><p>0 to 10</p></td>
+<td><p>0 to 3</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">frontal_area_m2</span></code></p></td>
+<td><p>m²</p></td>
+<td><p>0 to 1000</p></td>
+<td><p>0 to 50</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">resistance_coefficient</span></code></p></td>
+<td><p>per km/h</p></td>
+<td><p>0 to 1</p></td>
+<td><p>0 to 0.1</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">jerk_ms3</span></code></p></td>
+<td><p>m/s³</p></td>
+<td><p>0 to 100</p></td>
+<td><p>0 to 10</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">length_m</span></code></p></td>
+<td><p>m</p></td>
+<td><p>0 to 3000</p></td>
+<td><p>0 to 1500</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">v_lower</span></code>, <code class="docutils literal notranslate"><span class="pre">v_upper</span></code></p></td>
+<td><p>m/s</p></td>
+<td><p>0 to 200</p></td>
+<td><p>0 to 120</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">c0</span></code></p></td>
+<td><p>N</p></td>
+<td><p>-1e9 to 1e9</p></td>
+<td><p>-5e6 to 5e6</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">c1</span></code></p></td>
+<td><p>N s/m</p></td>
+<td><p>-1e9 to 1e9</p></td>
+<td><p>-1e6 to 1e6</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">c2</span></code></p></td>
+<td><p>N s²/m²</p></td>
+<td><p>-1e9 to 1e9</p></td>
+<td><p>-5e6 to 5e6</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The editor and the validator read the same table, in <code class="docutils literal notranslate"><span class="pre">scene/SceneFields.h</span></code>.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">compositions[]</span></code> item has an <code class="docutils literal notranslate"><span class="pre">id</span></code> and a non-empty <code class="docutils literal notranslate"><span class="pre">units</span></code> array of train
+unit IDs. Services refer to the composition ID, not directly to a source file.</p>
+</section>
+<section id="services-and-planned-timetable">
+<h3>Services and planned timetable<a class="headerlink" href="#services-and-planned-timetable" title="Link to this heading">¶</a></h3>
+<p>The root of <code class="docutils literal notranslate"><span class="pre">services.json</span></code> is <code class="docutils literal notranslate"><span class="pre">services</span></code>. A service requires <code class="docutils literal notranslate"><span class="pre">id</span></code>,
+<code class="docutils literal notranslate"><span class="pre">composition</span></code>, <code class="docutils literal notranslate"><span class="pre">route</span></code>, and <code class="docutils literal notranslate"><span class="pre">stops</span></code>. Optional service properties are
+<code class="docutils literal notranslate"><span class="pre">operating_code</span></code>, <code class="docutils literal notranslate"><span class="pre">performance_percent</span></code>, <code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code>, <code class="docutils literal notranslate"><span class="pre">through</span></code>,
+<code class="docutils literal notranslate"><span class="pre">entry_time_seconds</span></code>, and <code class="docutils literal notranslate"><span class="pre">repeat</span></code>. <code class="docutils literal notranslate"><span class="pre">id</span></code> is the unique canonical reference;
+each occurrence is identified by <code class="docutils literal notranslate"><span class="pre">(service</span> <span class="pre">id,</span> <span class="pre">occurrence)</span></code> with occurrence
+numbered from 1. <code class="docutils literal notranslate"><span class="pre">operating_code</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">id</span></code> and may be shared by
+distinct services. The existing runtime train key remains <code class="docutils literal notranslate"><span class="pre">service-id-occurrence</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">performance_percent</span></code> is a finite percentage from <code class="docutils literal notranslate"><span class="pre">1</span></code> through <code class="docutils literal notranslate"><span class="pre">100</span></code>, default
+<code class="docutils literal notranslate"><span class="pre">100.0</span></code>. It scales tractive effort and the commanded maximum speed exactly
+once; it does not scale braking, mass, shared composition data, buffer, or
+recovery. <code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code>, when present, is a positive finite cap in km/h.
+The native speed precedence is:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>min(composition maximum speed, maximum_speed_kmh if present)
+    * performance_percent / 100
+</pre></div>
+</div>
+<p>The 100% case uses the unchanged raw force/speed path. A repeat requires a
+positive finite <code class="docutils literal notranslate"><span class="pre">headway_seconds</span></code> in seconds. Optional <code class="docutils literal notranslate"><span class="pre">repeat.count</span></code> is a
+positive integer total occurrence count, including the base; it overrides
+<code class="docutils literal notranslate"><span class="pre">ceil(duration_seconds</span> <span class="pre">/</span> <span class="pre">headway_seconds)</span></code>. If omitted, that ceiling remains
+the horizon. Entry and stop times are offset by
+<code class="docutils literal notranslate"><span class="pre">(occurrence</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">*</span> <span class="pre">headway_seconds</span></code>.</p>
+<p>Optional <code class="docutils literal notranslate"><span class="pre">repeat.operating_code_step</span></code> must be nonzero and requires a decimal
+base operating code. A base <code class="docutils literal notranslate"><span class="pre">1723</span></code> with step <code class="docutils literal notranslate"><span class="pre">2</span></code> therefore exposes <code class="docutils literal notranslate"><span class="pre">1723</span></code>,
+<code class="docutils literal notranslate"><span class="pre">1725</span></code>, <code class="docutils literal notranslate"><span class="pre">1727</span></code>; without a step, a repeat exposes a readable base-plus-
+occurrence code. The canonical service ID never advances. A non-empty
+<code class="docutils literal notranslate"><span class="pre">SceneRunSelection</span></code> builds only the listed service/occurrence identities and
+skips excluded delays and any passenger journey that is not fully covered;
+an empty selection builds all.
+Selections must refer to occurrences inside the service horizon.</p>
+<p>The legacy importer retains the first token of each <code class="docutils literal notranslate"><span class="pre">Trains</span></code> definition here
+instead of changing it when duplicate canonical IDs need a suffix. A legacy
+train breakdown targeting a shared code is expanded to each matching service
+because the current runtime applies that prefix to every matching train; import
+reports the expansion.</p>
+<p>Each stop requires <code class="docutils literal notranslate"><span class="pre">station</span></code> and <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code>; <code class="docutils literal notranslate"><span class="pre">platform</span></code> is optional. The
+preferred planned-time keys are independently optional on every stop:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"station"</span><span class="p">:</span><span class="w"> </span><span class="s2">"station.1"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"planned_arrival_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"planned_departure_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">180</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"dwell_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The values are planned seconds relative to the scene base-time origin. A stop
+may omit arrival, departure, either one, or both. Legacy timetable <code class="docutils literal notranslate"><span class="pre">-1</span></code>
+values are imported as absent fields; the importer does not synthesize or
+raise a value. Validation may warn about an incomplete intermediate schedule.
+These fields are input plans, never simulation results. A service with no
+stops may be marked <code class="docutils literal notranslate"><span class="pre">through:</span> <span class="pre">true</span></code>; a repeated service uses a positive
+<code class="docutils literal notranslate"><span class="pre">repeat.headway_seconds</span></code>.</p>
+</section>
+<section id="scenarios">
+<h3>Scenarios<a class="headerlink" href="#scenarios" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> uses the preferred root keys <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code> and
+<code class="docutils literal notranslate"><span class="pre">scenarios</span></code>:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"default_scenario_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"baseline"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"scenarios"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"baseline"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Baseline"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"incidents"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">      </span><span class="nt">"entrance_delays"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"failure-1"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Signal failure"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"incidents"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"inc.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signal_failure"</span><span class="p">,</span><span class="w"> </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signal.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"start_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">300</span><span class="p">,</span><span class="w"> </span><span class="nt">"end_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">900</span><span class="p">}],</span>
+<span class="w">      </span><span class="nt">"entrance_delays"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="s2">"service.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"occurrence"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"station"</span><span class="p">:</span><span class="w"> </span><span class="s2">"station.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"delay_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">}]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>An incident is concrete input with <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">target</span></code>, and finite
+non-negative <code class="docutils literal notranslate"><span class="pre">start_seconds</span></code>. Valid types are <code class="docutils literal notranslate"><span class="pre">signal_failure</span></code> and
+<code class="docutils literal notranslate"><span class="pre">train_breakdown</span></code>. Signal failures require <code class="docutils literal notranslate"><span class="pre">end_seconds</span></code>; the interval is
+start-inclusive and end-inclusive for compatibility. Legacy full-hold
+breakdowns also require an end, with <code class="docutils literal notranslate"><span class="pre">[start_seconds,</span> <span class="pre">end_seconds)</span></code> semantics.
+A reduced-speed breakdown may omit <code class="docutils literal notranslate"><span class="pre">end_seconds</span></code>, in which case its cap lasts
+until the targeted occurrence reaches its normal route end. When present,
+<code class="docutils literal notranslate"><span class="pre">end_seconds</span></code> is recovery time.</p>
+<p>Breakdown-only optional fields are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">occurrence</span></code>: positive 1-based occurrence of the target service. Omit it to
+target every occurrence; a configured occurrence must be within the service
+repeat range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reduced_speed_kmh</span></code>: positive finite cap on the matched occurrence’s
+effective trajectory speed. It does not mutate composition or service
+maximum-speed data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">terminate_at_destination</span></code>: retain a destination-termination request after
+recovery and report whether the occurrence reached its normal route end.</p></li>
+</ul>
+<p>Signal failures reject these breakdown-only fields. The four-column legacy
+<code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code> export skips enhanced breakdowns and emits a compatibility
+diagnostic because it cannot encode occurrence, cap, recovery omission, or
+termination semantics.</p>
+<p>If no scenario file is supplied, the loader creates a baseline; the historical
+flat incident file is read into that baseline.</p>
+<p>The current results UI can freeze an incident-free, no-entrance-delay run with
+<strong>Set delay baseline</strong>. A comparison run may have incidents, entrance delays,
+or both. The delay analysis window reports the difference from the baseline and
+the recorded direct incident evidence, and never states a cause. The matching
+rules and the figures are in
+<a class="reference internal" href="delay-analysis.html#delay-comparison-against-a-baseline"><span class="std std-ref">How delays are calculated</span></a>.</p>
+</section>
+<section id="passengers">
+<h3>Passengers<a class="headerlink" href="#passengers" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> is optional. Its root is <code class="docutils literal notranslate"><span class="pre">passengers</span></code>; each passenger has
+<code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">journeys</span></code>. A journey uses <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>, <code class="docutils literal notranslate"><span class="pre">destination</span></code>, optional
+<code class="docutils literal notranslate"><span class="pre">activity</span></code>, required <code class="docutils literal notranslate"><span class="pre">planned_departure</span></code> and <code class="docutils literal notranslate"><span class="pre">planned_arrival</span></code> windows, and
+<code class="docutils literal notranslate"><span class="pre">legs</span></code>. Each window contains <code class="docutils literal notranslate"><span class="pre">start_seconds</span></code> and <code class="docutils literal notranslate"><span class="pre">end_seconds</span></code> as absolute
+seconds from midnight. Each leg has <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>, <code class="docutils literal notranslate"><span class="pre">destination</span></code>, <code class="docutils literal notranslate"><span class="pre">service</span></code>,
+and optional <code class="docutils literal notranslate"><span class="pre">occurrence</span></code> (default <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p>
+<p>For each leg, the destination must occur after the origin in the referenced
+service’s ordered stop pattern. Repeated stations are resolved as the first
+ordered pair that satisfies that rule. Legacy-import scenes retain an invalid
+historical leg as a warning, but native staging omits that whole journey.</p>
+<p>Journey and leg IDs are scene-wide stable IDs. An empty <code class="docutils literal notranslate"><span class="pre">legs</span></code> array preserves
+a DAS journey for which the legacy route-choice input has no matching row; the
+validator warns instead of guessing a route.</p>
+<p>Passenger JSON is native runtime input. The explicit legacy importer recognizes
+DAS and RouteChoice only when both exact files exist:
+<code class="docutils literal notranslate"><span class="pre">Passengers/DAS_FrenchCaseStudy.csv</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Passengers/RouteChoiceFC_EQ1.csv</span></code>. After conversion the runtime reads the
+canonical journeys and legs; random draws and generated passenger results are
+not scene input. The Passengers dock supports passenger, journey, and ordered-leg
+editing. Its Import action appends non-colliding passenger IDs from that same
+file pair and keeps unresolved references visible for correction or deletion.</p>
+</section>
+<section id="compatibility-aliases">
+<h3>Compatibility aliases<a class="headerlink" href="#compatibility-aliases" title="Link to this heading">¶</a></h3>
+<p>The loader accepts these historical forms when the preferred key is absent;
+<code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code> emits the preferred form:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Historical form</p></th>
+<th class="head"><p>Preferred form</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>stop <code class="docutils literal notranslate"><span class="pre">arrival_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>stop <code class="docutils literal notranslate"><span class="pre">departure_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>optional <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code></p></td>
+<td><p>scenario incidents in <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="save-load-and-run">
+<h3>Save, load, and run<a class="headerlink" href="#save-load-and-run" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">Scene</span></code> writes the canonical files and removes stale flat incident data.
+<code class="docutils literal notranslate"><span class="pre">loaded_data</span></code> is runtime metadata, not an editable source section. <code class="docutils literal notranslate"><span class="pre">views.json</span></code>
+is display-only.</p>
+<p>The editor and simulator use canonical data directly. <code class="docutils literal notranslate"><span class="pre">legacy/</span></code> is not a V1
+scene requirement; import and export are explicit interoperability actions.</p>
+<p>Use the three validation layers before running:</p>
+<ol class="arabic simple">
+<li><p>structural shape (<code class="docutils literal notranslate"><span class="pre">validateSceneStructure</span></code>),</p></li>
+<li><p>semantic references and values (<code class="docutils literal notranslate"><span class="pre">validateScene</span></code>),</p></li>
+<li><p>runnable completeness (<code class="docutils literal notranslate"><span class="pre">validateRunnableScene</span></code>).</p></li>
+</ol>
+<p>See the sections above for the exact file
+contract and <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">V1 migration matrix</span></a> for the
+legacy consumers and derived/output families.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="scene-bundle.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">V2 Transparent Scene Bundle</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="scenarios.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Scenarios and the student loop</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">V1 Scene Schema Reference</a><ul>
+<li><a class="reference internal" href="#version-and-files">Version and files</a></li>
+<li><a class="reference internal" href="#scene-json"><code class="docutils literal notranslate"><span class="pre">scene.json</span></code></a></li>
+<li><a class="reference internal" href="#infrastructure-json"><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></a></li>
+<li><a class="reference internal" href="#stations-json"><code class="docutils literal notranslate"><span class="pre">stations.json</span></code></a></li>
+<li><a class="reference internal" href="#signalling-json"><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></a><ul>
+<li><a class="reference internal" href="#single-track-restrictions">Single-track restrictions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rolling-stock-json"><code class="docutils literal notranslate"><span class="pre">rolling_stock.json</span></code></a></li>
+<li><a class="reference internal" href="#services-json"><code class="docutils literal notranslate"><span class="pre">services.json</span></code></a></li>
+<li><a class="reference internal" href="#scenarios-json"><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code></a><ul>
+<li><a class="reference internal" href="#standalone-scenario-json">Standalone scenario JSON</a></li>
+<li><a class="reference internal" href="#delay-comparison-provenance">Delay comparison provenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#passengers-json"><code class="docutils literal notranslate"><span class="pre">passengers.json</span></code></a></li>
+<li><a class="reference internal" href="#views-json-and-runtime-metadata"><code class="docutils literal notranslate"><span class="pre">views.json</span></code> and runtime metadata</a></li>
+<li><a class="reference internal" href="#historical-compatibility-aliases">Historical compatibility aliases</a></li>
+<li><a class="reference internal" href="#validation-and-conversion">Validation and conversion</a></li>
+<li><a class="reference internal" href="#scene-directory">Scene directory</a></li>
+<li><a class="reference internal" href="#links-between-records">Links between records</a></li>
+<li><a class="reference internal" href="#versions">Versions</a></li>
+<li><a class="reference internal" href="#portable-bundles">Portable bundles</a></li>
+<li><a class="reference internal" href="#convert-a-legacy-case">Convert a legacy case</a></li>
+<li><a class="reference internal" href="#editing-examples">Editing examples</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">scene.json</span></code></a></li>
+<li><a class="reference internal" href="#infrastructure-and-stations">Infrastructure and stations</a></li>
+<li><a class="reference internal" href="#signalling">Signalling</a></li>
+<li><a class="reference internal" href="#rolling-stock">Rolling stock</a></li>
+<li><a class="reference internal" href="#services-and-planned-timetable">Services and planned timetable</a></li>
+<li><a class="reference internal" href="#scenarios">Scenarios</a></li>
+<li><a class="reference internal" href="#passengers">Passengers</a></li>
+<li><a class="reference internal" href="#compatibility-aliases">Compatibility aliases</a></li>
+<li><a class="reference internal" href="#save-load-and-run">Save, load, and run</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

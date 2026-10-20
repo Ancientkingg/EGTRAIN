@@ -16,7 +16,7 @@ The [glossary](glossary.md) defines the other words of the program.
 
 ## 1. Install and start
 
-Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). The [README](../../README.md#quick-start) has the steps for each system, including what to do when macOS or Windows warns before the first start.
+Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). [Installing EGTRAIN](install.md) has the steps for each system, including what to do when macOS or Windows warns before the first start.
 
 - macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case Study...**: in column view the file dialog then lists your home folder.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
@@ -84,7 +84,7 @@ The dock **Run Results** names the run in its title and in the lines at its top,
 
 To open a result window, click **Open result view...** in the dock and choose an entry, or use the menu **Diagrams**. Two to try first:
 
-- **Speed / distance** (**Diagrams > Speed / distance**) plots the speed of each train against the distance it covered. Hover a line to read a value, click a line to select its train, and drag a rectangle to zoom. [Inspecting diagrams](../ui/diagram-navigation.md) describes the controls.
+- **Speed / distance** (**Diagrams > Speed / distance**) plots the speed of each train against the distance it covered. Hover a line to read a value, click a line to select its train, and drag a rectangle to zoom. [Inspecting diagrams](diagram-navigation.md) describes the controls.
 - **Timetable** (**Diagrams > Timetable**) lists each stop of each train with its planned and simulated arrival and departure and the delays.
 
 The other entries are listed in [How-to](how-to.md#results-and-exports). The entries stay disabled until a run has ended.
@@ -116,11 +116,18 @@ The Windows entry follows the rule of Qt for the application data folder. **File
 
 - **Run is disabled.** No case is open, a run is active, or validation reports an error. Open **View > Scene Validation** and read the first error. [How-to](how-to.md#why-a-command-is-disabled) lists the reasons for the other disabled commands.
 - **Cannot Run Scene.** The message names the problem: validation errors, or no selected service occurrence.
-- **Cannot Open Case Study.** The file is damaged or is not an EGTRAIN case. Keep the message, and download the file again. [Opening an `.egscene` case study](opening-a-case-study.md#open-and-run) lists the other dialogs for a scene that does not open.
+- **Cannot Open Case Study.** The file is damaged or is not an EGTRAIN case. Keep the message, and download the file again. [Opening an `.egscene` case study](opening-a-case-study.md#scenes-that-do-not-open) lists the other dialogs for a scene that does not open.
 - **Unsaved Scene.** Before EGTRAIN replaces a case that has unsaved edits, it asks **Save**, **Discard** or **Cancel**. On macOS this is a sheet without a title, and the buttons are **Save**, **Cancel** and **Don't Save**. **Cancel** keeps the case and its edits. For an installed example case, **Save** asks for a new `.egscene` file and never writes into the installation.
-- **Recover Unsaved Work.** While a case has unsaved edits, EGTRAIN keeps a recovery copy and updates it about every 30 seconds. If EGTRAIN closed before you saved, the next start offers **Recover**, **Discard** and **Decide Later**. **Recover** opens the copy as an unsaved case. Choose **File > Save Case Study As...** to keep it. [Scene editor flow](../architecture/scene-editor-flow.md#window-flow) has the rules.
+- **Recover Unsaved Work.** While a case has unsaved edits, EGTRAIN keeps a recovery copy and updates it about every 30 seconds. If EGTRAIN closed before you saved, the next start offers **Recover**, **Discard** and **Decide Later**. **Recover** opens the copy as an unsaved case. Choose **File > Save Case Study As...** to keep it.
 - **Undo.** The **Edit** menu has **Undo** and **Redo** for edits of the case.
 - **Nothing happened after a run.** If you stopped the run, there are no results. Run it again and let it end.
+
+## Known limits
+
+- No supplied case study has signals. Each has one signalling area at level 0 over the whole network, so none of them shows the separation of trains by signals. See [The committed scenes](signalling-levels.md#the-committed-scenes).
+- The case `Assignment_Gvc_Gdg_Ut` is a synthetic fixture, not a case with source-backed railway data. See [Assignment workflow](assignment-workflow.md).
+- The Windows files are not code signed, and the macOS app is not notarized unless the release notes say so. [Installing EGTRAIN](install.md) says what the first start shows.
+- EGTRAIN keeps the newest 20 recovery copies of unsaved work.
 
 ## Next
 
@@ -128,5 +135,5 @@ This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its cont
 
 - [How-to](how-to.md): recipes for opening and saving, editing a timetable, scenarios and baselines, canvas navigation, results and legacy cases.
 - [Opening an `.egscene` case study](opening-a-case-study.md): bundles, version checks and opening by double-click.
-- [Using EGTRAIN and authoring scenes](scenes-and-application.md): what the docks and windows show, and the scene files.
+- [Editing and validating a case](editing-a-case.md), [Scenarios and the student loop](scenarios.md) and the [scene schema](scene-schema.md): the editors, the scenarios and the scene files.
 - [Glossary](glossary.md).
