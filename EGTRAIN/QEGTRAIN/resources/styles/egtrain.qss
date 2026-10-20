@@ -79,31 +79,61 @@ QToolButton:hover, QToolButton:focus {
     border-color: #315a70;
 }
 
-QToolButton#openCaseButton {
-    background: #e3eaee;
-    border-color: #c9d3db;
-    font-weight: 600;
-    padding-left: 8px;
-    padding-right: 8px;
-}
-
-QToolButton#openCaseButton:hover, QToolButton#openCaseButton:focus {
-    background: #dce6eb;
-    border-color: #315a70;
-}
-
 QToolButton:disabled {
     color: #64717a;
 }
 
+/* Toolbar buttons have the corners, border and states of a push button: a white face, the control border, a darker
+   border under the pointer, the band face while pressed and a 2 px action border with keyboard focus. The padding gives
+   up the extra pixel of the focus border, so the text and the icon do not move. */
 QToolBar QToolButton {
     background: #ffffff;
     border-color: #7b8b96;
+    border-radius: 6px;
+}
+
+QToolBar QToolButton:hover {
+    background: #ffffff;
+    border-color: #5b6871;
+}
+
+QToolBar QToolButton:focus {
+    background: #ffffff;
+    border: 2px solid #2e7491;
+    padding: 2px 5px;
+}
+
+QToolButton#actionZoomInButton:focus, QToolButton#actionZoomOutButton:focus {
+    padding: 2px;
+}
+
+QToolBar QToolButton:pressed {
+    background: #e3eaee;
 }
 
 QToolBar QToolButton:disabled {
     background: #eceeec;
     border-color: #c9d3db;
+}
+
+/* Open Case keeps its own face and weight. */
+QToolButton#openCaseButton {
+    background: #e3eaee;
+    font-weight: 600;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton#openCaseButton:hover {
+    background: #dce6eb;
+}
+
+QToolButton#openCaseButton:pressed {
+    background: #d8e1e5;
+}
+
+QToolButton#openCaseButton:focus {
+    padding: 2px 7px;
 }
 
 QToolButton:checked, QToolBar QToolButton:checked {
@@ -117,9 +147,13 @@ QToolButton#actionFollowButton:checked {
     color: #24313a;
 }
 
-QToolButton#actionFollowButton:checked:hover, QToolButton#actionFollowButton:checked:focus {
+QToolButton#actionFollowButton:checked:hover {
     background: #bcd2df;
     border-color: #24313a;
+}
+
+QToolButton#actionFollowButton:checked:focus {
+    border-color: #2e7491;
 }
 
 QDockWidget {
@@ -215,7 +249,11 @@ QPushButton:focus {
     outline: none;
 }
 
+/* The map key toggle is a push button with small grey text; checked, it keeps that face. */
 QToolButton#mapKeyToggle {
+    background: #ffffff;
+    border-color: #7b8b96;
+    border-radius: 6px;
     color: #5b6871;
     font-size: 11px;
     font-weight: 600;
@@ -223,15 +261,17 @@ QToolButton#mapKeyToggle {
     text-align: left;
 }
 
-QToolButton#mapKeyToggle:checked {
-    background: transparent;
-    border-color: transparent;
-    color: #5b6871;
+QToolButton#mapKeyToggle:hover {
+    border-color: #5b6871;
 }
 
-QToolButton#mapKeyToggle:hover, QToolButton#mapKeyToggle:focus {
+QToolButton#mapKeyToggle:focus {
+    border: 2px solid #2e7491;
+    padding: 4px 1px;
+}
+
+QToolButton#mapKeyToggle:pressed {
     background: #e3eaee;
-    border-color: #315a70;
 }
 
 QWidget#mapKeyBody QLabel {
@@ -288,6 +328,36 @@ QDialog QPushButton:focus {
 QToolButton#runResultsViewsButton:focus {
     border: 2px solid #2e7491;
     padding: 4px 19px 4px 6px;
+}
+
+/* The buttons that choose the trains, occurrences or stations of a result window look like the push buttons beside them.
+   They keep the padding of a tool button, with 20 px on their right for the arrow, and so their size. */
+QDialog TrainFilterButton {
+    background: #ffffff;
+    border: 1px solid #7b8b96;
+    border-radius: 6px;
+    padding: 3px 20px 3px 6px;
+}
+
+QDialog TrainFilterButton:hover {
+    background: #ffffff;
+    border-color: #5b6871;
+}
+
+QDialog TrainFilterButton:focus {
+    background: #ffffff;
+    border: 2px solid #2e7491;
+    padding: 2px 19px 2px 5px;
+}
+
+QDialog TrainFilterButton:pressed {
+    background: #e3eaee;
+}
+
+QDialog TrainFilterButton:disabled {
+    background: #eceeec;
+    border-color: #c9d3db;
+    color: #64717a;
 }
 
 QComboBox:focus, QLineEdit:focus, QAbstractSpinBox:focus {
