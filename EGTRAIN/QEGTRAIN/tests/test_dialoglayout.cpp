@@ -790,7 +790,8 @@ bool exerciseMessageBoxDefault() {
 }
 
 // The width of the drawn text of a button, from the pixels that differ strongly from its face. The button is widened first,
-// so that no text is clipped, and the grab is taken at its natural position within it.
+// so that no text is clipped, and the grab is taken at its natural position within it. The rows within 6 px of the top
+// and the bottom are left out, because the dialog shows through the rounded corners there.
 int drawnTextWidth(QPushButton* button) {
 	button->setFixedWidth(button->width() + 300);
 	const QPixmap grab = button->grab();
@@ -799,7 +800,7 @@ int drawnTextWidth(QPushButton* button) {
 	const qreal ratio = grab.devicePixelRatio();
 	int left = image.width();
 	int right = -1;
-	for (int y = qRound(3 * ratio); y < image.height() - qRound(3 * ratio); ++y)
+	for (int y = qRound(6 * ratio); y < image.height() - qRound(6 * ratio); ++y)
 		for (int x = qRound(3 * ratio); x < image.width() - qRound(3 * ratio); ++x)
 			if (colorDifference(image.pixel(x, y), face) >= 200) {
 				left = std::min(left, x);
@@ -808,11 +809,11 @@ int drawnTextWidth(QPushButton* button) {
 	return right < left ? 0 : qRound((right - left + 1) / ratio);
 }
 
-// A button shows its whole text when its width holds the text as it is drawn plus the border and the padding of the style
-// sheet (1 px and 7 px on each side). The drawn text can be bolder than the font of the widget.
+// A button shows its whole text when its width holds the text as it is drawn plus the border and the padding that the style
+// sheet gives a button in a dialog (1 px and 14 px on each side). The drawn text can be bolder than the font of the widget.
 bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
 	const int width = button->width();
-	const int needed = drawnTextWidth(button) + 2 * (1 + 7);
+	const int needed = drawnTextWidth(button) + 2 * (1 + 14);
 	const bool ok = width >= needed;
 	if (!ok)
 		std::cerr << where << ": the button '" << button->text().toStdString() << "' is " << width << " px wide at " << scale

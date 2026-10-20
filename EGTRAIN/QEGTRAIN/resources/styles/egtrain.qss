@@ -3,6 +3,29 @@ QMainWindow, QWidget {
     color: #24313a;
 }
 
+/* A dialog is one surface: the plain widgets, frames, labels and scroll areas inside it take the colour of the dialog,
+   so the body and its scroll viewport show no box of their own. The class selectors (.QWidget, .QFrame) match those
+   classes and not their subclasses, so fields, lists, tables and buttons keep their own faces. The colour is opaque,
+   because a widget style draws the outline of a check box or a frame from the background colour of its widget. */
+QDialog, QDialog .QWidget, QDialog .QFrame, QDialog QLabel, QDialog QScrollArea, QDialog QStackedWidget, QDialog QTabBar,
+QDialog QCheckBox, QDialog QRadioButton, QDialog QDialogButtonBox {
+    background: #f8fafb;
+}
+
+/* A group of settings is a bold title over its fields, without the recessed box that some platforms draw. */
+QDialog QGroupBox {
+    background: transparent;
+    border: 0;
+    font-weight: 600;
+    margin-top: 1.4em;
+}
+
+QDialog QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0;
+}
+
 QToolBar {
     background: #f8fafb;
     border: 0;
@@ -172,11 +195,11 @@ QCheckBox:disabled {
 
 QCheckBox:focus {
     background: #e3eaee;
-    border: 1px solid #315a70;
-    border-radius: 2px;
+    border: 1px solid #2e7491;
+    border-radius: 6px;
 }
 
-QComboBox:focus, QSlider:focus, QLineEdit:focus {
+QSlider:focus {
     outline: 1px solid #315a70;
     outline-offset: 1px;
 }
@@ -210,33 +233,128 @@ QWidget#mapKeyBody QLabel {
     font-size: 11px;
 }
 
-QPushButton:focus, QComboBox:focus, QLineEdit:focus, QTableWidget#runResultsTable:focus {
+QTableWidget#runResultsTable:focus {
     border-color: #315a70;
 }
 
-QPushButton, QComboBox, QLineEdit, QToolButton#runResultsViewsButton {
+/* Push buttons and fields have a white face, a 1 px border and a 6 px radius, in dialogs and in the docks alike, and are
+   28 px tall at a 13 px font. A button in a dialog has 14 px beside its text; one in a dock keeps 7 px, so that the
+   editor docks keep their width. */
+QPushButton, QToolButton#runResultsViewsButton {
     background: #ffffff;
-    border: 1px solid #c9d3db;
-    border-radius: 2px;
+    border: 1px solid #b4c0ca;
+    border-radius: 6px;
+    color: #24313a;
     padding: 5px 7px;
 }
 
-QPushButton:hover, QComboBox:hover, QToolButton#runResultsViewsButton:hover, QToolButton#runResultsViewsButton:focus {
-    border-color: #315a70;
+QDialog QPushButton {
+    padding: 5px 14px;
 }
 
-QPushButton:pressed {
-    background: #d8e1e5;
+QComboBox, QLineEdit, QAbstractSpinBox {
+    background: #ffffff;
+    border: 1px solid #b4c0ca;
+    border-radius: 6px;
+    padding: 4px 7px;
 }
 
-QDialog#runReviewDialog, QDialog[dialogPresentation="true"] {
-    background: #f8fafb;
+QPushButton:hover, QComboBox:hover, QLineEdit:hover, QAbstractSpinBox:hover, QToolButton#runResultsViewsButton:hover {
+    border-color: #8a9aa6;
 }
 
-QLabel#dialogHeading {
+QPushButton:pressed, QToolButton#runResultsViewsButton:pressed {
+    background: #e3eaee;
+}
+
+/* Keyboard focus is a 2 px border in the action colour, #2e7491, which has a contrast of 5.2:1 with the white face. The
+   padding gives up the extra pixel, so the text does not move. */
+QPushButton:focus {
+    border: 2px solid #2e7491;
+    padding: 4px 6px;
+}
+
+QDialog QPushButton:focus {
+    padding: 4px 13px;
+}
+
+QToolButton#runResultsViewsButton:focus {
+    border: 2px solid #2e7491;
+    padding: 4px 19px 4px 6px;
+}
+
+QComboBox:focus, QLineEdit:focus, QAbstractSpinBox:focus {
+    border: 2px solid #2e7491;
+    padding: 3px 6px;
+}
+
+/* The line edit inside a spin box draws no field of its own: the spin box is the field. */
+QAbstractSpinBox QLineEdit, QAbstractSpinBox QLineEdit:hover, QAbstractSpinBox QLineEdit:focus,
+QAbstractSpinBox QLineEdit:disabled {
     background: transparent;
-    color: #24313a;
-    font-weight: 600;
+    border: 0;
+    padding: 0;
+}
+
+QAbstractSpinBox {
+    padding-right: 18px;
+}
+
+QAbstractSpinBox:focus {
+    padding-right: 17px;
+}
+
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+    subcontrol-origin: border;
+    width: 16px;
+    background: transparent;
+    border: 0;
+}
+
+QAbstractSpinBox::up-button {
+    subcontrol-position: top right;
+}
+
+QAbstractSpinBox::down-button {
+    subcontrol-position: bottom right;
+}
+
+QAbstractSpinBox::up-arrow {
+    image: url(:/icons/spin-up-arrow.svg);
+}
+
+QAbstractSpinBox::down-arrow {
+    image: url(:/icons/drop-down-arrow.svg);
+}
+
+QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
+    image: url(:/icons/spin-up-arrow-disabled.svg);
+}
+
+QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
+    image: url(:/icons/drop-down-arrow-disabled.svg);
+}
+
+/* Lists and tables in a dialog are fields: a white face inside the same border and radius. The padding keeps the rows and
+   the header inside the rounded corners. */
+QDialog QListWidget, QDialog QTableView {
+    background: #ffffff;
+    border: 1px solid #b4c0ca;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+QDialog QListWidget {
+    padding: 4px;
+}
+
+QDialog QListWidget:focus, QDialog QTableView:focus {
+    border: 2px solid #2e7491;
+    padding: 1px;
+}
+
+QDialog QListWidget:focus {
+    padding: 3px;
 }
 
 QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext,
@@ -253,7 +371,7 @@ QLabel#runReviewFactValue {
 QLabel[dialogStatus="neutral"], QLabel#runReviewStatus {
     background: #e3eaee;
     border: 1px solid #c9d3db;
-    border-radius: 2px;
+    border-radius: 6px;
     color: #3f4d56;
     padding: 8px;
 }
@@ -261,18 +379,23 @@ QLabel[dialogStatus="neutral"], QLabel#runReviewStatus {
 QLabel[dialogStatus="warning"], QLabel#runReviewStatus[warning="true"] {
     background: #f5eadc;
     border: 1px solid #d8b98e;
+    border-radius: 6px;
     color: #74451c;
+    padding: 8px;
 }
 
 QLabel[dialogStatus="error"] {
     background: #f7e8e6;
     border: 1px solid #c98f88;
-    border-radius: 2px;
+    border-radius: 6px;
     color: #81352d;
     padding: 8px;
 }
 
+/* A link of the About dialog reads as a link: underlined text without the face and border of a button. */
 QDialog#aboutDialog QPushButton[aboutLink="true"] {
+    background: transparent;
+    border-color: transparent;
     color: #315a70;
     text-decoration: underline;
     text-align: left;
@@ -280,7 +403,26 @@ QDialog#aboutDialog QPushButton[aboutLink="true"] {
 }
 
 QDialog#aboutDialog QPushButton[aboutLink="true"]:focus {
-    border: 2px solid #315a70;
+    border: 2px solid #2e7491;
+    padding: 1px 3px;
+}
+
+/* A button that opens a menu, such as Other ways to open..., shows the arrow of a drop-down list at its right. */
+QPushButton::menu-indicator {
+    image: url(:/icons/drop-down-arrow.svg);
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    right: 8px;
+}
+
+QPushButton::menu-indicator:disabled {
+    image: url(:/icons/drop-down-arrow-disabled.svg);
+}
+
+/* Each copy of the recovery prompt is a card with the border and radius of a field. */
+QFrame#recoveryRow {
+    border: 1px solid #b4c0ca;
+    border-radius: 6px;
 }
 
 QDialog#caseChooserDialog QListWidget::item:disabled {
@@ -294,15 +436,17 @@ QDialog#caseChooserDialog QListWidget::item:selected {
 }
 
 QLabel#runReviewDetails {
-    background: #eef2f5;
+    background: #ffffff;
     border: 1px solid #c9d3db;
+    border-radius: 6px;
     padding: 8px;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default,
-QMessageBox QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
-    background: #315a70;
-    border-color: #315a70;
+/* The default button of a dialog footer and of a message box is filled with the action colour, #2e7491, on which white
+   text has a contrast of 5.2:1. */
+QDialog QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
+    background: #2e7491;
+    border-color: #2e7491;
     color: #ffffff;
 }
 
@@ -310,33 +454,34 @@ QPushButton#runReviewRunButton {
     min-width: 110px;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:hover,
-QMessageBox QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
-    background: #26495c;
-    border-color: #26495c;
+QDialog QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
+    background: #296882;
+    border-color: #296882;
 }
 
-/* The filled default button shows keyboard focus as a ring around its fill: the fill stops inside a double border, so a
-   line of the dialog behind the button shows between the ring and the fill. */
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus,
-QMessageBox QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
-    background-clip: padding;
-    border: 3px double #315a70;
-    border-radius: 0;
-    padding: 3px 5px;
+QDialog QDialogButtonBox QPushButton:default:pressed, QPushButton#runReviewRunButton:pressed {
+    background: #23566c;
+    border-color: #23566c;
+}
+
+/* The filled default button shows keyboard focus as a 2 px dark border, #0b2430, which has a contrast of 3.1:1 with the
+   fill and 15:1 with the dialog. */
+QDialog QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
+    border: 2px solid #0b2430;
+    padding: 4px 13px;
 }
 
 QPushButton:disabled,
 QComboBox:disabled,
 QLineEdit:disabled,
+QAbstractSpinBox:disabled,
 QToolButton#runResultsViewsButton:disabled {
     background: #eceeec;
     border-color: #c9d3db;
     color: #64717a;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:disabled,
-QMessageBox QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
+QDialog QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
     background: #dce3e7;
     border-color: #c9d3db;
     color: #64717a;
@@ -375,9 +520,9 @@ QLineEdit[readOnly="true"] {
     border-color: #c9d3db;
 }
 
-QDialog[dialogPresentation="true"] QLineEdit[readOnly="true"]:focus {
-    border-color: #315a70;
-    outline: 1px solid #315a70;
+QLineEdit[readOnly="true"]:focus {
+    border: 2px solid #2e7491;
+    padding: 3px 6px;
 }
 
 QSlider::groove:horizontal {
@@ -548,14 +693,13 @@ QMenu::separator {
    so only the run button is filled. */
 QPushButton#runReviewCancelButton:default {
     background: #ffffff;
-    border: 1px solid #315a70;
-    border-radius: 2px;
+    border: 2px solid #2e7491;
     color: #24313a;
-    padding: 5px 7px;
+    padding: 4px 13px;
 }
 
 QPushButton#runReviewCancelButton:default:pressed {
-    background: #d8e1e5;
+    background: #e3eaee;
 }
 
 /* A button that opens a menu keeps room on its right for the arrow. Qt 5 matches the popup mode by its number, 2. */
