@@ -9,7 +9,7 @@ Save the supplied case under a new name with **File > Save Case Study As...** be
 ## 1. Open Paimpol and save a working copy
 
 1. Open `Paimpol` from **Bundled cases** in the **Open a Case** window (toolbar button **Open Case**), as in [Getting started](getting-started.md). The title bar reads `EGTRAIN - Paimpol` and the dock **Case and Layers** shows "Ready to run".
-2. Choose **File > Save Case Study As...**. The dialog **Save Case Study As** starts in your Documents folder when the case comes from the installation. Name the file `paimpol-practice.egscene` and save it. EGTRAIN adds `.egscene` when you leave it out.
+2. Choose **File > Save Case Study As...**. The dialog **Save Case Study As** starts in your Documents folder when the case comes from the installation, or in your home folder when there is no Documents folder. Name the file `paimpol-practice.egscene` and save it. EGTRAIN adds `.egscene` when you leave it out.
 3. The window now holds the copy: **File > Save Scene** writes to `paimpol-practice.egscene`, and **File > Recent Scenes** lists it. The scene inside still has the name `Paimpol`, so the title bar does not tell the copy from the original, and a run of the copy would write to the same output folder as a run of the original ([Output folder](command-line.md#output-folder)).
 4. Give the copy its own name. Open the dock **Case Settings** (**Editors > Case Settings**), replace **Name** with `Paimpol practice` and press Enter. The title bar now reads `EGTRAIN - Paimpol practice`, with the platform's mark for unsaved changes.
 5. Choose **File > Save Scene**. The mark goes and the status bar reads "Scene saved".
@@ -59,11 +59,7 @@ A warning does not block a run. An error does: **Run** is disabled and the dock 
 2. Open the original: choose **Open Case** in the toolbar, then `Paimpol` under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Running performance (parameter) %** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
 3. Choose **File > Recent Scenes** > `paimpol-practice`, then `Guin-Paim-EXPRESS-1` in the list of **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
 
-The supplied case is a scene folder, not a file. In a source checkout, this prints nothing:
-
-```bash
-git status --short EGTRAIN/QEGTRAIN/Scenes/Paimpol
-```
+The supplied case is a scene folder, not a file, and the second step above shows that its values are as they were. In a source checkout, a save into that folder rewrites its JSON files with the indentation that EGTRAIN writes, so `git status` lists them even when no value changed. `git checkout -- EGTRAIN/QEGTRAIN/Scenes/Paimpol` restores the committed files.
 
 In an installed copy, copy the folder before step 1 and compare it with the installed folder afterwards. On macOS the installed folder is `/Applications/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol`:
 
@@ -92,11 +88,11 @@ A comparison needs two runs of the same case: a baseline without incidents or en
 1. Open the dock **Incidents** (**Editors > Incidents**). The list **Scenarios** has one row, for the scenario `baseline` (named Baseline), with 0 incident(s), 0 delay(s) and the marker `default`. With it selected, choose **Duplicate** (**Blank** makes an empty scenario instead). The new scenario `baseline_copy` is selected. Replace **Name** with `Express breakdown`.
 2. Open the tab **Incidents** of the dock and choose **Add Incident**. Set **Type** to `train_breakdown` and **Target** to `Guin-Paim-EXPRESS-1-1 | route route6 | entry +10 s`. Enter `900` in **Start (s)**. Leave **Use recovery end (s)** ticked and enter `1200` in the field below it, leave **Reduced speed cap** unticked, and press Enter after each number. The train stops at 900 s and recovers at 1200 s.
 3. Choose **File > Save Scene**. The list marks the scenario `modified` until you save. Saving does not clear results or the baseline.
-4. Choose `baseline` in the list. Choosing a scenario is not an edit. Choose **Run** and check that the dialog **Run simulation** says **Active incidents** 0 and the scenario `baseline`. After "Simulation complete", choose **Set delay baseline** in the dock **Run Results**. The line next to it names the baseline.
-5. Choose `baseline_copy` in the list. The results are cleared and the baseline stays. Choose **Run**; the dialog now says **Active incidents** 1. After "Simulation complete", choose **Compare delays**.
+4. Choose `baseline` in the list. Choosing a scenario is not an edit. Choose **Run** and check that the dialog **Run simulation** says **Active incidents** 0 and the scenario `baseline`. After "Simulation complete", choose **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** now starts with `Baseline: Paimpol practice / baseline`.
+5. Choose `baseline_copy` in the list. The results are cleared, so the dock **Run Results** and the **Replay** row close, and the baseline stays. The entry Run Results of the menu **View** opens the dock again, as in the picture below. Choose **Run**; the dialog now says **Active incidents** 1. After "Simulation complete", choose **Compare delays**.
 6. The window **Delay analysis** opens on the tab **Against baseline**. `Guin-Paim-EXPRESS-1` has a positive additional delay at Paimpol. The run without a window, with `baseline_copy` as the default scenario, gave 343 s: the arrival at Paimpol moves from 2866 s to 3209 s. `Guin-Paim-ALL-STOPS-1` is Same. How to read the window, and what it does not claim, is in [How delays are calculated](delay-analysis.md#the-delay-analysis-window).
 
-   ![The dock Incidents with the scenarios baseline and baseline_copy (Express breakdown, 1 incident) listed and baseline_copy selected, above the dock Run Results after a run of baseline was set as the delay baseline. Run Results says No completed run and Baseline: Paimpol / baseline, and Set delay baseline and Compare delays are both dimmed.](../images/tutorial-modify-incident-baseline.png)
+   ![The dock Incidents with the scenarios baseline and baseline_copy (Express breakdown, 1 incident) listed and baseline_copy selected, above the dock Run Results after a run of baseline was set as the delay baseline. Run Results says No completed run and Baseline: Paimpol practice / baseline, and Set delay baseline and Compare delays are both dimmed.](../images/tutorial-modify-incident-baseline.png)
 
 After any edit, **Compare delays** is disabled and the line above the buttons in **Run Results** reads "Delay baseline cleared after a case edit. Complete a run with no incidents or entrance delays to set a new baseline." until a run completes. Repeat step 4 and step 5. If the tab **Against baseline** lists reasons instead of a difference, the two runs do not match in another way. For example, the selection on the tab **Run occurrences** of **Services** differs between the runs, and the tab says that an occurrence is in one run only. Keep every occurrence selected, because the two runs must hold the same trains.
 
@@ -124,7 +120,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 
 ## Check the copy outside the window
 
-The saved bundle is an ordinary case study ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in Run a local build in the build and test guide of the developer documentation. With the macOS app and the bundle in the current folder:
+The saved bundle is an ordinary case study ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the bundle in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS

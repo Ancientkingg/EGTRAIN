@@ -507,9 +507,11 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		return saved;
 	});
 
-	// Modify a case: the stop Pontrieaux of the express in Edit timetable stop, whose dwell becomes 180 s, and the warning
-	// that this gives in Scene Validation.
+	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit timetable stop,
+	// whose dwell becomes 180 s, and the warning that this gives in Scene Validation.
 	steps.push_back([&w] {
+		if (!editLine(w.m_caseNameEdit, QStringLiteral("Paimpol practice")))
+			return failCaptures(QStringLiteral("the case could not be named Paimpol practice"));
 		w.revealEditorDock(w.m_serviceDock);
 		const QList<QListWidgetItem*> services = w.m_serviceListWidget->findItems(QStringLiteral("Guin-Paim-EXPRESS-1"), Qt::MatchExactly);
 		if (services.isEmpty())

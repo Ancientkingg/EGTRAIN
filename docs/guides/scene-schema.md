@@ -592,8 +592,7 @@ The saved-with application version is provenance and does not by itself prompt
 for an upgrade. An upgrade to a copy is offered only for a scene version that
 has a registered migration, and none exists today; when one is offered, the
 original directory or ZIP remains unchanged. Newer schema or bundle versions
-require a newer app. The compatibility boundary of the scene model in the
-developer documentation lists which scenes open.
+require a newer app.
 
 ## Portable bundles
 

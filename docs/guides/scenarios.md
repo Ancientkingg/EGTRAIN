@@ -36,7 +36,7 @@ The **Replay** row that appears under the network after a run is described in [R
 
 The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
-JSON-only settings. During playback, choose a train in **Train to follow** and
+JSON-only settings. During playback, choose a train in the list next to **Follow** in the toolbar and
 activate **Follow** to center the network view on it immediately, including
 while paused.
 
@@ -112,8 +112,10 @@ inspector name the state, and the Map key lists all five.
 A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
-Selecting another scenario keeps the baseline but reports that the newly
-selected scenario has not been run; a canonical scene edit, **File > New Case Study...**, or
+Selecting another scenario keeps the baseline, discards the results and closes
+the dock **Run Results**. Opened again from the menu **View**, the dock reads
+`No completed run | Scenario: <scenario>` and `Baseline: <case> / <scenario>. Run the selected scenario
+to create completed results for comparison.` A canonical scene edit, **File > New Case Study...**, or
 opening another case clears the baseline and explains that a new run without incidents or
 entrance delays is needed. **Compare delays** requires a run with incidents or
 entrance delays that matches the baseline, and opens the delay analysis window
