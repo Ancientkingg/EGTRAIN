@@ -27,6 +27,14 @@ The kinds of finding are:
                 without its file, a size that differs from the entry, a version whose major or minor part
                 differs from EGTRAIN_VERSION in CMakeLists.txt, a name that is not <page>-<subject>.png in
                 lower case with hyphens, or a picture wider than 1200 pixels
+  ui-name       a bold term (**...**) in docs/guides/ that is not a string of the application: a C++ string literal
+                below EGTRAIN/QEGTRAIN/, outside tests/ and third_party/, or a <string> of a .ui file, compared without
+                the mnemonic &. A menu path A > B > C is checked part by part. A term that ends with a colon or a full
+                stop other than ... is a list heading and a key such as Ctrl+F, Esc or F1 is not a name, so both are skipped. The
+                pages leave out the colon of a label, since a bold term with a colon is a list heading, so a string may
+                add one. They keep the ... of a menu entry, which the source may add to a name as the Diagrams menu
+                does. The script lists the texts that Qt gives its standard buttons and the names of macOS and Windows
+                that the pages use.
 
 The heading check skips .github/, whose issue templates start with front matter.
 
@@ -39,6 +47,7 @@ inline code spans. Reference-style links, autolinks, HTML other than <details> a
 are not read. Links with a scheme (https:, mailto:) are never fetched. Nothing is rendered.
 """
 import argparse
+import html
 import json
 import posixpath
 import re
@@ -74,10 +83,29 @@ IMAGES = "docs/images/"
 CAPTURES = IMAGES + "captures.json"
 CAPTURE_NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)+\.png$")
 CAPTURE_MAX_WIDTH = 1200
+BOLD = re.compile(r"\*\*(?=\S)(.+?)(?<=\S)\*\*", re.DOTALL)
+SOURCE = "EGTRAIN/QEGTRAIN/"
+SOURCE_SUFFIXES = (".cpp", ".h", ".hpp", ".ui")
+# A comment, a character literal or a string literal of C++; only the string literal has a group.
+CPP_TOKEN = re.compile(r"//[^\n]*|/\*.*?\*/|'(?:[^'\\\n]|\\.)*'|\"((?:[^\"\\\n]|\\.)*)\"", re.DOTALL)
+UI_STRING = re.compile(r"<string(?:\s[^>]*)?>([^<]*)</string>")
+CPP_ESCAPE = re.compile(r"\\(.)")
+MNEMONIC = re.compile(r"&(.)")
+MENU_SEPARATOR = " > "
+KEY = re.compile(r"^((Ctrl|Cmd|Command|Shift|Alt|Option)\+)*(F\d+|Esc|Enter|Return|Tab|Up|Down|Left|Right|.)$|^arrow keys$", re.I)
+# Names that the application shows but its source does not hold. Qt gives the standard buttons their text:
+# QDialogButtonBox::Ok and RestoreDefaults, QMessageBox::Save, and QMessageBox::Discard, which reads Don't Save on macOS.
+QT_BUTTON_NAMES = {"OK", "Save", "Don't Save", "Restore Defaults"}
+# Names of macOS and Windows that the steps for installing EGTRAIN and opening a case from the desktop use.
+SYSTEM_NAMES = {
+    "Allow applications from", "App Store & Known Developers", "Change All...", "Don't run", "Done", "Extract All",
+    "Get Info", "Kind", "More info", "Move to Trash", "Open Anyway", "Open With", "Open with", "Privacy & Security",
+    "Run anyway", "Security", "System Settings",
+}
 VERSION = re.compile(r'^set\(EGTRAIN_VERSION "(\d+)\.(\d+)\.\d+"', re.MULTILINE)
 
 Finding = namedtuple("Finding", "path line kind message")
-Document = namedtuple("Document", "lines anchors links blocks headings")
+Document = namedtuple("Document", "lines anchors links blocks headings bold")
 Link = namedtuple("Link", "line image text target")
 Block = namedtuple("Block", "line info body")
 Reference = namedtuple("Reference", "path link target fragment")
@@ -156,12 +184,15 @@ def parse(text: str) -> Document:
     paragraphs.append(paragraph)
     if fence:
         blocks.append(Block(fence[1], fence[2], fence[3]))
-    links = []
+    links, bold = [], []
     for numbered_lines in paragraphs:
         if numbered_lines:
             prose = CODE_SPAN.sub("_", "\n".join(line for _, line in numbered_lines))
             links.extend(find_links(prose, numbered_lines[0][0]))
-    return Document(lines, anchors, links, blocks, headings)
+            for match in BOLD.finditer(prose):
+                line = numbered_lines[0][0] + prose.count("\n", 0, match.start())
+                bold.append((line, " ".join(match.group(1).split())))
+    return Document(lines, anchors, links, blocks, headings, bold)
 
 
 def read_document(root, path: str) -> Document:
@@ -395,6 +426,42 @@ def check_captures(root, files) -> list:
     return findings
 
 
+def source_strings(root, listed) -> set:
+    """Returns the C++ string literals and the .ui strings of the application, each also without its mnemonic &."""
+    strings = set()
+    for path in listed:
+        skipped = path.startswith(SOURCE + "tests/") or "/third_party/" in path
+        if not path.startswith(SOURCE) or skipped or not path.endswith(SOURCE_SUFFIXES):
+            continue
+        text = (Path(root) / path).read_text("utf-8", "replace")
+        if path.endswith(".ui"):
+            found = [html.unescape(value) for value in UI_STRING.findall(text)]
+        else:
+            # A header label may break its name with \n.
+            found = [CPP_ESCAPE.sub(r"\1", token.group(1).replace("\\n", " ")) for token in CPP_TOKEN.finditer(text) if token.group(1)]
+        for value in found:
+            value = " ".join(value.split())
+            strings.update((value, MNEMONIC.sub(r"\1", value)))
+    return strings
+
+
+def check_ui_names(root, listed, documents: dict) -> list:
+    terms = [(path, line, term) for path, document in documents.items() if path.startswith(MANUAL[0]) for line, term in document.bold]
+    strings = (source_strings(root, listed) if terms else set()) | QT_BUTTON_NAMES | SYSTEM_NAMES
+    findings = []
+    for path, line, term in terms:
+        heading = term.endswith(":") or (term.endswith(".") and not term.endswith("..."))
+        if heading or KEY.match(term):
+            continue
+        for part in term.split(MENU_SEPARATOR):
+            # A label drops its colon, as a bold term that ends with one is a list heading. The Diagrams menu adds the
+            # ellipsis to the name of a view.
+            named = part in strings or part + ":" in strings or (part.endswith("...") and part[:-3] in strings)
+            if not named:
+                findings.append(Finding(path, line, "ui-name", f"not a string of the application: {part}"))
+    return findings
+
+
 def check(root, files) -> list:
     """Returns the findings for the listed files, relative to root, sorted by path, line, kind and message."""
     listed = set(files)
@@ -419,6 +486,7 @@ def check(root, files) -> list:
     findings += check_github_only(documents, listed)
     findings += check_headings(documents)
     findings += check_manual_links(refs)
+    findings += check_ui_names(root, listed, documents)
     return sorted(findings)
 
 
