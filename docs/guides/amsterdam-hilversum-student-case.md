@@ -65,7 +65,7 @@ Record the arrival and departure delays at `Asd` and `Hvs`. Separate the time fr
 1. In the panel **Services** (**Editors > Services**, if it is closed), open **Service** and set **Running performance (parameter) %** to 60. Press Tab to finish the edit. Change nothing else.
 2. On **Run occurrences**, check that the text still contains "Selected: 1" and that the column **Running performance (parameter) %** shows 60. If the selection differs, repeat step 1 of task 2.
 3. Run and export as in task 2, with file names that start with `slower`.
-4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy (kWh)** with the baseline. Use the same energy column in every comparison.
+4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy consumed (kWh)** with the baseline. Use the same energy column in every comparison.
 
 The percentage multiplies the tractive effort at every speed and the maximum speed of the train. It does not change the mass or the braking effort. Read the journey time from the results; do not derive it from the percentage.
 
