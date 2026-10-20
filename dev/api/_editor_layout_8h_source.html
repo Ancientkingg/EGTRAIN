@@ -164,9 +164,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_editor_layout
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    QFont font = heading-&gt;font();</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    font.setBold(<span class="keyword">true</span>);</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="keywordflow">if</span> (font.pointSizeF() &gt; 0)</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        font.setPointSizeF(font.pointSizeF() + 2.0);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        font.setPointSizeF(font.pointSizeF() * 1.1);</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (font.pixelSize() &gt; 0)</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        font.setPixelSize(font.pixelSize() + 3);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        font.setPixelSize(qRound(font.pixelSize() * 1.1));</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    heading-&gt;setFont(font);</div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keywordflow">return</span> heading;</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>}</div>

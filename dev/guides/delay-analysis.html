@@ -230,6 +230,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -396,7 +397,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Timetable results: Diagrams &gt; Timetable; Diagrams &gt; Delays; <code class="docutils literal notranslate"><span class="pre">timetable.csv</span></code></p></td>
-<td><p>Arrival delay and departure delay, each simulated minus planned, in seconds, signed (early is negative), not rounded. The table shows text such as “+157 s” without decimals, red above 60 s, dark yellow above 0, dark green otherwise. The chart plots the arrival delay in minutes over journey order. The CSV holds all ten columns</p></td>
+<td><p>Arrival delay and departure delay, each simulated minus planned, in seconds, signed (early is negative), not rounded. The table shows text such as “+157 s” without decimals, dark red above 60 s, dark brown above 0, dark green otherwise. The chart plots the arrival delay in minutes over journey order. The CSV holds all ten columns</p></td>
 <td><p>Planned time of the same stop (<a class="reference internal" href="#units-and-the-reference-timetable">units</a>); at an entrance-delayed stop the planned departure is the shifted one</p></td>
 <td><p>One row per stop of every train; a repeated station gives one row per call. No sum, mean or share is formed (the tab Summary of the Delay analysis window forms them from the same rows, <a class="reference internal" href="#the-delay-analysis-window">the window</a>). <strong>Export CSV…</strong> of both windows writes the rows of the trains selected in the window (suggested name <code class="docutils literal notranslate"><span class="pre">timetable.csv</span></code>), with a provenance file beside the CSV</p></td>
 <td><p>Unavailable when either side is. The table shows “-”, the CSV an empty field, the chart skips the point</p></td>
