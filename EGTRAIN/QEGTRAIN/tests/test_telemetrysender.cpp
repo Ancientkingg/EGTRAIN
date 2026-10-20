@@ -101,7 +101,6 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 	TelemetryConsent consent(settings, context);
 	assert(consent.save(false, false));
 	QSemaphore polled, proceed, settled, exited, pumped;
-	std::atomic<bool> countPumps{false};
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
@@ -110,9 +109,7 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 		assert(proceed.tryAcquire(1, 3000));
 		QTimer::singleShot(0, [&] { settled.release(); });
 	};
-	options.beforeFlagsRead = [&] {
-		if (countPumps) pumped.release();
-	};
+	options.beforeFlagsRead = [&] { pumped.release(); };
 	options.onWorkerExit = [&] { exited.release(); };
 	telemetry::TelemetrySender sender(context, metadata, storage, options);
 	assert(polled.tryAcquire(1, 3000));
@@ -185,8 +182,8 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 	proceed.release();
 	assert(settled.tryAcquire(1, 3000));
 	// The next pump purges the queue. Reading usage.json while the worker replaces it makes the replacement fail on
-	// Windows, so the file is read only once a later pump has started.
-	countPumps = true;
+	// Windows. The first pump counted from here may be the purging one, so the file is read once the one after it starts.
+	pumped.tryAcquire(pumped.available());
 	assert(pumped.tryAcquire(2, 3000));
 	assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
 	sender.stop();
