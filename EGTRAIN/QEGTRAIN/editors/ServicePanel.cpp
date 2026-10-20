@@ -28,6 +28,7 @@
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QStringList>
+#include <QStyle>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QToolTip>
@@ -72,6 +73,23 @@ protected:
 	}
 };
 
+// The colour field of the form. A form that wraps long rows keeps a row beside its label while the field gets its minimum
+// width, but then leaves the field that width less the spacing after the label, which cuts the Choose button. The field
+// asks for that spacing as well.
+class ServiceColorField : public ColorChoiceButton {
+public:
+	ServiceColorField(const QFormLayout* form, QWidget* parent) : ColorChoiceButton(parent), m_form(form) {}
+	QSize minimumSizeHint() const override {
+		int spacing = m_form->horizontalSpacing();
+		if (spacing < 0)
+			spacing = style()->combinedLayoutSpacing(QSizePolicy::Label, sizePolicy().controlType(), Qt::Horizontal, nullptr, parentWidget());
+		return ColorChoiceButton::minimumSizeHint() + QSize(std::max(spacing, 0), 0);
+	}
+
+private:
+	const QFormLayout* m_form;
+};
+
 // One entry of the route choice: where the route goes and in which direction, with the stations it traverses as tooltip.
 void addRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route, const SceneSectionInventory& inventory) {
 	const SceneRouteStations traversal = sceneRouteStations(model, route, inventory);
@@ -106,13 +124,15 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	// The list sits above the tabs, so that a narrow dock keeps the fields, the tab names and the stop table whole.
 	QVBoxLayout* serviceLayout = new QVBoxLayout(this);
 
-	// top: the list of services and the buttons that manage it
+	// top: the list of services and the buttons that manage it, in one row. The title of the dock names the list, which
+	// shows about three rows, so that the tabs keep the height of a short dock, also when the Timetable tab is shown.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
 	listLayout->setContentsMargins(0, 0, 0, 0);
-	listLayout->addWidget(new QLabel("Services", listPane));
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("serviceList");
+	m_listWidget->setAccessibleName("Services");
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Service", listPane);
@@ -123,7 +143,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_deleteButton->setObjectName("deleteServiceButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	listLayout->addLayout(buttonLayout);
 	serviceLayout->addWidget(listPane);
 
@@ -149,7 +169,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_categoryCombo = new ChoiceComboBox(detailPane);
 	m_categoryCombo->setObjectName("serviceCategoryCombo");
 	form->addRow("Category", m_categoryCombo);
-	m_colorButton = new ColorChoiceButton(detailPane);
+	m_colorButton = new ServiceColorField(form, detailPane);
 	m_colorButton->setObjectName("serviceColorButton");
 	form->addRow("Service visualization colour", m_colorButton);
 	m_compositionCombo = new ChoiceComboBox(detailPane);

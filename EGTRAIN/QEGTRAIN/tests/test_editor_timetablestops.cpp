@@ -22,12 +22,14 @@
 #include <QString>
 #include <QStringList>
 #include <QStyle>
+#include <QStyleFactory>
 #include <QStyleOptionViewItem>
 #include <QTableWidget>
 #include <QTimer>
 
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -311,6 +313,31 @@ int main(int argc, char** argv) {
 		for (int index = 0; wholeTips && index < table->columnCount(); ++index)
 			wholeTips = table->model()->headerData(index, Qt::Horizontal, Qt::ToolTipRole).toString() == headerTips.at(index);
 		ok &= expect(wholeTips, qPrintable("every column header has its whole text as a tooltip" + label));
+	}
+
+	{
+		// the Windows style keeps more room around the text of a header than around the text of a cell: where the other columns
+		// leave the station less than its header, they give up room, so that the Station header stays whole
+		const std::unique_ptr<QStyle> windowsStyle(QStyleFactory::create("Windows"));
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		QTableWidget* table = panel.table();
+		QHeaderView* header = table->horizontalHeader();
+		table->setStyle(windowsStyle.get());
+		header->setStyle(windowsStyle.get());
+		panel.setDocument(&document);
+		document.replace(lineScene(), false);
+		panel.setServiceId("service-1");
+		table->setFixedWidth(2000);
+		panel.show();
+		QApplication::processEvents();
+		int others = 0;
+		for (int index = 1; index < table->columnCount(); ++index)
+			others += table->columnWidth(index);
+		table->setFixedWidth(others + header->sectionSizeHint(0) - 1 + table->width() - table->viewport()->width());
+		QApplication::processEvents();
+		ok &= expect(windowsStyle && !table->horizontalScrollBar()->isVisible() && table->columnWidth(0) >= header->sectionSizeHint(0),
+			"the Station header stays whole where the other columns would leave it one pixel short");
 	}
 
 	for (int variant = 0; variant < 4; ++variant) {

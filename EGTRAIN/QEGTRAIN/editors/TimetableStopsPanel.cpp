@@ -332,23 +332,31 @@ void TimetableStopsPanel::fitColumns() {
 			kept += width;
 	}
 	const int available = m_table->viewport()->width();
-	const int room = std::max(available - minimumStation, 0);
-	// While the kept columns fit, only the others are shortened.
-	const bool keepClockTimes = wanted > room && kept < room;
-	int used = 0;
-	for (int column = 1; column < 5; ++column) {
-		int& width = widths[static_cast<std::size_t>(column)];
-		if (keepClockTimes) {
-			if (!isClockTime(column))
-				width = std::max(width * (room - kept) / (wanted - kept), minimum);
-		} else if (wanted > room) {
-			width = std::max(width * room / wanted, minimum);
+	// The station keeps its whole header where the other columns can give up the room for it and the clock times stay whole,
+	// and six digits otherwise.
+	std::array<int, 5> fitted{};
+	for (const int station : {std::max(minimumStation, header->sectionSizeHint(0)), minimumStation}) {
+		const int room = std::max(available - station, 0);
+		// While the kept columns fit, only the others are shortened.
+		const bool keepClockTimes = wanted > room && kept < room;
+		int used = 0;
+		fitted = widths;
+		for (int column = 1; column < 5; ++column) {
+			int& width = fitted[static_cast<std::size_t>(column)];
+			if (keepClockTimes) {
+				if (!isClockTime(column))
+					width = std::max(width * (room - kept) / (wanted - kept), minimum);
+			} else if (wanted > room) {
+				width = std::max(width * room / wanted, minimum);
+			}
+			used += width;
 		}
-		used += width;
+		fitted[0] = std::max(available - used, station);
+		if (used <= room && kept < room)
+			break;
 	}
-	widths[0] = std::max(available - used, minimumStation);
 	for (int column = 0; column < 5; ++column)
-		m_table->setColumnWidth(column, widths[static_cast<std::size_t>(column)]);
+		m_table->setColumnWidth(column, fitted[static_cast<std::size_t>(column)]);
 }
 
 void TimetableStopsPanel::updateActions() {

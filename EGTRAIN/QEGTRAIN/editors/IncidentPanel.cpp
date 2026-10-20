@@ -57,12 +57,14 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("incidentPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 
-	// the list of incidents and the buttons that manage it
+	// the list of incidents and the buttons that manage it, in one row. The list shows about three rows, so that the fields
+	// below keep the height of a short dock.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
 	listLayout->addWidget(new QLabel("Incidents", listPane));
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("incidentListWidget");
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Incident", listPane);
@@ -73,9 +75,9 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_deleteButton->setObjectName("deleteIncidentButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	listLayout->addLayout(buttonLayout);
-	layout->addWidget(listPane, 1);
+	layout->addWidget(listPane);
 
 	// the fields of the selected incident; a check box that switches a field on comes before that field
 	QWidget* detailPane = new QWidget(this);
