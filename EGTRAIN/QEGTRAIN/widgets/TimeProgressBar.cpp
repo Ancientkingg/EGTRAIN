@@ -36,13 +36,10 @@ void TimeProgressBar::setProgress(int timestep, int totalSteps, long long startO
 		return text;
 	};
 	const int displayedStep = safeTotalSteps > 0 ? clampedTimestep + 1 : 0;
-	const QString stepCount = formatCount(safeTotalSteps);
-	const QString displayedStepText = formatCount(displayedStep);
-	setFormat(QStringLiteral("%1 | Step %2 of %3 | Ends %4")
-			.arg(QString::fromStdString(formatSimTime(clampedTimestep, startOffsetSeconds)))
-			.arg(displayedStepText)
-			.arg(stepCount)
-			.arg(QString::fromStdString(formatSimTime(safeTotalSteps, startOffsetSeconds))));
+	setFormat(QStringLiteral("%1 of %2")
+			.arg(QString::fromStdString(formatSimTime(clampedTimestep, startOffsetSeconds)),
+				QString::fromStdString(formatSimTime(safeTotalSteps, startOffsetSeconds))));
+	setToolTip(QStringLiteral("Step %1 of %2").arg(formatCount(displayedStep), formatCount(safeTotalSteps)));
 }
 
 // Draws the bar, then draws it again over the filled part with the text in the highlighted text colour,
