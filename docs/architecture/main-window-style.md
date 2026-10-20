@@ -42,7 +42,7 @@ The Services dock shows its list above its tabs, so that beside Case and Layers 
 
 ## Light look
 
-EGTRAIN has one light look, also when the system uses a dark appearance. On macOS the application keeps the light Aqua appearance, so native controls, menus, dialogs and title bars stay light. On other systems a dark system palette is replaced at startup by the light standard palette of the widget style, so selected rows, tooltips and charts stay light; Qt 6.8 and later is also asked for the light colour scheme. The title bar belongs to the window manager outside macOS and can still follow a dark system setting.
+EGTRAIN has one light look, also when the system uses a dark appearance. On macOS the application keeps the light Aqua appearance, so native controls, menus, dialogs and title bars stay light. On other systems a dark system palette is replaced by the light standard palette of the widget style, at startup and whenever the desktop hands over a dark palette later, as a dark XDG desktop portal does, so selected rows, tooltips and charts stay light; Qt 6.8 and later is also asked for the light colour scheme. The title bar belongs to the window manager outside macOS and can still follow a dark system setting.
 
 ## Focus and buttons
 

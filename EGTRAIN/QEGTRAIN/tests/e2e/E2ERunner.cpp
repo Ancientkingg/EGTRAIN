@@ -1,6 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include "app/DispatchController.h"
+#include "diagrams/DiagramWindow.h"
 #include "simulation/RollingStock.h"
 #include "tests/e2e/E2ERunner.h"
 #include "app/MainWindowTestHooks.h"
@@ -145,11 +146,18 @@ double contrast(const QColor& first, const QColor& second) {
 	return (std::max(one, other) + 0.05) / (std::min(one, other) + 0.05);
 }
 
-// After a start with the dark palette of QEGTRAIN_E2E_DARK_PALETTE the application must keep its light look: light fields
-// with dark text, which charts also take, readable selected rows and a light tooltip.
+// After a start with the dark palette of QEGTRAIN_E2E_DARK_PALETTE, and the same palette once more after start, the
+// application must keep its light look: light fields with dark text, a chart in light colours, readable selected rows
+// and a light tooltip.
 void checkLightLook() {
 	QStringList failures;
 	const QPalette palette = QApplication::palette();
+	DiagramWindow diagram(QStringLiteral("Light look"));
+	auto* chart = new QChart;
+	diagram.setChart(chart);
+	const QColor chartBase = chart->backgroundBrush().color();
+	if (chartBase.lightness() < 200 || contrast(chartBase, chart->titleBrush().color()) < 4.5)
+		failures << QStringLiteral("the chart is dark: background %1, text %2").arg(chartBase.name(), chart->titleBrush().color().name());
 	if (palette.color(QPalette::Window).lightness() < 200 || palette.color(QPalette::Base).lightness() < 200)
 		failures << QStringLiteral("the palette is dark: window %1, base %2")
 						.arg(palette.color(QPalette::Window).name(), palette.color(QPalette::Base).name());
@@ -179,8 +187,12 @@ void startScenarios(MainWindow& window) {
 	// A window without a scene has no run to start.
 	if (!mainWindowTestHooks().suppressStartupPrompts)
 		MainWindowTestAccess::autostart(window);
+	// A desktop can also hand over its dark palette after start, as a dark XDG desktop portal does.
 	if (qEnvironmentVariableIsSet(kDarkPalette))
-		QTimer::singleShot(0, &window, [] { checkLightLook(); });
+		QTimer::singleShot(0, &window, [&window] {
+			e2e::configureApplication();
+			QTimer::singleShot(0, &window, [] { checkLightLook(); });
+		});
 	for (const Scenario& scenario : kScenarios) {
 		if (!qEnvironmentVariableIsSet(scenario.variable))
 			continue;

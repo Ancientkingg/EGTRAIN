@@ -62,10 +62,7 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 // EGTRAIN has one light look. A dark system palette would show through wherever a colour comes from the palette, such as
 // selected rows, tooltips and charts, so the application then takes the light standard palette of its style. On macOS
 // Info.plist keeps the light Aqua appearance for the native controls, menus and title bars.
-static void keepLightLook() {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
-	QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
-#endif
+static void keepLightPalette() {
 	const QPalette palette = QApplication::palette();
 	if (palette.color(QPalette::Window).lightness() >= palette.color(QPalette::WindowText).lightness())
 		return;
@@ -75,6 +72,28 @@ static void keepLightLook() {
 		light = std::unique_ptr<QStyle>(QStyleFactory::create(QStringLiteral("Fusion")))->standardPalette();
 	QApplication::setPalette(light);
 	QToolTip::setPalette(light);
+}
+
+/// The desktop can hand Qt its palette after start as well, as a dark XDG desktop portal does, so every new application
+/// palette is checked again.
+class LightPaletteKeeper : public QObject {
+public:
+	using QObject::QObject;
+	/// Checks the palette once Qt has handled a change of the application palette, as Qt sets the tooltip palette of a
+	/// new theme last.
+	bool eventFilter(QObject* watched, QEvent* event) override {
+		if (watched == QCoreApplication::instance() && event->type() == QEvent::ApplicationPaletteChange)
+			QTimer::singleShot(0, this, &keepLightPalette);
+		return QObject::eventFilter(watched, event);
+	}
+};
+
+static void keepLightLook() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+	QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
+#endif
+	keepLightPalette();
+	QCoreApplication::instance()->installEventFilter(new LightPaletteKeeper(QCoreApplication::instance()));
 }
 
 // Whether this is the creator acceptance run of a test build, which starts without a case study.
