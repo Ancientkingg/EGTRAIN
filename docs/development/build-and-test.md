@@ -42,6 +42,7 @@ python3 -m venv ~/aqt-venv
 ~/aqt-venv/bin/pip install aqtinstall
 ~/aqt-venv/bin/aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"          # macOS: ~/Qt/6.8.3/macos
 ~/aqt-venv/bin/aqt install-qt linux desktop 6.8.3 linux_gcc_64 -m qtcharts -O "$HOME/Qt"    # Linux: ~/Qt/6.8.3/gcc_64
+~/aqt-venv/bin/aqt install-qt linux_arm64 desktop 6.8.3 linux_gcc_arm64 -m qtcharts -O "$HOME/Qt"  # arm64 Linux: ~/Qt/6.8.3/gcc_arm64
 ~/aqt-venv/bin/aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.8.3\msvc2022_64
 ```
 
@@ -77,10 +78,18 @@ To open the window, the X11 platform plugin of that Qt also needs `libxcb-cursor
 
 In a root shell, such as a plain `ubuntu:24.04` container, `sudo` is not installed: leave it out.
 
-Ubuntu 24.04 also ships Qt 6.4.2. It is enough: with `qt6-base-dev qt6-charts-dev qt6-svg-dev
-qt6-tools-dev qt6-qpa-plugins libqt6sql6-sqlite` in place of the Qt folder, the application and all tests
-build with warnings as errors, and the tests that do not need a writable checkout or Git pass. CI and the packages use 6.8.3, so a difference
-between the two shows only there.
+Ubuntu 24.04 also ships Qt 6.4.2. It is enough: the application and all tests build with it, also with
+warnings as errors, and the tests pass. Add its packages to the install line and leave out the prefix path:
+
+```bash
+sudo apt-get install -y build-essential cmake git python3 python3-venv libgl-dev \
+  libzmq3-dev cppzmq-dev nlohmann-json3-dev \
+  qt6-base-dev qt6-charts-dev qt6-svg-dev qt6-tools-dev qt6-qpa-plugins libqt6sql6-sqlite
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+```
+
+The configure step then prints `Could NOT find XKB` and `Could NOT find PkgConfig`, which do no harm. CI and
+the packages use 6.8.3, so a difference between the two shows only there.
 
 On Windows, from a Visual Studio developer PowerShell, with the vcpkg
 packages installed and the Qt 6.8.3 `msvc2022_64` directory as
@@ -275,7 +284,7 @@ run on Windows.
 | `No tests were found!!!` from `ctest`, or `No rule to make target 'test_timeformat'` | The build folder was configured without `-DEGTRAIN_BUILD_TESTS=ON`, which is off by default | Run the configure command again with the option, in the same folder |
 | `Test not available without configuration.  (Missing "-C <config>"?)` from `ctest` | A multi-config generator such as Visual Studio | Add `-C Release` to `ctest`, and `--config Release` to `cmake --build` |
 | The build takes very long | `cmake --build build` runs one job with the Makefile generator, and a Release link uses link-time optimization | Add `--parallel 4` (or set `CMAKE_BUILD_PARALLEL_LEVEL`), and configure with `-DEGTRAIN_IPO=OFF` for faster links |
-| `clang-format ... is not installed`, or `... is clang-format X, but the sources are formatted with 23.1.3` from `tools/format.py` | The script accepts one release only | `python3 -m pip install clang-format==23.1.3`, or name the executable in `CLANG_FORMAT` |
+| `clang-format ... is not installed`, or `... is clang-format X, but the sources are formatted with 23.1.3` from `tools/format.py` | The script accepts one release only | `python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format==23.1.3`, then put `~/fmt-venv/bin` on `PATH` or name the executable in `CLANG_FORMAT` |
 | Python scripts fail on Windows with a decoding error | The console code page is not UTF-8 | Set `PYTHONUTF8=1` |
 | The application starts but a relative `--scene` path or `Scenes/...` is not found | The working directory is not `EGTRAIN/QEGTRAIN` | Start it from that folder, or give an absolute path |
 
@@ -510,8 +519,8 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_recovery_smoke` | yes | yes | no | A Python script that ends the application with `_Exit` and starts it again. The lock files of the recovery copies are not checked after a crash on Windows, so the test is registered under `if(UNIX)` until they are. Two of its scenarios crash the application on purpose to check the crash note. |
 | `test_crashnote` | yes | yes | partly | Starts copies of itself that crash on purpose and reads their crash notes. On Windows it runs the signal and exception cases on the main thread only, and the notes have no stack. Every child leaves a system crash report. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
-| `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. |
-| `test_capture_screenshots` | yes | no | no | Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only. It is registered disabled until the pictures are taken again in the current dialog style. |
+| `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. The script also runs on Linux with `QEGTRAIN_APP=$PWD/build/QEGTRAIN`. |
+| `test_capture_screenshots` | yes | no | no | Runs the capture phase of the macOS app bundle. Disabled until the pictures of `docs/images` are taken again with Qt 6 in the current dialog style. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the parser, the commands and the process handling of the macOS `/usr/bin/time -l` collector. It does not need that tool. |

@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = "EGTRAIN/QEGTRAIN"
 VENDORED = SOURCE_ROOT + "/io/third_party/"
 SUFFIXES = (".cpp", ".h", ".hpp")
-INSTALL_HINT = f"python3 -m pip install clang-format=={CLANG_FORMAT_VERSION}"
+INSTALL_HINT = f"python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format=={CLANG_FORMAT_VERSION}, then put ~/fmt-venv/bin on PATH"
 
 
 def source_files() -> list:
