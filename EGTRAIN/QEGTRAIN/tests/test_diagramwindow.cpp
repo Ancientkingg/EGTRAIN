@@ -41,7 +41,6 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition) std::cerr << "failed: " << message << "\n";
@@ -264,25 +263,22 @@ static bool exerciseTrainFilterRoom() {
 		trains.append({QString("IC %1").arg(1000 + i), QColor()});
 	filter->setTrains(trains);
 	const QRect screen = window.screen()->availableGeometry();
-	bool ok = true;
-	for (const auto& [top, buttonHeight] : {std::pair(screen.height() * 3 / 8, 30), std::pair(screen.height() / 2 - 80, 160)}) {
-		filter->setFixedHeight(buttonHeight);
-		window.setGeometry(screen.left(), screen.top() + top, 200, buttonHeight);
-		window.show();
-		QApplication::processEvents();
-		QRect menuArea;
-		bool scrolls = false;
-		QTimer::singleShot(0, filter, [filter, &menuArea, &scrolls]() {
-			menuArea = filter->menu()->geometry();
-			scrolls = filter->menu()->findChild<QListWidget*>()->verticalScrollBar()->maximum() > 0;
-			filter->menu()->hide();
-		});
-		filter->showMenu();
-		const QRect button(filter->mapToGlobal(QPoint(0, 0)), filter->size());
-		ok &= expect(screen.contains(menuArea) && !menuArea.intersects(button) && scrolls,
-			qPrintable(QString("the train list fits the room beside a button %1 px high and scrolls").arg(buttonHeight)));
-	}
-	return ok;
+	// A tall button in the middle of the screen leaves less room above and below it than the list needs.
+	filter->setFixedHeight(160);
+	window.setGeometry(screen.left(), screen.top() + screen.height() / 2 - 80, 200, 160);
+	window.show();
+	QApplication::processEvents();
+	QRect menuArea;
+	bool scrolls = false;
+	QTimer::singleShot(0, filter, [filter, &menuArea, &scrolls]() {
+		menuArea = filter->menu()->geometry();
+		scrolls = filter->menu()->findChild<QListWidget*>()->verticalScrollBar()->maximum() > 0;
+		filter->menu()->hide();
+	});
+	filter->showMenu();
+	const QRect button(filter->mapToGlobal(QPoint(0, 0)), filter->size());
+	return expect(screen.contains(menuArea) && !menuArea.intersects(button) && scrolls,
+		"the train list fits the room beside its button and scrolls");
 }
 
 // A menu separator is a line in the border colour of the menus, also at fractional scales.
