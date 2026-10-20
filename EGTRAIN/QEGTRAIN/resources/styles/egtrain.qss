@@ -324,9 +324,17 @@ DiagramWindow QPushButton:focus, TimetableTableWindow QPushButton:focus {
     padding: 4px 6px;
 }
 
+/* Open result view... is as tall as the push buttons beside it. A tool button is 3 px taller than its text and padding,
+   so it has 4 px above the text and 3 px below it, and no minimum height. */
+QToolButton#runResultsViewsButton {
+    min-height: 0;
+    padding-top: 4px;
+    padding-bottom: 3px;
+}
+
 QToolButton#runResultsViewsButton:focus {
     border: 2px solid #2e7491;
-    padding: 4px 19px 4px 6px;
+    padding: 3px 19px 2px 6px;
 }
 
 /* The buttons that choose the trains, occurrences or stations of a result window are as tall as the push buttons beside

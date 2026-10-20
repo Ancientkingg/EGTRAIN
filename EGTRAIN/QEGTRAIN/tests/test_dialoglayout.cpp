@@ -1003,7 +1003,8 @@ bool exerciseCellSpinBoxSize(const QSize& fusionSize) {
 #endif
 }
 
-// A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow.
+// A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow. Open result
+// view... is as tall as the push buttons beside it in Run Results.
 bool exerciseMenuButtonRoom() {
 	QToolButton plain;
 	plain.setText(QStringLiteral("Trains (2/2)"));
@@ -1016,6 +1017,13 @@ bool exerciseMenuButtonRoom() {
 		menuButton.setMenu(new QMenu(&menuButton));
 		ok &= check(menuButton.sizeHint().width() >= plain.sizeHint().width() + 12, "a menu button has no room for its arrow");
 	}
+	QToolButton views;
+	views.setObjectName(QStringLiteral("runResultsViewsButton"));
+	views.setText(QStringLiteral("Open result view..."));
+	views.setPopupMode(QToolButton::InstantPopup);
+	views.setMenu(new QMenu(&views));
+	ok &= check(views.sizeHint().height() == QPushButton(QStringLiteral("Export CSV...")).sizeHint().height(),
+		"Open result view... is not as tall as the push buttons beside it");
 	return ok;
 }
 
