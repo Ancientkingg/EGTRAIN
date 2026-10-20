@@ -4726,10 +4726,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(ok, "presentation",
 					QString("Run Results opens %1 pixels high with %2 rows in a window %3 pixels high").arg(results->height()).arg(shownRows).arg(w.height()));
 
-			// Four editors opened from the Editors menu while Run Results is open: each shows at least three rows of fields once raised.
+			// Four editors opened from the Editors menu while Run Results is open share one group of tabs, and each shows at least
+			// three rows of fields once raised.
 			const QList<QDockWidget*> editorDocks{w.m_caseSettingsDock, w.m_infrastructureDock, w.m_serviceDock, w.m_trainUnitDock};
 			for (QDockWidget* dock : editorDocks)
 				w.m_editorActions.value(dock)->trigger();
+			const QList<QDockWidget*> tabbedEditors = w.tabifiedDockWidgets(w.m_caseSettingsDock);
+			if (!tabbedEditors.contains(w.m_infrastructureDock) || !tabbedEditors.contains(w.m_serviceDock)
+				|| !tabbedEditors.contains(w.m_trainUnitDock))
+				facetFailure(ok, "presentation", "Case Settings, Infrastructure, Services and Rolling stock units do not share one group of tabs");
 			const int rowHeight = w.m_caseNameEdit->sizeHint().height();
 			for (QDockWidget* dock : editorDocks) {
 				dock->raise();
@@ -4741,6 +4746,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							.arg(dock->objectName())
 							.arg(shown));
 			}
+			// Choosing Case Settings in the Editors menu while it is open behind Rolling stock units brings it to the front.
+			QAction* caseSettingsAction = w.m_editorActions.value(w.m_caseSettingsDock);
+			caseSettingsAction->trigger();
+			QApplication::processEvents();
+			if (w.m_caseSettingsDock->isHidden() || !caseSettingsAction->isChecked() || w.m_caseSettingsDock->visibleRegion().isEmpty())
+				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
 			for (QDockWidget* dock : editorDocks)
 				dock->hide();
 

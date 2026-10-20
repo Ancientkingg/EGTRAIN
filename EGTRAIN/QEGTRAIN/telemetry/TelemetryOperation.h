@@ -75,8 +75,9 @@ private:
 
 /// Adds a checkable action for dock to menu, owned by dock, whose check mark follows the shown state
 /// of the dock. Checking it reveals the dock with revealEditor() and an observation from capture;
-/// unchecking hides it. A separate action observes the explicit state before show(), unlike the
-/// dock's built-in toggle action whose internal triggered handler runs first.
+/// unchecking hides it, except for a dock open behind another tab, which it reveals. A separate
+/// action observes the explicit state before show(), unlike the dock's built-in toggle action whose
+/// internal triggered handler runs first.
 QAction* registerEditor(QDockWidget* dock, QMenu* menu, const CaptureOperation& capture);
 /// Shows and raises dock, and submits editor.opened when it was hidden. A null dock is ignored.
 void revealEditor(QDockWidget* dock, const OperationObservation& operation);
