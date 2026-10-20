@@ -600,6 +600,28 @@ int main(int argc, char** argv) {
 	}
 
 	{
+		// in a short panel, where the fields scroll, the buttons of the colour field stay whole at every width, also where the
+		// field just fits beside its label
+		SceneDocument document;
+		ServicePanel panel;
+		panel.setDocument(&document);
+		document.replace(serviceScene(), false);
+		panel.show();
+		const auto* choose = panel.colorButton()->findChild<QPushButton*>("serviceColorChooseButton");
+		const auto* reset = panel.colorButton()->findChild<QPushButton*>("serviceColorDefaultButton");
+		QStringList cut;
+		for (int width = 200; width <= 900; ++width) {
+			panel.resize(width, 300);
+			QApplication::processEvents();
+			if (choose->width() < choose->sizeHint().width() || reset->width() < reset->sizeHint().width())
+				cut << QString::number(panel.width());
+		}
+		if (!cut.isEmpty())
+			std::cerr << "cut at panel widths " << cut.join(' ').toStdString() << "\n";
+		ok &= expect(choose && reset && cut.isEmpty(), "the Choose and Default buttons of the colour field are whole at every width");
+	}
+
+	{
 		// over the closed route field the tip follows the text of the field with the stations of the route
 		SceneDocument document;
 		ServicePanel panel;

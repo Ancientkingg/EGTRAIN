@@ -28,6 +28,7 @@
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QStringList>
+#include <QStyle>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QToolTip>
@@ -70,6 +71,23 @@ protected:
 		}
 		return ChoiceComboBox::event(event);
 	}
+};
+
+// The colour field of the form. A form that wraps long rows keeps a row beside its label while the field gets its minimum
+// width, but then leaves the field that width less the spacing after the label, which cuts the Choose button. The field
+// asks for that spacing as well.
+class ServiceColorField : public ColorChoiceButton {
+public:
+	ServiceColorField(const QFormLayout* form, QWidget* parent) : ColorChoiceButton(parent), m_form(form) {}
+	QSize minimumSizeHint() const override {
+		int spacing = m_form->horizontalSpacing();
+		if (spacing < 0)
+			spacing = style()->combinedLayoutSpacing(QSizePolicy::Label, sizePolicy().controlType(), Qt::Horizontal, nullptr, parentWidget());
+		return ColorChoiceButton::minimumSizeHint() + QSize(std::max(spacing, 0), 0);
+	}
+
+private:
+	const QFormLayout* m_form;
 };
 
 // One entry of the route choice: where the route goes and in which direction, with the stations it traverses as tooltip.
@@ -151,7 +169,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_categoryCombo = new ChoiceComboBox(detailPane);
 	m_categoryCombo->setObjectName("serviceCategoryCombo");
 	form->addRow("Category", m_categoryCombo);
-	m_colorButton = new ColorChoiceButton(detailPane);
+	m_colorButton = new ServiceColorField(form, detailPane);
 	m_colorButton->setObjectName("serviceColorButton");
 	form->addRow("Service visualization colour", m_colorButton);
 	m_compositionCombo = new ChoiceComboBox(detailPane);
