@@ -310,7 +310,9 @@ void TimetableStopsPanel::fitColumns() {
 	option.fontMetrics = metrics;
 	const int minimum = header->minimumSectionSize();
 	const int typicalValue = metrics.horizontalAdvance(QString(kTypicalValueChars, QLatin1Char('0'))) + margin;
-	const int minimumStation = std::max(minimum, metrics.horizontalAdvance(QString(kMinimumStationChars, QLatin1Char('0'))) + margin);
+	// The station keeps its header whole, which can need more room than six digits.
+	const int minimumStation = std::max({minimum, metrics.horizontalAdvance(QString(kMinimumStationChars, QLatin1Char('0'))) + margin,
+		header->sectionSizeHint(0)});
 	std::array<int, 5> widths{};
 	int wanted = 0;
 	// A clock time is hard to read when it is elided, so its column is as wide as the longest time, with any day prefix,
