@@ -846,7 +846,8 @@ void ResultViews::showAreaCapacity() {
 	}
 	// The options dialog reads the run until it closes, so this call holds it.
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
-	openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); });
+	if (QWidget* window = openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); }))
+		showWindow(window);
 }
 
 void ResultViews::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,

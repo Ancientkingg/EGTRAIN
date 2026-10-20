@@ -2245,6 +2245,19 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity by area did not open and export through public controls"));
 			return;
 		}
+		// A second window of capacity by area does not open on top of the first.
+		acceptAreaCapacityScope();
+		areaButton->trigger();
+		process();
+		AreaCapacityWindow* secondArea = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<AreaCapacityWindow*>(widget); window && window != area && window->isVisible())
+				secondArea = window;
+		if (!secondArea || secondArea->pos() == area->pos()) {
+			fail(QStringLiteral("a second capacity by area window opens at the place of the first"));
+			return;
+		}
+		secondArea->close();
 		area->close();
 		QPushButton* compareButton = w.findChild<QPushButton*>("compareDelayButton");
 		QAction* delayAnalysisResult = findResultAction(QStringLiteral("Delay analysis"));

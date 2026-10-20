@@ -118,7 +118,8 @@ private:
 	int chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const;
 	// Shows a result window. While another result window is open, the new one opens a step below and to the right of the
 	// one that opened last, or at the top left of the screen when that step would leave the screen; otherwise Qt centres
-	// it over the main window.
+	// it over the main window. The delay analysis and capacity by area windows, which their openers show, move there
+	// after they appear.
 	void showWindow(QWidget* window);
 
 	QWidget* const m_window;
