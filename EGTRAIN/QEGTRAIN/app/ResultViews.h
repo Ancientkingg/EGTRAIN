@@ -1,7 +1,9 @@
 #ifndef RESULTVIEWS_H
 #define RESULTVIEWS_H
 
+#include <QList>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 
 #include <functional>
@@ -93,6 +95,8 @@ public slots:
 	void showDelayDiagram();
 	/// Opens ResultViewName::kDelayAnalysis through RunController::openDelayAnalysis().
 	void showDelayAnalysis();
+	/// Opens ResultViewName::kDelayAnalysis on its baseline comparison.
+	void showDelayComparison();
 	/// Asks for the scope and opens ResultViewName::kBlockingTime.
 	void showBlockingTimeDiagram();
 	/// Asks for the scope, starting at the first section with two occurrences that share an entry block, and opens
@@ -114,10 +118,17 @@ private:
 	// The runtime index of the route that the user picks from the routes the run used, -1 when there is none or the user
 	// cancels.
 	int chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const;
+	// Shows a result window. While another result window is open, the new one opens a step below and to the right of the
+	// one that opened last, or at the top left of the screen when that step would leave the screen; otherwise Qt centres
+	// it over the main window. The delay analysis and capacity by area windows, which their openers show, move there
+	// after they appear.
+	void showWindow(QWidget* window);
 
 	QWidget* const m_window;
 	RunController* const m_runController;
 	Host& m_host;
+	// The result windows that showWindow() opened, oldest first; a closed window is deleted and leaves a null entry.
+	QList<QPointer<QWidget>> m_windows;
 };
 
 #endif // RESULTVIEWS_H

@@ -85,6 +85,8 @@ int main(int argc, char** argv) {
 				&& panel.baseTimeEdit()->text() == "08:00:00" && panel.durationSecondsEdit()->value() == 3600.0
 				&& panel.bufferSecondsEdit()->value() == 0.0 && panel.recoveryPercentEdit()->value() == 0.0,
 			"a new scene is shown in the fields");
+		ok &= expect(panel.nameEdit()->cursorPosition() == 0 && panel.descriptionEdit()->cursorPosition() == 0,
+			"the name and the description show the start of their text");
 		ok &= expect(panel.nameEdit()->isEnabled() && panel.baseTimeEdit()->isEnabled()
 				&& panel.durationSecondsEdit()->isEnabled() && panel.recoveryPercentEdit()->isEnabled(),
 			"the fields are enabled once a scene is loaded");

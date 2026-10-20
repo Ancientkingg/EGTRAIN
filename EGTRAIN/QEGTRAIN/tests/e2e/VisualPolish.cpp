@@ -431,6 +431,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "the Simulation menu has a Start Time entry";
 		}
 	}
+	// Set Output Folder... is the last entry above the separator before Quit.
+	const QList<QAction*> fileActions = w.ui->menuFile->actions();
+	const int quitIndex = fileActions.indexOf(w.ui->actionQuit);
+	if (quitIndex < 2 || fileActions.at(quitIndex - 2) != w.m_outputFolderAction || !fileActions.at(quitIndex - 1)->isSeparator()) {
+		ok = false;
+		failures << "File > Set Output Folder... is not above the separator before Quit";
+	}
 	// Each menu of the menu bar has an Alt mnemonic of its own.
 	// QKeySequence::mnemonic() is empty on macOS, so the letter after the & is read here.
 	QString mnemonics;

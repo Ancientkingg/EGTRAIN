@@ -210,7 +210,7 @@ QWidget#mapKeyBody QLabel {
     font-size: 11px;
 }
 
-QPushButton:focus, QComboBox:focus, QLineEdit:focus {
+QPushButton:focus, QComboBox:focus, QLineEdit:focus, QTableWidget#runResultsTable:focus {
     border-color: #315a70;
 }
 
@@ -347,6 +347,12 @@ QTableView {
     gridline-color: #e3eaee;
 }
 
+/* The current cell of a table that Tab reaches has no selection and can be scrolled out of view, so the frame of the table
+   shows the focus. */
+QTableWidget#runResultsTable {
+    border: 1px solid #c9d3db;
+}
+
 QTabWidget::pane {
     border: 1px solid #c9d3db;
     background: #f8fafb;
@@ -462,7 +468,7 @@ QLabel#resultContextText {
 
 QGraphicsView#networkView {
     background: #12191f;
-    border: 1px solid #3a4a54;
+    border: 2px solid #3a4a54;
 }
 
 QGraphicsView#networkView:focus {

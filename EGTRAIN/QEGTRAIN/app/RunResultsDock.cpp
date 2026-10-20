@@ -155,6 +155,8 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_table->setSizePolicy(tablePolicy);
 	m_table->setMinimumHeight(tableHeight(*m_table, 1));
 	containerLayout->addWidget(m_table, 1);
+	// Tab reaches the buttons above the table before the table.
+	QWidget::setTabOrder(exportPngBtn, m_table);
 	QHBoxLayout* delayRow = new QHBoxLayout();
 	auto* delayCaption = new QLabel(container);
 	delayCaption->setObjectName("delayComparisonCaption");
@@ -171,7 +173,7 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_compareDelayButton = new QPushButton("Compare delays", container);
 	m_compareDelayButton->setObjectName("compareDelayButton");
 	m_compareDelayButton->setToolTip("Compare the completed run with the frozen delay baseline");
-	QObject::connect(m_compareDelayButton, &QPushButton::clicked, m_runController, &RunController::showDelayComparison);
+	QObject::connect(m_compareDelayButton, &QPushButton::clicked, views, &ResultViews::showDelayComparison);
 	delayRow->addWidget(m_compareDelayButton);
 	delayRow->addStretch();
 	containerLayout->addLayout(delayRow);

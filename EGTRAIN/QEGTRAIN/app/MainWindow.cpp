@@ -1227,11 +1227,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// The toolbar button exists now, so it can take its description.
 	updateFollowAvailability();
 
-	// file menu: output folder chooser
+	// file menu: output folder chooser, after Load Legacy Case and above the separator before Quit
 	if (ui->menuFile) {
 		m_outputFolderAction = new QAction("Set Output Folder...", this);
 		connect(m_outputFolderAction, &QAction::triggered, m_runController, &RunController::chooseOutputFolder);
-		ui->menuFile->addAction(m_outputFolderAction);
+		const QList<QAction*> fileActions = ui->menuFile->actions();
+		ui->menuFile->insertAction(fileActions.value(fileActions.indexOf(ui->actionQuit) - 1), m_outputFolderAction);
 	}
 
 	// in-app logging pane (ConsoleWidget installs its own streambuf on construction)

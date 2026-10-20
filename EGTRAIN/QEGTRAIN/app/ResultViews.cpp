@@ -10,6 +10,7 @@
 #include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
+#include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RouteReferenceChoice.h"
@@ -30,6 +31,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QToolButton>
@@ -199,6 +201,20 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 ResultViews::ResultViews(QWidget* window, RunController* runController, Host& host)
 	: QObject(window), m_window(window), m_runController(runController), m_host(host) {}
 
+void ResultViews::showWindow(QWidget* window) {
+	m_windows.removeAll(QPointer<QWidget>());
+	if (!m_windows.isEmpty()) {
+		const QWidget* last = m_windows.last();
+		const QRect available = last->screen()->availableGeometry();
+		QRect frame(last->pos() + QPoint(32, 32), window->size() + last->frameSize() - last->size());
+		if (!available.contains(frame))
+			frame.moveTopLeft(available.topLeft());
+		window->move(frame.topLeft());
+	}
+	window->show();
+	m_windows.append(window);
+}
+
 // Choose a reference from routes that were actually used in this run.
 int ResultViews::chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const {
 	const QVector<RouteReferenceChoice> choices = buildRouteReferenceChoices(m_host.sceneModel(), usedRouteReferencesFrom(run));
@@ -288,11 +304,19 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisX(mode == 1 || mode == 2, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showDelayAnalysis() {
-	m_runController->openDelayAnalysis();
+	if (QWidget* window = m_runController->openDelayAnalysis())
+		showWindow(window);
+}
+
+void ResultViews::showDelayComparison() {
+	if (DelayAnalysisWindow* window = m_runController->openDelayAnalysis()) {
+		showWindow(window);
+		window->showBaselineTab();
+	}
 }
 
 void ResultViews::showTimetableTable() {
@@ -309,7 +333,7 @@ void ResultViews::showTimetableTable() {
 	window->setRunProvenance(run->provenance);
 	window->setWindowTitle(QString("%1 [%2]").arg(ResultViewName::kTimetable, completedRunContext(run->provenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
-	window->show();
+	showWindow(window);
 }
 
 void ResultViews::showDelayDiagram() {
@@ -363,7 +387,7 @@ void ResultViews::showDelayDiagram() {
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisX(false, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showTimetableGraph() {
@@ -474,7 +498,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showBlockingTimeDiagram() {
@@ -604,7 +628,7 @@ void ResultViews::showBlockingTimeDiagram() {
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showCapacityAnalysis() {
@@ -819,7 +843,7 @@ void ResultViews::showCapacityAnalysis() {
 	// No button of the window is a default button, so Return presses none.
 	for (QPushButton* button : dialog->findChildren<QPushButton*>())
 		button->setAutoDefault(false);
-	dialog->show();
+	showWindow(dialog);
 }
 
 void ResultViews::showAreaCapacity() {
@@ -829,7 +853,8 @@ void ResultViews::showAreaCapacity() {
 	}
 	// The options dialog reads the run until it closes, so this call holds it.
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
-	openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); });
+	if (QWidget* window = openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); }))
+		showWindow(window);
 }
 
 void ResultViews::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
@@ -883,5 +908,5 @@ void ResultViews::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult
 	connect(window, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	window->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	window->setAttribute(Qt::WA_DeleteOnClose);
-	window->show();
+	showWindow(window);
 }

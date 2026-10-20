@@ -519,11 +519,6 @@ DelayAnalysisWindow* RunController::openDelayAnalysis() {
 	return window;
 }
 
-void RunController::showDelayComparison() {
-	if (DelayAnalysisWindow* window = openDelayAnalysis())
-		window->showBaselineTab();
-}
-
 bool RunController::sceneChanged() {
 	if (m_delayBaseline)
 		m_delayBaselineStatus = QStringLiteral(

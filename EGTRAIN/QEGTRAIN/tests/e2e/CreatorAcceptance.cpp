@@ -2245,6 +2245,19 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity by area did not open and export through public controls"));
 			return;
 		}
+		// A second window of capacity by area does not open on top of the first.
+		acceptAreaCapacityScope();
+		areaButton->trigger();
+		process();
+		AreaCapacityWindow* secondArea = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<AreaCapacityWindow*>(widget); window && window != area && window->isVisible())
+				secondArea = window;
+		if (!secondArea || secondArea->pos() == area->pos()) {
+			fail(QStringLiteral("a second capacity by area window opens at the place of the first"));
+			return;
+		}
+		secondArea->close();
 		area->close();
 		QPushButton* compareButton = w.findChild<QPushButton*>("compareDelayButton");
 		QAction* delayAnalysisResult = findResultAction(QStringLiteral("Delay analysis"));
@@ -2291,6 +2304,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the delay analysis did not open on its Calls tab and export through public controls"));
 			return;
 		}
+		// Compare delays opens its window a step below and to the right of the delay analysis that is still open.
+		compareButton->click();
+		process();
+		DelayAnalysisWindow* comparisonWindow = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<DelayAnalysisWindow*>(widget); window && window != callsWindow && window->isVisible())
+				comparisonWindow = window;
+		if (!comparisonWindow || comparisonWindow->pos() != callsWindow->pos() + QPoint(32, 32)) {
+			fail(QStringLiteral("Compare delays does not open the delay analysis a step away from the open one"));
+			return;
+		}
+		comparisonWindow->close();
 		callsWindow->close();
 		process();
 

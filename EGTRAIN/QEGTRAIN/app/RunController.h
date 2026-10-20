@@ -256,8 +256,6 @@ public slots:
 	void chooseOutputFolder();
 	/// Makes the completed run the delay baseline. It has to have no incidents and no entrance delays.
 	void setDelayBaseline();
-	/// Opens the delay analysis on its baseline comparison.
-	void showDelayComparison();
 
 private:
 	// The scripted runs in tests/e2e set the state of the controller directly.

@@ -68,11 +68,14 @@ void CaseSettingsPanel::refresh() {
 	{
 		const QSignalBlocker blocker(m_nameEdit);
 		m_nameEdit->setText(QString::fromStdString(model.name));
+		// The field shows the start of a text that is longer than the field.
+		m_nameEdit->setCursorPosition(0);
 		m_nameEdit->setEnabled(hasScene);
 	}
 	{
 		const QSignalBlocker blocker(m_descriptionEdit);
 		m_descriptionEdit->setText(QString::fromStdString(model.description));
+		m_descriptionEdit->setCursorPosition(0);
 		m_descriptionEdit->setEnabled(hasScene);
 	}
 	{
