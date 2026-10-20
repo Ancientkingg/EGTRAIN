@@ -237,12 +237,13 @@ QTableWidget#runResultsTable:focus {
     border-color: #315a70;
 }
 
-/* Push buttons and fields have a white face, a 1 px border and a 6 px radius, in dialogs and in the docks alike, and are
-   28 px tall at a 13 px font. A button in a dialog has 14 px beside its text; one in a dock keeps 7 px, so that the
-   editor docks keep their width. */
+/* Push buttons and fields have a white face, a 1 px border in the control colour, #7b8b96, and a 6 px radius, in dialogs
+   and in the main window alike. The border has a contrast of 3.5:1 with the white face and 3.4:1 with the surface of a
+   dialog. Push buttons, combo boxes and line edits are 28 px tall at a 13 px font. A button in a dialog has 14 px beside
+   its text; one in a dock keeps 7 px, so that the editor docks keep their width. */
 QPushButton, QToolButton#runResultsViewsButton {
     background: #ffffff;
-    border: 1px solid #b4c0ca;
+    border: 1px solid #7b8b96;
     border-radius: 6px;
     color: #24313a;
     padding: 5px 7px;
@@ -254,13 +255,13 @@ QDialog QPushButton {
 
 QComboBox, QLineEdit, QAbstractSpinBox {
     background: #ffffff;
-    border: 1px solid #b4c0ca;
+    border: 1px solid #7b8b96;
     border-radius: 6px;
     padding: 4px 7px;
 }
 
 QPushButton:hover, QComboBox:hover, QLineEdit:hover, QAbstractSpinBox:hover, QToolButton#runResultsViewsButton:hover {
-    border-color: #8a9aa6;
+    border-color: #5b6871;
 }
 
 QPushButton:pressed, QToolButton#runResultsViewsButton:pressed {
@@ -339,7 +340,7 @@ QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
    the header inside the rounded corners. */
 QDialog QListWidget, QDialog QTableView {
     background: #ffffff;
-    border: 1px solid #b4c0ca;
+    border: 1px solid #7b8b96;
     border-radius: 6px;
     padding: 2px;
 }
@@ -419,9 +420,9 @@ QPushButton::menu-indicator:disabled {
     image: url(:/icons/drop-down-arrow-disabled.svg);
 }
 
-/* Each copy of the recovery prompt is a card with the border and radius of a field. */
+/* Each copy of the recovery prompt is a card with the radius of a field and the border of a status label. */
 QFrame#recoveryRow {
-    border: 1px solid #b4c0ca;
+    border: 1px solid #c9d3db;
     border-radius: 6px;
 }
 
