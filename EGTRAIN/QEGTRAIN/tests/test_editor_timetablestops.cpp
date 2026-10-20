@@ -2,7 +2,9 @@
 
 #include "widgets/ChoiceComboBox.h"
 
+#include <QAbstractEventDispatcher>
 #include <QAbstractItemDelegate>
+#include <QAbstractItemView>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -185,6 +187,21 @@ static QLabel* label(QDialog& dialog, const char* name) {
 // The role that a dialog label has: "help", or the value of its status property, which is "neutral", "warning" or "error".
 static QString role(const QLabel* message) {
 	return message->property("dialogHelp").toBool() ? QStringLiteral("help") : message->property("dialogStatus").toString();
+}
+
+// A combo box that adjusts to its contents resizes itself to its size hint from a 20 ms timer of its popup after its
+// items change, and its layout gives it back its width in the next turn of the event loop. Waits until no combo box of
+// the dialog has that timer running, then lets the layout requests that it queued run.
+static void settleCombos(const QDialog& dialog) {
+	const auto adjusting = [&dialog] {
+		for (const QComboBox* box : dialog.findChildren<QComboBox*>())
+			if (!QAbstractEventDispatcher::instance()->registeredTimers(box->view()->parentWidget()).isEmpty())
+				return true;
+		return false;
+	};
+	while (adjusting())
+		QApplication::processEvents(QEventLoop::WaitForMoreEvents);
+	QApplication::processEvents();
 }
 
 // Lets the events that a change has posted take effect, including the timers that fire at once.
@@ -775,7 +792,7 @@ int main(int argc, char** argv) {
 		DialogRun run = runDialog(
 			panel,
 			[&](QDialog& dialog) {
-				QApplication::processEvents();
+				settleCombos(dialog);
 				auto* station = static_cast<ChoiceComboBox*>(combo(dialog, "stopEditorStationCombo"));
 				auto* platform = static_cast<ChoiceComboBox*>(combo(dialog, "stopEditorPlatformCombo"));
 				const QRect screen = dialog.screen()->availableGeometry();
