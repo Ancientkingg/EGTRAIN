@@ -155,6 +155,8 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_table->setSizePolicy(tablePolicy);
 	m_table->setMinimumHeight(tableHeight(*m_table, 1));
 	containerLayout->addWidget(m_table, 1);
+	// Tab reaches the buttons above the table before the table.
+	QWidget::setTabOrder(exportPngBtn, m_table);
 	QHBoxLayout* delayRow = new QHBoxLayout();
 	auto* delayCaption = new QLabel(container);
 	delayCaption->setObjectName("delayComparisonCaption");

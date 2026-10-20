@@ -1322,7 +1322,7 @@ QSize MainWindowTestAccess::replayRowSizeAt(MainWindow& w, int time) {
 // that dropped its first part and for one that kept no frame. Those histories are built here, the
 // first from the frames of the run with a budget that holds about half of them, and go through the
 // code that fills the row after a run. The history of the run is put back, and the window shows
-// the frame at the middle again. It also checks the width of Play and the Tab order after a run.
+// the frame at the middle again. It also checks the width of Play, the Tab order and the focus frames after a run.
 bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& failure) {
 	if (!checkReplayWholeRun(w, middle, failure))
 		return false;
@@ -1407,28 +1407,40 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 				.arg(smallSize.height()));
 	if (minimumHeight > 400)
 		return fail(QStringLiteral("the window after a run needs %1 px of height").arg(minimumHeight));
-	// Tab goes Start, Play, End and the slider, leaves the table of Run Results for the buttons after it and comes back to Start
-	// through the layer check boxes. No stop is a dock tab bar or the scroll area of a dock, which show no focus.
+	// Tab goes Start, Play, End and the slider, reaches the buttons above the table of Run Results before the table, leaves the
+	// table for the buttons after it and comes back to Start through the layer check boxes. No stop is a dock tab bar or the
+	// scroll area of a dock, which show no focus. The table shows the focus with its frame, the network view with a 2 px frame.
 	w.m_replayStartButton->setFocus(Qt::TabFocusReason);
 	QApplication::processEvents();
 	QList<QWidget*> order;
+	QString tableEdge;
+	QString canvasEdge;
 	QWidget* focused = QApplication::focusWidget();
 	while (focused && order.size() < 60 && !order.contains(focused)) {
 		order << focused;
+		if (focused == w.m_runResultsTable || focused == w.networkView) {
+			const QImage shown = focused->grab().toImage();
+			QString& edge = focused == w.networkView ? canvasEdge : tableEdge;
+			edge = shown.pixelColor(0, shown.height() / 2).name() + shown.pixelColor(1, shown.height() / 2).name();
+		}
 		QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
 		QApplication::sendEvent(focused, &tab);
 		QApplication::processEvents();
 		focused = QApplication::focusWidget();
 	}
 	const QList<QWidget*> replayRow{w.m_replayStartButton, w.m_replayPlayButton, endButton, w.m_replaySlider};
-	const int table = order.indexOf(w.m_runResultsTable);
+	const QList<QWidget*> results{w.findChild<QWidget*>("runResultsViewsButton"), w.findChild<QWidget*>("resultView_ExportCSV"),
+		w.findChild<QWidget*>("resultView_ExportPNG"), w.m_runResultsTable};
+	const int views = order.indexOf(results.first());
 	QStringList names;
 	for (QWidget* widget : order)
 		names << QStringLiteral("%1(%2)").arg(widget->metaObject()->className(), widget->objectName());
-	if (focused != w.m_replayStartButton || order.mid(0, replayRow.size()) != replayRow || table < 0
-		|| order.value(table + 1) != w.findChild<QWidget*>("runResultsViewsButton") || !order.contains(w.m_signalLayerCheck)
+	if (focused != w.m_replayStartButton || order.mid(0, replayRow.size()) != replayRow || views < 0
+		|| order.mid(views, results.size()) != results || !order.contains(w.m_signalLayerCheck)
 		|| std::any_of(order.cbegin(), order.cend(), [](QWidget* widget) { return qobject_cast<QTabBar*>(widget) || qobject_cast<QScrollArea*>(widget); }))
 		return fail(QStringLiteral("the Tab order after a run is %1").arg(names.join(QStringLiteral(", "))));
+	if (!tableEdge.startsWith(QLatin1String("#315a70")) || canvasEdge != QLatin1String("#5f8fa8#5f8fa8"))
+		return fail(QStringLiteral("the focus frame of the Run Results table is %1 and that of the network view %2").arg(tableEdge, canvasEdge));
 
 	// The same run with its first part dropped.
 	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> frames;
