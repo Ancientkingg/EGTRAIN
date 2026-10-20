@@ -108,11 +108,123 @@ QPen emphasisedPen(const QPen& base) {
 	return pen;
 }
 
-// Planned series are drawn dashed and make the navigation help mention planned
-// lines; both rules use this one test of the series name.
+// Planned series are drawn dashed and have their own legend entry; both rules use
+// this one test of the series name.
 bool isPlannedSeries(const QAbstractSeries* series) {
 	return series->name().contains("planned", Qt::CaseInsensitive);
 }
+
+constexpr QMargins kChartMargins(12, 8, 12, 8);
+
+// Puts the ticks of a numeric axis on round values: the multiples of 1, 2 or 5 times a power of ten that divide its range
+// into at most eight steps, labelled with as many decimals as the step has.
+void roundTicks(QValueAxis* axis) {
+	const double low = axis->min();
+	const double high = axis->max();
+	const double span = high - low;
+	if (!(span > 0.0) || !std::isfinite(span)) return;
+	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
+	double step = power;
+	for (const double factor : {2.0, 5.0, 10.0})
+		if (span / step > 8) step = factor * power;
+	axis->setTickType(QValueAxis::TicksDynamic);
+	// Qt reaches each tick by adding the interval to the one before. The interval is the step cut to 31 significant bits,
+	// a hair shorter, so the sums from an anchor at zero are exact and zero reads "0.0", not "-0.0", and each tick lies a
+	// hair nearer the anchor than its round value, so an end of the range on a round value keeps its tick. The anchor is
+	// zero when the range holds it, else a round value inside the range.
+	const int exponent = std::ilogb(step) - 30;
+	axis->setTickInterval(std::ldexp(std::floor(std::ldexp(step, -exponent)), exponent));
+	axis->setTickAnchor(low <= 0 && high >= 0 ? 0.0 : std::round((low + high) / 2 / step) * step);
+	const int decimals = std::max(0, static_cast<int>(-std::floor(std::log10(step) + 1e-9)));
+	axis->setLabelFormat(QStringLiteral("%.%1f").arg(decimals));
+}
+
+// A legend below the plot with an entry for each kind of line of the chart: a short sample and the name of the kind. The
+// entries wrap into rows that fit the chart, and the chart widens its bottom margin to keep them clear of the axes.
+class LineKindLegend : public QGraphicsObject {
+public:
+	struct Kind {
+		QString name;
+		QPen pen;	 // the sample line, or the outline of a box
+		bool filled; // drawn as a box, like a filled envelope
+	};
+	LineKindLegend(QChart* chart, std::vector<Kind> kinds, const QFont& font, const QColor& textColor)
+		: QGraphicsObject(chart), m_chart(chart), m_kinds(std::move(kinds)), m_font(font), m_textColor(textColor) {
+		QObject::setParent(chart);
+		setObjectName("lineKindLegend");
+		setAcceptedMouseButtons(Qt::NoButton);
+		QStringList names;
+		for (const Kind& kind : m_kinds) names << kind.name;
+		setProperty("kinds", names);
+		connect(chart, &QGraphicsWidget::geometryChanged, this, [this] { reserveSpace(); });
+		reserveSpace();
+	}
+	QRectF boundingRect() const override { return m_area; }
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
+		const QFontMetricsF metrics(m_font);
+		painter->save();
+		painter->setFont(m_font);
+		for (const auto& entry : m_placed) {
+			const Kind& kind = m_kinds[entry.first];
+			const QRectF sample(entry.second, QSizeF(kSample, metrics.height()));
+			painter->setPen(kind.pen);
+			if (kind.filled) {
+				QColor fill = kind.pen.color();
+				fill.setAlpha(40);
+				painter->setBrush(fill);
+				painter->drawRect(sample.adjusted(1, 3, -1, -3));
+				painter->setBrush(Qt::NoBrush);
+			} else {
+				painter->drawLine(QPointF(sample.left(), sample.center().y()), QPointF(sample.right(), sample.center().y()));
+			}
+			painter->setPen(m_textColor);
+			painter->drawText(QPointF(sample.right() + kGap, sample.top() + metrics.ascent()), kind.name);
+		}
+		painter->restore();
+	}
+
+private:
+	static constexpr double kSample = 24, kGap = 6, kSpacing = 16;
+	void reserveSpace() {
+		const QFontMetricsF metrics(m_font);
+		const QRectF chart = m_chart->rect();
+		const double room = chart.width() - kChartMargins.left() - kChartMargins.right();
+		std::vector<std::vector<std::pair<std::size_t, double>>> rows; // (kind, width) from left to right
+		double used = room;
+		for (std::size_t i = 0; i < m_kinds.size(); ++i) {
+			const double width = kSample + kGap + metrics.horizontalAdvance(m_kinds[i].name);
+			if (rows.empty() || used + kSpacing + width > room) {
+				rows.emplace_back();
+				used = -kSpacing;
+			}
+			rows.back().emplace_back(i, width);
+			used += kSpacing + width;
+		}
+		const double height = metrics.height() * static_cast<double>(rows.size());
+		prepareGeometryChange();
+		m_area = QRectF(chart.left(), chart.bottom() - kChartMargins.bottom() - height, chart.width(), height);
+		m_placed.clear();
+		for (std::size_t row = 0; row < rows.size(); ++row) {
+			double width = -kSpacing;
+			for (const auto& entry : rows[row]) width += kSpacing + entry.second;
+			double x = chart.center().x() - width / 2;
+			for (const auto& entry : rows[row]) {
+				m_placed.emplace_back(entry.first, QPointF(x, m_area.top() + metrics.height() * static_cast<double>(row)));
+				x += entry.second + kSpacing;
+			}
+		}
+		QMargins margins = m_chart->margins();
+		margins.setBottom(kChartMargins.bottom() + static_cast<int>(std::ceil(height)));
+		if (margins != m_chart->margins()) m_chart->setMargins(margins);
+		update();
+	}
+	QChart* m_chart;
+	std::vector<Kind> m_kinds;
+	QFont m_font;
+	QColor m_textColor;
+	QRectF m_area;
+	std::vector<std::pair<std::size_t, QPointF>> m_placed; // kind and top left of its sample
+};
 
 // One chart-owned item, outside the train series/filter identity space. Geometry is mapped
 // from the live numeric distance axis; font sizes and the header stay in chart pixels.
@@ -153,6 +265,9 @@ public:
 		update();
 	}
 	double headerHeight() const { return stripHeight() * (m_notice.isEmpty() || m_sections.empty() ? 1 : 2); }
+	bool drawsBoundaries() const {
+		return std::any_of(m_sections.begin(), m_sections.end(), [](const BlockSectionExtent& section) { return section.geometryValid; });
+	}
 	QString inspect(const QPointF& point, bool headerOnly) const {
 		const auto* axis = distanceAxis();
 		const QRectF plot = m_chart->plotArea();
@@ -500,23 +615,48 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 	refreshNavigationHelp();
 }
 
-// The sentence about planned lines is there only when the shown chart has a planned series.
 void DiagramWindow::refreshNavigationHelp() {
 	if (!m_readout) return;
 	const QString navigation = QStringLiteral(
 		"Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
-	if (m_rollingStockSubject) {
-		m_readout->setText(QStringLiteral("Input tractive effort by speed. ") + navigation);
-		return;
+	m_readout->setText((m_rollingStockSubject ? QStringLiteral("Input tractive effort by speed. ")
+											  : QStringLiteral("Hover to inspect; click to select. "))
+		+ navigation);
+}
+
+// A chart with more than one kind of line gets a legend of the kinds. A sample takes the line style and width of the
+// first series of its kind in the text colour, since the colour of a series belongs to its train.
+void DiagramWindow::refreshLegend() {
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!chart) return;
+	delete m_lineLegend.data();
+	chart->setMargins(kChartMargins);
+	const QColor text = palette().color(QPalette::WindowText);
+	std::vector<LineKindLegend::Kind> kinds;
+	for (QAbstractSeries* series : chart->series()) {
+		const auto* xy = qobject_cast<QXYSeries*>(series);
+		if (!xy) continue; // an area series is the fill of an envelope whose outline is a line series
+		const QPen pen = m_basePens.value(series, xy->pen());
+		const bool filled = series->property("inspectionFilled").toBool();
+		// The kind is the layer the chart builder gave the series, else planned or simulated.
+		QString name = series->property("layer").toString();
+		if (name.isEmpty()) name = isPlannedSeries(series) ? QStringLiteral("planned") : QStringLiteral("simulated");
+		name[0] = name[0].toUpper();
+		const auto known = std::find_if(kinds.begin(), kinds.end(), [&name](const LineKindLegend::Kind& kind) { return kind.name == name; });
+		if (known == kinds.end())
+			kinds.push_back({name, QPen(text, pen.widthF(), pen.style()), filled});
+		else
+			known->filled = known->filled || filled;
 	}
-	QString text = QStringLiteral("Hover to inspect; click to select. ") + navigation;
-	const QChart* chart = m_view ? m_view->chart() : nullptr;
-	if (chart) {
-		const auto seriesList = chart->series();
-		if (std::any_of(seriesList.begin(), seriesList.end(), isPlannedSeries))
-			text += QStringLiteral(" Planned: dashed; actual: solid.");
+	// Drawn section boundaries always get an entry, also in a chart with no envelope, as no caption explains them.
+	const auto* overlay = sectionOverlayOf(m_sectionOverlay);
+	const bool sections = overlay && overlay->drawsBoundaries();
+	if (sections) {
+		QColor stroke = palette().color(QPalette::Text);
+		stroke.setAlpha(100); // as the overlay draws the boundaries
+		kinds.push_back({QStringLiteral("Physical section"), QPen(stroke, 1, Qt::DotLine), false});
 	}
-	m_readout->setText(text);
+	if (kinds.size() > 1 || sections) m_lineLegend = new LineKindLegend(chart, std::move(kinds), font(), text);
 }
 
 void DiagramWindow::setTrainColors(const QHash<QString, QColor>& colors) {
@@ -567,12 +707,17 @@ void DiagramWindow::setChart(QChart* chart) {
 	// Existing input-traction callers tag their windows before setting the chart.
 	// Keep the explicit API for future callers and avoid a train-only filter here.
 	if (property("inputTrainUnitId").isValid()) setRollingStockSubject(true);
-	refreshNavigationHelp();
 	rebuildFilterGroups();
+	refreshLegend();
 	if (chart)
 		for (auto* axis : chart->axes())
-			if (auto* value = qobject_cast<QValueAxis*>(axis))
+			if (auto* value = qobject_cast<QValueAxis*>(axis)) {
 				m_fullBounds.insert(axis, {value->min(), value->max()});
+				// Round ticks for every numeric axis whose ticks the chart builder left as Qt sets them.
+				if (qobject_cast<QCategoryAxis*>(axis) || value->tickType() != QValueAxis::TicksFixed) continue;
+				roundTicks(value);
+				connect(value, &QValueAxis::rangeChanged, value, [value] { roundTicks(value); });
+			}
 	applyTimeAxis();
 }
 
@@ -673,6 +818,7 @@ void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, c
 	legend->setOpacity(0); // markers return whenever a train is shown again
 	legend->setEnabled(false);
 	legend->show();
+	refreshLegend();
 }
 
 std::string DiagramWindow::csvContent() const {
@@ -689,7 +835,7 @@ void DiagramWindow::setProvenanceWriter(
 void DiagramWindow::applyChartStyle(QChart* chart) {
 	chart->setBackgroundRoundness(0);
 	chart->setBackgroundBrush(palette().brush(QPalette::Base));
-	chart->setMargins(QMargins(12, 8, 12, 8));
+	chart->setMargins(kChartMargins);
 
 	QFont titleFont = font();
 	titleFont.setPointSizeF(titleFont.pointSizeF() * 1.25);
@@ -805,8 +951,17 @@ void DiagramWindow::applyTimeAxis() {
 				break;
 			}
 		clock->setStartValue(low - interval);
+		// Ticks fall on round clock times. Elapsed zero, the run start, keeps a tick of its own while it is in range, and a
+		// round tick less than a step from it is left out.
+		const bool runStart = low <= 0 && high >= 0;
+		const double offset = static_cast<double>(m_startOffset);
+		std::vector<double> ticks;
+		if (runStart) ticks.push_back(0);
 		// NOLINTNEXTLINE(bugprone-float-loop-counter,clang-analyzer-security.FloatLoopCounter): ticks are placed at multiples of the interval
-		for (double tick = std::ceil(low / interval) * interval; tick <= high; tick += interval)
+		for (double tick = std::ceil((low + offset) / interval) * interval - offset; tick <= high; tick += interval)
+			if (!runStart || std::abs(tick) >= interval) ticks.push_back(tick);
+		std::sort(ticks.begin(), ticks.end());
+		for (const double tick : ticks)
 			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
 	};
 	connect(clock, &QValueAxis::rangeChanged, this, updateLabels);
