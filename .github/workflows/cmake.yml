@@ -103,7 +103,6 @@ jobs:
             cache: ccache
             cache-key: Qt6-Linux
             qt: 6
-            qt6-extra-skip: '|test_dialog_presentation_contract'
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.jobs }}
       PYTHONUTF8: "1"
@@ -293,20 +292,9 @@ jobs:
         run: python tools/release/pe_image_size.py build/QEGTRAIN.exe --max-bytes 4294967295 | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
 
       - name: Test
-        if: needs.changes.outputs.build == 'true' && matrix.qt != 6
+        if: needs.changes.outputs.build == 'true'
         shell: bash
         run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
-
-      # Tests that fail with Qt 6 are left out until their issue is fixed:
-      # - test_visual_polish_smoke_live crashes while the network view paints (#981).
-      # - On Linux, test_dialog_presentation_contract finds that the Run simulation dialog, with Run details open, keeps a
-      #   scroll range of a few pixels instead of growing to show the details (#955).
-      - name: Test (Qt 6)
-        if: needs.changes.outputs.build == 'true' && matrix.qt == 6
-        shell: bash
-        run: >
-          ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
-          -E '^(test_visual_polish_smoke_live${{ matrix.qt6-extra-skip }})$'
 
       # One real request to the GitHub release list through the update transport, WinHTTP on Windows, where Qt 5.15 has no TLS
       # library. It fails when no HTTPS response arrives. When GitHub answers with its rate limit or an outage, the test is skipped.
