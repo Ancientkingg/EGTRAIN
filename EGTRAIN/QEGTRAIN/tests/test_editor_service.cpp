@@ -227,6 +227,8 @@ int main(int argc, char** argv) {
 				&& panel.routeCombo()->currentData().toString() == "r1" && panel.routeCombo()->count() == 2
 				&& panel.categoryCombo()->currentIndex() == 0 && panel.categoryCombo()->count() == 7,
 			"the selected service shows its id, code, composition and route");
+		ok &= expect(panel.idEdit()->cursorPosition() == 0 && panel.operatingCodeEdit()->cursorPosition() == 0,
+			"the id and code fields show the start of their text");
 		ok &= expect(!panel.hasEntryTimeCheck()->isChecked() && !panel.entryTimeSecondsEdit()->isEnabled()
 				&& !panel.hasRepeatCheck()->isChecked() && !panel.headwaySecondsEdit()->isEnabled()
 				&& !panel.hasRepeatCountCheck()->isEnabled() && !panel.repeatCountEdit()->isEnabled()

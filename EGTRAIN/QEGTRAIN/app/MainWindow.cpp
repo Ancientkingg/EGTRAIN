@@ -27,6 +27,7 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QColor>
+#include <QCursor>
 #include <QDesktopServices>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
@@ -457,6 +458,32 @@ int countTrackLineDirs(const QString& inputDir) {
 		return 0;
 	QFileInfoList entries = trackLinesDir.entryInfoList(QStringList("B*"), QDir::Dirs | QDir::NoDotAndDotDot | QDir::CaseSensitive);
 	return entries.size();
+}
+
+// A dock floated with its button or a double click opens inside the screen area, as wide and high as its content asks where
+// the screen allows. A dock that the mouse drags out keeps the place where the user drops it.
+void fitFloatingDock(QDockWidget* dock, bool floating) {
+	if (!floating)
+		return;
+	if (QGuiApplication::mouseButtons() != Qt::NoButton) {
+		// A double click floats the dock while the button is still down, and a drag moves the mouse before the button is released.
+		auto* release = new QTimer(dock);
+		QObject::connect(release, &QTimer::timeout, dock, [dock, release, start = QCursor::pos()]() {
+			if (QGuiApplication::mouseButtons() != Qt::NoButton)
+				return;
+			release->deleteLater();
+			if (dock->isFloating() && (QCursor::pos() - start).manhattanLength() < QApplication::startDragDistance())
+				fitFloatingDock(dock, true);
+		});
+		release->start(50);
+		return;
+	}
+	const QRect available = dock->screen()->availableGeometry();
+	const QSize frame = dock->frameGeometry().size() - dock->size();
+	dock->resize(dock->size().expandedTo(dock->sizeHint()).boundedTo(available.size() - frame));
+	const QRect outer = dock->frameGeometry();
+	dock->move(std::clamp(outer.left(), available.left(), available.right() - outer.width() + 1),
+		std::clamp(outer.top(), available.top(), available.bottom() - outer.height() + 1));
 }
 
 } // namespace
@@ -1648,6 +1675,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			dock->widget()->updateGeometry();
 			if (dock->width() < dock->sizeHint().width())
 				resizeDocks({dock}, {dock->sizeHint().width()}, Qt::Horizontal); }, Qt::QueuedConnection);
+		connect(dock, &QDockWidget::topLevelChanged, this, [dock](bool floating) { fitFloatingDock(dock, floating); });
 	}
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();

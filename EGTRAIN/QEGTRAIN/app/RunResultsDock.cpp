@@ -16,6 +16,7 @@
 #include <QDockWidget>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -23,12 +24,24 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QTableWidget>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <algorithm>
 #include <memory>
 #include <string>
+
+namespace {
+
+// The height of the table with its header, the given number of rows and its horizontal scroll bar.
+int tableHeight(const QTableWidget& table, int rows) {
+	return table.horizontalHeader()->sizeHint().height() + rows * table.verticalHeader()->defaultSectionSize()
+		+ table.horizontalScrollBar()->sizeHint().height() + 2 * table.frameWidth();
+}
+
+} // namespace
 
 RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController, ResultViews* views, Host& host)
 	: m_window(window), m_runController(runController), m_host(host) {
@@ -128,6 +141,15 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	resultViews->addWidget(exportPngBtn);
 	resultViews->addStretch();
 	containerLayout->addLayout(resultViews);
+	// The table takes the height that the other lines and buttons leave, at least its header and one row. A lower dock scrolls
+	// its whole content, so the dock leaves the canvas its room; the delay comparison below the table keeps the table in view.
+	// As a height-for-width item without a layout the table asks for its minimum height next to the wrapped labels, so the
+	// scrolled content has room for both.
+	QSizePolicy tablePolicy = m_table->sizePolicy();
+	tablePolicy.setHeightForWidth(true);
+	m_table->setSizePolicy(tablePolicy);
+	m_table->setMinimumHeight(tableHeight(*m_table, 1));
+	containerLayout->addWidget(m_table, 1);
 	QHBoxLayout* delayRow = new QHBoxLayout();
 	auto* delayCaption = new QLabel(container);
 	delayCaption->setObjectName("delayComparisonCaption");
@@ -148,9 +170,10 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	delayRow->addWidget(m_compareDelayButton);
 	delayRow->addStretch();
 	containerLayout->addLayout(delayRow);
-	m_table->setMinimumSize(0, 0);
-	containerLayout->addWidget(m_table, 1);
-	m_dock->setWidget(container);
+	auto* scroll = new EditorLayout::VerticalScrollArea(m_dock);
+	scroll->setFocusPolicy(Qt::NoFocus);
+	scroll->setWidget(container);
+	m_dock->setWidget(scroll);
 	m_window->addDockWidget(Qt::BottomDockWidgetArea, m_dock);
 	m_dock->hide();
 }
@@ -224,12 +247,14 @@ void RunResultsDock::refresh() {
 	m_dock->raise();
 	if (openingResults && !m_dock->isFloating() && m_window->dockWidgetArea(m_dock) == Qt::BottomDockWidgetArea) {
 		m_window->resizeDocks({m_dock}, {m_window->height() / 3}, Qt::Vertical);
-		// Higher than a third when the table would show fewer than its header and three rows.
+		// Higher than a third when the table would show fewer than its header and three rows, but at most half of the height
+		// that the dock shares with the network view above it, so that a small window keeps a usable canvas.
 		m_window->layout()->activate();
-		const int threeRows = m_table->horizontalHeader()->sizeHint().height() + 3 * m_table->verticalHeader()->defaultSectionSize()
-			+ m_table->horizontalScrollBar()->sizeHint().height() + 2 * m_table->frameWidth();
-		if (m_table->height() < threeRows)
-			m_window->resizeDocks({m_dock}, {m_dock->height() + threeRows - m_table->height()}, Qt::Vertical);
+		const auto* scroll = static_cast<const QScrollArea*>(m_dock->widget());
+		const int besideTable = m_dock->height() - scroll->viewport()->height() + scroll->widget()->height() - m_table->height();
+		const auto* canvas = m_window->centralWidget()->findChild<QGraphicsView*>(QString(), Qt::FindDirectChildrenOnly);
+		const int half = (m_dock->height() + canvas->height()) / 2;
+		m_window->resizeDocks({m_dock}, {std::min(std::max(m_dock->height(), besideTable + tableHeight(*m_table, 3)), half)}, Qt::Vertical);
 	}
 	m_host.runResultsRefreshed();
 }

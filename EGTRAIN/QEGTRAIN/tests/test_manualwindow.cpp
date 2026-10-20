@@ -9,6 +9,7 @@
 #include <QHelpEngine>
 #include <QHelpSearchEngine>
 #include <QProcess>
+#include <QScreen>
 #include <QTemporaryDir>
 #include <QTextBrowser>
 #include <QThread>
@@ -67,7 +68,11 @@ int main(int argc, char** argv) {
 		return 1;
 
 	bool ok = true;
+	QCoreApplication::setApplicationVersion(QStringLiteral("1.2.3"));
 	ManualWindow window(helpFile);
+	// The title names the version, and the window opens inside the screen area.
+	ok &= check(window.windowTitle() == QStringLiteral("EGTRAIN 1.2.3 Manual"), "the title does not name the version");
+	ok &= check(window.screen()->availableGeometry().contains(window.geometry()), "the window is larger than the screen area");
 	auto* engine = window.findChild<QHelpEngine*>();
 	auto* browser = window.findChild<QTextBrowser*>();
 	bool indexed = false;

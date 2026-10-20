@@ -11,6 +11,7 @@
 #include <QHelpSearchQueryWidget>
 #include <QHelpSearchResultWidget>
 #include <QHBoxLayout>
+#include <QScreen>
 #include <QSplitter>
 #include <QTabWidget>
 #include <QTextBrowser>
@@ -56,7 +57,7 @@ private:
 
 ManualWindow::ManualWindow(const QString& helpFile, QWidget* parent) : QWidget(parent, Qt::Window) {
 	setObjectName(QStringLiteral("manualWindow"));
-	setWindowTitle(QStringLiteral("EGTRAIN Manual"));
+	setWindowTitle(QStringLiteral("EGTRAIN %1 Manual").arg(QCoreApplication::applicationVersion()));
 	// The collection file holds the registration and the search index. A new one for each window needs no cleanup
 	// when the application or the help file changes.
 	m_engine = new QHelpEngine(m_collectionDir.filePath(QStringLiteral("manual.qhc")), this);
@@ -98,7 +99,10 @@ ManualWindow::ManualWindow(const QString& helpFile, QWidget* parent) : QWidget(p
 	auto* layout = new QHBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->addWidget(splitter);
-	resize(1100, 750);
+	// The window opens inside the screen area, centred, and at most eight ninths of it so that its frame fits too.
+	const QRect available = screen()->availableGeometry();
+	resize(QSize(1100, 750).boundedTo(available.size() * 8 / 9));
+	move(available.center() - rect().center());
 
 	if (!m_namespace.isEmpty())
 		search->reindexDocumentation();

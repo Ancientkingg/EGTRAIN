@@ -1337,18 +1337,57 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	QApplication::processEvents();
 	if (!endKept)
 		return fail(QStringLiteral("End moved when Play read Pause"));
-	// Opened in a maximised window on a 1024 by 768 screen, Run Results shows the header and three rows of its table.
+	// Opened in a maximised window on a 1024 by 768 screen, Run Results shows the header and a row of its table without
+	// scrolling. In a window of 819 by 614 pixels (1024 by 768 at 125 percent) it takes at most half of the height that it
+	// shares with the network view, and the window can be lower than a screen of 683 by 464 pixels (1024 by 768 at 150 percent)
+	// less its frame.
 	const QSize sizeBefore = w.size();
-	w.m_runResultsDock->hide();
-	w.resize(1024, 690);
+	const auto openResults = [&w](int width, int height) {
+		w.m_runResultsDock->hide();
+		w.resize(width, height);
+		QApplication::processEvents();
+		w.m_runResultsPanel->refresh();
+		QApplication::processEvents();
+	};
+	openResults(1024, 690);
+	const auto* resultsScroll = qobject_cast<QScrollArea*>(w.m_runResultsDock->widget());
+	const int rowBottom = resultsScroll
+		? w.m_runResultsTable->mapTo(resultsScroll->viewport(), QPoint(0, w.m_runResultsTable->viewport()->y() + w.m_runResultsTable->rowHeight(0))).y()
+		: -1;
+	const int shownHeight = resultsScroll ? resultsScroll->viewport()->height() : -1;
+	// A dock on the right, such as the inspector after the signal checks, keeps the window wider than 819 pixels.
+	QList<QDockWidget*> rightDocks;
+	for (QDockWidget* dock : w.findChildren<QDockWidget*>())
+		if (dock->isVisible() && !dock->isFloating() && w.dockWidgetArea(dock) == Qt::RightDockWidgetArea) {
+			rightDocks << dock;
+			dock->hide();
+		}
 	QApplication::processEvents();
-	w.m_runResultsPanel->refresh();
-	QApplication::processEvents();
-	const int rowsHeight = w.m_runResultsTable->viewport()->height();
+	openResults(819, 614);
+	const QSize smallSize = w.size();
+	const int resultsHeight = w.m_runResultsDock->height();
+	const int canvasHeight = w.networkView->height();
+	const int minimumHeight = w.minimumSizeHint().height();
+	const auto* delayCaption = w.findChild<QLabel*>("delayComparisonCaption");
+	const bool tableApart = delayCaption && delayCaption->y() > w.m_runResultsTable->geometry().bottom();
+	for (QDockWidget* dock : rightDocks)
+		dock->show();
+	std::fprintf(stdout, "E2E_RUN_RESULTS_SMALL_WINDOW size=%dx%d results=%d canvas=%d minimum_height=%d row_bottom_1024=%d shown_1024=%d\n",
+		smallSize.width(), smallSize.height(), resultsHeight, canvasHeight, minimumHeight, rowBottom, shownHeight);
 	w.resize(sizeBefore);
 	QApplication::processEvents();
-	if (rowsHeight < 3 * w.m_runResultsTable->verticalHeader()->defaultSectionSize())
-		return fail(QStringLiteral("the table of Run Results shows rows %1 px high at 1024 x 690").arg(rowsHeight));
+	if (rowBottom < 0 || rowBottom > shownHeight)
+		return fail(QStringLiteral("the first row of Run Results ends at %1 px in a dock that shows %2 px at 1024 x 690").arg(rowBottom).arg(shownHeight));
+	if (!tableApart)
+		return fail(QStringLiteral("the delay comparison covers the table of Run Results at 819 x 614"));
+	if (smallSize != QSize(819, 614) || resultsHeight > canvasHeight + 2)
+		return fail(QStringLiteral("Run Results is %1 px high below a network view of %2 px at %3 x %4")
+				.arg(resultsHeight)
+				.arg(canvasHeight)
+				.arg(smallSize.width())
+				.arg(smallSize.height()));
+	if (minimumHeight > 400)
+		return fail(QStringLiteral("the window after a run needs %1 px of height").arg(minimumHeight));
 	// Tab goes Start, Play, End and the slider, leaves the table of Run Results for the buttons after it and comes back to Start
 	// through the layer check boxes. No stop is a dock tab bar or the scroll area of a dock, which show no focus.
 	w.m_replayStartButton->setFocus(Qt::TabFocusReason);

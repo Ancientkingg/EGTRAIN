@@ -531,6 +531,13 @@ QMenu::item:disabled:selected {
     color: #64717a;
 }
 
+/* One line in the colour of the menu border; the etched line of the style loses its dark row at fractional scales. */
+QMenu::separator {
+    height: 1px;
+    background: #c9d3db;
+    margin: 4px 0;
+}
+
 /* Cancel of Run simulation becomes the default while it has the focus; it keeps the plain face, so only the run button
    is filled. */
 QPushButton#runReviewCancelButton:default {

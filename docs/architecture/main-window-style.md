@@ -14,7 +14,7 @@ The readout next to the slider shows the current speed as **Fastest** or as a fa
 
 Every toolbar button has a white fill and a `#7b8b96` outline. A disabled button, such as Pause and Stop before a run, has a grey `#eceeec` fill, a light `#c9d3db` outline and grey text. Under the pointer and with keyboard focus a button turns `#e3eaee` with a `#315a70` outline. **Open Case** keeps its own darker fill and lighter outline.
 
-The two group separators of the toolbar are 1 px wide lines as tall as the toolbar row less the margins of the style sheet, at every window width.
+The two group separators of the toolbar are 1 px wide lines as tall as the toolbar row less the margins of the style sheet, at every window width. A menu separator is a 1 px `#c9d3db` line, the colour of the menu border, at every scale.
 
 A tooltip names the shortcut of its button as the platform writes it, such as Ctrl+R, or ⌘R on macOS.
 
@@ -30,13 +30,15 @@ The dialog **Run simulation** shows the duration of the run as H:MM:SS, the form
 
 The text at the top of Run Results puts each entry on a line of its own: `Run: <case> / <scenario>`, `Occurrences: ...` and `Status: Completed`. With advanced details on, the direct incident evidence and `Destination terminations: <count>` follow, and `Delay baseline: <run>` comes last when a baseline is set. A long entry wraps inside its own line.
 
-When Run Results first opens at the bottom of the window it takes a third of the window height, or the height that its content needs with the table header and three rows when that is more, so the network and the replay row keep the rest. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets that height again.
+When Run Results first opens at the bottom of the window it takes a third of the window height, or the height that its content needs with the table header and three rows when that is more, but at most about half of the height that it shares with the network view, so the network and the replay row keep the rest. A dock lower than its content scrolls, and the table shows at least its header and one row. The delay comparison follows the table, so that in a maximised window on a 1024 by 768 screen the table header and a row show without scrolling. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets that height again.
 
 The Case and Layers dock opens at the width of its widest layer toggle, **Stations and platforms**, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.
 
 The map key has a **Passenger count** row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.
 
-An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways.
+An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows.
+
+The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.
 
 ## Light look
 

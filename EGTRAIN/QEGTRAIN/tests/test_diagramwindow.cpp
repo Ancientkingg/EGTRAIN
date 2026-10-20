@@ -33,6 +33,9 @@
 #include <QNativeGestureEvent>
 #include <QPushButton>
 #include <QPointer>
+#include <QScrollBar>
+#include <QTimer>
+#include <QtMath>
 #include <QValueAxis>
 #include <QWheelEvent>
 #include <algorithm>
@@ -249,6 +252,63 @@ static bool exerciseTrainFilter() {
 	return ok;
 }
 
+// On a screen without room for the whole list below or above the button, the list takes the larger room and scrolls, and the
+// menu does not cover the button. Beside a tall button in the middle of the screen the list is lower than the default height of
+// a list view.
+static bool exerciseTrainFilterRoom() {
+	QWidget window;
+	auto* filter = new TrainFilterButton(&window);
+	QVector<QPair<QString, QColor>> trains;
+	for (int i = 0; i < 40; ++i)
+		trains.append({QString("IC %1").arg(1000 + i), QColor()});
+	filter->setTrains(trains);
+	const QRect screen = window.screen()->availableGeometry();
+	// A tall button in the middle of the screen leaves less room above and below it than the list needs.
+	filter->setFixedHeight(160);
+	window.setGeometry(screen.left(), screen.top() + screen.height() / 2 - 80, 200, 160);
+	window.show();
+	QApplication::processEvents();
+	QRect menuArea;
+	bool scrolls = false;
+	QTimer::singleShot(0, filter, [filter, &menuArea, &scrolls]() {
+		menuArea = filter->menu()->geometry();
+		scrolls = filter->menu()->findChild<QListWidget*>()->verticalScrollBar()->maximum() > 0;
+		filter->menu()->hide();
+	});
+	filter->showMenu();
+	const QRect button(filter->mapToGlobal(QPoint(0, 0)), filter->size());
+	return expect(screen.contains(menuArea) && !menuArea.intersects(button) && scrolls,
+		"the train list fits the room beside its button and scrolls");
+}
+
+// A menu separator is a line in the border colour of the menus, also at fractional scales.
+static bool exerciseMenuSeparator() {
+	QMenu menu;
+	menu.addAction("Undo");
+	QAction* separator = menu.addSeparator();
+	menu.addAction("Find");
+	menu.ensurePolished();
+	menu.resize(menu.sizeHint());
+	const QRect line = menu.actionGeometry(separator);
+	const QColor border(0xc9, 0xd3, 0xdb);
+	bool ok = true;
+	for (const qreal ratio : {1.0, 1.25, 1.5}) {
+		QImage image(menu.size() * ratio, QImage::Format_ARGB32_Premultiplied);
+		image.setDevicePixelRatio(ratio);
+		image.fill(Qt::white);
+		menu.render(&image);
+		const int x = qRound(line.center().x() * ratio);
+		bool drawn = false;
+		for (int y = qFloor(line.top() * ratio); y <= qCeil(line.bottom() * ratio) && y < image.height(); ++y) {
+			const QColor pixel = image.pixelColor(x, y);
+			drawn |= std::abs(pixel.red() - border.red()) <= 6 && std::abs(pixel.green() - border.green()) <= 6
+				&& std::abs(pixel.blue() - border.blue()) <= 6;
+		}
+		ok &= expect(drawn, qPrintable(QString("the menu separator draws its line at %1 times").arg(ratio)));
+	}
+	return ok;
+}
+
 class SelectionRequiredStyle : public QProxyStyle {
 public:
 	SelectionRequiredStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
@@ -283,7 +343,7 @@ static bool exerciseTrainFilterKeysInWindow() {
 	QMenu* menu = filter ? filter->menu() : nullptr;
 	auto* list = menu ? menu->findChild<QListWidget*>() : nullptr;
 	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-	if (!expect(view && list && x && list->count() == 3, "a diagram window lists its three trains"))
+	if (!expect(view && list && x && first && list->count() == 3, "a diagram window lists its three trains"))
 		return false;
 	// Require a selection for keyboard navigation, as the macOS style does.
 	auto* navigationStyle = new SelectionRequiredStyle;
@@ -1667,6 +1727,8 @@ int main(int argc, char* argv[]) {
 	window.setPresentation("No context", QString());
 	ok &= expect(window.findChild<QLabel*>("diagramContext")->isHidden(), "empty context stays hidden");
 	ok &= exerciseTrainFilter();
+	ok &= exerciseTrainFilterRoom();
+	ok &= exerciseMenuSeparator();
 	ok &= exerciseTrainFilterKeysInWindow();
 	ok &= exerciseTrainColors();
 	ok &= exerciseNavigationHelp();

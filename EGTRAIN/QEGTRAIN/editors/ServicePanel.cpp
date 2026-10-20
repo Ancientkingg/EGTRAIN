@@ -103,11 +103,13 @@ void addRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute&
 
 ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("servicePanel");
-	QHBoxLayout* serviceLayout = new QHBoxLayout(this);
+	// The list sits above the tabs, so that a narrow dock keeps the fields, the tab names and the stop table whole.
+	QVBoxLayout* serviceLayout = new QVBoxLayout(this);
 
-	// left: the list of services and the buttons that manage it
+	// top: the list of services and the buttons that manage it
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
+	listLayout->setContentsMargins(0, 0, 0, 0);
 	listLayout->addWidget(new QLabel("Services", listPane));
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("serviceList");
@@ -123,10 +125,9 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
 	buttonLayout->addWidget(m_deleteButton, 1, 0);
 	listLayout->addLayout(buttonLayout);
-	listPane->setMaximumWidth(listPane->fontMetrics().averageCharWidth() * 32);
 	serviceLayout->addWidget(listPane);
 
-	// right: the fields of the selected service, its timetable and its occurrences on three tabs
+	// below: the fields of the selected service, its timetable and its occurrences on three tabs
 	QWidget* detailPane = new QWidget(this);
 	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
 	m_emptyLabel = EditorLayout::emptyStateLabel(detailPane);
@@ -212,6 +213,9 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_pages = new QTabWidget(this);
 	m_pages->setObjectName("serviceEditorPages");
 	m_pages->setMinimumSize(0, 0);
+	// Tabs that do not fit keep their whole names and scroll.
+	m_pages->setUsesScrollButtons(true);
+	m_pages->setElideMode(Qt::ElideNone);
 	m_pages->addTab(detailScroll, "Service");
 
 	QWidget* timetablePane = new QWidget(this);
@@ -368,12 +372,15 @@ void ServicePanel::updateDetail() {
 	{
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(service ? QString::fromStdString(service->id) : QString());
+		// A long id shows its start.
+		m_idEdit->setCursorPosition(0);
 		m_idEdit->setEnabled(editorAvailable);
 	}
 
 	{
 		const QSignalBlocker blocker(m_operatingCodeEdit);
 		m_operatingCodeEdit->setText(service ? QString::fromStdString(service->operatingCode) : QString());
+		m_operatingCodeEdit->setCursorPosition(0);
 		m_operatingCodeEdit->setEnabled(editorAvailable);
 	}
 

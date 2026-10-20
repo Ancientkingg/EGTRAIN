@@ -109,13 +109,14 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	setObjectName("timetableStopsPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
-	QHBoxLayout* timeModeLayout = new QHBoxLayout();
-	timeModeLayout->addWidget(new QLabel("Planned time display", this));
+	// In a narrow dock the time mode goes below its label.
+	auto* timeModeLayout = new QFormLayout();
+	timeModeLayout->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	m_timeModeCombo = new QComboBox(this);
 	m_timeModeCombo->setObjectName("timetableTimeModeCombo");
 	m_timeModeCombo->addItem("Elapsed offsets (s)", false);
 	m_timeModeCombo->addItem("Clock time", true);
-	timeModeLayout->addWidget(m_timeModeCombo);
+	timeModeLayout->addRow("Planned time display", m_timeModeCombo);
 	m_timeBaseLabel = new QLabel(this);
 	m_timeBaseLabel->setObjectName("timetableTimeBaseLabel");
 	m_timeBaseLabel->setWordWrap(true);
@@ -159,11 +160,13 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_moveUpButton->setObjectName("moveTimetableStopUpButton");
 	m_moveDownButton = new QPushButton("Move Down", this);
 	m_moveDownButton->setObjectName("moveTimetableStopDownButton");
+	// Two columns, so that the buttons fit a narrow dock.
 	buttonLayout->addWidget(m_addButton, 0, 0);
-	buttonLayout->addWidget(m_insertAfterButton, 0, 1, 1, 2);
-	buttonLayout->addWidget(m_removeButton, 1, 0);
-	buttonLayout->addWidget(m_moveUpButton, 1, 1);
-	buttonLayout->addWidget(m_moveDownButton, 1, 2);
+	buttonLayout->addWidget(m_removeButton, 0, 1);
+	buttonLayout->addWidget(m_insertAfterButton, 1, 0, 1, 2);
+	buttonLayout->addWidget(m_moveUpButton, 2, 0);
+	buttonLayout->addWidget(m_moveDownButton, 2, 1);
+	QWidget::setTabOrder(m_addButton, m_removeButton);
 	layout->addLayout(buttonLayout);
 
 	connect(m_table, &QTableWidget::cellClicked, this, [this](int row, int) { editStop(row); });
