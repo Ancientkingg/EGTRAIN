@@ -20,14 +20,12 @@
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QScrollBar>
-#include <QStyleFactory>
 #include <QTableWidget>
 
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <map>
-#include <memory>
 #include <string>
 #include <utility>
 
@@ -907,9 +905,9 @@ bool exerciseFooterWithoutIcons() {
 
 // The size that a Fusion spin box asks for without the style sheet.
 QSize fusionSpinBoxSize() {
-	const std::unique_ptr<QStyle> fusion(QStyleFactory::create(QStringLiteral("Fusion")));
+	QProxyStyle fusion(QStringLiteral("Fusion"));
 	QDoubleSpinBox spinBox;
-	spinBox.setStyle(fusion.get());
+	spinBox.setStyle(&fusion);
 	return spinBox.sizeHint();
 }
 
@@ -923,10 +921,10 @@ bool exerciseCellSpinBoxSize(const QSize& fusionSize) {
 	Q_UNUSED(fusionSize);
 	return true;
 #else
-	const std::unique_ptr<QStyle> fusion(QStyleFactory::create(QStringLiteral("Fusion")));
+	QProxyStyle fusion(QStringLiteral("Fusion"));
 	QTableWidget table(1, 1);
 	auto* spinBox = new QDoubleSpinBox;
-	spinBox->setStyle(fusion.get());
+	spinBox->setStyle(&fusion);
 	table.setCellWidget(0, 0, spinBox);
 	const QSize size = spinBox->sizeHint();
 	const bool ok = size.width() <= fusionSize.width() && size.height() <= fusionSize.height();
