@@ -217,6 +217,7 @@ var hierarchy =
       [ "HttpReply", "class_http_reply.html", null ],
       [ "HttpTransport", "class_http_transport.html", null ],
       [ "InspectorPanel", "class_inspector_panel.html", null ],
+      [ "LightPaletteKeeper", "class_light_palette_keeper.html", null ],
       [ "OpenRequestRelay", "class_open_request_relay.html", null ],
       [ "RecoveryController", "class_recovery_controller.html", null ],
       [ "ResultViews", "class_result_views.html", null ],

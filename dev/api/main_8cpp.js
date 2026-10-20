@@ -1,5 +1,6 @@
 var main_8cpp =
 [
+    [ "LightPaletteKeeper", "class_light_palette_keeper.html", "class_light_palette_keeper" ],
     [ "CommandLineOption", "struct_command_line_option.html", "struct_command_line_option" ],
     [ "LiveStreamGuard", "struct_live_stream_guard.html", "struct_live_stream_guard" ],
     [ "SceneRequest", "struct_scene_request.html", "struct_scene_request" ],
@@ -8,6 +9,7 @@ var main_8cpp =
     [ "findOption", "main_8cpp.html#a2db976367c8f48160310e5601c38414f", null ],
     [ "getCmdOption", "main_8cpp.html#ad67d0fafd84cbab0a316225edcb45757", null ],
     [ "keepLightLook", "main_8cpp.html#a5e1e01a59e3050341936fa4a102dbfba", null ],
+    [ "keepLightPalette", "main_8cpp.html#a81a66035dde6f11c8b17238383aa0d39", null ],
     [ "main", "main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97", null ],
     [ "onlyKnownOptions", "main_8cpp.html#a0e22c903a39d60235031cba17ec26836", null ],
     [ "parseCmdOptions", "main_8cpp.html#a5b735784d706c1da037ff9b67744e595", null ],

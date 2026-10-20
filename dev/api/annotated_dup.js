@@ -132,6 +132,7 @@ var annotated_dup =
     [ "LegacyPassengerParseResult", "struct_legacy_passenger_parse_result.html", "struct_legacy_passenger_parse_result" ],
     [ "LegacyPassengerSources", "struct_legacy_passenger_sources.html", "struct_legacy_passenger_sources" ],
     [ "LegacyPassengerStationReference", "struct_legacy_passenger_station_reference.html", "struct_legacy_passenger_station_reference" ],
+    [ "LightPaletteKeeper", "class_light_palette_keeper.html", "class_light_palette_keeper" ],
     [ "ListFacet", "class_list_facet.html", "class_list_facet" ],
     [ "LiveCommand", "struct_live_command.html", "struct_live_command" ],
     [ "LiveRequest", "struct_live_request.html", "struct_live_request" ],
