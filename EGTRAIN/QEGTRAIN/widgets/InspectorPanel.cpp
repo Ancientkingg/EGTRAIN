@@ -189,6 +189,8 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	infoScroll->setWidgetResizable(true);
 	infoScroll->setFrameShape(QFrame::NoFrame);
 	infoScroll->setMinimumSize(300, 0);
+	// Tab reaches the fields inside, and the area scrolls to show them.
+	infoScroll->setFocusPolicy(Qt::NoFocus);
 	infoScroll->setWidget(infoWidget);
 	infoDockWidget->setWidget(infoScroll);
 	infoDockWidget->setAllowedAreas(Qt::RightDockWidgetArea);

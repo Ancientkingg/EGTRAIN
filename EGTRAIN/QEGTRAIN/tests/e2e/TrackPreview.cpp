@@ -233,9 +233,9 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		if (!w.m_followTrainCombo || w.m_followTrainCombo->currentText() != "No trains to follow")
 			fail("follow", "empty train selector does not explain that no trains are available");
 		else if (!w.m_document->mutableModel().services.empty() || w.m_followAction->isEnabled()
-			|| w.m_followStatusLabel->text() != "This case has no trains to follow."
-			|| w.m_followAction->toolTip() != w.m_followStatusLabel->text() || w.m_followTrainCombo->toolTip() != w.m_followStatusLabel->text()
-			|| w.m_followTrainCombo->accessibleDescription() != w.m_followStatusLabel->text())
+			|| w.m_followStatusLabel->text() != "No trains to follow" || w.m_followStatusLabel->toolTip() != "This case has no trains to follow."
+			|| w.m_followAction->toolTip() != w.m_followStatusLabel->toolTip() || w.m_followTrainCombo->toolTip() != w.m_followStatusLabel->toolTip()
+			|| w.m_followTrainCombo->accessibleDescription() != w.m_followStatusLabel->toolTip())
 			fail("follow", "a case without services does not disable Follow with the reason");
 		else
 			marker("E2E_FOLLOW_NO_SERVICES_OK");

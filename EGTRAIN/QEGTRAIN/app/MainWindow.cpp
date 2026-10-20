@@ -193,9 +193,11 @@
 #include <QTemporaryDir>
 #include <QToolButton>
 #include <QStyleOptionSlider>
+#include <QStylePainter>
 #include <QUrl>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QRegularExpression>
 #include <QJsonDocument>
@@ -234,6 +236,23 @@ protected:
 			}
 		}
 		QSlider::mousePressEvent(event);
+	}
+};
+
+// A closed combo box that ends a text wider than its field with an ellipsis. The list shows the whole text.
+class ElidedComboBox : public QComboBox {
+public:
+	explicit ElidedComboBox(QWidget* parent) : QComboBox(parent) {}
+protected:
+	void paintEvent(QPaintEvent*) override {
+		QStylePainter painter(this);
+		painter.setPen(palette().color(QPalette::Text));
+		QStyleOptionComboBox option;
+		initStyleOption(&option);
+		painter.drawComplexControl(QStyle::CC_ComboBox, option);
+		const QRect field = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField, this);
+		option.currentText = fontMetrics().elidedText(option.currentText, Qt::ElideRight, field.width());
+		painter.drawControl(QStyle::CE_ComboBoxLabel, option);
 	}
 };
 
@@ -566,8 +585,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	replayLayout->setContentsMargins(4, 2, 4, 2);
 	auto* replayControls = new QHBoxLayout();
 	m_replayStartButton = new QPushButton("Start", m_replayBar);
+	m_replayPlayButton = new QPushButton("Pause", m_replayBar);
+	// The button reads Play or Pause. Its width fits the longer text, so End and the slider do not move.
+	const int pauseWidth = m_replayPlayButton->sizeHint().width();
+	m_replayPlayButton->setText("Play");
+	m_replayPlayButton->setFixedWidth(qMax(pauseWidth, m_replayPlayButton->sizeHint().width()));
 	auto* replayEnd = new QPushButton("End", m_replayBar);
-	m_replayPlayButton = new QPushButton("Play", m_replayBar);
 	m_replaySlider = new ReplaySlider(m_replayBar);
 	m_replaySlider->setObjectName("completedReplaySlider");
 	m_replaySlider->setAccessibleName("Replay time");
@@ -851,6 +874,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	caseLayersLayout->addStretch();
 	auto* caseLayersScroll = new EditorLayout::VerticalScrollArea(m_caseLayersDock);
 	caseLayersScroll->setObjectName("caseLayersScroll");
+	// Tab reaches the check boxes and the map key inside, and the area scrolls to show them.
+	caseLayersScroll->setFocusPolicy(Qt::NoFocus);
 	caseLayersScroll->setWidget(caseLayersWidget);
 	m_caseLayersDock->setWidget(caseLayersScroll);
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
@@ -951,7 +976,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	updateCaseLayersPanel();
 
-	m_followTrainCombo = new QComboBox(this);
+	m_followTrainCombo = new ElidedComboBox(this);
 	m_followTrainCombo->setObjectName("followTrainCombo");
 	m_followTrainCombo->setMinimumWidth(180);
 	m_followTrainCombo->setMaximumWidth(200);
@@ -1031,7 +1056,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	const auto addToolbarGroupSeparator = [this](const char* objectName, const char* description) {
 		QAction* separator = m_toolBar->addSeparator();
 		if (QWidget* widget = m_toolBar->widgetForAction(separator))
-			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 		separator->setObjectName(objectName);
 		separator->setProperty("toolbarGroupBoundary", true);
 		separator->setToolTip(QString::fromLatin1(description));
@@ -1564,6 +1589,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		scroll->setWidgetResizable(true);
 		scroll->setFrameShape(QFrame::NoFrame);
 		scroll->setMinimumSize(0, 0);
+		scroll->setFocusPolicy(Qt::NoFocus);
 		scroll->setWidget(content);
 		dock->setWidget(scroll);
 		// The wheel scrolls the dock over a field and changes the field only once it has focus.
@@ -1631,7 +1657,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionQuit, &QAction::triggered, this, &QWidget::close);
 
 	// Diagrams menu
-	m_diagramsMenu = menuBar()->addMenu("Diagrams");
+	m_diagramsMenu = menuBar()->addMenu("&Diagrams");
 	// An entry that asks for more input in a dialog ends in an ellipsis.
 	m_diagramsMenu->addAction(ResultViewName::kSpeedDistance, m_resultViews, &ResultViews::showSpeedDistanceDiagram);
 	m_diagramsMenu->addAction(ResultViewName::kSpeedTime, m_resultViews, &ResultViews::showSpeedTimeDiagram);
@@ -1693,6 +1719,14 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 	if (m_recovery)
 		m_recovery->shutdown();
 	QMainWindow::closeEvent(event);
+}
+
+void MainWindow::childEvent(QChildEvent* event) {
+	QMainWindow::childEvent(event);
+	if (event->polished()) {
+		if (auto* tabBar = qobject_cast<QTabBar*>(event->child()))
+			tabBar->setFocusPolicy(Qt::NoFocus);
+	}
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
@@ -2786,8 +2820,9 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 	}
 
 	const QString status = QString::fromStdString(selected.statusText);
-	if (m_followStatusLabel && m_followStatusLabel->text() != status) {
-		m_followStatusLabel->setText(status);
+	const QString clause = QString::fromStdString(selected.statusClause);
+	if (m_followStatusLabel && (m_followStatusLabel->text() != clause || m_followStatusLabel->toolTip() != status)) {
+		m_followStatusLabel->setText(clause);
 		m_followStatusLabel->setToolTip(status);
 	}
 	if (m_followAction) {
@@ -2933,7 +2968,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	const FollowAvailability offer = followAvailability(followInput(comboIndex));
 	if (!offer.canArm) {
 		setFollowTrain(-1);
-		statusBar()->showMessage(QString::fromStdString(offer.statusText), 5000);
+		statusBar()->showMessage(QString::fromStdString(offer.statusClause), 5000);
 		return;
 	}
 
@@ -2951,7 +2986,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 
 	const FollowAvailability following = updateFollowAvailability();
 	cutToFollowedTrain(following);
-	statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
+	statusBar()->showMessage(QString::fromStdString(following.statusClause), 5000);
 }
 
 // The menus are shown with popup() and delete themselves when they close, so this function returns while a menu is open.
@@ -3409,7 +3444,7 @@ void MainWindow::updateDiagramActions() {
 // Lazily created so the menu only appears once an editor dock registers.
 QMenu* MainWindow::editorsMenu() {
 	if (!m_editorsMenu) {
-		m_editorsMenu = new QMenu("Editors", this);
+		m_editorsMenu = new QMenu("Ed&itors", this);
 		menuBar()->insertMenu(ui->menuSimulation->menuAction(), m_editorsMenu);
 	}
 	return m_editorsMenu;
@@ -3733,7 +3768,7 @@ void MainWindow::trainWillUpdate(int trainIndex) {
 	const FollowAvailability following = followAvailabilityOf(trainIndex);
 	if (following.switchOff) {
 		setFollowTrain(-1);
-		statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
+		statusBar()->showMessage(QString::fromStdString(following.statusClause), 5000);
 	}
 }
 

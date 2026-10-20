@@ -72,7 +72,7 @@ While the run is active:
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
 - The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers**, **Infrastructure** and **Incidents** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling stock units** and **Compositions** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
 
-At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete - open the Diagrams menu for results`, the dock **Run Results** opens, and the **Replay** row appears under the network. If a train was still followed at the end, the text reads `Simulation complete - Follow disabled` instead. Follow also switches off when the followed train leaves the network, so in Paimpol it is usually off before the end.
+At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete - results in the Diagrams menu`, the dock **Run Results** opens, and the **Replay** row appears under the network. If a train was still followed at the end, the text reads `Simulation complete - Follow disabled` instead. Follow also switches off when the followed train leaves the network, so in Paimpol it is usually off before the end.
 
 ## 5. Replay the run
 

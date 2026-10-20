@@ -50,7 +50,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 			&& w.m_followTrainCombo->currentText() == (services ? QStringLiteral("Run the case to follow trains") : QStringLiteral("No trains to follow"))
 			&& !w.m_followAction->isEnabled() && !w.m_followAction->isChecked() && w.m_followAction->toolTip() == reason
 			&& w.m_followTrainCombo->toolTip() == reason && w.m_followTrainCombo->accessibleDescription() == reason
-			&& w.m_followStatusLabel->text() == reason
+			&& w.m_followStatusLabel->toolTip() == reason
 			&& w.findChild<QToolButton*>("actionFollowButton")->accessibleDescription() == reason;
 		if (!explained) {
 			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: Follow before the first run does not say why it is off\n");

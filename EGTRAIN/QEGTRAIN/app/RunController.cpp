@@ -692,7 +692,7 @@ void RunController::onSimulationFinished() {
 		: stopped			  ? QStringLiteral("Simulation stopped")
 		: !m_resultsAvailable ? QStringLiteral("Simulation ended without results")
 		: hadFollowTarget	  ? QStringLiteral("Simulation complete - Follow disabled")
-							  : QStringLiteral("Simulation complete - open the Diagrams menu for results");
+							  : QStringLiteral("Simulation complete - results in the Diagrams menu");
 	m_window->statusBar()->showMessage(status);
 	// The Run Results dock raised by resultsKept is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.

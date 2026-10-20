@@ -108,12 +108,22 @@ int main() {
 				&& on.statusText == "Rail-1 is scheduled to enter at 08:25:50. Follow starts when it enters."
 				&& on.canArm && !on.switchOff && !on.canAct,
 			"a train before its entry time was not reported as not entered with Follow on");
-		// The state and the scheduled time end early in the sentence, so that a long name and a narrow
-		// status area still show them, and the part about Follow comes after them.
-		const std::string time = "08:25:50";
-		require(off.statusText.find(time) + time.size() <= 45 && on.statusText.find(time) + time.size() <= 45
-				&& off.statusText.find("Follow") > off.statusText.find(time) && on.statusText.find("Follow") > on.statusText.find(time),
-			"the scheduled time does not come early in the sentence, before the part about Follow");
+	}
+
+	// The status bar shows one clause: the state of the train, or that the view follows it.
+	{
+		FollowAvailabilityInput noRun;
+		noRun.sceneHasServices = true;
+		FollowAvailabilityInput ended = inReplay(runOf(train, 1200));
+		ended.replayEndTime = 1549;
+		require(followAvailability(FollowAvailabilityInput{}).statusClause == "No trains to follow"
+				&& followAvailability(noRun).statusClause == "Run the case to follow trains"
+				&& followAvailability(runOf(train, 1549)).statusClause == "Rail-1 enters at 08:25:50"
+				&& followAvailability(withFollow(runOf(train, 1549), true)).statusClause == "Rail-1 enters at 08:25:50"
+				&& followAvailability(ended).statusClause == "Rail-1 enters after this run"
+				&& followAvailability(runOf(train, 2000)).statusClause == "Rail-1 is running"
+				&& followAvailability(withFollow(runOf(train, 2000), true)).statusClause == "Following Rail-1",
+			"a status clause does not name the state of the train");
 	}
 
 	// A completed run that ends before the entry time: the train never enters it, so the sentence does not
@@ -259,6 +269,8 @@ int main() {
 			in.replay = true;
 			const FollowAvailability on = followAvailability(in);
 			require(off.entryText == on.entryText, "the list entry changed with the state of Follow");
+			require(off.statusClause.find_first_of(".,") == std::string::npos && on.statusClause.find_first_of(".,") == std::string::npos,
+				"a status clause has more than one clause");
 			require(off.statusText != on.statusText, "a sentence about Follow did not change with the state of Follow");
 			require(on.statusText.find("switched on now") == std::string::npos, "a sentence for Follow on offers to switch it on");
 			require(off.statusText.find("Follow stays on") == std::string::npos

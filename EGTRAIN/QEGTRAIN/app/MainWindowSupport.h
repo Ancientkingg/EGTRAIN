@@ -27,9 +27,9 @@
 
 /// The name of a train in the train list, to which the entry text adds a state.
 constexpr int kFollowNameRole = Qt::UserRole + 1;
-/// Widest the status sentence about Follow gets, in pixels. It shows the state of a train with a name of 25
-/// characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
-constexpr int kFollowStatusMaxWidth = 640;
+/// Widest the status clause about Follow gets, in pixels. It shows the state of a train with a name of 25 characters
+/// and its scheduled time, and leaves the rest of a 1024 px status bar to the message on the left. Longer text is elided.
+constexpr int kFollowStatusMaxWidth = 400;
 
 /// Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
 inline int baseTimeToSeconds(const std::string& hhmmss) {

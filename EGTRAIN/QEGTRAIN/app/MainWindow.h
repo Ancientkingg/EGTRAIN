@@ -208,6 +208,9 @@ protected:
 	void dragEnterEvent(QDragEnterEvent* event) override;
 	/// Opens the scene file that was dropped (SceneSession::drop()).
 	void dropEvent(QDropEvent* event) override;
+	/// Takes the tab bars of tabbed docks out of the Tab order. The menus raise each dock, and Qt keeps the bar of a single
+	/// dock outside the window, where its focus cannot be seen.
+	void childEvent(QChildEvent* event) override;
 
 public slots:
 	/// Shows the About dialog.
