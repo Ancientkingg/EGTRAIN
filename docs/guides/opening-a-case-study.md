@@ -107,8 +107,8 @@ as well, a double-click starts that one, also while the portable copy is open.
 The app declares `.egscene` as the file type `EGTRAIN Case Study`, and no other
 type. Copy `QEGTRAIN.app` out of the disk image to the Applications folder, as
 [Installing EGTRAIN](install.md#macos-disk-image) describes, and open it from
-there. The first start of an ad hoc signed app needs the steps that this page
-describes.
+there. The first start of an ad hoc signed app needs the steps that
+[Installing EGTRAIN](install.md#first-start-of-an-ad-hoc-build) describes.
 
 Once macOS has registered the app, a double-click on a `.egscene` file opens it
 in EGTRAIN, and **File > Get Info** in Finder shows the **Kind**

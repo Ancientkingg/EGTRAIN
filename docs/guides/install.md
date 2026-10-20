@@ -90,12 +90,10 @@ The dialog appears at every start of Setup. The portable `QEGTRAIN.exe`, extract
 carried the download mark too and started without any warning. The wording and the options depend on the Windows
 version, and whether a warning appears may depend on other checks of Windows that this project has not observed.
 
-**Run anyway** is the normal Windows override for an app without a publisher. No workflow and no release script removes
-the download mark, and no document tells a user to turn SmartScreen off, because that lowers the protection of the whole
-PC.
+**Run anyway** is the normal Windows override for an app without a publisher. Do not turn SmartScreen off: that lowers
+the protection of the whole PC.
 
-A valid signature would show who signed a file. Whether Windows still warns for a signed program is not known, and this
-document makes no promise either way. When a release is signed, its release text must say which Windows files are signed.
+A valid signature would show who signed a file. Whether Windows still warns for a signed program is not known.
 
 ### Checking a download
 

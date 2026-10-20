@@ -1,6 +1,6 @@
 # Windows installer
 
-`egtrain.iss` is the Inno Setup script of the EGTRAIN installer for Windows. Compiled, it gives a Setup program that installs the assembled Windows package for the current user and asks for no administrator rights.
+`installer/egtrain.iss` is the Inno Setup script of the EGTRAIN installer for Windows. Compiled, it gives a Setup program that installs the assembled Windows package for the current user and asks for no administrator rights.
 
 The program is named `EGTRAIN-Setup-<version>-x64.exe`. The name is fixed by `kAssetPatterns` in `EGTRAIN/QEGTRAIN/update/ReleaseInfo.cpp`, which accepts it for the key `windows-x64-installer`.
 
