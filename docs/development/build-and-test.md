@@ -752,7 +752,7 @@ then starts the app as for Windows: the headless run and the window start. Only
 the launch with a window loads the cocoa platform plugin of the bundle.
 
 The macOS package keeps `QtDBus`, which `QtGui` loads, and the image format
-plugins.
+plugins other than WebP and TIFF.
 
 ### Linux package start
 
