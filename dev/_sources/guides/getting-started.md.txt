@@ -65,7 +65,7 @@ To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The tabl
 
 While the run is active:
 
-- The progress bar under the network shows the clock time, the step (`Step n of m`) and the end time. The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one.
+- The progress bar under the network shows the clock time and the end time, such as `07:51:31 of 09:40:40`; its tooltip gives the step (`Step n of m`). The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one.
 
   ![The main window during a run of Paimpol, zoomed in to 25x with Follow on Guin-Paim-EXPRESS-1-1 between its signals. The progress bar reads 07:51:31, step 2,452 of 9,000, and Run is dimmed while Pause and Stop are enabled.](../images/getting-started-run-in-progress.png)
 - Move the speed slider to the right to play faster or to the left to play slower. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
@@ -76,7 +76,7 @@ At the fastest speed the run of Paimpol takes seconds. When it has ended, the st
 
 ## 5. Replay the run
 
-The **Replay** row has **Start**, **Play**, **End**, a slider and a label such as `Replay at 1230 s`. Moving the slider or clicking **Start** or **End** shows the network as it was at that time, and **Play** advances one simulated second for each second of real time. The row records one frame every 5 simulated seconds and shows the last frame at or before the chosen time. The text under the controls says which part of the run it holds. A run that is too large for the replay memory loses its first part, and the text says so. [How-to](how-to.md#replay-a-completed-run) has the details.
+The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slider and the clock time of the shown frame, such as `07:31:10`. Moving the slider or clicking **Start** or **End** shows the network as it was at that time, and **Play** advances one simulated second for each second of real time. The row records one frame every 5 simulated seconds and shows the last frame at or before the chosen time. The text under the controls says which part of the run it holds. A run that is too large for the replay memory loses its first part, and the text says so. [How-to](how-to.md#replay-a-completed-run) has the details.
 
 ## 6. Read the results
 

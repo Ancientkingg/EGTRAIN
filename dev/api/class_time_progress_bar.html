@@ -138,7 +138,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="memdesc:a232f0e0910a4203d374fe25d0c722ecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the bar, then the filled part again with its text in the highlighted text colour.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The progress bar of a run under the network: how far the run is, as the clock time, the step and the end time. It ignores mouse and wheel input, so it shows the run and does not scrub it. </p>
+<div class="textblock"><p>The progress bar of a run under the network: how far the run is, as the clock time and the end time, with the step in its tooltip. It ignores mouse and wheel input, so it shows the run and does not scrub it. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a203db15ba1769e7868a4505f0f57afbe" name="a203db15ba1769e7868a4505f0f57afbe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a203db15ba1769e7868a4505f0f57afbe">&#9670;&#160;</a></span>TimeProgressBar()</h2>
@@ -235,8 +235,7 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows step <span class="tt"><a class="el" href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa" title="The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...">timestep</a></span> (from 0) of a run of <span class="tt">totalSteps</span> steps, clamped to the run, as "&lt;clock&gt; | Step &lt;n&gt; of
-&lt;total&gt; | Ends &lt;clock&gt;". The clock times take one step as one second after <span class="tt">startOffsetSeconds</span>, the base time of the run in seconds since midnight. </p>
+<p>Shows step <span class="tt"><a class="el" href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa" title="The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...">timestep</a></span> (from 0) of a run of <span class="tt">totalSteps</span> steps, clamped to the run, as "&lt;clock&gt; of &lt;end clock&gt;" with the tooltip "Step &lt;n&gt; of &lt;total&gt;". The clock times take one step as one second after <span class="tt">startOffsetSeconds</span>, the base time of the run in seconds since midnight. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

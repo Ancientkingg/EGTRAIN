@@ -660,7 +660,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a checkable action for dock to menu, owned by dock, whose check mark follows the shown state of the dock. Checking it reveals the dock with <a class="el" href="#a83945148529fc6f31ffa497e1c3ce85f" title="Shows and raises dock, and submits editor.opened when it was hidden. A null dock is ignored.">revealEditor()</a> and an observation from capture; unchecking hides it. A separate action observes the explicit state before show(), unlike the dock's built-in toggle action whose internal triggered handler runs first. </p>
+<p>Adds a checkable action for dock to menu, owned by dock, whose check mark follows the shown state of the dock. Checking it reveals the dock with <a class="el" href="#a83945148529fc6f31ffa497e1c3ce85f" title="Shows and raises dock, and submits editor.opened when it was hidden. A null dock is ignored.">revealEditor()</a> and an observation from capture; unchecking hides it, except for a dock open behind another tab, which it reveals. A separate action observes the explicit state before show(), unlike the dock's built-in toggle action whose internal triggered handler runs first. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

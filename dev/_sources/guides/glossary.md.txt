@@ -60,7 +60,7 @@ Playback is what you watch during a run: the trains move on the canvas as the si
 
 ### Replay
 
-The replay is the row under the network that appears after a successful run. It has the buttons **Start**, **Play** (which then reads **Pause**) and **End**, a slider and a label that begins "Replay" and states the interval between frames. It shows the recorded frames of the latest completed run: a position shows the last recorded frame at or before the chosen time. A stopped run has none, and a new run or any edit of the case clears it ([Replay a completed run](how-to.md#replay-a-completed-run)).
+The replay is the row under the network that appears after a successful run. It has the buttons **Start**, **Play** (which then turns into **Pause**) and **End**, a slider, the clock time of the shown frame and a line that states the interval between frames. It shows the recorded frames of the latest completed run: a position shows the last recorded frame at or before the chosen time. A stopped run has none, and a new run or any edit of the case clears it ([Replay a completed run](how-to.md#replay-a-completed-run)).
 
 ### Results
 

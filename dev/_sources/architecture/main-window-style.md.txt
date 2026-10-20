@@ -4,7 +4,7 @@
 
 The Pause button reads **Resume** while a run is paused. It is as wide as the longer text, so the toolbar does not move, and its outline shows the whole button, so the gaps from Run to Pause and from Pause to Stop are equal.
 
-In the replay row Tab goes from **Start** to **Play** and **End** and then to the slider. **Play** reads **Pause** while the replay plays and is as wide as the longer text, so End and the slider do not move.
+The replay row starts with the icon buttons **Start**, **Play** and **End**, each with a tooltip and an accessible name; Tab goes from Start to Play and End and then to the slider. While the replay plays, **Play** shows the pause icon, the tooltip and the name **Pause**. The icons have one size, so End and the slider do not move. The label after the slider shows the clock time of the shown frame in the format of the progress bar and is as wide as its longest text, so the slider keeps its width while the user seeks.
 
 The speed slider in the toolbar sets how fast a run plays; right is faster. The filled part of the track, `#315a70`, shows how far the slider is towards the fastest setting; the rest of the track is `#7b8b96`. The handle is a solid `#315a70` circle with a white border. It turns `#26495c` under the pointer and while it is dragged, gets a `#24313a` border when it has keyboard focus, and the handle and the filled part turn `#9aa5ab` when the slider is disabled. The replay slider in the replay row has the same look.
 
@@ -36,7 +36,7 @@ The Case and Layers dock opens at the width of its widest layer toggle, **Statio
 
 The map key has a **Passenger count** row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.
 
-An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows.
+The editor docks share one group of tabs on the right of the window, so each open editor has the full height beside the network, also with Run Results open below it. Choosing an editor in the Editors menu opens it, or brings it to the front when it is open behind another tab. An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows.
 
 The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.
 
