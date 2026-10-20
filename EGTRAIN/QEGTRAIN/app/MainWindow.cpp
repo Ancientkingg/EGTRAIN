@@ -53,6 +53,7 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QScreen>
+#include <QScrollArea>
 #include <QSet>
 #include <QSizePolicy>
 #include <QSlider>
@@ -903,10 +904,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	caseLayersLayout->addStretch();
 	auto* caseLayersScroll = new EditorLayout::VerticalScrollArea(m_caseLayersDock);
 	caseLayersScroll->setObjectName("caseLayersScroll");
-	// Tab reaches the check boxes and the map key inside, and the area scrolls to show them.
+	// Tab reaches the check boxes and the map key inside, and the area scrolls to show them (see the focusChanged connection).
 	caseLayersScroll->setFocusPolicy(Qt::NoFocus);
 	caseLayersScroll->setWidget(caseLayersWidget);
 	m_caseLayersDock->setWidget(caseLayersScroll);
+	// The dock scroll areas take no focus themselves, so they scroll a field into view when Tab reaches it.
+	connect(qApp, &QApplication::focusChanged, this, [](QWidget*, QWidget* now) {
+		for (QWidget* widget = now ? now->parentWidget() : nullptr; widget; widget = widget->parentWidget())
+			if (auto* area = qobject_cast<QScrollArea*>(widget)) {
+				area->ensureWidgetVisible(now);
+				return;
+			}
+	});
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
 	if (ui->menuView) {
 		// zoom actions above, panel toggles below

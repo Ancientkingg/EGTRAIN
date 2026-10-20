@@ -432,6 +432,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 	// Each menu of the menu bar has an Alt mnemonic of its own.
+	// QKeySequence::mnemonic() is empty on macOS, so the letter after the & is read here.
 	QString mnemonics;
 	for (QAction* menu : w.menuBar()->actions()) {
 		const QString title = menu->text();
