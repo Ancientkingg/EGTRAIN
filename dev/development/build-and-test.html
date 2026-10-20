@@ -342,12 +342,16 @@ packages installed and the Qt 5.15 <code class="docutils literal notranslate"><s
 </pre></div>
 </div>
 <p>CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
-one CI uses. CMake searches a folder in <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> before the system folders, so the examples
-above use Qt 5 even when Qt 6 is installed elsewhere. The application and the tests also compile with
-Qt 6.8 on macOS when warnings are not errors, but CI does not build Qt 6 yet and some tests fail with it. To try Qt 6, configure a separate build
+one the packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, in jobs that are not
+required yet and without the tests that still fail with Qt 6, which <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code> lists.
+CMake searches a folder in <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> before the system folders, so the examples above use Qt 5
+even when Qt 6 is installed elsewhere. To try Qt 6, configure a separate build
 folder with <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> set to the Qt 6 folder, for example <code class="docutils literal notranslate"><span class="pre">~/Qt/6.8.3/macos</span></code>. With Homebrew, add
 the keg folders of the other libraries, such as <code class="docutils literal notranslate"><span class="pre">/opt/homebrew/opt/zeromq</span></code>, not <code class="docutils literal notranslate"><span class="pre">/opt/homebrew</span></code>: the
-headers of a linked <code class="docutils literal notranslate"><span class="pre">qt&#64;5</span></code> there would hide those of Qt 6. When one prefix holds both versions, such as
+headers of a linked <code class="docutils literal notranslate"><span class="pre">qt&#64;5</span></code> there would hide those of Qt 6. Qt 6.8.3 links the AGL framework, which the
+macOS 26 SDK no longer has; add
+<code class="docutils literal notranslate"><span class="pre">-DWrapOpenGL_AGL=&quot;$(xcrun</span> <span class="pre">--show-sdk-path)/System/Library/Frameworks/OpenGL.framework&quot;</span></code> to link the
+OpenGL framework in its place. When one prefix holds both versions, such as
 <code class="docutils literal notranslate"><span class="pre">/usr</span></code> on Ubuntu, add <code class="docutils literal notranslate"><span class="pre">-DQT_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5</span></code> to choose Qt 5. <code class="docutils literal notranslate"><span class="pre">QT_DIR</span></code> in
 <code class="docutils literal notranslate"><span class="pre">build/CMakeCache.txt</span></code> shows which Qt a build folder uses.</p>
 <p>The Visual Studio generator is multi-config: choose the configuration when

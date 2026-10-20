@@ -186,12 +186,8 @@ included.
 7. **Decide on Qt Charts.** Weigh Qt Graphs against keeping Qt Charts while Qt ships it. Include the size of the Qt
    Quick runtime in the decision.
 
-Status on 2026-10-19: steps 1 and 2 are done. With Qt 6.8.3 on macOS the application and all tests build. On the
-offscreen platform these tests fail:
-
-- `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` and `test_editor_smoke` passed their checks,
-  then crashed when `MainWindow` deleted the infrastructure panel: refilling the table after a facet switch let the
-  table open an editor it lost track of. Fixed on 2026-10-20: no editor opens while the table is refilled.
-- `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP index of the scene.
-- `test_startup_launch_contract` looks for non-ASCII recent cases in the settings file as `\xe9` escapes; Qt 6
-  writes INI files in UTF-8.
+Status on 2026-10-20: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that are not required yet. With Qt 6.8.3 the
+application and all tests build with warnings as errors on macOS, Windows and Linux. The Qt 6 jobs leave out two tests
+that fail on the offscreen platform: `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP
+index of the scene, and on Linux `test_dialog_presentation_contract` finds that the Run simulation dialog with Run details
+open keeps a scroll range of 14 px instead of growing to show the details.
