@@ -1,6 +1,6 @@
 # How-to
 
-Short recipes for the common tasks. Each says what you need, what to do and what you should see. [Getting started](getting-started.md) is the walk from a download to a first run, and the [glossary](glossary.md) defines the words. On macOS the key Ctrl in a shortcut is the Command key.
+Short recipes for the common tasks. Each says what you need, what to do and what you should see. [Getting started](getting-started.md) is the walk from a download to a first run, and the [glossary](glossary.md) defines the words. On macOS the key Ctrl in a shortcut is the Command key, and [Keyboard shortcuts](keyboard-shortcuts.md) lists every shortcut.
 
 - [Open a case](#open-a-case)
 - [Copy and save a case](#copy-and-save-a-case)

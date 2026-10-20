@@ -94,8 +94,8 @@ MNEMONIC = re.compile(r"&(.)")
 MENU_SEPARATOR = " > "
 KEY = re.compile(r"^((Ctrl|Cmd|Command|Shift|Alt|Option)\+)*(F\d+|Esc|Enter|Return|Tab|Up|Down|Left|Right|.)$|^arrow keys$", re.I)
 # Names that the application shows but its source does not hold. Qt gives the standard buttons their text:
-# QDialogButtonBox::Ok and RestoreDefaults, QMessageBox::Save, and QMessageBox::Discard, which reads Don't Save on macOS.
-QT_BUTTON_NAMES = {"OK", "Save", "Don't Save", "Restore Defaults"}
+# QDialogButtonBox::Ok, Close and RestoreDefaults, QMessageBox::Save, and QMessageBox::Discard, which reads Don't Save on macOS.
+QT_BUTTON_NAMES = {"OK", "Close", "Save", "Don't Save", "Restore Defaults"}
 # Names of macOS and Windows that the steps for installing EGTRAIN and opening a case from the desktop use.
 SYSTEM_NAMES = {
     "Allow applications from", "App Store & Known Developers", "Change All...", "Don't run", "Done", "Extract All",
