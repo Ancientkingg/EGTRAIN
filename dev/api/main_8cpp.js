@@ -7,6 +7,7 @@ var main_8cpp =
     [ "creatorAcceptanceRun", "main_8cpp.html#a9d570c6ca7df03a997fd0dc3d0a2de5f", null ],
     [ "findOption", "main_8cpp.html#a2db976367c8f48160310e5601c38414f", null ],
     [ "getCmdOption", "main_8cpp.html#ad67d0fafd84cbab0a316225edcb45757", null ],
+    [ "keepLightLook", "main_8cpp.html#a5e1e01a59e3050341936fa4a102dbfba", null ],
     [ "main", "main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97", null ],
     [ "onlyKnownOptions", "main_8cpp.html#a0e22c903a39d60235031cba17ec26836", null ],
     [ "parseCmdOptions", "main_8cpp.html#a5b735784d706c1da037ff9b67744e595", null ],

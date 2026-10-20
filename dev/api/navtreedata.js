@@ -84,13 +84,13 @@ var NAVTREEINDEX =
 "class_train_badge_item.html#a6b9be4691fb5a708edf2b6cb71f9a733",
 "classtelemetry_1_1_operation_observation.html#afca86c2dc6f1865b2d4fca65f8f70385",
 "functions_s.html",
-"namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad272d88f548764712769a41765f447f2",
-"struct_capacity_compression_row.html#a9010787f73c96a2b350deef7b8b14773",
-"struct_gui_virtual_coupling_state.html#ad437ef3ff943a8e1f4b7b74cda140d25",
-"struct_run_infrastructure.html#a64ad319b8e23952c785c262dedcd3a5e",
-"struct_scene_passenger_journey.html#a2fe49ae8eeea7813d7953fe46f855903",
-"struct_semantic_version.html",
-"struct_update_package.html#a23ecfb84dfd6b4f4b7c91d26890e7ad8"
+"namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbac82adc7582667b6bbc1e066757aad182",
+"struct_capacity_compression_row.html#a4f1bf04877b31bc3aae20ff34e2c3687",
+"struct_gui_virtual_coupling_state.html",
+"struct_run_infrastructure.html#a5364f1e44e3bd5ef76df177fe0a7c717",
+"struct_scene_passenger_journey.html#a11e3c97955a1ca87188ded3f2d069d0a",
+"struct_self_update_capability.html#aecc43cdbf1f461ec131953fe80f0e129",
+"struct_update_package.html"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

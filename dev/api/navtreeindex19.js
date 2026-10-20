@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"struct_capacity_compression_row.html#a4f1bf04877b31bc3aae20ff34e2c3687":[1,0,34,5],
 "struct_capacity_compression_row.html#a9010787f73c96a2b350deef7b8b14773":[1,0,34,4],
 "struct_capacity_compression_row.html#ae651bb162734353a1c86f6adc243cdac":[1,0,34,0],
 "struct_capacity_compression_row.html#af3a1facf97b4cc0b36da0cb14adc3b90":[1,0,34,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "struct_gui_train_state.html#aeae500dd776cdd09d319f20d97ded0f7":[1,0,86,10],
 "struct_gui_train_state.html#aecd7fbec18cd663621cdad2247ddcea3":[1,0,86,18],
 "struct_gui_train_state.html#af1012b642ad69c34b3a6b61938493c8c":[1,0,86,8],
-"struct_gui_train_state.html#af49938cbe2bbc385c02da2eb70066685":[1,0,86,9],
-"struct_gui_virtual_coupling_state.html":[1,0,87]
+"struct_gui_train_state.html#af49938cbe2bbc385c02da2eb70066685":[1,0,86,9]
 };
