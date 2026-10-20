@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"struct_capacity_compression_row.html#a9010787f73c96a2b350deef7b8b14773":[1,0,34,4],
 "struct_capacity_compression_row.html#ae651bb162734353a1c86f6adc243cdac":[1,0,34,0],
 "struct_capacity_compression_row.html#af3a1facf97b4cc0b36da0cb14adc3b90":[1,0,34,6],
 "struct_capacity_compression_row.html#afcee103d483279183a6c5f6002bff36a":[1,0,34,2],
@@ -172,11 +173,12 @@ var NAVTREEINDEX19 =
 "struct_follow_availability.html":[1,0,72],
 "struct_follow_availability.html#a33ac27566169b089f684515cf96317b5":[1,0,72,2],
 "struct_follow_availability.html#a530c83da5707d667134c8bbabb63eab6":[1,0,72,0],
-"struct_follow_availability.html#a6d1604b580cb30e93ca874ad9b9c9169":[1,0,72,6],
+"struct_follow_availability.html#a6901590da1e71a88182b727b9ecd89fb":[1,0,72,6],
+"struct_follow_availability.html#a6d1604b580cb30e93ca874ad9b9c9169":[1,0,72,7],
 "struct_follow_availability.html#a812fd7ea89db709d24a28311ba26eade":[1,0,72,3],
 "struct_follow_availability.html#a871539ea556a1f5c8e3d0235991cc051":[1,0,72,4],
 "struct_follow_availability.html#a8717cd01239daff5f8d51e266cfd980e":[1,0,72,1],
-"struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9":[1,0,72,7],
+"struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9":[1,0,72,8],
 "struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9":[1,0,72,5],
 "struct_follow_availability_input.html":[1,0,73],
 "struct_follow_availability_input.html#a15f0d37c482370568c2944cb79f3cf50":[1,0,73,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX19 =
 "struct_gui_train_state.html#aecd7fbec18cd663621cdad2247ddcea3":[1,0,86,18],
 "struct_gui_train_state.html#af1012b642ad69c34b3a6b61938493c8c":[1,0,86,8],
 "struct_gui_train_state.html#af49938cbe2bbc385c02da2eb70066685":[1,0,86,9],
-"struct_gui_virtual_coupling_state.html":[1,0,87],
-"struct_gui_virtual_coupling_state.html#ad437ef3ff943a8e1f4b7b74cda140d25":[1,0,87,1],
-"struct_gui_virtual_coupling_state.html#ae444202b9bbc898d119009214282ff48":[1,0,87,2]
+"struct_gui_virtual_coupling_state.html":[1,0,87]
 };

@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"struct_semantic_version.html":[1,0,255],
+"struct_semantic_version.html#a363dc8163219b4e5634e4eae71853d2a":[1,0,255,4],
 "struct_semantic_version.html#a696a693c67ca5b49587b31a338085842":[1,0,255,1],
 "struct_semantic_version.html#a6c640996696df580379571765c4f6152":[1,0,255,3],
 "struct_semantic_version.html#a90c066f9f48830f405bb4ab5e935f902":[1,0,255,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "struct_update_manifest.html#aab690359a9686135246bd61776a81bb5":[1,0,310,3],
 "struct_update_manifest.html#abfa19abce417d85393e1c1a35ae23fcd":[1,0,310,5],
 "struct_update_manifest.html#af427a332aa614284dc2ed91065495a11":[1,0,310,2],
-"struct_update_package.html":[1,0,311],
-"struct_update_package.html#a23ecfb84dfd6b4f4b7c91d26890e7ad8":[1,0,311,0],
-"struct_update_package.html#a3a9fcda7a03d2786a6534c4584a749fa":[1,0,311,1]
+"struct_update_package.html":[1,0,311]
 };

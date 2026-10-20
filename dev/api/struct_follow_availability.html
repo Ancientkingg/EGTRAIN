@@ -123,8 +123,10 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac7e956268e21954402033b4e41a839f9" id="r_ac7e956268e21954402033b4e41a839f9"><td class="memItemLeft"><a class="el" href="_follow_availability_8h.html#a99616537dc446631038d188e66fb7c64">FollowPhase</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac7e956268e21954402033b4e41a839f9">phase</a> = <a class="el" href="_follow_availability_8h.html#a99616537dc446631038d188e66fb7c64a13efee4a9e0b58bfb14bb80e5f33ce4c">FollowPhase::NoServices</a></td></tr>
 <tr class="memitem:a812fd7ea89db709d24a28311ba26eade" id="r_a812fd7ea89db709d24a28311ba26eade"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a812fd7ea89db709d24a28311ba26eade">entryText</a></td></tr>
 <tr class="memdesc:a812fd7ea89db709d24a28311ba26eade"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text of the list entry. It does not depend on the state of Follow.  <br /></td></tr>
+<tr class="memitem:a6901590da1e71a88182b727b9ecd89fb" id="r_a6901590da1e71a88182b727b9ecd89fb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6901590da1e71a88182b727b9ecd89fb">statusClause</a></td></tr>
+<tr class="memdesc:a6901590da1e71a88182b727b9ecd89fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">One clause for the status bar: the state of the train, or that the view follows it.  <br /></td></tr>
 <tr class="memitem:a6d1604b580cb30e93ca874ad9b9c9169" id="r_a6d1604b580cb30e93ca874ad9b9c9169"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6d1604b580cb30e93ca874ad9b9c9169">statusText</a></td></tr>
-<tr class="memdesc:a6d1604b580cb30e93ca874ad9b9c9169"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sentence for the status area, worded for the state of Follow.  <br /></td></tr>
+<tr class="memdesc:a6d1604b580cb30e93ca874ad9b9c9169"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole explanation, worded for the state of Follow, for the tooltips.  <br /></td></tr>
 <tr class="memitem:a33ac27566169b089f684515cf96317b5" id="r_a33ac27566169b089f684515cf96317b5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a33ac27566169b089f684515cf96317b5">controlEnabled</a> = false</td></tr>
 <tr class="memdesc:a33ac27566169b089f684515cf96317b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Follow control is offered. It is not when there is nothing to follow yet.  <br /></td></tr>
 <tr class="memitem:a8717cd01239daff5f8d51e266cfd980e" id="r_a8717cd01239daff5f8d51e266cfd980e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8717cd01239daff5f8d51e266cfd980e">canArm</a> = false</td></tr>
@@ -230,6 +232,22 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a6901590da1e71a88182b727b9ecd89fb" name="a6901590da1e71a88182b727b9ecd89fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6901590da1e71a88182b727b9ecd89fb">&#9670;&#160;</a></span>statusClause</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string FollowAvailability::statusClause</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>One clause for the status bar: the state of the train, or that the view follows it. </p>
+
+</div>
+</div>
 <a id="a6d1604b580cb30e93ca874ad9b9c9169" name="a6d1604b580cb30e93ca874ad9b9c9169"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6d1604b580cb30e93ca874ad9b9c9169">&#9670;&#160;</a></span>statusText</h2>
 
@@ -242,7 +260,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Sentence for the status area, worded for the state of Follow. </p>
+<p>The whole explanation, worded for the state of Follow, for the tooltips. </p>
 
 </div>
 </div>

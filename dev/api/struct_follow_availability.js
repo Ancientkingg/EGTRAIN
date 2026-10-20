@@ -6,6 +6,7 @@ var struct_follow_availability =
     [ "entryText", "struct_follow_availability.html#a812fd7ea89db709d24a28311ba26eade", null ],
     [ "glide", "struct_follow_availability.html#a871539ea556a1f5c8e3d0235991cc051", null ],
     [ "phase", "struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9", null ],
+    [ "statusClause", "struct_follow_availability.html#a6901590da1e71a88182b727b9ecd89fb", null ],
     [ "statusText", "struct_follow_availability.html#a6d1604b580cb30e93ca874ad9b9c9169", null ],
     [ "switchOff", "struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9", null ]
 ];

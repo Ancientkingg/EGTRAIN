@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"struct_gui_virtual_coupling_state.html#ad437ef3ff943a8e1f4b7b74cda140d25":[1,0,87,1],
+"struct_gui_virtual_coupling_state.html#ae444202b9bbc898d119009214282ff48":[1,0,87,2],
 "struct_gui_virtual_coupling_state.html#afc6e86e66d45bb73ac84e673bc09ee49":[1,0,87,0],
 "struct_http_request.html":[1,0,90],
 "struct_http_request.html#a7b1e70e05f55cb477134b55766e103cc":[1,0,90,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "struct_run_infrastructure.html#a218c547282b77b893c07290baa001304":[1,0,163,15],
 "struct_run_infrastructure.html#a2c629868c25cd1060430eaff9cb94832":[1,0,163,4],
 "struct_run_infrastructure.html#a3dc8e54cd8a3dbb57b3585ed0650266d":[1,0,163,20],
-"struct_run_infrastructure.html#a5364f1e44e3bd5ef76df177fe0a7c717":[1,0,163,22],
-"struct_run_infrastructure.html#a64ad319b8e23952c785c262dedcd3a5e":[1,0,163,6],
-"struct_run_infrastructure.html#a7388cba275b8a9d0873fb86a474baa97":[1,0,163,1]
+"struct_run_infrastructure.html#a5364f1e44e3bd5ef76df177fe0a7c717":[1,0,163,22]
 };

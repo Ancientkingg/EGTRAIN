@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"struct_update_package.html#a23ecfb84dfd6b4f4b7c91d26890e7ad8":[1,0,311,0],
+"struct_update_package.html#a3a9fcda7a03d2786a6534c4584a749fa":[1,0,311,1],
 "struct_update_preparation_input.html":[1,0,312],
 "struct_update_preparation_input.html#a06dc26c1f7dc3a5ba090c30c019f127d":[1,0,312,2],
 "struct_update_preparation_input.html#a896caac4b4dac913c2b1fc381c7681f8":[1,0,312,4],
