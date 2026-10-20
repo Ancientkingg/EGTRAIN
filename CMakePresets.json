@@ -1,0 +1,95 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "environment": {
+        "QT_ROOT_DIR": "C:/Qt/6.8.3/msvc2022_64",
+        "PATH": "$env{QT_ROOT_DIR}/bin;$penv{PATH}",
+        "PYTHONUTF8": "1"
+      },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_DIR": "${sourceDir}/tools/vcpkg",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}",
+        "EGTRAIN_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "x64-debug",
+      "displayName": "x64 Debug",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "x64-release",
+      "displayName": "x64 Release",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "x64-debug",
+      "inherits": "windows-base",
+      "configurePreset": "x64-debug"
+    },
+    {
+      "name": "x64-release",
+      "inherits": "windows-base",
+      "configurePreset": "x64-release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-debug",
+      "inherits": "windows-base",
+      "configurePreset": "x64-debug"
+    },
+    {
+      "name": "x64-release",
+      "inherits": "windows-base",
+      "configurePreset": "x64-release"
+    }
+  ]
+}

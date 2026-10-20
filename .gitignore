@@ -39,6 +39,8 @@ EGTRAIN/Setup/
 
 # IDE and OS files
 .vs/
+/out/
+CMakeUserPresets.json
 *.user
 *.suo
 *.qtvscr
