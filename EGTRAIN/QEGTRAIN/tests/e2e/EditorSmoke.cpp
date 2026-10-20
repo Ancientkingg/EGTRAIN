@@ -4726,6 +4726,24 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(ok, "presentation",
 					QString("Run Results opens %1 pixels high with %2 rows in a window %3 pixels high").arg(results->height()).arg(shownRows).arg(w.height()));
 
+			// Four editors opened from the Editors menu while Run Results is open: each shows at least three rows of fields once raised.
+			const QList<QDockWidget*> editorDocks{w.m_caseSettingsDock, w.m_infrastructureDock, w.m_serviceDock, w.m_trainUnitDock};
+			for (QDockWidget* dock : editorDocks)
+				w.m_editorActions.value(dock)->trigger();
+			const int rowHeight = w.m_caseNameEdit->sizeHint().height();
+			for (QDockWidget* dock : editorDocks) {
+				dock->raise();
+				QApplication::processEvents();
+				const int shown = dock->findChild<QScrollArea*>("editorContentScroll")->viewport()->height();
+				if (shown < 3 * rowHeight)
+					facetFailure(ok, "presentation",
+						QString("%1 shows %2 pixels of its fields with four editors and Run Results open at 1280 by 800 pixels")
+							.arg(dock->objectName())
+							.arg(shown));
+			}
+			for (QDockWidget* dock : editorDocks)
+				dock->hide();
+
 			w.m_runController->m_completedRun.reset();
 			w.m_runController->m_delayBaseline.reset();
 			w.m_runResultsTable->setRowCount(0);

@@ -1354,6 +1354,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructureDock->setWidget(m_infrastructurePanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
 	m_infrastructureDock->hide();
+	// The editor docks share one group of tabs, so each open editor has the full height of the side instead of a share of it.
+	tabifyDockWidget(m_caseSettingsDock, m_infrastructureDock);
 	registerEditorDock(m_infrastructureDock);
 	m_infrastructurePanel->setPrompts(m_userPrompts.get());
 	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
@@ -1399,6 +1401,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_plotTrainUnitTractionButton = m_trainUnitPanel->plotButton();
 	m_trainUnitDock->setWidget(m_trainUnitPanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
+	tabifyDockWidget(m_infrastructureDock, m_trainUnitDock);
 	registerEditorDock(m_trainUnitDock);
 	m_trainUnitPanel->setPrompts(m_userPrompts.get());
 	m_trainUnitSourceLinker = new TrainUnitSourceLinker(this);
