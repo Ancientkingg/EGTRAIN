@@ -27,11 +27,11 @@ static QByteArray readFile(const QString& path) {
 }
 
 static void populateInstallation(const QString& directory, const char* marker,
-	const char* executableContents) {
+	const char* executableContents, int qtMajor = 5) {
 	QDir().mkpath(QDir(directory).filePath(QStringLiteral("platforms")));
 	QDir().mkpath(QDir(directory).filePath(QStringLiteral("imageformats")));
 	QDir().mkpath(QDir(directory).filePath(QStringLiteral("Scenes")));
-	for (const QString& name : WindowsStaging::requiredRuntimeFiles())
+	for (const QString& name : WindowsStaging::requiredRuntimeFiles(qtMajor))
 		writeFile(QDir(directory).filePath(name), executableContents);
 	writeFile(QDir(directory).filePath(QStringLiteral("libzmq-mt-4_3_5.dll")), executableContents);
 	writeFile(QDir(directory).filePath(QStringLiteral("Scenes/marker.txt")), marker);
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 	QList<MissingCase> missingCases = {
 		{libzmq, QStringLiteral("libzmq*.dll")},
 		{QStringLiteral("Scenes"), QStringLiteral("Scenes")}};
-	for (const QString& name : WindowsStaging::requiredRuntimeFiles()) {
+	for (const QString& name : WindowsStaging::requiredRuntimeFiles(5)) {
 		if (name != QStringLiteral("QEGTRAIN.exe"))
 			missingCases.append({name, name});
 	}
@@ -124,6 +124,14 @@ int main(int argc, char** argv) {
 	ok &= expect(stage({QStringLiteral("Qt5Gui.dll"), QStringLiteral("Qt5Core.dll")}, {})
 			== missingMessage(QStringLiteral("Qt5Core.dll")),
 		"staging names the first missing file in floor order");
+
+	const QString qt6 = QDir(temp.path()).filePath(QStringLiteral("package-qt6"));
+	populateInstallation(qt6, "new", "new", 6);
+	ok &= expect(WindowsStaging::completeWindowsRuntime(qt6, {}), "a package built with Qt 6 passes the runtime floor");
+	QFile::remove(QDir(qt6).filePath(QStringLiteral("Qt6Gui.dll")));
+	QString missing;
+	ok &= expect(!WindowsStaging::completeWindowsRuntime(qt6, {}, &missing) && missing == QStringLiteral("Qt6Gui.dll"),
+		"a package built with Qt 6 needs the Qt 6 libraries");
 
 	ok &= expect(stage({libzmq}, {}, {QStringLiteral("libzmq-mt-5_0_0.dll")}).isNull(),
 		"the libzmq pattern accepts another version name");
