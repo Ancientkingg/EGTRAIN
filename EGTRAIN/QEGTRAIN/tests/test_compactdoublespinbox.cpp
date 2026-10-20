@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 		ok &= spin.value() == original;
 		spin.setFocus(Qt::TabFocusReason);
 		QApplication::processEvents();
-		ok &= spin.text() == QString::number(original, 'g', std::numeric_limits<double>::max_digits10);
+		ok &= spin.text() == QString::number(original, 'f', QLocale::FloatingPointShortest) && spin.text().toDouble() == original;
 		other.setFocus();
 		QApplication::processEvents();
 		ok &= spin.value() == original;
@@ -66,11 +66,19 @@ int main(int argc, char** argv) {
 	spin.setValue(decoratedValue);
 	spin.setFocus(Qt::TabFocusReason);
 	QApplication::processEvents();
-	ok &= spin.text() == "Speed: " + QString::number(decoratedValue, 'g', std::numeric_limits<double>::max_digits10) + " km/h";
+	ok &= spin.text() == "Speed: 12.3456789012345 km/h";
 	other.setFocus();
 	QApplication::processEvents();
 	ok &= spin.value() == decoratedValue;
 	ok &= spin.text() == "Speed: " + QString::number(decoratedValue, 'g', 6) + " km/h";
+
+	// a value that a double holds as 36.111111111111001 shows as it was typed while the field has focus
+	spin.setPrefix(QString());
+	spin.setSuffix(QString());
+	spin.setValue(36.111111111111);
+	spin.setFocus(Qt::TabFocusReason);
+	QApplication::processEvents();
+	ok &= check(spin.text() == "36.111111111111", __LINE__);
 
 	// a value of twelve digits shows without exponent, and the tooltip has the value in full
 	other.setFocus();
