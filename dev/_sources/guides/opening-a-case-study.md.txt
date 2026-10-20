@@ -39,9 +39,6 @@ version number. EGTRAIN recognises that draft layout, reports it in the
 studies, or convert the original legacy input folder again with **File > Load
 Legacy Case...**.
 
-The compatibility boundary of the scene model in the developer documentation
-lists in full which scenes open.
-
 If EGTRAIN rejects a downloaded file, keep the diagnostic message and download
 the file again. The reader rejects truncated archives, unknown files, unsafe
 paths, duplicate entries, and files that exceed the documented bundle limits.

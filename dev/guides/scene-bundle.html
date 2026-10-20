@@ -310,9 +310,8 @@ use deflate or store compression. Encryption and passwords are not supported.
 The archive is a transport container only: it loads into the existing V1
 <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> and does not introduce a second scene representation.</p>
 <p>The name V2 refers to the container. The container’s own number is
-<code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1, and the data inside has <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> 1. Which bundles
-and scenes open is described in the
-compatibility boundary of the scene model in the developer documentation.</p>
+<code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1, and the data inside has <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> 1. A higher
+version needs a newer EGTRAIN.</p>
 <p>A scene folder is the editable source of truth. An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle packages
 its files for transport. Legacy import and export remain explicit
 interoperability actions; normal scene loading and simulation use the

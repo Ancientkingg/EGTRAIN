@@ -304,7 +304,7 @@
           <section id="command-line-options-and-scene-tool">
 <h1>Command-line options and scene_tool<a class="headerlink" href="#command-line-options-and-scene-tool" title="Link to this heading">¶</a></h1>
 <p>This page is for scripts, headless runs and developers; you do not need it to run EGTRAIN from a downloaded package.</p>
-<p>For the executable paths of a local build see Run a local build, and for how the Windows program behaves in a terminal see Windows headless runs, both in the build and test guide of the developer documentation.</p>
+<p>In a build from source the program is <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> on macOS, <code class="docutils literal notranslate"><span class="pre">build/Release/QEGTRAIN.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.exe</span></code> on Windows and <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN</span></code> on Linux, below the root of the source folder. On Windows the program prints nothing in a terminal, and PowerShell does not wait for it: start it from PowerShell with <code class="docutils literal notranslate"><span class="pre">Start-Process</span> <span class="pre">-Wait</span> <span class="pre">-PassThru</span></code> and send its output to two different files with <code class="docutils literal notranslate"><span class="pre">-RedirectStandardOutput</span></code> and <code class="docutils literal notranslate"><span class="pre">-RedirectStandardError</span></code>.</p>
 <section id="options">
 <h2>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h2>
 <div class="table-wrapper colwidths-auto docutils container">
@@ -365,7 +365,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--live</span></code></p></td>
 <td><p>a port from 0 to 65535</p></td>
 <td><p>off</p></td>
-<td><p>Publishes the state of every run of the process to a ZeroMQ socket on <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code>; 0 takes a free port. The endpoints go to <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code> in the <a class="reference internal" href="#output-folder">output folder</a>, and the start prints them on standard error. A value that is not a port stops the start with exit code 1, and a port that is in use stops it with exit code 2. The live stream is described in External state sharing in the developer documentation.</p></td>
+<td><p>Publishes the state of every run of the process to a ZeroMQ socket on <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code>; 0 takes a free port. The endpoints go to <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code> in the <a class="reference internal" href="#output-folder">output folder</a>, and the start prints them on standard error. The program removes the file when it exits. A value that is not a port stops the start with exit code 1, and a port that is in use stops it with exit code 2.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--live-every</span></code></p></td>
 <td><p>a whole number from 1</p></td>
@@ -375,7 +375,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--live-commands</span></code></p></td>
 <td><p>none</p></td>
 <td><p>off</p></td>
-<td><p>With <code class="docutils literal notranslate"><span class="pre">--live</span></code>: also binds the command socket and writes the access token to <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code>. A client can then pause, resume and stop the run and set its step delay; see Commands in External state sharing in the developer documentation. Without <code class="docutils literal notranslate"><span class="pre">--live</span></code> it stops the start with exit code 1.</p></td>
+<td><p>With <code class="docutils literal notranslate"><span class="pre">--live</span></code>: also binds the command socket and writes the access token to <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code>. A client can then pause, resume and stop the run and set its step delay. Without this option, <code class="docutils literal notranslate"><span class="pre">command</span></code> and <code class="docutils literal notranslate"><span class="pre">token</span></code> in the file are <code class="docutils literal notranslate"><span class="pre">null</span></code>. Without <code class="docutils literal notranslate"><span class="pre">--live</span></code> it stops the start with exit code 1.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--seed</span></code></p></td>
 <td><p>a whole number from 1 to 2147483646</p></td>
@@ -385,7 +385,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--help</span></code></p></td>
 <td><p>none</p></td>
 <td><p>off</p></td>
-<td><p>Prints every option with its default and exits with code 0, without opening a window. On Windows the text reaches a terminal only when the output is redirected; see Windows headless runs in the build and test guide of the developer documentation.</p></td>
+<td><p>Prints every option with its default and exits with code 0, without opening a window. On Windows the text reaches a terminal only when the output is redirected, as the start of this page describes.</p></td>
 </tr>
 </tbody>
 </table>
@@ -459,7 +459,10 @@ QEGTRAIN<span class="w"> </span>-n<span class="w"> </span><span class="m">2</spa
 </pre></div>
 </div>
 <p>To get the line of every stopped train back, set <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG=sim.step=true</span></code>.</p>
-<p>A malformed rule is skipped and the other rules apply. The program prints one <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">EGTRAIN_LOG</span> <span class="pre">has</span> <span class="pre">a</span> <span class="pre">malformed</span> <span class="pre">rule</span></code> line on standard error and starts as usual; the exit code does not change.</p>
+<p>A malformed rule is skipped and the other rules apply. The program prints this line on standard error and starts as usual; the exit code does not change.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>WARNING: EGTRAIN_LOG has a malformed rule. It was skipped and the other rules apply. A rule is &lt;pattern&gt;=true or &lt;pattern&gt;=false, and rules are separated by ';'.
+</pre></div>
+</div>
 <p><code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code> names a file. The program appends every message that goes through the core to it, as <code class="docutils literal notranslate"><span class="pre">level</span> <span class="pre">category:</span> <span class="pre">text</span></code> (<code class="docutils literal notranslate"><span class="pre">warning</span> <span class="pre">app.ui:</span> <span class="pre">text</span></code>), each message on a line of its own, without a limit on its size. When the file cannot be opened, the program prints a <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> line on standard error and writes no file.</p>
 <p>The Console Log dock (<strong>View &gt; Console Log</strong>, Ctrl+Shift+L) shows a message with its level and category in front, such as <code class="docutils literal notranslate"><span class="pre">warning</span> <span class="pre">app.ui:</span> <span class="pre">text</span></code>. It shows all other lines as they are written. Standard output and standard error carry the text of a message without the level and category.</p>
 </section>
@@ -510,7 +513,7 @@ QEGTRAIN<span class="w"> </span>-n<span class="w"> </span><span class="m">2</spa
 </table>
 </div>
 <p>Each command exits with 0 on success and 1 otherwise, also when a path cannot be read or an unexpected error stops the command; the reason is printed on standard error. There is no <code class="docutils literal notranslate"><span class="pre">migrate</span></code> command.</p>
-<p>The macOS and Windows packages contain <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>: <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app/Contents/MacOS/scene_tool</span></code> inside the macOS app, and <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> next to the application in the extracted or installed Windows folder. A build from source also produces it, as the build and test guide of the developer documentation describes.</p>
+<p>The macOS and Windows packages contain <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>: <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app/Contents/MacOS/scene_tool</span></code> inside the macOS app, and <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> next to the application in the extracted or installed Windows folder. A build from source puts it in the build folder.</p>
 <p><a class="reference internal" href="opening-a-case-study.html#instructor-and-command-line-use"><span class="std std-ref">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</span></a> has examples of <code class="docutils literal notranslate"><span class="pre">pack</span></code>, <code class="docutils literal notranslate"><span class="pre">validate</span></code> and <code class="docutils literal notranslate"><span class="pre">unpack</span></code>, including the rule that the unpack destination must be a new path.</p>
 </section>
 </section>

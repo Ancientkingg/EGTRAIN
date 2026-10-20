@@ -372,7 +372,7 @@
 <ol class="arabic">
 <li><p>Read the line under <strong>Current case study</strong> in the dock <strong>Case and Layers</strong>. It says <strong>Ready to run</strong>, or it shows the first error.</p></li>
 <li><p>Choose <strong>View &gt; Scene Validation</strong> (Ctrl+Shift+V). The table lists the findings, errors first, with <strong>Severity</strong>, <strong>Code</strong>, <strong>Message</strong>, <strong>File</strong>, <strong>Path</strong> and <strong>Suggested Fix</strong>.</p>
-<p><img alt="The dock Scene Validation of Paimpol after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view." src="../_images/how-to-scene-validation.png" /></p>
+<p><img alt="The dock Scene Validation of Paimpol practice, a copy of Paimpol, after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view." src="../_images/how-to-scene-validation.png" /></p>
 </li>
 <li><p>Fix the first error in the editor that matches its <strong>File</strong> and <strong>Path</strong> (menu <strong>Editors</strong>), and read the table again. It updates after each edit.</p></li>
 <li><p>Repeat until no error is left. <strong>Run</strong> is then enabled.</p></li>
@@ -436,7 +436,7 @@
 <li><p><strong>Pan.</strong> Drag the view. On a trackpad, two fingers move it.</p></li>
 <li><p><strong>Select.</strong> Click a track, connection, node, station, signal, train or passenger. The information panel for it opens and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.</p></li>
 <li><p><strong>Find.</strong> Choose <strong>Edit &gt; Find…</strong> (Ctrl+F, Cmd+F on macOS) and type part of the name or ID of a station, signal or train. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.</p></li>
-<li><p><strong>Context menu.</strong> Right-click an item. A train offers <strong>Show details</strong>, <strong>Center in view</strong>, <strong>Follow train</strong> and <strong>Copy train index</strong>. Most other items offer <strong>Show details</strong>, <strong>Center in view</strong> and a copy command. Right-click the empty view for <strong>Fit whole network</strong>, <strong>Clear selection</strong> and <strong>Stop following train</strong>.</p></li>
+<li><p><strong>Context menu.</strong> Right-click an item. A train offers <strong>Show details</strong>, <strong>Center in view</strong>, <strong>Follow train</strong>, <strong>Copy train index</strong> and the disabled entry <strong>Planned route and related infrastructure</strong>. Most other items offer <strong>Show details</strong>, <strong>Center in view</strong> and a copy command. Right-click the empty view for <strong>Fit whole network</strong>, <strong>Clear selection</strong> and <strong>Stop following train</strong>.</p></li>
 <li><p><strong>Layers.</strong> The check boxes in <strong>Case and Layers</strong> hide stations, station names, trains, speed labels, signals and passengers. <strong>Passengers</strong> is the same switch as <strong>View &gt; Show Passengers</strong>. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.</p></li>
 <li><p><strong>Follow.</strong> Choose a train in the list next to <strong>Follow</strong> in the toolbar and click <strong>Follow</strong>. The view moves with the train, also while the run is paused. Click <strong>Follow</strong> again, or choose <strong>Stop following train</strong>, to stop.</p></li>
 </ul>
@@ -457,9 +457,9 @@
 </section>
 <section id="results-and-exports">
 <h2>Results and exports<a class="headerlink" href="#results-and-exports" title="Link to this heading">¶</a></h2>
-<p>You need a run that reached its end. Until then the result commands are disabled and read <code class="docutils literal notranslate"><span class="pre">Run</span> <span class="pre">a</span> <span class="pre">simulation</span> <span class="pre">to</span> <span class="pre">enable</span> <span class="pre">this</span> <span class="pre">diagram</span></code>.</p>
+<p>You need a run that reached its end. Until then the result commands are disabled.</p>
 <ol class="arabic simple">
-<li><p>The dock <strong>Run Results</strong> opens when the run ends. If you closed it, choose <strong>View &gt; Run Results</strong>.</p></li>
+<li><p>The dock <strong>Run Results</strong> opens when the run ends. If it is closed, choose its entry in the menu <strong>View</strong>, which starts with Run Results.</p></li>
 <li><p>Click <strong>Open result view…</strong> and choose an entry, or use the menu <strong>Diagrams</strong>. An entry in <strong>Diagrams</strong> that asks for more input ends in an ellipsis.</p></li>
 <li><p><strong>Timetable graph</strong> and <strong>Train paths</strong> first ask for a reference route, and <strong>Blocking time</strong> asks for its scope. <strong>Capacity</strong> needs at least two trains that share the entry of a section: choose a route and a first block that both trains pass.</p></li>
 <li><p>In a chart window, the button <strong>Trains</strong> filters the trains, <strong>Reset zoom</strong> returns to the full chart, and <strong>Export CSV…</strong> and <strong>Export PNG…</strong> save the data and the picture of the visible trains. Hover, click, zoom and pan are described in <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Inspecting diagrams</span></a>.</p></li>
@@ -575,7 +575,7 @@ scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-sc
 </tbody>
 </table>
 </div>
-<p>When <strong>Run</strong> is enabled but <strong>Cannot Run Scene</strong> appears, the message names the problem: validation errors, or no selected service occurrence. In the tab <strong>Run occurrences</strong> of <strong>Services</strong>, tick <strong>Include</strong> for at least one occurrence.</p>
+<p>When <strong>Run</strong> is enabled but a message refuses the run, it names the problem, for example <code class="docutils literal notranslate"><span class="pre">Select</span> <span class="pre">at</span> <span class="pre">least</span> <span class="pre">one</span> <span class="pre">generated</span> <span class="pre">service</span> <span class="pre">occurrence</span> <span class="pre">before</span> <span class="pre">running.</span></code> On Windows and Linux the message is titled <strong>Cannot Run Scene</strong>. In the tab <strong>Run occurrences</strong> of <strong>Services</strong>, tick <strong>Include</strong> for at least one occurrence.</p>
 </section>
 </section>
 

@@ -338,7 +338,7 @@ scenario.</p>
 <h2>Incidents and Follow<a class="headerlink" href="#incidents-and-follow" title="Link to this heading">¶</a></h2>
 <p>The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
-JSON-only settings. During playback, choose a train in <strong>Train to follow</strong> and
+JSON-only settings. During playback, choose a train in the list next to <strong>Follow</strong> in the toolbar and
 activate <strong>Follow</strong> to center the network view on it immediately, including
 while paused.</p>
 </section>
@@ -412,8 +412,9 @@ inspector name the state, and the Map key lists all five.</p>
 <p>A completed run without incidents or entrance delays can be frozen with <strong>Set
 delay baseline</strong>. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
-Selecting another scenario keeps the baseline but reports that the newly
-selected scenario has not been run; a canonical scene edit, <strong>File &gt; New Case Study…</strong>, or
+Selecting another scenario keeps the baseline, discards the results and closes
+the dock <strong>Run Results</strong>. Opened again from the menu <strong>View</strong>, the dock reads
+<code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">completed</span> <span class="pre">run</span> <span class="pre">|</span> <span class="pre">Scenario:</span> <span class="pre">&lt;scenario&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">Baseline:</span> <span class="pre">&lt;case&gt;</span> <span class="pre">/</span> <span class="pre">&lt;scenario&gt;.</span> <span class="pre">Run</span> <span class="pre">the</span> <span class="pre">selected</span> <span class="pre">scenario</span> <span class="pre">to</span> <span class="pre">create</span> <span class="pre">completed</span> <span class="pre">results</span> <span class="pre">for</span> <span class="pre">comparison.</span></code> A canonical scene edit, <strong>File &gt; New Case Study…</strong>, or
 opening another case clears the baseline and explains that a new run without incidents or
 entrance delays is needed. <strong>Compare delays</strong> requires a run with incidents or
 entrance delays that matches the baseline, and opens the delay analysis window

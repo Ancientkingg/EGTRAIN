@@ -319,7 +319,7 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TotalEnergyConsumption.txt</span></code></p></td>
 <td><p>At the end of the run. Replaces an existing file</p></td>
-<td><p>A header line and one row with the sums over all trains of the same four quantities, separated by spaces</p></td>
+<td><p>A header line with <code class="docutils literal notranslate"><span class="pre">TotalEnergyConsumed[KWh]</span></code>, <code class="docutils literal notranslate"><span class="pre">TotalEnergyConsumedWithRegenerativeBraking[KWh]</span></code>, <code class="docutils literal notranslate"><span class="pre">TotalEnergyRequestAtSubst[KWh]</span></code> and <code class="docutils literal notranslate"><span class="pre">TotalEnergyRequestAtSubstWithRegBraking</span></code>, and one row with the sums over all trains of the same four quantities in kWh, separated by spaces</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TrainTrajectories/Stats_Stations.txt</span></code></p></td>
 <td><p>At the end of the run. Replaces an existing file</p></td>
@@ -331,7 +331,7 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TrainTrajectories/TimetablePoints.txt</span></code></p></td>
 <td><p>At the end of the run. Replaces an existing file</p></td>
-<td><p>No header line. Six lines per train: the train description and type, then one line each with the ids, the positions (written twice), the first times and the second times of its timetable points, separated by spaces</p></td>
+<td><p>No header line. Six lines per train: the train description and type (the occurrence and its service, as in <code class="docutils literal notranslate"><span class="pre">Guin-Paim-EXPRESS-1-1</span> <span class="pre">Guin-Paim-EXPRESS-1</span></code>), then one line each with the ids, the positions (written twice), the first times and the second times of its timetable points, separated by spaces</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TrainTrajectories/BlockingTimes.txt</span></code></p></td>
 <td><p>At the end of the run. Replaces an existing file</p></td>

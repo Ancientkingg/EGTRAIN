@@ -8,9 +8,8 @@ The archive is a transport container only: it loads into the existing V1
 [`SceneModel`] and does not introduce a second scene representation.
 
 The name V2 refers to the container. The container's own number is
-`bundle_version` 1, and the data inside has `schema_version` 1. Which bundles
-and scenes open is described in the
-compatibility boundary of the scene model in the developer documentation.
+`bundle_version` 1, and the data inside has `schema_version` 1. A higher
+version needs a newer EGTRAIN.
 
 A scene folder is the editable source of truth. An `.egscene` bundle packages
 its files for transport. Legacy import and export remain explicit

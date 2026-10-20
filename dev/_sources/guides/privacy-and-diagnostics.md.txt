@@ -33,4 +33,4 @@ The recovery copies that EGTRAIN keeps of unsaved edits stay on your computer an
 1. Choose **Help > Privacy & diagnostics...**. The dialog shows your saved choices.
 2. Untick **Share usage statistics**, **Share diagnostic reports** or both, and click **Save choices**.
 
-Closing the dialog without saving keeps the saved choices. Events that were sent already cannot be recalled. EGTRAIN supplies no privacy notice yet.
+Closing the dialog without saving keeps the saved choices. In a build without a receiver, as today, **Help > Privacy & diagnostics...** shows only the sentence of [When anything is sent](#when-anything-is-sent), and there is nothing to switch off. Events that were sent already cannot be recalled. EGTRAIN supplies no privacy notice yet.
