@@ -3,8 +3,7 @@ name: Package check
 # Builds the three packages, the Windows installer and the Windows portable archive on a pull request
 # that changes how they are built, so that a change to a package job is tried before a release.
 # Nothing is signed with a real identity or published: the packages are artifacts of the run, and a
-# release still comes from the release workflow. The packages are built with Qt 5, and with Qt 6 in a job that
-# is not required yet.
+# release still comes from the release workflow.
 on:
   pull_request:
     branches: [main]
@@ -86,20 +85,6 @@ jobs:
       contents: read
     with:
       version: ${{ needs.version.outputs.version }}
-      qt: '5'
-
-  # The same packages built with Qt 6, under artifact names that end in -qt6. The result job does not wait for this job, so
-  # a failure shows on the pull request but does not fail the check until the releases move to Qt 6.
-  package-qt6:
-    name: Qt 6 packages (not required)
-    needs: version
-    uses: ./.github/workflows/package.yml
-    permissions:
-      actions: read
-      contents: read
-    with:
-      version: ${{ needs.version.outputs.version }}
-      qt: '6'
 
   release-assets:
     name: Check the release assets

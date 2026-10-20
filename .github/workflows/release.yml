@@ -55,11 +55,23 @@ jobs:
       - name: Route temp files to runner.temp
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - name: Install Qt
-        run: brew install qt@5 zeromq cppzmq nlohmann-json
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
 
+      - name: Install dependencies
+        run: brew install zeromq cppzmq nlohmann-json
+
+      # As in cmake.yml: the keg folders of the other libraries, and the OpenGL framework in place of the AGL framework that
+      # Qt 6.8.3 links and that the macOS 26 SDK no longer has.
       - name: Configure
-        run: cmake -S . -B build "-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}" -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+        run: >
+          cmake -S . -B build "-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}" -DEGTRAIN_BUILD_TESTS=ON
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
+          -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 
       - name: Build
         run: cmake --build build
@@ -94,8 +106,15 @@ jobs:
       - name: Route temp files to runner.temp
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - name: Install Qt
-        run: brew install qt@5 zeromq cppzmq nlohmann-json
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
+
+      - name: Install dependencies
+        run: brew install zeromq cppzmq nlohmann-json
 
       # The instrumented tests run many times slower than the default time limits allow, so the limits are scaled up.
       - name: Configure
@@ -106,7 +125,8 @@ jobs:
           -DEGTRAIN_ENABLE_SANITIZERS=ON
           -DEGTRAIN_TEST_TIMEOUT_SCALE=10
           -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=5400
-          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
+          -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 
       - name: Build
         run: cmake --build build
@@ -137,7 +157,6 @@ jobs:
       contents: read
     with:
       version: ${{ needs.version.outputs.version }}
-      qt: '5'
     secrets:
       SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
 

@@ -67,9 +67,10 @@ def run(command: list, **options) -> subprocess.CompletedProcess:
 
 def configure(build_dir: Path) -> None:
     arguments = ["-DCMAKE_BUILD_TYPE=Debug", "-DEGTRAIN_BUILD_TESTS=ON", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]
-    homebrew_qt = Path("/opt/homebrew/opt/qt@5")
-    if sys.platform == "darwin" and homebrew_qt.is_dir():
-        arguments.append(f"-DCMAKE_PREFIX_PATH={homebrew_qt}")
+    # install-qt-action names the folder of Qt in QT_ROOT_DIR, and a developer can set it as well. Without it CMake reads
+    # CMAKE_PREFIX_PATH from the environment.
+    if os.environ.get("QT_ROOT_DIR"):
+        arguments.append(f"-DCMAKE_PREFIX_PATH={os.environ['QT_ROOT_DIR']}")
     run(["cmake", "-S", str(ROOT), "-B", str(build_dir), "-G", "Ninja", *arguments])
 
 

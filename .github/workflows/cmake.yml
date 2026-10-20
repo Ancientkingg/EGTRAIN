@@ -61,8 +61,7 @@ jobs:
         run: python3 tools/docs/check_docs.py
 
   # A skipped matrix job is listed under its unexpanded name, so the legs always start and each step checks the output
-  # of the changes job. The Qt 6 legs build and test the same sources with Qt 6.8, and the result job counts them like the
-  # Qt 5 legs.
+  # of the changes job. Every leg builds with Qt 6.8.3 from install-qt-action.
   build:
     name: build (${{ matrix.name }})
     needs: changes
@@ -84,24 +83,6 @@ jobs:
             os: ubuntu-latest
             jobs: 4
             cache: ccache
-          - name: macOS, Qt 6
-            os: macos-latest
-            jobs: 3
-            cache: ccache
-            cache-key: Qt6-macOS
-            qt: 6
-          - name: Windows, Qt 6
-            os: windows-latest
-            jobs: 4
-            cache: sccache
-            cache-key: Qt6-Windows
-            qt: 6
-          - name: Linux, Qt 6
-            os: ubuntu-latest
-            jobs: 4
-            cache: ccache
-            cache-key: Qt6-Linux
-            qt: 6
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.jobs }}
       PYTHONUTF8: "1"
@@ -137,44 +118,20 @@ jobs:
           "TEMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
           "TMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
-      - name: Install Qt (macOS)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS' && matrix.qt != 6
-        run: brew install qt@5 zeromq cppzmq nlohmann-json
-
-      - name: Install dependencies (Linux)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux' && matrix.qt != 6
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake \
-            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
-            libzmq3-dev cppzmq-dev nlohmann-json3-dev
-
-      - name: Install Qt (Windows)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows' && matrix.qt != 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '5.15.2'
-          host: windows
-          target: desktop
-          arch: win64_msvc2019_64
-          modules: qtcharts
-          cache: true
-
       - name: Install Qt 6
-        if: needs.changes.outputs.build == 'true' && matrix.qt == 6
+        if: needs.changes.outputs.build == 'true'
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.8.3'
           modules: qtcharts
           cache: true
 
-      - name: Install dependencies (macOS, Qt 6)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS' && matrix.qt == 6
+      - name: Install dependencies (macOS)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
         run: brew install zeromq cppzmq nlohmann-json
 
-      - name: Install dependencies (Linux, Qt 6)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux' && matrix.qt == 6
+      - name: Install dependencies (Linux)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
@@ -228,24 +185,17 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           variant: ${{ matrix.cache }}
-          key: ${{ matrix.cache-key || matrix.name }}-${{ steps.image.outputs.id }}
+          key: ${{ matrix.name }}-${{ steps.image.outputs.id }}
           restore-keys: |
-            ${{ matrix.cache-key || matrix.name }}
+            ${{ matrix.name }}
 
       # The pull request checks build without interprocedural optimization (-DEGTRAIN_IPO=OFF). Linking with it generates the code of
       # the whole program again for every test executable, which a compiler cache cannot store. The package and release workflows
       # still build with it, so the shipped binaries and the package checks use it.
-      - name: Configure (macOS)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS' && matrix.qt != 6
-        run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF
-          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
-          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
-
-      # The keg folders, not the Homebrew prefix, whose include folder could hold the headers of a linked qt@5. Qt 6.8.3
+      # The keg folders, not the Homebrew prefix, whose include folder could hold the headers of a linked Homebrew Qt. Qt 6.8.3
       # links the AGL framework, which the macOS 26 SDK no longer has, so the OpenGL framework stands in for it.
-      - name: Configure (macOS, Qt 6)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS' && matrix.qt == 6
+      - name: Configure (macOS)
+        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
         run: >
           cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
@@ -253,13 +203,7 @@ jobs:
           -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 
       - name: Configure (Linux)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux' && matrix.qt != 6
-        run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
-
-      - name: Configure (Linux, Qt 6)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux' && matrix.qt == 6
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
         run: >
           cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
@@ -295,8 +239,8 @@ jobs:
         shell: bash
         run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
 
-      # One real request to the GitHub release list through the update transport, WinHTTP on Windows, where Qt 5.15 has no TLS
-      # library. It fails when no HTTPS response arrives. When GitHub answers with its rate limit or an outage, the test is skipped.
+      # One real request to the GitHub release list through the update transport, which is WinHTTP on Windows. It fails when
+      # no HTTPS response arrives. When GitHub answers with its rate limit or an outage, the test is skipped.
       - name: Check HTTPS (Windows)
         if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
         shell: bash
@@ -305,9 +249,9 @@ jobs:
       # The same files as the Windows release package, started with only the operating
       # system directories on PATH: a DLL or plugin missing from the package fails here.
       # The runner has the Visual C++ runtime installed, so the import check of the package workflow
-      # finds a runtime DLL missing from the package, not this step. The release packages are built with Qt 5.
+      # finds a runtime DLL missing from the package, not this step.
       - name: Start an assembled Windows package
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows' && matrix.qt != 6
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -315,7 +259,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $dist | Out-Null
           Copy-Item build/QEGTRAIN.exe "$dist/QEGTRAIN.exe"
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/
-          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-angle --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler --no-quick-import "$dist/QEGTRAIN.exe"
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
           python tools/release/package_start_smoke.py $dist --exports
 
@@ -349,20 +293,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
+
       - name: Install dependencies (Linux)
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake \
-            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
-            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
 
       # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
       - name: Lower address space randomization
         run: sudo sysctl -w vm.mmap_rnd_bits=28
 
       - name: Configure with sanitizers
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=1500
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=1500
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
 
       - name: Build with sanitizers
         id: build

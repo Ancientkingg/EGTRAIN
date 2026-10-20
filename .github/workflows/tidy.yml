@@ -67,13 +67,19 @@ jobs:
         with:
           python-version: '3.12'
 
+      # The compile database is made with the Qt of the CMake workflow. tools/tidy.py passes QT_ROOT_DIR, which the action
+      # sets, to CMake.
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake ninja-build \
-            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
-            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+          sudo apt-get install -y ninja-build libzmq3-dev cppzmq-dev nlohmann-json3-dev
 
       # PyPI stops at clang-tidy 22 and the runner image has an older release, so the 23.1 release comes from apt.llvm.org,
       # which is the version that tools/tidy.py accepts. The script of apt.llvm.org adds the repository, and clang-tidy is a package of its own.

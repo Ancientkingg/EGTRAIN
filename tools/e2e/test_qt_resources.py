@@ -57,7 +57,7 @@ def main() -> None:
     if not any(f'":/{alias}"' in source_text for alias in ENTITY_ASSETS):
         raise SystemExit("application and graphics source do not reference an SVG resource")
 
-    if not re.search(r"find_package\(Qt\$\{QT_VERSION_MAJOR\} REQUIRED COMPONENTS [^)]*\bSvg\b", cmake):
+    if not re.search(r"find_package\(Qt6 COMPONENTS [^)]*\bSvg\b", cmake) or "if(NOT Qt6_FOUND)\n    message(FATAL_ERROR" not in cmake:
         raise SystemExit("CMake does not require Qt Svg")
     if "Qt::Svg" not in cmake:
         raise SystemExit("CMake does not link Qt::Svg")
@@ -65,15 +65,13 @@ def main() -> None:
     release = release_pipeline_text()
     if re.search(r"^\s*modules:.*\bqtsvg\b", release, re.MULTILINE):
         raise SystemExit("Windows release job lists qtsvg as an optional module")
-    for requirement in ("Qt5Svg.dll", '$dist/imageformats/qsvg.dll'):
+    for requirement in ("Qt6Svg.dll", '$dist/imageformats/qsvg.dll'):
         if requirement not in release:
             raise SystemExit(f"Windows release job does not verify {requirement}")
-    if "libqt5svg5-dev" not in release:
-        raise SystemExit("Linux release job does not install libqt5svg5-dev")
     packaged_svg_requirements = (
         "Contents/Frameworks/QtSvg.framework",
         "Contents/PlugIns/imageformats/libqsvg.dylib",
-        "libQt5Svg.so*",
+        "libQt6Svg.so*",
         "*/imageformats/libqsvg.so",
     )
     for requirement in packaged_svg_requirements:
