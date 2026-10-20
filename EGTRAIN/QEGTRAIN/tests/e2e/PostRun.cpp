@@ -1368,6 +1368,8 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	const int resultsHeight = w.m_runResultsDock->height();
 	const int canvasHeight = w.networkView->height();
 	const int minimumHeight = w.minimumSizeHint().height();
+	const auto* delayCaption = w.findChild<QLabel*>("delayComparisonCaption");
+	const bool tableApart = delayCaption && delayCaption->y() > w.m_runResultsTable->geometry().bottom();
 	for (QDockWidget* dock : rightDocks)
 		dock->show();
 	std::fprintf(stdout, "E2E_RUN_RESULTS_SMALL_WINDOW size=%dx%d results=%d canvas=%d minimum_height=%d row_bottom_1024=%d shown_1024=%d\n",
@@ -1376,6 +1378,8 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	QApplication::processEvents();
 	if (rowBottom < 0 || rowBottom > shownHeight)
 		return fail(QStringLiteral("the first row of Run Results ends at %1 px in a dock that shows %2 px at 1024 x 690").arg(rowBottom).arg(shownHeight));
+	if (!tableApart)
+		return fail(QStringLiteral("the delay comparison covers the table of Run Results at 819 x 614"));
 	if (smallSize != QSize(819, 614) || resultsHeight > canvasHeight + 2)
 		return fail(QStringLiteral("Run Results is %1 px high below a network view of %2 px at %3 x %4")
 				.arg(resultsHeight)

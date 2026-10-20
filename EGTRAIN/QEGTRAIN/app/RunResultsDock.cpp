@@ -141,10 +141,13 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	resultViews->addWidget(exportPngBtn);
 	resultViews->addStretch();
 	containerLayout->addLayout(resultViews);
-	// The table takes the height that the other lines and buttons leave, at least its header and one row. In a lower dock the
-	// whole content scrolls, so the dock leaves the canvas its room, and the delay comparison below the table keeps the table
-	// in view.
-	m_table->setSizePolicy(m_table->sizePolicy().horizontalPolicy(), QSizePolicy::Ignored);
+	// The table takes the height that the other lines and buttons leave, at least its header and one row. A lower dock scrolls
+	// its whole content, so the dock leaves the canvas its room; the delay comparison below the table keeps the table in view.
+	// As a height-for-width item without a layout the table asks for its minimum height next to the wrapped labels, so the
+	// scrolled content has room for both.
+	QSizePolicy tablePolicy = m_table->sizePolicy();
+	tablePolicy.setHeightForWidth(true);
+	m_table->setSizePolicy(tablePolicy);
 	m_table->setMinimumHeight(tableHeight(*m_table, 1));
 	containerLayout->addWidget(m_table, 1);
 	QHBoxLayout* delayRow = new QHBoxLayout();
