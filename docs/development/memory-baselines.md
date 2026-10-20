@@ -9,7 +9,7 @@ memory ceiling.
 
 Configure and build one Release executable, then run the collector while no
 other heavy workload is active. Add the macOS prefix path and `WrapOpenGL_AGL`
-of [Configure](build-and-test.md#configure) to the first line:
+of [Configure](build.md#configure) to the first line:
 
 ```bash
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release

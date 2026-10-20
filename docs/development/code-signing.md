@@ -17,10 +17,10 @@ of any signing service: every fact that only the owner can give is a field that 
   `EGTRAIN-Portable-<version>-x64.zip`.
 - The macOS app is signed by `tools/release/sign_macos.sh` in the package workflow. The signature is ad hoc unless the
   environment `macos-signing` holds a Developer ID certificate (see the
-  [macOS signing script](build-and-test.md#macos-signing-script)). An ad-hoc signature carries no publisher identity.
+  [macOS signing script](ci-and-release.md#macos-signing-script)). An ad-hoc signature carries no publisher identity.
   With notarization credentials in the same environment, `tools/release/notarize_macos.sh` also notarizes and staples the
   app and the disk image (see the
-  [macOS notarization script](build-and-test.md#macos-notarization-script)); without them nothing is notarized. The two
+  [macOS notarization script](ci-and-release.md#macos-notarization-script)); without them nothing is notarized. The two
   modes, the settings that the owner adds and what a user sees at the first start are in
   [macOS releases](#macos-releases). The Linux AppImage is not signed.
 - The in-app update checks the SHA-256 and the size of the downloaded package against `update-manifest.json`, an asset
@@ -212,7 +212,7 @@ The artifact configuration of the installer lists the one file, whose name `kAss
 ```
 
 `tools/release/verify_signatures.ps1` checks the signatures. Its usage and the rules for a file to pass are in
-[Signature check](build-and-test.md#signature-check). The installer is checked by naming it with `-Name` in the
+[Signature check](ci-and-release.md#signature-check). The installer is checked by naming it with `-Name` in the
 directory that holds it. Every run of the package workflow uses `-Report` on the unsigned package. The job
 `sign-windows` uses `-Require` on the payload, and the job `sign-windows-installer` uses `-Require` on the signed
 installer and again on the payload.
@@ -317,8 +317,8 @@ certificate into a keychain of its own and deletes that keychain in its last ste
 Notarization needs all three entries of one group, the API key or the Apple ID. The API key is used when both groups are
 complete. A group that is only partly set, with the other group not complete, fails the job and names what is missing.
 A certificate without its password or without the identity name fails it too. The scripts are described in
-[macOS signing script](build-and-test.md#macos-signing-script) and
-[macOS notarization script](build-and-test.md#macos-notarization-script). The roles in [Ownership](#ownership) and the
+[macOS signing script](ci-and-release.md#macos-signing-script) and
+[macOS notarization script](ci-and-release.md#macos-notarization-script). The roles in [Ownership](#ownership) and the
 rules in [Repository authorization](#repository-authorization) apply to these values.
 
 ### Apple Developer identity record

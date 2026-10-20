@@ -1812,7 +1812,7 @@ install(TARGETS QEGTRAIN scene_tool
     FRAMEWORK DESTINATION .)
 install(DIRECTORY ${SRC_DIR}/Scenes/ DESTINATION share/EGTRAIN/Scenes)
 
-# Documentation site targets `docs` and `docs-preview`; see docs/development/build-and-test.md#documentation-site.
+# Documentation site targets `docs` and `docs-preview`; see docs/development/testing.md#documentation-site.
 # Without the tools they print how to install them.
 find_package(Doxygen 1.18 QUIET COMPONENTS dot)
 set(egtrain_docs_venv "${CMAKE_BINARY_DIR}/docs-venv")

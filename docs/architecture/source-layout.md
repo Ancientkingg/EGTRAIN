@@ -113,7 +113,7 @@ transport fetches https addresses only. A test passes `allowLoopbackHttp` to rea
 as well. `UpdateChecker` can take any transport, so `test_updatechecker` gives it a fake one, and
 `test_httptransport` runs the transport of the application, for a GET and a POST, against a server on the loopback address.
 `test_updatetransport_https` sends one real request to the GitHub release list through that transport
-([HTTPS update check](../development/build-and-test.md#https-update-check)).
+([HTTPS update check](../development/testing.md#https-update-check)).
 
 The telemetry sources also build with test hooks, which add members and a constructor
 parameter to `TelemetrySender`, `TelemetryConsent` and `TelemetryQueue`. These flavours
