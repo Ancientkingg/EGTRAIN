@@ -467,9 +467,8 @@ QLabel[dialogStatus="error"] {
     padding: 8px;
 }
 
-/* A link of the About dialog reads as a link: underlined text without the face and border of a button. Its text starts
-   1 px inside a 2 px border that shows only with keyboard focus. AboutDialog sets the text of its labels 3 px in, so the
-   links line up with the text above them. */
+/* A link of the About dialog reads as a link: underlined text without the face and border of a button. Its 2 px border
+   shows only with keyboard focus, so the text does not move. */
 QDialog#aboutDialog QPushButton[aboutLink="true"] {
     background: transparent;
     border: 2px solid transparent;

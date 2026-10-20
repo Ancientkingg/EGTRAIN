@@ -25,7 +25,7 @@ There are two weights, normal and 600. Qt 5 turns `font-weight: 600` into `QFont
 ## Spacing and shape
 
 - The padding of table headers, tabs, menu items and status labels, and the margins of toolbar separators, are multiples of 4 px.
-- Push buttons, combo boxes, line edits, the spin boxes of a dialog and the train, occurrence and station buttons of the result windows are 28 px tall at a 13 px font: a button has 5 px above and below its text, a field 4 px. A tool button is 3 px taller than its text and padding, so the train, occurrence and station buttons have 4 px above their text and 3 px below it. A push button in a dialog has 14 px beside its text, one in a dock or in a diagram or timetable window 7 px, so that the editor docks and the button bars of those windows keep their width; a field has 7 px. Outside a dialog a spin box has 2 px above and below its text and 4 px before it, so with Qt 5 the editor docks keep the size they had with the Fusion spin box. The arrows of a spin box take 16 px at its right.
+- Push buttons, combo boxes, line edits, the spin boxes of a dialog and the train, occurrence and station buttons of the result windows are 28 px tall at a 13 px font: a button has 5 px above and below its text, a field 4 px. A push button in a dialog has 14 px beside its text, one in a dock or in a diagram or timetable window 7 px, so that the editor docks and the button bars of those windows keep their width; a field has 7 px. Outside a dialog a spin box has 2 px above and below its text and 4 px before it, so with Qt 5 the editor docks keep the size they had with the Fusion spin box. The arrows of a spin box take 16 px at its right.
 - Push buttons, toolbar buttons, the map key toggle, the train, occurrence and station buttons of the result windows, fields, the lists and tables of a dialog, status labels and the rows of the recovery prompt have a 6 px radius. Other tool buttons, such as the details toggles of a dialog and the scroll buttons of a tab bar, check box indicators, tabs, the progress bar and scroll handles keep 2 px. The slider handle is round.
 - Scroll bars are 10 px wide, without arrow buttons.
 
@@ -94,7 +94,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 - **Status labels:** neutral, warning and error keep their colours, with a 6 px radius and 8 px padding.
 - **Default button:** the default button of a dialog footer or a message box is filled with the action colour and has white text. Run simulation in the run review has the same look.
 - **Footer buttons:** the buttons of a dialog footer and of a message box show only their text. The sheet turns off the icons that some desktop themes give OK, Cancel and Close, which would be hard to see on the filled default button.
-- **Links:** the links of About EGTRAIN are underlined accent text without a button face or border. The text of a link starts 1 px inside a 2 px border that shows only with keyboard focus, and `AboutDialog` sets the text of its labels as far in, so the links line up with the text above them.
+- **Links:** the links of About EGTRAIN are underlined accent text without a button face or border, lined up with the text above them. Keyboard focus shows a 2 px border that does not move the text.
 
 ## Exceptions
 
