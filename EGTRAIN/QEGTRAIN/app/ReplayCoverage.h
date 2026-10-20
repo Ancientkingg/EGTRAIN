@@ -12,7 +12,7 @@
 // it. The window reads the history into a ReplayCoverage, asks for the text and writes it into
 // the two labels of the row and the tooltip of the Start button.
 //
-// The first text names the selected time, when there is one. The second says which interval is
+// The first text names the selected time as a clock time, when there is one. The second says which interval is
 // kept and how often, and last why the first part of the run is missing. It does not depend on the
 // selected time, so the row keeps its height while the user seeks. The interval is the one the
 // slider covers, and Start goes to its first time.
@@ -41,11 +41,12 @@ struct ReplayCoverage {
 
 /// The texts of the replay row and whether its controls can be used.
 struct ReplayBarText {
-	/// For the label beside the slider: "Replay at 1230 s", "Replay" while no frame is selected, or "No replay".
+	/// For the label beside the slider: the selected time as a clock time such as "08:20:30", "Replay" while no frame is
+	/// selected, or "No replay".
 	std::string selected;
 	/// For the label below the controls: the kept interval and why the rest of the run is missing.
 	std::string coverage;
-	/// Tooltip of the Start button. It is empty while Start goes to the start of the run.
+	/// Tooltip of the Start button: the start of the run, or the first kept time when the first part was not kept.
 	std::string startTip;
 	/// The slider and the Play button can be used.
 	bool usable = false;
@@ -77,6 +78,7 @@ inline std::string replayMemoryText(std::size_t bytes) {
 /// simulation start. It is left out while no frame has been selected yet, as when the run has just finished.
 inline ReplayBarText replayBarText(const ReplayCoverage& coverage, std::optional<int> shownTime = std::nullopt) {
 	ReplayBarText out;
+	out.startTip = "Go to the start of the run";
 	const std::string memory = replayMemoryText(coverage.budgetBytes);
 	if (coverage.kind == ReplayCoverageKind::Unavailable) {
 		out.selected = "No replay";
@@ -84,7 +86,7 @@ inline ReplayBarText replayBarText(const ReplayCoverage& coverage, std::optional
 		return out;
 	}
 	out.usable = true;
-	out.selected = shownTime ? "Replay at " + std::to_string(*shownTime) + " s" : "Replay";
+	out.selected = shownTime ? formatSimTime(*shownTime, coverage.clockOffsetSeconds) : "Replay";
 	const bool oneFrame = coverage.firstTime >= coverage.lastTime;
 	const std::string first = std::to_string(coverage.firstTime);
 	const std::string last = std::to_string(coverage.lastTime);

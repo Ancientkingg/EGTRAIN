@@ -14,6 +14,8 @@
         <file alias="icons/run.svg">../resources/icons/run.svg</file>
         <file alias="icons/pause.svg">../resources/icons/pause.svg</file>
         <file alias="icons/stop.svg">../resources/icons/stop.svg</file>
+        <file alias="icons/skip-start.svg">../resources/icons/skip-start.svg</file>
+        <file alias="icons/skip-end.svg">../resources/icons/skip-end.svg</file>
         <file alias="icons/check-mark.svg">../resources/icons/check-mark.svg</file>
         <file alias="icons/drop-down-arrow.svg">../resources/icons/drop-down-arrow.svg</file>
         <file alias="icons/drop-down-arrow-disabled.svg">../resources/icons/drop-down-arrow-disabled.svg</file>

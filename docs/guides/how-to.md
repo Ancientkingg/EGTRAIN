@@ -149,8 +149,8 @@ The two buttons say why they are disabled in their tooltips and in the line abov
 
 You need a run that reached its end. A stopped or failed run has no replay, and a stopped run keeps no results either.
 
-1. When the run has ended, the **Replay** row appears under the network. Click **Start**, **Play** or **End**, or move the slider. The arrow keys and the mouse wheel move the slider too.
-2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider reads, for example, `Replay at 1230 s`. **Play** advances one simulated second for each second of real time, and the button then reads **Pause**.
+1. When the run has ended, the **Replay** row appears under the network. Click **Start**, **Play** or **End**, the icon buttons left of the slider, or move the slider. The arrow keys and the mouse wheel move the slider too.
+2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider shows the clock time of the frame in the format of the progress bar, for example `08:20:30`. **Play** advances one simulated second for each second of real time, and the button then turns into **Pause**.
 3. The text under the controls says which part of the run the replay holds, and that a frame is recorded every 5 simulated seconds, for example `Whole run, 0 to 7999 s, a frame every 5 s.`
 
    ![The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 3500 s, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Center in view, Follow train, Copy train index and the dimmed Planned route and related infrastructure.](../images/how-to-replay-menu.png)

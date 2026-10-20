@@ -1526,8 +1526,8 @@ none) and also runs Paimpol and Assignment.
 The replay row is checked in the Assignment run of the script, in the same window code as
 the other replay checks. `E2E_REPLAY_ROW_WHOLE_OK`: the slider covers 0 to the last time, the
 last time is the last timestep of the run, the text below the controls says that the whole run
-is kept and from where to where, Start has no tooltip and goes to 0 s, the label beside the
-slider names the selected frame, and the width of the slider and the height of the row are the
+is kept and from where to where, Start goes to 0 s, the label beside the slider names the
+selected frame as a clock time, and the width of the slider and the height of the row are the
 same with the first, the middle and the last frame selected. `E2E_REPLAY_ROW_DROPPED_OK`: the
 product has no setting for the budget, so the check builds a second history from the frames
 of the run, with a budget that holds about half of them, and hands it to the code that

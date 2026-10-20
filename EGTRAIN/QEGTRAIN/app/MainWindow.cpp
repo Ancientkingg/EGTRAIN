@@ -241,6 +241,13 @@ protected:
 	}
 };
 
+// Shows the Play button of the replay row as Pause while the replay plays: the icon, the tooltip and the name.
+void showReplayPlaying(QPushButton* button, bool playing) {
+	button->setIcon(QIcon(playing ? QStringLiteral(":/icons/pause.svg") : QStringLiteral(":/icons/run.svg")));
+	button->setToolTip(playing ? QStringLiteral("Pause the replay") : QStringLiteral("Play the replay"));
+	button->setAccessibleName(playing ? QStringLiteral("Pause") : QStringLiteral("Play"));
+}
+
 // A closed combo box that ends a text wider than its field with an ellipsis. The list shows the whole text.
 class ElidedComboBox : public QComboBox {
 public:
@@ -648,23 +655,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	auto* replayLayout = new QVBoxLayout(m_replayBar);
 	replayLayout->setContentsMargins(4, 2, 4, 2);
 	auto* replayControls = new QHBoxLayout();
-	m_replayStartButton = new QPushButton("Start", m_replayBar);
-	m_replayPlayButton = new QPushButton("Pause", m_replayBar);
-	// The button reads Play or Pause. Its width fits the longer text, so End and the slider do not move.
-	const int pauseWidth = m_replayPlayButton->sizeHint().width();
-	m_replayPlayButton->setText("Play");
-	m_replayPlayButton->setFixedWidth(qMax(pauseWidth, m_replayPlayButton->sizeHint().width()));
-	auto* replayEnd = new QPushButton("End", m_replayBar);
+	// Start, Play and End show icons of one size, so End and the slider do not move when Play turns into Pause.
+	m_replayStartButton = new QPushButton(QIcon(":/icons/skip-start.svg"), QString(), m_replayBar);
+	m_replayStartButton->setAccessibleName("Start");
+	m_replayPlayButton = new QPushButton(m_replayBar);
+	showReplayPlaying(m_replayPlayButton, false);
+	auto* replayEnd = new QPushButton(QIcon(":/icons/skip-end.svg"), QString(), m_replayBar);
 	replayEnd->setObjectName("replayEndButton");
+	replayEnd->setAccessibleName("End");
+	replayEnd->setToolTip("Go to the end of the run");
 	m_replaySlider = new ReplaySlider(m_replayBar);
 	m_replaySlider->setObjectName("completedReplaySlider");
 	m_replaySlider->setAccessibleName("Replay time");
 	m_replaySlider->setFocusPolicy(Qt::StrongFocus);
 	m_replaySlider->setMinimumWidth(fontMetrics().horizontalAdvance(QStringLiteral("000000000000")));
-	// The selected time sits beside the slider on one line. It keeps the width of its longest text, so the
-	// slider does not change its width while the user seeks.
+	// The selected time sits beside the slider on one line as a clock time. It keeps the width of its longest text, so
+	// the slider does not change its width while the user seeks.
 	m_replayLabel = new QLabel(m_replayBar);
-	m_replayLabel->setMinimumWidth(fontMetrics().horizontalAdvance(QStringLiteral("Replay at 000000 s")));
+	m_replayLabel->setMinimumWidth(
+		qMax(fontMetrics().horizontalAdvance(QStringLiteral("No replay")), fontMetrics().horizontalAdvance(QStringLiteral("00:00:00"))));
 	// The coverage has a row of its own and is the same for every selected time.
 	m_replayCoverageLabel = new QLabel(m_replayBar);
 	m_replayCoverageLabel->setWordWrap(true);
@@ -689,13 +698,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			if (m_replayRequestedTime >= m_completedReplay.lastTime()) seekReplay(m_completedReplay.firstTime());
 			m_replayTimer->start();
 		}
-		m_replayPlayButton->setText(m_replayTimer->isActive() ? "Pause" : "Play");
+		showReplayPlaying(m_replayPlayButton, m_replayTimer->isActive());
 	});
 	connect(m_replayTimer, &QTimer::timeout, this, [this]() {
 		seekReplay(m_replayRequestedTime + 1);
 		if (m_replayRequestedTime >= m_completedReplay.lastTime()) {
 			m_replayTimer->stop();
-			m_replayPlayButton->setText("Play");
+			showReplayPlaying(m_replayPlayButton, false);
 		}
 	});
 
@@ -3304,7 +3313,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 
 void MainWindow::clearReplay() {
 	if (m_replayTimer) m_replayTimer->stop();
-	if (m_replayPlayButton) m_replayPlayButton->setText("Play");
+	if (m_replayPlayButton) showReplayPlaying(m_replayPlayButton, false);
 	if (m_replayBar) m_replayBar->hide();
 	m_replayActive = false;
 	if (m_replaySlider) m_replaySlider->setEnabled(true);
