@@ -1889,8 +1889,10 @@ application; CTest and the smoke scripts set it themselves.
   `update-manifest.json` also lists the files of the Windows package. Before
   the updater replaces an installation, it requires every listed file and a
   fixed set of runtime files (`requiredRuntimeFiles()` in
-  `update/WindowsStaging.h`) in the extracted package. Keep that set in step
-  with the package verification in the Windows package job.
+  `update/WindowsStaging.h`) in the extracted package. The Qt libraries in that
+  set are the Qt 6 ones when the package holds `Qt6Core.dll` and the Qt 5 ones
+  otherwise, so a release built with Qt 5 can update to one built with Qt 6.
+  Keep that set in step with the package verification in the Windows package job.
 - Production and tag releases run serially. A stale production run cannot
   publish after the branch advances, and an existing production release tag
   cannot be overwritten. If a failed-job retry encounters a used version,
