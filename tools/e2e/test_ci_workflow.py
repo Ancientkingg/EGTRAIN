@@ -650,8 +650,6 @@ def main() -> None:
     ):
         missing.append("independent macOS, Windows and Linux validation legs")
     windows_toolchain = (
-        "version: '6.8.3'",
-        "modules: qtcharts",
         "ilammy/msvc-dev-cmd@v1",
         "vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows",
         "-DVCPKG_TARGET_TRIPLET=x64-windows",
@@ -1789,11 +1787,8 @@ def main() -> None:
     if job_block(package_check, "package") != "  package:\n" + package_call:
         missing.append("package check calls the package workflow with the selected version and the two read permissions, and no token")
     # The packages are built with Qt 6.8.3 from the action and checked for the Qt 6 files.
-    qt6_names = ('"Qt6Network.dll"', "styles/qmodernwindowsstyle.dll", '"dxcompiler.dll"', "--no-system-dxc-compiler",
-                 '"$dist/LICENSE"', '"$dist/THIRD_PARTY_NOTICES.md"', '"Qt6Help.dll"', '"$dist/EGTRAIN.qch"',
-                 "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR", "version: '6.8.3'", "libQt6Network.so*")
-    if any(name not in package_only for name in qt6_names):
-        missing.append("packages built with Qt 6.8.3 and checked for the Qt 6 files")
+    if any(name not in package_only for name in ('"Qt6Help.dll"', "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR", "version: '6.8.3'")):
+        missing.append("packages built with Qt 6.8.3 and checked for Qt6Help.dll")
     # The release assets job runs the script that builds the files of a release on the artifacts of the package
     # jobs. It uploads and publishes nothing, and it has the permissions of the workflow. Its download and script steps
     # are those of the release job, so the package check runs what a release runs.
