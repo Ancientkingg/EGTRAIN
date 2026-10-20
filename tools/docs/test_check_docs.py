@@ -172,14 +172,14 @@ class KindTests(TreeTestCase):
         files = {
             LANDING: doc("# Docs", "", "[guide](guides/g.md)"),
             "docs/guides/g.md": doc("# G", "", *lines),
-            "EGTRAIN/QEGTRAIN/app/Window.cpp": 'menu->addMenu("&File")->addAction("Open Case Study..."); // "Rnu"\n',
+            "EGTRAIN/QEGTRAIN/app/Window.cpp": 'menu->addMenu("&File")->addAction("Open Case Study..."); // "Rnu"\nname("Blocking time");\n',
             "EGTRAIN/QEGTRAIN/app/Window.ui": "<string>Run</string> <string>Events:</string>\n",
             "EGTRAIN/QEGTRAIN/tests/test_window.cpp": 'check("Rnu");\n',
         }
         return self.findings(files)
 
     def test_ui_name_in_the_source_is_accepted(self):
-        self.assertEqual(self.manual_names("Choose **File > Open Case Study...**, **Run** or **Events**."), [])
+        self.assertEqual(self.manual_names("Choose **File > Open Case Study...**, **Run**, **Events** or **Blocking time...**."), [])
 
     def test_ui_name_not_in_the_source_is_reported(self):
         findings = self.manual_names("Click **Rnu**.")

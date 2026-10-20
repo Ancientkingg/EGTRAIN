@@ -91,7 +91,6 @@ CPP_TOKEN = re.compile(r"//[^\n]*|/\*.*?\*/|'(?:[^'\\\n]|\\.)*'|\"((?:[^\"\\\n]|
 UI_STRING = re.compile(r"<string(?:\s[^>]*)?>([^<]*)</string>")
 CPP_ESCAPE = re.compile(r"\\(.)")
 MNEMONIC = re.compile(r"&(.)")
-MENU_SEPARATOR = " > "
 KEY = re.compile(r"^((Ctrl|Cmd|Command|Shift|Alt|Option)\+)*(F\d+|Esc|Enter|Return|Tab|Up|Down|Left|Right|.)$|^arrow keys$", re.I)
 # Names that the application shows but its source does not hold. Qt gives the standard buttons their text:
 # QDialogButtonBox::Ok, Close and RestoreDefaults, QMessageBox::Save, and QMessageBox::Discard, which reads Don't Save on macOS.
@@ -447,15 +446,13 @@ def source_strings(root, listed) -> set:
 
 def check_ui_names(root, listed, documents: dict) -> list:
     terms = [(path, line, term) for path, document in documents.items() if path.startswith(MANUAL[0]) for line, term in document.bold]
-    strings = (source_strings(root, listed) if terms else set()) | QT_BUTTON_NAMES | SYSTEM_NAMES
+    strings = source_strings(root, listed) | QT_BUTTON_NAMES | SYSTEM_NAMES
     findings = []
     for path, line, term in terms:
         heading = term.endswith(":") or (term.endswith(".") and not term.endswith("..."))
         if heading or KEY.match(term):
             continue
-        for part in term.split(MENU_SEPARATOR):
-            # A label drops its colon, as a bold term that ends with one is a list heading. The Diagrams menu adds the
-            # ellipsis to the name of a view.
+        for part in term.split(" > "):
             named = part in strings or part + ":" in strings or (part.endswith("...") and part[:-3] in strings)
             if not named:
                 findings.append(Finding(path, line, "ui-name", f"not a string of the application: {part}"))
