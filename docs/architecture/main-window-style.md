@@ -36,7 +36,7 @@ The Case and Layers dock opens at the width of its widest layer toggle, **Statio
 
 The map key has a **Passenger count** row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.
 
-The editor docks share one group of tabs on the right of the window, so each open editor has the full height beside the network, also with Run Results open below it. Choosing an editor in the Editors menu opens it, or brings it to the front when it is open behind another tab. An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows.
+The editor docks share one group of tabs on the right of the window, so each open editor has the full height beside the network, also with Run Results open below it. Choosing an editor in the Editors menu opens it, or brings it to the front when it is open behind another tab. An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows. The tabs of the group keep their whole names and scroll when they do not fit.
 
 The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.
 

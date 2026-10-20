@@ -1810,8 +1810,12 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 
 void MainWindow::childEvent(QChildEvent* event) {
 	QMainWindow::childEvent(event);
-	if (auto* tabBar = qobject_cast<QTabBar*>(event->child()); tabBar && event->polished())
+	if (auto* tabBar = qobject_cast<QTabBar*>(event->child()); tabBar && event->polished()) {
 		tabBar->setFocusPolicy(Qt::NoFocus);
+		// Qt elides the names of tabbed docks. They stay whole, and the bar scrolls when they do not fit.
+		tabBar->setElideMode(Qt::ElideNone);
+		tabBar->setUsesScrollButtons(true);
+	}
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* event) {

@@ -4830,6 +4830,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							.arg(where));
 				services->pages()->setCurrentIndex(0);
 			}
+			// With Incidents as a fifth editor the tabs of the group keep their whole names and scroll.
+			w.m_editorActions.value(w.m_incidentDock)->trigger();
+			QApplication::processEvents();
+			const QTabBar* editorTabs = nullptr;
+			for (const QTabBar* bar : w.findChildren<QTabBar*>(QString(), Qt::FindDirectChildrenOnly))
+				for (int index = 0; index < bar->count(); ++index)
+					if (bar->isVisible() && bar->tabText(index) == w.m_caseSettingsDock->windowTitle())
+						editorTabs = bar;
+			if (!editorTabs || editorTabs->count() != 5 || editorTabs->elideMode() != Qt::ElideNone || !editorTabs->usesScrollButtons())
+				facetFailure(ok, "presentation", "the tabs of five editors are cut instead of scrolling");
 			w.m_incidentDock->hide();
 			w.m_caseLayersDock->hide();
 			w.resize(1280, 800);
