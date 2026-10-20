@@ -47,7 +47,8 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 
 	m_list = new QListWidget(panel);
 	m_list->setSelectionMode(QAbstractItemView::SingleSelection);
-	m_list->setMinimumSize(240, kListHeight);
+	m_list->setMinimumWidth(240);
+	m_list->setFixedHeight(kListHeight);
 	// Fit the 16 px check box of egtrain.qss (14 px and a 1 px border); with the small Qt 6 font on Linux a row is 14 px.
 	m_list->setStyleSheet(QStringLiteral("QListView::item { min-height: 16px; }"));
 	connect(m_list, &QListWidget::itemChanged, this, [this](QListWidgetItem*) {
@@ -67,15 +68,11 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 		const QRect available = screen()->availableGeometry();
 		const QRect button(mapToGlobal(QPoint(0, 0)), size());
 		const int room = std::max(available.bottom() - button.bottom(), button.top() - available.top());
+		const int besideList = menu->sizeHint().height() - m_list->minimumHeight();
+		m_list->setFixedHeight(std::clamp(room - besideList, kListHeight / 4, kListHeight));
 		// The menu measures its entries again after a change of an action.
-		const auto setListHeight = [this, action](int height) {
-			m_list->setMinimumHeight(height);
-			action->setVisible(false);
-			action->setVisible(true);
-		};
-		setListHeight(kListHeight);
-		const int besideList = menu->sizeHint().height() - kListHeight;
-		setListHeight(std::clamp(room - besideList, kListHeight / 4, kListHeight));
+		action->setVisible(false);
+		action->setVisible(true);
 	});
 	updateCaption();
 }

@@ -253,7 +253,7 @@ static bool exerciseTrainFilter() {
 }
 
 // On a screen without room for the whole list below or above the button, the list takes the larger room and scrolls, and the
-// menu does not cover the button.
+// menu does not cover the button. In the middle of the screen the list is lower than the default height of a list view.
 static bool exerciseTrainFilterRoom() {
 	QWidget window;
 	auto* filter = new TrainFilterButton(&window);
@@ -262,20 +262,24 @@ static bool exerciseTrainFilterRoom() {
 		trains.append({QString("IC %1").arg(1000 + i), QColor()});
 	filter->setTrains(trains);
 	const QRect screen = window.screen()->availableGeometry();
-	window.setGeometry(screen.left(), screen.top() + screen.height() * 3 / 8, 200, 60);
-	window.show();
-	QApplication::processEvents();
-	QRect menuArea;
-	bool scrolls = false;
-	QTimer::singleShot(0, filter, [filter, &menuArea, &scrolls]() {
-		menuArea = filter->menu()->geometry();
-		scrolls = filter->menu()->findChild<QListWidget*>()->verticalScrollBar()->maximum() > 0;
-		filter->menu()->hide();
-	});
-	filter->showMenu();
-	const QRect button(filter->mapToGlobal(QPoint(0, 0)), filter->size());
-	return expect(screen.contains(menuArea) && !menuArea.intersects(button) && scrolls,
-		"the train list fits the room beside its button and scrolls");
+	bool ok = true;
+	for (const int eighths : {3, 4}) {
+		window.setGeometry(screen.left(), screen.top() + screen.height() * eighths / 8 - 30, 200, 60);
+		window.show();
+		QApplication::processEvents();
+		QRect menuArea;
+		bool scrolls = false;
+		QTimer::singleShot(0, filter, [filter, &menuArea, &scrolls]() {
+			menuArea = filter->menu()->geometry();
+			scrolls = filter->menu()->findChild<QListWidget*>()->verticalScrollBar()->maximum() > 0;
+			filter->menu()->hide();
+		});
+		filter->showMenu();
+		const QRect button(filter->mapToGlobal(QPoint(0, 0)), filter->size());
+		ok &= expect(screen.contains(menuArea) && !menuArea.intersects(button) && scrolls,
+			qPrintable(QString("the train list fits the room beside its button at %1/8 of the screen and scrolls").arg(eighths)));
+	}
+	return ok;
 }
 
 // A menu separator is a line in the border colour of the menus, also at fractional scales.
@@ -295,15 +299,13 @@ static bool exerciseMenuSeparator() {
 		image.fill(Qt::white);
 		menu.render(&image);
 		const int x = qRound(line.center().x() * ratio);
-		int rows = 0;
+		bool drawn = false;
 		for (int y = qFloor(line.top() * ratio); y <= qCeil(line.bottom() * ratio) && y < image.height(); ++y) {
 			const QColor pixel = image.pixelColor(x, y);
-			rows += std::abs(pixel.red() - border.red()) <= 6 && std::abs(pixel.green() - border.green()) <= 6
-					&& std::abs(pixel.blue() - border.blue()) <= 6
-				? 1
-				: 0;
+			drawn |= std::abs(pixel.red() - border.red()) <= 6 && std::abs(pixel.green() - border.green()) <= 6
+				&& std::abs(pixel.blue() - border.blue()) <= 6;
 		}
-		ok &= expect(rows >= 1, qPrintable(QString("the menu separator draws its line at %1 times").arg(ratio)));
+		ok &= expect(drawn, qPrintable(QString("the menu separator draws its line at %1 times").arg(ratio)));
 	}
 	return ok;
 }
