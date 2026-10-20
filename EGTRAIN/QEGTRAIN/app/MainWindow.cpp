@@ -3290,6 +3290,9 @@ void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
 // open GUI
 void MainWindow::openGUI() {
 	// The restored window fits the screen. Eight ninths of it leaves room for the window frame, which is not known yet.
+	// resize() keeps the minimum size that the layout set when it last ran, which can be larger than the screen; the
+	// layout runs first so that the minimum is that of the current contents.
+	layout()->activate();
 	resize(size().boundedTo(screen()->availableSize() * 8 / 9));
 
 	// display window maximized
