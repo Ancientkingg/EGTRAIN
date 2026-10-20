@@ -48,7 +48,7 @@ While a run is paused, **Pause** reads **Resume** and the same key resumes it. W
 | --- | --- | --- |
 | **Help > EGTRAIN Manual** | F1 | F1, and ⌘? |
 
-F1 opens the section of the manual about the window you are in, when the manual has one. It does not work while a dialog is open. On macOS the system takes ⌘? to search the **Help** menu, so use F1 there.
+F1 opens the section of the manual about the window you are in, when the manual has one. It does not work while a dialog that blocks the main window is open, such as **Run simulation** or **Settings**. On macOS the system takes ⌘? to search the **Help** menu, so use F1 there.
 
 ## Find
 
@@ -62,7 +62,7 @@ F1 opens the section of the manual about the window you are in, when the manual 
 
 ## Dialogs
 
-Esc closes a dialog as its cancel button does. Return or Enter presses the default button, which these dialogs set:
+Esc closes a dialog as its cancel button does. Return or Enter presses the default button, which these dialogs set. On macOS a message box shows no title, only its question. The table names such a box by the title that Windows and Linux show, except the update question.
 
 | Dialog | Return or Enter | Esc |
 | --- | --- | --- |
@@ -76,7 +76,8 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Unsaved Scene** | **Save** | **Cancel** |
 | **Save Scene As Folder** | **No** | **No** |
 | **Import Legacy Case** | **No** | **No** |
-| **Automatically Check for EGTRAIN Updates?** | **Check Automatically** | **Don't Check Automatically** |
+| The delete questions of the editors, such as **Delete Service** and **Delete Scenario** | **No** | **No** |
+| **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
 | EGTRAIN *version* is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
 | **Linked source changed** | **Keep local** | **Keep local** |
 
@@ -95,6 +96,4 @@ Return and Enter do not start an export in a result window.
 
 ## Editors
 
-| Where | Key | Effect |
-| --- | --- | --- |
-| The table of stops on the tab **Timetable** of **Editors > Services** | Return or Enter | Opens **Edit timetable stop** for the selected row, as a click does |
+In the table of stops on the tab **Timetable** of **Editors > Services**, Return or Enter opens **Edit timetable stop** for the selected row, as a click does.
