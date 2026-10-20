@@ -7,22 +7,12 @@ opened by double-click, and how to handle bundles from the command line.
 [Getting started](getting-started.md) takes you from a download through a first
 run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
-## Open and run
-
-The steps for opening a case are in [Getting started](getting-started.md#2-the-first-start) and [How-to](how-to.md#open-a-case). In short, choose **File > Open Case Study...** and select the file (the dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app), or [double-click it](#open-by-double-click) on Windows and macOS.
-
-The toolbar button **Open Case** shows the window **Open a Case**, where you select a bundled case:
-
-![The Open a Case window with Paimpol selected in the list of Bundled cases](../images/guide-open-a-case.png)
-
-After **Open**, the case is loaded and ready to run:
-
-![The main window with the Paimpol network loaded and ready to run](../images/guide-main-window.png)
-
 Opening a bundle does not run it or modify the downloaded file. To run it,
 follow [Getting started](getting-started.md#4-run-the-simulation). Use
 **File > Save Case Study As...** to create a new `.egscene` after editing the
 scene.
+
+## Scenes that do not open
 
 When you open a scene in the EGTRAIN window, EGTRAIN checks its version before
 it loads the scene. The check never changes the file you opened. Three dialogs
@@ -49,8 +39,8 @@ version number. EGTRAIN recognises that draft layout, reports it in the
 studies, or convert the original legacy input folder again with **File > Load
 Legacy Case...**.
 
-See the [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
-for the full list of which scenes open.
+The compatibility boundary of the scene model in the developer documentation
+lists in full which scenes open.
 
 If EGTRAIN rejects a downloaded file, keep the diagnostic message and download
 the file again. The reader rejects truncated archives, unknown files, unsafe
@@ -116,8 +106,8 @@ as well, a double-click starts that one, also while the portable copy is open.
 
 The app declares `.egscene` as the file type `EGTRAIN Case Study`, and no other
 type. Copy `QEGTRAIN.app` out of the disk image to the Applications folder, as
-the [README](../../README.md#macos-disk-image) describes, and open it from
-there. The first start of an ad hoc signed app needs the steps that the README
+[Installing EGTRAIN](install.md#macos-disk-image) describes, and open it from
+there. The first start of an ad hoc signed app needs the steps that this page
 describes.
 
 Once macOS has registered the app, a double-click on a `.egscene` file opens it
@@ -165,5 +155,5 @@ are reported and the usual start follows; with `-g 0` the program exits with
 status 1 instead. When `--scene` is also given, `--scene` wins and the file name
 is ignored.
 
-See the [bundle specification](../architecture/scene-bundle.md) for the ZIP
+See the [bundle specification](scene-bundle.md) for the ZIP
 layout, version fields, entry limits, and safety rules.

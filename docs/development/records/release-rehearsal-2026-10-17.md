@@ -3,10 +3,8 @@
 Date: 2026-10-16 and 2026-10-17
 
 This record names one candidate and the later candidates that rechecked its
-defects. It follows the [release testing checklist](release-testing-checklist.md)
-and fills the [template](release-rehearsal-template.md). The
-[record of 2026-08-23](release-rehearsal-2026-08-23.md) belongs to an older
-candidate and is historical.
+defects. It follows the [release testing checklist](../release-testing-checklist.md)
+and fills the [template](../release-rehearsal-template.md).
 
 No release was published, so the rows that need a published release are left to
 the owner. [Left to the owner](#left-to-the-owner) lists them.

@@ -229,7 +229,7 @@ From `EGTRAIN/QEGTRAIN`, use the executable produced by the selected generator:
 
 A single-config Windows build may place the executable at
 `..\..\build\QEGTRAIN.exe`. These are local build paths; downloaded release
-packages are documented in the root [README](../../README.md).
+packages are documented in [Installing EGTRAIN](../guides/install.md).
 
 Runtime output defaults to
 `<QStandardPaths::AppDataLocation>/Output/<scene>`. It does not always use a
@@ -545,7 +545,7 @@ workflow. The leak check passes only a scene limit of 1500 seconds.
 
 `test_dialog_presentation_contract` runs `creator_acceptance_smoke.sh --dialog-contract`,
 which starts the creator acceptance run and then checks the case chooser and the Run
-simulation dialog in the built application, as [Dialog presentation](../ui/dialog-presentation.md#checks)
+simulation dialog in the built application, as [Dialog presentation](../architecture/dialog-presentation.md#checks)
 describes.
 
 `test_headless_scene_smoke`, `test_pe_image_size` and `test_pe_imports` run on every platform.
@@ -815,7 +815,7 @@ network-wide signalling area, so one scene covers levels 0 to 5 and "none". The
 border cases use two areas that meet at 8 km, the edge between `3-B0` and `4-B0`
 at station B. In `border-0-2-near-fwd` and `border-0-1-near-fwd` they meet at
 4 km, the edge between `1-B0` and `2-B0`.
-[Signalling levels](../architecture/signalling-levels.md) says what each level
+[Signalling levels](../guides/signalling-levels.md) says what each level
 does and cites these cases.
 
 A case is a scenario, a set of services and a level. The case table is in
@@ -2182,7 +2182,7 @@ ISCC.exe /DVersion=X.Y.Z /DPayload=<package directory> [/O<output directory>] in
 assembled Windows package, the directory that the Windows package job uploads as
 `QEGTRAIN-windows-x64-payload`. Setup writes `EGTRAIN-Setup-<version>-x64.exe`,
 the name in the table of accepted names above, to `installer/Output` or to the
-`/O` directory. [installer/README.md](../../installer/README.md) describes the
+`/O` directory. [Windows installer script](windows-installer.md) describes the
 parameters, what the installer does and the Setup switches for a silent install.
 
 The installer is for the current user and needs no administrator rights. It
@@ -2198,7 +2198,7 @@ Windows finalize job of `package.yml` compiles the script, and
 `tools/release/installer_smoke.ps1` installs the result on the runner.
 
 The test is `tools/release/test_installer_script.py`. It reads the script,
-`installer/installed-by-setup.ini`, `installer/README.md`, `kAssetPatterns`
+`installer/installed-by-setup.ini`, `docs/development/windows-installer.md`, `kAssetPatterns`
 in `update/ReleaseInfo.cpp`, `LICENSE` and the Windows package job of
 `.github/workflows/package.yml` as text, looks for the icon file, and checks
 that the script names `LICENSE` as its licence file and the package job copies
@@ -2407,7 +2407,8 @@ as `docs_check` in a Git checkout, and its own tests as `test_check_docs`. The C
 workflow runs it on every pull request. It checks
 relative links, heading anchors, image references and alt text, images below
 `docs/` that no document uses, documents below `docs/` that `docs/README.md`
-does not reach through links, the syntax of `bash`, `sh` and `json` examples
+does not reach through links and the table of contents in `docs/index.md`, links from
+a page of the manual, `docs/guides/`, to a file outside `docs/guides/` and `docs/images/`, the syntax of `bash`, `sh` and `json` examples
 (a `bash` or `sh` example with a here-document is skipped), em dashes and en
 dashes, absolute local paths, Markdown that only GitHub renders (alerts,
 `<details>`, links that start with `/`, and GitHub links to files in the

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static checks of installer/egtrain.iss, the Inno Setup script of the Windows installer.
 
-The test reads the script, installer/installed-by-setup.ini, installer/README.md, the icon file, the licence file, the
+The test reads the script, installer/installed-by-setup.ini, docs/development/windows-installer.md, the icon file, the licence file, the
 Windows package job in .github/workflows/package.yml and the asset names in update/ReleaseInfo.cpp, and holds them to the rules of check_script. It does not compile the script
 and does not run an installer. A green run therefore shows nothing about Inno Setup accepting the file, or
 about an install, an upgrade or an uninstall on Windows.
@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 INSTALLER = "installer"
 SCRIPT = INSTALLER + "/egtrain.iss"
-README = INSTALLER + "/README.md"
+README = "docs/development/windows-installer.md"
 MARKER = "installed-by-setup.ini"
 RELEASE_INFO = "EGTRAIN/QEGTRAIN/update/ReleaseInfo.cpp"
 LICENSE = "LICENSE"
@@ -496,7 +496,7 @@ class MutationTests(unittest.TestCase):
             ("parent-path", "", PROGRAMS_LINE, PROGRAMS_LINE.replace("{app}\\QEGTRAIN.exe", "{app}\\..\\QEGTRAIN.exe")),
             ("parent-path", "", PAYLOAD_LINE, PAYLOAD_LINE.replace('"{app}"', '"{app}\\.."')),
             ("parent-path", "", "SetupIconFile=..\\EGTRAIN", "SetupIconFile=..\\..\\EGTRAIN"),
-            ("parent-path", "", "; installer\\README.md", "; installer\\..\\README.md"),
+            ("parent-path", "", "; docs\\development\\windows-installer.md", "; docs\\..\\development\\windows-installer.md"),
         ])
 
     def test_sections(self):
@@ -777,8 +777,8 @@ class AcceptedChangeTests(unittest.TestCase):
         self.assertFine(mutate(self.text, ICON_LINE, ICON_LINE.replace('ValueName: ""; ', "")))
 
     def test_another_file_of_the_installer_directory_can_be_installed(self):
-        readme = MARKER_LINE.replace("installed-by-setup.ini", "README.md").replace('"{app}"', '"{app}\\docs"')
-        self.assertFine(mutate(self.text, MARKER_LINE, MARKER_LINE + readme))
+        script = MARKER_LINE.replace("installed-by-setup.ini", "egtrain.iss").replace('"{app}"', '"{app}\\docs"')
+        self.assertFine(mutate(self.text, MARKER_LINE, MARKER_LINE + script))
 
     def test_the_updater_entry_may_be_written_with_other_spacing(self):
         source = b'{ "windows-x64-installer" ,\n\t"EGTRAIN-Setup-%1-x64.exe" }'

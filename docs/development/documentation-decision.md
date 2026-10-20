@@ -104,7 +104,7 @@ Process:
 5. Window captures are 1200 by 750 pixels at a device pixel ratio of 1. Dialogs keep their natural size. Nothing is wider than 1200 pixels.
 6. Alt text says what the picture shows and in which state.
 7. Light only, until the application has a dark theme.
-8. Dated comparison pictures under `docs/ui/images/` are records and are not regenerated.
+8. Dated comparison pictures under `docs/architecture/images/` and `docs/development/records/images/` are records and are not regenerated.
 
 A stale picture is found in two ways:
 

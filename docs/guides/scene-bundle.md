@@ -10,7 +10,12 @@ The archive is a transport container only: it loads into the existing V1
 The name V2 refers to the container. The container's own number is
 `bundle_version` 1, and the data inside has `schema_version` 1. Which bundles
 and scenes open is described in the
-[Compatibility boundary](scene-model.md#compatibility-boundary).
+compatibility boundary of the scene model in the developer documentation.
+
+A scene folder is the editable source of truth. An `.egscene` bundle packages
+its files for transport. Legacy import and export remain explicit
+interoperability actions; normal scene loading and simulation use the
+canonical model.
 
 ## Root layout
 

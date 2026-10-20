@@ -119,7 +119,7 @@ Linux were not measured.
   today it does not scale on Windows and X11. On macOS both versions use whole ratios of 1 or 2.
 - Network view: the drawing already uses the device pixel ratio (`graphics/items/SignalItem.cpp:108`,
   `graphics/items/StationOverlayItem.cpp:419`) for Retina screens. Fractional ratios were tried only on Linux with
-  `QT_SCALE_FACTOR=1.5` ([feature status](../product/feature-status.md), runs of 2026-10-17, which found #883 and
+  `QT_SCALE_FACTOR=1.5` ([feature status](records/feature-status-2026-10-17.md), runs of 2026-10-17, which found #883 and
   #889), not with Windows display scaling: hairlines, cached pixmaps and station pictograms need a look at 125 % and
   150 %.
 - Diagrams: Qt Charts draws in a `QGraphicsView` like the network view, with the same check. The pixel tests run on

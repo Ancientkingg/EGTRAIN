@@ -279,7 +279,7 @@ newer EGTRAIN release is required for newer formats.
 
 The loader accepts historical aliases for existing scenes, while the writer
 emits only preferred V1 keys. The aliases and their exact mappings are listed
-in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases).
+in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-aliases).
 
 `SceneImporter` maps the legacy seven-token train definition, physical and
 traction source files, timetable rows, routes, stations, supported scenarios,
@@ -330,7 +330,7 @@ window start first shows "Cannot Start EGTRAIN".
 
 | Class | How it is recognised | What the application does |
 | --- | --- | --- |
-| Current layout | Directory: `schema_version` 1 in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no compatibility dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases). |
+| Current layout | Directory: `schema_version` 1 in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](../guides/scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no compatibility dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-aliases). |
 | Draft layout | Saved by builds before the canonical model of 2026-08-08 (main-77.1 and earlier). A `scene.json` with a `legacy_source` key and an `infrastructure.json` with no nodes and no arcs; the simulator read the railway from a `legacy/` text tree. `schema_version` is 1, like today's, so the number does not separate these scenes. Neither sign identifies the layout alone: a current scene may carry a `legacy_source` key, and an empty `infrastructure.json` alone is left to the loader. | Deliberately unsupported: these scenes are not converted and no migration is provided, also when one is registered for the number. The probe classes the scene as unsupported with the diagnostic `scene.compatibility.draft`, which names the draft layout and the date and says to import the original legacy case again. The dialog is "Older Scene Not Supported" with that message, and `--scene` and `scene_tool` exit with code 1 and print it. Use the current case studies, or convert the original legacy input folder again with **File > Load Legacy Case...** or `scene_tool import`. The Paimpol scene of main-77.1 is stored as a fixture. |
 | Number below 1 | `schema_version` below 1 in `scene.json`; in a bundle, `schema_version` or `bundle_version` below 1. | Deliberately unsupported. The scene is not opened and the dialog is titled "Older Scene Not Supported". Its message is the diagnostic `scene.compatibility.older` with the numbers of the scene and of this version. |
 | Newer | `schema_version` above 1 (directory or bundle), or `bundle_version` above 1 (bundle). | Never downgraded. The scene is not opened; the dialog is "Newer Scene" with **Check for Updates...** and **Cancel**. `--scene` and `scene_tool` print the diagnostic `scene.compatibility.newer` with the numbers of the scene and of this version. |
@@ -352,13 +352,8 @@ unsupported.
 
 ## Bundle format (v2)
 
-The transparent `.egscene` transport container packages the existing V1 JSON
-files without changing `SceneModel` or the V1 schema. Here "V2" names the
-container and "V1" the data schema; the container's own number is
-`bundle_version` 1, and the data inside has `schema_version` 1. Its manifest and
-safety rules are documented in [V2 Transparent Scene Bundle](scene-bundle.md).
-Directories remain the editable source of truth; bundle loading extracts to a
-temporary directory and reuses `loadScene`.
+The `.egscene` transport container, its manifest, its safety rules and how it is read and written are described in
+[V2 Transparent Scene Bundle](../guides/scene-bundle.md).
 
 ## Native runtime path
 
@@ -383,7 +378,7 @@ one section are rejected. Missing coverage keeps the native unset value, and
 runnable validation warns about the route sections it leaves unset. Normal
 runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
 conventional or ETCS default. The levels and the rule that gives a section its
-level are described in [Signalling levels](signalling-levels.md).
+level are described in [Signalling levels](../guides/signalling-levels.md).
 
 [`DispatchController::prepareScene`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
 [`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html

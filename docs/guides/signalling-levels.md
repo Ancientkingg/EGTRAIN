@@ -10,7 +10,7 @@ does. Nothing here is checked against a source about a real system; see
 Function names are given so that a maintainer can find them. Test cases are named
 in code font. They are the characterization cases in
 `EGTRAIN/QEGTRAIN/tests/characterization`; see
-[Characterization tests](../development/build-and-test.md#characterization-tests).
+Characterization tests in the build and test guide of the developer documentation.
 
 ## What a signalling level is
 
@@ -262,7 +262,7 @@ single-track next-step braking lookahead, independent of train movement order.
 A train safely stopped outside does not retain this admission protection.
 The crossover chain test runs two double switches in a row and checks late
 origin admission in both directions; see
-[Characterization tests](../development/build-and-test.md#characterization-tests).
+Characterization tests in the build and test guide of the developer documentation.
 
 ## Levels
 
@@ -653,13 +653,13 @@ This preserves canonical assignments exported by EGTRAIN without interpreting
 ambiguous historical signalling/capacity rows or creating capacity areas.
 
 The Capacity window uses a route and a block range as its scope, not
-signalling areas; [How capacity is analysed](../guides/capacity-analysis.md)
+signalling areas; [How capacity is analysed](capacity-analysis.md)
 describes the scope and the area calculation that older versions had.
 
 Signals and track detection sections are a fourth thing. `signals[]` bind to a
 section only to resolve signal failures. See the
 [scene schema](scene-schema.md) and the
-[migration matrix](../guides/v1-scene-migration-matrix.md).
+[migration matrix](v1-scene-migration-matrix.md).
 
 ## The committed scenes
 

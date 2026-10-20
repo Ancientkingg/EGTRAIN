@@ -124,7 +124,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 
 ## Check the copy outside the window
 
-The saved bundle is an ordinary case study ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in [Run a local build](../development/build-and-test.md#run-a-local-build). With the macOS app and the bundle in the current folder:
+The saved bundle is an ordinary case study ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in Run a local build in the build and test guide of the developer documentation. With the macOS app and the bundle in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS
@@ -137,7 +137,7 @@ The first command prints the diagnostics and exits with 0 when there is no error
 ## Limits and the JSON route
 
 - The editors are tables, lists and dialogs. You cannot place an incident by clicking the canvas. The incident target is a choice in a list.
-- This tutorial changes one value at a time. For many changes at once, save the case with **File > Save Scene As Folder...** and edit the JSON files, then validate with `scene_tool validate`. The keys are in [V1 scene properties](v1-scene-properties.md) and the [schema reference](../architecture/scene-schema.md).
+- This tutorial changes one value at a time. For many changes at once, save the case with **File > Save Scene As Folder...** and edit the JSON files, then validate with `scene_tool validate`. The keys are in [editing examples](scene-schema.md#editing-examples) and the [schema reference](scene-schema.md).
 - The same two edits in `services.json` are `"performance_percent": 80` on the service and `"dwell_seconds": 180` on its second stop.
 - The same scenario is the object below in the list `scenarios` of `scenarios.json`. It has the incident id that the editor proposes (`new_incident`) and the scenario id that **Duplicate** proposes. The key `default_scenario_id` in that file names the scenario that a run without a window uses; set it to `baseline_copy` for that run.
 
@@ -159,7 +159,7 @@ The first command prints the diagnostics and exits with 0 when there is no error
 }
 ```
 
-- **Import JSON...** and **Export JSON...** in the dock **Incidents** exchange one scenario object like this one ([scenes and application](scenes-and-application.md)).
+- **Import JSON...** and **Export JSON...** in the dock **Incidents** exchange one scenario object like this one ([scenarios](scenarios.md#scenarios)).
 - The times in this tutorial are elapsed seconds from the base time of the case, which is 07:10:40 in Paimpol.
 
 ## If something does not work

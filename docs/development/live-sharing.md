@@ -28,10 +28,10 @@ Live stream on tcp://127.0.0.1:62952; the endpoints are in <output folder>/live-
 
 - `state` is the address to subscribe to. `command` and `token` are `null` without `--live-commands`.
 - The token is new at every start. Every command carries it, and where the system supports it only the owner of the file can read it.
-- The file is in the [output folder](command-line.md#output-folder) of the scene, and EGTRAIN removes it when it ends.
+- The file is in the [output folder](../guides/command-line.md#output-folder) of the scene, and EGTRAIN removes it when it ends.
 - A window run takes the same options. The stream stays up while the window is open, and each run gets its own run id.
 
-A port that is in use stops the start with exit code 2 and the reason on standard error. See [Command-line options](command-line.md#options) for the other exit codes.
+A port that is in use stops the start with exit code 2 and the reason on standard error. See [Command-line options](../guides/command-line.md#options) for the other exit codes.
 
 ## A small client
 

@@ -1,6 +1,6 @@
 # Dialog sheet 2026-10-17
 
-This page compares the custom dialogs before and after the work on a shared dialog presentation. Each row shows the whole screen of the same state twice: on the left the build `82aca41e`, before the dialogs used `DialogLayout`, and on the right the build `222debd9`. It is a dated record and is not kept up to date. The rules the dialogs follow are in the [dialog presentation contract](dialog-presentation.md).
+This page compares the custom dialogs before and after the work on a shared dialog presentation. Each row shows the whole screen of the same state twice: on the left the build `82aca41e`, before the dialogs used `DialogLayout`, and on the right the build `222debd9`. It is a dated record and is not kept up to date. The rules the dialogs follow are in the [dialog presentation contract](../../architecture/dialog-presentation.md).
 
 Both builds ran on a Linux desktop: an Ubuntu 24.04 container with Qt 5 packages, a virtual display of 1280 by 800, the Openbox window manager and software rendering. The states marked 1.5x were started with `QT_SCALE_FACTOR=1.5`. Some states use edited copies of the committed cases: a station name of 120 characters, a platform shared by two stations, an imported platform that does not exist, a stop off the route, route ids of 300 characters, and scenes of an older and a newer version.
 

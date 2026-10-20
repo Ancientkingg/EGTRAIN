@@ -14,7 +14,7 @@ This guide states what the two capacity windows compute: the Capacity window, wh
 
 The program computes no capacity of a line or a network. The percentage in the header of the Capacity window belongs to the chain of occurrences that the user selected. The Capacity by area window reports the occupation of the resources of an area by the trains that the user selected, and the figures are lower bounds when it says "partial traffic". It states no trains per hour, and parity with the legacy tool is not established ([Limits](#limits)). The area calculation of older versions is not in the program ([The area calculation the program no longer contains](#the-area-calculation-the-program-no-longer-contains)).
 
-The [Assignment workflow](../product/assignment-workflow.md) uses the Capacity window in steps 14 to 18. The [signalling levels page](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) has a section that separates signalling areas, block sections and the scope of this window.
+The [Assignment workflow](assignment-workflow.md) uses the Capacity window in steps 14 to 18. The [signalling levels page](signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) has a section that separates signalling areas, block sections and the scope of this window.
 
 ## Terms and units
 
@@ -22,7 +22,7 @@ All times are seconds on the time axis of the run. One simulation step is one se
 
 | Term | Meaning in the program |
 | --- | --- |
-| Occupation | The blocking time of one train on one block, from `StartOccTime` to `EndOccTime`. It starts at the start of the approach minus the setup time and the sight reaction time. It ends at the end of clearing plus the release time and the run-time margin. The blocking-time paragraph of [Using EGTRAIN and authoring scenes](scenes-and-application.md#timetable-graphs-and-train-paths) says the same. [Inputs](#inputs) gives the values |
+| Occupation | The blocking time of one train on one block, from `StartOccTime` to `EndOccTime`. It starts at the start of the approach minus the setup time and the sight reaction time. It ends at the end of clearing plus the release time and the run-time margin. The blocking-time paragraph of [Using EGTRAIN and authoring scenes](diagram-navigation.md#timetable-graphs-and-train-paths) says the same. [Inputs](#inputs) gives the values |
 | Resource | A block. Two occupations share a resource when a component of their block ids is equal. An id is split at "@" and its first and third non-empty parts are compared. An id without "@" is compared whole. An id has no direction of travel (`shareBlockingTimeResource`) |
 | Scope | In the Capacity window, one route of the run, a first and a last block chosen from the blocks of that route, in either order, and every block between them. The first selected block is the one that comes first in the route, whichever of the two lists it was chosen in. The corridor name of a route is a label only. There is no corridor or network scope. The Capacity by area window has an area instead |
 | Area | In the Capacity by area window, the blocks of a range of one route and, optionally, of a range of a second route. It is a list of resources of one analysis, not a signalling area, and it is not stored ([Choosing the scope and the period](#choosing-the-scope-and-the-period)) |
@@ -34,7 +34,7 @@ All times are seconds on the time axis of the run. One simulation step is one se
 
 ## Inputs
 
-1. Occupations exist only for sections of level 0, 2, 3 and 4 (`ComputeBlockingTimesInMixedSignallingAreas`). A section of level 1 or 5, or without a level, gives none. A scene gives input only for the sections that a signalling area of level 0, 2, 3 or 4 contains. [The committed scenes](../architecture/signalling-levels.md#the-committed-scenes) lists the areas of each committed scene. At levels 3 and 4 the run builds occupations per infrastructure element, and the line fixture of the characterization tests lists none at those levels; [What is not established](../architecture/signalling-levels.md#what-is-not-established) says so.
+1. Occupations exist only for sections of level 0, 2, 3 and 4 (`ComputeBlockingTimesInMixedSignallingAreas`). A section of level 1 or 5, or without a level, gives none. A scene gives input only for the sections that a signalling area of level 0, 2, 3 or 4 contains. [The committed scenes](signalling-levels.md#the-committed-scenes) lists the areas of each committed scene. At levels 3 and 4 the run builds occupations per infrastructure element, and the line fixture of the characterization tests lists none at those levels; [What is not established](signalling-levels.md#what-is-not-established) says so.
 2. An occupation is used only when it is complete, has a block id, has finite times and positions, starts at 0 or later, ends after it starts and has positions of 0 or more (`validBlockingTimeDiagramInput`). The window leaves other records out without a message.
 3. The setup time, the sight reaction time and the release time are not inputs of the window. The run passes fixed values and two settings of the case to the occupation routines (the call of `ComputeBlockingTimesInMixedSignallingForAllTrains` in `app/DispatchController.cpp`): a setup time of 5 s, a release time of 3 s plus the buffer time, a sight reaction time of 0.5 s, a safety margin of 50 that the routines of levels 0 and 2 do not take, an absolute running-time supplement of 0 and the recovery percentage. For a section of level 0 or 2, `ComputeBlockingTimeForSingleLocation` sets:
    - the start of the occupation to the start of the approach minus the setup time and the sight reaction time. For the first block of the route the approach starts at the start run time and both times are 0;
@@ -255,7 +255,7 @@ On `@0-B0@` the same rules give 87 + 87 = 174 s, 4.83 %, with a union of 174 s b
 
 ## Signalling areas, scope and the legacy area
 
-The [section of the signalling levels page](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) on areas and block sections already separates signalling areas, block sections and the scope of this window. Its table is not repeated here. The table below adds the area of the Capacity by area window and the area of the removed program.
+The [section of the signalling levels page](signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) on areas and block sections already separates signalling areas, block sections and the scope of this window. Its table is not repeated here. The table below adds the area of the Capacity by area window and the area of the removed program.
 
 |  | Signalling area (scene) | Scope of the Capacity window | Area of the Capacity by area window | Area of the removed program |
 | --- | --- | --- | --- | --- |
@@ -269,7 +269,7 @@ The [section of the signalling levels page](../architecture/signalling-levels.md
 
 An analysis area is not a stored object. The scope of either window can cross the edges of signalling areas and does not follow them. A block of level 1 or 5, or without a level, has no occupation and drops out without a message.
 
-No simulation code reads `TrackLines/AreasCaseStudy.txt` today. The legacy export writes the signalling areas of the scene to it. The legacy import never converts its TXT rows. Without a sidecar it reports them as skipped; with one it restores the authoritative canonical signalling assignment from the sidecar, not capacity areas (see [Signalling levels](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) and the [migration matrix](v1-scene-migration-matrix.md)).
+No simulation code reads `TrackLines/AreasCaseStudy.txt` today. The legacy export writes the signalling areas of the scene to it. The legacy import never converts its TXT rows. Without a sidecar it reports them as skipped; with one it restores the authoritative canonical signalling assignment from the sidecar, not capacity areas (see [Signalling levels](signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) and the [migration matrix](v1-scene-migration-matrix.md)).
 
 ## The area calculation the program no longer contains
 
@@ -350,7 +350,7 @@ The removed code carries the label "UIC code 406" for the compression, in commen
 6. The setup, sight reaction and release times and the margin are fixed by the run, not by the window. The figures depend on them.
 7. The Capacity window does not examine the direction of a train ([Special cases](#special-cases)). The Capacity by area window leaves a train of the other direction out of the chain only.
 8. The Capacity window does not report a missing occupation on a selected block ([Special cases](#special-cases)). The Capacity by area window reports an unusable occupation but not a missing one.
-9. One analysis covers one route section. The [Assignment workflow](../product/assignment-workflow.md#calculation-boundaries) handles a change of train order by separate sections.
+9. One analysis covers one route section. The [Assignment workflow](assignment-workflow.md#calculation-boundaries) handles a change of train order by separate sections.
 10. The period is independent of the length of the run and of the timetable.
 11. Parity with the legacy tool is not established. No output of the removed calculation exists in the repository, and the two answer different questions ([hand check](#a-hand-check-of-the-envelope)). The legacy envelope of the Capacity by area window differs from the removed formula in what belongs to the area and in the denominator, and the program computes no trains per hour. Network-wide validity is not claimed: the program has no rule for which traffic a result must include.
 12. The program cites no norm or recommendation for the percentage or for a rate. Step 18 of the Assignment workflow refers to a course recommendation that comes from the course material and is not stated in this repository.

@@ -438,7 +438,7 @@ public:
 
 	/// Lets the waiting train enter its route BS in step i (s): CanEnter becomes true once i >= departure_time and the first section
 	/// allows it. Where the first section has a level, the entering train occupies it at once. The rules are under "Route entry" in
-	/// docs/architecture/signalling-levels.md.
+	/// docs/guides/signalling-levels.md.
 	void checkEntrance(int i, Section* BS);
 
 	/// Passenger-dependent dwell time (s) by the Fernandez et al. (2007) extension of Gibson et al. (1989), with passengers spread over
@@ -743,7 +743,7 @@ static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members 
 
 /// Fills run.blocksOccupied and run.blocksConnected for step i with the sections that every train covers
 /// (Det_Section_Occupied_By_Train), then updates the single-track locks. See "What happens in a step" in
-/// docs/architecture/signalling-levels.md.
+/// docs/guides/signalling-levels.md.
 void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i);
 
 /// Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC), with the margin ETCS3SafetyMargin (m).

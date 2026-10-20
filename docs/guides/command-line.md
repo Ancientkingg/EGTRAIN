@@ -2,7 +2,7 @@
 
 This page is for scripts, headless runs and developers; you do not need it to run EGTRAIN from a downloaded package.
 
-For the executable paths of a local build see [Run a local build](../development/build-and-test.md#run-a-local-build), and for how the Windows program behaves in a terminal see [Windows headless runs](../development/build-and-test.md#windows-headless-runs).
+For the executable paths of a local build see Run a local build, and for how the Windows program behaves in a terminal see Windows headless runs, both in the build and test guide of the developer documentation.
 
 ## Options
 
@@ -17,11 +17,11 @@ For the executable paths of a local build see [Run a local build](../development
 | `-pax` | 0 or 1 | the last choice of **View > Show Passengers**, 0 at the first start | Read only when `-g` is 1; any nonzero number counts as 1. In the window, a run that starts with 1 creates the passenger markers, counters and platform bars; **View > Show Passengers** (the same switch as the Passengers check box in the Case and Layers dock) changes it while the program runs: off hides them at once, on shows them from the next run; the list of passengers waiting at a platform is updated at every time step in a run that starts with 1 and at the boarding step of a train in one that starts with 0; the provenance file records the value of the run as `pax_mode`. |
 | `--interactive` (also `-interactive`) | none | off | Restores the legacy questions: asks on standard input for each of `-n`, `-g` and `-pax` that the command line leaves out; `-pax` is asked only when the window is on. Without `--interactive` the defaults of this table apply. |
 | `--detailed-trajectories` | none | off | Also writes the per-train files in `TEMP` and `TrainTrajectories/TrainPathDiagram.txt`; see [Run output](run-output.md#detailed-trajectories). |
-| `--live` | a port from 0 to 65535 | off | Publishes the state of every run of the process to a ZeroMQ socket on `127.0.0.1`; 0 takes a free port. The endpoints go to `live-endpoint.json` in the [output folder](#output-folder), and the start prints them on standard error. A value that is not a port stops the start with exit code 1, and a port that is in use stops it with exit code 2. See [Live stream](../architecture/external-sharing.md#live-stream). |
+| `--live` | a port from 0 to 65535 | off | Publishes the state of every run of the process to a ZeroMQ socket on `127.0.0.1`; 0 takes a free port. The endpoints go to `live-endpoint.json` in the [output folder](#output-folder), and the start prints them on standard error. A value that is not a port stops the start with exit code 1, and a port that is in use stops it with exit code 2. The live stream is described in External state sharing in the developer documentation. |
 | `--live-every` | a whole number from 1 | 1 | With `--live`: a state frame for every N-th step. Without `--live` it stops the start with exit code 1. |
-| `--live-commands` | none | off | With `--live`: also binds the command socket and writes the access token to `live-endpoint.json`. A client can then pause, resume and stop the run and set its step delay; see [Commands](../architecture/external-sharing.md#commands). Without `--live` it stops the start with exit code 1. |
+| `--live-commands` | none | off | With `--live`: also binds the command socket and writes the access token to `live-endpoint.json`. A client can then pause, resume and stop the run and set its step delay; see Commands in External state sharing in the developer documentation. Without `--live` it stops the start with exit code 1. |
 | `--seed` | a whole number from 1 to 2147483646 | 789350715 | Sets the seed of the random draws; see [Random seed](#random-seed). Any other value stops the start with `ERROR: --seed requires a whole number from 1 to 2147483646.` and exit code 1. |
-| `--help` | none | off | Prints every option with its default and exits with code 0, without opening a window. On Windows the text reaches a terminal only when the output is redirected; see [Windows headless runs](../development/build-and-test.md#windows-headless-runs). |
+| `--help` | none | off | Prints every option with its default and exits with code 0, without opening a window. On Windows the text reaches a terminal only when the output is redirected; see Windows headless runs in the build and test guide of the developer documentation. |
 
 The values of `-n`, `-h`, `-g`, `-pax`, `--live` and `--live-every` are read as whole numbers, those of `-b` and `-c` as decimal numbers. An option that is not in this table prints `ERROR: Unknown option <name>. Run QEGTRAIN --help to list the options.` and stops the start with exit code 1. The removed options `-TSM` and `-RC` stop the start with exit code 1 and an error that names `--live`. In a launch with a window, the options of Qt, such as `-platform` and `-style`, are accepted as well.
 
@@ -67,7 +67,7 @@ A launch whose only argument is a `.egscene` file, as when the system opens a fi
 
 ## Output folder
 
-By default EGTRAIN writes its output to `<Qt AppDataLocation>/Output/<scene>`, where `<scene>` is the `name` of the scene. `QEGTRAIN_OUTPUT_DIR` replaces the base directory, and EGTRAIN then writes `<that directory>/Output/<scene>`. A run of the case that is open in the window writes to the folder of that case under its present name, not to the folder of the case that the program started with. **File > Set Output Folder...** replaces the folder of every later run in that session, whichever case is open. [Run a local build](../development/build-and-test.md#run-a-local-build) states the same rule. [Run output](run-output.md) lists the files of a run.
+By default EGTRAIN writes its output to `<Qt AppDataLocation>/Output/<scene>`, where `<scene>` is the `name` of the scene. `QEGTRAIN_OUTPUT_DIR` replaces the base directory, and EGTRAIN then writes `<that directory>/Output/<scene>`. A run of the case that is open in the window writes to the folder of that case under its present name, not to the folder of the case that the program started with. **File > Set Output Folder...** replaces the folder of every later run in that session, whichever case is open. [Run output](run-output.md) lists the files of a run.
 
 ```bash
 QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
@@ -121,6 +121,6 @@ Usage:
 
 Each command exits with 0 on success and 1 otherwise, also when a path cannot be read or an unexpected error stops the command; the reason is printed on standard error. There is no `migrate` command.
 
-The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder. A build from source also produces it; see [Build And Test](../development/build-and-test.md).
+The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder. A build from source also produces it, as the build and test guide of the developer documentation describes.
 
 [Opening an `.egscene` case study](opening-a-case-study.md#instructor-and-command-line-use) has examples of `pack`, `validate` and `unpack`, including the rule that the unpack destination must be a new path.
