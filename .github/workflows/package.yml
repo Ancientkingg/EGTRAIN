@@ -166,6 +166,9 @@ jobs:
             "$APP/Contents/Frameworks/QtQml.framework" "$APP/Contents/Frameworks/QtQmlModels.framework"
           rm -f "$APP"/Contents/Frameworks/libwebp*.dylib "$APP"/Contents/Frameworks/libsharpyuv*.dylib "$APP"/Contents/Frameworks/libtiff*.dylib \
             "$APP"/Contents/Frameworks/liblzma*.dylib
+          # The manual reads its help file through the SQLite driver. The other database drivers need client libraries that
+          # the app does not hold.
+          find "$APP/Contents/PlugIns/sqldrivers" -type f ! -name 'libqsqlite.dylib' -delete
           report_size "after trimming"
 
       - name: Remove build machine paths
@@ -1145,6 +1148,12 @@ jobs:
           Terminal=false
           EOF
           chmod +x "$APPDIR/usr/bin/QEGTRAIN"
+
+      # linuxdeploy deploys every database driver of Qt and stops at one whose client library is missing, such as the
+      # Mimer SQL driver of Qt 6. The manual needs only the SQLite driver.
+      - name: Keep only the SQLite driver of Qt 6
+        if: inputs.qt == '6'
+        run: find "$QT_ROOT_DIR/plugins/sqldrivers" -type f ! -name 'libqsqlite.so' -delete
 
       - name: Build AppImage
         env:

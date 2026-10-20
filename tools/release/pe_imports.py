@@ -29,6 +29,8 @@ SYSTEM_DLLS = frozenset(
         "iphlpapi.dll", "setupapi.dll", "comdlg32.dll", "comctl32.dll", "shlwapi.dll", "rpcrt4.dll",
         "secur32.dll", "psapi.dll", "dnsapi.dll", "d3d9.dll", "d3d11.dll", "dxgi.dll", "opengl32.dll",
         "glu32.dll", "ucrtbase.dll", "msvcrt.dll",
+        # Qt 6 also imports these.
+        "authz.dll", "d3d12.dll", "dwrite.dll", "ncrypt.dll", "uiautomationcore.dll",
     )
 )
 SYSTEM_DLL_PREFIXES = ("api-ms-win-", "ext-ms-win-")
