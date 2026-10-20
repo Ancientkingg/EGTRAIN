@@ -1494,8 +1494,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		const long long offsetBefore = w.m_runController->m_startOffsetSeconds;
 		w.setStartOffset(offsetBefore + 3600);
 		const auto [movedSentence, movedTip] = words(offsetBefore + 3600);
-		const bool moved = w.m_replayLabel->text() == QString::fromStdString(formatSimTime(last, offsetBefore + 3600))
-			&& w.m_replayCoverageLabel->text() == movedSentence
+		const bool moved = w.m_replayLabel->text() == clock(last) && w.m_replayCoverageLabel->text() == movedSentence
 			&& w.m_replayStartButton->toolTip() == movedTip && movedTip != tip;
 		w.setStartOffset(offsetBefore);
 		if (!moved || w.m_replayLabel->text() != clock(last) || w.m_replayCoverageLabel->text() != dropped || w.m_replayStartButton->toolTip() != tip)
