@@ -4,14 +4,12 @@ This page takes you from a fresh clone to a built application, a first run, a ch
 checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 6 and
 C++17 desktop application for railway micro-simulation, built with CMake.
 
-The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17, and the macOS configure and build
-with Qt 6.8.3 on 2026-10-20. On Linux,
+The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17; the macOS build was repeated with
+Qt 6.8.3 on 2026-10-20. On Linux,
 configure, build, CTest, the headless run, both smokes and the test walkthrough below were run in a
 clean Ubuntu 24.04 arm64 container on 2026-10-17 at `dbaadd94`. One test, `test_measure_peak_rss`,
 failed there because the first process of the container did not reap orphaned children; the test
-counts such a zombie as exited. That run used the Qt 5 packages of Ubuntu. On 2026-10-20 the build and CTest ran in
-such a container with the Qt 6.4.2 packages of Ubuntu: the tests that need a writable checkout or Git failed there, and
-the others passed. The Windows commands on this page were not run. CI installs the same packages as
+counts such a zombie as exited. That run used the Qt 5 packages of Ubuntu. The Windows commands on this page were not run. CI installs the same packages as
 [Build and test](build-and-test.md#configure) lists, but it configures with more options; see
 [Which checks to run](#which-checks-to-run). The Visual Studio generator path in the build guide
 is not what CI uses and was not checked for this page.
@@ -45,8 +43,9 @@ On macOS, install Qt 6.8.3 with [aqtinstall](https://aqtinstall.readthedocs.io/e
 (or the Qt online installer) and the other libraries with Homebrew:
 
 ```bash
-python3 -m pip install aqtinstall
-aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"
+python3 -m venv ~/aqt-venv
+~/aqt-venv/bin/pip install aqtinstall
+~/aqt-venv/bin/aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"
 brew install zeromq cppzmq nlohmann-json
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
   -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \

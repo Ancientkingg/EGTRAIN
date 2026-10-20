@@ -33,11 +33,16 @@ installer works on a developer machine; the [Qt online installer](https://www.qt
 is the other way (choose Qt 6.8.3 with the Qt Charts module). Homebrew's `qt` formula follows the
 newest Qt release, not the 6.8.3 of CI.
 
+aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
+take packages from `pip` directly. On Windows the commands are in `~\aqt-venv\Scripts` instead of
+`~/aqt-venv/bin`.
+
 ```bash
-python3 -m pip install aqtinstall
-aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"          # macOS: ~/Qt/6.8.3/macos
-aqt install-qt linux desktop 6.8.3 linux_gcc_64 -m qtcharts -O "$HOME/Qt"    # Linux: ~/Qt/6.8.3/gcc_64
-aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.8.3\msvc2022_64
+python3 -m venv ~/aqt-venv
+~/aqt-venv/bin/pip install aqtinstall
+~/aqt-venv/bin/aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"          # macOS: ~/Qt/6.8.3/macos
+~/aqt-venv/bin/aqt install-qt linux desktop 6.8.3 linux_gcc_64 -m qtcharts -O "$HOME/Qt"    # Linux: ~/Qt/6.8.3/gcc_64
+~/aqt-venv/bin/aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.8.3\msvc2022_64
 ```
 
 ## Configure
@@ -63,7 +68,7 @@ On Ubuntu, with Qt in `~/Qt/6.8.3/gcc_64`:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y build-essential cmake git python3 libgl-dev \
+sudo apt-get install -y build-essential cmake git python3 python3-venv libgl-dev \
   libzmq3-dev cppzmq-dev nlohmann-json3-dev
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/gcc_64"
 ```
@@ -74,7 +79,7 @@ In a root shell, such as a plain `ubuntu:24.04` container, `sudo` is not install
 
 Ubuntu 24.04 also ships Qt 6.4.2. It is enough: with `qt6-base-dev qt6-charts-dev qt6-svg-dev
 qt6-tools-dev qt6-qpa-plugins libqt6sql6-sqlite` in place of the Qt folder, the application and all tests
-build with warnings as errors and the tests pass. CI and the packages use 6.8.3, so a difference
+build with warnings as errors, and the tests that do not need a writable checkout or Git pass. CI and the packages use 6.8.3, so a difference
 between the two shows only there.
 
 On Windows, from a Visual Studio developer PowerShell, with the vcpkg

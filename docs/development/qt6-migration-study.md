@@ -190,11 +190,8 @@ Status on 2026-10-20: steps 1 and 2 are done. For step 3, CI had Qt 6 jobs that 
 Qt 5 jobs. With Qt 6.8.3 the application and all tests built with warnings as errors on macOS, Windows and Linux, and
 the Qt 6 jobs ran the same tests as the Qt 5 jobs.
 
-For step 4, `package.yml` took the input `qt`, `'5'` by default, and the package check also built the packages with
-`'6'` in a job that was not required. The Qt 6 packages use Qt 6.8.3 from `install-qt-action` on all three runners. The
-`windeployqt` of Qt 6.8.3 has no `--no-angle` option, and `--no-virtualkeyboard` exists only when the virtual keyboard
-module is installed, so the Qt 6 line drops both and adds `--no-system-dxc-compiler`, without which it copies
-`dxcompiler.dll` and `dxil.dll`.
+For step 4 the package check built the Qt 6 packages in a job that was not required; the Qt 6 `windeployqt` line drops
+`--no-angle` and `--no-virtualkeyboard` and adds `--no-system-dxc-compiler`.
 
 Step 6: v1.0.4 is the last release built with Qt 5, from a release branch cut before this step. Since then CI, the
 package check and the release workflow build with Qt 6.8.3 only, with one CMake leg per platform. `CMakeLists.txt`
