@@ -187,6 +187,7 @@ included.
    Quick runtime in the decision.
 
 Status on 2026-10-20: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that are not required yet. With Qt 6.8.3 the
-application and all tests build with warnings as errors on macOS, Windows and Linux. The Qt 6 jobs leave out one test
-that fails on the offscreen platform: `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP
-index of the scene.
+application and all tests build with warnings as errors on macOS, Windows and Linux. The Qt 6 jobs leave out two tests
+that fail on the offscreen platform: `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP
+index of the scene, and on Linux `test_dialog_presentation_contract` finds that the Run simulation dialog with Run details
+open keeps a scroll range of 14 px instead of growing to show the details.
