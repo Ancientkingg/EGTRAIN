@@ -58,7 +58,7 @@ public:
 	/// The run was rejected before it started. Submits operation.failed for the simulation when error
 	/// has a value; ignored after begin().
 	void reject(std::optional<Error> error) noexcept;
-	/// How a started run ended. Only real handled failures may use Failed. The current engine has none.
+	/// How a started run ended. Only real handled failures may use Failed: a run that an exception ended.
 	enum class Outcome { Completed, ///< Normal return after postprocessing.
 		Cancelled,					///< Stopped by the user; no event is submitted.
 		Failed						///< A handled failure after the start.

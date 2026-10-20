@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
 
 using namespace std;
 
@@ -30,10 +31,11 @@ namespace {
 // The step loop reports its progress once in this many steps.
 constexpr int ProgressEverySteps = 100;
 
-void ensureDirectory(const string& path) {
-	if (!path.empty()) {
-		std::filesystem::create_directories(path);
-	}
+// Makes the folder and the folders above it. Returns the reason when that fails.
+std::error_code ensureDirectory(const string& path) {
+	std::error_code error;
+	std::filesystem::create_directories(path, error);
+	return error;
 }
 
 // Remove an existing file without reporting a failure.
@@ -306,11 +308,18 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		initial_variables.OutputMainFolder = nextRunOutputFolder_;
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
-	ensureDirectory(initial_variables.OutputMainFolder);
-	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories");
-	ensureDirectory(initial_variables.OutputMainFolder + "/PassengerStatus");
-	ensureDirectory(initial_variables.OutputMainFolder + "/Rescheduling");
-	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories/RoutesGenerated");
+	for (const char* subfolder : {"", "/TrainTrajectories", "/PassengerStatus", "/Rescheduling", "/TrainTrajectories/RoutesGenerated"}) {
+		const std::string folder = initial_variables.OutputMainFolder + subfolder;
+		if (const std::error_code error = ensureDirectory(folder)) {
+			SceneDiagnostic diagnostic;
+			diagnostic.code = "run.output.folder";
+			diagnostic.message = "Cannot create the output folder " + folder + ": " + error.message();
+			diagnostics.push_back(std::move(diagnostic));
+			resetState();
+			reportDetail("output_directory_failure");
+			return diagnostics;
+		}
+	}
 	// Train::printTrainServicePathDiagram and Train::printTrainArrDepMsg append, so each run starts without their files.
 	removeRunOutput(initial_variables.OutputMainFolder + "/TrainTrajectories/TrainServicePathDiagram.txt");
 	removeRunOutput(initial_variables.OutputMainFolder + "/Rescheduling/EGTRAINOutput.txt");
@@ -513,7 +522,25 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 }
 
 void DispatchController::runSimulation() {
+	runError_.clear();
+	QElapsedTimer timer;
+	timer.start();
+	try {
+		runSimulationStages();
+		return;
+	} catch (const std::exception& error) {
+		runError_ = error.what();
+	} catch (...) {
+		runError_ = "unknown error";
+	}
+	EG_LOG(AppRun, Error) << "The run stopped because of an error: " << runError_ << '\n';
+	// The live stream has no event for a failed run.
+	if (live_)
+		pushLiveEvent(*live_, LiveEvent::RunCancelled);
+	emit executionFailed(timer.elapsed());
+}
 
+void DispatchController::runSimulationStages() {
 	runCompleted_ = false;
 
 	SimulationRun& run = mutableRun();
@@ -626,7 +653,9 @@ void DispatchController::runSimulation() {
 		return;
 	// The per-train files and their folder are part of the detailed trajectories.
 	if (settings.exportDetailedTrajectories) {
-		ensureDirectory(settings.OutputMainFolder + "/TEMP");
+		const std::string temporaryFolder = settings.OutputMainFolder + "/TEMP";
+		if (const std::error_code error = ensureDirectory(temporaryFolder))
+			throw std::runtime_error("Cannot create the folder " + temporaryFolder + ": " + error.message());
 		for (int i = 0; i < run.numTrains; i++) {
 			if (stoppedHere())
 				return;

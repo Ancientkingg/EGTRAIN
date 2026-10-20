@@ -23,11 +23,14 @@
 #include <QThread>
 #include <QTextStream>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace {
 
@@ -50,7 +53,10 @@ enum class StopAt { Never,
 	Started,
 	TenthSnapshot,
 	Postprocessing,
-	Returned };
+	Returned,
+	// A slot of executionBegan or executionPostprocessing throws instead of stopping the run.
+	ThrowAtBegan,
+	ThrowAtPostprocessing };
 
 struct RunObservation {
 	bool prepared = false;
@@ -59,9 +65,11 @@ struct RunObservation {
 	std::atomic<int> statusFileDuringLoop{0};
 	std::atomic<int> postprocessing{0};
 	std::atomic<int> returned{0};
+	std::atomic<int> failed{0};
 	std::atomic<bool> cancelled{false};
 	bool completed = false;
 	bool stopRequested = false;
+	std::string error;
 };
 
 // How a run is driven. Without a mode it runs in a SimulationWorker and a stop is a request.
@@ -126,10 +134,16 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 			++observed.statusFileDuringLoop;
 		if (++observed.snapshots == kStopAtSnapshot && stopAt == StopAt::TenthSnapshot)
 			stopRun(); }, Qt::DirectConnection);
+	QObject::connect(&simulation, &DispatchController::executionBegan, &context, [&] {
+		if (stopAt == StopAt::ThrowAtBegan)
+			throw std::runtime_error("injected"); }, Qt::DirectConnection);
 	QObject::connect(&simulation, &DispatchController::executionPostprocessing, &context, [&] {
 		++observed.postprocessing;
+		if (stopAt == StopAt::ThrowAtPostprocessing)
+			throw std::runtime_error("injected");
 		if (stopAt == StopAt::Postprocessing)
 			stopRun(); }, Qt::DirectConnection);
+	QObject::connect(&simulation, &DispatchController::executionFailed, &context, [&](qint64) { ++observed.failed; }, Qt::DirectConnection);
 	QObject::connect(&simulation, &DispatchController::executionReturned, &context, [&](qint64, bool cancelled) {
 		++observed.returned;
 		observed.cancelled = cancelled;
@@ -139,6 +153,7 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 		simulation.runSimulation();
 		observed.completed = simulation.lastRunCompleted();
 		observed.stopRequested = simulation.runControl()->isStopRequested();
+		observed.error = simulation.lastRunError();
 		return;
 	}
 	if (stopAt == StopAt::Started)
@@ -156,6 +171,7 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 	thread.wait();
 	observed.completed = simulation.lastRunCompleted();
 	observed.stopRequested = worker->isStopRequested();
+	observed.error = simulation.lastRunError();
 	delete worker;
 }
 
@@ -553,6 +569,56 @@ int main(int argc, char** argv) {
 		ok &= expect(hasErrors(diagnostics), "reused output folder: scene without services fails preparation");
 		for (int i = 0; i < 2; ++i)
 			ok &= expect(readOutput(files[i]) == firstContents[i], std::string(files[i]) + ": failed preparation keeps earlier output");
+	}
+
+	{
+		// An exception in a slot ends the run as failed, with or without a worker, and the next run completes.
+		for (const RunMode& mode : {kWorkerRequest, kHeadlessRequest}) {
+			for (const StopAt throwAt : {StopAt::ThrowAtBegan, StopAt::ThrowAtPostprocessing}) {
+				const std::string name = std::string(mode.headless ? "without a worker" : "in a worker")
+					+ (throwAt == StopAt::ThrowAtBegan ? ", throw at the start" : ", throw after the steps");
+				QTemporaryDir output;
+				RunObservation observed;
+				runScene(loaded.scene, output.path(), throwAt, observed, QString(), kHorizonSeconds, mode);
+				ok &= expect(observed.prepared && observed.error == "injected" && observed.failed == 1 && observed.returned == 0
+						&& !observed.completed,
+					name + ": the run failed with the text of the exception, without executionReturned");
+			}
+			QTemporaryDir output;
+			RunObservation observed;
+			runScene(loaded.scene, output.path(), StopAt::Never, observed, QString(), kHorizonSeconds, mode);
+			ok &= expect(observed.completed && observed.error.empty() && observed.failed == 0,
+				std::string(mode.headless ? "without a worker" : "in a worker") + ": the run after a failed run completes");
+		}
+	}
+	{
+		// A detailed run whose TEMP folder cannot be made fails and still finishes.
+		QTemporaryDir output;
+		QFile blocker(output.filePath("TEMP"));
+		ok &= expect(blocker.open(QIODevice::WriteOnly), "blocked TEMP: a file takes the place of the folder");
+		blocker.close();
+		initial_variables.exportDetailedTrajectories = true;
+		RunObservation observed;
+		runScene(loaded.scene, output.path(), StopAt::Never, observed);
+		initial_variables.exportDetailedTrajectories = false;
+		ok &= expect(observed.prepared && observed.failed == 1 && !observed.completed
+				&& observed.error.rfind("Cannot create the folder ", 0) == 0 && observed.error.find("TEMP") != std::string::npos,
+			"blocked TEMP: the run failed and names the folder (" + observed.error + ")");
+	}
+	{
+		// An output folder that cannot be made is an error of the preparation.
+		QTemporaryDir output;
+		QFile blocker(output.filePath("blocker"));
+		ok &= expect(blocker.open(QIODevice::WriteOnly), "blocked output folder: a file takes the place of the folder");
+		blocker.close();
+		simulation.setNextRunOutputFolder(blocker.fileName().toStdString());
+		const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(loaded.scene);
+		simulation.setNextRunOutputFolder({});
+		ok &= expect(std::any_of(diagnostics.begin(), diagnostics.end(),
+						 [](const SceneDiagnostic& diagnostic) {
+							 return diagnostic.code == "run.output.folder" && diagnostic.severity == SceneSeverity::Error;
+						 }),
+			"blocked output folder: the preparation reports run.output.folder");
 	}
 
 	{

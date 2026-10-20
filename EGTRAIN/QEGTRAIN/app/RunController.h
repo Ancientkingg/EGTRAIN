@@ -281,8 +281,8 @@ private:
 	QPointer<QThread> m_workerThread;
 	// What Close, New or Open asked for while a run was active. It runs when the worker has finished.
 	std::function<void()> m_afterRunAction;
-	// Three product observations and two isolated cancellation probes.
-	std::array<QMetaObject::Connection, 5> m_simulationObservations{};
+	// The product observations in 0 to 2 and 5, and two isolated cancellation probes in 3 and 4.
+	std::array<QMetaObject::Connection, 6> m_simulationObservations{};
 
 	QString m_runtimeStatus = QStringLiteral("Not built");
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;

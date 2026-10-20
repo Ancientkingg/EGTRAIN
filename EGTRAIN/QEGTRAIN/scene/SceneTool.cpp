@@ -4,6 +4,7 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneModel.h"
+#include <exception>
 #include <iostream>
 #include <map>
 #include <string>
@@ -45,7 +46,7 @@ static bool printVersionRejection(const std::string& path) {
 	return true;
 }
 
-int main(int argc, char** argv) {
+static int runTool(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage:\n"
 				  << "  scene_tool import <legacyDir> <sceneDir> [sceneName]\n"
@@ -131,6 +132,16 @@ int main(int argc, char** argv) {
 		return hasErrors(diags) ? 1 : 0;
 	} else {
 		std::cerr << "Unknown command: " << cmd << "\n";
+		return 1;
+	}
+}
+
+// An exception that a command does not handle ends the tool with exit code 1 and its text.
+int main(int argc, char** argv) {
+	try {
+		return runTool(argc, argv);
+	} catch (const std::exception& error) {
+		std::cerr << "error: " << error.what() << "\n";
 		return 1;
 	}
 }

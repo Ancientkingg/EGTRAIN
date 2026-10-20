@@ -1094,6 +1094,26 @@ int main() {
 		ok &= expect(namedAbsent, "A missing case folder with a Unicode name is reported as UTF-8");
 	}
 
+#ifndef _WIN32
+	{
+		// A case under a folder that cannot be read gives a diagnostic and does not throw. This does not apply to root.
+		TempDir root;
+		const fs::path closed = fs::path(root.dir) / "closed";
+		fs::create_directories(closed / "case");
+		fs::permissions(closed, fs::perms::none, fs::perm_options::replace);
+		if (geteuid() != 0) {
+			const std::string legacy = (closed / "case").string();
+			ok &= expect(hasDiag(importLegacyScene(legacy, (fs::path(root.dir) / "scene").string(), "Closed").diagnostics,
+							 "scene.import.missing", SceneSeverity::Error),
+				"Import from a folder that cannot be read reports it");
+			ok &= expect(hasDiag(importLegacyPassengers(legacy, SceneModel()).diagnostics, "scene.import.passengers.missing",
+							 SceneSeverity::Error),
+				"Passenger import from a folder that cannot be read reports the missing files");
+		}
+		fs::permissions(closed, fs::perms::owner_all, fs::perm_options::replace);
+	}
+#endif
+
 	ok &= checkScenarioItemDiagnostics();
 	ok &= checkPassengerDiagnostics();
 

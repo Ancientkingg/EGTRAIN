@@ -7,6 +7,8 @@
 #include <QStringList>
 #include <QWidget>
 
+#include "util/Log.h"
+
 #include <cstdio>
 #include <functional>
 #include <utility>
@@ -21,8 +23,10 @@ public:
 	virtual ~UserPrompts() = default;
 
 	/// An error message in a modal box, with a warning icon instead of the critical one when warningIcon is set. In a
-	/// suppressed run it writes "QEGTRAIN_DIALOG_SUPPRESSED: title: message" to stderr instead.
+	/// suppressed run it writes "QEGTRAIN_DIALOG_SUPPRESSED: title: message" to stderr instead. The title and the message
+	/// also go to the log, at error level in the category app.ui.
 	virtual void showError(QWidget* parent, const QString& title, const QString& message, bool warningIcon = false) {
+		EG_LOG(AppUi, Error) << title.toStdString() << ": " << message.toStdString() << '\n';
 		if (m_suppressed && m_suppressed()) {
 			std::fprintf(stderr, "QEGTRAIN_DIALOG_SUPPRESSED: %s: %s\n", title.toStdString().c_str(), message.toStdString().c_str());
 			std::fflush(stderr);

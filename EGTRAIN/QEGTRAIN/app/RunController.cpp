@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <exception>
 
 QString completedRunContext(const RunProvenance& provenance) {
 	QString caseName = QString::fromStdString(provenance.caseName);
@@ -607,8 +608,15 @@ void RunController::startSimulation(const telemetry::OperationObservation& opera
 						elapsedMs);
 				},
 				Qt::DirectConnection);
+			m_simulationObservations[5] = connect(
+				&simulation, &DispatchController::executionFailed, &simulation,
+				[observation](qint64 elapsedMs) {
+					observation->finish(telemetry::SimulationObservation::Outcome::Failed, elapsedMs, telemetry::Error::InternalFailure);
+				},
+				Qt::DirectConnection);
 			if (observationStep) observationStep(3);
-			if (!m_simulationObservations[0] || !m_simulationObservations[1] || !m_simulationObservations[2])
+			if (!m_simulationObservations[0] || !m_simulationObservations[1] || !m_simulationObservations[2]
+				|| !m_simulationObservations[5])
 				rollback();
 		} catch (...) {
 			rollback();
@@ -648,10 +656,12 @@ void RunController::onSimulationFinished() {
 	}
 	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
 	m_sceneChangedDuringRun = false;
+	// Why an exception ended the run, or empty.
+	const QString failure = QString::fromStdString(simulation.lastRunError());
 	// A stop that arrives after the last stage leaves a completed run.
-	const bool stopped = m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
+	const bool stopped = failure.isEmpty() && m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
 	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
-	m_resultsAvailable = !sceneChangedDuringRun && !stopped && hasRawRunResults();
+	m_resultsAvailable = failure.isEmpty() && !sceneChangedDuringRun && !stopped && hasRawRunResults();
 	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed")
 		: stoppedByUser					 ? QStringLiteral("Stopped")
 										 : QStringLiteral("Failed");
@@ -672,16 +682,18 @@ void RunController::onSimulationFinished() {
 		return;
 
 	// print last services
-	if (!stopped)
+	if (!stopped && failure.isEmpty())
 		simulation.printLastTrainServicePathDiagram();
 
 	m_host.runProgressEnded();
-	m_window->statusBar()->showMessage(sceneChangedDuringRun
-			? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
-			: stopped ? QStringLiteral("Simulation stopped")
-			: hadFollowTarget
-			? QStringLiteral("Simulation complete - Follow disabled")
-			: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
+	const QString status = sceneChangedDuringRun
+		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
+		: !failure.isEmpty()  ? QStringLiteral("Simulation failed")
+		: stopped			  ? QStringLiteral("Simulation stopped")
+		: !m_resultsAvailable ? QStringLiteral("Simulation ended without results")
+		: hadFollowTarget	  ? QStringLiteral("Simulation complete - Follow disabled")
+							  : QStringLiteral("Simulation complete - open the Diagrams menu for results");
+	m_window->statusBar()->showMessage(status);
 	// The Run Results dock raised by resultsKept is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
@@ -691,9 +703,12 @@ void RunController::onSimulationFinished() {
 	else
 		simulation.resetReplayCandidate();
 	m_host.runEnded();
-	// The track preview that replaces a stopped run wrote its own status message.
-	if (stoppedByUser)
-		m_window->statusBar()->showMessage(QStringLiteral("Simulation stopped"));
+	// The track preview that replaces a run without results wrote its own status message.
+	if (!m_resultsAvailable)
+		m_window->statusBar()->showMessage(status);
+	if (!failure.isEmpty())
+		showError(QStringLiteral("Simulation Failed"),
+			QStringLiteral("The run stopped because of an error:\n\n%1\n\nThe case is still open and unchanged.").arg(failure));
 
 	m_host.runSettled();
 }
@@ -775,7 +790,18 @@ void RunController::runScene() {
 	const SceneRunSelection selection = m_selection.selectedOccurrences(m_document->model(), m_host.serviceOccurrenceDuration());
 	bool timingIdentityOk = true;
 	const std::vector<SceneDiagnostic> diagnostics = m_host.timedPreparation(
-		[&] { return simulation.prepareScene(m_document->model(), m_selection.scenarioId(), selection); }, timingIdentityOk);
+		[&]() -> std::vector<SceneDiagnostic> {
+			try {
+				return simulation.prepareScene(m_document->model(), m_selection.scenarioId(), selection);
+			} catch (const std::exception& error) {
+				simulation.resetState();
+				SceneDiagnostic diagnostic;
+				diagnostic.code = "run.prepare.exception";
+				diagnostic.message = std::string("Cannot prepare the run: ") + error.what();
+				return {diagnostic};
+			}
+		},
+		timingIdentityOk);
 	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
 		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(diagnostics));

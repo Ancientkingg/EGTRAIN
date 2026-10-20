@@ -3,6 +3,7 @@
 #include "app/CannotOpenMessage.h"
 #include "app/CrashNote.h"
 #include "app/DispatchController.h"
+#include "app/GuardedApplication.h"
 #include "app/MainWindow.h"
 #include "app/OpenRequestRelay.h"
 #include "app/SceneOpenRequest.h"
@@ -16,9 +17,11 @@
 #endif
 #include "update/SelfUpdater.h"
 #include "update/UpdateSettings.h"
+#include "util/Log.h"
 #include "widgets/ConsoleWidget.h"
 #include <algorithm>
 #include <climits>
+#include <exception>
 #include <iomanip>
 #include <iterator>
 #include <optional>
@@ -344,7 +347,7 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 	return request;
 }
 
-int main(int argc, char* argv[]) {
+static int runMain(int argc, char* argv[]) {
 	beginStartupTiming();
 	const std::string loggingProblems = installConsoleLogging();
 	if (!loggingProblems.empty())
@@ -410,7 +413,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Graphical user interface (GUI): 0\n";
 
 	if (gui) {
-		QApplication application(argc, argv);
+		GuardedApplication application(argc, argv);
 		installCrashHandler(crashNoteFolder());
 		if (!onlyKnownOptions(argc, argv))
 			return 1;
@@ -534,7 +537,7 @@ int main(int argc, char* argv[]) {
 	// No window reads the snapshots of this run.
 	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
-	if (simulation.run().numTrains <= 0)
+	if (simulation.run().numTrains <= 0 || !simulation.lastRunError().empty())
 		return 1;
 	// The line that scripts read for a completed run, without a newline. It does not go through the logging core,
 	// so no logging rule hides it.
@@ -542,4 +545,16 @@ int main(int argc, char* argv[]) {
 		std::cout << "\n End of Simulation";
 	simulation.printLastTrainServicePathDiagram();
 	return 0;
+}
+
+// An exception that nothing else catches, for example at startup before the event loop runs, is logged and ends the
+// program with exit code 70.
+int main(int argc, char* argv[]) {
+	try {
+		return runMain(argc, argv);
+	} catch (const std::exception& error) {
+		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: " << error.what() << '\n';
+		eglog::flush();
+		return 70;
+	}
 }
