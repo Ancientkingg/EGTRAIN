@@ -231,6 +231,23 @@ int main(int argc, char* argv[]) {
 		ok &= expect(effect.isNull(), "deleting the scene deletes the effect with the selected target");
 	}
 
+	// A selected item that leaves the scene after the zoom changed is gone from the scene index. The index of depth 1
+	// splits the scene at x = 500 and the item lies left of it; at a zoom of 0.001 one pixel of the view covers the scene.
+	{
+		QGraphicsScene scene(QRectF(0.0, 0.0, 1000.0, 1000.0));
+		scene.setBspTreeDepth(1);
+		QGraphicsView view(&scene);
+		view.setTransform(QTransform::fromScale(0.001, 0.001));
+		auto* item = new QGraphicsRectItem(QRectF(490.0, 10.0, 9.0, 9.0));
+		scene.addItem(item);
+		item->setGraphicsEffect(new HighlightEffect(Qt::blue, 1.0));
+		scene.items(scene.sceneRect()); // indexes the item
+		view.setTransform(QTransform());
+		scene.removeItem(item);
+		ok &= expect(!scene.items(scene.sceneRect()).contains(item), "a selected item that left the scene is not found in it");
+		delete item;
+	}
+
 	// The cue follows its target.
 	{
 		QGraphicsScene scene;
