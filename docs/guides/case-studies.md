@@ -15,6 +15,6 @@ The counts are the numbers of entries in `infrastructure.json` (tracks), `statio
 
 The source, changes and terms of each case study are in `DATA.md` at the top of the [repository](https://github.com/Ancientkingg/EGTRAIN).
 
-![The Speed / distance result window of Milano_Brescia, baseline, 47 trains, after a run](../images/speed-distance-milano-brescia.png)
+![The window Speed / distance after a run of Milano_Brescia / baseline, with the speed of six of the 47 trains plotted against the distance in km](../images/case-studies-speed-distance.png)
 
-The Speed / distance result window of Milano_Brescia (baseline, 47 trains) after a run.
+The Speed / distance result window of Milano_Brescia (baseline) after a run, with six of its 47 trains shown.

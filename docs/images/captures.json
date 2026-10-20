@@ -1,0 +1,116 @@
+{
+  "captures": [
+    {
+      "case": "Milano_Brescia",
+      "file": "case-studies-speed-distance.png",
+      "height": 750,
+      "state": "Speed / distance of the first six trains after a run of baseline",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "getting-started-main-window.png",
+      "height": 750,
+      "state": "loaded and not run, whole network in view",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Netherlands",
+      "file": "getting-started-open-a-case.png",
+      "height": 395,
+      "state": "Open a Case over the loaded case, with Paimpol selected",
+      "version": "1.0.0",
+      "width": 640
+    },
+    {
+      "case": "Paimpol",
+      "file": "getting-started-run-in-progress.png",
+      "height": 750,
+      "state": "run of baseline held near step 2450, Follow on the express",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "getting-started-run-results.png",
+      "height": 750,
+      "state": "completed run of baseline, Open result view menu open",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "getting-started-run-simulation.png",
+      "height": 358,
+      "state": "Run simulation of baseline, Run details closed",
+      "version": "1.0.0",
+      "width": 640
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-replay-menu.png",
+      "height": 750,
+      "state": "replay at 3500 s, context menu of the stopping train open",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "how-to-scene-validation.png",
+      "height": 750,
+      "state": "Scene Validation after the dwell at Pontrieaux became 180 s",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Milano_Brescia",
+      "file": "readme-main-window.png",
+      "height": 750,
+      "state": "loaded and not run, whole network in view",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Minimal line",
+      "file": "tutorial-minimal-nodes.png",
+      "height": 750,
+      "state": "new case with one track and three nodes, Infrastructure on Nodes",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Minimal line",
+      "file": "tutorial-minimal-platforms.png",
+      "height": 750,
+      "state": "two stations with a platform at each end node, Infrastructure on Platforms",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Minimal line",
+      "file": "tutorial-minimal-service.png",
+      "height": 750,
+      "state": "the finished case, Services on the timetable of new_service",
+      "version": "1.0.0",
+      "width": 1200
+    },
+    {
+      "case": "Paimpol",
+      "file": "tutorial-modify-edit-timetable-stop.png",
+      "height": 471,
+      "state": "Edit timetable stop for Pontrieaux of Guin-Paim-EXPRESS-1, as committed",
+      "version": "1.0.0",
+      "width": 640
+    },
+    {
+      "case": "Paimpol",
+      "file": "tutorial-modify-incident-baseline.png",
+      "height": 750,
+      "state": "Express breakdown selected after a run of baseline set the delay baseline",
+      "version": "1.0.0",
+      "width": 1200
+    }
+  ]
+}
