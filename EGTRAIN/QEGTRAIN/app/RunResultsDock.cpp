@@ -167,7 +167,6 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_table->setMinimumHeight(tableHeight(*m_table, 1));
 	containerLayout->addWidget(m_table, 1);
 	auto* scroll = new EditorLayout::VerticalScrollArea(m_dock);
-	scroll->setObjectName("runResultsScroll");
 	scroll->setFocusPolicy(Qt::NoFocus);
 	scroll->setWidget(container);
 	m_dock->setWidget(scroll);
@@ -250,7 +249,7 @@ void RunResultsDock::refresh() {
 		const auto* scroll = static_cast<const QScrollArea*>(m_dock->widget());
 		const int besideTable = m_dock->height() - scroll->viewport()->height() + scroll->widget()->height() - m_table->height();
 		const auto* canvas = m_window->centralWidget()->findChild<QGraphicsView*>(QString(), Qt::FindDirectChildrenOnly);
-		const int half = (m_dock->height() + (canvas ? canvas : m_window->centralWidget())->height()) / 2;
+		const int half = (m_dock->height() + canvas->height()) / 2;
 		m_window->resizeDocks({m_dock}, {std::min(std::max(m_dock->height(), besideTable + tableHeight(*m_table, 3)), half)}, Qt::Vertical);
 	}
 	m_host.runResultsRefreshed();

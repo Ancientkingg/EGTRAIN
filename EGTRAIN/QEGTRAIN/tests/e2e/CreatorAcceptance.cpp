@@ -2162,13 +2162,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				if (!dialog->isModal() && dialog->windowTitle() == QStringLiteral("Capacity"))
 					capacity = dialog;
 		QPushButton* capacityExport = nullptr;
-		if (capacity)
-			for (QPushButton* button : capacity->findChildren<QPushButton*>())
-				if (button->text() == QStringLiteral("Export capacity CSV...")) capacityExport = button;
 		// Return presses no button of the window.
-		const QList<QPushButton*> capacityButtons = capacity ? capacity->findChildren<QPushButton*>() : QList<QPushButton*>();
-		const bool capacityAutoDefault = std::any_of(capacityButtons.cbegin(), capacityButtons.cend(),
-			[](const QPushButton* pushButton) { return pushButton->autoDefault(); });
+		bool capacityAutoDefault = false;
+		if (capacity)
+			for (QPushButton* button : capacity->findChildren<QPushButton*>()) {
+				capacityAutoDefault |= button->autoDefault();
+				if (button->text() == QStringLiteral("Export capacity CSV...")) capacityExport = button;
+			}
 		auto* capacityTabs = capacity ? capacity->findChild<QTabWidget*>() : nullptr;
 		auto* pairTable = capacityTabs ? qobject_cast<QTableWidget*>(capacityTabs->widget(0)) : nullptr;
 		auto* compressionTable = capacityTabs && capacityTabs->count() > 1

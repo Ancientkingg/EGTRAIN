@@ -1352,11 +1352,10 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	const int rowsHeight = w.m_runResultsTable->viewport()->height();
 	openResults(819, 614);
 	const int resultsHeight = w.m_runResultsDock->height();
-	const int centralHeight = w.centralWidget->height();
 	const int canvasHeight = w.networkView->height();
 	const int minimumHeight = w.minimumSizeHint().height();
-	std::fprintf(stdout, "E2E_RUN_RESULTS_SMALL_WINDOW results=%d canvas=%d central=%d minimum_height=%d rows_1280=%d\n", resultsHeight,
-		canvasHeight, centralHeight, minimumHeight, rowsHeight);
+	std::fprintf(stdout, "E2E_RUN_RESULTS_SMALL_WINDOW results=%d canvas=%d minimum_height=%d rows_1280=%d\n", resultsHeight, canvasHeight,
+		minimumHeight, rowsHeight);
 	w.resize(sizeBefore);
 	QApplication::processEvents();
 	if (rowsHeight < w.m_runResultsTable->verticalHeader()->defaultSectionSize())
