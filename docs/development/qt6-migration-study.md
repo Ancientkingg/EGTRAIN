@@ -186,8 +186,6 @@ included.
 7. **Decide on Qt Charts.** Weigh Qt Graphs against keeping Qt Charts while Qt ships it. Include the size of the Qt
    Quick runtime in the decision.
 
-Status on 2026-10-20: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that are not required yet. With Qt 6.8.3 the
-application and all tests build with warnings as errors on macOS, Windows and Linux. The Qt 6 jobs leave out two tests
-that fail on the offscreen platform: `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP
-index of the scene, and on Linux `test_dialog_presentation_contract` finds that the Run simulation dialog with Run details
-open keeps a scroll range of 14 px instead of growing to show the details.
+Status on 2026-10-20: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that a pull request must pass, like the Qt 5 jobs. With Qt 6.8.3 the
+application and all tests build with warnings as errors on macOS, Windows and Linux, and the Qt 6 jobs run the same
+tests as the Qt 5 jobs.
