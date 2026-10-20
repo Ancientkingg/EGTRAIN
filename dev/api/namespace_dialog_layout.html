@@ -244,7 +244,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Lays out dialog as a heading, the context line when it is not empty, body in a scroll area and actions as the footer, and returns the scroll area. Transfers body and actions to dialog. The caller owns button roles, connections, validation, default action and any changes to application state. The combo boxes and spin boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls the body. The footer buttons are styled again, because the caller named them and made one the default after they were built, and a style cached by then misses the rules that name it. </p>
+<p>Lays out dialog as a heading, the context line when it is not empty, body in a scroll area and actions as the footer, and returns the scroll area. Transfers body and actions to dialog. The caller owns button roles, connections, validation, default action and any changes to application state. The combo boxes and spin boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls the body. The footer buttons are styled again, because the caller named them and made one the default after they were built, and a style cached by then misses the rules that name it. The first field of body takes the focus, else the default button, so that the dialog opens with the default that the caller chose. In a footer laid out for macOS the buttons are not auto default. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
