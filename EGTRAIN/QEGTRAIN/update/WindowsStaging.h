@@ -45,28 +45,24 @@ inline bool copyTree(const QString& sourcePath, const QString& destinationPath) 
 
 /// Files every Windows release package must contain, kept in step with the
 /// package verification of the Windows job in the release workflow. The
-/// libzmq DLL carries its version in the name and is matched separately. The Qt
-/// libraries carry the major version of the Qt that built the package.
-inline QStringList requiredRuntimeFiles(int qtMajor) {
-	const QString qt = QStringLiteral("Qt%1").arg(qtMajor);
+/// libzmq DLL carries its version in the name and is matched separately.
+inline QStringList requiredRuntimeFiles() {
 	return {
 		QStringLiteral("QEGTRAIN.exe"),
 		QStringLiteral("egtrain_update_helper.exe"),
-		qt + QStringLiteral("Core.dll"),
-		qt + QStringLiteral("Gui.dll"),
-		qt + QStringLiteral("Widgets.dll"),
-		qt + QStringLiteral("Charts.dll"),
-		qt + QStringLiteral("Svg.dll"),
-		qt + QStringLiteral("Network.dll"),
+		QStringLiteral("Qt6Core.dll"),
+		QStringLiteral("Qt6Gui.dll"),
+		QStringLiteral("Qt6Widgets.dll"),
+		QStringLiteral("Qt6Charts.dll"),
+		QStringLiteral("Qt6Svg.dll"),
+		QStringLiteral("Qt6Network.dll"),
 		QStringLiteral("platforms/qwindows.dll"),
 		QStringLiteral("imageformats/qsvg.dll")};
 }
 
 /// True when the directory holds the required runtime files, the Scenes
 /// directory and every file named in manifestFiles. When it does not, missing
-/// receives the first absent entry. A package with Qt6Core.dll needs the Qt 6
-/// libraries and any other the Qt 5 ones, so that a release built with Qt 5 can
-/// update to one built with Qt 6.
+/// receives the first absent entry.
 inline bool completeWindowsRuntime(const QString& directory, const QStringList& manifestFiles,
 	QString* missing = nullptr) {
 	const QDir root(directory);
@@ -75,8 +71,7 @@ inline bool completeWindowsRuntime(const QString& directory, const QStringList& 
 			*missing = name;
 		return false;
 	};
-	const int qtMajor = QFileInfo(root.filePath(QStringLiteral("Qt6Core.dll"))).isFile() ? 6 : 5;
-	for (const QString& name : requiredRuntimeFiles(qtMajor)) {
+	for (const QString& name : requiredRuntimeFiles()) {
 		if (!QFileInfo(root.filePath(name)).isFile())
 			return fail(name);
 	}

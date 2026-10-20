@@ -760,7 +760,7 @@ bool exerciseDisabledControls() {
 // looks like the default button of a dialog footer and the other button keeps the plain look.
 bool exerciseMessageBoxDefault() {
 #ifdef Q_OS_WIN
-	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	// The offscreen platform on Windows is not known to show a QMessageBox safely.
 	return true;
 #else
 	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
@@ -826,7 +826,7 @@ bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
 // The default button of an update prompt and of a dialog footer with long texts is not narrower than its text.
 bool exerciseDefaultButtonWidth(qreal scale) {
 #ifdef Q_OS_WIN
-	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	// The offscreen platform on Windows is not known to show a QMessageBox safely.
 	Q_UNUSED(scale);
 	return true;
 #else
@@ -1072,7 +1072,7 @@ bool exerciseRunReviewDefault() {
 	const ControlLook plainLook = controlLooks(ControlKind::PushButton, true, false).first;
 	ok &= checkLooks(cancelLook.face == plainLook.face, "the focused Cancel button looks like a default button", cancelLook, plainLook);
 #ifndef Q_OS_WIN
-	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	// The offscreen platform on Windows is not known to show a QMessageBox safely.
 	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
 		QMessageBox::Yes | QMessageBox::No);
 	box.setDefaultButton(QMessageBox::No);

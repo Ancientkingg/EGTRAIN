@@ -36,8 +36,8 @@ static bool until(QCoreApplication& app, const std::function<bool()>& predicate,
 int main(int argc, char** argv) {
 	QCoreApplication app(argc, argv);
 	assert(argc == 5);
-	// Qt 5.15 has no TLS library on Windows. The sender goes through WinHTTP there, so this program
-	// does not probe the server with Qt's own TLS on Windows.
+	// The sender goes through WinHTTP on Windows, so this program does not probe the server with Qt's
+	// own TLS there.
 #ifndef Q_OS_WIN
 	assert(QSslSocket::supportsSsl());
 #endif
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 			if (QSslSocket::sslLibraryVersionString().startsWith(QStringLiteral("Secure Transport"))
 				&& errorsSeen.size() == 1
 				&& errorsSeen.first() == QStringLiteral("The root CA certificate is not trusted for this purpose")) {
-				fprintf(stderr, "UNSUPPORTED: Qt5 Secure Transport rejects request-local test CA: %s\n",
+				fprintf(stderr, "UNSUPPORTED: Secure Transport rejects request-local test CA: %s\n",
 					qPrintable(errorsSeen.first()));
 				return 77;
 			}

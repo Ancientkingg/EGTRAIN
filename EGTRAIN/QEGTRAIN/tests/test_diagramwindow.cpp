@@ -1462,13 +1462,8 @@ int main(int argc, char* argv[]) {
 	wheel(view, {}, QPoint(0, 120), Qt::ShiftModifier);
 	ok &= expect(x->min() < beforeShift, "Shift wheel pans horizontally");
 	const QPoint center = view->mapFromScene(chart->mapToScene(chart->plotArea().center()));
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
 	QNativeGestureEvent gesture(Qt::ZoomNativeGesture, QPointingDevice::primaryPointingDevice(), 2, center, center,
 		view->viewport()->mapToGlobal(center), 0.2, QPointF(), 0);
-#else
-	QNativeGestureEvent gesture(Qt::ZoomNativeGesture, nullptr, center, center,
-		view->viewport()->mapToGlobal(center), 0.2, 0, 0);
-#endif
 	const double beforeNative = x->max() - x->min();
 	QApplication::sendEvent(view->viewport(), &gesture);
 	ok &= expect(std::abs((x->max() - x->min()) - beforeNative / 1.2) < 1e-8,

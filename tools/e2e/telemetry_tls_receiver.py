@@ -64,13 +64,13 @@ def run_case(client: str, cert: str, key: str, ca: str, scenario: int) -> None:
     try:
         result = subprocess.run([client, cert, str(port), str(scenario), ca], timeout=20, capture_output=True, text=True,
                                 encoding="utf-8", errors="replace")
-        if result.returncode == 77 and scenario != 0 and "UNSUPPORTED: Qt5 Secure Transport" in result.stderr:
+        if result.returncode == 77 and scenario != 0 and "UNSUPPORTED: Secure Transport" in result.stderr:
             print(result.stderr.strip(), file=sys.stderr)
             raise SystemExit(77)
         if result.returncode:
             raise AssertionError(f"scenario {scenario} client failed: requests={len(requests)} {result.stdout} {result.stderr}")
         # A trusted case is the preflight of the client plus the POST of the sender; no redirect follow.
-        # The client has no preflight on Windows, where Qt has no TLS library and the sender uses WinHTTP.
+        # The client has no preflight on Windows, where the sender uses WinHTTP.
         expected = 0 if scenario == 0 else 1 if sys.platform == "win32" else 2
         if len(requests) != expected:
             raise AssertionError(f"scenario {scenario}: expected {expected} HTTP requests, got {len(requests)}")
