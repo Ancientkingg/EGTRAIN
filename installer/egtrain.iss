@@ -42,6 +42,15 @@ Source: "installed-by-setup.ini"; DestDir: "{app}"; Flags: ignoreversion
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Scenes"
+; An installation of version 1.0.4 or older holds the files of Qt 5. These are the ones that no file of the package replaces.
+Type: files; Name: "{app}\Qt5*.dll"
+Type: filesandordirs; Name: "{app}\bearer"
+Type: files; Name: "{app}\styles\qwindowsvistastyle.dll"
+Type: files; Name: "{app}\imageformats\qicns.dll"
+Type: files; Name: "{app}\imageformats\qtga.dll"
+Type: files; Name: "{app}\imageformats\qtiff.dll"
+Type: files; Name: "{app}\imageformats\qwbmp.dll"
+Type: files; Name: "{app}\imageformats\qwebp.dll"
 
 [Icons]
 Name: "{userprograms}\EGTRAIN"; Filename: "{app}\QEGTRAIN.exe"; WorkingDir: "{app}"
