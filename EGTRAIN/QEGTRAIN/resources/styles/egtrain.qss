@@ -346,6 +346,12 @@ QComboBox:focus, QLineEdit:focus, QAbstractSpinBox:focus {
     padding: 3px 6px;
 }
 
+/* The clear button of a line edit is a tool button. It takes the height that the line edit gives it, not the minimum
+   height of a tool button, so it sits in the middle of the field, inside the focus border. */
+QLineEdit QToolButton {
+    min-height: 0;
+}
+
 /* The line edit inside a spin box draws no field of its own: the spin box is the field. */
 QAbstractSpinBox QLineEdit, QAbstractSpinBox QLineEdit:hover, QAbstractSpinBox QLineEdit:focus,
 QAbstractSpinBox QLineEdit:disabled {
