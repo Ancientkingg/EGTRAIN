@@ -1322,7 +1322,8 @@ QSize MainWindowTestAccess::replayRowSizeAt(MainWindow& w, int time) {
 // that dropped its first part and for one that kept no frame. Those histories are built here, the
 // first from the frames of the run with a budget that holds about half of them, and go through the
 // code that fills the row after a run. The history of the run is put back, and the window shows
-// the frame at the middle again. It also checks the width of Play, the Tab order and the focus frames after a run.
+// the frame at the middle again. It also checks the width of Play, the Tab order and the focus frames after a run, and that
+// a second result window does not open on top of the first.
 bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& failure) {
 	if (!checkReplayWholeRun(w, middle, failure))
 		return false;
@@ -1441,6 +1442,21 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		return fail(QStringLiteral("the Tab order after a run is %1").arg(names.join(QStringLiteral(", "))));
 	if (!tableEdge.startsWith(QLatin1String("#315a70")) || canvasEdge != QLatin1String("#5f8fa8#5f8fa8"))
 		return fail(QStringLiteral("the focus frame of the Run Results table is %1 and that of the network view %2").arg(tableEdge, canvasEdge));
+	// A second result window does not open on top of the first, which is still open.
+	w.buildPerTrainDiagram(0);
+	DiagramWindow* speedWindow = newestWindow(w);
+	w.showDelayDiagram();
+	DiagramWindow* delayWindow = newestWindow(w);
+	QApplication::processEvents();
+	const bool cascaded = speedWindow && delayWindow && speedWindow != delayWindow && speedWindow->pos() != delayWindow->pos();
+	for (DiagramWindow* resultWindow : {delayWindow, speedWindow})
+		if (resultWindow)
+			resultWindow->close();
+	// The offscreen platform activates no other window when the active one closes.
+	w.activateWindow();
+	QApplication::processEvents();
+	if (!cascaded)
+		return fail(QStringLiteral("a second result window opens at the place of the first"));
 
 	// The same run with its first part dropped.
 	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> frames;

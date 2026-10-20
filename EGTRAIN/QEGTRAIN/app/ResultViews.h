@@ -1,7 +1,9 @@
 #ifndef RESULTVIEWS_H
 #define RESULTVIEWS_H
 
+#include <QList>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 
 #include <functional>
@@ -114,10 +116,16 @@ private:
 	// The runtime index of the route that the user picks from the routes the run used, -1 when there is none or the user
 	// cancels.
 	int chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const;
+	// Shows a result window. While another result window is open, the new one opens a step below and to the right of the
+	// one that opened last, or at the top left of the screen when that step would leave the screen; otherwise Qt centres
+	// it over the main window.
+	void showWindow(QWidget* window);
 
 	QWidget* const m_window;
 	RunController* const m_runController;
 	Host& m_host;
+	// The result windows that showWindow() opened, oldest first; a closed window is deleted and leaves a null entry.
+	QList<QPointer<QWidget>> m_windows;
 };
 
 #endif // RESULTVIEWS_H
