@@ -5,16 +5,23 @@
 #include "tests/e2e/E2ERunner.h"
 #include "app/MainWindowTestHooks.h"
 #include "telemetry/TelemetryConsent.h"
+#include <QApplication>
+#include <QColor>
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDir>
 #include <QFileInfo>
 #include <QFileOpenEvent>
+#include <QPalette>
 #include <QSettings>
 #include <QStatusBar>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
+#include <QToolTip>
 #include <QUrl>
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <iostream>
 
@@ -28,6 +35,7 @@ struct Scenario {
 };
 
 constexpr const char* kVisualPolish = "QEGTRAIN_E2E_VISUAL_POLISH";
+constexpr const char* kDarkPalette = "QEGTRAIN_E2E_DARK_PALETTE";
 constexpr const char* kCreatorAcceptance = "QEGTRAIN_E2E_CREATOR_ACCEPTANCE";
 
 const Scenario kScenarios[] = {
@@ -126,6 +134,40 @@ bool startNoTelemetry(UpdateTelemetryController&) {
 	return false;
 }
 
+// The contrast ratio of two colours as WCAG 2 defines it.
+double contrast(const QColor& first, const QColor& second) {
+	const auto luminance = [](const QColor& color) {
+		const auto channel = [](qreal value) { return value <= 0.03928 ? value / 12.92 : std::pow((value + 0.055) / 1.055, 2.4); };
+		return 0.2126 * channel(color.redF()) + 0.7152 * channel(color.greenF()) + 0.0722 * channel(color.blueF());
+	};
+	const double one = luminance(first);
+	const double other = luminance(second);
+	return (std::max(one, other) + 0.05) / (std::min(one, other) + 0.05);
+}
+
+// After a start with the dark palette of QEGTRAIN_E2E_DARK_PALETTE the application must keep its light look: light fields
+// with dark text, which charts also take, readable selected rows and a light tooltip.
+void checkLightLook() {
+	QStringList failures;
+	const QPalette palette = QApplication::palette();
+	if (palette.color(QPalette::Window).lightness() < 200 || palette.color(QPalette::Base).lightness() < 200)
+		failures << QStringLiteral("the palette is dark: window %1, base %2")
+						.arg(palette.color(QPalette::Window).name(), palette.color(QPalette::Base).name());
+	if (contrast(palette.color(QPalette::Base), palette.color(QPalette::Text)) < 4.5)
+		failures << QStringLiteral("text on the base colour is not readable");
+	if (contrast(palette.color(QPalette::Highlight), palette.color(QPalette::HighlightedText)) < 3.0)
+		failures << QStringLiteral("selected rows are not readable: %1 on %2")
+						.arg(palette.color(QPalette::HighlightedText).name(), palette.color(QPalette::Highlight).name());
+	const QColor tipColor = QToolTip::palette().color(QPalette::ToolTipBase);
+	if (tipColor.lightness() < 200)
+		failures << QStringLiteral("the tooltip is dark: %1").arg(tipColor.name());
+	if (failures.isEmpty())
+		std::fprintf(stdout, "E2E_LIGHT_LOOK_OK\n");
+	else
+		std::fprintf(stdout, "E2E_LIGHT_LOOK_FAIL: %s\n", failures.join(QStringLiteral("; ")).toUtf8().constData());
+	std::fflush(stdout);
+}
+
 void startScenarios(MainWindow& window) {
 	// The scripts of Dialogs.cpp act on the dialogs for which the variables of their scenario are set.
 	mainWindowTestHooks().dialogShown = [&window](QDialog& dialog, const char* kind) {
@@ -137,6 +179,8 @@ void startScenarios(MainWindow& window) {
 	// A window without a scene has no run to start.
 	if (!mainWindowTestHooks().suppressStartupPrompts)
 		MainWindowTestAccess::autostart(window);
+	if (qEnvironmentVariableIsSet(kDarkPalette))
+		QTimer::singleShot(0, &window, [] { checkLightLook(); });
 	for (const Scenario& scenario : kScenarios) {
 		if (!qEnvironmentVariableIsSet(scenario.variable))
 			continue;
@@ -211,6 +255,19 @@ bool configureProcess() {
 #endif
 	mainWindowTestHooks().afterFirstShow = &startScenarios;
 	return true;
+}
+
+void configureApplication() {
+	if (!qEnvironmentVariableIsSet(kDarkPalette))
+		return;
+	// A dark palette with the selection and tooltip colours of the Breeze Dark scheme, which a KDE desktop hands to Qt.
+	QPalette dark(QColor(0x31, 0x36, 0x3b));
+	dark.setColor(QPalette::Highlight, QColor(0x3d, 0xae, 0xe9));
+	dark.setColor(QPalette::HighlightedText, Qt::white);
+	dark.setColor(QPalette::ToolTipBase, QColor(0x31, 0x36, 0x3b));
+	dark.setColor(QPalette::ToolTipText, QColor(0xef, 0xf0, 0xf1));
+	QApplication::setPalette(dark);
+	QToolTip::setPalette(dark);
 }
 
 bool wantsCreatorAcceptance() {

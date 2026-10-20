@@ -722,6 +722,16 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				QApplication::processEvents(QEventLoop::AllEvents, 20);
 		}
 	}
+	// Tooltips and accessible descriptions write a shortcut as the platform does, with the Command key on macOS.
+	for (const char* name : {"actionRunButton", "actionPauseButton", "actionStopButton", "actionZoomInButton", "actionZoomOutButton"}) {
+		const auto* button = w.findChild<QToolButton*>(name);
+		const QAction* action = button ? button->defaultAction() : nullptr;
+		const QString shortcut = action ? QStringLiteral("(%1)").arg(action->shortcut().toString(QKeySequence::NativeText)) : QString();
+		if (!action || !action->toolTip().endsWith(shortcut) || !button->accessibleDescription().endsWith(shortcut)) {
+			ok = false;
+			failures << QString("%1 does not write its shortcut as the platform does: %2").arg(name, button ? button->accessibleDescription() : QString());
+		}
+	}
 	// The Pause button reads Resume while the run is paused. It keeps its width, so the toolbar does not move and the
 	// zoom buttons stay inside it.
 	if (pauseAction && w.m_toolBar) {
