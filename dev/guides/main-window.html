@@ -202,6 +202,7 @@
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
 <li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
 <li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
@@ -336,8 +337,8 @@ coefficients <code class="docutils literal notranslate"><span class="pre">a</spa
 have positive width, be ordered, and not overlap.</p>
 <p>The label under <strong>Link parameter file…</strong> and <strong>Link traction file…</strong> shows
 the state of the link. <strong>Unlinked</strong> means no file is linked. A linked file that
-exists shows <strong>Linked</strong>, <strong>Up to date</strong> or <strong>Reloaded</strong>, <strong>Rejected</strong> with the
-reason when it cannot be read, or <strong>Kept local</strong> after Keep local. A reload or a retry that has not finished shows <strong>Linked; waiting for reload</strong> or <strong>Retrying</strong>, and during a run <strong>Linked; pending reload after run</strong> or <strong>Retry pending after run</strong>. <strong>Missing</strong>
+exists shows <code class="docutils literal notranslate"><span class="pre">Linked:</span> <span class="pre">&lt;file</span> <span class="pre">name&gt;</span></code>, <strong>Up to date</strong> or <strong>Reloaded</strong>, <code class="docutils literal notranslate"><span class="pre">Rejected:</span> <span class="pre">&lt;reason&gt;;</span> <span class="pre">Retry</span> <span class="pre">available</span></code>
+when it cannot be read, or <strong>Kept local; Retry available</strong> after Keep local. A reload or a retry that has not finished shows <strong>Linked; waiting for reload</strong> or <strong>Retrying</strong>, and during a run <strong>Linked; pending reload after run</strong> or <strong>Retry pending after run</strong>. <code class="docutils literal notranslate"><span class="pre">Missing:</span> <span class="pre">&lt;path&gt;;</span> <span class="pre">Retry</span> <span class="pre">available</span></code>
 replaces all of these when the linked file does not exist, also after Keep local.
 It shows the path of the file, and <strong>Retry</strong> stays available. A conflict between
 local edits and a changed file is a question, not a label: it asks for Reload

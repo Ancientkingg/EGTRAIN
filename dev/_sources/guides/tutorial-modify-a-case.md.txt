@@ -8,7 +8,7 @@ Save the supplied case under a new name with **File > Save Case Study As...** be
 
 ## 1. Open Paimpol and save a working copy
 
-1. Open **Paimpol** from **Bundled cases** in the **Open a Case** window (toolbar button **Open Case**), as in [Getting started](getting-started.md). The title bar reads `EGTRAIN - Paimpol` and the dock **Case and Layers** shows "Ready to run".
+1. Open `Paimpol` from **Bundled cases** in the **Open a Case** window (toolbar button **Open Case**), as in [Getting started](getting-started.md). The title bar reads `EGTRAIN - Paimpol` and the dock **Case and Layers** shows "Ready to run".
 2. Choose **File > Save Case Study As...**. The dialog **Save Case Study As** starts in your Documents folder when the case comes from the installation. Name the file `paimpol-practice.egscene` and save it. EGTRAIN adds `.egscene` when you leave it out.
 3. The window now holds the copy: **File > Save Scene** writes to `paimpol-practice.egscene`, and **File > Recent Scenes** lists it. The scene inside still has the name `Paimpol`, so the title bar does not tell the copy from the original, and a run of the copy would write to the same output folder as a run of the original ([Output folder](command-line.md#output-folder)).
 4. Give the copy its own name. Open the dock **Case Settings** (**Editors > Case Settings**), replace **Name** with `Paimpol practice` and press Enter. The title bar now reads `EGTRAIN - Paimpol practice`, with the platform's mark for unsaved changes.
@@ -34,7 +34,7 @@ Close the timetable window. The window should show the same values.
 Both edits are to the service `Guin-Paim-EXPRESS-1`, the train that runs from Guingamp to Paimpol and stops at Pontrieaux on the way.
 
 1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list. The dock has the tabs **Service**, **Timetable** and **Run occurrences**.
-2. Open the tab **Timetable** and click the row **Pontrieaux** in the table of stops. The dialog **Edit timetable stop** opens.
+2. Open the tab **Timetable** and click the row `Pontrieaux` in the table of stops. The dialog **Edit timetable stop** opens.
 
    ![The dialog Edit timetable stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as committed: compatible platform (no platform), planned arrival 1567, planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
 3. Try **Cancel** first: change **Minimum dwell (s)** from 60 to 999 and choose **Cancel**. The row still shows 60 and the title bar shows no mark for unsaved changes.
@@ -56,8 +56,8 @@ A warning does not block a run. An error does: **Run** is disabled and the dock 
 ## 5. Save, reopen from Recent Scenes, and check the original
 
 1. Choose **File > Save Scene**. This writes `paimpol-practice.egscene`.
-2. Open the original: choose **Open Case** in the toolbar, then **Paimpol** under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Running performance (parameter) %** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
-3. Choose **File > Recent Scenes > paimpol-practice**, then `Guin-Paim-EXPRESS-1` in the list of **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
+2. Open the original: choose **Open Case** in the toolbar, then `Paimpol` under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Running performance (parameter) %** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
+3. Choose **File > Recent Scenes** > `paimpol-practice`, then `Guin-Paim-EXPRESS-1` in the list of **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
 
 The supplied case is a scene folder, not a file. In a source checkout, this prints nothing:
 

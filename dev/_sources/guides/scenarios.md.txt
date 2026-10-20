@@ -113,8 +113,8 @@ A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline but reports that the newly
-selected scenario has not been run; a canonical scene edit, **New**, or
-**Open** clears the baseline and explains that a new run without incidents or
+selected scenario has not been run; a canonical scene edit, **File > New Case Study...**, or
+opening another case clears the baseline and explains that a new run without incidents or
 entrance delays is needed. **Compare delays** requires a run with incidents or
 entrance delays that matches the baseline, and opens the delay analysis window
 on its tab Against baseline. The window reports the difference and the recorded

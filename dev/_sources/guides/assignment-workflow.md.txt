@@ -83,7 +83,7 @@ with an implicit conventional or ETCS setting.
 | 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and choose **Compare delays**. | Read the recorded direct evidence and the additional delay of each occurrence, and the sum of the additional delays at the final arrival. A delay without recorded evidence is not shown to be propagated. |
 | 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit the delay of the other trains. |
 | 24 | Export results | Use CSV from result tables and PNG from diagrams. | Keep the input settings and selected occurrences with submitted evidence. |
-| 25 | Save and distribute | Save the canonical folder, use **Save As** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
+| 25 | Save and distribute | Save the canonical folder, use **File > Save Case Study As...** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
 
 ## Calculation boundaries
 

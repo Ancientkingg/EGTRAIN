@@ -14,7 +14,7 @@ permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
 disk image or another read-only location; move it to the Applications folder
 first.
 
-When a newer release exists, the dialog **EGTRAIN <version> is Available** shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
+When a newer release exists, the dialog `EGTRAIN <version> is Available` shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
 
 Production updates are stable versioned releases. With automatic checks enabled,
 EGTRAIN offers newer releases on the next application start; it does not interrupt
