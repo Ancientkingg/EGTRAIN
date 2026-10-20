@@ -23,22 +23,22 @@ int main(int argc, char** argv) {
 	bar.setProgress(0, 8000, startOffset);
 	ok &= expect(bar.minimum() == 0 && bar.maximum() == 7999, "timeline range is zero-based");
 	ok &= expect(bar.value() == 0, "first timestep is zero");
-	ok &= expect(bar.format() == "06:28:20 | Step 1 of 8,000 | Ends 08:41:40",
-		"first timestep text is exact");
+	ok &= expect(bar.format() == "06:28:20 of 08:41:40" && bar.toolTip() == "Step 1 of 8,000",
+		"first timestep text and tooltip are exact");
 
 	bar.setProgress(3999, 8000, startOffset);
 	ok &= expect(bar.value() == 3999, "middle timestep value is zero-based");
-	ok &= expect(bar.format() == "07:34:59 | Step 4,000 of 8,000 | Ends 08:41:40",
-		"middle timestep text is exact");
+	ok &= expect(bar.format() == "07:34:59 of 08:41:40" && bar.toolTip() == "Step 4,000 of 8,000",
+		"middle timestep text and tooltip are exact");
 
 	bar.setProgress(7999, 8000, startOffset);
 	ok &= expect(bar.value() == 7999, "last timestep value is zero-based");
-	ok &= expect(bar.format() == "08:41:39 | Step 8,000 of 8,000 | Ends 08:41:40",
-		"last timestep text is exact");
+	ok &= expect(bar.format() == "08:41:39 of 08:41:40" && bar.toolTip() == "Step 8,000 of 8,000",
+		"last timestep text and tooltip are exact");
 	ok &= expect(bar.height() == 28 && bar.focusPolicy() == Qt::NoFocus,
 		"timeline has fixed height and no focus");
 	ok &= expect(bar.font().family() == QFontDatabase::systemFont(QFontDatabase::FixedFont).family(),
-		"timeline uses the system fixed-width font for clock and step columns");
+		"timeline uses the system fixed-width font for the clock times");
 	ok &= expect(bar.font().fixedPitch(),
 		"timeline font has fixed character widths");
 

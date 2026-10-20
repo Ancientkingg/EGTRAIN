@@ -44,6 +44,7 @@
 #include <QFile>
 #include <QGraphicsItem>
 #include <QHeaderView>
+#include <QImage>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineF>
@@ -1234,6 +1235,8 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return false;
 	};
 	const QString whole = QStringLiteral("Whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
+	// The label names the selected time as the clock time of the progress bar.
+	const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 	if (w.m_completedReplay.firstTime() != 0 || w.m_completedReplay.truncated() || !replaySliderCovers(w, 0, last))
 		return fail(QStringLiteral("the slider of a whole run does not cover 0 to %1 s").arg(last));
 	const auto finalFrame = w.m_completedReplay.atOrBefore(last);
@@ -1241,12 +1244,13 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return fail(QStringLiteral("the last kept frame, at %1 s, is not the last timestep of a run of %2 timesteps")
 				.arg(last)
 				.arg(finalFrame ? finalFrame->totalTimesteps : 0));
-	if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != whole || !w.m_replayStartButton->toolTip().isEmpty())
+	if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != whole
+		|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
 		return fail(QStringLiteral("the row of a whole run says '%1' and '%2' with the tooltip '%3'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text(), w.m_replayStartButton->toolTip()));
 	w.m_replaySlider->setValue(middle);
 	const auto shown = w.m_completedReplay.atOrBefore(middle);
-	if (w.m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(shown->timestep) || w.m_replayCoverageLabel->text() != whole)
+	if (w.m_replayLabel->text() != clock(shown->timestep) || w.m_replayCoverageLabel->text() != whole)
 		return fail(QStringLiteral("a whole run says '%1' and '%2' for the frame at %3 s")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text())
 				.arg(shown->timestep));
@@ -1275,7 +1279,7 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 	}
 	w.m_replayStartButton->click();
 	if (w.m_replayRequestedTime != 0 || !w.m_snapshot || w.m_snapshot->timestep != 0 || w.m_replaySlider->value() != 0
-		|| w.m_replayLabel->text() != QStringLiteral("Replay at 0 s") || w.m_replayCoverageLabel->text() != whole)
+		|| w.m_replayLabel->text() != clock(0) || w.m_replayCoverageLabel->text() != whole)
 		return fail(QStringLiteral("Start of a whole run did not go to 0 s, the row says '%1' and '%2'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text()));
 	const QSize size = replayRowSizeAt(w, 0);
@@ -1326,17 +1330,28 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		return false;
 	};
 
-	// Play keeps its width when it reads Pause, so End does not move.
+	// Start, Play and End show an icon and have a tooltip and a name. While the replay plays, Play shows another icon,
+	// tooltip and the name Pause, and keeps its width, so End does not move.
 	auto* endButton = w.m_replayBar->findChild<QPushButton*>("replayEndButton");
+	const auto iconOf = [](const QPushButton* button) { return button->icon().pixmap(16, 16).toImage(); };
+	const auto shows = [&iconOf](const QPushButton* button, const char* name) {
+		return button && !iconOf(button).isNull() && !button->toolTip().isEmpty() && button->accessibleName() == QLatin1String(name);
+	};
+	const bool named = shows(w.m_replayStartButton, "Start") && shows(w.m_replayPlayButton, "Play") && shows(endButton, "End");
+	const QImage playIcon = iconOf(w.m_replayPlayButton);
+	const QString playTip = w.m_replayPlayButton->toolTip();
 	const int endX = endButton ? endButton->x() : -1;
 	w.m_replayPlayButton->click();
 	QApplication::processEvents();
 	QApplication::processEvents();
-	const bool endKept = w.m_replayPlayButton->text() == QLatin1String("Pause") && endButton && endButton->x() == endX;
+	const bool paused = shows(w.m_replayPlayButton, "Pause") && iconOf(w.m_replayPlayButton) != playIcon && w.m_replayPlayButton->toolTip() != playTip;
+	const bool endKept = endButton && endButton->x() == endX;
 	w.m_replayPlayButton->click();
 	QApplication::processEvents();
+	if (!named || !paused || !shows(w.m_replayPlayButton, "Play") || iconOf(w.m_replayPlayButton) != playIcon)
+		return fail(QStringLiteral("Start, Play and End do not show an icon, a tooltip and their name, or Play does not turn into Pause and back"));
 	if (!endKept)
-		return fail(QStringLiteral("End moved when Play read Pause"));
+		return fail(QStringLiteral("End moved when Play turned into Pause"));
 	// Opened in a maximised window on a 1024 by 768 screen, Run Results shows the header and a row of its table without
 	// scrolling. In a window of 819 by 614 pixels (1024 by 768 at 125 percent) it takes at most half of the height that it
 	// shares with the network view, and the window can be lower than a screen of 683 by 464 pixels (1024 by 768 at 150 percent)
@@ -1442,6 +1457,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 			return std::make_pair(sentence, QStringLiteral("Go to the first kept time, %1. The earlier part of the run was not kept.").arg(start));
 		};
 		const auto [dropped, tip] = words(w.m_runController->m_startOffsetSeconds);
+		const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 		if (!replaySliderCovers(w, from, last))
 			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
 		if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != dropped)
@@ -1451,13 +1467,13 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		const QString row = w.m_replayCoverageLabel->text();
 		w.m_replayStartButton->click();
 		if (w.m_replayRequestedTime != from || !w.m_snapshot || w.m_snapshot->timestep != from || w.m_replaySlider->value() != from
-			|| w.m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(from) || w.m_replayCoverageLabel->text() != dropped)
+			|| w.m_replayLabel->text() != clock(from) || w.m_replayCoverageLabel->text() != dropped)
 			return QStringLiteral("Start did not go to %1 s, the row says '%2' and '%3'").arg(from).arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text());
 		w.seekReplay(0);
 		if (w.m_replayRequestedTime != from || w.m_snapshot->timestep != from)
 			return QStringLiteral("a time before the kept interval did not select %1 s").arg(from);
 		w.m_replaySlider->setValue(last);
-		if (w.m_replayRequestedTime != last || w.m_snapshot->timestep != last || w.m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(last)
+		if (w.m_replayRequestedTime != last || w.m_snapshot->timestep != last || w.m_replayLabel->text() != clock(last)
 			|| w.m_replayCoverageLabel->text() != dropped)
 			return QStringLiteral("the end of the slider did not select %1 s, the row says '%2' and '%3'")
 				.arg(last)
@@ -1474,14 +1490,14 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 				.arg(sizeAtEnd.height())
 				.arg(last);
 		w.seekReplay(last);
-		// A change of the start time moves the clock in the sentence and in the tooltip.
+		// A change of the start time moves the clock in the label, the sentence and the tooltip.
 		const long long offsetBefore = w.m_runController->m_startOffsetSeconds;
 		w.setStartOffset(offsetBefore + 3600);
 		const auto [movedSentence, movedTip] = words(offsetBefore + 3600);
-		const bool moved = w.m_replayLabel->text() == QStringLiteral("Replay at %1 s").arg(last) && w.m_replayCoverageLabel->text() == movedSentence
+		const bool moved = w.m_replayLabel->text() == clock(last) && w.m_replayCoverageLabel->text() == movedSentence
 			&& w.m_replayStartButton->toolTip() == movedTip && movedTip != tip;
 		w.setStartOffset(offsetBefore);
-		if (!moved || w.m_replayCoverageLabel->text() != dropped || w.m_replayStartButton->toolTip() != tip)
+		if (!moved || w.m_replayLabel->text() != clock(last) || w.m_replayCoverageLabel->text() != dropped || w.m_replayStartButton->toolTip() != tip)
 			return QStringLiteral("a change of the start time did not move the clock in the row");
 		std::fprintf(stdout, "E2E_REPLAY_ROW_DROPPED_OK from=%d label=\"%s\" start_tooltip=\"%s\" slider_width=%d row_height=%d\n", from, qPrintable(row),
 			qPrintable(tip), size.width(), size.height());
@@ -1503,7 +1519,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		const QString expected = QStringLiteral("One moment of this run needs more than the replay memory (1 MiB).");
 		if (!w.m_completedReplay.oversize() || !w.m_completedReplay.empty() || !w.m_replayBar->isVisible() || w.m_replayLabel->text() != QStringLiteral("No replay")
 			|| w.m_replayCoverageLabel->text() != expected || w.m_replaySlider->isEnabled() || w.m_replayPlayButton->isEnabled()
-			|| !w.m_replayStartButton->toolTip().isEmpty())
+			|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
 			return QStringLiteral("the row says '%1' and '%2', the slider is %3, Play is %4, Start says '%5'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text(), w.m_replaySlider->isEnabled() ? "enabled" : "disabled",
 					w.m_replayPlayButton->isEnabled() ? "enabled" : "disabled", w.m_replayStartButton->toolTip());

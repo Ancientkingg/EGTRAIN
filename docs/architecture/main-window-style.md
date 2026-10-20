@@ -4,7 +4,7 @@
 
 The Pause button reads **Resume** while a run is paused. It is as wide as the longer text, so the toolbar does not move, and its outline shows the whole button, so the gaps from Run to Pause and from Pause to Stop are equal.
 
-In the replay row Tab goes from **Start** to **Play** and **End** and then to the slider. **Play** reads **Pause** while the replay plays and is as wide as the longer text, so End and the slider do not move.
+The replay row starts with the icon buttons **Start**, **Play** and **End**, each with a tooltip and an accessible name; Tab goes from Start to Play and End and then to the slider. While the replay plays, **Play** shows the pause icon, the tooltip and the name **Pause**. The icons have one size, so End and the slider do not move. The label after the slider shows the clock time of the shown frame in the format of the progress bar and is as wide as its longest text, so the slider keeps its width while the user seeks.
 
 The speed slider in the toolbar sets how fast a run plays; right is faster. The filled part of the track, `#315a70`, shows how far the slider is towards the fastest setting; the rest of the track is `#7b8b96`. The handle is a solid `#315a70` circle with a white border. It turns `#26495c` under the pointer and while it is dragged, gets a `#24313a` border when it has keyboard focus, and the handle and the filled part turn `#9aa5ab` when the slider is disabled. The replay slider in the replay row has the same look.
 
