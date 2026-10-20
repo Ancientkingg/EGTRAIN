@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition) std::cerr << "failed: " << message << "\n";
@@ -253,7 +254,8 @@ static bool exerciseTrainFilter() {
 }
 
 // On a screen without room for the whole list below or above the button, the list takes the larger room and scrolls, and the
-// menu does not cover the button. In the middle of the screen the list is lower than the default height of a list view.
+// menu does not cover the button. Beside a tall button in the middle of the screen the list is lower than the default height of
+// a list view.
 static bool exerciseTrainFilterRoom() {
 	QWidget window;
 	auto* filter = new TrainFilterButton(&window);
@@ -263,8 +265,9 @@ static bool exerciseTrainFilterRoom() {
 	filter->setTrains(trains);
 	const QRect screen = window.screen()->availableGeometry();
 	bool ok = true;
-	for (const int eighths : {3, 4}) {
-		window.setGeometry(screen.left(), screen.top() + screen.height() * eighths / 8 - 30, 200, 60);
+	for (const auto& [top, buttonHeight] : {std::pair(screen.height() * 3 / 8, 30), std::pair(screen.height() / 2 - 80, 160)}) {
+		filter->setFixedHeight(buttonHeight);
+		window.setGeometry(screen.left(), screen.top() + top, 200, buttonHeight);
 		window.show();
 		QApplication::processEvents();
 		QRect menuArea;
@@ -277,7 +280,7 @@ static bool exerciseTrainFilterRoom() {
 		filter->showMenu();
 		const QRect button(filter->mapToGlobal(QPoint(0, 0)), filter->size());
 		ok &= expect(screen.contains(menuArea) && !menuArea.intersects(button) && scrolls,
-			qPrintable(QString("the train list fits the room beside its button at %1/8 of the screen and scrolls").arg(eighths)));
+			qPrintable(QString("the train list fits the room beside a button %1 px high and scrolls").arg(buttonHeight)));
 	}
 	return ok;
 }
