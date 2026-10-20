@@ -9,5 +9,6 @@
 
 # The offscreen platform plugin keeps its screen, cursor and their shared pointers after
 # QApplication ends: indirect leaks in every test that creates a QApplication on the offscreen
-# platform. The plugin owns them.
+# platform, measured with Qt 5.15. The plugin owns them. The leak check passes with this rule
+# on Qt 6.8.3.
 leak:libqoffscreen.so
