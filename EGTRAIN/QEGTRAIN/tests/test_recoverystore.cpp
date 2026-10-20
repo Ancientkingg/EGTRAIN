@@ -331,6 +331,13 @@ static bool testFailedWrite() {
 	const RecoveryResult unfinished = store.write(incomplete, source);
 	ok &= expect(cleanError(unfinished, root) && unfinished.error == "Cannot write the recovery copy because incident 2 is incomplete",
 		"failed write: an incomplete incident is named in the error");
+	SceneModel newService = makeScene("new service");
+	SceneService service;
+	service.id = "service.a";
+	newService.services.push_back(service);
+	const RecoveryResult unfinishedService = store.write(newService, source);
+	ok &= expect(cleanError(unfinishedService, root) && unfinishedService.error.endsWith(" because service 1 is incomplete"),
+		"failed write: a new service without a composition is named in the error");
 	ok &= expect(snapshot(folder) == before, "failed write: the folder and the record are unchanged");
 	ok &= expect(bundleLoadsAs(at(folder, "gen-1.egscene"), "first"), "failed write: the previous bundle still loads");
 

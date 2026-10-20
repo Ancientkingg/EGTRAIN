@@ -2197,6 +2197,14 @@ void MainWindow::startRecovery() {
 		m_recoveryFailureShown = true;
 		statusBar()->showMessage(QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message));
 	});
+	// A copy that is written again ends the failure, and a later failure is reported again.
+	connect(m_recovery.get(), &RecoveryController::written, this, [this] {
+		if (!m_recoveryFailureShown)
+			return;
+		m_recoveryFailureShown = false;
+		if (statusBar()->currentMessage().startsWith(QLatin1String("Autosave unavailable")))
+			statusBar()->clearMessage();
+	});
 }
 
 void MainWindow::recoverySceneChanged() {
