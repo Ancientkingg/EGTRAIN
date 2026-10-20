@@ -59,6 +59,7 @@ canonical model.
 - [Dialog sheet 2026-10-17](ui/dialog-sheet-2026-10-17.md): the custom dialogs before and after the shared presentation, side by side, as a dated record.
 - [Result-window presentation seam](ui/result-window-presentation.md): the contract for the heading, context and warning of the result windows, their size limits and the layout of the custom result dialogs.
 - [Main window](ui/main-window.md): the toolbar speed slider and its readout, the run duration in Run simulation, the lines at the top of Run Results, the first sizes of the Run Results and Case and Layers docks, and the look of tables, the progress bar and the Run Results buttons.
+- [Interface style](architecture/interface-style.md): the fonts, type scale, spacing, colour tokens with contrast ratios, states and table conventions of the windows, and the #409 decision on the look.
 - [Network renderer style map](ui/renderer-style-map.md): how the network canvas draws each element, with colours, sizes and contrast ratios.
 - [Historical track presentation](ui/historical-track-comparison.md): the original renderer used as the visual reference, the only intentional differences from it, the captures that compare the two renderers, and how its drawing distances convert to scene units.
 - [Playback profiling](development/playback-profiling.md): the opt-in tool that measures GUI playback of the Copenhagen case, with its protocol, what it measures and its decision rule.

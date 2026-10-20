@@ -48,17 +48,17 @@ inline QLabel* emptyStateLabel(QWidget* parent) {
 	return label;
 }
 
-/// Heading for a group of fields: bold and two points larger than the font of the parent when the
-/// heading is made, or three pixels larger when that font is given in pixels. The text is plain and
-/// wraps as in wrappedLabel. The caller adds it to a layout and sets any object name.
+/// Heading for a group of fields: bold and 1.1 times the font of the parent when the heading is made,
+/// in points or in pixels as that font is given. The text is plain and wraps as in wrappedLabel. The
+/// caller adds it to a layout and sets any object name.
 inline QLabel* sectionHeading(const QString& title, QWidget* parent) {
 	QLabel* heading = wrappedLabel(title, parent);
 	QFont font = heading->font();
 	font.setBold(true);
 	if (font.pointSizeF() > 0)
-		font.setPointSizeF(font.pointSizeF() + 2.0);
+		font.setPointSizeF(font.pointSizeF() * 1.1);
 	else if (font.pixelSize() > 0)
-		font.setPixelSize(font.pixelSize() + 3);
+		font.setPixelSize(qRound(font.pixelSize() * 1.1));
 	heading->setFont(font);
 	return heading;
 }

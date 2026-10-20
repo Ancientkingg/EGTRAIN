@@ -6,6 +6,7 @@
 #include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -156,11 +157,15 @@ QTableWidget* makeTable(QWidget* parent, const char* name, const QStringList& he
 	return table;
 }
 
-void fillTable(QTableWidget* table, const std::vector<QStringList>& rows) {
+void fillTable(QTableWidget* table, const std::vector<QStringList>& rows, const QList<int>& numericColumns = {}) {
 	table->setRowCount(static_cast<int>(rows.size()));
 	for (int row = 0; row < table->rowCount(); ++row) {
-		for (int column = 0; column < table->columnCount(); ++column)
-			table->setItem(row, column, new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column)));
+		for (int column = 0; column < table->columnCount(); ++column) {
+			auto* item = new QTableWidgetItem(rows[static_cast<std::size_t>(row)].value(column));
+			if (numericColumns.contains(column))
+				item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+			table->setItem(row, column, item);
+		}
 	}
 	table->resizeColumnsToContents();
 }
@@ -168,14 +173,6 @@ void fillTable(QTableWidget* table, const std::vector<QStringList>& rows) {
 QLabel* makeHelp(QWidget* parent, const QString& help) {
 	auto* label = new QLabel(parent);
 	DialogLayout::setHelp(label, help);
-	return label;
-}
-
-QLabel* makeCaption(QWidget* parent, const QString& caption) {
-	auto* label = new QLabel(caption, parent);
-	QFont font = label->font();
-	font.setBold(true);
-	label->setFont(font);
 	return label;
 }
 
@@ -553,12 +550,12 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_baselineTotals->setTextFormat(Qt::PlainText);
 	m_baselineTotals->setWordWrap(true);
 	resultsLayout->addWidget(m_baselineTotals);
-	resultsLayout->addWidget(makeCaption(m_baselineResults, "Occurrences"));
+	resultsLayout->addWidget(EditorLayout::sectionHeading("Occurrences", m_baselineResults));
 	m_baselineOccurrences = makeTable(m_baselineResults, "delayBaselineOccurrences",
 		{"Service", "Occurrence", "Train", "Operating code", "Input delay (primary) [s]", "Input delay at", "Direct incident evidence",
 			"Final station", "Baseline final arrival [s]", "Scenario final arrival [s]", "Additional delay [s]", "Change", "Secondary delay [s]"});
 	resultsLayout->addWidget(m_baselineOccurrences, 1);
-	resultsLayout->addWidget(makeCaption(m_baselineResults, "Calls"));
+	resultsLayout->addWidget(EditorLayout::sectionHeading("Calls", m_baselineResults));
 	const QStringList differenceHeaders = {"Baseline [s]", "Scenario [s]", "Additional delay [s]", "Change"};
 	QStringList callHeaders = {"Service", "Occurrence", "Station", "Journey order", "Call", "Final call"};
 	for (const QString& header : differenceHeaders)
@@ -637,7 +634,7 @@ void DelayAnalysisWindow::fillCalls() {
 	std::vector<QStringList> rows;
 	for (const DelayEvent& event : m_shownEvents)
 		rows.push_back(callRow(event));
-	fillTable(m_callsTable, rows);
+	fillTable(m_callsTable, rows, {1, 5, 6, 8, 9, 10});
 }
 
 void DelayAnalysisWindow::fillSummary() {
@@ -645,7 +642,10 @@ void DelayAnalysisWindow::fillSummary() {
 	for (const StationDelaySummary& station : m_shownSummary.stations)
 		rows.push_back(summaryRow(fromStd(station.stationId), station.statistics));
 	rows.push_back(summaryRow("All selected stations", m_shownSummary.network));
-	fillTable(m_summaryTable, rows);
+	QList<int> numericColumns;
+	for (int column = 1; column < m_summaryTable->columnCount(); ++column)
+		numericColumns << column;
+	fillTable(m_summaryTable, rows, numericColumns);
 }
 
 void DelayAnalysisWindow::fillBaseline() {
@@ -671,11 +671,11 @@ void DelayAnalysisWindow::fillBaseline() {
 	std::vector<QStringList> occurrenceRows;
 	for (const BaselineOccurrence& occurrence : m_shownBaseline.occurrences)
 		occurrenceRows.push_back(occurrenceRow(occurrence));
-	fillTable(m_baselineOccurrences, occurrenceRows);
+	fillTable(m_baselineOccurrences, occurrenceRows, {1, 4, 8, 9, 10, 12});
 	std::vector<QStringList> callRows;
 	for (const BaselineCall& call : m_shownBaseline.calls)
 		callRows.push_back(baselineCallRow(call));
-	fillTable(m_baselineCalls, callRows);
+	fillTable(m_baselineCalls, callRows, {1, 3, 4, 6, 7, 8, 10, 11, 12});
 }
 
 void DelayAnalysisWindow::updateExport() {

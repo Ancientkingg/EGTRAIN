@@ -714,6 +714,13 @@ void ResultViews::showCapacityAnalysis() {
 		tabs->addTab(table, QString());
 		return table;
 	};
+	// Numbers are aligned to the right, as in the other analysis tables.
+	const auto cell = [](const QString& text, bool number) {
+		auto* item = new QTableWidgetItem(text);
+		if (number)
+			item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		return item;
+	};
 	auto* pairTable = addTable({"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway [s]",
 								   "Minimum headway [s]", "Buffer [s]", "Governing block evidence", "Reference label/source (leader → follower)"},
 		static_cast<int>(result.pairs.size()));
@@ -727,7 +734,7 @@ void ResultViews::showCapacityAnalysis() {
 			QString::fromStdString(csv::formatDouble(pair.scheduledHeadway)), QString::fromStdString(csv::formatDouble(pair.minimumHeadway)),
 			QString::fromStdString(csv::formatDouble(pair.buffer)), QString::fromStdString(evidence), source};
 		for (int column = 0; column < values.size(); ++column)
-			pairTable->setItem(row, column, new QTableWidgetItem(values[column]));
+			pairTable->setItem(row, column, cell(values[column], column >= 4 && column <= 6));
 	}
 	tabs->setTabText(0, QString("Pairs (%1)").arg(pairTable->rowCount()));
 
@@ -748,7 +755,7 @@ void ResultViews::showCapacityAnalysis() {
 			QString::fromStdString(csv::formatDouble(compressed.compressedReference)),
 			QString::fromStdString(csv::formatDouble(compressed.shift)), governing.join("; ")};
 		for (int column = 0; column < values.size(); ++column)
-			compressionTable->setItem(row, column, new QTableWidgetItem(values[column]));
+			compressionTable->setItem(row, column, cell(values[column], column >= 2 && column <= 5));
 	}
 	tabs->setTabText(1, QString("Compression (%1)").arg(compressionTable->rowCount()));
 
@@ -760,7 +767,7 @@ void ResultViews::showCapacityAnalysis() {
 			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId),
 			QString::fromStdString(csv::formatDouble(critical.gap))};
 		for (int column = 0; column < values.size(); ++column)
-			criticalTable->setItem(row, column, new QTableWidgetItem(values[column]));
+			criticalTable->setItem(row, column, cell(values[column], column == 4));
 	}
 	tabs->setTabText(2, QString("Critical blocks (%1)").arg(criticalTable->rowCount()));
 	for (int index = 0; index < tabs->count(); ++index)

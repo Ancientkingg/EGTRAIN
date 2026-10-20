@@ -236,6 +236,8 @@ bool exerciseCalls() {
 		"an arrival without a plan and without a time has no delay, not 0");
 	ok &= expect(rowTexts(calls, 1) == QStringList({"F1", "1", "F1-1", "", "B", "2", "1", "Arrival", "600", "331", "-269", "Early", "Available"}),
 		"an early arrival");
+	ok &= expect((calls->item(1, 10)->textAlignment() & Qt::AlignRight) && !(calls->item(1, 0)->textAlignment() & Qt::AlignRight),
+		"a delay is aligned to the right and a service to the left");
 	ok &= expect(rowTexts(calls, 4) == QStringList({"F2", "1", "F2-1", "", "B", "2", "1", "Arrival", "660", "817", "+157", "Late", "Available"}),
 		"a late arrival");
 	ok &= expect(rowTexts(calls, 5) == QStringList({"F2", "1", "F2-1", "", "C", "3", "1", "Arrival", "1160", "1150", "-10", "Early", "Available"}),

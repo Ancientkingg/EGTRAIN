@@ -10,7 +10,7 @@ The readout next to the slider shows the current speed as **Fastest** or as a fa
 
 ## Toolbar buttons and Follow
 
-Every toolbar button has a white fill and a `#7b8b96` outline. A disabled button, such as Pause and Stop before a run, has a grey `#e4e8eb` fill, a light `#c9d3db` outline and grey text. Under the pointer and with keyboard focus a button turns `#e4eaee` with a `#315a70` outline. **Open Case** keeps its own darker fill and lighter outline.
+Every toolbar button has a white fill and a `#7b8b96` outline. A disabled button, such as Pause and Stop before a run, has a grey `#eceeec` fill, a light `#c9d3db` outline and grey text. Under the pointer and with keyboard focus a button turns `#e3eaee` with a `#315a70` outline. **Open Case** keeps its own darker fill and lighter outline.
 
 **Follow** shows a crosshair icon beside its text. While Follow is on, the button has a light `#d3e3ec` fill, a `#315a70` outline and dark text; under the pointer or with focus the fill turns `#bcd2df` and the outline `#24313a`.
 
@@ -32,9 +32,9 @@ An editor dock, such as Rolling stock units, opens at least as wide as its size 
 
 ## Tables and progress bar
 
-Every table and list has a light header: `#e3eaee` sections with `#24313a` semibold text, padding of 4 by 6 px and a `#c9d3db` line on the right and below each section. The corner button of a table has the same face. Alternate rows are `#f4f7f9` between the `#eef2f5` rows; the colour is set in the stylesheet, so a dark system theme does not darken them under the dark text. Column widths and header texts are unchanged.
+Tables follow [Interface style](../architecture/interface-style.md#tables). Their colours are set in the stylesheet, so a dark system theme does not darken them under the dark text.
 
-The timetable table colours a delay above 60 s (160,30,30), a delay above 0 s (125,85,0) and any other delay (0,100,0). Each has a contrast of at least 5.8:1 on both row colours.
+The timetable table colours a delay above 60 s `#81352d`, a delay above 0 s `#74451c` and any other delay `#006400`. Each has a contrast of at least 6.9:1 on both row colours.
 
 The progress bar of a run fills in `#315a70`. Its text is `#24313a` on the empty part, 11.4:1 on `#eceeec`, and white on the fill, 7.4:1: `TimeProgressBar` draws the bar a second time over the fill with the stylesheet's `selection-color` as the text colour.
 

@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QFile>
+#include <QHeaderView>
 #include <QHelpEvent>
 #include <QScreen>
 #include <QLabel>
@@ -195,6 +196,11 @@ int main(int argc, char** argv) {
 		&& table && table->rowCount() == 1 && table->item(0, 0)->text() == "train-a"
 		&& window.findChild<TrainFilterButton*>()->isVisible();
 	if (!ok) std::cerr << "timetable presentation or data changed\n";
+	// The sheet paints headers in weight 600; the header widget carries it so header text is measured in that weight.
+	const QHeaderView* header = table ? table->horizontalHeader() : nullptr;
+	ok &= expect(header && header->font().bold(), "the header font has the weight that the sheet paints");
+	ok &= expect(table && (table->item(0, 2)->textAlignment() & Qt::AlignRight) && !(table->item(0, 1)->textAlignment() & Qt::AlignRight),
+		"the journey order is aligned to the right and the station to the left");
 
 	std::vector<TimetableResultRow> twoTrains(2);
 	twoTrains[0].trainId = "train-a";

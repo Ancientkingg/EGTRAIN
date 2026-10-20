@@ -176,9 +176,9 @@ void TimetableTableWindow::fillTable() {
 		if (!value.available)
 			return;
 		if (value.value > 60.0)
-			item->setForeground(QBrush(QColor(160, 30, 30)));
+			item->setForeground(QBrush(QColor(0x81, 0x35, 0x2d)));
 		else if (value.value > 0.0)
-			item->setForeground(QBrush(QColor(125, 85, 0)));
+			item->setForeground(QBrush(QColor(0x74, 0x45, 0x1c)));
 		else
 			item->setForeground(QBrush(QColor(0, 100, 0)));
 	};
@@ -211,6 +211,8 @@ void TimetableTableWindow::fillTable() {
 		setDelayColor(departureDelayItem, result.departureDelaySeconds);
 		m_table->setItem(row, 7, arrivalDelayItem);
 		m_table->setItem(row, 8, departureDelayItem);
+		for (int column = 2; column < m_table->columnCount(); ++column)
+			m_table->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	}
 	m_table->resizeColumnsToContents();
 	// Content sizing can undercut the header text; keep every title readable.

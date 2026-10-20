@@ -15,7 +15,7 @@ QToolBar {
 QToolBar::separator {
     background: #c9d3db;
     width: 1px;
-    margin: 5px 7px;
+    margin: 4px 8px;
 }
 
 QToolBar QToolButton#qt_toolbar_ext_button {
@@ -46,16 +46,16 @@ QToolBar QLabel, QToolBar QSlider {
 }
 
 QToolButton:hover, QToolButton:focus {
-    background: #e4eaee;
+    background: #e3eaee;
     border-color: #315a70;
 }
 
 QToolButton#openCaseButton {
-    background: #e7edf1;
-    border-color: #c5d0d7;
+    background: #e3eaee;
+    border-color: #c9d3db;
     font-weight: 600;
-    padding-left: 9px;
-    padding-right: 9px;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 QToolButton#openCaseButton:hover, QToolButton#openCaseButton:focus {
@@ -73,7 +73,7 @@ QToolBar QToolButton {
 }
 
 QToolBar QToolButton:disabled {
-    background: #e4e8eb;
+    background: #eceeec;
     border-color: #c9d3db;
 }
 
@@ -151,7 +151,7 @@ QListView::indicator:checked, QTableView::indicator:checked, QTreeView::indicato
 }
 
 QListView::indicator:disabled, QTableView::indicator:disabled, QTreeView::indicator:disabled {
-    background: #e4e8eb;
+    background: #eceeec;
     border-color: #c9d3db;
 }
 
@@ -171,7 +171,7 @@ QCheckBox:disabled {
 }
 
 QCheckBox:focus {
-    background: #e6ecee;
+    background: #e3eaee;
     border: 1px solid #315a70;
     border-radius: 2px;
 }
@@ -196,7 +196,7 @@ QToolButton#mapKeyToggle:checked {
 }
 
 QToolButton#mapKeyToggle:hover, QToolButton#mapKeyToggle:focus {
-    background: #e6ecee;
+    background: #e3eaee;
     border-color: #315a70;
 }
 
@@ -211,7 +211,7 @@ QPushButton:focus, QComboBox:focus, QLineEdit:focus {
 
 QPushButton, QComboBox, QLineEdit, QToolButton#runResultsViewsButton {
     background: #ffffff;
-    border: 1px solid #c8ced2;
+    border: 1px solid #c9d3db;
     border-radius: 2px;
     padding: 5px 7px;
 }
@@ -246,11 +246,11 @@ QLabel#runReviewFactValue {
 }
 
 QLabel[dialogStatus="neutral"], QLabel#runReviewStatus {
-    background: #e7edf1;
-    border: 1px solid #c5d0d7;
+    background: #e3eaee;
+    border: 1px solid #c9d3db;
     border-radius: 2px;
     color: #3f4d56;
-    padding: 9px;
+    padding: 8px;
 }
 
 QLabel[dialogStatus="warning"], QLabel#runReviewStatus[warning="true"] {
@@ -264,7 +264,7 @@ QLabel[dialogStatus="error"] {
     border: 1px solid #c98f88;
     border-radius: 2px;
     color: #81352d;
-    padding: 9px;
+    padding: 8px;
 }
 
 QDialog#aboutDialog QPushButton[aboutLink="true"] {
@@ -321,7 +321,7 @@ QPushButton:disabled,
 QComboBox:disabled,
 QLineEdit:disabled,
 QToolButton#runResultsViewsButton:disabled {
-    background: #e4e8eb;
+    background: #eceeec;
     border-color: #c9d3db;
     color: #64717a;
 }
@@ -333,6 +333,11 @@ QMessageBox QDialogButtonBox QPushButton:default:disabled, QPushButton#runReview
     color: #64717a;
 }
 
+QTableView {
+    background: #ffffff;
+    gridline-color: #e3eaee;
+}
+
 QTabWidget::pane {
     border: 1px solid #c9d3db;
     background: #f8fafb;
@@ -341,7 +346,7 @@ QTabWidget::pane {
 QTabBar::tab {
     background: #e3eaee;
     border: 1px solid #c9d3db;
-    padding: 5px 10px;
+    padding: 4px 12px;
 }
 
 QTabBar::tab:selected {
@@ -352,7 +357,7 @@ QTabBar::tab:selected {
 QLineEdit[readOnly="true"] {
     background: #eceeec;
     color: #5b6871;
-    border-color: #c8ced2;
+    border-color: #c9d3db;
 }
 
 QDialog[dialogPresentation="true"] QLineEdit[readOnly="true"]:focus {
@@ -392,7 +397,7 @@ QSlider::sub-page:horizontal:disabled, QSlider::handle:horizontal:disabled {
 }
 
 QProgressBar {
-    border: 1px solid #c8ced2;
+    border: 1px solid #c9d3db;
     border-radius: 2px;
     background: #eceeec;
     color: #24313a;
@@ -404,14 +409,18 @@ QProgressBar::chunk {
     background: #315a70;
 }
 
+/* The weight is on the header widget, so code that measures header text with the header font measures it in this weight. */
+QHeaderView {
+    font-weight: 600;
+}
+
 QHeaderView::section, QTableCornerButton::section {
     background: #e3eaee;
     color: #24313a;
     border: 0;
     border-right: 1px solid #c9d3db;
     border-bottom: 1px solid #c9d3db;
-    padding: 4px 6px;
-    font-weight: 600;
+    padding: 4px 8px;
 }
 
 QAbstractItemView {
@@ -448,7 +457,7 @@ QGraphicsView#networkView {
 }
 
 QScrollBar:vertical, QScrollBar:horizontal {
-    background: #e4eaee;
+    background: #e3eaee;
     border: 0;
 }
 
@@ -492,7 +501,7 @@ QMenu {
 }
 
 QMenu::item {
-    padding: 5px 24px 5px 8px;
+    padding: 4px 24px 4px 8px;
 }
 
 QMenu::item:selected {
