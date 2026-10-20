@@ -572,6 +572,17 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 	}
+	// Names are left-aligned, numbers and times right-aligned.
+	for (int row = 0; row < w.m_runResultsTable->rowCount(); ++row) {
+		for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column) {
+			const QTableWidgetItem* item = w.m_runResultsTable->item(row, column);
+			if (!item || bool(item->textAlignment() & Qt::AlignRight) != (column >= 2)) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results alignment in row %d, column %d\n", row, column);
+				QCoreApplication::exit(2);
+				return;
+			}
+		}
+	}
 	const bool clean = w.m_runController->m_runtimeStatus == QStringLiteral("Completed") && w.m_snapshot
 		&& (operationalCompletions == 0
 			|| w.m_snapshot != operationalFirstFrame)

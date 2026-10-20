@@ -176,9 +176,14 @@ QCheckBox:focus {
     border-radius: 2px;
 }
 
-QPushButton:focus, QComboBox:focus, QSlider:focus, QLineEdit:focus {
+QComboBox:focus, QSlider:focus, QLineEdit:focus {
     outline: 1px solid #315a70;
     outline-offset: 1px;
+}
+
+/* A push button shows keyboard focus with its border, without a rectangle around its text. */
+QPushButton:focus {
+    outline: none;
 }
 
 QToolButton#mapKeyToggle {
@@ -311,10 +316,14 @@ QMessageBox QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRun
     border-color: #26495c;
 }
 
+/* The filled default button shows keyboard focus as a ring around its fill: the fill stops inside a double border, so a
+   line of the dialog behind the button shows between the ring and the fill. */
 QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus,
 QMessageBox QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
-    border-color: #315a70;
-    outline: 2px solid #315a70;
+    background-clip: padding;
+    border: 3px double #315a70;
+    border-radius: 0;
+    padding: 3px 5px;
 }
 
 QPushButton:disabled,
@@ -520,4 +529,48 @@ QMenu::item:disabled {
 QMenu::item:disabled:selected {
     background: transparent;
     color: #64717a;
+}
+
+/* Cancel of Run simulation becomes the default while it has the focus; it keeps the plain face, so only the run button
+   is filled. */
+QPushButton#runReviewCancelButton:default {
+    background: #ffffff;
+    border: 1px solid #315a70;
+    border-radius: 2px;
+    color: #24313a;
+    padding: 5px 7px;
+}
+
+QPushButton#runReviewCancelButton:default:pressed {
+    background: #d8e1e5;
+}
+
+/* A button that opens a menu keeps room on its right for the arrow. Qt 5 matches the popup mode by its number, 2. */
+QToolButton[popupMode="2"], QToolButton[popupMode="InstantPopup"], QToolButton#runResultsViewsButton {
+    padding-right: 20px;
+}
+
+QToolButton[popupMode="2"]::menu-indicator, QToolButton[popupMode="InstantPopup"]::menu-indicator {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    right: 6px;
+}
+
+QLabel#diagramPinLabel {
+    background: transparent;
+}
+
+/* The drop-down of a combo box draws no frame of its own inside the border, so it takes its arrow from an image. */
+QComboBox::drop-down {
+    background: transparent;
+    border: 0;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(:/icons/drop-down-arrow.svg);
+}
+
+QComboBox::down-arrow:disabled {
+    image: url(:/icons/drop-down-arrow-disabled.svg);
 }

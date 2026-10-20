@@ -316,6 +316,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					fail(QStringLiteral("capacity scope controls are incomplete"));
 					return;
 				}
+				// A long occurrence row is cut with an ellipsis at the edge of its list.
+				const auto* occurrences = dialog->findChild<QListWidget*>();
+				if (!occurrences || occurrences->count() == 0
+					|| occurrences->visualItemRect(occurrences->item(0)).width() > occurrences->viewport()->width()) {
+					dialog->reject();
+					fail(QStringLiteral("the occurrence rows are wider than their list"));
+					return;
+				}
 				cycleEnd->setCurrentIndex(2);
 				buttons->button(QDialogButtonBox::Ok)->click();
 				// A refusal keeps the dialog open and says why in its status label.

@@ -446,6 +446,11 @@ double computeHorizon(const SceneModel& scene) {
 	return horizon < 600.0 ? 600.0 : horizon;
 }
 
+// The text of a tooltip followed by the shortcut of the action as the platform writes it, with the Command key on macOS.
+QString withShortcut(const QString& text, const QAction* action) {
+	return QStringLiteral("%1 (%2)").arg(text, action->shortcut().toString(QKeySequence::NativeText));
+}
+
 int countTrackLineDirs(const QString& inputDir) {
 	QDir trackLinesDir(inputDir + "/TrackLines");
 	if (!trackLinesDir.exists())
@@ -837,9 +842,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->actionSimulationStop->setProperty("iconResource", ":/icons/stop.svg");
 	ui->actionSimulationPause->setEnabled(false);
 	ui->actionSimulationStop->setEnabled(false);
-	ui->actionSimulationStart->setToolTip("Run simulation (Ctrl+R)");
-	ui->actionSimulationPause->setToolTip("Pause or resume simulation (Ctrl+.)");
-	ui->actionSimulationStop->setToolTip("Stop simulation (Ctrl+Esc)");
+	ui->actionSimulationStart->setToolTip(withShortcut("Run simulation", ui->actionSimulationStart));
+	ui->actionSimulationPause->setToolTip(withShortcut("Pause or resume simulation", ui->actionSimulationPause));
+	ui->actionSimulationStop->setToolTip(withShortcut("Stop simulation", ui->actionSimulationStop));
 
 
 	// Keep the scenario state and the four useful display layers in the primary
@@ -1064,10 +1069,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	ui->actionZoomIn->setObjectName("actionZoomIn");
 	ui->actionZoomIn->setIcon(QIcon(":/icons/zoom-in.svg"));
-	ui->actionZoomIn->setToolTip("Zoom in on the network view (Ctrl++)");
+	ui->actionZoomIn->setToolTip(withShortcut("Zoom in on the network view", ui->actionZoomIn));
 	ui->actionZoomOut->setObjectName("actionZoomOut");
 	ui->actionZoomOut->setIcon(QIcon(":/icons/zoom-out.svg"));
-	ui->actionZoomOut->setToolTip("Zoom out on the network view (Ctrl+-)");
+	ui->actionZoomOut->setToolTip(withShortcut("Zoom out on the network view", ui->actionZoomOut));
 	ui->actionFitView->setObjectName("actionFit");
 	ui->actionFitView->setText("Fit");
 	ui->actionFitView->setIcon(QIcon());
@@ -1692,7 +1697,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
 	connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
 	connect(ui->actionFitView, &QAction::triggered, this, &MainWindow::fitToView);
-	ui->actionFitView->setToolTip("Restore the full network view (Ctrl+0)");
+	ui->actionFitView->setToolTip(withShortcut("Restore the full network view", ui->actionFitView));
 	// Quit closes the window, so it asks about unsaved changes and stops a running simulation
 	// like the close button does. The application exits when its last window has closed.
 	connect(ui->actionQuit, &QAction::triggered, this, &QWidget::close);
@@ -2297,7 +2302,6 @@ void MainWindow::updateSceneActions() {
 	if (ui->actionSimulationStart) {
 		const bool sceneRunnable = m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics());
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
-		ui->actionSimulationStart->setToolTip(QString("Run simulation (Ctrl+R)"));
 	}
 	if (m_serviceDock)
 		m_serviceDock->setEnabled(m_document->isLoaded() && !m_runController->running());

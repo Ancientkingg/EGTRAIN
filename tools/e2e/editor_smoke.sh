@@ -35,8 +35,10 @@ mkdir -p "$OUT"
 
 # capture the app exit code without aborting so we can require BOTH a clean exit
 # and the pass token; a crash after printing the token must still fail the smoke
+# The run starts with a dark palette, as on a desktop with a dark colour scheme; the window must stay light.
 set +e
 QEGTRAIN_E2E_EDITOR_SMOKE=1 \
+QEGTRAIN_E2E_DARK_PALETTE=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
 QEGTRAIN_E2E_SCENE_ALT="$ALT_SCENE" \
 QEGTRAIN_E2E_OUT="$OUT" \
@@ -68,6 +70,7 @@ required_markers=(
 	E2E_EDITOR_RECOVERY_OK
 	E2E_EDITOR_LAYOUT_OK
 	E2E_EDITOR_UNTOUCHED_OK
+	E2E_LIGHT_LOOK_OK
 )
 missing_markers=()
 for marker in "${required_markers[@]}"; do

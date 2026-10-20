@@ -845,6 +845,22 @@ bool exerciseDefaultButtonWidth(qreal scale) {
 #endif
 }
 
+// A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow.
+bool exerciseMenuButtonRoom() {
+	QToolButton plain;
+	plain.setText(QStringLiteral("Trains (2/2)"));
+	bool ok = true;
+	for (const char* name : {"", "runResultsViewsButton"}) {
+		QToolButton menuButton;
+		menuButton.setObjectName(QString::fromLatin1(name));
+		menuButton.setText(plain.text());
+		menuButton.setPopupMode(QToolButton::InstantPopup);
+		menuButton.setMenu(new QMenu(&menuButton));
+		ok &= check(menuButton.sizeHint().width() >= plain.sizeHint().width() + 12, "a menu button has no room for its arrow");
+	}
+	return ok;
+}
+
 // The footer of the Run simulation review is built as the review builds it: the buttons exist and are named before the
 // dialog is installed, the accept button is the default. Its face and text look like the default
 // button of a dialog footer, whichever widget style the platform supplies.
@@ -853,7 +869,7 @@ bool exerciseRunReviewDefault() {
 	review.setObjectName(QStringLiteral("runReviewDialog"));
 	auto* buttons = new QDialogButtonBox(&review);
 	buttons->setObjectName(QStringLiteral("runReviewButtons"));
-	buttons->addButton(QDialogButtonBox::Cancel);
+	buttons->addButton(QDialogButtonBox::Cancel)->setObjectName(QStringLiteral("runReviewCancelButton"));
 	auto* runButton = buttons->addButton(QStringLiteral("MMMM MMMM"), QDialogButtonBox::AcceptRole);
 	runButton->setObjectName(QStringLiteral("runReviewRunButton"));
 	runButton->setDefault(true);
@@ -867,6 +883,28 @@ bool exerciseRunReviewDefault() {
 	bool ok = check(runButton->isDefault(), "the Run simulation button is not the default button");
 	ok &= checkLooks(sameLook(reviewLook, dialogDefault),
 		"the Run simulation button does not look like the default button of a dialog", reviewLook, dialogDefault);
+	// The run button shows its focus on its fill, as the dialog draws it. Cancel becomes the default while it has the focus,
+	// but keeps the face of a plain button, so the footer never shows two default buttons.
+	auto* cancel = buttons->button(QDialogButtonBox::Cancel);
+	cancel->setFixedSize(150, 48);
+	review.activateWindow();
+	QApplication::processEvents();
+	if (QWidget* focused = QApplication::focusWidget())
+		focused->clearFocus();
+	QApplication::processEvents();
+	const auto drawnRunButton = [&review, runButton] {
+		return review.grab(QRect(runButton->mapTo(&review, QPoint()), runButton->size())).toImage();
+	};
+	const QImage unfocused = drawnRunButton();
+	runButton->setFocus();
+	QApplication::processEvents();
+	ok &= check(runButton->hasFocus() && drawnRunButton() != unfocused, "the focused Run simulation button looks the same as without focus");
+	cancel->setFocus();
+	QApplication::processEvents();
+	ok &= check(cancel->hasFocus() && cancel->isDefault(), "Cancel does not take the focus and the default");
+	const ControlLook cancelLook = controlLook(cancel);
+	const ControlLook plainLook = controlLooks(ControlKind::PushButton, true, false).first;
+	ok &= checkLooks(cancelLook.face == plainLook.face, "the focused Cancel button looks like a default button", cancelLook, plainLook);
 #ifndef Q_OS_WIN
 	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
 	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
@@ -913,9 +951,10 @@ int main(int argc, char** argv) {
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
 	const bool runReview = exerciseRunReviewDefault();
+	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
-	return small && scaledSmall && large && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && defaultWidth
+	return small && scaledSmall && large && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
 			&& scaledDefaultWidth
 		? 0
 		: 1;

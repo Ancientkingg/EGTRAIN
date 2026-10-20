@@ -411,12 +411,15 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 
 	// Top bar: train visibility dropdown, pin state, zoom reset, exports.
 	m_trainsButton = new TrainFilterButton(this);
+	// The text size of the push buttons beside it; macOS gives a tool button a smaller font.
+	m_trainsButton->setFont(QApplication::font());
 	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
 		this, &DiagramWindow::applyTrainVisibility);
 
 	m_clearPinButton = new QPushButton("Clear selection", this);
 	connect(m_clearPinButton, &QPushButton::clicked, this, &DiagramWindow::clearPin);
 	m_pinLabel = new QLabel("", this);
+	m_pinLabel->setObjectName("diagramPinLabel");
 
 	QPushButton* resetZoomBtn = new QPushButton("Reset zoom", this);
 	resetZoomBtn->setToolTip("Restore full bounds; keep train filters and selection (Home or 0)");

@@ -13,6 +13,7 @@
 #include <QObject>
 #include <QScrollArea>
 #include <QSignalBlocker>
+#include <QSize>
 #include <QTimer>
 #include <QVariant>
 #include <QVBoxLayout>
@@ -285,6 +286,9 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			item->setData(Qt::UserRole, identity);
 			item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
 			item->setCheckState(Qt::Checked);
+			// A row as wide as the list cuts a long text with an ellipsis; the tooltip has all of it.
+			item->setToolTip(item->text());
+			item->setSizeHint(QSize(1, occurrences->sizeHintForRow(occurrences->row(item))));
 			cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
 		}
 		chooseOnlyCycleEnd();

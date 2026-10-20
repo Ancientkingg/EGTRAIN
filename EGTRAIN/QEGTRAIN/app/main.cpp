@@ -24,13 +24,19 @@
 #include <exception>
 #include <iomanip>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include "util/portability.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QPalette>
 #include <QStringList>
+#include <QStyle>
+#include <QStyleFactory>
+#include <QStyleHints>
 #include <QTimer>
+#include <QToolTip>
 
 using namespace std;
 
@@ -51,6 +57,24 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 		return *std::next(it); // NOLINT(clang-analyzer-security.ArrayBound): the option is followed by its value
 	}
 	return nullptr;
+}
+
+// EGTRAIN has one light look. A dark system palette would show through wherever a colour comes from the palette, such as
+// selected rows, tooltips and charts, so the application then takes the light standard palette of its style. On macOS
+// Info.plist keeps the light Aqua appearance for the native controls, menus and title bars.
+static void keepLightLook() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+	QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
+#endif
+	const QPalette palette = QApplication::palette();
+	if (palette.color(QPalette::Window).lightness() >= palette.color(QPalette::WindowText).lightness())
+		return;
+	QPalette light = QApplication::style()->standardPalette();
+	// A style can take its standard palette from the desktop as well; Fusion's is always light.
+	if (light.color(QPalette::Window).lightness() < light.color(QPalette::WindowText).lightness())
+		light = std::unique_ptr<QStyle>(QStyleFactory::create(QStringLiteral("Fusion")))->standardPalette();
+	QApplication::setPalette(light);
+	QToolTip::setPalette(light);
 }
 
 // Whether this is the creator acceptance run of a test build, which starts without a case study.
@@ -413,7 +437,15 @@ static int runMain(int argc, char* argv[]) {
 		std::cout << "Graphical user interface (GUI): 0\n";
 
 	if (gui) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		// Icons are drawn at the device pixel ratio of the screen, which Qt 6 always does.
+		QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
 		GuardedApplication application(argc, argv);
+#if EGTRAIN_BUILD_TESTS
+		e2e::configureApplication();
+#endif
+		keepLightLook();
 		installCrashHandler(crashNoteFolder());
 		if (!onlyKnownOptions(argc, argv))
 			return 1;

@@ -362,7 +362,7 @@ bool RunController::showRunReview() {
 	}
 	auto* buttons = new QDialogButtonBox(&review);
 	buttons->setObjectName("runReviewButtons");
-	buttons->addButton(QDialogButtonBox::Cancel);
+	buttons->addButton(QDialogButtonBox::Cancel)->setObjectName("runReviewCancelButton");
 	auto* runButton = buttons->addButton("Run simulation", QDialogButtonBox::AcceptRole);
 	runButton->setObjectName("runReviewRunButton");
 	runButton->setDefault(true);

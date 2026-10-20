@@ -11,6 +11,7 @@
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include <QAction>
+#include <QApplication>
 #include <QBuffer>
 #include <QDockWidget>
 #include <QFileDialog>
@@ -62,6 +63,8 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	diagramsButton->setText("Open result view...");
 	diagramsButton->setObjectName("runResultsViewsButton");
 	diagramsButton->setPopupMode(QToolButton::InstantPopup);
+	// The text size of the push buttons beside it; macOS gives a tool button a smaller font.
+	diagramsButton->setFont(QApplication::font());
 	QMenu* resultMenu = new QMenu(diagramsButton);
 	diagramsButton->setMenu(resultMenu);
 	const auto addResultViewAction = [views, resultMenu](const QString& text, auto slot) {
@@ -211,6 +214,10 @@ void RunResultsDock::refresh() {
 	m_table->setItem(totalRow, 8, new QTableWidgetItem(energyText(results.energyWithRegenKWh)));
 	m_table->setItem(totalRow, 9, new QTableWidgetItem(energyText(results.substationKWh)));
 	m_table->setItem(totalRow, 10, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
+	// Names stay left-aligned; numbers and times are right-aligned, as in every table of results.
+	for (int row = 0; row <= totalRow; ++row)
+		for (int column = 2; column < totalColumns; ++column)
+			m_table->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	m_table->resizeColumnsToContents();
 	const bool openingResults = !m_dock->isVisible();
 	m_dock->show();
