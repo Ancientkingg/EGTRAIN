@@ -4731,10 +4731,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const QList<QDockWidget*> editorDocks{w.m_caseSettingsDock, w.m_infrastructureDock, w.m_serviceDock, w.m_trainUnitDock};
 			for (QDockWidget* dock : editorDocks)
 				w.m_editorActions.value(dock)->trigger();
-			const QList<QDockWidget*> tabbedEditors = w.tabifiedDockWidgets(w.m_caseSettingsDock);
-			if (!tabbedEditors.contains(w.m_infrastructureDock) || !tabbedEditors.contains(w.m_serviceDock)
-				|| !tabbedEditors.contains(w.m_trainUnitDock))
-				facetFailure(ok, "presentation", "Case Settings, Infrastructure, Services and Rolling stock units do not share one group of tabs");
+			for (QDockWidget* dock : editorDocks.mid(1))
+				if (!w.tabifiedDockWidgets(w.m_caseSettingsDock).contains(dock))
+					facetFailure(ok, "presentation", QString("%1 is not tabbed with Case Settings").arg(dock->objectName()));
 			const int rowHeight = w.m_caseNameEdit->sizeHint().height();
 			for (QDockWidget* dock : editorDocks) {
 				dock->raise();
@@ -4750,7 +4749,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QAction* caseSettingsAction = w.m_editorActions.value(w.m_caseSettingsDock);
 			caseSettingsAction->trigger();
 			QApplication::processEvents();
-			if (w.m_caseSettingsDock->isHidden() || !caseSettingsAction->isChecked() || w.m_caseSettingsDock->visibleRegion().isEmpty())
+			if (!caseSettingsAction->isChecked() || w.m_caseSettingsDock->visibleRegion().isEmpty())
 				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
 			for (QDockWidget* dock : editorDocks)
 				dock->hide();
