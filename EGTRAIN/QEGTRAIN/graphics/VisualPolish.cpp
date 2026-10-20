@@ -30,79 +30,99 @@ TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond) {
 	if (kmh >= 200.0)
 		return {QColor(30, 130, 210), 4};
 	if (kmh >= 120.0)
-		return {QColor(80, 80, 80), 3};
+		return {QColor(160, 160, 160), 3};
 	return {QColor(120, 120, 120), 2};
 }
 
 TrackStateVisual classifyTrackState(TrackOperationalState state) {
 	switch (state) {
-	case TrackOperationalState::Prepared:
-		return {QColor("#4C8DAE"), 5, Qt::DashDotLine};
-	case TrackOperationalState::Occupied:
-		return {QColor("#D05A47"), 6, Qt::SolidLine};
-	case TrackOperationalState::Blocked:
-		return {QColor("#D6A13A"), 5, Qt::DashLine};
-	case TrackOperationalState::Free:
-	default:
-		return {Qt::transparent, 0, Qt::NoPen};
+		case TrackOperationalState::Prepared:
+			return {QColor("#4C8DAE"), 5, Qt::DashDotLine};
+		case TrackOperationalState::Occupied:
+			return {QColor("#D05A47"), 6, Qt::SolidLine};
+		case TrackOperationalState::Blocked:
+			return {QColor("#D6A13A"), 5, Qt::DashLine};
+		case TrackOperationalState::Free:
+		default:
+			return {Qt::transparent, 0, Qt::NoPen};
 	}
 }
 
 TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind) {
 	switch (kind) {
-	case TrainVisualKind::Intercity:
-		return TrainBadgeShape::Capsule;
-	case TrainVisualKind::Freight:
-		return TrainBadgeShape::Square;
-	case TrainVisualKind::Passenger:
-	case TrainVisualKind::Sprinter:
-	case TrainVisualKind::HighSpeed:
-	default:
-		return TrainBadgeShape::Rounded;
+		case TrainVisualKind::Intercity:
+			return TrainBadgeShape::Capsule;
+		case TrainVisualKind::Freight:
+			return TrainBadgeShape::Square;
+		case TrainVisualKind::Passenger:
+		case TrainVisualKind::Sprinter:
+		case TrainVisualKind::HighSpeed:
+		default:
+			return TrainBadgeShape::Rounded;
 	}
 }
 
 int trainBadgeCornerRadius(TrainBadgeShape shape) {
 	switch (shape) {
-	case TrainBadgeShape::Capsule:
-		return 8;
-	case TrainBadgeShape::Rounded:
-		return 3;
-	case TrainBadgeShape::Square:
-	default:
-		return 0;
+		case TrainBadgeShape::Capsule:
+			return 8;
+		case TrainBadgeShape::Rounded:
+			return 3;
+		case TrainBadgeShape::Square:
+		default:
+			return 0;
 	}
 }
 
 int trackStatePriority(TrackOperationalState state) {
 	switch (state) {
-	case TrackOperationalState::Prepared:
-		return 1;
-	case TrackOperationalState::Occupied:
-		return 2;
-	case TrackOperationalState::Blocked:
-		return 3;
-	case TrackOperationalState::Free:
-	default:
-		return 0;
+		case TrackOperationalState::Prepared:
+			return 1;
+		case TrackOperationalState::Occupied:
+			return 2;
+		case TrackOperationalState::Blocked:
+			return 3;
+		case TrackOperationalState::Free:
+		default:
+			return 0;
 	}
+}
+
+QColor defaultTrainFill() {
+	return QColor(235, 210, 55);
+}
+
+QColor defaultTrainOutline() {
+	return QColor(110, 90, 20);
 }
 
 TrainVisual classifyTrainType(const std::string& type, const std::string& description) {
 	std::string text = lower(type + " " + description);
+	const QColor fill = defaultTrainFill();
+	const QColor outline = defaultTrainOutline();
 	if (containsAny(text, {"freight", "cargo", "goederen"}))
-		return {TrainVisualKind::Freight, QColor("#A99787"), QColor("#5D4C3F"), classifyTrainBadgeShape(TrainVisualKind::Freight), ":/icons/train-freight.svg"};
+		return {TrainVisualKind::Freight, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Freight), ":/icons/train-freight.svg"};
 	if (containsAny(text, {"ice", "hst", "highspeed", "high speed"}))
-		return {TrainVisualKind::HighSpeed, QColor("#86A6B9"), QColor("#3E627A"), classifyTrainBadgeShape(TrainVisualKind::HighSpeed), ":/icons/train-high-speed.svg"};
+		return {TrainVisualKind::HighSpeed, fill, outline, classifyTrainBadgeShape(TrainVisualKind::HighSpeed), ":/icons/train-high-speed.svg"};
 	if (containsAny(text, {"sprinter", "spr"}))
-		return {TrainVisualKind::Sprinter, QColor("#86AA96"), QColor("#3F6A54"), classifyTrainBadgeShape(TrainVisualKind::Sprinter), ":/icons/train-sprinter.svg"};
+		return {TrainVisualKind::Sprinter, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Sprinter), ":/icons/train-sprinter.svg"};
 	if (containsAny(text, {"intercity", " ic", "ic "}))
-		return {TrainVisualKind::Intercity, QColor("#C6A86E"), QColor("#765623"), classifyTrainBadgeShape(TrainVisualKind::Intercity), ":/icons/train-intercity.svg"};
-	return {TrainVisualKind::Passenger, QColor("#9BA5AA"), QColor("#4A5960"), classifyTrainBadgeShape(TrainVisualKind::Passenger), ":/icons/train-passenger.svg"};
+		return {TrainVisualKind::Intercity, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Intercity), ":/icons/train-intercity.svg"};
+	return {TrainVisualKind::Passenger, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Passenger), ":/icons/train-passenger.svg"};
+}
+
+TrainVisual resolveTrainVisual(const std::string& type, const std::string& description, const QColor& serviceColor) {
+	TrainVisual visual = classifyTrainType(type, description);
+	if (serviceColor.isValid()) {
+		visual.fill = serviceColor;
+		visual.outline = serviceColor.darker(200);
+	}
+	return visual;
 }
 
 SignalCueKind classifySignalCue(int code) {
-	if (code == 0)
+	// 751 is the second red of BACC: the train has to stop.
+	if (code == 0 || code == 751)
 		return SignalCueKind::Stop;
 	if (code == 75)
 		return SignalCueKind::Caution;
@@ -112,7 +132,7 @@ SignalCueKind classifySignalCue(int code) {
 }
 
 SignalVisual classifySignalAspect(int code) {
-	if (code == 0)
+	if (code == 0 || code == 751)
 		return {QColor(Qt::red), classifySignalCue(code), ":/icons/signal-stop.svg"};
 	if (code == 75)
 		return {QColor(Qt::yellow), classifySignalCue(code), ":/icons/signal-caution.svg"};
@@ -123,10 +143,10 @@ SignalVisual classifySignalAspect(int code) {
 
 StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
 	if (connectionCount >= 3)
-		return {QColor(80, 120, 210), QColor(30, 60, 130), ":/icons/train_station.png"};
+		return {QColor(80, 120, 210), QColor(30, 60, 130), ":/icons/station.svg"};
 	if (hasPlatformId)
-		return {QColor(70, 70, 70), QColor(30, 30, 30), ":/icons/train_station.png"};
-	return {QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/train_station.png"};
+		return {QColor(70, 70, 70), QColor(30, 30, 30), ":/icons/station.svg"};
+	return {QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/station.svg"};
 }
 
 // One simulated second renders every delayMs, so the nominal playback factor

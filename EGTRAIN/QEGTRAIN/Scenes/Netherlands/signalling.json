@@ -5875,6 +5875,14 @@
             "id": "route73"
         }
     ],
+    "signalling_areas": [
+        {
+            "end_km": 64.0,
+            "id": "network",
+            "level": 0,
+            "start_km": 0.0
+        }
+    ],
     "signals": [],
     "single_track_restrictions": [
         {

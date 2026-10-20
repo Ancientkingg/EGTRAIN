@@ -15,12 +15,17 @@ and new representations coexist without making the native loader the normal
 runtime path.
 
 Both that revision and the current native revision were built with tests
-enabled and run headlessly for cases 1–4 with `-g 0 -TSM 0 -RC 0`. The retained
+enabled and run headlessly for cases 1 to 4 with `-g 0 -TSM 0 -RC 0`. The retained
 observables are the canonical structure, `EnergyConsumptionPerTrain.txt`,
 `TrainServicePathDiagram.txt`, `TimetablePoints.txt`, and
 `Stats_Stations.txt`. PR #302 separately established conversion parity; its
 counts support the structure comparison below but are not used as a substitute
 for the runtime output comparison.
+
+The baseline revision has no reader for the legacy area files
+(`TrackLines/AreasCaseStudy.txt`, `Areas*.TXT`), and nothing else gives a section
+a signalling level, so no section of its runs has one. See
+[Signalling levels](../architecture/signalling-levels.md).
 
 ## Infrastructure and signalling
 
@@ -49,19 +54,30 @@ focused smoke.
 
 | Case | Runtime trains baseline / native | Representative | End baseline → native | Arrivals baseline → native | Allowed end tolerance |
 | --- | ---: | --- | --- | --- | --- |
-| Netherlands | 40 / 40 | `SPR_2-1` | `(7999, 1252.38)` → `(7999, 1335.0)` | `(132, 847)` → `(135, 1190)` | 0 s, 100 m |
+| Netherlands | 40 / 40 | `SPR_2-1` | `(7999, 1252.38)` → `(1263, 1253.65)` | `(132, 847)` → `(135, 1164)` | 0 s, 100 m (around the native end) |
 | Paimpol | 2 / 2 | `Guin-Paim-EXPRESS-1-1` | `(2571, 37081.3)` → `(2789, 37076.9)` | `(43, 2558)` → `(36, 2705)` | 250 s, 10 m |
-| Copenhagen | 196 / 196 | `F-Hellerup-NyEllebjerg-2-1` | `(934, 37943.0)` → `(1877, 37951.9)` | `(367, 927)` → `(364, 1819)` | 950 s, 10 m |
-| Milano-Brescia | 65 / 65 | `201-1` | `(3673, 78768.2)` → `(3673, 78768.2)` | `(1855, 3666)` → `(1855, 3666)` | 0 s, 0.1 m |
+| Copenhagen | 196 / 196 | `F-Hellerup-NyEllebjerg-2-1` | `(934, 37943.0)` → `(1580, 37951.9)` | `(367, 927)` → `(364, 1549)` | 950 s, 10 m |
+| Milano-Brescia | 65 / 65 | `201-1` | `(3673, 78768.2)` → `(3999, 59846.0)` | `(1855, 3666)` → `(1855, none)` | 0 s, 0.1 m |
 
 The longer Paimpol and Copenhagen times are not tuned values. Their retained
 legacy output recorded arrival and departure at the same instant through
 intermediate stops. The native path honors the canonical planned times and
 dwell values, so it reaches the same ordered stations and route endpoint later.
 The tolerances cover the observed scheduling correction while keeping the
-path endpoint tight. Netherlands remains active at the 8,000-second horizon;
-its final position and five-stop sequence are compared instead of inventing a
-completion time.
+path endpoint tight. The legacy `SPR_2-1` of the Netherlands scene stood at
+its last stop until the horizon, because that stop had a planned departure of
+90,000 s. The native scene has no planned departure there, so the train leaves
+the stop after its dwell and is removed when its head passes the end of its
+route. That is its end at 1263 s, and the smoke compares that position and the
+five-stop sequence.
+
+The Milano-Brescia scene has a network-wide fixed block area. Train
+`48363-48362-48363-1` reaches Rovato at 1988 s and stands there on the through
+track for the rest of the run, because its planned departure of 5280 s lies
+after the 4,000-second horizon. The trains behind it queue. `201-1` is the
+fourth of them: it stops at 59,846 m at 3326 s and has no arrival at its last
+stop. Its origin, its first arrival and its 17-stop sequence are unchanged, and
+the smoke compares its position at the end of the run.
 
 The expanded train total is identical in all four cases. Milano's legacy
 output used `9707-1` and `9709-1` twice. The native output retains 65 trains but
@@ -72,13 +88,21 @@ second pair.
 
 | Case | Served rows baseline / native | Comparison |
 | --- | ---: | --- |
-| Netherlands | 10 / 10 | same station set; some occurrence totals are lower after planned waits are honored |
+| Netherlands | 10 / 0 | the scene has no planned arrival at any stop, so no station has an arrival delay |
 | Paimpol | 9 / 9 | same station set |
-| Copenhagen | 93 / 92 | native run has no served `BuddingeReverse` row within the horizon; the station, platform, and service stop remain canonical |
-| Milano-Brescia | 13 / 13 | sets differ: legacy output includes `MelzoScalo3-5`, while native output includes `MorengoBariano`; the representative 17-stop sequence is identical |
+| Copenhagen | 93 / 90 | native run counts no train at `BallerupStorage`, `HellerupStorage` and `BuddingeReverse`: no stop there has a planned arrival |
+| Milano-Brescia | 13 / 12 | sets differ: legacy output includes `MelzoScalo3-5`, while native output includes `MorengoBariano` and no longer counts `Romano1p`, whose one planned arrival has no available delay; the representative 17-stop sequence is identical |
+
+Served rows are the station rows of `Stats_Stations.txt` with at least one
+counted train. The native runs count a train at a stop only when its timetable
+point has an arrival, the arrival that `TimetablePoints.txt` reports. The
+baseline column holds the counts of the pre-cutover runtime, which counted the
+arrival recorded during the run.
 
 These differences are recorded rather than converted into fabricated equality.
 The focused regression asserts exact network counts, stable station/route ID
 sets, expanded train counts, representative path endpoints, ordered stops, and
-arrival tolerances. The existing smoke additionally requires real movement and
-served arrivals for all four original cases, without legacy runtime staging.
+arrival tolerances. The existing smoke additionally requires real movement for
+all four original cases and served arrivals for Paimpol, Copenhagen, and
+Milano-Brescia, without legacy runtime staging. For Netherlands it requires that
+no station counts a train.

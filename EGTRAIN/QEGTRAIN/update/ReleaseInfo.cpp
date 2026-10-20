@@ -8,6 +8,7 @@
 #include <QSysInfo>
 #include <QStringList>
 #include <cmath>
+#include <utility>
 
 namespace {
 
@@ -16,21 +17,77 @@ void setError(QString* error, const QString& message) {
 		*error = message;
 }
 
-QString releaseNotes(const QJsonObject& object) {
-	QString notes = object.value(QStringLiteral("body")).toString().simplified();
-	if (notes.size() > 360)
-		notes = notes.left(357) + QStringLiteral("...");
-	return notes;
+// The notes keep their line structure: line ends are LF, trailing spaces are gone and a run of blank lines is one.
+QString normalizedNotes(QString notes) {
+	notes.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+	notes.replace(QLatin1Char('\r'), QLatin1Char('\n'));
+	notes.replace(QRegularExpression(QStringLiteral("[ \\t]+(?=\\n|$)")), QString());
+	notes.replace(QRegularExpression(QStringLiteral("\\n{3,}")), QStringLiteral("\n\n"));
+	return notes.trimmed();
 }
 
-QString expectedAssetName(const QString& platform) {
-	if (platform == QStringLiteral("macos-arm64"))
-		return QStringLiteral("QEGTRAIN-macos-arm64.zip");
-	if (platform == QStringLiteral("windows-x64"))
-		return QStringLiteral("QEGTRAIN-windows-x64.zip");
-	if (platform == QStringLiteral("linux-x86_64"))
-		return QStringLiteral("QEGTRAIN-linux-x86_64.AppImage");
-	return {};
+// Where a cut would break Markdown: code spans and fenced blocks, and links with their text.
+QList<std::pair<int, int>> unbreakableRanges(const QString& notes) {
+	static const QRegularExpression pattern(QStringLiteral("(?<!`)(`+)(?!`)(?s:.+?)(?<!`)\\1(?!`)|^~~~(?s:.*?)^~~~|!?\\[[^\\]\\n]*\\]\\([^)\\s]*\\)"),
+		QRegularExpression::MultilineOption);
+	QList<std::pair<int, int>> ranges;
+	for (QRegularExpressionMatchIterator it = pattern.globalMatch(notes); it.hasNext();) {
+		const QRegularExpressionMatch match = it.next();
+		ranges.append({static_cast<int>(match.capturedStart()), static_cast<int>(match.capturedEnd())});
+	}
+	return ranges;
+}
+
+// Cuts long notes at the end of a line or of a word, never inside a code span or a link, and points to the release page.
+QString shortenedNotes(const QString& notes) {
+	constexpr int kMaxNotesLength = 360;
+	if (notes.size() <= kMaxNotesLength)
+		return notes;
+	const QList<std::pair<int, int>> ranges = unbreakableRanges(notes);
+	int cut = kMaxNotesLength;
+	for (bool moved = true; moved;) {
+		moved = false;
+		while (cut > 0 && !notes.at(cut).isSpace())
+			--cut;
+		for (const auto& range : ranges) {
+			if (range.first < cut && cut < range.second) {
+				cut = range.first;
+				moved = true;
+				break;
+			}
+		}
+	}
+	return notes.left(cut).trimmed() + QStringLiteral("\n\nThe full notes are on the release page.");
+}
+
+QString releaseNotes(const QJsonObject& object) {
+	return shortenedNotes(normalizedNotes(object.value(QStringLiteral("body")).toString()));
+}
+
+// The package names that each distribution key accepts. %1 stands for the release version.
+struct AssetPattern {
+	const char* distribution;
+	const char* name;
+};
+
+constexpr AssetPattern kAssetPatterns[] = {
+	{"windows-x64", "QEGTRAIN-windows-x64.zip"},
+	{"windows-x64", "EGTRAIN-Portable-%1-x64.zip"},
+	{"windows-x64-installer", "EGTRAIN-Setup-%1-x64.exe"},
+	{"macos-arm64", "QEGTRAIN-macos-arm64.zip"},
+	{"macos-arm64", "EGTRAIN-%1-macOS-arm64.dmg"},
+	{"linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage"}};
+
+bool matchesAssetPattern(const AssetPattern& pattern, const QString& name, const QString& version) {
+	return QString::fromLatin1(pattern.name).replace(QStringLiteral("%1"), version) == name;
+}
+
+// True when the name fits a pattern of any distribution for this release version.
+bool isKnownPackageName(const QString& name, const QString& version) {
+	for (const AssetPattern& pattern : kAssetPatterns)
+		if (matchesAssetPattern(pattern, name, version))
+			return true;
+	return false;
 }
 
 bool validHttpsGitHubUrl(const QUrl& url) {
@@ -45,6 +102,36 @@ void setManifestError(QString* error, const QString& message) {
 		*error = message;
 }
 
+// Reads the optional package file list of a manifest entry. Backslashes
+// become forward slashes. Every path must be relative, free of drive and
+// stream colons and of empty, "." and ".." segments, and the list must name
+// QEGTRAIN.exe. A missing key is an empty list.
+bool parseManifestFiles(const QJsonObject& entry, QStringList* files) {
+	constexpr int kMaxFiles = 4096;
+	constexpr int kMaxPathLength = 260;
+	files->clear();
+	const QString key = QStringLiteral("files");
+	if (!entry.contains(key))
+		return true;
+	const QJsonValue raw = entry.value(key);
+	if (!raw.isArray() || raw.toArray().size() > kMaxFiles)
+		return false;
+	for (const auto& value : raw.toArray()) {
+		if (!value.isString())
+			return false;
+		const QString path = value.toString().replace(QLatin1Char('\\'), QLatin1Char('/'));
+		if (path.isEmpty() || path.size() > kMaxPathLength || path.contains(QLatin1Char(':'))
+			|| path.contains(QChar(0)))
+			return false;
+		for (const QString& segment : path.split(QLatin1Char('/'))) {
+			if (segment.isEmpty() || segment == QLatin1String(".") || segment == QLatin1String(".."))
+				return false;
+		}
+		files->append(path);
+	}
+	return files->contains(QStringLiteral("QEGTRAIN.exe"));
+}
+
 } // namespace
 
 const ReleaseAsset* StableRelease::asset(const QString& name) const {
@@ -54,36 +141,51 @@ const ReleaseAsset* StableRelease::asset(const QString& name) const {
 	return nullptr;
 }
 
-QString updatePlatformKey() {
+QString updateDistributionKey() {
 #if defined(Q_OS_MACOS)
 	const QString architecture = QSysInfo::currentCpuArchitecture().toLower();
 	return architecture == QStringLiteral("arm64") || architecture == QStringLiteral("aarch64")
-		? QStringLiteral("macos-arm64") : QString();
+		? QStringLiteral("macos-arm64")
+		: QString();
 #elif defined(Q_OS_WIN)
 	const QString architecture = QSysInfo::currentCpuArchitecture().toLower();
 	return architecture == QStringLiteral("x86_64") || architecture == QStringLiteral("amd64")
-		? QStringLiteral("windows-x64") : QString();
+		? QStringLiteral("windows-x64")
+		: QString();
 #elif defined(Q_OS_LINUX)
 	const QString architecture = QSysInfo::currentCpuArchitecture().toLower();
 	return architecture == QStringLiteral("x86_64") || architecture == QStringLiteral("amd64")
-		? QStringLiteral("linux-x86_64") : QString();
+		? QStringLiteral("linux-x86_64")
+		: QString();
 #else
 	return {};
 #endif
-}
-
-QString updatePackageName(const QString& platform) {
-	return expectedAssetName(platform);
 }
 
 QString updateManifestAssetName() {
 	return QStringLiteral("update-manifest.json");
 }
 
+bool isUpdateAssetName(const QString& distribution, const QString& name, const QString& version) {
+	if (version.isEmpty())
+		return false;
+	for (const AssetPattern& pattern : kAssetPatterns)
+		if (distribution == QLatin1String(pattern.distribution) && matchesAssetPattern(pattern, name, version))
+			return true;
+	return false;
+}
+
+bool releaseHasUpdatePackage(const StableRelease& release, const QString& distribution) {
+	const QString version = formatSemanticVersion(release.version);
+	for (const ReleaseAsset& asset : release.assets)
+		if (isUpdateAssetName(distribution, asset.name, version))
+			return true;
+	return false;
+}
+
 bool isExpectedReleaseAssetUrl(const QString& tag, const QString& name, const QUrl& url) {
 	return validHttpsGitHubUrl(url)
-		&& url.path() == QStringLiteral("/Ancientkingg/EGTRAIN/releases/download/%1/%2")
-			.arg(tag, name);
+		&& url.path() == QStringLiteral("/Ancientkingg/EGTRAIN/releases/download/%1/%2").arg(tag, name);
 }
 
 std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QString* error) {
@@ -129,17 +231,12 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 		QList<ReleaseAsset> assets;
 		const QJsonValue rawAssets = object.value(QStringLiteral("assets"));
 		if (rawAssets.isArray()) {
-			for (const QJsonValue& rawAsset : rawAssets.toArray()) {
+			for (const auto& rawAsset : rawAssets.toArray()) {
 				if (!rawAsset.isObject())
 					continue;
 				const QJsonObject asset = rawAsset.toObject();
 				const QString name = asset.value(QStringLiteral("name")).toString();
-				const QStringList allowedNames = {
-					updateManifestAssetName(),
-					updatePackageName(QStringLiteral("macos-arm64")),
-					updatePackageName(QStringLiteral("windows-x64")),
-					updatePackageName(QStringLiteral("linux-x86_64"))};
-				if (!allowedNames.contains(name))
+				if (name != updateManifestAssetName() && !isKnownPackageName(name, formatSemanticVersion(*version)))
 					continue;
 				const QUrl downloadUrl(asset.value(QStringLiteral("browser_download_url")).toString());
 				if (isExpectedReleaseAssetUrl(tag, name, downloadUrl))
@@ -155,7 +252,7 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 }
 
 std::optional<UpdateManifest> parseUpdateManifest(const QByteArray& json,
-	const QString& expectedTag, const QString& platform, QString* error) {
+	const QString& expectedTag, const QString& distribution, QString* error) {
 	QJsonParseError parseError;
 	const QJsonDocument document = QJsonDocument::fromJson(json, &parseError);
 	if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
@@ -174,12 +271,11 @@ std::optional<UpdateManifest> parseUpdateManifest(const QByteArray& json,
 		return std::nullopt;
 	}
 	const QJsonObject assets = root.value(QStringLiteral("assets")).toObject();
-	const QJsonObject entry = assets.value(platform).toObject();
-	const QString expectedName = expectedAssetName(platform);
+	const QJsonObject entry = assets.value(distribution).toObject();
 	const QString asset = entry.value(QStringLiteral("name")).toString();
 	const QString sha256 = entry.value(QStringLiteral("sha256")).toString();
 	const double rawSize = entry.value(QStringLiteral("size")).toDouble(-1.0);
-	if (expectedName.isEmpty() || asset != expectedName) {
+	if (!isUpdateAssetName(distribution, asset, expectedVersion)) {
 		setManifestError(error, QStringLiteral("Update manifest has no valid package for this platform."));
 		return std::nullopt;
 	}
@@ -194,7 +290,12 @@ std::optional<UpdateManifest> parseUpdateManifest(const QByteArray& json,
 		setManifestError(error, QStringLiteral("Update manifest has an invalid package size."));
 		return std::nullopt;
 	}
-	return UpdateManifest{expectedVersion, platform, asset, sha256, static_cast<qint64>(rawSize)};
+	QStringList files;
+	if (!parseManifestFiles(entry, &files)) {
+		setManifestError(error, QStringLiteral("Update manifest has an invalid file list."));
+		return std::nullopt;
+	}
+	return UpdateManifest{expectedVersion, distribution, asset, sha256, static_cast<qint64>(rawSize), files};
 }
 
 bool isUpdateAvailable(const SemanticVersion& current, const StableRelease& release) {
@@ -203,5 +304,7 @@ bool isUpdateAvailable(const SemanticVersion& current, const StableRelease& rele
 
 QString formatSemanticVersion(const SemanticVersion& version) {
 	return QStringLiteral("%1.%2.%3")
-		.arg(version.major).arg(version.minor).arg(version.patch);
+		.arg(version.major)
+		.arg(version.minor)
+		.arg(version.patch);
 }

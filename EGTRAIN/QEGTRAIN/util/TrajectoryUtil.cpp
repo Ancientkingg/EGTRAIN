@@ -8,24 +8,23 @@ double trajectoryTimeSeconds(int index, double timestep) {
 }
 
 bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
-							 int sampleCount, double positionMeters) {
-	return index >= 0 && index < sampleCount && index >= activeFirst && index <= activeLast &&
-		   std::isfinite(positionMeters) && positionMeters != -9999;
+	int sampleCount, double positionMeters) {
+	return index >= 0 && index < sampleCount && index >= activeFirst && index <= activeLast && std::isfinite(positionMeters) && positionMeters != -9999;
 }
 
 std::vector<double> trajectoryExportCells(
-		const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
+	const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
 	std::vector<double> cells(positionsMeters.size(), -9999);
 	for (const auto& segment : validTrajectorySegments(positionsMeters, activeFirst, activeLast)) {
 		std::copy(positionsMeters.begin() + segment.first,
-				  positionsMeters.begin() + segment.last + 1,
-				  cells.begin() + segment.first);
+			positionsMeters.begin() + segment.last + 1,
+			cells.begin() + segment.first);
 	}
 	return cells;
 }
 
 std::vector<double> shiftedTrajectoryExportCells(const std::vector<double>& values,
-		int activeFirst, int activeLast, int departureTime, int outputFirst, int outputLast) {
+	int activeFirst, int activeLast, int departureTime, int outputFirst, int outputLast) {
 	if (outputFirst > outputLast)
 		return {};
 
@@ -51,7 +50,7 @@ int replicatedEarliestTrajectoryIndex(int sourceIndex, int offset) {
 }
 
 std::vector<TrajectorySegment> validTrajectorySegments(
-		const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
+	const std::vector<double>& positionsMeters, int activeFirst, int activeLast) {
 	std::vector<TrajectorySegment> segments;
 	// -1 is Train's "not active" marker; other out-of-range bounds still clamp.
 	if (positionsMeters.empty() || activeFirst == -1 || activeFirst > activeLast)
@@ -65,7 +64,7 @@ std::vector<TrajectorySegment> validTrajectorySegments(
 	int segmentFirst = -1;
 	for (int index = first; index <= last; ++index) {
 		if (isValidTrajectorySample(index, first, last,
-								static_cast<int>(positionsMeters.size()), positionsMeters[index])) {
+				static_cast<int>(positionsMeters.size()), positionsMeters[index])) {
 			if (segmentFirst < 0)
 				segmentFirst = index;
 		} else if (segmentFirst >= 0) {

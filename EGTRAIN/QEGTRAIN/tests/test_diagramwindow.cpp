@@ -1,13 +1,30 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TrainFilterButton.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QApplication>
+#include <QGraphicsObject>
+#include <QFontMetricsF>
+#include <QFile>
+#include <QFileInfo>
+#include <QScreen>
 #include <QCategoryAxis>
 #include <QLabel>
+#include <QGraphicsScene>
+#include <QGraphicsTextItem>
 #include <QKeyEvent>
+#include <QImage>
+#include <QLineEdit>
+#include <QMenu>
+#include <QStyle>
+#include <QProxyStyle>
+#include <QStyleOptionViewItem>
 #include <QGestureEvent>
+#include <QHelpEvent>
 #include <QPinchGesture>
 #include <QShortcut>
+#include <QTextDocument>
+#include <QToolTip>
 #include <QScatterSeries>
 #include <QLineSeries>
 #include <QAreaSeries>
@@ -18,6 +35,7 @@
 #include <QPointer>
 #include <QValueAxis>
 #include <QWheelEvent>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -43,9 +61,1126 @@ static void wheel(QChartView* view, QPoint pixels, QPoint angles, Qt::KeyboardMo
 	QApplication::sendEvent(view->viewport(), &event);
 }
 
+// Check box rectangle of one train filter row, in viewport coordinates.
+static QRect checkBoxRect(const QListWidget* list, const QListWidgetItem* item) {
+	QStyleOptionViewItem option;
+	option.initFrom(list->viewport());
+	option.widget = list;
+	option.rect = list->visualItemRect(item);
+	option.features = QStyleOptionViewItem::HasCheckIndicator | QStyleOptionViewItem::HasDisplay;
+	option.checkState = item->checkState();
+	option.text = item->text();
+	if (!item->icon().isNull()) {
+		option.features |= QStyleOptionViewItem::HasDecoration;
+		option.icon = item->icon();
+		option.decorationSize = item->icon().actualSize(list->iconSize().isValid() ? list->iconSize() : QSize(16, 16));
+	}
+	return list->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option, list);
+}
+
+static void clickAt(QListWidget* list, const QPoint& point) {
+	QMouseEvent press(QEvent::MouseButtonPress, point, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, point, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(list->viewport(), &press);
+	QApplication::sendEvent(list->viewport(), &release);
+}
+
+static void pressKey(QWidget* widget, Qt::Key key, const QString& text = QString()) {
+	QKeyEvent press(QEvent::KeyPress, key, Qt::NoModifier, text);
+	QKeyEvent release(QEvent::KeyRelease, key, Qt::NoModifier, text);
+	QApplication::sendEvent(widget, &press);
+	QApplication::sendEvent(widget, &release);
+}
+
+// Pixels inside one check box that differ clearly from the row background, at the pixel density of the image.
+static int checkBoxPixels(const QImage& image, const QRect& box, const QRect& row) {
+	const qreal ratio = image.devicePixelRatio();
+	const int background = qGray(image.pixel(qRound((row.right() - 4) * ratio), qRound(row.center().y() * ratio)));
+	int strong = 0;
+	for (int y = qRound(box.top() * ratio); y < qRound((box.bottom() + 1) * ratio); ++y)
+		for (int x = qRound(box.left() * ratio); x < qRound((box.right() + 1) * ratio); ++x)
+			strong += std::abs(qGray(image.pixel(x, y)) - background) >= 90 ? 1 : 0;
+	return strong;
+}
+
+// The train filter popup: rows and their check boxes, toggling by mouse and keyboard, search,
+// All and None, reopening, and the train ids it reports.
+static bool exerciseTrainFilter() {
+	TrainFilterButton filter;
+	int changes = 0;
+	QObject::connect(&filter, &TrainFilterButton::selectionChanged, [&changes]() { ++changes; });
+	QMenu* menu = filter.menu();
+	auto* list = menu ? menu->findChild<QListWidget*>() : nullptr;
+	auto* search = menu ? menu->findChild<QLineEdit*>() : nullptr;
+	QPushButton* all = nullptr;
+	QPushButton* none = nullptr;
+	if (menu) {
+		for (QPushButton* button : menu->findChildren<QPushButton*>()) {
+			if (button->text() == "All") all = button;
+			if (button->text() == "None") none = button;
+		}
+	}
+	if (!expect(list && search && all && none, "train filter has a list, a search field, All and None"))
+		return false;
+	bool ok = true;
+
+	ok &= expect(filter.text() == "Trains" && filter.visibleTrainIds().isEmpty() && filter.isTrainVisible("IC 1000"),
+		"an empty train filter shows no count and hides no train");
+	menu->popup(QPoint(40, 40));
+	QApplication::processEvents();
+	ok &= expect(menu->isVisible() && list->count() == 0, "an empty train filter opens");
+	menu->hide();
+
+	filter.setTrains({{"IC 1000", QColor(Qt::red)}});
+	ok &= expect(filter.text() == "Trains (1/1)" && filter.visibleTrainIds() == QStringList{"IC 1000"} && changes == 0,
+		"one train is listed checked and setting trains is not a selection change");
+
+	QVector<QPair<QString, QColor>> trains;
+	QStringList ids;
+	for (int i = 0; i < 120; ++i) {
+		const QString id = QString("%1 %2").arg(i % 3 == 0 ? "IC" : "SPR").arg(1000 + i);
+		ids.append(id);
+		trains.append({id, i % 2 ? QColor(Qt::blue) : QColor()});
+	}
+	filter.setTrains(trains);
+	ok &= expect(filter.text() == "Trains (120/120)" && filter.visibleTrainIds() == ids,
+		"all trains start visible and are reported in list order");
+
+	menu->popup(QPoint(40, 40));
+	QApplication::processEvents();
+	const QRect viewport = list->viewport()->rect();
+	bool boxesInsideRows = true;
+	int rowsOnScreen = 0;
+	for (int row = 0; row < list->count(); ++row) {
+		const QRect rowRect = list->visualItemRect(list->item(row));
+		if (!viewport.contains(rowRect))
+			continue;
+		++rowsOnScreen;
+		const QRect box = checkBoxRect(list, list->item(row));
+		boxesInsideRows &= box.width() >= 12 && box.height() >= 12 && rowRect.contains(box) && viewport.contains(box.center());
+	}
+	ok &= expect(rowsOnScreen >= 8 && boxesInsideRows, "every row on screen has a check box inside the row");
+
+	// Row 0 is checked, row 1 gets unchecked by a click; both are drawn at one and two device pixels per pixel.
+	clickAt(list, checkBoxRect(list, list->item(1)).center());
+	ok &= expect(
+		list->item(1)->checkState() == Qt::Unchecked && changes == 1 && !filter.isTrainVisible(ids.at(1))
+			&& filter.isTrainVisible(ids.at(0)) && filter.text() == "Trains (119/120)",
+		"a click on a check box hides that train only");
+	QApplication::processEvents();
+	for (const qreal ratio : {1.0, 2.0}) {
+		QImage image(list->viewport()->size() * ratio, QImage::Format_ARGB32_Premultiplied);
+		image.setDevicePixelRatio(ratio);
+		image.fill(Qt::white);
+		list->viewport()->render(&image);
+		const int checked = checkBoxPixels(image, checkBoxRect(list, list->item(0)), list->visualItemRect(list->item(0)));
+		const int unchecked = checkBoxPixels(image, checkBoxRect(list, list->item(1)), list->visualItemRect(list->item(1)));
+		ok &= expect(unchecked >= 24 * ratio && checked >= 2 * unchecked,
+			"unchecked and checked boxes are both drawn in the train filter");
+	}
+
+	const QRect secondRow = list->visualItemRect(list->item(2));
+	clickAt(list, QPoint(secondRow.right() - 6, secondRow.center().y()));
+	ok &= expect(list->item(2)->checkState() == Qt::Checked && changes == 1, "a click beside the check box changes nothing");
+
+	list->scrollToBottom();
+	QApplication::processEvents();
+	clickAt(list, checkBoxRect(list, list->item(119)).center());
+	ok &= expect(
+		list->item(119)->checkState() == Qt::Unchecked && list->item(1)->checkState() == Qt::Unchecked && changes == 2
+			&& filter.text() == "Trains (118/120)",
+		"a row reached by scrolling toggles and earlier choices stay");
+
+	list->setFocus(Qt::MouseFocusReason);
+	QApplication::processEvents();
+	pressKey(list, Qt::Key_Home);
+	pressKey(list, Qt::Key_Space, " ");
+	ok &= expect(list->currentRow() == 0 && list->item(0)->checkState() == Qt::Unchecked && changes == 3,
+		"Home and Space toggle the first row");
+	pressKey(list, Qt::Key_Down);
+	pressKey(list, Qt::Key_Space, " ");
+	ok &= expect(list->item(1)->checkState() == Qt::Checked && list->item(0)->checkState() == Qt::Unchecked && changes == 4,
+		"Down and Space toggle the next row");
+
+	// Unchecked now: rows 0 (IC) and 119 (SPR).
+	search->setText("ic");
+	int shown = 0;
+	bool onlyMatchesShown = true;
+	for (int row = 0; row < list->count(); ++row) {
+		const bool match = ids.at(row).startsWith("IC");
+		onlyMatchesShown &= list->item(row)->isHidden() == !match;
+		shown += list->item(row)->isHidden() ? 0 : 1;
+	}
+	ok &= expect(shown == 40 && onlyMatchesShown && changes == 4 && filter.visibleTrainIds().size() == 118,
+		"search narrows the rows without changing which trains are visible");
+	none->click();
+	ok &= expect(
+		changes == 5 && filter.visibleTrainIds().size() == 79 && filter.text() == "Trains (79/120)"
+			&& filter.isTrainVisible(ids.at(1)) && !filter.isTrainVisible(ids.at(3))
+			&& !filter.isTrainVisible(ids.at(119)),
+		"None unchecks the rows that the search shows and reports one change");
+	all->click();
+	ok &= expect(
+		changes == 6 && filter.visibleTrainIds().size() == 119 && filter.isTrainVisible(ids.at(0))
+			&& !filter.isTrainVisible(ids.at(119)),
+		"All checks the rows that the search shows and leaves the others");
+	search->clear();
+	bool noneHidden = true;
+	for (int row = 0; row < list->count(); ++row)
+		noneHidden &= !list->item(row)->isHidden();
+	ok &= expect(noneHidden && changes == 6 && filter.visibleTrainIds().size() == 119,
+		"clearing the search shows every row with its state");
+
+	menu->hide();
+	QApplication::processEvents();
+	menu->popup(QPoint(40, 40));
+	QApplication::processEvents();
+	QStringList expected = ids;
+	expected.removeAt(119);
+	ok &= expect(
+		menu->isVisible() && filter.visibleTrainIds() == expected && list->item(119)->checkState() == Qt::Unchecked
+			&& filter.text() == "Trains (119/120)" && changes == 6,
+		"reopening keeps the selection and the reported train ids");
+
+	filter.setTrains({{"A", QColor()}, {"B", QColor()}});
+	ok &= expect(
+		filter.text() == "Trains (2/2)" && filter.visibleTrainIds() == QStringList({"A", "B"})
+			&& filter.isTrainVisible("B") && changes == 6,
+		"a new train list starts with every train visible");
+	menu->hide();
+	return ok;
+}
+
+class SelectionRequiredStyle : public QProxyStyle {
+public:
+	SelectionRequiredStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+
+	int styleHint(StyleHint hint, const QStyleOption* option = nullptr,
+		const QWidget* widget = nullptr, QStyleHintReturn* data = nullptr) const override {
+		if (hint == SH_ItemView_MovementWithoutUpdatingSelection) return false;
+		return QProxyStyle::styleHint(hint, option, widget, data);
+	}
+};
+
+// Inside a diagram window the chart shortcuts leave the keys of the open train filter alone.
+static bool exerciseTrainFilterKeysInWindow() {
+	DiagramWindow window("Train filter keys");
+	auto* chart = new QChart;
+	QLineSeries* first = nullptr;
+	for (const char* id : {"A", "B", "C"}) {
+		auto* series = new QLineSeries;
+		series->setName(QString("Train %1").arg(id));
+		series->setProperty("trainId", id);
+		series->append(10, 10);
+		series->append(60, 60);
+		chart->addSeries(series);
+		if (!first) first = series;
+	}
+	chart->createDefaultAxes();
+	window.setChart(chart);
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	auto* filter = window.findChild<TrainFilterButton*>();
+	QMenu* menu = filter ? filter->menu() : nullptr;
+	auto* list = menu ? menu->findChild<QListWidget*>() : nullptr;
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	if (!expect(view && list && x && list->count() == 3, "a diagram window lists its three trains"))
+		return false;
+	// Require a selection for keyboard navigation, as the macOS style does.
+	auto* navigationStyle = new SelectionRequiredStyle;
+	navigationStyle->setParent(list);
+	list->setStyle(navigationStyle);
+	bool ok = true;
+	const double fullSpan = x->max() - x->min();
+	view->setFocus();
+	pressKey(view, Qt::Key_Plus, "+");
+	const double zoomedSpan = x->max() - x->min();
+	ok &= expect(zoomedSpan < fullSpan, "plus zooms the chart before the filter opens");
+
+	menu->popup(window.mapToGlobal(QPoint(20, 60)));
+	QApplication::processEvents();
+	list->setFocus(Qt::MouseFocusReason);
+	QApplication::processEvents();
+	pressKey(list, Qt::Key_Down);
+	pressKey(list, Qt::Key_End);
+	ok &= expect(list->currentRow() == 2, "Down and End move to the last train of the open filter");
+	pressKey(list, Qt::Key_Home);
+	ok &= expect(list->currentRow() == 0 && x->max() - x->min() == zoomedSpan,
+		"Home moves to the first train of the open filter and leaves the chart zoom alone");
+	pressKey(list, Qt::Key_0, "0");
+	pressKey(list, Qt::Key_Minus, "-");
+	ok &= expect(x->max() - x->min() == zoomedSpan, "typing in the open filter list does not zoom the chart");
+	pressKey(list, Qt::Key_Home);
+	pressKey(list, Qt::Key_Space, " ");
+	ok &= expect(
+		list->item(0)->checkState() == Qt::Unchecked && filter->text() == "Trains (2/3)" && !first->isVisible()
+			&& filter->visibleTrainIds() == QStringList({"B", "C"}),
+		"Space in the open filter hides the first train of the diagram");
+	menu->hide();
+	QApplication::processEvents();
+
+	view->setFocus();
+	pressKey(view, Qt::Key_Home);
+	ok &= expect(x->max() - x->min() == fullSpan && !first->isVisible(), "Home still resets the zoom with chart focus and keeps the filter");
+	return ok;
+}
+
+// Two trains with a solid and a dashed line each, and a fill for the first train.
+struct ColoredChart {
+	QChart* chart = new QChart;
+	QLineSeries* solid[2] = {};
+	QLineSeries* dashed[2] = {};
+	QAreaSeries* fill = nullptr;
+	QPen solidPen[2];
+	QPen dashedPen[2];
+	QPen fillPen;
+	QBrush fillBrush;
+};
+
+static ColoredChart makeColoredChart() {
+	ColoredChart built;
+	const QColor base[2] = {QColor(200, 40, 40), QColor(30, 90, 200)};
+	for (int train = 0; train < 2; ++train) {
+		const QString id = train == 0 ? "A" : "B";
+		const double offset = train * 60;
+		built.solidPen[train] = QPen(base[train], 3.0);
+		built.dashedPen[train] = QPen(base[train], 2.0, Qt::DashLine);
+		auto* solid = new QLineSeries;
+		solid->setName("Train " + id + " (simulated)");
+		solid->setProperty("trainId", id);
+		solid->setPen(built.solidPen[train]);
+		solid->append(10, 10 + offset);
+		solid->append(60, 20 + offset);
+		auto* dashed = new QLineSeries;
+		dashed->setName("Train " + id + " (planned)");
+		dashed->setProperty("trainId", id);
+		dashed->setPen(built.dashedPen[train]);
+		dashed->append(10, 25 + offset);
+		dashed->append(60, 30 + offset);
+		built.chart->addSeries(solid);
+		built.chart->addSeries(dashed);
+		built.solid[train] = solid;
+		built.dashed[train] = dashed;
+	}
+	auto* upper = new QLineSeries;
+	auto* lower = new QLineSeries;
+	upper->append(70, 50);
+	upper->append(90, 50);
+	lower->append(70, 40);
+	lower->append(90, 40);
+	built.fill = new QAreaSeries(upper, lower);
+	built.fill->setProperty("trainId", "A");
+	built.fillBrush = QBrush(QColor(200, 40, 40, 65));
+	built.fillPen = QPen(QColor(200, 40, 40), 1.5);
+	built.fill->setBrush(built.fillBrush);
+	built.fill->setPen(built.fillPen);
+	built.chart->addSeries(built.fill);
+	built.chart->createDefaultAxes();
+	built.chart->axes(Qt::Horizontal).first()->setRange(0, 100);
+	built.chart->axes(Qt::Vertical).first()->setRange(0, 140);
+	return built;
+}
+
+// A pen with the colour of a train: same width, dash pattern and cap as before.
+static bool isRecoloured(const QPen& pen, const QPen& before, const QColor& color) {
+	QPen expected = before;
+	expected.setColor(color);
+	return pen == expected;
+}
+
+static QColor swatchAt(const QListWidget* list, int row) {
+	const QIcon icon = list->item(row)->icon();
+	return icon.isNull() ? QColor() : icon.pixmap(12, 12).toImage().pixelColor(6, 6);
+}
+
+static bool exerciseTrainColors() {
+	const QColor green(60, 180, 75);
+	bool ok = true;
+	for (const bool beforeChart : {false, true}) {
+		const char* when = beforeChart ? " (map set before the chart)" : " (map set after the chart)";
+		const auto note = [&](const char* text) { return (std::string(text) + when); };
+		DiagramWindow window("Train colours");
+		const ColoredChart built = makeColoredChart();
+		const QHash<QString, QColor> colors{{"A", green}, {"Z", QColor(1, 2, 3)}, {"B", QColor()}};
+		if (beforeChart) window.setTrainColors(colors);
+		window.setChart(built.chart);
+		if (!beforeChart) window.setTrainColors(colors);
+		window.show();
+		QApplication::processEvents();
+		auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+		auto* view = window.findChild<QChartView*>();
+		if (!expect(list && view && list->count() == 2, "the coloured chart lists two trains"))
+			return false;
+		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
+				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
+				&& built.solid[0]->pen().widthF() == 3.0 && built.dashed[0]->pen().widthF() == 2.0
+				&& built.solid[0]->pen().style() == Qt::SolidLine && built.dashed[0]->pen().style() == Qt::DashLine,
+			note("the line series of a coloured train take its colour and keep width and dash pattern").c_str());
+		ok &= expect(built.fill->brush().color() == QColor(green.red(), green.green(), green.blue(), 65)
+				&& built.fill->pen().color() == green && built.fill->pen().widthF() == 1.5,
+			note("the area series of a coloured train takes its colour and keeps the fill alpha").c_str());
+		ok &= expect(built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1],
+			note("the series of a train with an invalid colour keep their pens").c_str());
+		ok &= expect(swatchAt(list, 0) == green && swatchAt(list, 1) == built.solidPen[1].color(),
+			note("each filter swatch is the colour of the first series of its train").c_str());
+
+		// Pin train A by clicking its solid line, then clear the pin.
+		const QPoint sample = view->mapFromScene(built.chart->mapToScene(
+			built.chart->mapToPosition(QPointF(10, 10), built.solid[0])));
+		QMouseEvent press(QEvent::MouseButtonPress, sample, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, sample, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &press);
+		QApplication::sendEvent(view->viewport(), &release);
+		ok &= expect(built.solid[0]->pen().widthF() > 3.0 && built.solid[0]->pen().color() == green
+				&& built.solid[1]->pen().color().alpha() < 255,
+			note("pinning a coloured train emphasises it in its colour and mutes the other train").c_str());
+		QMetaObject::invokeMethod(&window, "clearPin");
+		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
+				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
+				&& built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1]
+				&& built.fill->brush().color().alpha() == 65,
+			note("clearing the pin leaves the colour of the coloured train").c_str());
+	}
+
+	// A map that names no train of the chart, or only invalid colours, changes nothing.
+	DiagramWindow window("Unchanged colours");
+	const ColoredChart built = makeColoredChart();
+	window.setChart(built.chart);
+	window.setTrainColors({{"Z", green}, {"A", QColor()}, {"B", QColor()}});
+	auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	ok &= expect(built.solid[0]->pen() == built.solidPen[0] && built.dashed[0]->pen() == built.dashedPen[0]
+			&& built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1]
+			&& built.fill->pen() == built.fillPen && built.fill->brush() == built.fillBrush
+			&& list && swatchAt(list, 0) == built.solidPen[0].color() && swatchAt(list, 1) == built.solidPen[1].color(),
+		"an unknown train id and an invalid colour change nothing");
+
+	// Colours for the train list only: the swatch changes, every series keeps its look.
+	DiagramWindow listOnly("List colours");
+	const ColoredChart kept = makeColoredChart();
+	listOnly.setChart(kept.chart);
+	listOnly.setTrainListColors({{"A", green}});
+	auto* keptList = listOnly.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	ok &= expect(kept.solid[0]->pen() == kept.solidPen[0] && kept.dashed[0]->pen() == kept.dashedPen[0]
+			&& kept.solid[1]->pen() == kept.solidPen[1] && kept.dashed[1]->pen() == kept.dashedPen[1]
+			&& kept.fill->pen() == kept.fillPen && kept.fill->brush() == kept.fillBrush,
+		"list colours leave the series of a coloured train as they were");
+	ok &= expect(keptList && swatchAt(keptList, 0) == green && swatchAt(keptList, 1) == kept.solidPen[1].color(),
+		"list colours give the coloured train its swatch and leave the other swatch");
+	return ok;
+}
+
+// A chart with one line series per name and two points each.
+static QChart* makeNamedChart(const QStringList& names) {
+	auto* chart = new QChart;
+	for (const QString& name : names) {
+		auto* line = new QLineSeries;
+		line->setName(name);
+		line->append(10, 10);
+		line->append(20, 20);
+		chart->addSeries(line);
+	}
+	chart->createDefaultAxes();
+	return chart;
+}
+
+static QString navigationHelp(const DiagramWindow& window) {
+	return window.findChild<QLabel*>("diagramNavigationHelp")->text();
+}
+
+// The help line mentions planned lines only when the chart has a planned series, and
+// the rolling-stock subject never does.
+static bool exerciseNavigationHelp() {
+	const QString general = QStringLiteral(
+		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	const QString withPlanned = QStringLiteral(
+		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid.");
+	const QString inputTraction = QStringLiteral(
+		"Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	const QStringList plannedNames{"Train A (planned arrival)", "Train A (simulated arrival)"};
+	const QStringList plainNames{"Train A", "Train B (arrival delay)", "Train A (recorded trajectory)"};
+	bool ok = true;
+
+	DiagramWindow empty("Help without chart");
+	ok &= expect(navigationHelp(empty) == general, "help of a window without a chart has no planned sentence");
+
+	DiagramWindow planned("Help with planned series");
+	planned.setChart(makeNamedChart(plannedNames));
+	ok &= expect(navigationHelp(planned) == withPlanned, "help of a chart with a planned series has the planned sentence");
+
+	DiagramWindow plain("Help without planned series");
+	plain.setChart(makeNamedChart(plainNames));
+	ok &= expect(navigationHelp(plain) == general, "help of a chart without a planned series has no planned sentence");
+
+	DiagramWindow replaced("Help after replacing the chart");
+	replaced.setChart(makeNamedChart(plannedNames));
+	ok &= expect(navigationHelp(replaced) == withPlanned, "help has the planned sentence for the first chart");
+	replaced.setChart(makeNamedChart(plainNames));
+	ok &= expect(navigationHelp(replaced) == general, "help drops the planned sentence when the chart is replaced");
+	replaced.setChart(makeNamedChart(plannedNames));
+	ok &= expect(navigationHelp(replaced) == withPlanned, "help gets the planned sentence back for the third chart");
+
+	DiagramWindow upper("Help with an upper-case name");
+	upper.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)"}));
+	ok &= expect(navigationHelp(upper) == withPlanned, "the planned name test ignores letter case in the help");
+
+	DiagramWindow input("Help of an input traction curve");
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setChart(makeNamedChart({"Unit planned"}));
+	ok &= expect(navigationHelp(input) == inputTraction, "input traction help wins over a planned series");
+	input.setRollingStockSubject(false);
+	ok &= expect(navigationHelp(input) == withPlanned, "help follows the chart after the rolling-stock subject is switched off");
+	input.setRollingStockSubject(true);
+	ok &= expect(navigationHelp(input) == inputTraction, "help is the input traction text again after the subject is switched on");
+	return ok;
+}
+
+static QPushButton* topButton(QDialog& window, const QString& text) {
+	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+		if (button->text() == text) return button;
+	return nullptr;
+}
+
+static bool buttonFlags(QDialog& window, const QString& prefix) {
+	bool ok = true;
+	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly)) {
+		ok &= expect(!button->autoDefault(), qPrintable(prefix + " is not auto default: " + button->text()));
+		ok &= expect(!button->isDefault(), qPrintable(prefix + " is not the default: " + button->text()));
+	}
+	return ok;
+}
+
+static QChart* buttonTestChart() {
+	auto* chart = new QChart;
+	auto* a = new QLineSeries;
+	a->setName("Train A");
+	a->setProperty("trainId", "A");
+	a->append(20, 30);
+	a->append(40, 50);
+	chart->addSeries(a);
+	auto* b = new QLineSeries;
+	b->setName("Train B");
+	b->setProperty("trainId", "B");
+	b->append(70, 20);
+	b->append(80, 30);
+	chart->addSeries(b);
+	chart->createDefaultAxes();
+	for (auto* axis : chart->axes()) qobject_cast<QValueAxis*>(axis)->setRange(0, 100);
+	return chart;
+}
+
+static bool exerciseButtonDefaults() {
+	int calls = 0;
+	const auto provider = [&calls](const QStringList&) { ++calls; return std::string(); };
+	DiagramWindow window("Button defaults");
+	auto* chart = buttonTestChart();
+	window.setChart(chart);
+	window.setCsvProvider(provider, "buttons.csv");
+	window.show();
+	QApplication::processEvents();
+	auto* csv = topButton(window, "Export CSV...");
+	auto* reset = topButton(window, "Reset zoom");
+	auto* png = topButton(window, "Export PNG...");
+	auto* view = window.findChild<QChartView*>();
+	bool ok = expect(csv && reset && png && topButton(window, "Clear selection") && view, "diagram window has its top bar buttons");
+	if (!ok) return false;
+	ok &= buttonFlags(window, "diagram window button");
+	ok &= expect(csv->isVisible() && csv->isEnabled(), "diagram window shows Export CSV with a provider");
+	const auto clickTrain = [&] {
+		const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(20, 30), chart->series().first())));
+		QMouseEvent press(QEvent::MouseButtonPress, sample, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, sample, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &press);
+		QApplication::sendEvent(view->viewport(), &release);
+	};
+	clickTrain();
+	QLabel* pin = nullptr;
+	for (auto* label : window.findChildren<QLabel*>(QString(), Qt::FindDirectChildrenOnly))
+		if (label->text().startsWith("Selected:")) pin = label;
+	ok &= expect(pin && pin->text() == "Selected: A", "click selects train A in the button test");
+	if (!pin) return false;
+	view->setFocus();
+	pressKey(view, Qt::Key_Return);
+	pressKey(view, Qt::Key_Enter);
+	ok &= expect(pin->text() == "Selected: A", "Enter in the chart keeps the selection");
+	clickTrain();
+	ok &= expect(pin->text() == "Selected: A", "second click selects train A in the button test");
+	pressKey(&window, Qt::Key_Return);
+	ok &= expect(pin->text() == "Selected: A", "Enter in the window keeps the selection");
+	ok &= expect(calls == 0, "Enter starts no CSV export");
+	DiagramWindow input("Input traction");
+	input.setProperty("inputTrainUnitId", "unit-a");
+	input.setChart(buttonTestChart());
+	input.show();
+	QApplication::processEvents();
+	auto* inputCsv = topButton(input, "Export CSV...");
+	auto* inputReset = topButton(input, "Reset zoom");
+	auto* inputPng = topButton(input, "Export PNG...");
+	if (!expect(inputCsv && inputReset && inputPng, "rolling stock window has its top bar buttons")) return false;
+	ok &= expect(inputCsv->isHidden(), "a window without a provider has no Export CSV button");
+	ok &= expect(inputReset->isVisible() && inputPng->isVisible(), "a window without a provider keeps Reset zoom and Export PNG");
+	ok &= buttonFlags(input, "rolling stock window button");
+	DiagramWindow late("Late provider");
+	late.setChart(buttonTestChart());
+	late.show();
+	QApplication::processEvents();
+	auto* lateCsv = topButton(late, "Export CSV...");
+	if (!expect(lateCsv, "late provider window has its CSV button")) return false;
+	late.setCsvProvider(provider, "late.csv");
+	QApplication::processEvents();
+	ok &= expect(lateCsv->isVisible() && lateCsv->isEnabled(), "setCsvProvider shows Export CSV");
+	late.setCsvProvider({}, QString());
+	QApplication::processEvents();
+	ok &= expect(lateCsv->isHidden(), "an empty provider hides Export CSV again");
+	return ok;
+}
+
+// A chart of the whole run opens with its name as the window title and the run in the context line. A run identity of
+// 300 characters stays in the capped context line and its tooltip, and the window stays within the screen.
+static bool exerciseRunContext() {
+	const QString chartName = QStringLiteral("Speed vs Distance");
+	const QString run = QString(300, QLatin1Char('c')) + QStringLiteral(" / ") + QString(300, QLatin1Char('s'));
+	DiagramWindow window(chartName);
+	QFont large = window.font();
+	large.setPointSizeF(18);
+	window.setFont(large);
+	auto* chart = buttonTestChart();
+	window.setChart(chart);
+	window.setPresentation(chartName, QStringLiteral("Run: ") + run, QString());
+	window.show();
+	QApplication::processEvents();
+	const auto* context = window.findChild<QLabel*>("diagramContext");
+	const auto* warning = window.findChild<QLabel*>("diagramWarning");
+	const QRect screenArea = window.screen()->availableGeometry();
+	bool ok = expect(window.windowTitle() == chartName, "the window title is the name of the chart");
+	ok &= expect(context->isVisible() && context->text() == QStringLiteral("Run: ") + run
+			&& QString(context->toolTip()).remove(QChar(0x200B)).contains(run)
+			&& context->height() <= context->fontMetrics().height() * 3 && warning->isHidden(),
+		"the context line holds the whole run within three lines and no warning strip opens");
+	ok &= expect(window.width() <= screenArea.width() * 9 / 10 && window.height() <= screenArea.height() * 4 / 5,
+		"a long run identity keeps the window within the screen");
+	return ok;
+}
+
+static bool exerciseBlockSections() {
+	bool ok = true;
+	DiagramWindow window("Physical sections");
+	auto* chart = new QChart;
+	chart->setTitle("Physical sections title");
+	auto* first = new QLineSeries;
+	first->setName("A envelope");
+	first->setProperty("trainId", "A");
+	first->append(2, 0);
+	first->append(2, 100);
+	chart->addSeries(first);
+	auto* second = new QLineSeries;
+	second->setName("B envelope");
+	second->setProperty("trainId", "B");
+	second->append(7, 0);
+	second->append(7, 100);
+	chart->addSeries(second);
+	auto* early = new QScatterSeries;
+	early->setName("A early recorded sample");
+	early->setProperty("trainId", "A");
+	early->setColor(Qt::red);
+	early->setBorderColor(Qt::red);
+	early->append(2.5, 1);
+	early->append(2.5, 31);
+	chart->addSeries(early);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	x->setRange(0, 10);
+	y->setRange(0, 100);
+	y->setReverse(true);
+	window.setChart(chart);
+	const std::string authored = "@repeat<&>" + std::string(80, 'X') + "@";
+	auto extents = buildBlockSectionExtents({{authored, 1, 3}, {authored, 1, 3}, {"@reverse@", 8, 5}, {"@missing<&>@", 4, 4}});
+	window.setBlockSections(extents, "reference<&>");
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	if (!expect(overlay && list && list->count() == 2 && chart->series().size() == 3, "physical layer adds no train/filter/series identities")) return false;
+	ok &= expect(overlay->parentItem() == chart && overlay->property("sectionCount").toInt() == 4,
+		"chart owns all repeated/coincident and missing physical occurrences");
+	const auto chartPoint = [&](double km, double offsetY) {
+		const QRectF plot = chart->plotArea();
+		return QPointF(plot.left() + (km - x->min()) / (x->max() - x->min()) * plot.width(), plot.top() + offsetY);
+	};
+	const auto headerPoint = [&](double km, double offsetY) {
+		const auto* layer = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+		const double height = (QFontMetricsF(window.font()).height() + 10)
+			* (layer->property("geometryNotice").toString().isEmpty() || layer->property("sectionCount").toInt() == 0 ? 1 : 2);
+		return chartPoint(km, offsetY - height);
+	};
+	const auto hover = [&](const QPointF& point) {
+		const QPoint position = view->mapFromScene(chart->mapToScene(point));
+		QMouseEvent move(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &move);
+		return position;
+	};
+	const QPoint header = hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->textFormat() == Qt::PlainText
+			&& tooltip->text().contains(QString::fromStdString(authored))
+			&& tooltip->text().contains("1:") && tooltip->text().contains("2:") && tooltip->text().contains("reference<&>"),
+		"section hover retains full escaped/plain text and both coincident occurrence identities");
+	QString selected;
+	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
+	const auto click = [&](const QPoint& position) {
+		QMouseEvent press(QEvent::MouseButtonPress, position, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, position, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &press);
+		QApplication::sendEvent(view->viewport(), &release);
+	};
+	// The strip lies above the plot, where no click can select a series. A click that reaches the section code shows its details.
+	click(header);
+	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().contains("Physical reference section"),
+		"a click on the section strip inspects the section and selects no train");
+	// A boundary inside the plot, away from every sample: the dotted line is inspected but belongs to no train.
+	click(view->mapFromScene(chart->mapToScene(chartPoint(8, chart->plotArea().height() / 2))));
+	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().contains("@reverse@"),
+		"a click on a physical boundary inside the plot inspects the section and selects no train");
+	// The same click path selects a train when it lands on its series, so the checks above can fail.
+	click(view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(2, 50), first))));
+	ok &= expect(selected == "A", "a click on a train series selects it while the section layer is present");
+	QMetaObject::invokeMethod(&window, "clearPin");
+	const auto earlyVisible = [&](const QPointF& value) {
+		moveTo(view, value, early);
+		const bool inspected = tooltip->isVisible() && tooltip->text().contains("early recorded sample");
+		QEvent leave(QEvent::Leave);
+		QApplication::sendEvent(view->viewport(), &leave);
+		const QImage image = view->grab().toImage();
+		const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(value, early)));
+		const qreal ratio = image.devicePixelRatio();
+		int redPixels = 0;
+		for (int dy = -2; dy <= 2; ++dy)
+			for (int dx = -2; dx <= 2; ++dx) {
+				const QPoint pixel(qRound((sample.x() + dx) * ratio), qRound((sample.y() + dy) * ratio));
+				if (!image.rect().contains(pixel)) continue;
+				const QColor color = image.pixelColor(pixel);
+				if (color.red() > 200 && color.green() < 80 && color.blue() < 80) ++redPixels;
+			}
+		return inspected && redPixels > 10;
+	};
+	// The strip and the geometry notice paint only in the band that ends at the plot area. Compare a grab with and without the
+	// overlay there, and look for the dark notice text in the lower row of the band.
+	const QImage withOverlay = view->grab().toImage();
+	overlay->hide();
+	const QImage withoutOverlay = view->grab().toImage();
+	overlay->show();
+	const auto bandPixels = [&](double fromY, double toY, bool darkText) {
+		const qreal scale = withOverlay.devicePixelRatio();
+		const QRectF plotRect = chart->plotArea();
+		const QPoint from = view->mapFromScene(chart->mapToScene(QPointF(plotRect.left() + 2, fromY)));
+		const QPoint to = view->mapFromScene(chart->mapToScene(QPointF(plotRect.right() - 2, toY)));
+		int count = 0;
+		for (int row = qRound(from.y() * scale); row < qRound(to.y() * scale); ++row)
+			for (int column = qRound(from.x() * scale); column < qRound(to.x() * scale); ++column) {
+				if (!withOverlay.rect().contains(column, row)) continue;
+				const QColor color = withOverlay.pixelColor(column, row);
+				if (darkText ? color.red() + color.green() + color.blue() < 400 : withOverlay.pixel(column, row) != withoutOverlay.pixel(column, row)) ++count;
+			}
+		return count;
+	};
+	const double bandTop = headerPoint(0, 0).y();
+	const double rowHeight = QFontMetricsF(window.font()).height() + 10;
+	ok &= expect(bandPixels(0, bandTop - 2, false) == 0 && bandPixels(bandTop, bandTop + rowHeight, false) > 0
+			&& bandPixels(bandTop + rowHeight, chart->plotArea().top(), true) > 10,
+		"the strip and the geometry notice text paint in the band above the plot and not over the title");
+	// With the overlay hidden, only the chart title paints above the plot. It must end above the strip, so the strip covers none of it.
+	const auto titleExtent = [&](double limitY) {
+		overlay->hide();
+		const QImage image = view->grab().toImage();
+		overlay->show();
+		const qreal scale = image.devicePixelRatio();
+		const QPoint centre = view->mapFromScene(chart->mapToScene(QPointF(chart->size().width() / 2, 0)));
+		const int limit = view->mapFromScene(chart->mapToScene(QPointF(0, limitY))).y();
+		int count = 0, bottom = -1;
+		for (int row = 0; row < limit; ++row)
+			for (int dx = -80; dx <= 80; ++dx) {
+				const QPoint pixel(qRound((centre.x() + dx) * scale), qRound(row * scale));
+				if (!image.rect().contains(pixel)) continue;
+				const QColor color = image.pixelColor(pixel);
+				if (color.red() + color.green() + color.blue() < 400) {
+					++count;
+					bottom = row;
+				}
+			}
+		return std::make_pair(count, bottom);
+	};
+	const double stripTop = headerPoint(0, 0).y();
+	const auto titleAll = titleExtent(chart->plotArea().top());
+	const auto titleAboveStrip = titleExtent(stripTop);
+	const int stripTopView = view->mapFromScene(chart->mapToScene(QPointF(0, stripTop))).y();
+	ok &= expect(titleAll.first > 20 && titleAll.second < stripTopView && titleAboveStrip == titleAll,
+		"the chart title is visible and ends above the section strip");
+	ok &= expect(earlyVisible(QPointF(2.5, 1)), "near-minimum time sample is visible in capture and inspectable with physical header");
+	y->setRange(20, 70);
+	wheel(view, QPoint(0, -qRound(chart->plotArea().height() / 5)), {});
+	QApplication::processEvents();
+	ok &= expect(y->min() > 29 && y->min() < 31 && earlyVisible(QPointF(2.5, 31)),
+		"after time pan a sample at the new upper edge remains visible and inspectable");
+	QMetaObject::invokeMethod(&window, "resetZoom");
+	QApplication::processEvents();
+	for (int row = 0; row < list->count(); ++row) list->item(row)->setCheckState(Qt::Unchecked);
+	hover(headerPoint(2, 5));
+	ok &= expect(!first->isVisible() && !second->isVisible() && tooltip->isVisible() && overlay->isVisible(),
+		"hiding every train retains section labels and inspection");
+	std::vector<BlockSectionInput> narrowSections;
+	for (int index = 0; index < 40; ++index)
+		narrowSections.push_back({"@n" + std::to_string(index) + "@", index * 0.25, (index + 1) * 0.25});
+	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded");
+	QApplication::processEvents();
+	const QImage crowded = view->grab().toImage();
+	const QRectF plot = chart->plotArea();
+	const QPoint topLeft = view->mapFromScene(chart->mapToScene(headerPoint(0, 0)));
+	const qreal ratio = crowded.devicePixelRatio();
+	int textPixels = 0;
+	for (int dy = 1; dy < QFontMetricsF(window.font()).height() + 3; ++dy)
+		for (int dx = 2; dx < plot.width() - 2; ++dx) {
+			const QPoint pixel(qRound((topLeft.x() + dx) * ratio), qRound((topLeft.y() + dy) * ratio));
+			if (!crowded.rect().contains(pixel)) continue;
+			const QColor color = crowded.pixelColor(pixel);
+			if (color.red() + color.green() + color.blue() < 400) ++textPixels;
+		}
+	ok &= expect(textPixels > 10, "crowded extents thin labels rather than eliding every ID at fit");
+	const double labelWidth = QFontMetricsF(window.font()).horizontalAdvance("1:@n0@");
+	const QPointF expandedLabel(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5);
+	ok &= expect(expandedLabel.x() > chartPoint(0.25, 0).x() + 3,
+		"crowded label test reaches visible text beyond its physical interval");
+	hover(expandedLabel);
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("1:@n0@") && !tooltip->text().contains("2:@n1@"),
+		"expanded visible label reports its full ID rather than the neighbouring physical interval");
+	window.setBlockSections(extents, "reference<&>");
+	overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	const auto boundaryPainted = [&] {
+		QApplication::processEvents();
+		const QImage with = view->grab().toImage();
+		overlay->hide();
+		const QImage without = view->grab().toImage();
+		overlay->show();
+		const QPoint boundary = view->mapFromScene(chart->mapToScene(chartPoint(3, 60)));
+		const qreal pixelRatio = with.devicePixelRatio();
+		int changed = 0;
+		for (int dy = 0; dy < 20; ++dy)
+			for (int dx = -2; dx <= 2; ++dx) {
+				const QPoint pixel(qRound((boundary.x() + dx) * pixelRatio), qRound((boundary.y() + dy) * pixelRatio));
+				if (with.rect().contains(pixel) && with.pixel(pixel) != without.pixel(pixel)) ++changed;
+			}
+		return changed > 0;
+	};
+	ok &= expect(boundaryPainted(), "painted physical boundary aligns with km axis, including PNG capture surface");
+	wheel(view, {}, QPoint(0, 120), Qt::ControlModifier, chartPoint(3, 100));
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("Physical reference section"), "header inspection follows zoom");
+	wheel(view, QPoint(-10, -8), {});
+	window.resize(window.width() - 80, window.height() - 50);
+	QApplication::processEvents();
+	window.setTimeAxisY(true, 8 * 3600);
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && boundaryPainted(), "boundary and header follow pan, resize and clock-axis replacement");
+	QMetaObject::invokeMethod(&window, "resetZoom");
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(x->min() == 0 && x->max() == 10 && tooltip->isVisible() && boundaryPainted(), "reset retains original section alignment");
+	hover(headerPoint(6.5, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("@reverse@") && tooltip->text().contains("Directed X: 8 to 5 km"),
+		"a section towards decreasing X reports its directed ends in hover");
+	hover(headerPoint(2, rowHeight + 5));
+	ok &= expect(tooltip->text().contains("@missing<&>@") && tooltip->text().contains("zero length")
+			&& !overlay->property("geometryNotice").toString().isEmpty(),
+		"missing geometry has an in-chart notice with full hover reason");
+	QPointer<QGraphicsObject> old = overlay;
+	auto* only = new QChart;
+	auto* onlyX = new QValueAxis;
+	auto* onlyY = new QValueAxis;
+	onlyX->setRange(0, 10);
+	onlyY->setRange(0, 100);
+	only->addAxis(onlyX, Qt::AlignBottom);
+	only->addAxis(onlyY, Qt::AlignLeft);
+	window.setChart(only);
+	ok &= expect(old.isNull() && !tooltip->isVisible(), "replacement chart clears old overlay and tooltip");
+	x = onlyX;
+	chart = only;
+	window.setBlockSections(extents, "section-only");
+	window.setTimeAxisY(true);
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(only->series().isEmpty() && window.findChild<TrainFilterButton*>()->visibleTrainIds().isEmpty()
+			&& tooltip->isVisible(),
+		"explicit numeric axes allow section-only inspection without fake trains");
+	QStringList exportedIds;
+	window.setCsvProvider([&exportedIds](const QStringList& ids) {
+		exportedIds = ids;
+		return std::string("retained data");
+	},
+		"unmapped.csv", {"unrelated"});
+	window.csvContent();
+	list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	ok &= expect(only->series().isEmpty() && list->count() == 1 && exportedIds == QStringList{"unrelated"},
+		"real CSV-only train reaches the window provider without a dummy series");
+	list->item(0)->setCheckState(Qt::Unchecked);
+	window.csvContent();
+	ok &= expect(exportedIds.isEmpty() && only->series().isEmpty(), "CSV-only train can be hidden with the actual filter");
+	list->item(0)->setCheckState(Qt::Checked);
+	const auto* filter = window.findChild<TrainFilterButton*>();
+	ok &= expect(filter->visibleTrainIds() == QStringList{"unrelated"}, "the CSV-only identity is a checked entry before the provider goes");
+	window.setCsvProvider({}, {});
+	list = filter->menu()->findChild<QListWidget*>();
+	ok &= expect(filter->visibleTrainIds().isEmpty() && list->count() == 0,
+		"removing the provider removes its checked CSV-only identity from the filter");
+	window.setBlockSections({}, "no-geometry");
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("no physical geometry"), "empty section geometry is explicitly reported inside chart");
+	return ok;
+}
+
+// The text that the tooltip of `widget` shows once the pointer rests on it.
+static QString shownTip(QWidget* widget) {
+	const QPoint point(4, 4);
+	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
+	QApplication::sendEvent(widget, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	if (!Qt::mightBeRichText(text))
+		return text;
+	QTextDocument document;
+	document.setHtml(text);
+	return document.toPlainText();
+}
+
+// The context label and the read-only inspector fields show their text as typed in the tooltip.
+static bool exercisePlainToolTips() {
+	bool ok = true;
+	DiagramWindow window("Tooltips");
+	window.show();
+	QApplication::processEvents();
+	auto* context = window.findChild<QLabel*>("diagramContext");
+	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
+			 QStringLiteral("Id &lt;x&gt; &amp; <not a tag>")}) {
+		window.setPresentation("Tooltips", text);
+		QApplication::processEvents();
+		ok &= expect(context->isVisible() && shownTip(context) == text, "the context tooltip shows the context as typed");
+		QLineEdit field;
+		field.setToolTip(plainToolTip(text));
+		field.show();
+		QApplication::processEvents();
+		ok &= expect(shownTip(&field) == text, "a read-only field tooltip shows its text as typed");
+	}
+	ok &= expect(plainToolTip(QString()).isEmpty(), "an empty text gives no tooltip");
+	return ok;
+}
+
+// The widest tooltip that Qt shows at the moment.
+static int shownTipWidth(QWidget* widget) {
+	const QPoint point(4, 4);
+	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
+	QApplication::sendEvent(widget, &help);
+	QApplication::processEvents();
+	int widest = 0;
+	for (QWidget* top : QApplication::topLevelWidgets())
+		if (top->isVisible() && top->inherits("QTipLabel")) widest = std::max(widest, top->width());
+	QToolTip::hideText();
+	return widest;
+}
+
+// A 300-character identifier has no space to wrap at; the tooltip must still fit the screen.
+static bool exerciseLongToolTips() {
+	const QString id = QString(300, QLatin1Char('Q'));
+	DiagramWindow window("Long tooltip");
+	window.show();
+	QApplication::processEvents();
+	window.setPresentation("Long tooltip", QStringLiteral("Reference: ") + id, QString());
+	QApplication::processEvents();
+	auto* context = window.findChild<QLabel*>("diagramContext");
+	const int screenWidth = window.screen()->availableGeometry().width();
+	bool ok = true;
+	const int contextWidth = shownTipWidth(context);
+	ok &= expect(contextWidth > 0 && contextWidth <= screenWidth,
+		"the context tooltip of a 300-character id is no wider than the screen");
+	ok &= expect(shownTip(context).remove(QChar(0x200B)) == context->text(),
+		"the break opportunities are the only change to the context tooltip");
+	QLineEdit field;
+	field.setToolTip(plainToolTip(id));
+	field.show();
+	QApplication::processEvents();
+	const int fieldWidth = shownTipWidth(&field);
+	ok &= expect(fieldWidth > 0 && fieldWidth <= screenWidth,
+		"the tooltip of a read-only field with a 300-character id is no wider than the screen");
+	const QString path = QStringLiteral("/Users/someone/a folder/without-any-space-in-its-long-name/case file");
+	const QString shortWords = QStringLiteral("Case A & B | Scenario C");
+	ok &= expect(plainToolTip(shortWords) == Qt::convertFromPlainText(shortWords, Qt::WhiteSpaceNormal),
+		"a text with short words gets no break opportunity");
+	ok &= expect(plainToolTip(path).contains(QChar(0x200B))
+			&& QString(plainToolTip(path)).remove(QChar(0x200B)) == Qt::convertFromPlainText(path, Qt::WhiteSpaceNormal),
+		"a long word in a text with spaces gets a break opportunity and nothing else changes");
+	const QString pairs = QString(31, QLatin1Char('a')) + QString::fromUcs4(U"\U0001F682") + QString(40, QLatin1Char('b'));
+	const QString broken = withBreakOpportunities(pairs);
+	bool splitsPair = false;
+	for (int i = 1; i < broken.size(); ++i)
+		splitsPair = splitsPair || (broken.at(i - 1).isHighSurrogate() && broken.at(i) == QChar(0x200B));
+	ok &= expect(!splitsPair && QString(broken).remove(QChar(0x200B)) == pairs && broken.contains(QChar(0x200B)),
+		"a break opportunity never separates the halves of a character");
+	return ok;
+}
+
+// The texts that the chart of `window` draws once its layout has settled and the items of removed axes are gone.
+static QStringList drawnChartTexts(DiagramWindow& window) {
+	for (int round = 0; round < 4; ++round) {
+		QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		QApplication::processEvents();
+	}
+	QStringList texts;
+	for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
+		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible()) texts << text->toPlainText();
+	return texts;
+}
+
+static QStringList elidedTexts(const QStringList& texts) {
+	QStringList elided;
+	for (const QString& text : texts)
+		if (text.endsWith(QLatin1String("..."))) elided << text;
+	return elided;
+}
+
+// A chart built like the timetable graph: distance along the bottom, the clock downward, the stations on top. A station
+// can be labelled with its name and position or with its name alone.
+static QChart* routeChartWithStations(const QStringList& names, QCategoryAxis** stationAxis, std::vector<StationTick>* ticks) {
+	auto* chart = new QChart;
+	auto* series = new QLineSeries;
+	series->setProperty("trainId", "A");
+	series->setName("A (arrival)");
+	series->append(0.0, 10);
+	series->append(9.5 * names.size(), 3000);
+	chart->addSeries(series);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	x->setRange(-0.01, 9.5 * (names.size() - 1) + 0.01);
+	x->setTitleText("Route X (km); origin 0.000, travel right");
+	y->setReverse(true);
+	y->setRange(0, 3600);
+	y->setTitleText("Elapsed simulation time (s), downward");
+	*stationAxis = new QCategoryAxis;
+	(*stationAxis)->setTitleText("Reference stations");
+	(*stationAxis)->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+	(*stationAxis)->setStartValue(x->min() - 1);
+	(*stationAxis)->setRange(x->min(), x->max());
+	chart->addAxis(*stationAxis, Qt::AlignTop);
+	series->attachAxis(*stationAxis);
+	for (int i = 0; i < names.size(); ++i)
+		ticks->push_back({9.5 * i, {QStringLiteral("%1 (%2 km)").arg(names[i]).arg(9.5 * i, 0, 'f', 2), names[i]}});
+	return chart;
+}
+
+// The tick labels of the timetable graph stay whole at the normal font and at one and a half times its size.
+static bool exerciseStationAxis() {
+	const QFont original = QApplication::font();
+	const QStringList names = {"Amsterdam Centraal", "Utrecht Centraal", "Den Bosch", "Eindhoven Centraal", "Venlo", "Roermond",
+		"Maastricht", "Sittard", "Heerlen", "G&d<g"};
+	struct Case {
+		double fontScale;
+		int width;
+		int height;
+		const char* name;
+	};
+	bool ok = true;
+	// A window on a 1280 by 800 screen is at most 1152 by 640; at a scale factor of 1.5 that screen is 853 by 533.
+	for (const Case& scene : {Case{1.0, 1152, 640, "normal font"}, Case{1.5, 1152, 640, "font 1.5 times larger"},
+			 Case{1.0, 768, 426, "scale factor 1.5"}}) {
+		QFont font = original;
+		font.setPointSizeF(original.pointSizeF() * scene.fontScale);
+		QApplication::setFont(font);
+		{
+			DiagramWindow window("Timetable graph");
+			QCategoryAxis* stations = nullptr;
+			std::vector<StationTick> ticks;
+			window.setChart(routeChartWithStations(names, &stations, &ticks));
+			window.setStationAxis(stations, ticks);
+			window.setTimeAxisY(true, 8 * 3600);
+			window.setMaximumSize(scene.width, scene.height);
+			window.resize(scene.width, scene.height);
+			window.show();
+			QStringList texts = drawnChartTexts(window);
+			const QString what = QString::fromLatin1(scene.name);
+			ok &= expect(elidedTexts(texts).isEmpty(), qPrintable(what + ": no tick label is shortened to dots"));
+			ok &= expect(texts.contains("08:00:00") && texts.contains("09:00:00"), qPrintable(what + ": the clock labels are whole"));
+			const QStringList labelled = stations->categoriesLabels();
+			int drawn = 0;
+			for (const QString& label : labelled) {
+				QTextDocument plain;
+				plain.setHtml(label);
+				drawn += texts.contains(plain.toPlainText());
+			}
+			ok &= expect(!labelled.isEmpty() && drawn == labelled.size(), qPrintable(what + ": the station labels are drawn whole"));
+			// Zoomed in, the stations of the new range are named and the labels are still whole.
+			auto* view = window.findChild<QChartView*>();
+			for (int step = 0; step < 6; ++step)
+				wheel(view, {}, {0, 120}, Qt::ControlModifier, view->chart()->plotArea().topLeft() + QPointF(20, 20));
+			texts = drawnChartTexts(window);
+			const auto denBosch = std::find_if(texts.begin(), texts.end(), [](const QString& text) { return text.startsWith("Den Bosch"); });
+			ok &= expect(stations->categoriesLabels().size() >= 2 && elidedTexts(texts).isEmpty() && denBosch != texts.end(),
+				qPrintable(what + ": zoomed in, the station labels stay whole"));
+		}
+	}
+	QApplication::setFont(original);
+	return ok;
+}
+
+// A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.
+static bool exerciseLongAxisTitle() {
+	DiagramWindow window("Blocking time");
+	const QString id = QStringLiteral("r&0<x>") + QString(294, QLatin1Char('Q'));
+	auto* chart = new QChart;
+	auto* series = new QLineSeries;
+	series->setName("A");
+	series->append(0, 0);
+	series->append(10, 100);
+	chart->addSeries(series);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	x->setTitleText(QStringLiteral("Reference %1 X (km); origin 0.000, travel right").arg(id.toHtmlEscaped()));
+	window.setChart(chart);
+	window.show();
+	const QStringList texts = drawnChartTexts(window);
+	QString shown;
+	for (const QString& text : texts)
+		if (text.startsWith("Reference r&0<x>")) shown = text;
+	bool ok = expect(shown.endsWith("...") && shown.size() > 20, "a title wider than the chart is shortened, with the id as typed");
+	auto* view = window.findChild<QChartView*>();
+	QPointF centre;
+	for (QGraphicsItem* item : view->scene()->items())
+		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->toPlainText() == shown)
+			centre = text->mapToScene(text->boundingRect().center());
+	const QPoint position = view->mapFromScene(centre);
+	QMouseEvent move(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &move);
+	const auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains(id), "the tooltip of a shortened title holds the whole id");
+	ok &= expect(tooltip->geometry().right() <= window.rect().right() && tooltip->height() > tooltip->fontMetrics().height() * 3,
+		"the tooltip of a title wraps the id within the window");
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
+	QFile stylesheet(QStringLiteral(EGTRAIN_DIALOG_QSS));
+	if (!stylesheet.open(QIODevice::ReadOnly)) return 1;
+	// The test binary has no Qt resources, so point the stylesheet at the icon files.
+	QString styleSheet = QString::fromUtf8(stylesheet.readAll());
+	styleSheet.replace(QStringLiteral(":/icons/"),
+		QFileInfo(stylesheet).absolutePath() + QStringLiteral("/../icons/"));
+	app.setStyleSheet(styleSheet);
 	bool ok = true;
 	DiagramWindow window("Diagram navigation");
 	auto* chart = new QChart;
@@ -84,11 +1219,15 @@ int main(int argc, char* argv[]) {
 	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
 	moveTo(view, QPointF(21, 31), series);
 	ok &= expect(tooltip->isVisible(), "near line shows tooltip through real mouse event");
-	ok &= expect(tooltip->text().contains("Train A") && tooltip->text().contains("20.00") &&
-		tooltip->text().contains("30.00") && !tooltip->text().contains("21.00"), "nearest plotted sample, not cursor values");
-	ok &= expect(tooltip->text().contains("Delft") && tooltip->text().contains("Call: 1") &&
-		!tooltip->text().contains("Leiden") && tooltip->text().contains("Speed (m/s)") &&
-		tooltip->text().contains("Tractive effort (N)"), "identity, context and units");
+	ok &= expect(
+		tooltip->text().contains("Train A") && tooltip->text().contains("20.00") && tooltip->text().contains("30.00")
+			&& !tooltip->text().contains("21.00"),
+		"nearest plotted sample, not cursor values");
+	ok &= expect(
+		tooltip->text().contains("Delft") && tooltip->text().contains("Call: 1")
+			&& !tooltip->text().contains("Leiden") && tooltip->text().contains("Speed (m/s)")
+			&& tooltip->text().contains("Tractive effort (N)"),
+		"identity, context and units");
 	ok &= expect(window.rect().contains(tooltip->geometry()), "tooltip contained in window");
 	moveTo(view, QPointF(40, 50), series);
 	ok &= expect(tooltip->text().contains("Leiden") && !tooltip->text().contains("Delft"),
@@ -222,14 +1361,15 @@ int main(int argc, char* argv[]) {
 	window.setTimeAxisX(false);
 	app.processEvents();
 	moveTo(view, QPointF(20, 30), series);
-	ok &= expect(tooltip->text().contains("Speed (m/s): 20.00") &&
-		qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first())->labelFormat() == originalXFormat,
+	ok &= expect(
+		tooltip->text().contains("Speed (m/s): 20.00")
+			&& qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first())->labelFormat() == originalXFormat,
 		"disabling time restores numeric title and format");
 	auto* restoredX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-	ok &= expect(restoredX == x && restoredX->tickType() == QValueAxis::TicksDynamic &&
-		restoredX->tickInterval() == 7 && restoredX->tickAnchor() == 2 &&
-		restoredX->tickCount() == 9 && restoredX->minorTickCount() == 2 &&
-		!restoredX->isGridLineVisible() && !restoredX->isMinorGridLineVisible(),
+	ok &= expect(
+		restoredX == x && restoredX->tickType() == QValueAxis::TicksDynamic && restoredX->tickInterval() == 7
+			&& restoredX->tickAnchor() == 2 && restoredX->tickCount() == 9 && restoredX->minorTickCount() == 2
+			&& !restoredX->isGridLineVisible() && !restoredX->isMinorGridLineVisible(),
 		"time roundtrip retains original numeric axis and nondefault tick/grid settings");
 	window.close();
 	ok &= expect(!tooltip->isVisible(), "close clears tooltip");
@@ -255,34 +1395,45 @@ int main(int argc, char* argv[]) {
 	rectangle->setName("Block occupation");
 	rectangle->setProperty("inspectionInterval", "Resource: B12 | Type: block | Start: 20 s | End: 60 s");
 	rectangle->setProperty("inspectionFilled", true);
-	rectangle->append(20, 100); rectangle->append(60, 100);
-	rectangle->append(60, 200); rectangle->append(20, 200); rectangle->append(20, 100);
+	rectangle->append(20, 100);
+	rectangle->append(60, 100);
+	rectangle->append(60, 200);
+	rectangle->append(20, 200);
+	rectangle->append(20, 100);
 	emptyChart->addSeries(rectangle);
-	rectangle->attachAxis(emptyX); rectangle->attachAxis(emptyY);
+	rectangle->attachAxis(emptyX);
+	rectangle->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	auto* emptyTooltip = empty.findChild<QLabel*>("diagramTooltip");
-	ok &= expect(emptyTooltip->isVisible() && emptyTooltip->text().contains("B12") &&
-		!emptyTooltip->text().contains("150.00"), "block interior reports plotted corner and context");
+	ok &= expect(
+		emptyTooltip->isVisible() && emptyTooltip->text().contains("B12") && !emptyTooltip->text().contains("150.00"),
+		"block interior reports plotted corner and context");
 	auto* events = new QScatterSeries;
 	events->setName("Arrival");
-	events->append(100, 300); events->append(140, 400);
+	events->append(100, 300);
+	events->append(140, 400);
 	events->setProperty("inspectionPoints", QStringList{"Station: Delft | Arrival", "Station: Leiden | Departure"});
 	emptyChart->addSeries(events);
-	events->attachAxis(emptyX); events->attachAxis(emptyY);
+	events->attachAxis(emptyX);
+	events->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(120, 350), events);
 	ok &= expect(!emptyTooltip->isVisible(), "scatter does not invent connecting line samples");
 	moveTo(emptyView, QPointF(100, 300), events);
-	ok &= expect(emptyTooltip->isVisible() && emptyTooltip->text().contains("Delft") &&
-		!emptyTooltip->text().contains("Leiden"), "scatter event inspection uses matching context");
+	ok &= expect(
+		emptyTooltip->isVisible() && emptyTooltip->text().contains("Delft")
+			&& !emptyTooltip->text().contains("Leiden"),
+		"scatter event inspection uses matching context");
 	rectangle->setProperty("inspectionFilled", false);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	ok &= expect(!emptyTooltip->isVisible(), "closed outline without fill does not claim interior");
 	// Samples just below the plot must not count as visible strokes.
 	auto* clipped = new QLineSeries;
 	clipped->setName("Clipped line");
-	clipped->append(20, -4); clipped->append(60, -4);
+	clipped->append(20, -4);
+	clipped->append(60, -4);
 	emptyChart->addSeries(clipped);
-	clipped->attachAxis(emptyX); clipped->attachAxis(emptyY);
+	clipped->attachAxis(emptyX);
+	clipped->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(40, 2), clipped);
 	ok &= expect(!emptyTooltip->isVisible(), "fully clipped line cannot be inspected inside plot");
 	const QPoint clippedClick = emptyView->mapFromScene(emptyChart->mapToScene(
@@ -308,7 +1459,8 @@ int main(int argc, char* argv[]) {
 	DiagramWindow dual("Linked vertical axes");
 	auto* dualChart = new QChart;
 	auto* dualSeries = new QLineSeries;
-	dualSeries->append(0, 0); dualSeries->append(100, 100);
+	dualSeries->append(0, 0);
+	dualSeries->append(100, 100);
 	dualChart->addSeries(dualSeries);
 	auto* dualX = new QValueAxis;
 	auto* dualY = new QValueAxis;
@@ -328,8 +1480,7 @@ int main(int argc, char* argv[]) {
 	auto* dualView = dual.findChild<QChartView*>();
 	wheel(dualView, {}, QPoint(0, 120), Qt::ControlModifier);
 	const double expectedSpan = 100 / std::exp(0.2);
-	ok &= expect(std::abs((dualY->max() - dualY->min()) - expectedSpan) < 0.01 &&
-		std::abs((dualCategory->max() - dualCategory->min()) - expectedSpan) < 0.01,
+	ok &= expect(std::abs((dualY->max() - dualY->min()) - expectedSpan) < 0.01 && std::abs((dualCategory->max() - dualCategory->min()) - expectedSpan) < 0.01,
 		"numeric and category Y axes zoom exactly once from original ranges");
 	// Route charts keep singleton events visible and allow zero/negative station X.
 	DiagramWindow route("Route chart");
@@ -361,50 +1512,61 @@ int main(int argc, char* argv[]) {
 	route.show();
 	app.processEvents();
 	ok &= expect(singleEvent->pointsVisible() && singleEvent->count() == 1
-		&& stationAxis->categoriesLabels().size() == 2
-		&& stationAxis->categoriesLabels().first().contains("[two]")
-		&& stationAxis->categoriesLabels().last().contains("Zero"),
+			&& stationAxis->categoriesLabels().size() == 2
+			&& stationAxis->categoriesLabels().first().contains("[two]")
+			&& stationAxis->categoriesLabels().last().contains("Zero"),
 		"isolated event and distinct colocated station IDs remain visible");
 	auto* routeClock = qobject_cast<QCategoryAxis*>(routeChart->axes(Qt::Vertical).first());
 	ok &= expect(routeClock && routeClock->isReverse()
-		&& routeClock->categoriesLabels().contains("08:00:00"),
+			&& routeClock->categoriesLabels().contains("08:00:00"),
 		"route elapsed zero tick and downward time orientation");
 	DiagramWindow staircase("Calculated envelope");
 	auto* stairChart = new QChart;
 	auto* lower = new QLineSeries;
 	auto* upper = new QLineSeries;
-	lower->append(1, 10); lower->append(2, 10);
-	upper->append(1, 20); upper->append(2, 20);
+	lower->append(1, 10);
+	lower->append(2, 10);
+	upper->append(1, 20);
+	upper->append(2, 20);
 	auto* area = new QAreaSeries(upper, lower);
-	area->setName("A envelope"); area->setProperty("trainId", "A");
+	area->setName("A envelope");
+	area->setProperty("trainId", "A");
 	area->setBrush(QColor(60, 100, 200, 65));
 	stairChart->addSeries(area);
 	auto* outline = new QLineSeries;
-	outline->setName("A envelope"); outline->setProperty("trainId", "A");
+	outline->setName("A envelope");
+	outline->setProperty("trainId", "A");
 	outline->setProperty("inspectionFilled", true);
 	outline->setProperty("inspectionInterval", "Calculated blocking envelope");
 	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
 		outline->append(p);
 	stairChart->addSeries(outline);
 	auto* actual = new QLineSeries;
-	actual->setName("A recorded trajectory"); actual->setProperty("trainId", "A");
-	actual->append(1.2, 14); actual->append(1.8, 16);
+	actual->setName("A recorded trajectory");
+	actual->setProperty("trainId", "A");
+	actual->append(1.2, 14);
+	actual->append(1.8, 16);
 	stairChart->addSeries(actual);
 	auto* overlap = new QLineSeries;
-	overlap->setName("B envelope"); overlap->setProperty("trainId", "B");
+	overlap->setName("B envelope");
+	overlap->setProperty("trainId", "B");
 	overlap->setProperty("inspectionFilled", true);
 	for (const QPointF& p : {QPointF(1, 10), QPointF(2, 10), QPointF(2, 20), QPointF(1, 20), QPointF(1, 10)})
 		overlap->append(p);
 	stairChart->addSeries(overlap);
 	auto* otherActual = new QScatterSeries;
-	otherActual->setName("B recorded trajectory"); otherActual->setProperty("trainId", "B");
+	otherActual->setName("B recorded trajectory");
+	otherActual->setProperty("trainId", "B");
 	otherActual->append(1.7, 18);
 	stairChart->addSeries(otherActual);
 	stairChart->createDefaultAxes();
 	auto* stairY = qobject_cast<QValueAxis*>(stairChart->axes(Qt::Vertical).first());
-	stairY->setReverse(true); stairY->setRange(0, 30);
-	staircase.setChart(stairChart); staircase.setTimeAxisY(true);
-	staircase.show(); app.processEvents();
+	stairY->setReverse(true);
+	stairY->setRange(0, 30);
+	staircase.setChart(stairChart);
+	staircase.setTimeAxisY(true);
+	staircase.show();
+	app.processEvents();
 	moveTo(staircase.findChild<QChartView*>(), QPointF(1.5, 12), outline);
 	auto* stairTip = staircase.findChild<QLabel*>("diagramTooltip");
 	ok &= expect(stairTip->isVisible() && stairTip->text().contains("Calculated blocking envelope"),
@@ -416,7 +1578,98 @@ int main(int argc, char* argv[]) {
 	ok &= expect(stairTip->text().contains("B recorded trajectory"),
 		"overlapping trains select the nearby visible recorded sample");
 	ok &= expect(stairChart->series().indexOf(actual) > stairChart->series().indexOf(area)
-		&& stairY->isReverse(), "recorded layer draws over the downward-time area fill");
+			&& stairY->isReverse(),
+		"recorded layer draws over the downward-time area fill");
+	const QString authoredId = QStringLiteral("Unit | ") + QString(120, QLatin1Char('Q'));
+	const QString scientificWarning = QStringLiteral("Curve contains negative effort below the default 0 kN view");
+	DiagramWindow input("Input traction characteristic: " + authoredId);
+	QFont scaled = input.font();
+	scaled.setPointSizeF(18);
+	input.setFont(scaled);
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	auto* inputChart = new QChart;
+	auto* inputLine = new QLineSeries;
+	inputLine->setName("Input effort");
+	inputLine->append(10, 20);
+	inputLine->append(20, 30);
+	inputChart->addSeries(inputLine);
+	inputChart->createDefaultAxes();
+	inputChart->setTitle(QStringLiteral("Input traction characteristic: ") + authoredId
+		+ QStringLiteral("<br>") + scientificWarning);
+	input.setPresentation("Input traction characteristic", "Case A / Scenario B | " + authoredId,
+		scientificWarning);
+	input.setChart(inputChart);
+	input.show();
+	app.processEvents();
+	ok &= expect(
+		!input.findChild<QWidget*>("diagramDetailsPanel") && !input.findChild<QWidget*>("diagramDetailsButton")
+			&& !input.findChild<QWidget*>("diagramDetailsText"),
+		"technical-detail widgets are absent");
+	for (const auto* button : input.findChildren<QPushButton*>())
+		ok &= expect(button->text() != "Technical details", "no technical-details action");
+	const QRect screenArea = input.screen()->availableGeometry();
+	ok &= expect(input.width() <= screenArea.width() * 9 / 10 && input.height() <= screenArea.height() * 4 / 5,
+		"scaled diagram fits available screen with application QSS");
+	ok &= expect(
+		input.windowTitle() == "Input traction characteristic"
+			&& input.findChild<QLabel*>("diagramContext")->text().contains("Case A / Scenario B")
+			&& inputChart->title().contains(scientificWarning)
+			&& input.findChild<QLabel*>("diagramContext")->isVisible()
+			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning,
+		"explicit presentation before setChart preserves identity and scientific warning with | in ID");
+	ok &= expect(
+		!input.findChild<TrainFilterButton*>()->isVisible()
+			&& input.findChild<QLabel*>("diagramContext")->text().contains(authoredId)
+			&& !input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Planned:")
+			&& input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Input tractive effort"),
+		"input traction uses rolling-stock subject and no visible train filter");
+	input.setPresentation("Updated heading", "Case C / Scenario D", scientificWarning);
+	app.processEvents();
+	ok &= expect(
+		input.windowTitle() == "Updated heading"
+			&& input.findChild<QLabel*>("diagramContext")->text() == "Case C / Scenario D"
+			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning
+			&& inputChart->title().contains(scientificWarning),
+		"explicit presentation after setChart preserves distinct chart qualification");
+	// Long provenance must never consume the space needed by scientific caveats.
+	input.setMaximumWidth(qMin(640, input.maximumWidth()));
+	input.resize(input.maximumWidth(), input.maximumHeight());
+	const QString longContext = "Reference: " + QString(1500, QLatin1Char('R'))
+		+ " | Case: " + QString(1500, QLatin1Char('C'));
+	for (const QString& warning : {scientificWarning,
+			 QStringLiteral("Stop arrivals/departures and dwell, not continuous movement. Ambiguous/unmapped portions omitted; no extrapolation."),
+			 QStringLiteral("Calculated envelopes, not observed occupation; movement only within scope. Unmapped endpoints/events omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation."),
+			 QStringLiteral("Shifted calculated envelopes, not recorded movement. Unmapped/incomplete blocks omitted; no extrapolation.")}) {
+		input.setPresentation("Scientific interpretation", longContext, warning);
+		app.processEvents();
+		const auto* label = input.findChild<QLabel*>("diagramWarning");
+		const auto* context = input.findChild<QLabel*>("diagramContext");
+		const QRect content = label->contentsRect();
+		const QRect textBounds = label->fontMetrics().boundingRect(
+			QRect(0, 0, content.width(), 10000), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, warning);
+		ok &= expect(
+			label->text() == warning && label->isVisible() && label->height() >= label->heightForWidth(label->width())
+				&& content.height() >= textBounds.height() && input.rect().contains(label->geometry())
+				&& label->geometry().bottom() < context->geometry().top()
+				&& context->height() <= context->fontMetrics().height() * 3 && (context->alignment() & Qt::AlignTop)
+				&& input.width() <= 640 && input.height() <= input.maximumHeight(),
+			"complete warning fits above capped long provenance at enlarged font in bounded narrow window");
+	}
+	input.setPresentation("No warning", longContext);
+	ok &= expect(input.findChild<QLabel*>("diagramWarning")->isHidden(), "absent warning uses no strip");
+	window.setPresentation("No context", QString());
+	ok &= expect(window.findChild<QLabel*>("diagramContext")->isHidden(), "empty context stays hidden");
+	ok &= exerciseTrainFilter();
+	ok &= exerciseTrainFilterKeysInWindow();
+	ok &= exerciseTrainColors();
+	ok &= exerciseNavigationHelp();
+	ok &= exerciseButtonDefaults();
+	ok &= exerciseRunContext();
+	ok &= exerciseBlockSections();
+	ok &= exercisePlainToolTips();
+	ok &= exerciseLongToolTips();
+	ok &= exerciseStationAxis();
+	ok &= exerciseLongAxisTitle();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

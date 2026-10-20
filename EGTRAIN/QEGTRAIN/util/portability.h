@@ -12,9 +12,9 @@
 
 #if defined(_MSC_VER)
 
-#include <io.h>      // _isatty
-#include <direct.h>  // _mkdir
-#include <ctime>     // localtime_s
+#include <io.h>		// _isatty
+#include <direct.h> // _mkdir
+#include <ctime>	// localtime_s
 
 // POSIX terminal check -> MSVC equivalents.
 #define isatty _isatty
@@ -27,15 +27,7 @@ static inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
 
 #else
 
-#include <unistd.h>  // isatty, STDIN_FILENO
-
-// MSVC _s functions are not standard C/C++. Map them to safe equivalents.
-// sprintf_s(buf, ...) -> snprintf(buf, sizeof(buf), ...)
-// Note: sizeof(buf) is correct for stack-allocated arrays, less so for pointers.
-#define sprintf_s(buf, ...) snprintf(buf, sizeof(buf), __VA_ARGS__)
-
-// strcpy_s(dst, src) -> strcpy(dst, src)
-#define strcpy_s(dst, src) strcpy(dst, src)
+#include <unistd.h> // isatty, STDIN_FILENO
 
 // _mkdir(path) -> mkdir(path, 0777) (POSIX needs a mode argument)
 #define _mkdir(path) mkdir(path, 0777)

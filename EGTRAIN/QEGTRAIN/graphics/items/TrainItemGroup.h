@@ -1,6 +1,7 @@
 #ifndef TRAINITEMGROUP_H
 #define TRAINITEMGROUP_H
 
+#include <QColor>
 #include <QGraphicsItemGroup>
 #include <string>
 
@@ -10,13 +11,18 @@ class TrainItemGroup : public QGraphicsItemGroup {
 	// Q_OBJECT
 
 public:
-	TrainItemGroup(QGraphicsItem* parent = 0);
-	~TrainItemGroup();
+	TrainItemGroup(QGraphicsItem* parent = nullptr);
+	~TrainItemGroup() override;
 
 	// train index on list of trains (train ID is not unique, index is)
 	int index;
 	std::string trainDescription;
 	std::string trainType;
+	// fill and outline of the train bodies; serviceId names the service that
+	// supplies a custom colour (empty for the default colour)
+	QColor fillColor;
+	QColor outlineColor;
+	std::string serviceId;
 	double trainId;
 	double trainLength;
 	int wagonCount;
@@ -27,7 +33,9 @@ public:
 	// pax info group icon pointer
 	QGraphicsItemGroup* paxInfoItem;
 
-	// pointer to list of polygons
+	// the body items of the train. The bodies are children of the group; the group owns
+	// the list and deletes it in its destructor. A caller that deletes the list itself
+	// sets this pointer to null first.
 	QList<TrainBodyItem*>* trainPolygonItemList;
 
 	// QGraphicsItemGroup caches its child bounds. Notify the scene before a
@@ -35,12 +43,18 @@ public:
 	void prepareForChildGeometryChange();
 	QRectF boundingRect() const override;
 
+	// Gives every body its minimum size on screen for a view of viewScale pixels per scene unit.
+	void applyViewScale(qreal viewScale);
+
 	// to allow cast
 	enum { Type = UserType + 8 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
+
+private:
+	qreal m_appliedViewScale = 0.0;
 };
 
 #endif // TRAINITEMGROUP_H

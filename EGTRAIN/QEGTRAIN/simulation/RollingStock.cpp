@@ -1,40 +1,20 @@
 #include "simulation/RollingStock.h"
 #include "scene/SceneModel.h"
-#include "scene/SectionInventory.h"
-#include "simulation/Optimisation.h"
-#include "simulation/Passengers.h"
+#include "scene/SignallingLevel.h"
+#include "simulation/SimulationRun.h"
+#include "util/Log.h"
+#include "util/timeutil.hpp"
 
 #include <thread>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
-#include <climits>
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <map>
-#include <new>
 #include <sstream>
-#include <unordered_map>
-#include <unordered_set>
 
-// GUI - Virtual Coupling notifications
-vector<int> VCmsgTimestep;
-vector<string> VCmsgTrain;
-vector<string> VCmsgText;
-// --------------
-
-int N_OrderLists = initial_variables.num_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes
-
-OrderList::OrderList() {
-	Node_X = -10000;
-	numTeList = 0;
-	LastEnteredTrain = "None";
-	BlockID = "None";
-	Is_DivergingJunction = Is_MergingJunction = 0;
-}
-
-OrderList OL[20];
+using namespace std;
 
 BlockingTimes::BlockingTimes() {
 	StartOccTime = -1;
@@ -53,7 +33,7 @@ BlockingTimes::BlockingTimes() {
 	GeoPosStart = GeoPosEnd = -1;
 	PosConnectedBlockingTime = -1;
 	SpeedPreviousTrain = -1;
-	SignallingLevel = -99999999;
+	SignallingLevel = kSignallingLevelUnset;
 	LocationWithSwitch = false;
 	SwitchName = "None";
 	InfraElementInPositionForTrain = true;
@@ -63,17 +43,12 @@ BlockingTimes::BlockingTimes() {
 	NextBlockIDPreviousTrain = "None";
 }
 
-int numRegions = 0; /*Number of Speed ranges in the characteristic Tractive effort-speed curve of trains, Number of Trains loaded for the simulation( N_Train+N_TrainD)*/
-
-int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with odd path*/
-
 // const int Max_N_Reg = 150;
 
-double VirtualQ[Max_N_Reg], VirtualQD[Max_N_Reg];
-
 Train::Train() {
-	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = BrakStep = IsTrainCoupling = 0;
-	End_Time = (int)((initial_variables.times - 1) / timestep);
+	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = IsTrainCoupling = 0;
+	BrakStep = -1;
+	End_Time = -1; // setTrainVectorSizesFromInput sets the last step of the trajectory arrays
 	numStations = 0;
 	Xobmin = Vobmin = 0;
 	// instant_train_energy_consumption[0] = 0; // moved to function that sets the size of vectors from user input (at this point vector size is zero, can't set value)
@@ -98,27 +73,20 @@ Train::Train() {
 	IsTrainInFollowingMode = IsTrainDecoupling = IsInUnintentionalDecoupling = false;
 	LeadingTrainInFollowingMode = "None";
 	CurrentServiceStopPlatform = "None";
-	XCurrentServiceStop = -1;
 	TotalEnergyConsumed = 0;
 	TotalEnergySubstationRequest = 0;
 	TotalEnergyConsWithRegBrak = 0;
 	TotalEnergySubstRequestWithRegBrak = 0;
 	EnergyForAuxiliaries = 0;
 	numOverlaps = 0;
-	MAX_OnBoard_Passengers = 300 + 300 * number_of_wagons; // By default it is considered that a carriage can transport maximum 300 passengers so it is 300 pax for the traction unit and 300 pax for each carriage / wagon
-	Current_OnBoard_Passengers = 0;						   // It is considered that the train starts with no passengers onboard
+	MAX_OnBoard_Passengers = trainPassengerCapacity(number_of_wagons);
+	Current_OnBoard_Passengers = 0; // It is considered that the train starts with no passengers onboard
 	for (int i = 0; i < kMaxTimetableStations; i++) {
 		StationArrivals[i] = -1;
 		StationArrivalNames[i] = "None";
 		StationDelay[i] = -1;
 		StationConsecDelay[i] = -1;
 		StationDisturbance[i] = 0;
-	}
-
-	for (int i = 0; i < 100; i++) {
-		for (int j = 0; j < 1000; j++) {
-			HwMatrix[i][j] = -999999;
-		}
 	}
 
 	prevIntendedDepTime = 0; // initialized as 0 to print from t=0 in the 1st service
@@ -129,9 +97,24 @@ Train::Train() {
 	}
 }
 
+// By default it is considered that a carriage can transport maximum 300 passengers so it is 300 pax for the traction unit and 300 pax for each carriage / wagon
+int trainPassengerCapacity(double numberOfWagons) {
+	return static_cast<int>(300 + 300 * numberOfWagons);
+}
+
+double passengerOccupancyRatio(int passengers, int capacity) {
+	if (capacity <= 0)
+		return 0.0;
+	return static_cast<double>(passengers) / capacity;
+}
+
 // Function to compute dwell times based on the interaction with passengers
 // By default the dwell time is computed based on the microscopic dwell time model by Fernandez et al. (2007) which extends the model by Gibson et al. (1989)
+// The dwell is 0 when nobody boards or alights, so the planned dwell of the stop applies.
 double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_AlightPax, double PlatformOccupancyRate, float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7) {
+	if (N_BoardPax <= 0 && N_AlightPax <= 0)
+		return 0.0;
+
 	// define parameters delta 1, delta 2 and delta 3
 	double delta1 = 0, delta2 = 0, delta3 = 0;
 	// delta1 measures the congestion at the platform if the platform occupancy rate is higher than 0.65 than delta1=1
@@ -139,7 +122,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		delta1 = 1;
 
 	// delta 3 measures the degree of congestion on board of the train. It becomes 1 if the onboard occupancy rate is larger than 0.7
-	double OnboardOccupancyrate = this->Current_OnBoard_Passengers / this->MAX_OnBoard_Passengers;
+	double OnboardOccupancyrate = passengerOccupancyRatio(this->Current_OnBoard_Passengers, this->MAX_OnBoard_Passengers);
 
 	if (OnboardOccupancyrate > 0.7)
 		delta3 = 1;
@@ -188,7 +171,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 
 	if (BoardingPassengersInACar.empty() != 1) {
 		for (list<int>::iterator BoardInCar = BoardingPassengersInACar.begin(); BoardInCar != BoardingPassengersInACar.end(); BoardInCar++) {
-			NumberGenerator N;
+			NumberGenerator& N = run_->numberGenerator;
 			// The number of people boarding from the first door is drawn according to a Gaussian with mean equal to the total number of passenger boarding from that car/2 and standard deviation being 20% of the mean.
 			int Nboarding_FirstDoorInACar = (int)N.getGaussianFloat((*BoardInCar / 2), (*BoardInCar / 2 * 0.20));
 			int Nboarding_SecondDoorInACar = *BoardInCar - Nboarding_FirstDoorInACar;
@@ -199,7 +182,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	}
 	if (AlightingPassengersInACar.empty() != 1) {
 		for (list<int>::iterator AlightFromCar = AlightingPassengersInACar.begin(); AlightFromCar != AlightingPassengersInACar.end(); AlightFromCar++) {
-			NumberGenerator N;
+			NumberGenerator& N = run_->numberGenerator;
 			// The number of people alighting from the first door is drawn according to a Gaussian with mean equal to the total number of passenger aligthing from that car/2 and standard deviation being 20% of the mean.
 			int NAlight_FirstDoorInACar = (int)N.getGaussianFloat((*AlightFromCar / 2), (*AlightFromCar / 2 * 0.20));
 			int NAlight_SecondDoorInACar = *AlightFromCar - NAlight_FirstDoorInACar;
@@ -215,6 +198,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	int DoorInCarCounter = 0; // This counts the number of the car in the train. It is needed to check wheter there are more than 15 pboarding passengers on a car as this will set delta2 to 1
 
 	list<int>::iterator B_Pax_Car = BoardingPassengersInACar.begin();
+	list<int>::iterator B_Pax_Door = BoardPaxFromDoor.begin();
 	list<int>::iterator A_Pax_Door = AlightPaxFromDoor.begin();
 
 	for (int door = 0; door < Total_N_Doors_In_Train; door++) {
@@ -225,12 +209,16 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		if (*B_Pax_Car > 15)
 			delta2 = 1; // set delta2 to 1 if the number of passenger boarding from the car is larger than 15
 
-		BoardProcessTime = beta2 + beta3 * delta1 + beta4 * delta2;
-		AlightProcessTime = beta5 * exp(-beta6 * (*A_Pax_Door)) + beta7 * delta3;
+		// beta2 and beta5 are the times of one boarding and one alighting passenger. A door that nobody uses takes no time.
+		if (*B_Pax_Door > 0)
+			BoardProcessTime = (*B_Pax_Door) * beta2 + beta3 * delta1 + beta4 * delta2;
+		if (*A_Pax_Door > 0)
+			AlightProcessTime = (*A_Pax_Door) * (beta5 * exp(-beta6 * (*A_Pax_Door))) + beta7 * delta3;
 
 		double Door_a_b_time = BoardProcessTime + AlightProcessTime;
 
 		Door_alight_board_time.push_back(Door_a_b_time);
+		B_Pax_Door++; // Advancing the iterator over the boarding doors of one element
 		A_Pax_Door++; // Advancing the iterator over the alighting doors of one element
 
 		DoorInCarCounter++;
@@ -257,7 +245,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 }
 
 Regional::Regional() {
-	g = 9.81;
+	g = kSceneGravityMs2;
 	ID = 0;
 	mass_of_traction_unit = 0;
 	mass_of_a_wagon = 0;
@@ -269,1399 +257,198 @@ Regional::Regional() {
 	Jerk = 0;
 	train_length = 0;
 	massPerWagonAxle = mass_of_a_wagon * number_of_wagons;
-	massFactor = (1.09 * mass_of_traction_unit + 1.06 * massPerWagonAxle) / (mass_of_traction_unit + massPerWagonAxle);
+	massFactor = sceneTrainMassFactor(SceneTrainPhysical());
 	total_train_mass = mass_of_traction_unit + massPerWagonAxle;
 }
 
-Regional regional_train[Max_N_Reg];
-Regional P, PD; /*This train is a Proof Train to measure the simulated Headway for each different Signalling Layout
-				P is the Proof Train on the Even Track, while PD is the proof Train on the Odd track*/
-
-namespace {
-
-struct NativeStopPlan {
-	std::size_t sourceStopIndex = 0;
-	std::string stationId;
-	std::string stationName;
-	std::string platformId;
-	Node node;
-	double dwellSeconds = 0.0;
-	bool hasPlannedArrival = false;
-	bool hasPlannedDeparture = false;
-	double plannedArrival = -1.0;
-	double plannedDeparture = -1.0;
-};
-
-struct NativeTrainPlan {
-	std::string routeId;
-	std::string trainDescription;
-	std::string type;
-	std::string operatingCode;
-	std::string serviceId;
-	SceneTrainPhysical physical;
-	std::vector<std::array<double, 5>> tractionCurve;
-	std::vector<NativeStopPlan> stops;
-	int occurrence = 1;
-	int routeIndex = -1;
-	bool direction = false;
-	double servicePerformancePercent = 100.0;
-	bool hasConfiguredMaximumSpeed = false;
-	double configuredMaximumSpeedKmh = 0.0;
-	double compositionMaximumSpeedMs = 0.0;
-	double appliedMaximumSpeedMs = 0.0;
-	double appliedMaximumSpeedKmh = 0.0;
-	bool destinationTerminationRequested = false;
-	double scheduledDeparture = 0.0;
-	double entranceDelay = 0.0;
-};
-
-bool nativeFinite(double value) {
-	return std::isfinite(value);
-}
-
-void addNativeDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
-		const std::string& message, const std::string& file, const std::string& itemType,
-		const std::string& itemId, const std::string& path = {}, const std::string& relatedId = {},
-		const std::string& suggestedFix = {}, SceneSeverity severity = SceneSeverity::Error) {
-	SceneDiagnostic diagnostic;
-	diagnostic.severity = severity;
-	diagnostic.code = code;
-	diagnostic.message = message;
-	diagnostic.file = file;
-	diagnostic.itemType = itemType;
-	diagnostic.itemId = itemId;
-	diagnostic.path = path;
-	diagnostic.relatedId = relatedId;
-	diagnostic.suggestedFix = suggestedFix;
-	diagnostics.push_back(std::move(diagnostic));
-}
-
-bool parseNativeBaseTime(const std::string& value, int& seconds) {
-	if (value.size() != 8 || value[2] != ':' || value[5] != ':')
-		return false;
-	for (std::size_t i = 0; i < value.size(); ++i) {
-		if (i == 2 || i == 5)
-			continue;
-		if (value[i] < '0' || value[i] > '9')
-			return false;
-	}
-	const int hours = (value[0] - '0') * 10 + value[1] - '0';
-	const int minutes = (value[3] - '0') * 10 + value[4] - '0';
-	const int partSeconds = (value[6] - '0') * 10 + value[7] - '0';
-	if (hours > 23 || minutes > 59 || partSeconds > 59)
-		return false;
-	seconds = hours * 3600 + minutes * 60 + partSeconds;
-	return true;
-}
-
-template <typename T>
-std::unordered_map<std::string, const T*> nativeIndexById(const std::vector<T>& values,
-		std::vector<SceneDiagnostic>& diagnostics, const std::string& file,
-		const std::string& itemType) {
-	std::unordered_map<std::string, const T*> result;
-	for (const T& value : values) {
-		if (value.id.empty()) {
-			addNativeDiagnostic(diagnostics, "scene.native.ref.id", "An item has an empty canonical ID",
-					file, itemType, "");
-			continue;
-		}
-		if (!result.emplace(value.id, &value).second)
-			addNativeDiagnostic(diagnostics, "scene.native.ref.duplicate", "Duplicate canonical ID",
-					file, itemType, value.id);
-	}
-	return result;
-}
-
-const ScenePlatform* nativePlatformForStation(const SceneStation& station, const std::string& platformId) {
-	for (const ScenePlatform& platform : station.platforms)
-		if (platform.id == platformId)
-			return &platform;
-	return nullptr;
-}
-
-const SceneStop* nativeStopForStation(const SceneService& service, const std::string& stationId) {
-	for (const SceneStop& stop : service.stops)
-		if (stop.stationId == stationId)
-			return &stop;
-	return nullptr;
-}
-
-const NativeStopPlan* nativeStopAtSourceIndex(const NativeTrainPlan& train, std::size_t sourceStopIndex) {
-	for (const NativeStopPlan& stop : train.stops)
-		if (stop.sourceStopIndex == sourceStopIndex)
-			return &stop;
-	return nullptr;
-}
-
-int nativeRouteIndex(const std::string& routeId) {
-	for (std::size_t index = 0; index < train_route.size(); ++index)
-		if (train_route[index].ID == routeId)
-			return static_cast<int>(index);
-	return -1;
-}
-
-const SceneStation* nativeStationForId(
-		const std::unordered_map<std::string, const SceneStation*>& stations,
-		const std::string& stationId) {
-	const auto found = stations.find(stationId);
-	return found == stations.end() ? nullptr : found->second;
-}
-
-bool nativeRuntimeNodeMatchesStation(const Node& node, const SceneStation& station,
-		const std::string& stationName) {
-	return (station.platforms.empty() ? node.station
-			: !node.stationPlatformId.empty() && node.stationPlatformId != "None")
-			&& (node.stationName == stationName || node.stationName == station.id
-				|| (node.station && node.stationName.empty()));
-}
-
-bool nativeRuntimeNodeForVisit(const Route& route, const SceneStopResolution& resolution,
-		Node& result) {
-	if (resolution.sectionIndex >= static_cast<std::size_t>(route.N_Block_Sections))
-		return false;
-	const Section& section = route.sequence_of_block_sections[resolution.sectionIndex];
-	if (section.ID != resolution.sectionId)
-		return false;
-	const auto matches = [&resolution](const Node& node) {
-		return !resolution.nodeId.empty() && node.sceneNodeId == resolution.nodeId;
-	};
-	if (matches(section.start_node)) {
-		result = section.start_node;
-		return true;
-	}
-	for (int arcIndex = 0; arcIndex < section.total_arcs; ++arcIndex) {
-		if (!matches(section.arcs_in_signalling_block_section[arcIndex].endNode))
-			continue;
-		result = section.arcs_in_signalling_block_section[arcIndex].endNode;
-		return true;
-	}
-	return false;
-}
-
-bool nativeRuntimePlatformExists(const std::string& platformId, const std::string& stationId,
-		const std::string& stationName) {
-	for (const StationPlatform& platform : AllStationPlatforms)
-		if (platform.ID == platformId
-				&& (platform.StationID == stationId || platform.StationID == stationName))
-			return true;
-	return false;
-}
-
-
-int nativeResolveRuntimeSection(const std::string& runtimeSectionId) {
-	if (runtimeSectionId.empty())
-		return -1;
-	for (int index = 0; index < Blocks; ++index)
-		if (signalling_block_sections[index].ID == runtimeSectionId)
-			return index;
-	return -1;
-}
-
-void nativeClearRegionalTrain(Regional& train) {
-	delete[] train.Stations;
-	train.Stations = nullptr;
-}
-
-void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vectorSize) {
-	train.g = 9.81;
-	train.ID = plan.occurrence;
-	train.type = plan.type;
-	train.operatingCode = plan.operatingCode;
-	train.serviceId = plan.serviceId;
-	train.serviceOccurrence = plan.occurrence;
-	train.servicePerformancePercent = plan.servicePerformancePercent;
-	train.hasConfiguredMaximumSpeed = plan.hasConfiguredMaximumSpeed;
-	train.configuredMaximumSpeedKmh = plan.configuredMaximumSpeedKmh;
-	train.compositionMaximumSpeedMs = plan.compositionMaximumSpeedMs;
-	train.appliedMaximumSpeedMs = plan.appliedMaximumSpeedMs;
-	train.appliedMaximumSpeedKmh = plan.appliedMaximumSpeedKmh;
-	train.destinationTerminationRequested = plan.destinationTerminationRequested;
-	train.destinationTerminated = false;
-	train.directIncidentIds.clear();
-	train.firstDirectIncidentTime = -1.0;
-	train.firstDirectIncidentLocation = -1.0;
-	train.TrainRouteID = plan.routeId;
-	train.indexOfRoute = plan.routeIndex;
-	train.trainDescription = plan.trainDescription;
-	train.direction = plan.direction;
-	train.Start_Node_X = train_route[plan.routeIndex].x_of_start_node;
-	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
-	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
-	train.number_of_wagons = plan.physical.number_of_wagons;
-	train.max_train_speed = plan.appliedMaximumSpeedMs;
-	train.max_train_decelaration = plan.physical.max_deceleration_ms2;
-	train.frontal_wagon_area = plan.physical.frontal_area_m2;
-	train.resistanceCoefficient = plan.physical.resistance_coefficient;
-	train.Jerk = plan.physical.jerk_ms3;
-	train.train_length = plan.physical.length_m;
-	train.massPerWagonAxle = train.mass_of_a_wagon * train.number_of_wagons;
-	train.total_train_mass = train.mass_of_traction_unit + train.massPerWagonAxle;
-	train.massFactor = (1.09 * train.mass_of_traction_unit + 1.06 * train.massPerWagonAxle)
-			/ train.total_train_mass;
-	train.velocityIntervals = static_cast<int>(plan.tractionCurve.size());
-	for (int index = 0; index < train.velocityIntervals; ++index) {
-		train.Vlb[index] = plan.tractionCurve[index][0];
-		train.Vub[index] = plan.tractionCurve[index][1];
-		train.C0[index] = plan.tractionCurve[index][2];
-		train.C1[index] = plan.tractionCurve[index][3];
-		train.C2[index] = plan.tractionCurve[index][4];
-	}
-	train.scheduled_departure_time = plan.scheduledDeparture;
-	train.departure_time = plan.scheduledDeparture;
-	train.EntranceDelay = plan.entranceDelay;
-	train.TotalInputDelays = plan.entranceDelay;
-	train.Initialise_Gibson_Dwell_Time_Parameters(7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562);
-	train.numStations = static_cast<int>(plan.stops.size());
-	train.Stations = new Node[train.numStations];
-	for (int index = 0; index < train.numStations; ++index) {
-		train.Stations[index] = plan.stops[index].node;
-		train.Stations[index].stationName = plan.stops[index].stationName;
-		train.Stations[index].stationPlatformId = plan.stops[index].platformId;
-		train.Stations[index].dwellTime = plan.stops[index].dwellSeconds;
-		train.Stations[index].StopTime = plan.stops[index].dwellSeconds / timestep;
-		train.StationArrivalNames[index] = plan.stops[index].stationName;
-		train.ScheduledArrivals[index] = plan.stops[index].plannedArrival;
-		train.ScheduledDepartures[index] = plan.stops[index].plannedDeparture;
-	}
-	train.setTrainVectorSizesFromInput(vectorSize);
-	train.cacheStationPositions();
-}
-
-} // namespace
-
-void prepareNativeOperationsState() {
-	N_OrderLists = 0;
-	numRegions = 0;
-	N_Train = 0;
-	N_TrainD = 0;
-	numAllStationPlatforms = 0;
-	numAllDailyPassengers = 0;
-	for (OrderList& orderList : OL)
-		orderList = OrderList();
-	AllStationPlatforms.clear();
-	AllDailyPassengers.clear();
-	simulationIncidents.clear();
-	VCmsgTimestep.clear();
-	VCmsgTrain.clear();
-	VCmsgText.clear();
-}
-
-void resetNativeOperationsState() {
-	prepareNativeOperationsState();
-	for (int index = 0; index < Max_N_Reg; ++index) {
-		nativeClearRegionalTrain(regional_train[index]);
-		regional_train[index].~Regional();
-		new (&regional_train[index]) Regional();
-	}
-}
-
-std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
-		const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
-	std::vector<SceneDiagnostic> diagnostics;
-	nativeIndexById(scene.trainUnits, diagnostics, "trains.json", "train_unit");
-	nativeIndexById(scene.compositions, diagnostics, "trains.json", "composition");
-	const auto stationById = nativeIndexById(scene.stations, diagnostics, "stations.json", "station");
-	const auto routes = nativeIndexById(scene.routes, diagnostics, "signalling.json", "route");
-	const auto serviceById = nativeIndexById(scene.services, diagnostics, "services.json", "service");
-	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
-			[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
-	for (std::size_t stationIndex = 0; stationIndex < scene.stations.size(); ++stationIndex) {
-		const SceneStation& station = scene.stations[stationIndex];
-		for (std::size_t platformIndex = 0; platformIndex < station.platforms.size(); ++platformIndex) {
-			const ScenePlatform& platform = station.platforms[platformIndex];
-			const std::string path = "stations[" + std::to_string(stationIndex) + "].platforms["
-					+ std::to_string(platformIndex) + "]";
-			if (platform.hasLength && (!nativeFinite(platform.lengthM) || platform.lengthM <= 0.0))
-				addNativeDiagnostic(diagnostics, "scene.native.platform.length", "Platform length_m must be positive and finite",
-						"stations.json", "platform", platform.id, path + ".length_m", {},
-						"Use a platform length greater than 0 metres");
-			if (platform.hasWidth && (!nativeFinite(platform.widthM) || platform.widthM <= 0.0))
-				addNativeDiagnostic(diagnostics, "scene.native.platform.width", "Platform width_m must be positive and finite",
-						"stations.json", "platform", platform.id, path + ".width_m", {},
-						"Use a platform width greater than 0 metres");
-			const double effectiveLength = platform.hasLength ? platform.lengthM : 100.0;
-			const double effectiveWidth = platform.hasWidth ? platform.widthM : 2.5;
-			const double capacity = effectiveLength * effectiveWidth
-					/ (3.14159 * std::pow(0.8, 2)) * 0.8;
-			if (nativeFinite(effectiveLength) && effectiveLength > 0.0
-					&& nativeFinite(effectiveWidth) && effectiveWidth > 0.0
-					&& (!nativeFinite(capacity) || capacity < 1.0
-							|| capacity > static_cast<double>(INT_MAX)))
-				addNativeDiagnostic(diagnostics, "scene.native.platform.capacity",
-						"Platform geometry produces an unsupported passenger capacity", "stations.json",
-						"platform", platform.id, path, {},
-						"Use dimensions that produce at least one passenger and fit the runtime capacity field");
-		}
-	}
-	if (scene.services.empty())
-		addNativeDiagnostic(diagnostics, "scene.native.services.none", "A runnable scene requires at least one service",
-				"services.json", "service", "", "services");
-
-	int baseTime = 0;
-	if (!parseNativeBaseTime(scene.baseTime, baseTime))
-		addNativeDiagnostic(diagnostics, "scene.native.time.base", "base_time must be HH:MM:SS",
-				"scene.json", "scene", scene.name, "base_time");
-	const double durationSeconds = initial_variables.durationOverride
-			? initial_variables.times : scene.settings.durationSeconds;
-	if (!scene.settings.hasDuration || !nativeFinite(durationSeconds)
-			|| durationSeconds < 1.0
-			|| durationSeconds > static_cast<double>(INT_MAX))
-		addNativeDiagnostic(diagnostics, "scene.native.time.duration", "A positive finite simulation duration is required",
-				"scene.json", "scene", scene.name, "settings.duration_seconds");
-	if (scene.settings.hasBufferTime && (!nativeFinite(scene.settings.bufferTimeSeconds)
-			|| scene.settings.bufferTimeSeconds < 0.0))
-		addNativeDiagnostic(diagnostics, "scene.native.settings.buffer", "buffer_time_seconds must be finite and non-negative",
-				"scene.json", "scene", scene.name, "settings.buffer_time_seconds");
-	if (scene.settings.hasRecoveryTime && (!nativeFinite(scene.settings.recoveryTimePercent)
-			|| scene.settings.recoveryTimePercent < 0.0))
-		addNativeDiagnostic(diagnostics, "scene.native.settings.recovery", "recovery_time_percent must be finite and non-negative",
-				"scene.json", "scene", scene.name, "settings.recovery_time_percent");
-	std::unordered_map<std::string, int> repeatCounts;
-	for (const SceneService& service : scene.services)
-		repeatCounts[service.id] = sceneServiceOccurrenceCount(service, durationSeconds);
-
-	const auto defaultScenario = [&]() -> const SceneScenario* {
-		if (!selectedScenarioId.empty()) {
-			for (const SceneScenario& scenario : scene.scenarios)
-				if (scenario.id == selectedScenarioId)
-					return &scenario;
-			return nullptr;
-		}
-		if (!scene.defaultScenarioId.empty()) {
-			for (const SceneScenario& scenario : scene.scenarios)
-				if (scenario.id == scene.defaultScenarioId)
-					return &scenario;
-			return nullptr;
-		}
-		return scene.scenarios.empty() ? nullptr : &scene.scenarios.front();
-	};
-	const SceneScenario* scenario = defaultScenario();
-	if (scenario == nullptr)
-		addNativeDiagnostic(diagnostics, "scene.native.scenario", "The selected/default scenario does not exist",
-				"scenarios.json", "scenario", selectedScenarioId.empty() ? scene.defaultScenarioId : selectedScenarioId);
-
-	std::unordered_map<std::string, int> routeById;
-	for (const auto& pair : routes) {
-		const int runtimeIndex = nativeRouteIndex(pair.first);
-		if (runtimeIndex < 0 || runtimeIndex >= static_cast<int>(train_route.size())
-				|| train_route[runtimeIndex].N_Block_Sections <= 0)
-			addNativeDiagnostic(diagnostics, "scene.native.ref.route", "Route is not available in the built runtime infrastructure",
-					"signalling.json", "route", pair.first, "routes[" + pair.first + "]");
-		else
-			routeById[pair.first] = runtimeIndex;
-	}
-
-	std::vector<NativeTrainPlan> trains;
-	std::map<SceneServiceOccurrence, std::size_t> occurrenceIndex;
-	if (!selectedOccurrences.empty()) {
-		for (const SceneServiceOccurrence& selection : selectedOccurrences) {
-			const auto serviceIt = serviceById.find(selection.serviceId);
-			const auto countIt = repeatCounts.find(selection.serviceId);
-			if (serviceIt == serviceById.end() || countIt == repeatCounts.end()) {
-				addNativeDiagnostic(diagnostics, "scene.native.selection.service",
-						"Selected occurrence refers to an unknown service", "services.json", "selection",
-						selection.serviceId, "selected_occurrences", selection.serviceId);
-			} else if (selection.occurrence < 1 || selection.occurrence > countIt->second) {
-				addNativeDiagnostic(diagnostics, "scene.native.selection.occurrence",
-						"Selected occurrence is outside the service horizon", "services.json", "selection",
-						selection.serviceId, "selected_occurrences", selection.serviceId + "-"
-								+ std::to_string(selection.occurrence));
-			}
-		}
-	}
-	const auto occurrenceSelected = [&selectedOccurrences](const std::string& serviceId, int occurrence) {
-		return selectedOccurrences.empty()
-				|| selectedOccurrences.count(SceneServiceOccurrence{serviceId, occurrence}) > 0;
-	};
-	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
-	for (const SceneService& service : scene.services) {
-		if (service.id.empty())
-			continue;
-		if (!nativeFinite(service.performancePercent) || service.performancePercent < 1.0
-				|| service.performancePercent > 100.0)
-			addNativeDiagnostic(diagnostics, "scene.native.service.performance",
-					"Service performance_percent must be finite and between 1 and 100",
-					"services.json", "service", service.id, "services[" + service.id + "].performance_percent");
-		if (service.hasMaximumSpeed
-				&& (!nativeFinite(service.maximumSpeedKmh) || service.maximumSpeedKmh <= 0.0))
-			addNativeDiagnostic(diagnostics, "scene.native.service.speed",
-					"Service maximum_speed_kmh must be positive and finite",
-					"services.json", "service", service.id, "services[" + service.id + "].maximum_speed_kmh");
-		if (service.hasRepeatCount && (!service.hasRepeat || service.repeatCount <= 0))
-			addNativeDiagnostic(diagnostics, "scene.native.service.repeat_count",
-					"Repeated service count must be a positive integer inside repeat",
-					"services.json", "service", service.id, "services[" + service.id + "].repeat.count");
-		if (service.hasOperatingCodeStep && sceneServiceOccurrenceOperatingCode(service, 1).empty())
-			addNativeDiagnostic(diagnostics, "scene.native.service.operating_code_step",
-					"Operating code step requires a nonzero step and a decimal base operating code",
-					"services.json", "service", service.id,
-					"services[" + service.id + "].repeat.operating_code_step");
-		if (service.stops.size() > Train::kMaxTimetableStations)
-			addNativeDiagnostic(diagnostics, "scene.native.capacity.stops", "Service stops exceed the runtime timetable capacity",
-					"services.json", "service", service.id, "services[" + service.id + "].stops", {},
-					std::to_string(Train::kMaxTimetableStations));
-		const auto routeIt = routeById.find(service.route);
-		if (routeIt == routeById.end())
-			addNativeDiagnostic(diagnostics, "scene.native.ref.route", "Service route is unknown or unavailable",
-					"services.json", "service", service.id, "services[" + service.id + "].route", service.route);
-		SceneCompositionRuntime composition;
-		std::string compositionDiagnostic;
-		if (!buildSceneComposition(scene, service.composition, composition, compositionDiagnostic))
-			addNativeDiagnostic(diagnostics, "scene.native.ref.composition",
-					compositionDiagnostic.empty() ? "Service composition is unknown or invalid" : compositionDiagnostic,
-					"trains.json", "service", service.id, "services[" + service.id + "].composition", service.composition);
-		if (!composition.tractionCurve.empty()
-				&& composition.tractionCurve.size() > 20)
-			addNativeDiagnostic(diagnostics, "scene.native.capacity.traction", "Traction curve exceeds the runtime 20-band capacity",
-					"trains.json", "composition", service.composition, "compositions[" + service.composition + "].units");
-		if (!nativeFinite(composition.physical.mass_of_traction_unit_kg)
-				|| !nativeFinite(composition.physical.mass_of_a_wagon_kg)
-				|| !nativeFinite(composition.physical.number_of_wagons)
-				|| !nativeFinite(composition.physical.max_speed_ms)
-				|| !nativeFinite(composition.physical.max_deceleration_ms2)
-				|| !nativeFinite(composition.physical.frontal_area_m2)
-				|| !nativeFinite(composition.physical.resistance_coefficient)
-				|| !nativeFinite(composition.physical.jerk_ms3)
-				|| !nativeFinite(composition.physical.length_m)
-			|| composition.physical.mass_of_traction_unit_kg < 0.0
-			|| composition.physical.mass_of_a_wagon_kg < 0.0
-			|| composition.physical.number_of_wagons < 0.0
-			|| composition.physical.max_speed_ms <= 0.0
-			|| composition.physical.max_deceleration_ms2 <= 0.0
-			|| composition.physical.frontal_area_m2 < 0.0
-			|| composition.physical.jerk_ms3 < 0.0
-			|| composition.physical.length_m < 0.0
-			|| composition.physical.mass_of_traction_unit_kg + composition.physical.mass_of_a_wagon_kg * composition.physical.number_of_wagons <= 0.0)
-			addNativeDiagnostic(diagnostics, "scene.native.train.physical", "Composition physical values are non-finite or have no positive train mass",
-					"trains.json", "service", service.id, "services[" + service.id + "].composition", service.composition);
-		for (const auto& band : composition.tractionCurve) {
-			if (!nativeFinite(band[0]) || !nativeFinite(band[1]) || !nativeFinite(band[2])
-					|| !nativeFinite(band[3]) || !nativeFinite(band[4]) || band[1] <= band[0])
-				addNativeDiagnostic(diagnostics, "scene.native.train.traction", "Composition contains an invalid traction band",
-						"trains.json", "service", service.id, "services[" + service.id + "].composition", service.composition);
-		}
-		if (routeIt == routeById.end() || composition.tractionCurve.size() > 20)
-			continue;
-
-		const int occurrences = repeatCounts[service.id];
-		double headway = 0.0;
-		if (service.hasRepeat) {
-			headway = service.headwaySeconds;
-			if (!nativeFinite(headway) || headway <= 0.0)
-				addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat", "Repeated services require a positive finite headway",
-						"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
-			else if (service.hasRepeatCount && service.repeatCount <= 0)
-				addNativeDiagnostic(diagnostics, "scene.native.timetable.repeat_count",
-						"Repeated service count must be a positive integer", "services.json", "service", service.id,
-						"services[" + service.id + "].repeat.count");
-			else if (!service.hasRepeatCount) {
-				const double rawCount = std::ceil(durationSeconds / headway);
-				if (!nativeFinite(rawCount) || rawCount > static_cast<double>(INT_MAX))
-					addNativeDiagnostic(diagnostics, "scene.native.capacity.occurrences", "Service repeat count exceeds the runtime integer capacity",
-							"services.json", "service", service.id, "services[" + service.id + "].headway_seconds");
-			}
-		}
-		if (service.hasOperatingCodeStep
-				&& !sceneServiceOccurrenceOperatingCode(service, 1).empty()
-				&& sceneServiceOccurrenceOperatingCode(service, occurrences).empty())
-			addNativeDiagnostic(diagnostics, "scene.native.service.operating_code_step",
-					"Operating code progression exceeds the supported integer range",
-					"services.json", "service", service.id,
-					"services[" + service.id + "].repeat.operating_code_step");
-
-		std::vector<int> occurrencesToBuild;
-		if (selectedOccurrences.empty()) {
-			if (occurrences <= Max_N_Reg)
-				for (int occurrence = 1; occurrence <= occurrences; ++occurrence)
-					occurrencesToBuild.push_back(occurrence);
-		} else {
-			for (const SceneServiceOccurrence& selection : selectedOccurrences)
-				if (selection.serviceId == service.id && selection.occurrence >= 1
-						&& selection.occurrence <= occurrences)
-					occurrencesToBuild.push_back(selection.occurrence);
-		}
-		const std::size_t selectedCount = selectedOccurrences.empty()
-				? static_cast<std::size_t>(occurrences) : occurrencesToBuild.size();
-		if (selectedCount > Max_N_Reg || trains.size() + selectedCount > Max_N_Reg) {
-			addNativeDiagnostic(diagnostics, "scene.native.capacity.trains", "Expanded service occurrences exceed the runtime train capacity",
-					"services.json", "service", service.id, "services[" + service.id + "].headway_seconds", {},
-					std::to_string(Max_N_Reg));
-			continue;
-		}
-
-		const Route& runtimeRoute = train_route[routeIt->second];
-		const SceneRouteTraversal routeTraversal = buildSceneRouteTraversal(scene, *routes.at(service.route), sectionInventory);
-		const std::vector<SceneStopResolution> stopResolutions =
-			resolveSceneServiceStops(scene, service, routeTraversal);
-		if (service.hasEntryTime && (!nativeFinite(service.entryTimeSeconds) || service.entryTimeSeconds < 0.0))
-			addNativeDiagnostic(diagnostics, "scene.native.timetable.entry", "Entry time must be finite and non-negative",
-					"services.json", "service", service.id, "services[" + service.id + "].entry_seconds");
-		std::vector<NativeStopPlan> baseStops;
-		for (std::size_t stopIndex = 0; stopIndex < service.stops.size(); ++stopIndex) {
-			const SceneStop& stop = service.stops[stopIndex];
-			const SceneStation* station = nativeStationForId(stationById, stop.stationId);
-			if (station == nullptr) {
-				addNativeDiagnostic(diagnostics, "scene.native.ref.station", "Stop station is unknown",
-						"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].station_id", stop.stationId);
-				continue;
-			}
-			const std::string stationName = station->name.empty() ? station->id : station->name;
-			std::string resolvedPlatformId = stop.platformId;
-			const ScenePlatform* explicitPlatform = nullptr;
-			if (!stop.platformId.empty()) {
-				explicitPlatform = nativePlatformForStation(*station, stop.platformId);
-				if (explicitPlatform == nullptr || !nativeRuntimePlatformExists(stop.platformId, station->id, stationName))
-					addNativeDiagnostic(diagnostics, "scene.native.ref.platform", "Explicit stop platform is unknown or not built in the runtime infrastructure",
-							"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id", stop.platformId);
-			}
-			Node selectedNode;
-			bool selected = false;
-			const SceneStopResolution resolution = stopIndex < stopResolutions.size()
-				? stopResolutions[stopIndex] : SceneStopResolution();
-			if (resolution.status == SceneStopResolutionStatus::Resolved) {
-				selected = nativeRuntimeNodeForVisit(runtimeRoute, resolution, selectedNode);
-				if (!selected)
-					addNativeDiagnostic(diagnostics, "scene.native.ref.platform",
-							"Resolved stop visit is not present in the built runtime route",
-							"services.json", "service", service.id,
-							"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id",
-							resolution.nodeId);
-				else if (!nativeRuntimeNodeMatchesStation(selectedNode, *station, stationName)
-						|| (!stop.platformId.empty() && selectedNode.stationPlatformId != stop.platformId)) {
-					addNativeDiagnostic(diagnostics, "scene.native.ref.platform",
-							"Resolved stop visit does not retain its canonical station/platform identity",
-							"services.json", "service", service.id,
-							"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id",
-							stop.platformId);
-					selected = false;
-				}
-				resolvedPlatformId = stop.platformId.empty()
-						? (resolution.visitIndex < routeTraversal.visits.size()
-								? routeTraversal.visits[resolution.visitIndex].platformId : std::string())
-						: stop.platformId;
-			} else if (resolution.status == SceneStopResolutionStatus::OffRouteContext
-					&& stop.platformId.empty()) {
-				// Legacy timetables may retain stops before a train enters, or after it
-				// leaves, its simulated route. Keep those schedule rows without inventing
-				// a platform assignment; they remain inert in route station matching.
-				selectedNode.station = true;
-				selectedNode.stationName = stationName;
-				selectedNode.stationPlatformId = "None";
-				if (station->hasPosition)
-					selectedNode.X = station->positionKm;
-				else if (!station->platforms.empty()) {
-					for (const StationPlatform& platform : AllStationPlatforms) {
-						if (platform.ID == station->platforms.front().id) {
-							selectedNode.X = platform.X;
-							selectedNode.Y = platform.Y;
-							break;
-						}
-					}
-				}
-				selected = true;
-			} else {
-				const char* code = resolution.status == SceneStopResolutionStatus::AmbiguousPlatform
-						? "scene.native.ref.platform.ambiguous"
-						: resolution.status == SceneStopResolutionStatus::OutOfOrder
-								? "scene.native.ref.stop.order"
-								: resolution.status == SceneStopResolutionStatus::UnresolvedRoute
-										? "scene.native.ref.stop.route" : "scene.native.ref.platform";
-				const char* message = resolution.status == SceneStopResolutionStatus::AmbiguousPlatform
-						? "A stop without a platform resolves to multiple ordered route platforms"
-						: resolution.status == SceneStopResolutionStatus::OutOfOrder
-								? "Stop is not reachable after the preceding ordered route visit"
-								: resolution.status == SceneStopResolutionStatus::UnresolvedRoute
-										? "Stop cannot be resolved because the service route has no ordered traversal"
-										: "Explicit stop platform is not present on the ordered service route";
-				addNativeDiagnostic(diagnostics, code, message, "services.json", "service", service.id,
-						"services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]",
-						stop.platformId.empty() ? stop.stationId : stop.platformId);
-			}
-			if (!selected)
-				continue;
-			if ((stop.hasPlannedArrival && !nativeFinite(stop.plannedArrivalSeconds))
-					|| (stop.hasPlannedDeparture && !nativeFinite(stop.plannedDepartureSeconds))
-					|| !nativeFinite(stop.dwellSeconds) || stop.dwellSeconds < 0.0)
-				addNativeDiagnostic(diagnostics, "scene.native.timetable.stop", "Stop timetable values must be finite and dwell must be non-negative",
-						"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]");
-			if (stop.hasPlannedArrival && stop.hasPlannedDeparture
-					&& stop.plannedDepartureSeconds < stop.plannedArrivalSeconds)
-				addNativeDiagnostic(diagnostics, "scene.native.timetable.order", "Planned departure precedes planned arrival",
-						"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "]");
-			NativeStopPlan stopPlan;
-			stopPlan.sourceStopIndex = stopIndex;
-			stopPlan.stationId = stop.stationId;
-			stopPlan.stationName = stationName;
-			stopPlan.platformId = resolvedPlatformId;
-			stopPlan.node = selectedNode;
-			stopPlan.dwellSeconds = stop.dwellSeconds;
-			stopPlan.hasPlannedArrival = stop.hasPlannedArrival;
-			stopPlan.hasPlannedDeparture = stop.hasPlannedDeparture;
-			stopPlan.plannedArrival = stop.hasPlannedArrival ? stop.plannedArrivalSeconds : -1.0;
-			stopPlan.plannedDeparture = stop.hasPlannedDeparture ? stop.plannedDepartureSeconds : -1.0;
-			baseStops.push_back(std::move(stopPlan));
-		}
-
-		for (const int occurrence : occurrencesToBuild) {
-			NativeTrainPlan plan;
-			plan.routeId = service.route;
-			plan.trainDescription = service.id + "-" + std::to_string(occurrence);
-			plan.type = service.id;
-			plan.operatingCode = sceneServiceOccurrenceOperatingCode(service, occurrence);
-			plan.serviceId = service.id;
-			plan.physical = composition.physical;
-			plan.tractionCurve = composition.tractionCurve;
-			plan.occurrence = occurrence;
-			plan.routeIndex = routeIt->second;
-			plan.direction = runtimeRoute.reversed_direction;
-			plan.servicePerformancePercent = service.performancePercent;
-			plan.hasConfiguredMaximumSpeed = service.hasMaximumSpeed;
-			plan.configuredMaximumSpeedKmh = service.maximumSpeedKmh;
-			plan.compositionMaximumSpeedMs = composition.physical.max_speed_ms;
-			const double commandedMaximumSpeed = service.hasMaximumSpeed
-					? std::min(composition.physical.max_speed_ms, service.maximumSpeedKmh / 3.6)
-					: composition.physical.max_speed_ms;
-			plan.appliedMaximumSpeedMs = service.performancePercent == 100.0
-					? commandedMaximumSpeed
-					: commandedMaximumSpeed * service.performancePercent / 100.0;
-			plan.appliedMaximumSpeedKmh = plan.appliedMaximumSpeedMs * 3.6;
-			const double offset = service.hasRepeat ? (occurrence - 1) * headway : 0.0;
-			plan.scheduledDeparture = sceneServiceScheduledEntry(service, occurrence);
-			plan.stops = baseStops;
-			for (NativeStopPlan& stop : plan.stops) {
-				if (stop.hasPlannedArrival)
-					stop.plannedArrival += offset;
-				if (stop.hasPlannedDeparture)
-					stop.plannedDeparture += offset;
-			}
-			occurrenceIndex.emplace(SceneServiceOccurrence{service.id, occurrence}, trains.size());
-			trains.push_back(std::move(plan));
-		}
-	}
-
-	if (trains.size() > Max_N_Reg)
-		addNativeDiagnostic(diagnostics, "scene.native.capacity.trains", "Expanded train count exceeds the runtime capacity",
-				"services.json", "scene", scene.name, "services", {}, std::to_string(Max_N_Reg));
-
-	std::vector<SimulationIncident> stagedIncidents;
-	std::map<SceneServiceOccurrence, double> occurrenceDelay;
-	std::set<std::pair<SceneServiceOccurrence, std::string>> appliedDelayStations;
-	if (scenario != nullptr) {
-		for (const SceneIncident& incident : scenario->incidents) {
-			bool valid = true;
-			if (incident.type != "signal_failure" && incident.type != "train_breakdown") {
-				addNativeDiagnostic(diagnostics, "scene.native.incident.type", "Unknown incident type",
-						"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].type");
-				continue;
-			}
-			const bool hasOccurrence = incident.hasOccurrence || incident.occurrence != 1;
-			const bool hasReducedSpeed = incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0;
-			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
-			if (!nativeFinite(incident.startSeconds) || incident.startSeconds < 0.0) {
-				addNativeDiagnostic(diagnostics, "scene.native.incident.time",
-						"Incident start must be finite and non-negative", "scenarios.json", "incident",
-						incident.id, "incidents[" + incident.id + "].start_seconds");
-				valid = false;
-			}
-			if (incident.type == "signal_failure") {
-				if (hasOccurrence || hasReducedSpeed || incident.terminateAtDestination) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.fields",
-							"Signal failures do not accept breakdown-only fields", "scenarios.json", "incident",
-							incident.id, "incidents[" + incident.id + "]");
-					valid = false;
-				}
-				if (!hasEnd || !nativeFinite(incident.endSeconds)
-						|| incident.endSeconds <= incident.startSeconds) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.time",
-							"Signal failure requires end after start", "scenarios.json", "incident", incident.id,
-							"incidents[" + incident.id + "].end_seconds");
-					valid = false;
-				}
-			} else {
-				if (hasOccurrence && (incident.occurrence < 1
-						|| repeatCounts.find(incident.target) == repeatCounts.end()
-						|| incident.occurrence > repeatCounts[incident.target])) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.occurrence",
-							"Breakdown occurrence is outside the configured service pattern", "scenarios.json",
-							"incident", incident.id, "incidents[" + incident.id + "].occurrence");
-					valid = false;
-				}
-				if (hasReducedSpeed && (!nativeFinite(incident.reducedSpeedKmh)
-						|| incident.reducedSpeedKmh <= 0.0)) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.speed",
-							"Reduced breakdown speed must be positive and finite", "scenarios.json", "incident",
-							incident.id, "incidents[" + incident.id + "].reduced_speed_kmh");
-					valid = false;
-				}
-				if (!hasReducedSpeed && !hasEnd) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.time",
-							"A full-hold breakdown requires end_seconds", "scenarios.json", "incident",
-							incident.id, "incidents[" + incident.id + "].end_seconds");
-					valid = false;
-				}
-				if (hasEnd && (!nativeFinite(incident.endSeconds)
-						|| incident.endSeconds <= incident.startSeconds)) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.time",
-							"Incident end must be after start", "scenarios.json", "incident", incident.id,
-							"incidents[" + incident.id + "].end_seconds");
-					valid = false;
-				}
-			}
-			SimulationIncident runtimeIncident;
-			runtimeIncident.id = incident.id;
-			runtimeIncident.type = incident.type;
-			runtimeIncident.target = incident.target;
-			runtimeIncident.hasOccurrence = hasOccurrence;
-			runtimeIncident.occurrence = incident.occurrence;
-			runtimeIncident.hasReducedSpeed = hasReducedSpeed;
-			runtimeIncident.reducedSpeedKmh = incident.reducedSpeedKmh;
-			runtimeIncident.terminateAtDestination = incident.terminateAtDestination;
-			runtimeIncident.hasEndSeconds = hasEnd;
-			runtimeIncident.startSeconds = incident.startSeconds;
-			runtimeIncident.endSeconds = incident.endSeconds;
-			if (incident.type == "signal_failure") {
-				const SceneSectionDescriptor* targetSection = nullptr;
-				const auto signal = std::find_if(scene.signals.begin(), scene.signals.end(),
-						[&incident](const SceneSignal& candidate) { return candidate.id == incident.target; });
-				const SceneSectionDescriptor* directSection = sectionInventory.resolve(incident.target);
-				const bool ambiguousTarget = signal != scene.signals.end() && directSection != nullptr;
-				if (ambiguousTarget) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.target.ambiguous",
-							"Signal failure target matches both a signal and a section",
-							"scenarios.json", "incident", incident.id,
-							"incidents[" + incident.id + "].target", incident.target);
-					valid = false;
-				} else if (signal != scene.signals.end()) {
-					if (!signal->protectedSection.empty())
-						targetSection = sectionInventory.resolve(signal->protectedSection);
-				} else {
-					targetSection = directSection;
-				}
-				const int sectionIndex = targetSection == nullptr ? -1
-						: nativeResolveRuntimeSection(targetSection->id);
-				if (sectionIndex >= 0)
-					runtimeIncident.resolvedSectionIDs.push_back(signalling_block_sections[sectionIndex].ID);
-				else if (!ambiguousTarget) {
-					addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Signal failure target does not resolve to an exact runtime section",
-							"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].target", incident.target);
-					valid = false;
-				}
-			} else if (serviceById.count(incident.target) == 0) {
-				addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Train breakdown target must be a canonical service ID",
-						"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].target", incident.target);
-				valid = false;
-			}
-			if (valid)
-				stagedIncidents.push_back(std::move(runtimeIncident));
-		}
-		for (const SceneEntranceDelay& delay : scenario->entranceDelays) {
-			const auto serviceIt = serviceById.find(delay.serviceId);
-			const auto countIt = repeatCounts.find(delay.serviceId);
-			const SceneServiceOccurrence key{delay.serviceId, delay.occurrence};
-			if (serviceIt == serviceById.end() || countIt == repeatCounts.end() || delay.occurrence < 1) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.ref", "Entrance delay service/occurrence is unknown",
-						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.serviceId);
-				continue;
-			}
-			const bool outsidePattern = delay.occurrence > countIt->second;
-			if (outsidePattern) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.occurrence",
-						"Entrance delay occurrence is outside the configured service pattern",
-						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays",
-						delay.serviceId + "-" + std::to_string(delay.occurrence));
-				continue;
-			}
-			if (!nativeFinite(delay.delaySeconds) || delay.delaySeconds < 0.0) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.value", "Entrance delay must be finite and non-negative",
-						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
-				continue;
-			}
-			const SceneStop* stop = nativeStopForStation(*serviceIt->second, delay.stationId);
-			if (stop == nullptr) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.station", "Entrance delay station is not a stop of the service",
-						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
-				continue;
-			}
-			if (!stop->hasPlannedDeparture) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.timetable", "Entrance delay cannot be applied to an absent planned departure",
-						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
-				continue;
-			}
-			const auto existing = occurrenceDelay.find(key);
-			if (existing != occurrenceDelay.end() && existing->second != delay.delaySeconds) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.conflict", "Conflicting entrance delays target one service occurrence",
-						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.stationId);
-				continue;
-			}
-			occurrenceDelay[key] = delay.delaySeconds;
-			if (!selectedOccurrences.empty()
-					&& !occurrenceSelected(delay.serviceId, delay.occurrence))
-				continue;
-			if (!appliedDelayStations.insert({key, delay.stationId}).second)
-				continue;
-			const auto trainIt = occurrenceIndex.find(key);
-			if (trainIt == occurrenceIndex.end()) {
-				addNativeDiagnostic(diagnostics, "scene.native.entrance.ref", "Entrance delay train occurrence was not built",
-						"scenarios.json", "entrance_delay", delay.serviceId, "entrance_delays", delay.serviceId);
-				continue;
-			}
-			NativeTrainPlan& train = trains[trainIt->second];
-			train.entranceDelay = delay.delaySeconds;
-			for (NativeStopPlan& trainStop : train.stops) {
-				if (trainStop.stationId == delay.stationId) {
-					trainStop.plannedDeparture += delay.delaySeconds;
-					break;
-				}
-			}
-		}
-		for (NativeTrainPlan& train : trains) {
-			for (const SimulationIncident& incident : stagedIncidents) {
-				if (incident.type == "train_breakdown" && incident.terminateAtDestination
-						&& incident.target == train.serviceId
-						&& (!incident.hasOccurrence || incident.occurrence == train.occurrence)) {
-					train.destinationTerminationRequested = true;
-					break;
-				}
-			}
-		}
-	}
-
-	// Validate passenger references before occurrence selection.  A filtered run
-	// must not hide an invalid canonical passenger row from the native contract.
-	std::unordered_set<std::string> passengerIds;
-	std::unordered_set<std::string> journeyIds;
-	std::unordered_set<std::string> passengerLegIds;
-	for (std::size_t passengerIndex = 0; passengerIndex < scene.passengers.size(); ++passengerIndex) {
-		const ScenePassenger& sourcePassenger = scene.passengers[passengerIndex];
-		const std::string passengerPath = "passengers[" + std::to_string(passengerIndex) + "]";
-		if (!passengerIds.insert(sourcePassenger.id).second)
-			addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger id",
-					"passengers.json", "passenger", sourcePassenger.id, passengerPath + ".id");
-		for (std::size_t journeyIndex = 0; journeyIndex < sourcePassenger.journeys.size(); ++journeyIndex) {
-			const ScenePassengerJourney& sourceJourney = sourcePassenger.journeys[journeyIndex];
-			const std::string journeyPath = passengerPath + ".journeys[" + std::to_string(journeyIndex) + "]";
-			if (!journeyIds.insert(sourceJourney.id).second)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger journey id",
-						"passengers.json", "journey", sourceJourney.id, journeyPath + ".id");
-			if (nativeStationForId(stationById, sourceJourney.originStationId) == nullptr)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger journey origin station is unknown",
-						"passengers.json", "journey", sourceJourney.id, journeyPath + ".origin",
-						sourceJourney.originStationId);
-			if (nativeStationForId(stationById, sourceJourney.destinationStationId) == nullptr)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger journey destination station is unknown",
-						"passengers.json", "journey", sourceJourney.id, journeyPath + ".destination",
-						sourceJourney.destinationStationId);
-			if (!nativeFinite(sourceJourney.plannedDepartureStartSeconds)
-					|| !nativeFinite(sourceJourney.plannedDepartureEndSeconds)
-					|| sourceJourney.plannedDepartureStartSeconds < 0.0
-					|| sourceJourney.plannedDepartureEndSeconds < sourceJourney.plannedDepartureStartSeconds)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Passenger planned departure window is invalid",
-						"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_departure",
-						{}, "Use finite non-negative bounds with start no later than end");
-			if (!nativeFinite(sourceJourney.plannedArrivalStartSeconds)
-					|| !nativeFinite(sourceJourney.plannedArrivalEndSeconds)
-					|| sourceJourney.plannedArrivalStartSeconds < 0.0
-					|| sourceJourney.plannedArrivalEndSeconds < sourceJourney.plannedArrivalStartSeconds)
-				addNativeDiagnostic(diagnostics, "scene.native.passenger.window", "Passenger planned arrival window is invalid",
-						"passengers.json", "journey", sourceJourney.id, journeyPath + ".planned_arrival",
-						{}, "Use finite non-negative bounds with start no later than end");
-			for (std::size_t legIndex = 0; legIndex < sourceJourney.legs.size(); ++legIndex) {
-				const ScenePassengerLeg& sourceLeg = sourceJourney.legs[legIndex];
-				const std::string legPath = journeyPath + ".legs[" + std::to_string(legIndex) + "]";
-				if (!passengerLegIds.insert(sourceLeg.id).second)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.id", "Duplicate passenger leg id",
-							"passengers.json", "leg", sourceLeg.id, legPath + ".id");
-				if (nativeStationForId(stationById, sourceLeg.originStationId) == nullptr)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger leg origin station is unknown",
-							"passengers.json", "leg", sourceLeg.id, legPath + ".origin",
-							sourceLeg.originStationId);
-				if (nativeStationForId(stationById, sourceLeg.destinationStationId) == nullptr)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.station", "Passenger leg destination station is unknown",
-							"passengers.json", "leg", sourceLeg.id, legPath + ".destination",
-							sourceLeg.destinationStationId);
-				const auto serviceIt = serviceById.find(sourceLeg.serviceId);
-				if (serviceIt == serviceById.end()) {
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.service", "Passenger leg refers to an unknown service",
-							"passengers.json", "leg", sourceLeg.id, legPath + ".service", sourceLeg.serviceId);
-				} else {
-					const bool hasOriginStop = std::any_of(serviceIt->second->stops.begin(), serviceIt->second->stops.end(),
-							[&sourceLeg](const SceneStop& stop) { return stop.stationId == sourceLeg.originStationId; });
-					const bool hasDestinationStop = std::any_of(serviceIt->second->stops.begin(), serviceIt->second->stops.end(),
-							[&sourceLeg](const SceneStop& stop) { return stop.stationId == sourceLeg.destinationStationId; });
-					if (!hasOriginStop)
-						addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
-								"Passenger leg origin is not a stop of the referenced service",
-								"passengers.json", "leg", sourceLeg.id, legPath + ".origin", sourceLeg.serviceId,
-								"Choose an origin station from the service stop pattern");
-					if (!hasDestinationStop)
-						addNativeDiagnostic(diagnostics, "scene.native.passenger.stop",
-								"Passenger leg destination is not a stop of the referenced service",
-								"passengers.json", "leg", sourceLeg.id, legPath + ".destination", sourceLeg.serviceId,
-								"Choose a destination station from the service stop pattern");
-					if (hasOriginStop && hasDestinationStop) {
-						SceneServiceStopPair stopPair;
-						if (!resolveScenePassengerLegStops(*serviceIt->second, sourceLeg, stopPair))
-							addNativeDiagnostic(diagnostics, "scene.native.passenger.order",
-									"Passenger leg destination must follow its origin in the service stop pattern",
-									"passengers.json", "leg", sourceLeg.id, legPath + ".destination", sourceLeg.serviceId,
-									"Choose an ordered origin/destination pair from the service stop pattern",
-									hasLegacyImport ? SceneSeverity::Warning : SceneSeverity::Error);
-					}
-				}
-				if (sourceLeg.occurrence <= 0)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
-							"Passenger leg occurrence must be positive", "passengers.json", "leg", sourceLeg.id,
-							legPath + ".occurrence", {}, "Use a positive occurrence number");
-				if (legIndex == 0 && sourceLeg.originStationId != sourceJourney.originStationId)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.continuity",
-							"First passenger leg does not start at journey origin", "passengers.json", "journey",
-							sourceJourney.id, legPath + ".origin", sourceLeg.originStationId);
-				if (legIndex > 0
-						&& sourceLeg.originStationId != sourceJourney.legs[legIndex - 1].destinationStationId)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.continuity",
-							"Passenger legs are not continuous", "passengers.json", "journey", sourceJourney.id,
-							legPath + ".origin", sourceLeg.originStationId);
-				if (legIndex + 1 == sourceJourney.legs.size()
-						&& sourceLeg.destinationStationId != sourceJourney.destinationStationId)
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.continuity",
-							"Last passenger leg does not end at journey destination", "passengers.json", "journey",
-							sourceJourney.id, legPath + ".destination", sourceLeg.destinationStationId);
-			}
-		}
-	}
-
-	if (hasErrors(diagnostics))
-		return diagnostics;
-
-	InitialParameters stagedParameters = initial_variables;
-	stagedParameters.name = scene.name;
-	stagedParameters.startingSimulationTime = baseTime;
-	stagedParameters.times = durationSeconds;
-	stagedParameters.bufferTime = scene.settings.hasBufferTime
-			? static_cast<int>(std::llround(scene.settings.bufferTimeSeconds)) : 0;
-	stagedParameters.recoveryTimePercentage = scene.settings.hasRecoveryTime
-			? static_cast<int>(std::llround(scene.settings.recoveryTimePercent)) : 0;
-	stagedParameters.numTrackLines = static_cast<int>(scene.tracks.size());
-	stagedParameters.N_Routes = static_cast<int>(scene.routes.size());
-	stagedParameters.num_OrderLists = 0;
-
-	const int vectorSize = std::max(1, static_cast<int>(std::ceil(durationSeconds / timestep)));
-	std::list<StationPlatform> stagedPlatforms = AllStationPlatforms;
-	for (StationPlatform& platform : stagedPlatforms) {
-		const auto stationIt = stationById.find(platform.StationID);
-		const ScenePlatform* sourcePlatform = nullptr;
-		if (stationIt != stationById.end()) {
-			sourcePlatform = nativePlatformForStation(*stationIt->second, platform.ID);
-			platform.StationID = stationIt->second->name.empty() ? stationIt->second->id : stationIt->second->name;
-		}
-		platform.length = sourcePlatform != nullptr && sourcePlatform->hasLength
-				? sourcePlatform->lengthM : 100.0;
-		platform.width = sourcePlatform != nullptr && sourcePlatform->hasWidth
-				? sourcePlatform->widthM : 2.5;
-		platform.Max_Passenger_Volume = static_cast<int>((platform.length * platform.width)
-				/ (3.14159 * std::pow(0.8, 2)) * 0.8);
-		platform.Current_N_Passengers = 0;
-		platform.Current_List_Pax_On_Platform.clear();
-		platform.List_Trains_Stopping_At_Platform.clear();
-	}
-	for (const NativeTrainPlan& train : trains) {
-		for (const NativeStopPlan& stop : train.stops) {
-			for (StationPlatform& platform : stagedPlatforms) {
-				if (platform.ID == stop.platformId
-						&& platform.StationID == stop.stationName) {
-					platform.List_Trains_Stopping_At_Platform.push_back(train.trainDescription);
-					break;
-				}
-			}
-		}
-	}
-
-	std::list<Passenger> stagedPassengers;
-	for (const ScenePassenger& sourcePassenger : scene.passengers) {
-		Passenger passenger;
-		passenger.ID = sourcePassenger.id;
-		for (const ScenePassengerJourney& sourceJourney : sourcePassenger.journeys) {
-			Journey journey;
-			journey.ID = sourceJourney.id;
-			journey.Journey_Activity_Type = sourceJourney.activity;
-			const SceneStation* origin = stationById.at(sourceJourney.originStationId);
-			const SceneStation* destination = stationById.at(sourceJourney.destinationStationId);
-			journey.Dep_Station_ID = origin->name.empty() ? origin->id : origin->name;
-			journey.Arr_Station_ID = destination->name.empty() ? destination->id : destination->name;
-			journey.Planned_Departure_Time = sourceJourney.plannedDepartureStartSeconds;
-			journey.Planned_Arrival_Time = sourceJourney.plannedArrivalStartSeconds;
-			bool omitJourney = false;
-			for (const ScenePassengerLeg& sourceLeg : sourceJourney.legs) {
-				const SceneServiceOccurrence key{sourceLeg.serviceId, sourceLeg.occurrence};
-				if (!selectedOccurrences.empty() && !occurrenceSelected(sourceLeg.serviceId, sourceLeg.occurrence)) {
-					omitJourney = true;
-					break;
-				}
-				const auto trainIt = occurrenceIndex.find(key);
-				if (trainIt == occurrenceIndex.end() && serviceById.count(sourceLeg.serviceId) != 0) {
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.occurrence",
-							"Passenger leg refers to a service occurrence outside the simulation horizon",
-							"passengers.json", "leg", sourceLeg.id,
-							"passengers[" + sourcePassenger.id + "].journeys[" + sourceJourney.id + "].legs",
-							sourceLeg.serviceId + "-" + std::to_string(sourceLeg.occurrence), {}, SceneSeverity::Warning);
-					omitJourney = true;
-					break;
-				}
-				SceneServiceStopPair stopPair;
-				const auto serviceIt = serviceById.find(sourceLeg.serviceId);
-				if (serviceIt == serviceById.end()
-						|| !resolveScenePassengerLegStops(*serviceIt->second, sourceLeg, stopPair)) {
-					omitJourney = true;
-					break;
-				}
-				const auto originStop = nativeStopAtSourceIndex(trains[trainIt->second], stopPair.originIndex);
-				const auto destinationStop = nativeStopAtSourceIndex(trains[trainIt->second], stopPair.destinationIndex);
-				if (originStop == nullptr || destinationStop == nullptr) {
-					addNativeDiagnostic(diagnostics, "scene.native.passenger.leg", "Passenger leg does not resolve to one train occurrence and two stops",
-							"passengers.json", "leg", sourceLeg.id, "passengers[" + sourcePassenger.id + "].journeys[" + sourceJourney.id + "].legs", sourceLeg.serviceId);
-					omitJourney = true;
-					break;
-				}
-				Trip trip;
-				trip.TripID = sourceLeg.id;
-				trip.JourneyID = journey.ID;
-				trip.Trip_Activity_Type = journey.Journey_Activity_Type;
-				trip.Dep_Station_ID = originStop->stationName;
-				trip.Arr_Station_ID = destinationStop->stationName;
-				trip.Dep_Station_Platform_ID = originStop->platformId;
-				trip.Arr_Station_Platform_ID = destinationStop->platformId;
-				trip.TrainServiceDescription = trains[trainIt->second].trainDescription;
-				journey.Trips.push_back(std::move(trip));
-			}
-			if (omitJourney)
-				continue;
-			journey.N_Trips = static_cast<int>(journey.Trips.size());
-			passenger.Journeys.push_back(std::move(journey));
-		}
-		stagedPassengers.push_back(std::move(passenger));
-	}
-	if (hasErrors(diagnostics))
-		return diagnostics;
-
-	const auto sampleWindow = [](double minimum, double maximum) {
-		return minimum + static_cast<double>(std::rand()) / RAND_MAX * (maximum - minimum);
-	};
-	for (const ScenePassenger& sourcePassenger : scene.passengers) {
-		const auto stagedPassenger = std::find_if(stagedPassengers.begin(), stagedPassengers.end(),
-				[&sourcePassenger](const Passenger& candidate) { return candidate.ID == sourcePassenger.id; });
-		if (stagedPassenger == stagedPassengers.end())
-			continue;
-		for (const ScenePassengerJourney& sourceJourney : sourcePassenger.journeys) {
-			auto stagedJourney = std::find_if(stagedPassenger->Journeys.begin(), stagedPassenger->Journeys.end(),
-				[&sourceJourney](const Journey& candidate) { return candidate.ID == sourceJourney.id; });
-			if (stagedJourney == stagedPassenger->Journeys.end())
-				continue;
-			stagedJourney->Actual_Planned_Departure_Time = sampleWindow(
-					sourceJourney.plannedDepartureStartSeconds, sourceJourney.plannedDepartureEndSeconds);
-			stagedJourney->Actual_Planned_Arrival_Time = sampleWindow(
-					sourceJourney.plannedArrivalStartSeconds, sourceJourney.plannedArrivalEndSeconds);
-			if (!stagedJourney->Trips.empty()) {
-				stagedJourney->Trips.front().Planned_Departure_Time =
-						static_cast<int>(stagedJourney->Actual_Planned_Departure_Time);
-				stagedJourney->Trips.back().Planned_Arrival_Time =
-						static_cast<int>(stagedJourney->Actual_Planned_Arrival_Time);
-			}
-		}
-	}
-
-	initial_variables = stagedParameters;
-	if (!initial_variables.bufferTimeOverride)
-		bufferTime = initial_variables.bufferTime;
-	if (!initial_variables.recoveryTimeOverride)
-		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
-	N_OrderLists = 0;
-	numRegions = static_cast<int>(trains.size());
-	N_Train = 0;
-	N_TrainD = 0;
-	for (const NativeTrainPlan& train : trains)
-		if (train.direction)
-			++N_TrainD;
-		else
-			++N_Train;
-	for (int index = 0; index < Max_N_Reg; ++index) {
-		nativeClearRegionalTrain(regional_train[index]);
-		regional_train[index].~Regional();
-		new (&regional_train[index]) Regional();
-	}
-	for (std::size_t index = 0; index < trains.size(); ++index)
-		nativeCopyTrainPlan(trains[index], regional_train[index], vectorSize);
-	changeTrainDepartureTimesForHourlyTimetabling(regional_train, numRegions);
-	AllStationPlatforms = std::move(stagedPlatforms);
-	numAllStationPlatforms = static_cast<int>(AllStationPlatforms.size());
-	AllDailyPassengers = std::move(stagedPassengers);
-	numAllDailyPassengers = static_cast<int>(AllDailyPassengers.size());
-	simulationIncidents = std::move(stagedIncidents);
-	return diagnostics;
-}
-
-void compareImplementedOrderWithRomaSolutionForAllOl(string FolderName, int t) {
-	for (int i = 1; i < N_OrderLists; i++) {
-		OL[i].compareImplementedOrderWithRomaSolution(FolderName, i, t);
-	}
-}
-
-// Function to compute the Blocking Times in ETCS level 3 for all trains
-void ComputeBlockingTimesETCS3ForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, string OutputFolder, double AbsRTSupplement, double PercentRTSupplement) {
-	for (int i = 0; i < numRegions; i++) {
-
-		// regional_train[i].ComputeBlockTimeETCS3(SetupTime,ReleaseTime,SightReacTime,AbsRTSupplement,PercentRTSupplement);
-		regional_train[i].ComputeBlockTimeETCS3(SetupTime, ReleaseTime, SightReacTime, AbsRTSupplement, PercentRTSupplement);
-	}
-
-	// Print the Files
-	PrintTrainBlockingTimes(OutputFolder);
-}
-
-// Function to compute blocking times of trains in ETCS L2 or conventional signalling
-void ComputeBlockingTimesForAllTrains(string SignallingType, double SetupTime, double ReleaseTime, double SightReacTime, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
-	for (int i = 0; i < numRegions; i++) {
-
-		regional_train[i].ComputeBlockingTimes(SignallingType, SetupTime, ReleaseTime, SightReacTime, AbsRTSupplement, PercRTSupplement);
-	}
-
-	// Print the Files
-	PrintTrainBlockingTimes(OutputFolder);
-}
-
 // Function to compute Blocking Times of trains in mixed signalling areas
-void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
-	for (int i = 0; i < numRegions; i++) {
+void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
+	for (int i = 0; i < run.numTrains; i++) {
 
-		regional_train[i].ComputeBlockingTimesInMixedSignallingAreas(SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupplement, PercRTSupplement);
+		run.trains[i].ComputeBlockingTimesInMixedSignallingAreas(SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupplement, PercRTSupplement);
 	}
 
 	// Print the Files
-	PrintTrainBlockingTimes(OutputFolder);
-}
-
-// Function that determines the correct departure headway to avoid conflicts (with this function we put blockingTime A always below Blocking Time blockSets)
-double ComputeDepartureTimesToSolveConflicts(BlockingTimes A, BlockingTimes blockSets, double DepTimeTrain1, double DepTimeTrain2) {
-	double ShiftedDepTime = -1;
-	double overlap = -1;
-	// with this function we move always train A below train blockSets
-	overlap = blockSets.EndOccTime - A.StartOccTime;
-	ShiftedDepTime = DepTimeTrain1 + overlap; // Add the overlap from the arrival distance
-
-	return ShiftedDepTime;
-}
-
-double ComputeHWForLocationToDepartureTime(BlockingTimes A, BlockingTimes blockSets, double DepTimeTrain1, double DepTimeTrain2) {
-	double Hw = -1;
-	double overlap = -1;
-	double DepartureTimeDistance = abs(DepTimeTrain1 - DepTimeTrain2);
-
-	if (DepTimeTrain1 <= DepTimeTrain2) {	 // if train A enters the block before train blockSets
-		if (A.EndOccTime > blockSets.StartOccTime) { // if the blocks overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = DepartureTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								  // if the blocks do not overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = DepartureTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-
-	else {									 // if train A departs after train blockSets
-		if (blockSets.EndOccTime > A.StartOccTime) { // if the blocks overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = DepartureTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								  // if the blocks do not overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = DepartureTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-	return Hw;
-}
-
-// Function to Compute the Headway with another on a block section or a location
-double ComputeHwForLocation(BlockingTimes A, BlockingTimes blockSets) {
-	double Hw = -1;
-	double overlap = -1;
-	double ArrivalTimeDistance = abs(A.StartRunTime - blockSets.StartRunTime);
-
-	if (A.StartRunTime <= blockSets.StartRunTime) {	 // if train A enters the block before train blockSets
-		if (A.EndOccTime > blockSets.StartOccTime) { // if the blocks overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = ArrivalTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								// if the blocks do not overlap
-			overlap = abs(A.EndOccTime - blockSets.StartOccTime);
-			Hw = ArrivalTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-
-	else {									 // if train A enters the block after train blockSets
-		if (blockSets.EndOccTime > A.StartOccTime) { // if the blocks overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = ArrivalTimeDistance + overlap; // add the overlap to their arrival distance
-		} else {								// if the blocks do not overlap
-			overlap = abs(blockSets.EndOccTime - A.StartOccTime);
-			Hw = ArrivalTimeDistance - overlap; // Subtract the overlap from the arrival distance
-		}
-	}
-	return Hw;
-}
-
-// Function to Compute the Headway with another on a block section or a location (in this function we move blocking time blockSets always below blocking time A)
-double ComputeHwForLocationByShiftingBBelowA(BlockingTimes A, BlockingTimes blockSets) {
-	double Hw = -1;
-	double overlap = -1;
-	// With this function we move always train A above train blockSets
-	overlap = A.EndOccTime - blockSets.StartOccTime;
-	Hw = abs(blockSets.StartRunTime - A.StartRunTime + overlap);
-
-	return Hw;
-}
-
-// Function to Compute the Headway with another on a block section or a location (in this function we move blocking time blockSets always below blocking time A)
-double ComputeShiftAtTimetablePointsByShiftingBBelowA(BlockingTimes A, BlockingTimes blockSets, double timeB) {
-	double ShiftedTimeB = -1;
-	double overlap = -1;
-	// With this function we move always train A above train blockSets
-	overlap = A.EndOccTime - blockSets.StartOccTime;
-	ShiftedTimeB = timeB + overlap;
-
-	return ShiftedTimeB;
-}
-
-// Debug Activate Signalling Function
-void Debug_Activate_Signalling() {
-	for (int t = 825; t < initial_variables.times; t++) {
-
-		Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-		releaseBlockConnections();  // Release Blocks connected with the one really occupied by a train
-		activateSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
-		BlocksOccupied.clear();		  // Clear the list BlocksOccupied
-		BlocksConnected.clear();	  // Clear the list BlocksConnected
-	}
-}
-
-void DetectConflictsForAllTrains(Train* Trains, int numTrains) {
-	for (int i = 0; i < numTrains; i++) {
-		Trains[i].DetectConflictsWithPreviousDepartingTrains(Trains, numTrains);
-	}
-}
-
-// Debugging Function
-void Function_To_Debug_Occupation_Train(Train T, Section* BS, int Blocks) {
-	for (int i = 825; i < T.End_Time; i++) {
-		for (int h = 0; h < Blocks; h++) {
-			if (((T.instant_spatial_position[i] - T.train_length) < BS[h].end_node.X * 1000) && ((T.instant_spatial_position[i] - T.train_length) >= BS[h].start_node.X * 1000)) {
-				int Prev_Block = h - 1;
-				if (h == 0)
-					Prev_Block = 0;
-				occupyBlockAndConnected(BS[h], BS[Prev_Block], (T.instant_spatial_position[i] - T.train_length), (T.instant_spatial_position[i - 1] - T.train_length));
-				// if the Block Section has a switch in diverging position
-				if (BS[h].withSwitchDiv == true)
-					activateBlocksWithSwitchesDiv(BS[h], BS[Prev_Block].trackLineId, (T.instant_spatial_position[i] - T.train_length));
-			}
-			if ((T.instant_spatial_position[i] < BS[h].end_node.X * 1000) && (T.instant_spatial_position[i] >= BS[h].start_node.X * 1000)) {
-				int Prev_Block = h - 1;
-				if (h == 0)
-					Prev_Block = 0;
-				occupyBlockAndConnected(BS[h], BS[Prev_Block], (T.instant_spatial_position[i]), (T.instant_spatial_position[i - 1]));
-				if (BS[h].withSwitchDiv == true) {
-					activateBlocksWithSwitchesDiv(BS[h], BS[Prev_Block].trackLineId, T.instant_spatial_position[i]);
-					break;
-				}
-			}
-		}
-		showElement(i, BlocksConnected);
-		BlocksConnected.clear();
-		BlocksOccupied.clear();
-	}
-}
-// Function to Load All The OrderLists referred to Critical Nodes in the Infrastructure
-void loadAllOrderLists(char* FolderName) {
-	for (int i = 0; i < N_OrderLists; i++) {
-		char OL_ID[20];
-		snprintf(OL_ID, sizeof(OL_ID), "%d", i);
-		string FileName;
-		FileName = FileName + FolderName + "/OL" + OL_ID + ".txt";
-		OL[i].Load_OrderList((char*)FileName.c_str());
-	}
+	PrintTrainBlockingTimes(run, OutputFolder);
 }
 
 int Train::clampStationCount(int requested, const string& trainId) {
 	if (requested <= kMaxTimetableStations)
 		return requested;
-	std::cerr << "Train " << trainId << " serves " << requested << " stations but the timetable arrays hold "
-			  << kMaxTimetableStations << "; dropping the last " << requested - kMaxTimetableStations << " stops\n";
+	EG_LOG(SimSetup, Warning) << "Train " << trainId << " serves " << requested << " stations but the timetable arrays hold "
+							  << kMaxTimetableStations << "; dropping the last " << requested - kMaxTimetableStations << " stops\n";
 	return kMaxTimetableStations;
 }
-extern Logger owl;
 // Function to Determine for each Route the Block Sections that are occupied by trains
 //(This Function Fill in the list BlocksOccupied)
-void Occupy_Block_Sections_Of_Route(int i) {
-	for (int j = 0; j < numRegions; j++) {
-		if ((regional_train[j].trainDescription == "B-Farum-HojeTaastrup_1-1") || (regional_train[j].trainDescription == "B-HojeTaastrup-Farum_2-1"))
-			owl << "Train : " << regional_train[j].trainDescription << std::endl;
-		regional_train[j].Det_Section_Occupied_By_Train(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections, train_route[regional_train[j].indexOfRoute].N_Block_Sections);
+void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i) {
+	for (int j = 0; j < run.numTrains; j++) {
+		run.trains[j].Det_Section_Occupied_By_Train(i, run.infra.routes[run.trains[j].indexOfRoute].sequence_of_block_sections.data(), run.infra.routes[run.trains[j].indexOfRoute].N_Block_Sections);
 	}
+	updateSingleTrackLocks(run, i);
 }
 
-// Function to order blocking times by the StartOccTime
-bool OrderByStartOccTime(BlockingTimes A, BlockingTimes blockSets) {
-	if (A.StartOccTime <= blockSets.StartOccTime) {
-		return true;
-	} else {
+// New occupancy at an origin must not close a crossover after an approaching train has lost the
+// opportunity to brake. Use the previous sample for every train, independent of movement order, and
+// the existing next-step braking lookahead. No reservation survives a train safely stopping outside.
+bool Train::entryConflictsWithCrossover(int step, const Section& origin) const {
+	if (step <= 0 || timestep <= 0)
 		return false;
+	for (Train& approaching : run_->trains) {
+		if (&approaching == this || !approaching.CanEnter || approaching.OutOfSimulation || step < approaching.departure_time
+			|| approaching.indexOfRoute < 0 || approaching.indexOfRoute >= static_cast<int>(run_->infra.routes.size()))
+			continue;
+		Route& route = run_->infra.routes[approaching.indexOfRoute];
+		for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
+			const Section& first = route.sequence_of_block_sections[b];
+			const Section& second = route.sequence_of_block_sections[b + 1];
+			const Section& exit = route.sequence_of_block_sections[b + 2];
+			if (!isFixedBlockLevel(first.SignallingLevel) || !first.end_node.virtualSignal || !second.start_node.virtualSignal)
+				continue;
+			if (origin.ID != exit.ID
+				&& std::find(origin.IDConnectedBS, origin.IDConnectedBS + origin.N_ConnectedBS, exit.ID) == origin.IDConnectedBS + origin.N_ConnectedBS)
+				continue;
+			const int previous = step - 1;
+			if (previous >= static_cast<int>(approaching.instant_spatial_position.size()) || previous >= static_cast<int>(approaching.instant_train_speed.size()))
+				return true;
+			const double head = approaching.instant_spatial_position[previous];
+			const double speed = approaching.instant_train_speed[previous];
+			if (!std::isfinite(head) || !std::isfinite(speed))
+				return true;
+			if (head - approaching.train_length >= exit.end_node.X * 1000)
+				continue;
+			if (approaching.needsSingleTrackReservation(head, speed, first.start_node.X * 1000,
+					route.sequence_of_block_sections.data(), route.N_Block_Sections))
+				return true;
+		}
 	}
+	return false;
 }
 
-// Function to Identify the point where following train under Virtual Coupling shall decpouple from the leading train
-void Predict_And_Check_Decoupling_MA_For_All_Train_in_Following_Mode(int t) {
-	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].Predict_And_Check_Validity_Of_MA_To_Split_At(t, regional_train, numRegions);
+// Occupancy keeps its holder. Pending entries reserve the zone before their last braking opportunity, including
+// same-direction followers. Temporary stops do not cancel a reservation; passage, termination or retargeting does.
+void updateSingleTrackLocks(SimulationRun& run, int step) {
+	if (run.infra.singleTrackLimits.empty() || timestep <= 0)
+		return;
+	if (run.infra.singleTrackHeld.size() != run.infra.singleTrackLimits.size())
+		run.infra.singleTrackHeld.assign(run.infra.singleTrackLimits.size(), 0);
+	if (run.infra.singleTrackReservations.size() != run.infra.singleTrackLimits.size())
+		run.infra.singleTrackReservations.resize(run.infra.singleTrackLimits.size());
+	const int index = step - static_cast<int>(run.signallingDelay / timestep);
+	std::vector<int> forward(run.infra.singleTrackLimits.size(), 0), backward(run.infra.singleTrackLimits.size(), 0);
+	std::vector<std::vector<SingleTrackReservation>> requests(run.infra.singleTrackLimits.size());
+	std::vector<int> retainedDirection(run.infra.singleTrackLimits.size(), 0);
+	for (int k = 0; k < run.numTrains && k < static_cast<int>(run.trains.size()); ++k) {
+		Train& train = run.trains[k];
+		if (train.OutOfSimulation || train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(run.infra.routes.size())
+			|| !singleTrackRouteHasZone(run, train.indexOfRoute))
+			continue;
+		Route& route = run.infra.routes[train.indexOfRoute];
+		const bool waiting = !train.CanEnter;
+		if (!waiting && (step < train.departure_time || index < 0 || index >= static_cast<int>(train.instant_spatial_position.size())))
+			continue;
+		const double head = waiting ? train.Start_Node_X * 1000 : train.instant_spatial_position[index];
+		const double tail = head - train.train_length;
+		if (!std::isfinite(head))
+			continue;
+		const double speed = !waiting && index < static_cast<int>(train.instant_train_speed.size())
+			? train.instant_train_speed[index]
+			: 0.0;
+		for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
+			const auto& intervals = singleTrackZone(run, l, train.indexOfRoute).intervals;
+			for (const auto& interval : intervals) {
+				if (!waiting && interval.first <= head && tail < interval.second) {
+					(route.reversed_direction ? backward : forward)[l]++;
+					break;
+				}
+			}
+			for (const auto& interval : intervals) {
+				if (tail >= interval.second)
+					continue;
+				const auto& pending = run.infra.singleTrackReservations[l];
+				const bool retained = std::any_of(pending.begin(), pending.end(), [&](const SingleTrackReservation& owner) {
+					return owner.trainIndex == k && owner.routeIndex == train.indexOfRoute && owner.trainDescription == train.trainDescription
+						&& owner.departureTime == train.departure_time && owner.origin == train.Start_Node_X
+						&& owner.destination == route.x_of_end_node && owner.interval == interval;
+				});
+				if (retained)
+					retainedDirection[l] = route.reversed_direction ? -1 : 1;
+				if (retained || ((!waiting || step + 1 >= train.departure_time) && train.needsSingleTrackReservation(head, speed, interval.first, route.sequence_of_block_sections.data(), route.N_Block_Sections)))
+					requests[l].push_back({k, train.indexOfRoute, train.trainDescription, train.departure_time, train.Start_Node_X, route.x_of_end_node, interval});
+			}
+		}
+	}
+	for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
+		int held = 0;
+		if (run.infra.singleTrackHeld[l] < 0 && backward[l] > 0)
+			held = -1;
+		else if (forward[l] > 0)
+			held = 1;
+		else if (backward[l] > 0)
+			held = -1;
+		auto direction = [&run](const SingleTrackReservation& owner) { return run.infra.routes[owner.routeIndex].reversed_direction ? -1 : 1; };
+		if (held == 0)
+			held = retainedDirection[l];
+		if (held == 0)
+			for (const auto& request : requests[l])
+				if (direction(request) > 0 || held == 0)
+					held = direction(request); // forward wins only simultaneous requests on a free zone
+		run.infra.singleTrackReservations[l].clear();
+		for (const auto& request : requests[l])
+			if (direction(request) == held)
+				run.infra.singleTrackReservations[l].push_back(request);
+		if (held != run.infra.singleTrackHeld[l]) {
+			for (int r = 0; r < static_cast<int>(run.infra.routes.size()); ++r)
+				for (const std::string& id : singleTrackZone(run, l, r).sectionIDs)
+					if (std::find(run.blocksConnected.begin(), run.blocksConnected.end(), id) == run.blocksConnected.end())
+						run.blocksConnected.push_back(id);
+			run.infra.singleTrackHeld[l] = held;
+		}
 	}
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTimetablePoints(string MainFolder) {
+void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/TimetablePoints.txt";
 	ofstream OutputFile;
 	OutputFile.open((char*)FileName.c_str(), ios::binary);
 
-	for (int i = 0; i < numRegions; i++) {
-		OutputFile << regional_train[i].trainDescription << " " << regional_train[i].type << "\n";
+	for (int i = 0; i < run.numTrains; i++) {
+		OutputFile << run.trains[i].trainDescription << " " << run.trains[i].type << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->SuccessorID << " ";
 			}
 		}
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Position << " ";
 			}
 		}
 
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Position << " ";
 			}
 		}
 
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Time << " ";
 			}
 		}
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Time2 << " ";
 			}
 		}
@@ -1670,568 +457,70 @@ void PrintTimetablePoints(string MainFolder) {
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTrainBlockingTimes(string MainFolder) {
+void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/BlockingTimes.txt";
 	ofstream OutputFile;
 	OutputFile.open((char*)FileName.c_str(), ios::binary);
 
-	for (int i = 0; i < numRegions; i++) {
-		OutputFile << regional_train[i].trainDescription << "\n";
+	for (int i = 0; i < run.numTrains; i++) {
+		OutputFile << run.trains[i].trainDescription << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
-			OutputFile << regional_train[i].BlockTime[j].BlockID << " ";
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
+			OutputFile << run.trains[i].BlockTime[j].BlockID << " ";
 		}
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
 			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
 			OutputFile<<regional_train[i].BlockTime[j].PosStart<<" ";
 			else
 			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosEnd<<" ";*/
-			OutputFile << regional_train[i].BlockTime[j].GeoPosStart << " ";
+			OutputFile << run.trains[i].BlockTime[j].GeoPosStart << " ";
 		}
 
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
 			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
 			OutputFile<<regional_train[i].BlockTime[j].PosEnd<<" ";
 			else
 			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosStart<<" ";*/
-			OutputFile << regional_train[i].BlockTime[j].GeoPosEnd << " ";
+			OutputFile << run.trains[i].BlockTime[j].GeoPosEnd << " ";
 		}
 
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
-			OutputFile << regional_train[i].BlockTime[j].StartOccTime << " ";
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
+			OutputFile << run.trains[i].BlockTime[j].StartOccTime << " ";
 		}
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
-			OutputFile << regional_train[i].BlockTime[j].EndOccTime << " ";
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
+			OutputFile << run.trains[i].BlockTime[j].EndOccTime << " ";
 		}
 		OutputFile << "\n";
-	}
-}
-
-// This Function is to Print out the LastEnteredTrain of the list OL
-void Print_Out_OL_LastEntry(OrderList OL, int t) {
-	ofstream output;
-	string LastEntryName;
-	LastEntryName = LastEntryName + InputMainFolder + "/Routes/OL_LastEntry.txt";
-	output.open((char*)LastEntryName.c_str(), ios::app);
-	output << t << " " << OL.LastEnteredTrain << "\n";
-	output.close();
-}
-
-// Function to determine the scheduled sequence of train departure from a certain Node and print it on a text file
-void Print_Scheduled_Dep_Order_In_Node(double Node_X) { // Node_X must be expressed in Km
-	list<TrainEvent> Train_Order_in_X;
-	for (int i = 0; i < numRegions; i++) {
-		if (regional_train[i].Start_Node_X == Node_X * 1000) {
-			TrainEvent TEL;
-			TEL.trainDescription = regional_train[i].trainDescription;
-			TEL.Time = regional_train[i].departure_time;
-			Train_Order_in_X.push_back(TEL);
-		} else {
-			for (int t = 1; t < regional_train[i].End_Time; t++) {
-				if ((regional_train[i].instant_spatial_position[t - 1] <= Node_X * 1000) && (regional_train[i].instant_spatial_position[t] >= Node_X * 1000)) {
-					TrainEvent TEL;
-					TEL.trainDescription = regional_train[i].trainDescription;
-					TEL.Time = t;
-					Train_Order_in_X.push_back(TEL);
-				}
-			}
-		}
-	}
-	// Ordering the TrainEvent List chronologically
-	Train_Order_in_X.sort(orderTrainEvents);
-	ofstream ScheduledTrainOrder;
-	string FileName;
-
-	char nodex[20];
-	snprintf(nodex, sizeof(nodex), "%f", Node_X);
-	FileName = FileName + InputMainFolder + "/TrackLines/ScheduledOrder_NodeX_" + nodex + ".txt";
-	ScheduledTrainOrder.open((char*)FileName.c_str());
-	ScheduledTrainOrder << Node_X << "\n";
-	list<TrainEvent>::iterator it;
-	if (Train_Order_in_X.empty() != 1) {
-		for (it = Train_Order_in_X.begin(); it != Train_Order_in_X.end(); it++)
-			ScheduledTrainOrder << it->trainDescription << "\n";
-	}
-}
-
-// Print EventTimes in the Format for TU Delft Timetabling tool
-void Print_Timetabling_Point_TUDelft_format(string MainFolder) {
-
-	int IDEvent1 = 0, IDEvent2 = 0;
-	double TimeEvent1 = 0, TimeEvent2 = 0;
-	double ProcessTimeEvents_1_2 = 0;
-	TrainEvent LastWrittenEvent; // this TrainList memorises the information relative to the last event written down
-
-	// Initialising the File of the Events
-	string FileOutName;
-	FileOutName = FileOutName + MainFolder + "/Events.csv";
-
-	ofstream FILEOUTPUT;
-
-	FILEOUTPUT.open((char*)FileOutName.c_str(), ios::binary);
-
-	FILEOUTPUT << "event_id,line_id,hourlyrunno,direction,segmentno,station_abbr,farstation_abbr,event_type,time,track\n";
-
-	// Initialising the File of the Processes
-	string FileProcessOUT;
-	FileProcessOUT = FileProcessOUT + MainFolder + "/Processes.csv";
-	ofstream FILEPROCESS;
-	FILEPROCESS.open((char*)FileProcessOUT.c_str(), ios::binary);
-
-	FILEPROCESS << "from_event_id,to_event_id,mindur,scheddur,maxdur,process_type\n";
-
-	int EventCounter = 0; // This is the Event Counter
-
-	// Filling in the events
-	for (int i = 0; i < numRegions; i++) {
-
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator t = regional_train[i].TimetablePoints.begin(); t != regional_train[i].TimetablePoints.end(); t++) {
-
-				string StationAbbr, FarStationArrivalEvent, FarStationDepartureEvent, Event_TypeArrival, Event_TypeDeparture;
-				int TimeArrival, TimeDeparture;
-
-				// specifying Station Abbr
-				StationAbbr = t->SuccessorID;
-				list<TrainEvent>::iterator BEG = regional_train[i].TimetablePoints.begin(); // Defining the position of the first station
-				list<TrainEvent>::iterator END = regional_train[i].TimetablePoints.end();
-				END--; // Defining the position of the last station
-				// Defining the FarStation
-				if ((t != BEG) && (t != END)) {
-					list<TrainEvent>::iterator StationBefore = t;
-					StationBefore--; // Setting Station before t
-					FarStationArrivalEvent = StationBefore->SuccessorID;
-
-					list<TrainEvent>::iterator StationAfter = t;
-					StationAfter++; // Setting the station after t
-					FarStationDepartureEvent = StationAfter->SuccessorID;
-				}
-
-				else if (t == BEG) {
-					FarStationArrivalEvent = "START";
-					list<TrainEvent>::iterator StationAfter = t;
-					if (t != END) {
-
-						StationAfter++;										  // Increase the pointer only if current station is not the last one
-						FarStationDepartureEvent = StationAfter->SuccessorID; // In this case the Far Station Departure Event becomes the next station
-					}
-
-					else { // else put END as Far Station since the train departs from the last station to go to END
-						FarStationDepartureEvent = "END";
-					}
-
-				}
-
-				else if (t == END) {
-					FarStationDepartureEvent = "END";
-					list<TrainEvent>::iterator StationBefore = t;
-					if (t != BEG) {
-						StationBefore--; // Take the he Station Before t if t is not also the beginning
-						FarStationArrivalEvent = StationBefore->SuccessorID;
-					}
-
-					else { // The train will depart from Start if t is also the first Station
-						FarStationArrivalEvent = "START";
-					}
-				}
-
-				// Assigning the type of event
-				if (t->Time == t->Time2) {
-					Event_TypeArrival = "2-arrthru";
-					Event_TypeDeparture = "1-depthru";
-				} else {
-					Event_TypeArrival = "3-arr";
-					Event_TypeDeparture = "0-dep";
-				}
-
-				// Assigning the times
-				TimeArrival = (int)t->Time;
-				TimeDeparture = (int)t->Time2;
-
-				// Writing down the arrival event
-				if (FarStationArrivalEvent != "START") {
-
-					EventCounter++; // Increase the event counter of one unit
-					FILEOUTPUT << EventCounter << "," << t->trainDescription << "," << 1 << "," << 1 << "," << 1 << "," << StationAbbr << "," << FarStationArrivalEvent << "," << Event_TypeArrival << "," << TimeArrival << ", \n";
-
-					if ((t->trainDescription == LastWrittenEvent.trainDescription) && (LastWrittenEvent.Position != -10000)) { // IF this is an event of the same train and the last written Event has been already initialised
-
-						if (StationAbbr == LastWrittenEvent.SuccessorID) { // if the station of this event is the same of the previous event
-							if (TimeArrival == LastWrittenEvent.Time) {	   // if the times are the same then it is a thru process
-								FILEPROCESS << LastWrittenEvent.Position << "," << EventCounter << "," << TimeArrival - LastWrittenEvent.Time << ", , ," << "thru" << "\n";
-							} else { // else the process is a dwell
-								FILEPROCESS << LastWrittenEvent.Position << "," << EventCounter << "," << TimeArrival - LastWrittenEvent.Time << ", , ," << "dwell" << "\n";
-							}
-						} else { // if the Station of the current event is different from the station of the previous event then the process is a run
-							FILEPROCESS << LastWrittenEvent.Position << "," << EventCounter << "," << TimeArrival - LastWrittenEvent.Time << ", , ," << "run" << "\n";
-						}
-					}
-
-					// Setting the process times
-					LastWrittenEvent.trainDescription = t->trainDescription;
-					LastWrittenEvent.SuccessorID = StationAbbr;
-					LastWrittenEvent.Time = TimeArrival;
-					LastWrittenEvent.Position = EventCounter;
-				}
-
-				// Writing down the departure event
-				if (FarStationDepartureEvent != "END") {
-
-					EventCounter++; // Increase the event counter of one unit
-					FILEOUTPUT << EventCounter << "," << t->trainDescription << "," << 1 << "," << 1 << "," << 1 << "," << StationAbbr << "," << FarStationDepartureEvent << "," << Event_TypeDeparture << "," << TimeDeparture << " \n";
-
-					if ((t->trainDescription == LastWrittenEvent.trainDescription) && (LastWrittenEvent.Position != -10000)) { // IF this is an event of the same train and the last written Event has been already initialised
-
-						if (StationAbbr == LastWrittenEvent.SuccessorID) { // if the station of this event is the same of the previous event
-							if (TimeDeparture == LastWrittenEvent.Time) {  // if the times are the same then it is a thru process
-								FILEPROCESS << LastWrittenEvent.Position << "," << EventCounter << "," << TimeDeparture - LastWrittenEvent.Time << ", , ," << "thru" << "\n";
-							} else { // else the process is a dwell
-								FILEPROCESS << LastWrittenEvent.Position << "," << EventCounter << "," << TimeDeparture - LastWrittenEvent.Time << ", , ," << "dwell" << "\n";
-							}
-						} else { // if the Station of the current event is different from the station of the previous event then the process is a run
-							FILEPROCESS << LastWrittenEvent.Position << "," << EventCounter << "," << TimeDeparture - LastWrittenEvent.Time << ", , ," << "run" << "\n";
-						}
-					}
-
-					// Setting the process times
-					LastWrittenEvent.trainDescription = t->trainDescription;
-					LastWrittenEvent.SuccessorID = StationAbbr;
-					LastWrittenEvent.Time = TimeDeparture;
-					LastWrittenEvent.Position = EventCounter;
-				}
-			}
-		}
 	}
 }
 
 // Function to report the position of the trains in ETCS Level 3
-void ReportAllTrainPositionsToRBC(int i, double ETCS3SafetyMargin) {
-	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].ReportPositionToRBC(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections, train_route[regional_train[j].indexOfRoute].N_Block_Sections, ETCS3SafetyMargin);
-	}
-}
-
-// Function to Reset the Lists that will be updated at each instant
-void resetOlToUpdate() {
-	for (int i = 0; i < N_OrderLists; i++) {
-		for (int j = 0; j < OL[i].numTeList; j++) {
-			OL[i].TE[j].trainDescription = "None";
-		}
-	}
-}
-
-// Function to Assign to OL0 the same order of OL1
-void Set_OL0_as_OL1() {
-	for (int j = 0; j < OL[0].numTeList; j++) {
-		OL[0].TE[j].trainDescription = "None";
-	}
-	OL[0].numTeList = OL[1].numTeList; // Setting numTeList of OL0 and OL1 as equal
-	for (int j = 0; j < OL[0].numTeList; j++) {
-		OL[0].TE[j].trainDescription = OL[1].TE[j].trainDescription;
-	}
-}
-
-// Function to Set the Critical Nodes In which a special order has to be respected and Link these nodes to the respective OrderLists OL
-void setRespectOrderAndIndexOrderList() {
-	for (int i = 0; i < N_OrderLists; i++) {
-		for (int j = 0; j < numTrackLines; j++) {
-			if (blockSets[j].member[0].startNode.X == OL[i].Node_X) {
-				blockSets[j].member[0].startNode.respectOrder = true;
-				blockSets[j].member[0].startNode.indexOrderList = i;
-			}
-			for (int h = 0; h < blockSets[j].len; h++) {
-				if (blockSets[j].member[h].endNode.X == OL[i].Node_X) {
-					blockSets[j].member[h].endNode.respectOrder = true;
-					blockSets[j].member[h].endNode.indexOrderList = i;
-				}
-			}
-		}
-	}
-}
-
-// This is the function to set the departure sequence of trains at checkpoint nodes of a block section
-void Set_RespectOrder_And_Index_OrderList_Upgraded() {
-	for (int i = 0; i < N_OrderLists; i++) {
-		for (int j = 0; j < Blocks; j++) {
-			if ((signalling_block_sections[j].ID == OL[i].BlockID) && (signalling_block_sections[j].start_node.X == OL[i].Node_X)) { // Here we are assigning the train sequence to Block Section when Routes have not been defined yet. So we do not need to distinguish between reversed and not reversed block sections because Block sections nodes all have absolute coordinates and not relative. So the code can be written jut for the absolute coordinates of Block Section nodes
-				signalling_block_sections[j].start_node.respectOrder = true;
-				signalling_block_sections[j].start_node.indexOrderList = i;
-				// Assigning the same things to the beginning Node of the first arcs_in_signalling_block_section (i.e. arcs_in_signalling_block_section[0]) of signalling_block_sections[j]
-				signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-				signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-			}
-			for (int h = 0; h < signalling_block_sections[j].total_arcs; h++) {
-				if ((signalling_block_sections[j].ID == OL[i].BlockID) && (signalling_block_sections[j].arcs_in_signalling_block_section[h].endNode.X == OL[i].Node_X)) {
-					signalling_block_sections[j].arcs_in_signalling_block_section[h].endNode.respectOrder = true;
-					signalling_block_sections[j].arcs_in_signalling_block_section[h].endNode.indexOrderList = i;
-				}
-			}
-		}
-	}
-}
-
-// This is the function to set the departure sequence of trains at checkpoint nodes of a block section
-void Set_RespectOrder_And_Index_OrderList_Upgraded_Improved() {
-	for (int i = 0; i < N_OrderLists; i++) {
-		for (int j = 0; j < Blocks; j++) {
-			if (signalling_block_sections[j].start_node.X == OL[i].Node_X) { // Here we are assigning the train sequence to Block Section when Routes have not been defined yet. So we do not need to distinguish between reversed and not reversed block sections because Block sections nodes all have absolute coordinates and not relative. So the code can be written jut for the absolute coordinates of Block Section nodes
-				signalling_block_sections[j].start_node.respectOrder = true;
-				signalling_block_sections[j].start_node.indexOrderList = i;
-				// Assigning the same things to the beginning Node of the first arcs_in_signalling_block_section (i.e. arcs_in_signalling_block_section[0]) of signalling_block_sections[j]
-				signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-				signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-			}
-
-			if (signalling_block_sections[j].end_node.X == OL[i].Node_X) { // Here we are assigning the train sequence to Block Section when Routes have not been defined yet. So we do not need to distinguish between reversed and not reversed block sections because Block sections nodes all have absolute coordinates and not relative. So the code can be written jut for the absolute coordinates of Block Section nodes
-				signalling_block_sections[j].end_node.respectOrder = true;
-				signalling_block_sections[j].end_node.indexOrderList = i;
-			}
-
-			for (int h = 0; h < signalling_block_sections[j].total_arcs; h++) {
-				if (signalling_block_sections[j].arcs_in_signalling_block_section[h].endNode.X == OL[i].Node_X) {
-					signalling_block_sections[j].arcs_in_signalling_block_section[h].endNode.respectOrder = true;
-					signalling_block_sections[j].arcs_in_signalling_block_section[h].endNode.indexOrderList = i;
-				}
-			}
-		}
-	}
-}
-
-// This is the function to set the departure sequence of trains at checkpoint nodes of a block section considering whether the OrderList refers to a Merging or a diverging Junction.
-//  Whether the OL refers to a Merging or Diverging Junction shall be evaluated looking at the shape of the junction following the Km progressive in the same direction of
-// IMPORTANT NOTE: When applying the function below the OL point should be coinciding with the last switch of a merging junction or the very first switch of a diverging junction (looking at the infrastructure layout when following the same abscissa direction which was used to intialise the infrastructure)
-
-void Set_RespectOrder_And_Index_OrderList_Upgraded_Improved_With_JunctionType() {
-	for (int i = 0; i < N_OrderLists; i++) {
-		for (int j = 0; j < Blocks; j++) {
-			if (OL[i].Is_MergingJunction == 1) {
-				if ((signalling_block_sections[j].start_node.X < OL[i].Node_X) && (signalling_block_sections[j].end_node.X >= OL[i].Node_X)) {
-					// if the entry signal is a normal signal then set that signal to reference point where the Order List shild be respected
-					if (signalling_block_sections[j].start_node.virtualSignal == 0) {
-						// Assigning the respect order conditions to the initial Node of this block section which has the OL Node X inside its length. This means that the OL Order will be respected at the entry signal of this block section or ( which is the same) at the exist signal of the previous block sections
-						// Respect order cannot be assigned to virtual signals as those should not exist in reality and trains cannot wait in front of a double switch for being reodered
-						signalling_block_sections[j].start_node.respectOrder = true;
-						signalling_block_sections[j].start_node.indexOrderList = i;
-						// Assigning the same things to the beginning Node of the first arcs_in_signalling_block_section (i.e. arcs_in_signalling_block_section[0]) of signalling_block_sections[j]
-						signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-						signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-						double SignalNodeID = signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.ID;
-						double SignalNodeX = signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.X;
-						string SignalNodeTDSB_ID = signalling_block_sections[j].arcs_in_signalling_block_section[0].startNode.tdsbId;
-						// Check now for all the block sections which end with the such a signal they might be either block sections on the same trackline of the identified block or not
-						// To those block sections we need to assign the respect order conditions to the end Node of the last Arc of the block
-						for (int k = 0; k < Blocks; k++) {
-							int N_TotarcsINBlock = signalling_block_sections[k].total_arcs;
-							// Impose the respect order also the exit signal of block sections whose exit signals coincides with the entry signal of the block section identified in the piece of code above, simply because the exit signal of this block section and the entry signal of the previous block section are the same signal
-							if ((signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.tdsbId == SignalNodeTDSB_ID)) {
-								// This is imposed to the end Node of the last Arc of the block section
-								signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.respectOrder = true;
-								signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.indexOrderList = i;
-								// As well as to the last Node of the block section itself
-								signalling_block_sections[k].end_node.respectOrder = true;
-								signalling_block_sections[k].end_node.indexOrderList = i;
-							}
-							// Impose also to respect the order at all of those blocks whose starting Node coincides with the identified non-virtual signal
-							if ((signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.tdsbId == SignalNodeTDSB_ID)) {
-								// This is imposed to the end Node of the last Arc of the block section
-								signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-								signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-								// As well as to the last Node of the block section itself
-								signalling_block_sections[k].start_node.respectOrder = true;
-								signalling_block_sections[k].start_node.indexOrderList = i;
-							}
-						}
-
-					} else { // if instead the entry signal of that block section is a virtual signal then the Order List should be respected at the start signal of the previous block section ( i.e. the one having the virtual signal as exit signal)
-
-						double VirtualSignalID = signalling_block_sections[j].start_node.ID;
-						double VirtualSignalX = signalling_block_sections[j].start_node.X;
-						// Check if the Virtual signal also have a tdsbId which is different than "None". In that case also the condition of equal on the tdsbId should be put in the if condition below
-						string VirtualSignalTDSB_ID = signalling_block_sections[j].start_node.tdsbId;
-
-						// defining the Signal ID and Signal Node X of the non-virtual entry signal of the block section ending with the identified Virtual Signal
-						double SignalNodeID = -1;
-						double SignalNodeX = -1;
-						string SignalNodeTDSB_ID = "None";
-						// Iterate through the block section to find the block section which has a diverging switch and has the exit signal equal to the Virtual Signal identified
-						for (int z = 0; z < Blocks; z++) {
-
-							if ((signalling_block_sections[z].end_node.X == VirtualSignalX) && (signalling_block_sections[z].end_node.ID == VirtualSignalID) && (signalling_block_sections[z].end_node.tdsbId == VirtualSignalTDSB_ID) && (signalling_block_sections[z].withSwitchDiv == 1)) {
-
-								signalling_block_sections[z].start_node.respectOrder = true;
-								signalling_block_sections[z].start_node.indexOrderList = i;
-								// Assigning the same things to the beginning Node of the first arcs_in_signalling_block_section (i.e. arcs_in_signalling_block_section[0]) of signalling_block_sections[z]
-								signalling_block_sections[z].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-								signalling_block_sections[z].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-								SignalNodeID = signalling_block_sections[z].arcs_in_signalling_block_section[0].startNode.ID;
-								SignalNodeX = signalling_block_sections[z].arcs_in_signalling_block_section[0].startNode.X;
-								SignalNodeTDSB_ID = signalling_block_sections[z].arcs_in_signalling_block_section[0].startNode.tdsbId;
-								break; // break the for loop of iterator z iterating through the Blocks
-							}
-						}
-						// if a real non-virtual entry signal of the block section ending with the identified Virtual Signal exists
-						// then assign the Respect order also to all of the previous block sections which exit with such a non-virtual signal (i.e. having exit signal coinciding with such a non-virtual signal)
-						if ((SignalNodeID != -1) && (SignalNodeX != -1) && (SignalNodeTDSB_ID != "None")) {
-							// Check now for all the block sections which end with the such a non non-virtual signal Signal Node which might be either block sections on the same trackline of the identified block or not
-							// To those block sections we need to assign the respect order conditions to the end Node of the last Arc of the block
-							for (int k = 0; k < Blocks; k++) {
-								int N_TotarcsINBlock = signalling_block_sections[k].total_arcs;
-								// Impose the respect order also the exit signal of block sections whose exit signals coincides with the entry signal of the block section identified in the piece of code above, simply because the exit signal of this block section and the entry signal of the previous block section are the same signal
-								if ((signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.tdsbId == SignalNodeTDSB_ID)) {
-									// This is imposed to the end Node of the last Arc of the block section
-									signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.respectOrder = true;
-									signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.indexOrderList = i;
-									// As well as to the last Node of the block section itself
-									signalling_block_sections[k].end_node.respectOrder = true;
-									signalling_block_sections[k].end_node.indexOrderList = i;
-								}
-								// Impose also to respect the order at all of those blocks whose starting Node coincides with the identified non-virtual signal
-								if ((signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.tdsbId == SignalNodeTDSB_ID)) {
-									// This is imposed to the end Node of the last Arc of the block section
-									signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-									signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-									// As well as to the last Node of the block section itself
-									signalling_block_sections[k].start_node.respectOrder = true;
-									signalling_block_sections[k].start_node.indexOrderList = i;
-								}
-							}
-						}
-					}
-				}
-
-			}
-
-			// If the OL order List refers to a Merging Junction ( looking at the the infrastructure layout when following teh progressive direction by which the infrastructure is defined in EGTRAIN)
-			// Then the order should be assigned to the exit signal of those block section which have the OL location inside their lengths, as well as to the entry signal of the immediately adjacent block section ( whose entry signals coincide with the exist signal of the identified block)
-			else if (OL[i].Is_DivergingJunction == 1) {
-				if ((signalling_block_sections[j].start_node.X < OL[i].Node_X) && (signalling_block_sections[j].end_node.X >= OL[i].Node_X)) {
-
-					if (signalling_block_sections[j].end_node.virtualSignal == 0) {
-						// Assigning the respect order conditions to the end Node (i.e. the exit signal) of this block section which has the OL Node X inside its length. This means that the OL Order will be respected at the entry signal of this block section or ( which is the same) at the exist signal of the previous block sections
-						// Respect order cannot be assigned to virtual signals as those should not exist in reality and trains cannot wait in front of a double switch for being reodered
-						signalling_block_sections[j].end_node.respectOrder = true;
-						signalling_block_sections[j].end_node.indexOrderList = i;
-						// Assigning the same things to the end Node of the last Arc of the block section
-						int N_TotarcsINBlock = signalling_block_sections[j].total_arcs;
-						signalling_block_sections[j].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.respectOrder = true;
-						signalling_block_sections[j].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.indexOrderList = i;
-						double SignalNodeID = signalling_block_sections[j].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.ID;
-						double SignalNodeX = signalling_block_sections[j].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.X;
-						string SignalNodeTDSB_ID = signalling_block_sections[j].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.tdsbId;
-						// Check now for all the block sections which start with the such a signal they might be either block sections on the same trackline of the identified block or not
-						// To those block sections we need to assign the respect order conditions to the first Node of the first Arc of the block
-						for (int k = 0; k < Blocks; k++) {
-
-							// Impose the respect order also the entry signal of block sections whose entry signals coincides with the exit signal of the block section identified in the piece of code above, simply because the exit signal of this block section and the entry signal of the previous block section are the same signal
-							if ((signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.tdsbId == SignalNodeTDSB_ID)) {
-								// This is imposed to the end Node of the last Arc of the block section
-								signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-								signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-								// As well as to the start Node (i.e. the actual entry signal Node) of the block section itself
-								signalling_block_sections[k].start_node.respectOrder = true;
-								signalling_block_sections[k].start_node.indexOrderList = i;
-							}
-
-							int N_TotarcsINBlock = signalling_block_sections[k].total_arcs;
-							// Impose the respect order also the exit signal of block sections whose exit signals coincides with the entry signal of the block section identified in the piece of code above, simply because the exit signal of this block section and the entry signal of the previous block section are the same signal
-							if ((signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.tdsbId == SignalNodeTDSB_ID)) {
-								// This is imposed to the end Node of the last Arc of the block section
-								signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.respectOrder = true;
-								signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.indexOrderList = i;
-								// As well as to the last Node of the block section itself
-								signalling_block_sections[k].end_node.respectOrder = true;
-								signalling_block_sections[k].end_node.indexOrderList = i;
-							}
-						}
-					}
-
-					else { // if instead the exit signal of that block section is a virtual signal then the Order List should be respected at the exit signal of the next block section ( i.e. the one having the identified virtual signal as entry signal)
-
-						double VirtualSignalID = signalling_block_sections[j].end_node.ID;
-						double VirtualSignalX = signalling_block_sections[j].end_node.X;
-						// if the Virtual Signal has a tdsbId then we also need to use its tdsbId in the if condition below otherwise only the two features below could suffice (although some issue might arise with nodes having the same X and ID on other tracklines)
-						string VirtualSignalTDSB_ID = signalling_block_sections[j].end_node.tdsbId;
-
-						// defining the Signal ID and Signal Node X of the non-virtual exit signal of the block section starting with the identified Virtual Signal
-						double SignalNodeID = -1;
-						double SignalNodeX = -1;
-						string SignalNodeTDSB_ID = "None";
-
-						// Iterate through the block section to find the block section which has a diverging switch and has the exit signal equal to the Virtual Signal identified
-						for (int z = 0; z < Blocks; z++) {
-
-							if ((signalling_block_sections[z].start_node.X == VirtualSignalX) && (signalling_block_sections[z].start_node.ID == VirtualSignalID) && (signalling_block_sections[z].start_node.tdsbId == VirtualSignalTDSB_ID) && (signalling_block_sections[z].withSwitchDiv == 1)) {
-
-								signalling_block_sections[z].end_node.respectOrder = true;
-								signalling_block_sections[z].end_node.indexOrderList = i;
-
-								// Assigning the same things to the end Node of the last arcs_in_signalling_block_section (i.e. arcs_in_signalling_block_section[NTotarcsInBlock-1]) of signalling_block_sections[z]
-
-								int N_TotarcsINBlock = signalling_block_sections[z].total_arcs;
-								signalling_block_sections[z].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.respectOrder = true;
-								signalling_block_sections[z].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.indexOrderList = i;
-								SignalNodeID = signalling_block_sections[z].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.ID;
-								SignalNodeX = signalling_block_sections[z].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.X;
-								SignalNodeTDSB_ID = signalling_block_sections[z].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.tdsbId;
-								break; // break the for loop of iterator z iterating through the Blocks
-							}
-						}
-						// if a real non-virtual exit signal of the block section starting with the identified Virtual Signal exists
-						// then assign the Respect order also to all of the next block sections which start with such a non-virtual signal (i.e. having entry signal coinciding with such a non-virtual signal)
-						if ((SignalNodeID != -1) && (SignalNodeX != -1) && (SignalNodeTDSB_ID != "None")) {
-							// Check now for all the block sections which start with the such a non-virtual signal which might be either block sections on the same trackline of the identified block or not
-							// To those block sections we need to assign the respect order conditions to the start Node of the first Arc of the block
-							for (int k = 0; k < Blocks; k++) {
-
-								// Impose the respect order also the entry signal of block sections whose entry signals coincides with the exit signal of the block section identified in the piece of code above, simply because the exit signal of this block section and the entry signal of the previous block section are the same signal
-								if ((signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.tdsbId == SignalNodeTDSB_ID)) {
-									// This is imposed to the end Node of the last Arc of the block section
-									signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.respectOrder = true;
-									signalling_block_sections[k].arcs_in_signalling_block_section[0].startNode.indexOrderList = i;
-									// As well as to the start Node (i.e. the actual entry signal Node) of the block section itself
-									signalling_block_sections[k].start_node.respectOrder = true;
-									signalling_block_sections[k].start_node.indexOrderList = i;
-								}
-
-								int N_TotarcsINBlock = signalling_block_sections[k].total_arcs;
-								// Impose the respect order also the exit signal of block sections whose exit signals coincides with the entry signal of the block section identified in the piece of code above, simply because the exit signal of this block section and the entry signal of the previous block section are the same signal
-								if ((signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.ID == SignalNodeID) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.X == SignalNodeX) && (signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.tdsbId == SignalNodeTDSB_ID)) {
-									// This is imposed to the end Node of the last Arc of the block section
-									signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.respectOrder = true;
-									signalling_block_sections[k].arcs_in_signalling_block_section[N_TotarcsINBlock - 1].endNode.indexOrderList = i;
-									// As well as to the last Node of the block section itself
-									signalling_block_sections[k].end_node.respectOrder = true;
-									signalling_block_sections[k].end_node.indexOrderList = i;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyMargin) {
+	for (int j = 0; j < run.numTrains; j++) {
+		run.trains[j].ReportPositionToRBC(i, run.infra.routes[run.trains[j].indexOfRoute].sequence_of_block_sections.data(), run.infra.routes[run.trains[j].indexOfRoute].N_Block_Sections, ETCS3SafetyMargin);
 	}
 }
 
 // check train arrival/departure at/from destination/origin
 void Train::checkTrainArrDep(int trainIdx, int t) {
-	if (numStations <= 0 || Stations == nullptr)
+	if (numStations <= 0 || Stations.empty())
 		return;
 
 	// add X to last station if needed (initialized as 0 in the beginning)
 	if (Stations[numStations - 1].X == 0) {
 		// find station position
 		for (int j = 0; j < numStations; j++) {
-			if (Stations[numStations - 1].stationName == StationArray[j].stationName) {
-				Stations[numStations - 1].X = StationArray[j].X;
+			if (Stations[numStations - 1].stationName == run_->infra.stations[j].stationName) {
+				Stations[numStations - 1].X = run_->infra.stations[j].X;
 				break;
 			}
 		}
@@ -2241,8 +530,8 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	if (Stations[0].X == 0) {
 		// find station position
 		for (int j = 0; j < numStations; j++) {
-			if (Stations[0].stationName == StationArray[j].stationName) {
-				Stations[0].X = StationArray[j].X;
+			if (Stations[0].stationName == run_->infra.stations[j].stationName) {
+				Stations[0].X = run_->infra.stations[j].X;
 				break;
 			}
 		}
@@ -2252,22 +541,15 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	double X = trainXPosition(t);
 
 	// check arrivals and departures
-	// for (int a = 0; a < numStations; a++) {
-	//	if (std::fabs(X- Stations[a].X) < 0.001)
-	//	{
-	// cout << "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n " <<
-	//	trainDescription << " TRAIN at " << Stations[numStations - 1].stationName << " at t = " << t << endl;
-	//	}
-	//}
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
-		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, initial_variables.OutputMainFolder + "/Rescheduling");
-		cout << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << endl;
+		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, run_->settings.OutputMainFolder + "/Rescheduling");
+		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 	// train departing from origin
 	else if (((std::fabs(X - Stations[0].X) < 0.001) || (std::fabs(std::fabs(X - Stations[0].X) - train_length / 1000) < 0.001)) && (t >= 1) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] != 0)) { // position tolerance of 1m
 		// printTrainArrDepMsg(Stations[0].stationName, "dep", trainIdx, t, "Input_EGTRAIN/Rescheduling");
-		cout << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << endl;
+		EG_LOG(SimEvents, Info) << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 }
 
@@ -2277,32 +559,32 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 	std::ofstream FileOutput;
 
 	// avoid different corridor for initial service (entering station for the first time)
-	if (prevIntendedDepTime == 0 && nextServiceRouteID != -1 && train_route[indexOfRoute].corridor != train_route[nextServiceRouteID].corridor && train_route[indexOfRoute].reversed_direction == train_route[nextServiceRouteID].reversed_direction) {
+	if (prevIntendedDepTime == 0 && nextServiceRouteID != -1 && run_->infra.routes[indexOfRoute].corridor != run_->infra.routes[nextServiceRouteID].corridor && run_->infra.routes[indexOfRoute].reversed_direction == run_->infra.routes[nextServiceRouteID].reversed_direction) {
 		indexOfRoute = nextServiceRouteID;
 	}
 
 	FileOutput.open((char*)FileName.c_str(), std::ios::binary | std::ios::app); // append
 
-	FileOutput << trainDescription << "\t" << dispLineID << "\t" << train_route[indexOfRoute].reversed_direction << "\t" << train_route[indexOfRoute].corridor << "\t";
+	FileOutput << trainDescription << "\t" << dispLineID << "\t" << run_->infra.routes[indexOfRoute].reversed_direction << "\t" << run_->infra.routes[indexOfRoute].corridor << "\t";
 
 	const int activeFirst = earliestActiveTrajectoryIndex < 0
-			? -1
-			: std::max(earliestActiveTrajectoryIndex, prevIntendedDepTime);
+		? -1
+		: std::max(earliestActiveTrajectoryIndex, prevIntendedDepTime);
 	const auto exportCells = trajectoryExportCells(instant_spatial_position, activeFirst, End_Time);
-	for (int t = 0; t < initial_variables.times; t++) {
+	for (int t = 0; t < run_->settings.times; t++) {
 		const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 		if (position != -9999) {
 			// non-reversed route (same with/without jump)
-			if (!train_route[indexOfRoute].reversed_direction) {
+			if (!run_->infra.routes[indexOfRoute].reversed_direction) {
 				FileOutput << position << "\t";
 			}
 			// reversed route without jump
-			else if (train_route[indexOfRoute].diffRegionsJumpX.first == 0) {
-				FileOutput << (train_route[indexOfRoute].OriginalRefReversedRoute - position) << "\t";
+			else if (run_->infra.routes[indexOfRoute].diffRegionsJumpX.first == 0) {
+				FileOutput << (run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - position) << "\t";
 			}
 			// reversed route with jump
 			else {
-				FileOutput << ((train_route[indexOfRoute].OriginalRefReversedRoute - position) - (train_route[indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
+				FileOutput << ((run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - position) - (run_->infra.routes[indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
 			}
 		} else {
 			FileOutput << "\t";
@@ -2329,29 +611,30 @@ void Train::printTrainArrDepMsg(std::string stationName, std::string msgType, in
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	} else // error opening file
 	{
-		std::cout << "Error2 opening file to write arr/dep message\n";
+		EG_LOG(SimEvents, Error) << "Error2 opening file to write arr/dep message\n";
 	}
 }
 
 // computes train X position (works with routes crossing different regions)
 // used to get real X position (in routes with 2 regions, there are jumps when getting X from the position in the route directly)
 // wagon = 0 by default to return head position
-double Train::trainXPosition(int t, int wagon /*= 0*/) {
+double trainXPositionOf(const Train& train, int t, int wagon) {
 	double X;
 	double portion = 0; // relative position from start_node (in meters)
 
-	double total_nW = number_of_wagons + 1; // train.number_of_wagons does not include loco/first wagon
+	double total_nW = train.number_of_wagons + 1; // train.number_of_wagons does not include loco/first wagon
 
 	// find occupied block section
-	for (int i = 0; i < train_route[indexOfRoute].N_Block_Sections; i++) {
-		if (((instant_spatial_position[t] - wagon * (train_length / total_nW)) >= train_route[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000) && (instant_spatial_position[t] - wagon * (train_length / total_nW)) < (train_route[indexOfRoute].sequence_of_block_sections[i].end_node.X * 1000)) {
-			portion = (instant_spatial_position[t] - wagon * (train_length / total_nW)) - train_route[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000;
+	const Route& route = train.run_->infra.routes[train.indexOfRoute];
+	for (int i = 0; i < route.N_Block_Sections; i++) {
+		if (((train.instant_spatial_position[t] - wagon * (train.train_length / total_nW)) >= route.sequence_of_block_sections[i].start_node.X * 1000) && (train.instant_spatial_position[t] - wagon * (train.train_length / total_nW)) < (route.sequence_of_block_sections[i].end_node.X * 1000)) {
+			portion = (train.instant_spatial_position[t] - wagon * (train.train_length / total_nW)) - route.sequence_of_block_sections[i].start_node.X * 1000;
 
 			// calculate X position
-			if (train_route[indexOfRoute].reversed_direction) {
-				X = (train_route[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode - portion) / 1000;
+			if (route.reversed_direction) {
+				X = (route.sequence_of_block_sections[i].GeoXBegNode - portion) / 1000;
 			} else {
-				X = (train_route[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode + portion) / 1000;
+				X = (route.sequence_of_block_sections[i].GeoXBegNode + portion) / 1000;
 			}
 			return X;
 		}
@@ -2361,229 +644,30 @@ double Train::trainXPosition(int t, int wagon /*= 0*/) {
 	return -1;
 }
 
-// function to occupy entire single track
-void Train::occupySingleTrack(Section* BS, int Blocks, int hTail, int hHead, int t) {
-	// check all single tracks
-	for (int l = 0; l < singleTrackLimits.size(); l++) {
-		int firstBS = -1, lastBS = -1;
-		bool outOfSingleTrack = true;
-		std::string firstLimit = std::get<0>(singleTrackLimits[l]), secondLimit = std::get<1>(singleTrackLimits[l]);
-
-		// reorder limits for reversed routes (limits always oriented with X increasing)
-		if (train_route[indexOfRoute].reversed_direction) {
-			firstLimit = std::get<1>(singleTrackLimits[l]);
-			secondLimit = std::get<0>(singleTrackLimits[l]);
-		}
-
-		for (int i = 0; i < Blocks; i++) {
-			// begin of single track
-			if (BS[i].ID == firstLimit) {
-				// train after begin single track
-				if (hHead >= (i - 1)) {
-					// block also previous signalling_block_sections
-					firstBS = i - 1;
-
-					// route bound
-					if (firstBS < 0) {
-						firstBS = 0;
-					}
-				}
-				// train before single track
-				else {
-					break;
-				}
-			}
-
-			// end of single track
-			if (BS[i].ID == secondLimit) {
-				// train before end single track
-				if (hTail <= (i + 1)) {
-					// occupy also next signalling_block_sections
-					lastBS = i + 1;
-
-					// route bound
-					if (lastBS > (Blocks - 1)) {
-						lastBS = Blocks - 1;
-					}
-				}
-				// train after single track
-				else {
-					break;
-				}
-			}
-
-			// position found when train route crosses the entire single track
-			if (firstBS != -1 && lastBS != -1) {
-				outOfSingleTrack = false;
-				break;
-			}
-			// position found when train route crosses only one limit of single track
-			else if ((i == (Blocks - 1)) && ((firstBS != -1) || (lastBS != -1))) {
-				outOfSingleTrack = false;
-			}
-		}
-
-		// single track occupied
-		if (!outOfSingleTrack) {
-			// set train occupying the single track
-			std::get<2>(singleTrackLimits[l]) = type + std::to_string(ID);
-
-			// find entrance/exit signalling_block_sections
-			int prevBlocksST[2] = {-1, -1};
-			int blocksST[2] = {-1, -1};
-			for (int i = 0; i < ::Blocks; i++) {
-				// prev signalling_block_sections entrance
-				if (::signalling_block_sections[i].ID == std::get<0>(singleTrackLimits[l])) {
-					prevBlocksST[0] = i;
-				}
-				// signalling_block_sections entrance
-				if (::signalling_block_sections[i].ID == std::get<3>(singleTrackLimits[l])) {
-					blocksST[0] = i;
-				}
-				// prev signalling_block_sections exit
-				if (::signalling_block_sections[i].ID == std::get<1>(singleTrackLimits[l])) {
-					prevBlocksST[1] = i;
-				}
-				// signalling_block_sections exit
-				if (::signalling_block_sections[i].ID == std::get<4>(singleTrackLimits[l])) {
-					blocksST[1] = i;
-				}
-			}
-
-			// occupy entry and exit of single track
-			for (int i = 0; i < 2; i++) {
-				int h = blocksST[i];
-				int Prev_Block = prevBlocksST[i];
-				occupyBlockAndConnected(::signalling_block_sections[h], ::signalling_block_sections[Prev_Block], -1, -1);
-				// if the Block Section has a switch in diverging position
-				if (::signalling_block_sections[h].withSwitchDiv == true) {
-					if ((::signalling_block_sections[h].SignallingLevel == 3) || (::signalling_block_sections[h].SignallingLevel == 4)) {
-						activateBlocksWithSwitchesDiv(::signalling_block_sections[h], ::signalling_block_sections[Prev_Block].trackLineId, ::signalling_block_sections[h].XStartSwitch); // XStartSwitch to occupy all signalling_block_sections
-					} else {
-						activateBlocksWithSwitchesDivFixedBlock(::signalling_block_sections[h], ::signalling_block_sections[Prev_Block].trackLineId, -1);
-					}
-				}
-			}
-		}
-
-		// release single track if train left it
-		if (std::get<2>(singleTrackLimits[l]) == (type + std::to_string(ID))) {
-			int hRelease = -1;
-
-			// non-rev route (left end of single track - X-oriented)
-			if (!train_route[indexOfRoute].reversed_direction && hTail > 1 && std::get<1>(singleTrackLimits[l]) == BS[hTail - 2].ID) {
-				// train left single track 1 timestep ago
-				if (((instant_spatial_position[(t - 1) - (int)(S_delay / timestep)] - train_length) < BS[hTail].end_node.X * 1000) && ((instant_spatial_position[(t - 1) - (int)(S_delay / timestep)] - train_length) >= BS[hTail].start_node.X * 1000)) {
-					// release begin of single track
-					// find signalling_block_sections to release
-					for (int h = 0; h < ::Blocks; h++) {
-						if (::signalling_block_sections[h].ID == std::get<3>(singleTrackLimits[l])) {
-							hRelease = h;
-							if (hRelease < 0) {
-								hRelease = 0;
-							}
-							break;
-						}
-					}
-				}
-			}
-			// rev route (left begin of single track - X-oriented)
-			else if (train_route[indexOfRoute].reversed_direction && hTail > 1 && std::get<0>(singleTrackLimits[l]) == BS[hTail - 2].ID) {
-				// train left single track 1 timestep ago
-				if (((instant_spatial_position[(t - 1) - (int)(S_delay / timestep)] - train_length) < BS[hTail].end_node.X * 1000) && ((instant_spatial_position[(t - 1) - (int)(S_delay / timestep)] - train_length) >= BS[hTail].start_node.X * 1000)) {
-					// release begin of single track
-					// find signalling_block_sections to release
-					for (int h = 0; h < ::Blocks; h++) {
-						if (::signalling_block_sections[h].ID == std::get<4>(singleTrackLimits[l])) {
-							hRelease = h;
-							if (hRelease < 0) {
-								hRelease = 0;
-							}
-							break;
-						}
-					}
-				}
-			}
-
-			// release entrance of single track
-			if (hRelease != -1) {
-				releaseLastBlockAndConnected(::signalling_block_sections[hRelease]);
-
-				// set single track as not occupied
-				std::get<2>(singleTrackLimits[l]).clear();
-			}
-		}
-	}
-}
-
-// unlock single track (unlock signalling_block_sections for a train passing a single track)
-void Train::unlockSingleTrack(Section* BS, int Blocks, int t) {
-	for (int l = 0; l < singleTrackLimits.size(); l++) {
-		// single track occupied by this train
-		if (std::get<2>(singleTrackLimits[l]) == (type + std::to_string(ID))) {
-			// signalling_block_sections occupied by the train
-			// collect all signalling_block_sections from head to tail
-			int hTail = 0, hHead = 0;
-			for (int h = 0; h < Blocks; h++) {
-				if (((instant_spatial_position[t - (int)(S_delay / timestep)] - train_length) < BS[h].end_node.X * 1000) && ((instant_spatial_position[t - (int)(S_delay / timestep)] - train_length) >= BS[h].start_node.X * 1000)) {
-					hTail = h;
-				}
-				if ((instant_spatial_position[t - (int)(S_delay / timestep)] < BS[h].end_node.X * 1000) && (instant_spatial_position[t - (int)(S_delay / timestep)] >= BS[h].start_node.X * 1000)) {
-					hHead = h;
-					break;
-				}
-			}
-
-			// release end of single track (2 signalling_block_sections to avoid yellow and red signals)
-			if (((hHead < (Blocks - 1)) && (!train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<0>(singleTrackLimits[l]))) || ((!train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<0>(singleTrackLimits[l])))) {
-				int hRelease = hHead + 1;
-
-				// changes on previous signalling_block_sections
-				if (hRelease > 0) {
-					snprintf(BS[hRelease - 1].state, sizeof(BS[hRelease - 1].state), "%s", "green");
-					for (int k = 0; k < BS[hRelease - 1].total_arcs; k++) {
-						BS[hRelease - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-
-					// revert changes to speeds
-					double MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].speedLimit;
-					if (BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim) {
-						MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit;
-					}
-
-					// the speed limit at the end of block section BLS[h] is MinSpeedLim
-					BS[hRelease - 1].arcs_in_signalling_block_section[BS[hRelease - 1].total_arcs - 1].speedInBraking = MinSpeedLim;
-				}
-
-				// changes on signalling_block_sections itself
-				BS[hRelease].code = 270;
-				BS[hRelease].exit_speed = 0;
-			}
-		}
-	}
+double Train::trainXPosition(int t, int wagon /*= 0*/) {
+	return trainXPositionOf(*this, t, wagon);
 }
 
 // function to protect all station areas
-void protectStationAreas(int i) {
-	for (int k = 0; k < numRegions; k++) {
-		// cout << ">>>>>>>>>" << regional_train[k].trainDescription << "is OutOfSimulation" << regional_train[k].OutOfSimulation << endl;
-		if (!regional_train[k].OutOfSimulation) {
-			if ((i >= regional_train[k].departure_time) && regional_train[k].CanEnter) {
-				if (timestep <= 0 || i < 0 || i >= static_cast<int>(regional_train[k].instant_spatial_position.size()) ||
-					regional_train[k].indexOfRoute < 0 || regional_train[k].indexOfRoute >= static_cast<int>(train_route.size()))
+void protectStationAreas(SimulationRun& run, int i) {
+	for (int k = 0; k < run.numTrains; k++) {
+		if (!run.trains[k].OutOfSimulation) {
+			if ((i >= run.trains[k].departure_time) && run.trains[k].CanEnter) {
+				if (timestep <= 0 || i < 0 || i >= static_cast<int>(run.trains[k].instant_spatial_position.size())
+					|| run.trains[k].indexOfRoute < 0 || run.trains[k].indexOfRoute >= static_cast<int>(run.infra.routes.size()))
 					continue;
-				const int delayedIndex = i - static_cast<int>(S_delay / timestep);
-				if (delayedIndex < 0 || delayedIndex >= static_cast<int>(regional_train[k].instant_spatial_position.size()))
+				const int delayedIndex = i - static_cast<int>(run.signallingDelay / timestep);
+				if (delayedIndex < 0 || delayedIndex >= static_cast<int>(run.trains[k].instant_spatial_position.size()))
 					continue;
-				const Route& route = train_route[regional_train[k].indexOfRoute];
+				const Route& route = run.infra.routes[run.trains[k].indexOfRoute];
 				if (route.N_Block_Sections <= 0)
 					continue;
 
 				// find signalling_block_sections occupied by head of train
 				int hHead = -1;
 				for (int h = 0; h < route.N_Block_Sections; h++) {
-					if ((regional_train[k].instant_spatial_position[delayedIndex] < route.sequence_of_block_sections[h].end_node.X * 1000) &&
-						(regional_train[k].instant_spatial_position[delayedIndex] >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
+					if ((run.trains[k].instant_spatial_position[delayedIndex] < route.sequence_of_block_sections[h].end_node.X * 1000)
+						&& (run.trains[k].instant_spatial_position[delayedIndex] >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
 						hHead = h;
 						break;
 					}
@@ -2591,8 +675,8 @@ void protectStationAreas(int i) {
 				if (hHead < 0)
 					continue;
 
-				const std::string stationName = regional_train[k].numStations > 0 && regional_train[k].Stations != nullptr
-					? regional_train[k].Stations[regional_train[k].numStations - 1].stationName
+				const std::string stationName = run.trains[k].numStations > 0 && !run.trains[k].Stations.empty()
+					? run.trains[k].Stations[run.trains[k].numStations - 1].stationName
 					: std::string();
 				auto platformBookedFor = [&](const StationBoundarySection& boundary) {
 					// Legacy Netherlands dispatcher terminals with integer arrival-platform assignments.
@@ -2600,28 +684,28 @@ void protectStationAreas(int i) {
 						return false;
 					if (boundary.exit)
 						return false;
-					for (int tr = 0; tr < numRegions; tr++) {
-						if (regional_train[tr].ID == regional_train[k].ID && regional_train[tr].type == regional_train[k].type)
+					for (int tr = 0; tr < run.numTrains; tr++) {
+						if (run.trains[tr].ID == run.trains[k].ID && run.trains[tr].type == run.trains[k].type)
 							continue;
-						if (regional_train[tr].numStations <= 0 || regional_train[tr].Stations == nullptr)
+						if (run.trains[tr].numStations <= 0 || run.trains[tr].Stations.empty())
 							continue;
-						if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == stationName &&
-							regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform)
+						if (run.trains[tr].Stations[run.trains[tr].numStations - 1].stationName == stationName
+							&& run.trains[tr].reservedPlatform == run.trains[k].arrivalPlatform)
 							return true;
 
 						// wait for trains leaving the station to prevent deadlocks
-						if (regional_train[tr].Stations[0].stationName != stationName ||
-							regional_train[tr].indexOfRoute < 0 ||
-							regional_train[tr].indexOfRoute >= static_cast<int>(train_route.size()) ||
-							i >= static_cast<int>(regional_train[tr].instant_spatial_position.size()))
+						if (run.trains[tr].Stations[0].stationName != stationName
+							|| run.trains[tr].indexOfRoute < 0
+							|| run.trains[tr].indexOfRoute >= static_cast<int>(run.infra.routes.size())
+							|| i >= static_cast<int>(run.trains[tr].instant_spatial_position.size()))
 							continue;
-						if (train_route[regional_train[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
+						if (run.infra.routes[run.trains[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
 							// if the other train is not booking a platform, it is not at the platform - enough to check position
-							if (!route.reversed_direction && regional_train[tr].numStations > 1 &&
-								regional_train[tr].trainXPosition(i) > regional_train[k].trainXPosition(i))
+							if (!route.reversed_direction && run.trains[tr].numStations > 1
+								&& run.trains[tr].trainXPosition(i) > run.trains[k].trainXPosition(i))
 								return true;
-							if (route.reversed_direction && regional_train[tr].numStations > 1 &&
-								regional_train[tr].trainXPosition(i) < regional_train[k].trainXPosition(i))
+							if (route.reversed_direction && run.trains[tr].numStations > 1
+								&& run.trains[tr].trainXPosition(i) < run.trains[k].trainXPosition(i))
 								return true;
 						}
 					}
@@ -2629,26 +713,27 @@ void protectStationAreas(int i) {
 				};
 
 				// occupy station interlocking area
-				for (int s = 0; s < stationBoundarySections.size(); s++) {
-					if (!stationBoundarySections[s].entrance)
+				for (int s = 0; s < run.infra.stationBoundaries.size(); s++) {
+					if (!run.infra.stationBoundaries[s].entrance)
 						continue;
 					bool stationAreaHandled = false;
 					for (int offset : {1, 2}) {
-						if (hHead + offset >= route.N_Block_Sections ||
-							stationBoundarySections[s].entrance->ID != route.sequence_of_block_sections[hHead + offset].ID)
+						if (hHead + offset >= route.N_Block_Sections
+							|| run.infra.stationBoundaries[s].entrance->ID != route.sequence_of_block_sections[hHead + offset].ID)
 							continue;
 
 						if (offset == 2) {
 							// do not protect if section before entrance is occupied by another train, otherwise it will be blocked
-							if (std::find(BlocksOccupied.begin(), BlocksOccupied.end(),
-									route.sequence_of_block_sections[hHead + 1].ID) != BlocksOccupied.end()) {
+							if (std::find(run.blocksOccupied.begin(), run.blocksOccupied.end(),
+									route.sequence_of_block_sections[hHead + 1].ID)
+								!= run.blocksOccupied.end()) {
 								stationAreaHandled = true;
 								break; // preserve the occupied-intermediate-section exception
 							}
 						}
 
-						stationBoundarySections[s].protectEntrance(hHead + offset, regional_train[k].indexOfRoute,
-							platformBookedFor(stationBoundarySections[s]));
+						run.infra.stationBoundaries[s].protectEntrance(run, hHead + offset, run.trains[k].indexOfRoute,
+							platformBookedFor(run.infra.stationBoundaries[s]));
 						stationAreaHandled = true;
 						break;
 					}
@@ -2656,13 +741,13 @@ void protectStationAreas(int i) {
 						break; // train occupies at most one station area
 
 					// check if train entered station area
-					if (stationBoundarySections[s].entrance->ID == route.sequence_of_block_sections[hHead].ID) {
+					if (run.infra.stationBoundaries[s].entrance->ID == route.sequence_of_block_sections[hHead].ID) {
 						// FOR NOW, IGNORE AREAS WITH EXIT SECTION
-						if (stationBoundarySections[s].exit) {
+						if (run.infra.stationBoundaries[s].exit) {
 							continue;
 						}
 
-						regional_train[k].reservedPlatform = regional_train[k].arrivalPlatform;
+						run.trains[k].reservedPlatform = run.trains[k].arrivalPlatform;
 						break;
 					}
 				}

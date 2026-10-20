@@ -16,8 +16,8 @@ std::vector<SceneDiagnostic> validateScene(const SceneModel& scene);
 
 // Validate the minimum complete model needed by a runnable simulation.
 std::vector<SceneDiagnostic> validateRunnableScene(const SceneModel& scene,
-		const SceneRunSelection& selectedOccurrences = {},
-		std::optional<double> effectiveDurationOverride = std::nullopt);
+	const SceneRunSelection& selectedOccurrences = {},
+	std::optional<double> effectiveDurationOverride = std::nullopt);
 
 // Load, then validate ONLY if loading produced no Error diagnostics. Structural
 // errors must be fixed first to avoid semantic cascades from a partial model.

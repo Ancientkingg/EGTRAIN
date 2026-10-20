@@ -1,0 +1,15 @@
+{
+    "base_time": "07:00:00",
+    "name": "Crossover Chain",
+    "schema_version": 1,
+    "simulation_settings": {
+        "buffer_time_seconds": 0.0,
+        "duration_seconds": 1500.0,
+        "recovery_time_percent": 0.0
+    },
+    "units": {
+        "distance": "m",
+        "speed": "m/s",
+        "time": "s"
+    }
+}

@@ -54,7 +54,7 @@ std::string makeRow(const std::vector<std::string>& fields) {
 }
 
 std::string makeDocument(const std::vector<std::string>& header,
-						 const std::vector<std::vector<std::string>>& rows) {
+	const std::vector<std::vector<std::string>>& rows) {
 	std::string document;
 	document += makeRow(header);
 	document += kLineEnding;

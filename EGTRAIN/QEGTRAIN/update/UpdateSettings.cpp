@@ -1,17 +1,20 @@
 #include "update/UpdateSettings.h"
+#include "update/ReleaseInfo.h"
 
 #include <QProcessEnvironment>
 #include <QSettings>
 
 namespace {
 constexpr char kAutomaticUpdateChecksKey[] = "updates/automaticCheck";
+constexpr char kFailedUpdateVersionKey[] = "updates/failedVersion";
 }
 
 UpdateCheckState readUpdateCheckState(const QSettings& settings) {
 	if (!settings.contains(QString::fromLatin1(kAutomaticUpdateChecksKey)))
 		return UpdateCheckState::Unknown;
 	return settings.value(QString::fromLatin1(kAutomaticUpdateChecksKey)).toBool()
-		? UpdateCheckState::Enabled : UpdateCheckState::Disabled;
+		? UpdateCheckState::Enabled
+		: UpdateCheckState::Disabled;
 }
 
 void writeUpdateCheckState(QSettings& settings, UpdateCheckState state) {
@@ -27,10 +30,27 @@ bool shouldCheckForUpdates(UpdateCheckState state, bool manual) {
 	return manual || state == UpdateCheckState::Enabled;
 }
 
+std::optional<SemanticVersion> readFailedUpdateVersion(const QSettings& settings) {
+	return parseStableVersion(settings.value(QString::fromLatin1(kFailedUpdateVersionKey)).toString().toStdString());
+}
+
+void writeFailedUpdateVersion(QSettings& settings, const SemanticVersion& version) {
+	settings.setValue(QString::fromLatin1(kFailedUpdateVersionKey), formatSemanticVersion(version));
+}
+
+bool shouldOfferRelease(const SemanticVersion& release, const std::optional<SemanticVersion>& failedVersion, bool manual) {
+	return manual || !failedVersion || *failedVersion != release;
+}
+
+// Scripted launches have nobody to answer the consent prompt and must not reach the network:
+// the explicit switch, the autostart hook, the startup timing and playback profile modes, and
+// every end-to-end hook.
 bool updatesSuppressedByEnvironment() {
 	const QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
 	if (environment.contains(QStringLiteral("QEGTRAIN_DISABLE_UPDATES"))
-		|| environment.contains(QStringLiteral("QEGTRAIN_AUTOSTART")))
+		|| environment.contains(QStringLiteral("QEGTRAIN_AUTOSTART"))
+		|| environment.value(QStringLiteral("QEGTRAIN_STARTUP_TIMING")) == QLatin1String("1")
+		|| environment.value(QStringLiteral("QEGTRAIN_PLAYBACK_PROFILE")) == QLatin1String("1"))
 		return true;
 	for (const QString& key : environment.keys())
 		if (key.startsWith(QStringLiteral("QEGTRAIN_E2E_")))

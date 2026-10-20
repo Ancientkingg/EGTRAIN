@@ -64,6 +64,8 @@ A direct base-block incident target remains compatible; a target matching both
 a signal and section is rejected as ambiguous. A route has `id`, a
 string-array `blocks`, and optional `corridor` and `reversed`; its block tokens
 are authored in forward or reverse order and are never silently sorted.
+Validation reports `scene.route.direction` for a route marked `reversed` whose
+sections run forward.
 Continuity is required inside one connected region. A scene with legacy-import
 provenance retains historical cross-region coordinate jumps with a warning;
 newly authored scenes require a declared connection. Compound tokens must be
@@ -73,11 +75,17 @@ Use these optional arrays for explicit signalling relationships:
 
 - `signalling_areas`: `id`, numeric `start_km`, numeric `end_km`, integer
   `level` from 0 through 5, and optional canonical `track`. A section must fit
-  completely inside the area. Track-scoped areas override network-wide areas;
-  missing coverage remains unset.
+  completely inside the area; a section that an area edge cuts is not covered.
+  Track-scoped areas override network-wide areas; missing coverage remains unset,
+  and Run review warns when a route section has no level. See
+  [Signalling levels](../architecture/signalling-levels.md) for what each level
+  does.
 - `block_dependencies`: `{ "block": "...", "depends_on": "..." }`.
 - `single_track_restrictions`: `start_block`, `end_block`,
-  `protected_start_block`, and `protected_end_block`.
+  `protected_start_block`, and `protected_end_block`. While a train is in the
+  stretch, trains of the opposite direction wait in front of it. This needs a
+  signalling level; see the
+  [scene schema](../architecture/scene-schema.md#single-track-restrictions).
 - `station_boundaries`: `entrance_block`, optional `exit_block`, and optional
   boolean `direction`.
 
@@ -99,6 +107,31 @@ resistance_coefficient, jerk_ms3, length_m
 Each traction row is `[v_lower, v_upper, c0, c1, c2]`. `source` contains the
 independent optional paths `data_file` and `traction_file`; do not infer a
 traction path from `LITRA`, `T_`, or any other filename convention.
+
+The rolling stock editor refuses a number outside the hard limit of its field.
+Validation warns about a number outside the warning bound
+(`scene.train.value.implausible`, one warning for each number; it does not block
+Run). A file that holds a number beyond a hard limit keeps it: the editor shows
+the nearest limit and leaves the stored number as it is until you type another
+one. The limits guard against nonsense input and are not data of a vehicle.
+
+| Field | Unit | Hard limit | Warning bound |
+| --- | --- | --- | --- |
+| `mass_of_traction_unit_kg` | kg | 0 to 5e6 | 0 to 5e5 |
+| `mass_of_a_wagon_kg` | kg | 0 to 1e6 | 0 to 2e5 |
+| `number_of_wagons` | wagons | 0 to 1000 | 0 to 200 |
+| `max_speed_ms` | m/s | 0 to 200 | 0 to 120 |
+| `max_deceleration_ms2` | m/s² | 0 to 10 | 0 to 3 |
+| `frontal_area_m2` | m² | 0 to 1000 | 0 to 50 |
+| `resistance_coefficient` | per km/h | 0 to 1 | 0 to 0.1 |
+| `jerk_ms3` | m/s³ | 0 to 100 | 0 to 10 |
+| `length_m` | m | 0 to 3000 | 0 to 1500 |
+| `v_lower`, `v_upper` | m/s | 0 to 200 | 0 to 120 |
+| `c0` | N | -1e9 to 1e9 | -5e6 to 5e6 |
+| `c1` | N s/m | -1e9 to 1e9 | -1e6 to 1e6 |
+| `c2` | N s²/m² | -1e9 to 1e9 | -5e6 to 5e6 |
+
+The editor and the validator read the same table, in `scene/SceneFields.h`.
 
 Each `compositions[]` item has an `id` and a non-empty `units` array of train
 unit IDs. Services refer to the composition ID, not directly to a source file.
@@ -220,17 +253,11 @@ If no scenario file is supplied, the loader creates a baseline; the historical
 flat incident file is read into that baseline.
 
 The current results UI can freeze an incident-free, no-entrance-delay run with
-**Set delay baseline**. An incident comparison must have incidents and no
-entrance delays, different scenario IDs, and matching scene revision, base
-time, duration, timestep, and selected `(service_id, occurrence)` identities.
-Final arrival is the simulated arrival at the last authored timetable station
-and call. The endpoint must match and be available in both runs. Only positive
-scenario-minus-baseline contributions are included, and their exact sum is the
-total delay. A positive row is `primary` only when that occurrence has direct
-runtime incident evidence; otherwise it is `secondary`. Timetable differences
-alone never establish causality, and comparison is rejected if the incident
-run has no direct evidence anywhere. The table/CSV includes incident IDs,
-first direct time/location, and destination termination outcome.
+**Set delay baseline**. A comparison run may have incidents, entrance delays,
+or both. The delay analysis window reports the difference from the baseline and
+the recorded direct incident evidence, and never states a cause. The matching
+rules and the figures are in
+[How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline).
 
 ## Passengers
 

@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
 SCENE_DIR = RUN_DIR / "Scenes"
 
@@ -18,22 +17,43 @@ SCENES = {
     3: "Copenhagen",
     4: "Milano_Brescia",
     5: "Assignment_Gvc_Gdg_Ut",
-    6: "Lebanon",
+    7: "Amsterdam_Hilversum_Student",
 }
 
-ASSERT_MOVEMENT = {1, 2, 3, 4, 5}
-ASSERT_STATION_ARRIVALS = {1, 2, 3, 4, 5}
+ASSERT_MOVEMENT = {1, 2, 3, 4, 5, 7}
+# The Netherlands scene has no planned arrival at any stop, so no station has an arrival delay.
+ASSERT_STATION_ARRIVALS = {2, 3, 4, 5, 7}
+ASSERT_NO_STATION_DELAYS = {1}
+# Cases whose committed scene gives every route section a signalling level.
+SIGNALLING_COVERED = {1, 2, 3, 4, 5, 7}
+# Cases whose services end at their last stop: the train leaves the network after its dwell there.
+ASSERT_SERVICES_END = {1}
+# A train that reaches its last stop this long before the end of the run has left the network by the end. In the
+# Netherlands run the longest wait is 99 s, the dwell of 60 s and the drive to the end of the route.
+LAST_STOP_MARGIN_SECONDS = 400
+# The files that the Amsterdam to Hilversum scene shares with the Netherlands scene.
+NETHERLANDS_FILES = ("infrastructure.json", "rolling_stock.json", "scenarios.json", "stations.json", "views.json")
+# The service of the Amsterdam to Hilversum scene whose runs must all reach Hilversum.
+OCCURRENCE_SERVICE = "IC_ASD_HVS_DEMO"
+# The arrival that TimetablePoints.txt holds for a stop the train did not reach.
+NO_ARRIVAL = -10000
+# Allow small printed-position differences against the route direction.
+BACKWARD_TOLERANCE_M = 0.1
 
 # d3f5c7005c7030ba3745c8a41b0572e61974bd15 is the last pre-cutover
 # runtime baseline. These checks keep one representative observable per
 # original case instead of retaining large generated output trees.
+# Case 4 runs with a fixed block area: its representative queues behind the
+# train that stands at Rovato to the end of the run and does not reach its last stop.
+# The Netherlands services end at their last stop: the end of the representative is the
+# instant its head passes the end of its route, not the end of the run.
 ORIGINAL_CASE_PARITY = {
     1: {
         "structure": (1984, 708, 41, 156, 74),
         "station_ids": "7eb1725701ff3d105f0ff84ba9ac23cd27fe5642f462947d9fa7bf28492305ff",
         "route_ids": "dea4515fec5d4b1cf241b7276b38dce3d283474635db5b379d6582e21f10e3c9",
         "trains": 40,
-        "representative": ("SPR_2-1", 100, 18940.6, 7999, 1252.38, 0, 100),
+        "representative": ("SPR_2-1", 100, 18940.6, 1263, 1253.65, 0, 100),
         "stops": ("425d9c987fddb82cf8812520e9094efd165533d5265aa4dd59367fb9ea146f28", 132, 847, 10, 350),
     },
     2: {
@@ -57,8 +77,8 @@ ORIGINAL_CASE_PARITY = {
         "station_ids": "091b2621fa7695b9fb368e13caa966d0da1864048cbae9fa91ea37f6aff973ca",
         "route_ids": "73c9e9fd30a7f2c82ad5f7fe202083c6c3aa87c0a36215ace7d5a393da189494",
         "trains": 65,
-        "representative": ("201-1", 1738, 9636.22, 3673, 78768.2, 0, 0.1),
-        "stops": ("b76878b055e51183a425ccdfe008049e66b8980fcc23f62d46636a0a53cd8981", 1855, 3666, 1, 1),
+        "representative": ("201-1", 1738, 9636.22, 3999, 59846.0, 0, 0.1),
+        "stops": ("b76878b055e51183a425ccdfe008049e66b8980fcc23f62d46636a0a53cd8981", 1855, NO_ARRIVAL, 1, 1),
     },
 }
 
@@ -82,12 +102,35 @@ def run_command(args, cwd=None, input=None, timeout=None, env=None):
     )
 
 
-def case_command(case_id: int) -> list[str]:
+def build_executable_paths(name: str) -> list[Path]:
+    """Where a build of this platform puts the program `name`."""
+    build = ROOT / "build"
+    if sys.platform == "win32":
+        return [build / f"{name}.exe", build / "Release" / f"{name}.exe"]
+    if sys.platform == "darwin" and name == "QEGTRAIN":
+        return [build / "QEGTRAIN.app/Contents/MacOS/QEGTRAIN"]
+    return [build / name]
+
+
+def find_executable(name: str, env_var: str) -> Path:
+    """The program from the environment variable `env_var`, else the one in the build folder of this platform."""
+    override = os.environ.get(env_var)
+    # An override relative to the current folder is made absolute: the smokes start the program in another folder.
+    candidates = [Path(override).absolute()] if override else build_executable_paths(name)
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    hint = "" if override else f"; build it or set {env_var}"
+    raise SystemExit(f"{name} not found; tried {', '.join(str(candidate) for candidate in candidates)}{hint}")
+
+
+def case_command(case_id: int, app: Path) -> list[str]:
     try:
         scene_name = SCENES[case_id]
     except KeyError as exc:
         raise ValueError(f"unknown canonical case id: {case_id}") from exc
-    return [str(APP), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0"]
+    # check_no_position_jump reads TEMP/Traj_Train_*.txt, which only --detailed-trajectories writes.
+    return [str(app), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0", "--detailed-trajectories"]
 
 
 def scene_output_dir(case_id: int, out_base: Path = RUN_DIR) -> Path:
@@ -122,17 +165,120 @@ def check_scene_structure(case_id: int) -> None:
     print(f"PASS case {case_id} matches the original-case structure baseline")
 
 
+def check_scene_matches_netherlands(case_id: int) -> None:
+    """The scene keeps the Netherlands network, and its signalling differs only by the signalling areas."""
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    netherlands_dir = SCENE_DIR / SCENES[1]
+    for name in NETHERLANDS_FILES:
+        if (scene_dir / name).read_bytes() != (netherlands_dir / name).read_bytes():
+            raise SystemExit(f"case {case_id} {name} differs from the Netherlands scene")
+    documents = [
+        json.loads((directory / "signalling.json").read_text(encoding="utf-8")) for directory in (scene_dir, netherlands_dir)
+    ]
+    for document in documents:
+        document.pop("signalling_areas", None)
+    if documents[0] != documents[1]:
+        raise SystemExit(f"case {case_id} signalling.json differs from the Netherlands scene by more than its signalling areas")
+    print(f"PASS case {case_id} matches the Netherlands scene")
+
+
 def route_errors(output: str) -> list[str]:
     return [line for line in output.splitlines() if line.startswith(("ERROR4 in Route", "ERROR5 in Route"))]
 
 
+def occurrence_errors(timetable_text: str, duration_seconds: float, service_id: str, count: int) -> list[str]:
+    """Check that every run of a service reaches Hvs, one after the other.
+
+    TimetablePoints.txt holds six lines per train: the train and its type, the
+    station ids, two position lines, the arrival times and the departure times,
+    all in seconds from the simulation origin. This checks presence and order,
+    not the values, because signalling can shift the arrivals of later runs.
+    """
+    lines = timetable_text.splitlines()
+    trains = {}
+    for index in range(0, len(lines) - 5, 6):
+        cells = lines[index].split()
+        if cells:
+            trains[cells[0]] = (lines[index + 1].split(), lines[index + 4].split(), lines[index + 5].split())
+    errors = []
+    previous_arrival = None
+    for run in range(1, count + 1):
+        train = f"{service_id}-{run}"
+        # The order is compared with the run before only when that run reached Hvs.
+        earlier_arrival, previous_arrival = previous_arrival, None
+        if train not in trains:
+            errors.append(f"{train} is missing")
+            continue
+        stations, arrivals, departures = trains[train]
+        if stations[-1:] != ["Hvs"]:
+            errors.append(f"{train} does not end at Hvs")
+            continue
+        if len(arrivals) < len(stations) or len(departures) < len(stations):
+            errors.append(f"{train} has fewer arrival or departure times than stations")
+            continue
+        arrival, departure = float(arrivals[len(stations) - 1]), float(departures[len(stations) - 1])
+        if not arrival > 0:
+            errors.append(f"{train} arrives at Hvs at {arrival}, which is not above 0")
+        if departure < arrival or not departure < duration_seconds:
+            errors.append(f"{train} departs from Hvs at {departure}, before its arrival {arrival} or not before {duration_seconds}")
+        if earlier_arrival is not None and not arrival > earlier_arrival:
+            errors.append(f"{train} arrives at Hvs at {arrival}, not after the arrival {earlier_arrival} of the run before")
+        previous_arrival = arrival
+    return errors
+
+
+def trajectory_end_times(trajectory_text: str) -> dict[str, int]:
+    """Return the second of the last position of every train in TrainServicePathDiagram.txt.
+
+    A row holds the train, three more cells and one position per second; a second without a position is empty.
+    """
+    ends = {}
+    for line in trajectory_text.splitlines():
+        cells = line.split("\t")
+        seconds = [second for second, cell in enumerate(cells[4:]) if cell.strip()]
+        if seconds:
+            ends[cells[0]] = seconds[-1]
+    return ends
+
+
+def services_not_ended(timetable_text: str, trajectory_text: str, duration_seconds: float) -> list[str]:
+    """Name every train that reached its last stop with time to spare and did not leave the network.
+
+    A service ends at its last stop: after its dwell the train leaves, TimetablePoints.txt holds that departure,
+    and the trajectory of the train ends before the last second of the run. Trains that arrive within
+    LAST_STOP_MARGIN_SECONDS of the end of the run are not judged. Judging no train is an error too.
+    """
+    ends = trajectory_end_times(trajectory_text)
+    lines = timetable_text.splitlines()
+    errors = []
+    judged = 0
+    for index in range(0, len(lines) - 5, 6):
+        cells, arrivals, departures = lines[index].split(), lines[index + 4].split(), lines[index + 5].split()
+        if not cells or not arrivals or not departures:
+            continue
+        train, arrival, departure = cells[0], float(arrivals[-1]), float(departures[-1])
+        if not NO_ARRIVAL < arrival <= duration_seconds - LAST_STOP_MARGIN_SECONDS:
+            continue
+        judged += 1
+        if departure == NO_ARRIVAL:
+            errors.append(f"{train} has no departure from its last stop")
+        elif train not in ends:
+            errors.append(f"{train} has no trajectory")
+        elif ends[train] >= duration_seconds - 1:
+            errors.append(f"{train} is still in the network at the end of the run")
+    if judged == 0:
+        errors.append("no train reached its last stop with time to spare")
+    return errors
+
+
 def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
+    app = find_executable("QEGTRAIN", "QEGTRAIN_APP")
     log = ROOT / f"tools/e2e/headless_case_{case_id}.log"
     try:
         env = os.environ.copy()
         env["QEGTRAIN_OUTPUT_DIR"] = str(out_base)
         proc = run_command(
-            case_command(case_id),
+            case_command(case_id, app),
             cwd=cwd,
             # The largest case (Copenhagen, 185 trains x 8000 steps) runs for about
             # five minutes on a fast machine, and slow CI runners have hit the
@@ -151,6 +297,8 @@ def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> Non
         raise SystemExit(f"case {case_id} failed with {proc.returncode}; see {log}")
     if case_id == 3 and (errors := route_errors(proc.stdout)):
         raise SystemExit(f"case 3 reported {len(errors)} broken route transitions; see {log}")
+    if case_id in SIGNALLING_COVERED and "[scene.signalling.level.missing]" in proc.stdout:
+        raise SystemExit(f"case {case_id} has route sections without a signalling level; see {log}")
     print(f"PASS case {case_id} exited cleanly")
 
 
@@ -253,6 +401,23 @@ def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
     print(f"PASS case {case_id} has {rows} served station rows")
 
 
+def check_no_station_delays(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """A scene without planned arrivals counts no train at any station."""
+    output = scene_output_dir(case_id, out_base) / "TrainTrajectories"
+    for name in ("Stats_Stations.txt", "Pos&Neg_Stats_Stations.txt"):
+        rows = 0
+        for line in (output / name).read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
+            parts = line.split()
+            if len(parts) < 11 or parts[0].startswith("Ent_") or parts[0] in {"DwT_Dist", "TOTALS"}:
+                continue
+            rows += 1
+            if float(parts[10]) != 0:
+                raise SystemExit(f"case {case_id} counts {parts[10]} trains at {parts[0]} in {name} without a planned arrival")
+        if rows == 0:
+            raise SystemExit(f"case {case_id} has no station rows in {name}")
+    print(f"PASS case {case_id} counts no train at any station")
+
+
 def check_finite_station_statistics(case_id: int, out_base: Path = RUN_DIR) -> None:
     output = scene_output_dir(case_id, out_base) / "TrainTrajectories"
     for name in ("Stats_Stations.txt", "Pos&Neg_Stats_Stations.txt"):
@@ -266,6 +431,109 @@ def check_finite_station_statistics(case_id: int, out_base: Path = RUN_DIR) -> N
                 if not math.isfinite(value):
                     raise SystemExit(f"case {case_id} has non-finite station statistics at {path}:{line_number}")
     print(f"PASS case {case_id} station statistics are finite")
+
+
+def route_directions(case_id: int, out_base: Path = RUN_DIR) -> dict[str, bool]:
+    path = scene_output_dir(case_id, out_base) / "TrainTrajectories/TrainServicePathDiagram.txt"
+    if not path.exists():
+        return {}
+    directions = {}
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        cells = line.split("\t")
+        if len(cells) >= 3:
+            directions[cells[0]] = cells[2] == "1"
+    return directions
+
+
+def check_no_position_jump(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """Check the speed bound and reject steps against the direction of travel.
+
+    A train keeps the direction of its route for the whole run.
+    """
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    rolling = json.loads((scene_dir / "rolling_stock.json").read_text(encoding="utf-8"))
+    max_speed = max(unit["physical"]["max_speed_ms"] for unit in rolling["train_units"])
+    files = sorted((scene_output_dir(case_id, out_base) / "TEMP").glob("Traj_Train_*.txt"))
+    if not files:
+        raise SystemExit(f"case {case_id} has no train trajectory files")
+    directions = route_directions(case_id, out_base)
+    diagram = scene_output_dir(case_id, out_base) / "TrainTrajectories/TrainServicePathDiagram.txt"
+    for path in files:
+        train = path.name[len("Traj_Train_"):-len(".txt")]
+        previous = None
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
+            cells = line.split("\t")
+            if len(cells) < 3:
+                previous = None
+                continue
+            current = (float(cells[0]), float(cells[2]))
+            if previous is not None and train not in directions:
+                raise SystemExit(f"case {case_id} train {path.name}: direction of travel is unknown in {diagram}")
+            if previous is not None and abs(current[1] - previous[1]) > max_speed * (current[0] - previous[0]) + 0.5:
+                raise SystemExit(
+                    f"case {case_id} train {path.name} moved from {previous[1]} m at {previous[0]} s "
+                    f"to {current[1]} m at {current[0]} s, more than {max_speed} m/s allows"
+                )
+            if previous is not None:
+                step = current[1] - previous[1]
+                if directions[train]:
+                    step = -step
+                if step < -BACKWARD_TOLERANCE_M:
+                    raise SystemExit(
+                        f"case {case_id} train {path.name} moved from {previous[1]} m at {previous[0]} s "
+                        f"to {current[1]} m at {current[0]} s, against its direction of travel"
+                    )
+            previous = current
+    print(f"PASS case {case_id} trains move at most their maximum speed per step and do not move against their direction of travel")
+
+
+def check_amsterdam_hilversum_occurrences(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """Every run of the service reaches Hilversum before the run ends, one after the other."""
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    duration = json.loads((scene_dir / "scene.json").read_text(encoding="utf-8"))["simulation_settings"]["duration_seconds"]
+    services = json.loads((scene_dir / "services.json").read_text(encoding="utf-8"))["services"]
+    service = next((entry for entry in services if entry["id"] == OCCURRENCE_SERVICE), None)
+    if service is None:
+        raise SystemExit(f"case {case_id} has no service {OCCURRENCE_SERVICE}")
+    count = service["repeat"]["count"]
+    timetable = scene_output_dir(case_id, out_base) / "TrainTrajectories/TimetablePoints.txt"
+    errors = occurrence_errors(timetable.read_text(encoding="utf-8", errors="replace"), duration, service["id"], count)
+    if errors:
+        raise SystemExit(f"case {case_id} occurrences of {service['id']} failed: " + "; ".join(errors))
+    print(f"PASS case {case_id} all {count} occurrences of {service['id']} reach Hvs in order")
+
+
+def check_services_end_at_last_stop(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """Every train that reached its last stop in time leaves it and then the network."""
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    duration = json.loads((scene_dir / "scene.json").read_text(encoding="utf-8"))["simulation_settings"]["duration_seconds"]
+    output_dir = scene_output_dir(case_id, out_base) / "TrainTrajectories"
+    errors = services_not_ended(
+        (output_dir / "TimetablePoints.txt").read_text(encoding="utf-8", errors="replace"),
+        (output_dir / "TrainServicePathDiagram.txt").read_text(encoding="utf-8", errors="replace"),
+        duration,
+    )
+    if errors:
+        raise SystemExit(f"case {case_id} services do not end at their last stop: " + ", ".join(errors))
+    print(f"PASS case {case_id} trains leave their last stop and the network")
+
+
+def blocking_time_records(blocking_text: str) -> int:
+    """Count the section records in BlockingTimes.txt.
+
+    The file holds six lines per train: the train, then the section ids, the start and end positions and the
+    start and end of the occupation, one entry per section record. A section without a signalling level has no record.
+    """
+    lines = blocking_text.splitlines()
+    return sum(len(lines[index].split()) for index in range(1, len(lines), 6))
+
+
+def check_blocking_times(label: str, blocking_times: Path) -> None:
+    """A run of a scene whose route sections all have a signalling level writes section records."""
+    records = blocking_time_records(blocking_times.read_text(encoding="utf-8", errors="replace"))
+    if records == 0:
+        raise SystemExit(f"{label} has no section records in {blocking_times}")
+    print(f"PASS {label} has {records} blocking-time section records")
 
 
 def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
@@ -284,14 +552,12 @@ def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     ]
     trajectory = output_dir / "TrainTrajectories/TrainServicePathDiagram.txt"
     samples = []
+    # A run removes the existing file before writing its rows.
     for line in trajectory.read_text(encoding="utf-8", errors="replace").splitlines():
         cells = line.split("\t")
         if cells[0] != train:
             continue
-        for time_seconds, cell in enumerate(cells[4:]):
-            if cell:
-                samples.append((time_seconds, float(cell)))
-        break
+        samples = [(time_seconds, float(cell)) for time_seconds, cell in enumerate(cells[4:]) if cell]
     if not samples:
         raise SystemExit(f"case {case_id} has no trajectory for baseline train {train}")
     if samples[0][0] != start_time or abs(samples[0][1] - start_position) > 0.1:
@@ -323,19 +589,30 @@ def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
 
 
 def main() -> None:
-    selected = [int(arg) for arg in sys.argv[1:]] or [1, 2, 3, 4, 5, 6]
+    selected = [int(arg) for arg in sys.argv[1:]] or list(SCENES)
     for case_id in selected:
         if case_id in ORIGINAL_CASE_PARITY:
             check_scene_structure(case_id)
+        if case_id == 7:
+            check_scene_matches_netherlands(case_id)
         run_case(case_id)
         check_finite_station_statistics(case_id)
         if case_id in ASSERT_MOVEMENT:
             check_movement(case_id)
+        check_no_position_jump(case_id)
+        if case_id == 7:
+            check_amsterdam_hilversum_occurrences(case_id)
+        if case_id in ASSERT_SERVICES_END:
+            check_services_end_at_last_stop(case_id)
+        if case_id in SIGNALLING_COVERED:
+            check_blocking_times(f"case {case_id}", scene_output_dir(case_id) / "TrainTrajectories/BlockingTimes.txt")
         if case_id in ORIGINAL_CASE_PARITY:
             check_original_case_runtime(case_id)
     for case_id in selected:
         if case_id in ASSERT_STATION_ARRIVALS:
             check_station_arrivals(case_id)
+        if case_id in ASSERT_NO_STATION_DELAYS:
+            check_no_station_delays(case_id)
 
 
 if __name__ == "__main__":

@@ -24,16 +24,16 @@ QT_PARENT_TYPES = {
     "QTreeWidgetItem", "QVBoxLayout", "QValueAxis", "QVariantAnimation", "QWidget",
 }
 CONFIRMED_OBSERVERS = {
-    "EGTRAIN/QEGTRAIN/app/MainWindow.h": {
+    "EGTRAIN/QEGTRAIN/graphics/NetworkPresenter.h": {
         "trainPaxInfoItem",
         "trainPaxItem",
         "paxIconInfoItem",
         "paxIconItem",
     },
-    "EGTRAIN/QEGTRAIN/simulation/Rescheduling.h": {"TDS_arc"},
     "EGTRAIN/QEGTRAIN/simulation/SimulationWorker.h": {"s_active"},
-    "EGTRAIN/QEGTRAIN/widgets/ConsoleWidget.h": {"m_oldCout", "m_oldCerr"},
+    "EGTRAIN/QEGTRAIN/widgets/ConsoleWidget.h": {"m_oldCout", "m_oldCerr", "s_active"},
 }
+RAW_STRING_START = re.compile(r'R"([^\s()\\]{0,16})\(')
 
 
 def clean_cpp_code(content: str) -> str:
@@ -65,10 +65,11 @@ def clean_cpp_code(content: str) -> str:
                 state = "code" if char == quote else state
                 i += 1
         else:
-            raw = re.match(r'R"([^\s()\\]{0,16})\(', content[i:])
+            # Matching at a position keeps the scan linear; a slice per character copied the rest of the file each time.
+            raw = RAW_STRING_START.match(content, i) if char == "R" and following == '"' else None
             if raw:
                 terminator = f'){raw.group(1)}"'
-                end = content.find(terminator, i + raw.end())
+                end = content.find(terminator, raw.end())
                 end = len(content) if end < 0 else end + len(terminator)
                 cleaned.extend("\n" if value == "\n" else " " for value in content[i:end])
                 i = end
@@ -116,7 +117,7 @@ def numeric_constants(files):
         ),
     )
     for path in files:
-        cleaned = clean_cpp_code(path.read_text(errors="replace"))
+        cleaned = clean_cpp_code(path.read_text(encoding="utf-8", errors="replace"))
         for pattern in patterns:
             for name, value in pattern.findall(cleaned):
                 constants[name] = int(value)
@@ -149,8 +150,8 @@ def scan_codebase(repo_root):
 
     for path in files:
         relative = path.relative_to(root).as_posix()
-        original_lines = path.read_text(errors="replace").splitlines()
-        cleaned_lines = clean_cpp_code(path.read_text(errors="replace")).splitlines()
+        original_lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        cleaned_lines = clean_cpp_code(path.read_text(encoding="utf-8", errors="replace")).splitlines()
         observers = CONFIRMED_OBSERVERS.get(relative, set())
         for line_number, (original, cleaned) in enumerate(zip(original_lines, cleaned_lines), 1):
             evidence = (relative, line_number, original.strip())

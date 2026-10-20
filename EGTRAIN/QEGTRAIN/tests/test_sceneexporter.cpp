@@ -1,10 +1,15 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneModel.h"
+#include <cctype>
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <nlohmann/json.hpp>
+#include <map>
 
 namespace fs = std::filesystem;
 
@@ -27,8 +32,7 @@ struct TempDir {
 	TempDir() {
 		static int counter = 0;
 		auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		fs::path temp = fs::temp_directory_path() /
-						("scene_exporter_test_" + std::to_string(stamp) + "_" + std::to_string(counter++));
+		fs::path temp = fs::temp_directory_path() / ("scene_exporter_test_" + std::to_string(stamp) + "_" + std::to_string(counter++));
 		fs::create_directories(temp);
 		dir = temp.string();
 	}
@@ -37,6 +41,27 @@ struct TempDir {
 		fs::remove_all(dir, ec);
 	}
 };
+
+// The file as text, so that the line ends of the platform read as "\n".
+static std::string readText(const fs::path& path) {
+	std::ifstream in(path);
+	return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+}
+
+// A scene with the tracks "main", which becomes legacy track B0, and "B7", and two nodes on "main". The argument is appended to signalling.json.
+static void writeAreaScene(const fs::path& scene, const std::string& signallingAreas) {
+	std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Area Export"})" << "\n";
+	std::ofstream(scene / "infrastructure.json")
+		<< R"({"tracks":[{"id":"main"},{"id":"B7"}],"nodes":[{"id":"n0","track":"main","x_km":0,"y_km":0},{"id":"n1","track":"main","x_km":1,"y_km":0}],"arcs":[],"blocks":[{"id":"block.a","track":"main","length_km":1},{"id":"block.b","track":"B7","length_km":1}]})"
+		<< "\n";
+	std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+	std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"]}])" << signallingAreas << "}\n";
+	std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+	std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+}
+
+// Japanese and Thai characters, as UTF-8. No Windows code page holds both.
+static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
 
 static void printErrors(const std::vector<SceneDiagnostic>& diags, const char* label) {
 	for (const auto& d : diags) {
@@ -51,7 +76,7 @@ int main() {
 	// 6. Minimal fixture scene
 	{
 		TempDir outDir;
-		const std::string fixture = (fs::path(__FILE__).parent_path() / "fixtures/scenes/minimal").string();
+		const std::string fixture = (fs::path(EGTRAIN_TEST_SOURCE_DIR) / "fixtures/scenes/minimal").string();
 		auto res = exportLegacyScene(fixture, outDir.dir);
 		ok &= expect(!res.success(), "Minimal scene export fails");
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.ref"), "scene.export.ref produced");
@@ -84,7 +109,41 @@ int main() {
 		ok &= expect(line == "st\t0\t-1\t0", "nonempty stops export despite historical through flag, retaining absent arrival");
 		ok &= expect(fs::exists(fs::path(outDir.dir) / "TimeTable" / "empty.txt")
 				&& fs::file_size(fs::path(outDir.dir) / "TimeTable" / "empty.txt") == 0,
-				"zero stops export as an empty legacy timetable without a flag");
+			"zero stops export as an empty legacy timetable without a flag");
+	}
+
+	// 7b. A service display colour has no place in the legacy format and is left out of the export.
+	{
+		TempDir sceneDir, outDir;
+		fs::path scene(sceneDir.dir);
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Service Colour"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]]}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","visualization_color":"#3c8dd2","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		printErrors(res.diagnostics, "Service colour export");
+		ok &= expect(res.success(), "export of a service with a colour succeeds");
+		ok &= expect(fs::exists(fs::path(outDir.dir) / "TimeTable" / "svc.txt"), "service with a colour is exported");
+		bool leaked = false;
+		for (const auto& entry : fs::recursive_directory_iterator(outDir.dir)) {
+			if (!entry.is_regular_file())
+				continue;
+			std::ifstream input(entry.path(), std::ios::binary);
+			std::stringstream content;
+			content << input.rdbuf();
+			std::string text = content.str();
+			for (char& character : text)
+				character = static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
+			leaked |= text.find("3c8dd2") != std::string::npos || text.find("visualization") != std::string::npos;
+		}
+		ok &= expect(!leaked, "legacy export does not contain the service colour");
 	}
 
 	// 8. Non-ASCII route ids are not treated as decimal route numbers.
@@ -103,7 +162,7 @@ int main() {
 			<< "\n";
 		std::ofstream services(scene / "services.json");
 		services << R"({"services":[{"id":"svc","composition":"comp","route":")" << nonAsciiRouteId
-			 << R"(","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})" << "\n";
+				 << R"(","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})" << "\n";
 		services.close();
 
 		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
@@ -350,7 +409,7 @@ int main() {
 			std::string line;
 			std::getline(sc, line);
 			ok &= expect(line == "C\t1\t0.64000000000000001\t1\t100",
-						 ("Mirrored C listed first still maps to lon 0.64: " + line).c_str());
+				("Mirrored C listed first still maps to lon 0.64: " + line).c_str());
 		}
 	}
 
@@ -408,19 +467,19 @@ int main() {
 			std::getline(inf, l5);
 			std::getline(inf, l6);
 			ok &= expect(l1 == "signal_failure\t0-B0\t100\t300",
-					("Bound signal exports its protected legacy block: " + l1).c_str());
+				("Bound signal exports its protected legacy block: " + l1).c_str());
 			ok &= expect(l2 == "signal_failure\t0-B0\t301\t302",
-					("Direct canonical block target remains supported: " + l2).c_str());
+				("Direct canonical block target remains supported: " + l2).c_str());
 			ok &= expect(l3 == "signal_failure\t1-B0\t303\t304",
-					("Legacy export maps the exact slash-containing block reference: " + l3).c_str());
+				("Legacy export maps the exact slash-containing block reference: " + l3).c_str());
 			ok &= expect(l4 == "signal_failure\tnope\t1\t2", ("Unmatched target still written: " + l4).c_str());
 			ok &= expect(l5 == "train_breakdown\tlegacy-svc\t25\t35",
-					("Breakdown uses the active operating code: " + l5).c_str());
+				("Breakdown uses the active operating code: " + l5).c_str());
 			ok &= expect(l6.empty(), "Non-default scenario incident is not exported");
 		}
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.adjusted", SceneSeverity::Warning), "Unmatched signal target warned");
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning),
-				"Connection-derived signal target reports the legacy format limit");
+			"Connection-derived signal target reports the legacy format limit");
 
 		std::ofstream(scene / "signalling.json")
 			<< R"({"signals":[{"id":"canonical-block","protected_section":"canonical-other"}],"routes":[{"id":"route0","blocks":["canonical-block","canonical-other"]}]})"
@@ -432,7 +491,7 @@ int main() {
 		auto ambiguous = exportLegacyScene(sceneDir.dir, ambiguousOut.dir);
 		ok &= expect(!ambiguous.success(), "Ambiguous incident export fails");
 		ok &= expect(hasDiag(ambiguous.diagnostics, "scene.ref.ambiguous"),
-				"Ambiguous signal and section target is diagnosed during export");
+			"Ambiguous signal and section target is diagnosed during export");
 		std::ifstream ambiguousIncidents(fs::path(ambiguousOut.dir) / "Incidents.txt");
 		std::string ambiguousLine;
 		std::getline(ambiguousIncidents, ambiguousLine);
@@ -556,10 +615,242 @@ int main() {
 		std::ifstream restriction(fs::path(outDir.dir) / "GUI" / "singleTrackLimits.txt");
 		std::getline(restriction, line);
 		ok &= expect(line == "@0-B0@\t@0-B0@\t@0-B0@-1\t@0-B0@-2",
-				"Restriction uses the generated legacy block ID");
+			"Restriction uses the generated legacy block ID");
 		std::ifstream boundary(fs::path(outDir.dir) / "GUI" / "stationBoundarySections.txt");
 		std::getline(boundary, line);
 		ok &= expect(line == "@0-B0@\t@0-B0@\t1", "Boundary uses the generated legacy block ID");
+	}
+
+	// Canonical areas retain their exact fields in a versioned sidecar, using exported track IDs.
+	{
+		TempDir sceneDir, outDir;
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		const std::string areas = R"([{"id":" Fixed\tblock ","start_km":-0.125,"end_km":10.125,"level":0},{"id":"on-main","start_km":2.5,"end_km":5,"level":2,"track":"main"},{"id":"on-b7","start_km":0,"end_km":10,"level":4,"track":"B7"}])";
+		writeAreaScene(scene, ",\"signalling_areas\":" + areas);
+		const fs::path legacy = scene / "legacy" / "tracklines";
+		fs::create_directories(legacy);
+		std::ofstream(legacy / "egtrainsignallingareas.json") << "stale passthrough\n";
+		std::ofstream(legacy / "areascasestudy.txt") << "Network\t-1\t99\t3\n";
+		fs::create_directories(out / "TrackLines");
+		std::ofstream(out / "TrackLines/EGTRAINSignallingAreas.json") << "stale destination\n";
+		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "Canonical area export succeeds");
+		const fs::path sidecar = out / "TrackLines/EGTRAINSignallingAreas.json";
+		auto expected = nlohmann::json::parse(areas);
+		expected[1]["track"] = "B0";
+		ok &= expect(nlohmann::json::parse(readText(sidecar), nullptr, false)
+				== nlohmann::json({{"format_version", 1}, {"signalling_areas", expected}}),
+			"Sidecar retains whitespace IDs, order, exact bounds, levels and mapped scopes");
+		ok &= expect(!std::any_of(fs::directory_iterator(out / "TrackLines"), fs::directory_iterator(), [](const auto& entry) { return entry.path().filename() == "egtrainsignallingareas.json"; }), "Case-insensitive passthrough sidecar is reserved");
+		ok &= expect(readText(out / "TrackLines/AreasCaseStudy.txt") == "_Fixed_block_\t-0.125\t10.125\t0\non-main\t2.5\t5\t2\t0\non-b7\t0\t10\t4\t7\n",
+			"TXT remains legacy compatibility output");
+		ok &= expect(readText(legacy / "egtrainsignallingareas.json") == "stale passthrough\n"
+				&& readText(legacy / "areascasestudy.txt") == "Network\t-1\t99\t3\n",
+			"Passthrough sources are untouched");
+
+		writeAreaScene(scene, "");
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success() && !fs::exists(out / "TrackLines/AreasCaseStudy.txt") && !fs::exists(out / "TrackLines/areascasestudy.txt"), "Empty re-export removes stale TXT");
+		ok &= expect(nlohmann::json::parse(readText(sidecar), nullptr, false)
+				== nlohmann::json({{"format_version", 1}, {"signalling_areas", nlohmann::json::array()}}),
+			"Empty re-export publishes empty assignment");
+		TempDir freshOut;
+		res = exportLegacyScene(sceneDir.dir, freshOut.dir);
+		ok &= expect(res.success() && !fs::exists(fs::path(freshOut.dir) / "TrackLines/AreasCaseStudy.txt") && !fs::exists(fs::path(freshOut.dir) / "TrackLines/areascasestudy.txt"), "Empty export removes copied legacy TXT");
+
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"],"corridor":"bad\tcorridor"}]})";
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && !fs::exists(sidecar), "Late compatibility failure cannot copy authoritative passthrough metadata");
+
+		// A compatibility error must leave no sidecar that a subsequent importer could recognise.
+		std::ofstream(sidecar) << "stale destination\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":[]},{"id":"other","blocks":[]}]})";
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && !fs::exists(sidecar), "Failed compatibility export removes stale sidecar and publishes none");
+
+		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"ghost","start_km":0,"end_km":1,"level":1,"track":"missing"}])");
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.ref.unresolved") && !fs::exists(sidecar), "Unmappable canonical area fails export");
+		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"bad","start_km":1,"end_km":0,"level":2}])");
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.signalling_area.range") && !fs::exists(sidecar), "Export reuses native area validation");
+
+		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"large-track","start_km":0,"end_km":1,"level":1,"track":"B999999999999999999999"}])");
+		std::string infrastructure = readText(scene / "infrastructure.json");
+		infrastructure.replace(infrastructure.find("B7"), 2, "B999999999999999999999");
+		std::ofstream(scene / "infrastructure.json") << infrastructure;
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.export.ref") && !fs::exists(sidecar), "Unreconstructible exported track scope fails export");
+
+		writeAreaScene(scene, "");
+		fs::remove(sidecar);
+		fs::create_directories(sidecar);
+		std::ofstream(sidecar / "blocked") << "keep\n";
+		std::ofstream(out / "trainNames.txt") << "untouched\n";
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && readText(out / "trainNames.txt") == "untouched\n"
+				&& readText(sidecar / "blocked") == "keep\n",
+			"Unremovable stale sidecar fails before compatibility mutation");
+	}
+
+	// Marked conversion refuses every noncanonical candidate, even without scoped areas.
+	for (int variant : {0, 1, 2, 3, 4, 5}) {
+		TempDir sourceDir, outDir;
+		const fs::path source(sourceDir.dir), out(outDir.dir);
+		writeAreaScene(source, "");
+		auto infrastructure = nlohmann::json::parse(readText(source / "infrastructure.json"));
+		auto signalling = nlohmann::json::parse(readText(source / "signalling.json"));
+		if (variant < 4) {
+			infrastructure["tracks"][0]["id"] = "B07";
+			for (const auto& category : {"nodes", "blocks"})
+				for (auto& item : infrastructure[category])
+					if (item["track"] == "main") item["track"] = "B07";
+			// The lone alias has an actual route reference, not just an area.
+			if (variant == 0) {
+				infrastructure["tracks"].erase(1);
+				infrastructure["blocks"].erase(1);
+			}
+			signalling["signalling_areas"] = nlohmann::json::array();
+			if (variant < 3) signalling["signalling_areas"].push_back({{"id", "seven"}, {"start_km", 0}, {"end_km", 1}, {"level", 2}, {"track", variant == 2 ? "B7" : "B07"}});
+			if (variant == 1) signalling["signalling_areas"].push_back({{"id", "other"}, {"start_km", 0}, {"end_km", 1}, {"level", 2}, {"track", "B7"}});
+			std::ofstream(source / "infrastructure.json") << infrastructure.dump();
+			std::ofstream(source / "signalling.json") << signalling.dump();
+		} else {
+			const fs::path alias = (variant == 4 ? out : source / "legacy") / "TrackLines/B07";
+			fs::create_directories(alias);
+			std::ofstream(alias / "NodiCumPari.txt") << "0 0 0\n1 1 0\n";
+		}
+		fs::create_directories(out / "TrackLines");
+		std::ofstream(out / "TrackLines/EGTRAINSignallingAreas.json") << "stale\n";
+		const auto exported = exportLegacyScene(sourceDir.dir, outDir.dir);
+		ok &= expect(!exported.success() && hasDiag(exported.diagnostics, "scene.export.ref")
+				&& !fs::exists(out / "TrackLines/EGTRAINSignallingAreas.json"),
+			"Noncanonical track mapping, unscoped alias, reused output and passthrough alias refuse authoritative export");
+	}
+
+	// Reject overlap before cleanup, including resolved source and passthrough aliases.
+	const auto snapshot = [](const fs::path& root) {
+		std::map<std::string, std::string> files;
+		for (const auto& entry : fs::recursive_directory_iterator(root)) {
+			if (!entry.is_regular_file()) continue;
+			std::ifstream input(entry.path(), std::ios::binary);
+			files.emplace(entry.path().lexically_relative(root).string(), std::string(std::istreambuf_iterator<char>(input), {}));
+		}
+		return files;
+	};
+	for (int variant : {0, 1, 2, 3, 4, 5, 6}) {
+		TempDir rootDir;
+		const fs::path root(rootDir.dir), source = root / "source", outside = root / "passthrough";
+		fs::create_directories(source);
+		writeAreaScene(source, "");
+		fs::path passthrough = source / "legacy";
+		std::error_code ec;
+		if (variant == 6) {
+			fs::create_directories(outside);
+			fs::create_directory_symlink(outside, passthrough, ec);
+		} else fs::create_directories(passthrough);
+		if (ec) {
+			std::cout << "skip unsupported passthrough symlink: " << ec.message() << "\n";
+			continue;
+		}
+		fs::create_directories(passthrough / "TrackLines");
+		std::ofstream(passthrough / "TrackLines/AreasCaseStudy.txt") << "original TXT\n";
+		std::ofstream(passthrough / "TrackLines/EGTRAINSignallingAreas.json") << "original sidecar\n";
+		fs::path out;
+		if (variant == 0) out = passthrough;
+		if (variant == 1) out = source;
+		if (variant == 2) out = root;
+		if (variant == 3) out = source / "missing/output";
+		if (variant == 4) {
+			out = root / "alias";
+			fs::create_directory_symlink(passthrough, out, ec);
+		}
+		if (variant == 5) {
+			out = root / "destination";
+			fs::create_directories(out);
+			fs::create_directory_symlink(passthrough / "TrackLines", out / "tracklines", ec);
+		}
+		if (variant == 6) out = outside / "missing/output";
+		if (ec) {
+			std::cout << "skip unsupported output symlink: " << ec.message() << "\n";
+			continue;
+		}
+		const auto sourceBefore = snapshot(source), passthroughBefore = snapshot(passthrough);
+		const auto exported = exportLegacyScene(source.string(), out.string());
+		ok &= expect(!exported.success() && hasDiag(exported.diagnostics, "scene.export.path")
+				&& snapshot(source) == sourceBefore && snapshot(passthrough) == passthroughBefore,
+			"Overlap rejection preserves all canonical and passthrough paths and bytes before cleanup");
+	}
+	{
+		TempDir rootDir;
+		const fs::path source = fs::path(rootDir.dir) / "source", out = fs::path(rootDir.dir) / "sibling/missing/output";
+		fs::create_directories(source);
+		writeAreaScene(source, "");
+		const auto before = snapshot(source);
+		ok &= expect(exportLegacyScene(source.string(), out.string()).success() && snapshot(source) == before,
+			"Non-overlapping sibling export supports missing destination leaves and preserves source bytes");
+	}
+
+	// A scene directory, an export destination, the legacy data below the scene and the source files of a train unit,
+	// all with Unicode names.
+	{
+		TempDir rootDir;
+		const fs::path scene = fs::path(rootDir.dir) / fs::u8path(kUnicodeName);
+		const fs::path out = fs::path(rootDir.dir) / fs::u8path("export-" + kUnicodeName);
+		fs::create_directories(scene / "legacy");
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Unicode Export"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]],"source":{"data_file":"/)"
+			<< kUnicodeName << R"(.dat","traction_file":"/)" << kUnicodeName << R"(-effort.dat"}}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+		std::ofstream(scene / "legacy" / fs::u8path(kUnicodeName + ".txt")) << "passthrough\n";
+
+		const auto res = exportLegacyScene(scene.u8string(), out.u8string());
+		printErrors(res.diagnostics, "Unicode export");
+		ok &= expect(res.success(), "export from a scene directory with a Unicode name to a destination with a Unicode name succeeds");
+		ok &= expect(fs::is_regular_file(out / "Routes" / "Route0.txt") && fs::is_regular_file(out / "TimeTable" / "svc.txt"),
+			"export into a destination with a Unicode name writes its files");
+		ok &= expect(fs::is_regular_file(out / "TrainData" / fs::u8path(kUnicodeName + ".dat"))
+				&& fs::is_regular_file(out / "TrainData" / fs::u8path(kUnicodeName + "-effort.dat")),
+			"train data files with Unicode names are exported under those names");
+		ok &= expect(fs::is_regular_file(out / fs::u8path(kUnicodeName + ".txt")),
+			"legacy data with a Unicode name is copied");
+	}
+
+	// The layout and the settings of a scene with views come from the scene, not from the track lines.
+	{
+		TempDir sceneDir, outDir;
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		writeAreaScene(scene, "");
+		const std::string settings = R"("base_time":"07:10:40","simulation_settings":{"duration_seconds":9000,"buffer_time_seconds":0,"recovery_time_percent":0})";
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Layout Export",)" << settings << "}\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "views.json")
+			<< R"({"tracks":[{"track":"main","level":2,"region":3},{"track":"B7","level":1,"region":0,"visible":false}],"stations":[{"station":"st","latitude":52.5,"longitude":0.125,"regions":[{"id":3,"position_km":1.5},{"id":4,"position_km":2}],"corridors":["A","B,C"]}]})"
+			<< "\n";
+		const auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "Export of a scene with views succeeds");
+		ok &= expect(readText(out / "GUI/StationsCoord.txt") == "Station\t52.5\t0.125\t3,4\t1.5,2\tA\n",
+			"Station layout is written from the views with latitude, regions and corridors");
+		ok &= expect(readText(out / "GUI/caseStudyTrackData.txt") == "0\t2\t3\n7\t1\t0\n", "Track level and region are written from the views");
+		ok &= expect(readText(out / "GUI/unusedTracks.txt") == "7\n", "Hidden tracks are listed");
+		ok &= expect(std::count_if(res.diagnostics.begin(), res.diagnostics.end(),
+						 [](const SceneDiagnostic& d) { return d.code == "scene.export.compatibility" && d.severity == SceneSeverity::Warning; })
+				== 1,
+			"A corridor that the text file cannot hold is reported once");
+		ok &= expect(nlohmann::json::parse(readText(out / "EGTRAINInitialParameters.json"), nullptr, false)
+				== nlohmann::json::parse(R"({"format_version":1,)" + settings + "}"),
+			"Base time and simulation settings are written to the sidecar");
+
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Layout Export"})" << "\n";
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && !fs::exists(out / "EGTRAINInitialParameters.json"),
+			"A scene without settings removes a stale sidecar");
 	}
 
 	if (!ok)

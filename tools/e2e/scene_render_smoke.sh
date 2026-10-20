@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 OUT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.log"
 SHOT="${TMPDIR:-/tmp}/qegtrain-scene-render-e2e.png"
 
@@ -18,10 +18,15 @@ else
 fi
 
 rm -f "$SHOT"
+# The check turns Show Passengers on and off, which the program remembers in its settings.
+SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-scene-render-settings.XXXXXX")"
+trap 'rm -rf "$SETTINGS_DIR"' EXIT
 cd "$ROOT/EGTRAIN/QEGTRAIN"
+QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR" \
 QEGTRAIN_E2E_SCENE_RUN=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
 QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
+QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
 "$APP" --scene "$SCENE" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$OUT" 2>&1 &
 APP_PID=$!
 
@@ -38,6 +43,30 @@ while kill -0 "$APP_PID" 2>/dev/null; do
 	sleep 2
 done
 
-grep -q "E2E_SCENE_RENDER_OK" "$OUT"
-test -s "$SHOT"
+fail_render() {
+	echo "scene render e2e failed: $1" >&2
+	echo "--- log tail ---" >&2
+	tail -20 "$OUT" >&2
+	exit 1
+}
+
+grep -q "E2E_SCENE_RENDER_OK" "$OUT" || fail_render "E2E_SCENE_RENDER_OK is missing"
+# Before the run, Follow is off and says why. The default scene has services, so the case has to run
+# first; a scene given on the command line can also be one without trains.
+if [[ $# -gt 0 ]]; then
+	grep -Eq "E2E_FOLLOW_NO_(RUN|SERVICES)_OK" "$OUT" || fail_render "E2E_FOLLOW_NO_RUN_OK or E2E_FOLLOW_NO_SERVICES_OK is missing"
+else
+	grep -q "E2E_FOLLOW_NO_RUN_OK" "$OUT" || fail_render "E2E_FOLLOW_NO_RUN_OK is missing"
+fi
+# Show Passengers is disabled for a case without passengers, and turns the passenger display off and on for one with passengers.
+if [[ -f "$SCENE/passengers.json" ]]; then
+	grep -q "E2E_PASSENGERS_TOGGLE_OK" "$OUT" || fail_render "E2E_PASSENGERS_TOGGLE_OK is missing"
+else
+	grep -q "E2E_PASSENGERS_DISABLED_OK" "$OUT" || fail_render "E2E_PASSENGERS_DISABLED_OK is missing"
+fi
+test -s "$SHOT" || fail_render "no screenshot at $SHOT"
 echo "scene render e2e passed: $SHOT"
+# The default scene has no passengers; the one with passengers runs next.
+if [[ $# -eq 0 ]]; then
+	bash "$ROOT/tools/e2e/scene_render_smoke.sh" "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"
+fi

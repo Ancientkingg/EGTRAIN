@@ -1,8 +1,57 @@
 #include "simulation/Passengers.h"
 #include <algorithm>
 
-list<Passenger> AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
-int numAllDailyPassengers = 0;		// This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
+using namespace std;
+
+void PassengerIndex::build(list<Passenger>& passengers) {
+	clear();
+	source_ = &passengers;
+	count_ = passengers.size();
+	for (Passenger& passenger : passengers)
+		byId_[passenger.ID].push_back(&passenger);
+}
+
+void PassengerIndex::clear() {
+	source_ = nullptr;
+	count_ = 0;
+	byId_.clear();
+}
+
+bool PassengerIndex::covers(const list<Passenger>& passengers) const {
+	return source_ == &passengers && count_ == passengers.size();
+}
+
+const vector<Passenger*>& PassengerIndex::find(const string& id) const {
+	static const vector<Passenger*> none;
+	const auto match = byId_.find(id);
+	return match == byId_.end() ? none : match->second;
+}
+
+void PlatformIndex::build(const list<StationPlatform>& platforms) {
+	clear();
+	source_ = &platforms;
+	count_ = platforms.size();
+	for (const StationPlatform& platform : platforms)
+		byId_[platform.StationID].emplace(platform.ID, &platform);
+}
+
+void PlatformIndex::clear() {
+	source_ = nullptr;
+	count_ = 0;
+	byId_.clear();
+}
+
+bool PlatformIndex::covers(const list<StationPlatform>& platforms) const {
+	return source_ == &platforms && count_ == platforms.size();
+}
+
+const StationPlatform* PlatformIndex::find(const string& stationId, const string& platformId) const {
+	const auto station = byId_.find(stationId);
+	if (station == byId_.end())
+		return nullptr;
+	const auto platform = station->second.find(platformId);
+	return platform == station->second.end() ? nullptr : platform->second;
+}
 
 nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timestep) {
 	nlohmann::json payload = {{"passengers", nlohmann::json::object()}, {"time", timestep}};
@@ -10,7 +59,7 @@ nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timeste
 		if (!passenger.IsIntheNetwork)
 			continue;
 		const auto journey = std::find_if(passenger.Journeys.begin(), passenger.Journeys.end(),
-				[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
+			[&passenger](const Journey& value) { return value.ID == passenger.current_JourneyID; });
 		if (journey == passenger.Journeys.end())
 			continue;
 		payload["passengers"][passenger.ID + "--1.0"] = {
@@ -21,7 +70,7 @@ nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timeste
 	return payload;
 }
 
-void printCurrentPassengerStatus(int t, int StartSimulationTime, list<Passenger> ALLPAX, string MainFolder) {
+void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Passenger>& ALLPAX, string MainFolder) {
 	string FileName;
 
 	FileName = FileName + MainFolder + "/PassengerStatus.txt";
@@ -31,7 +80,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, list<Passenger>
 	OutputFile << "Time PaxID IsInNetwork JourneyID TripID CurrentStatus CurrentWaitingStationID CurrentWaitingPlatformID CurrentWaitingTrain CurrentBoardedTrain CurrentArrivalStation\n";
 
 	if (ALLPAX.empty() != 1) {
-		for (list<Passenger>::iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
+		for (list<Passenger>::const_iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
 			if (p->IsIntheNetwork == 1) {
 				OutputFile << (t + StartSimulationTime) << " " << p->ID << " " << p->IsIntheNetwork << " " << p->current_JourneyID << " " << p->current_TripID << " " << p->CurrentStatus << " " << p->Current_WaitingStationID << " " << p->Current_WaitingStationPlatformID << " " << p->Current_Train_To_Wait << " " << p->Current_Train_Boarded << " " << p->Current_Arrival_Station << "\n";
 			}
@@ -41,7 +90,7 @@ void printCurrentPassengerStatus(int t, int StartSimulationTime, list<Passenger>
 }
 
 // Function to print the delay of all completed journeys for all passengers.
-void printPassengerTotalJourneyDelay(list<Passenger> ALLPAX, string MainFolder) {
+void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainFolder) {
 	string FileName;
 
 	FileName = FileName + MainFolder + "/JourneyDelays.txt";
@@ -51,8 +100,8 @@ void printPassengerTotalJourneyDelay(list<Passenger> ALLPAX, string MainFolder) 
 	OutputFile << "PaxID JourneyID TotalArrivalDelay[s]\n";
 
 	if (ALLPAX.empty() != 1) {
-		for (list<Passenger>::iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
-			for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
+		for (list<Passenger>::const_iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
+			for (list<Journey>::const_iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
 				if (j->IsJourneyCompleted == 1) {
 					OutputFile << p->ID << " " << j->ID << " " << j->totalJourneyArrivalDelay << "\n";
 				} else {

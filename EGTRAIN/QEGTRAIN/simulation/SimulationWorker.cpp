@@ -3,12 +3,13 @@
 #include <thread>
 #include <chrono>
 
-extern DispatchController simulation;
-
 SimulationWorker* SimulationWorker::s_active = nullptr;
 
 SimulationWorker::SimulationWorker(QObject* parent)
-	: QObject(parent) {
+	: SimulationWorker(simulation, parent) {}
+
+SimulationWorker::SimulationWorker(DispatchController& controller, QObject* parent)
+	: QObject(parent), m_controller(controller) {
 	s_active = this;
 }
 
@@ -19,27 +20,25 @@ SimulationWorker::~SimulationWorker() {
 
 void SimulationWorker::run() {
 	emit simulationStarted();
-	m_stop = false;
-	m_pause = false;
-	// m_delayMs is intentionally NOT reset here so the slider value set
-	// before clicking Start is preserved (see MainWindow::startSimulation).
-	simulation.runSimulation();
+	// Each run uses a new worker, so a stop or pause requested before or during
+	// simulationStarted is kept. The delay keeps the slider value set before
+	// clicking Start (see RunController::startSimulation).
+	m_controller.runSimulation();
 	emit simulationFinished();
 }
 
 void SimulationWorker::requestStop() {
-	m_stop = true;
-	m_pause = false; // unpause so the worker thread can see the stop flag
+	m_control->requestStop();
 }
 
 void SimulationWorker::requestPause() {
-	m_pause = true;
+	m_control->requestPause();
 }
 
 void SimulationWorker::requestResume() {
-	m_pause = false;
+	m_control->requestResume();
 }
 
 void SimulationWorker::setDelayMs(int ms) {
-	m_delayMs = ms;
+	m_control->setDelayMs(ms);
 }

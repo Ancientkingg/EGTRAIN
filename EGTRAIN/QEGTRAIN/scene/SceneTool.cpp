@@ -1,5 +1,6 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneBundle.h"
+#include "scene/SceneCompatibility.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneModel.h"
@@ -35,6 +36,15 @@ static void printDiags(const std::vector<SceneDiagnostic>& diags) {
 	}
 }
 
+// Prints why a scene of another version or layout is not read and returns true. Any other scene is left to the loader.
+static bool printVersionRejection(const std::string& path) {
+	const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(path);
+	if (!isRejectedForVersion(compatibility))
+		return false;
+	printDiags(compatibility.diagnostics);
+	return true;
+}
+
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage:\n"
@@ -42,7 +52,7 @@ int main(int argc, char** argv) {
 				  << "  scene_tool pack <scene-directory> <output.egscene>\n"
 				  << "  scene_tool unpack <input.egscene> <output-directory>\n"
 				  << "  scene_tool export <scene-path> <outDir>\n"
-				  << "  scene_tool validate <scene-path>\n";
+				  << "  scene_tool validate [--runnable] <scene-path>\n";
 		return 1;
 	}
 
@@ -75,6 +85,8 @@ int main(int argc, char** argv) {
 			std::cerr << "Usage: scene_tool pack <scene-directory> <output.egscene>\n";
 			return 1;
 		}
+		if (printVersionRejection(argv[2]))
+			return 1;
 		const SceneLoadResult loaded = loadScene(argv[2]);
 		printDiags(loaded.diagnostics);
 		if (hasErrors(loaded.diagnostics))
@@ -101,14 +113,18 @@ int main(int argc, char** argv) {
 		printDiags(res.diagnostics);
 		return res.success() ? 0 : 1;
 	} else if (cmd == "validate") {
-		if (argc < 3) {
-			std::cerr << "Usage: scene_tool validate <scene-path>\n";
+		const bool runnable = argc >= 3 && std::string(argv[2]) == "--runnable";
+		const int pathIndex = runnable ? 3 : 2;
+		if (argc <= pathIndex) {
+			std::cerr << "Usage: scene_tool validate [--runnable] <scene-path>\n";
 			return 1;
 		}
-		const SceneLoadResult loaded = loadScenePath(argv[2]);
+		if (printVersionRejection(argv[pathIndex]))
+			return 1;
+		const SceneLoadResult loaded = loadScenePath(argv[pathIndex]);
 		auto diags = loaded.diagnostics;
 		if (!hasErrors(diags)) {
-			const auto semantic = validateScene(loaded.scene);
+			const auto semantic = runnable ? validateRunnableScene(loaded.scene) : validateScene(loaded.scene);
 			diags.insert(diags.end(), semantic.begin(), semantic.end());
 		}
 		printDiags(diags);

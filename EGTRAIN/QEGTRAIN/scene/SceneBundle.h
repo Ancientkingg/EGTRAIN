@@ -24,7 +24,7 @@ SceneBundleProbeResult probeSceneBundle(const std::string& bundlePath);
 // Migration uses the same hostile-archive checks and extracts a safe older
 // layout into a caller-owned staging directory for an explicit migration step.
 SceneSaveResult extractSceneBundleForMigration(const std::string& bundlePath,
-		const std::string& destinationDirectory);
+	const std::string& destinationDirectory);
 
 SceneLoadResult loadSceneBundle(const std::string& bundlePath);
 SceneLoadResult loadScenePath(const std::string& path);

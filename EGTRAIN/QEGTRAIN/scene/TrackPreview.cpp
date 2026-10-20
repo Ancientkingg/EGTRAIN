@@ -15,30 +15,32 @@ namespace {
 constexpr double kVirtualSwitchSpanKm = 0.030;
 constexpr double kVirtualSwitchToleranceKm = 0.0001;
 constexpr double kGeographicTrackSeparation = 0.0006;
+// Measured historical projection-time width was 100 in all three reference cases.
+// This fixed convention is independent of the current widget and Fit transform.
+constexpr double kHistoricalDegreeUnits = 800000.0 * 100.0 / 360.0;
 constexpr double kPi = 3.14159265358979323846;
 
 bool mapPreviewX(double rawX, const std::vector<std::pair<double, double>>& anchors,
-		double& displayX) {
+	double& displayX) {
 	if (anchors.size() < 2)
 		return false;
 
 	const auto right = std::upper_bound(anchors.begin(), anchors.end(), rawX,
-			[](double value, const auto& anchor) { return value < anchor.first; });
+		[](double value, const auto& anchor) { return value < anchor.first; });
 	const auto left = right == anchors.begin() ? anchors.begin()
-			: (right == anchors.end() ? right - 2 : right - 1);
+											   : (right == anchors.end() ? right - 2 : right - 1);
 	const auto next = right == anchors.begin() ? right + 1
-			: (right == anchors.end() ? right - 1 : right);
+											   : (right == anchors.end() ? right - 1 : right);
 	const double span = next->first - left->first;
 	if (!(span > 0.0))
 		return false;
-	displayX = left->second + (rawX - left->first)
-			* (next->second - left->second) / span;
+	displayX = left->second + (rawX - left->first) * (next->second - left->second) / span;
 	return std::isfinite(displayX);
 }
 
 void addTrackLine(const SceneModel& scene, const SceneTrack& source,
-		const std::unordered_map<std::string, const SceneNode*>& nodesById,
-		TrackPreviewResult& result) {
+	const std::unordered_map<std::string, const SceneNode*>& nodesById,
+	TrackPreviewResult& result) {
 	std::vector<const SceneNode*> nodes;
 	for (const auto& node : scene.nodes)
 		if (node.trackId == source.id)
@@ -95,7 +97,7 @@ void addTrackLine(const SceneModel& scene, const SceneTrack& source,
 }
 
 bool legacyDoubleSwitchTrack(const SceneModel& scene, const std::string& trackId,
-		double& firstX, double& lastX) {
+	double& firstX, double& lastX) {
 	std::size_t arcCount = 0;
 	bool hasNode = false;
 	firstX = std::numeric_limits<double>::infinity();
@@ -111,7 +113,7 @@ bool legacyDoubleSwitchTrack(const SceneModel& scene, const std::string& trackId
 		lastX = std::max(lastX, node.xKm);
 	}
 	return arcCount == 3 && hasNode
-			&& std::fabs(lastX - firstX - kVirtualSwitchSpanKm) < kVirtualSwitchToleranceKm;
+		&& std::fabs(lastX - firstX - kVirtualSwitchSpanKm) < kVirtualSwitchToleranceKm;
 }
 
 } // namespace
@@ -125,7 +127,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 
 	for (const auto& track : scene.tracks) {
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
-				[&track](const SceneTrackView& candidate) { return candidate.trackId == track.id; });
+			[&track](const SceneTrackView& candidate) { return candidate.trackId == track.id; });
 		if (view == scene.trackViews.end() || view->visible)
 			addTrackLine(scene, track, nodesById, result);
 	}
@@ -145,7 +147,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		}
 		if (std::isfinite(minX) && std::fabs(maxY - minY) <= 1e-9) {
 			const double step = (maxX - minX) * 0.2
-					/ static_cast<double>(result.lines.size() - 1);
+				/ static_cast<double>(result.lines.size() - 1);
 			const double middle = static_cast<double>(result.lines.size() - 1) / 2.0;
 			for (std::size_t index = 0; index < result.lines.size(); ++index)
 				result.lines[index].displayOffset = (static_cast<double>(index) - middle) * step;
@@ -153,7 +155,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	}
 	for (auto& line : result.lines) {
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
-				[&line](const SceneTrackView& candidate) { return candidate.trackId == line.id; });
+			[&line](const SceneTrackView& candidate) { return candidate.trackId == line.id; });
 		if (view != scene.trackViews.end()) {
 			line.displayOffset = static_cast<double>(view->level) * 0.015;
 
@@ -165,13 +167,14 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					if (region.first != view->region)
 						continue;
 					if (!std::isfinite(station.latitude) || station.latitude <= -90.0
-							|| station.latitude >= 90.0 || !std::isfinite(station.longitude)
-							|| !std::isfinite(region.second)) {
+						|| station.latitude >= 90.0 || !std::isfinite(station.longitude)
+						|| !std::isfinite(region.second)) {
 						valid = false;
 						break;
 					}
 					const double displayY = -std::log(std::tan(kPi / 4.0
-							+ station.latitude * kPi / 360.0)) * 180.0 / kPi;
+												+ station.latitude * kPi / 360.0))
+						* 180.0 / kPi;
 					if (!std::isfinite(displayY)) {
 						valid = false;
 						break;
@@ -203,17 +206,17 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 				uniqueYAnchors.push_back(anchor);
 			}
 			const bool schematicLayout = valid && uniqueYAnchors.size() >= 2
-					&& std::all_of(uniqueYAnchors.begin() + 1, uniqueYAnchors.end(),
-							[&uniqueYAnchors](const auto& anchor) {
-								return std::fabs(anchor.second - uniqueYAnchors.front().second) <= 1e-9;
-							});
+				&& std::all_of(uniqueYAnchors.begin() + 1, uniqueYAnchors.end(),
+					[&uniqueYAnchors](const auto& anchor) {
+						return std::fabs(anchor.second - uniqueYAnchors.front().second) <= 1e-9;
+					});
 			if (schematicLayout && uniqueXAnchors.size() >= 2) {
 				std::vector<double> displayXs;
 				displayXs.reserve(line.points.size());
 				for (const auto& point : line.points) {
 					double displayX = 0.0;
 					if (!std::isfinite(point.rawX)
-							|| !mapPreviewX(point.rawX, uniqueXAnchors, displayX)) {
+						|| !mapPreviewX(point.rawX, uniqueXAnchors, displayX)) {
 						valid = false;
 						break;
 					}
@@ -222,15 +225,16 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 				if (valid) {
 					for (std::size_t index = 0; index < line.points.size(); ++index)
 						line.points[index].x = displayXs[index];
-					line.displayOffset *= 8.0 * std::fabs((uniqueXAnchors.back().second
-							- uniqueXAnchors.front().second) / (uniqueXAnchors.back().first
-							- uniqueXAnchors.front().first));
+					line.authoredStationProjection = true;
+					line.displayOffset *= 8.0
+						* std::fabs((uniqueXAnchors.back().second - uniqueXAnchors.front().second)
+							/ (uniqueXAnchors.back().first - uniqueXAnchors.front().first));
 				}
 				continue;
 			}
 			if (valid && uniqueXAnchors.size() >= 2 && uniqueYAnchors.size() >= 2) {
 				const double separation = static_cast<double>(view->level)
-						* kGeographicTrackSeparation;
+					* kGeographicTrackSeparation;
 				for (std::size_t index = 0; index < uniqueXAnchors.size(); ++index) {
 					const std::size_t previous = index == 0 ? 0 : index - 1;
 					const std::size_t next = index + 1 == uniqueXAnchors.size() ? index : index + 1;
@@ -252,8 +256,8 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					double displayX = 0.0;
 					double displayY = 0.0;
 					if (!std::isfinite(point.rawX)
-							|| !mapPreviewX(point.rawX, uniqueXAnchors, displayX)
-							|| !mapPreviewX(point.rawX, uniqueYAnchors, displayY)) {
+						|| !mapPreviewX(point.rawX, uniqueXAnchors, displayX)
+						|| !mapPreviewX(point.rawX, uniqueYAnchors, displayY)) {
 						valid = false;
 						break;
 					}
@@ -261,6 +265,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 				}
 				if (valid) {
 					line.displayOffset = 0.0;
+					line.authoredStationProjection = true;
 					for (std::size_t index = 0; index < line.points.size(); ++index) {
 						line.points[index].x = displayPoints[index].first;
 						line.points[index].y = displayPoints[index].second;
@@ -272,7 +277,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 
 	const auto visibleTrack = [&result](const std::string& id) {
 		return std::any_of(result.lines.begin(), result.lines.end(),
-				[&id](const TrackPreviewLine& line) { return line.id == id; });
+			[&id](const TrackPreviewLine& line) { return line.id == id; });
 	};
 	for (const auto& connection : scene.connections) {
 		const auto first = nodesById.find(connection.fromNodeId);
@@ -284,6 +289,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		if (!visibleTrack(first->second->trackId) || !visibleTrack(second->second->trackId))
 			continue;
 		TrackPreviewConnection preview;
+		preview.id = connection.id;
 		preview.firstTrackId = first->second->trackId;
 		preview.firstNodeId = first->second->id;
 		preview.secondTrackId = second->second->trackId;
@@ -317,25 +323,26 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	std::unordered_map<std::string, std::pair<double, double>> virtualSwitches;
 	for (const auto& section : sectionInventory.sections) {
 		if (section.connectionDerived || section.firstTrackId.empty()
-				|| !visibleTrack(section.firstTrackId)
-				|| seenTracks.insert(section.firstTrackId).second)
+			|| !visibleTrack(section.firstTrackId)
+			|| seenTracks.insert(section.firstTrackId).second)
 			continue; // The first base section has no runtime signal.
 
 		double firstX = 0.0;
 		double lastX = 0.0;
 		const auto virtualSwitch = virtualSwitches.emplace(section.firstTrackId,
-				std::make_pair(firstX, lastX));
+			std::make_pair(firstX, lastX));
 		if (virtualSwitch.second
-				&& !legacyDoubleSwitchTrack(scene, section.firstTrackId, firstX, lastX))
+			&& !legacyDoubleSwitchTrack(scene, section.firstTrackId, firstX, lastX))
 			virtualSwitches.erase(virtualSwitch.first);
 		else if (virtualSwitch.second)
 			virtualSwitch.first->second = {firstX, lastX};
 
 		if (virtualSwitches.count(section.firstTrackId) != 0
-				&& std::fabs(section.startKm
-						- (virtualSwitches.at(section.firstTrackId).first
-							+ virtualSwitches.at(section.firstTrackId).second) / 2.0)
-					< kVirtualSwitchToleranceKm)
+			&& std::fabs(section.startKm
+				   - (virtualSwitches.at(section.firstTrackId).first
+						 + virtualSwitches.at(section.firstTrackId).second)
+					   / 2.0)
+				< kVirtualSwitchToleranceKm)
 			continue;
 		result.previewSignals.push_back({section.firstTrackId, section.id,
 			section.startNodeId, section.startKm});
@@ -347,7 +354,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 }
 
 bool trackPreviewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId,
-		TrackPreviewPoint& point) {
+	TrackPreviewPoint& point) {
 	for (const auto& candidate : line.points) {
 		if (candidate.nodeId == nodeId) {
 			point = candidate;
@@ -358,7 +365,7 @@ bool trackPreviewPointAtNode(const TrackPreviewLine& line, const std::string& no
 }
 
 bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
-		TrackPreviewPoint& point) {
+	TrackPreviewPoint& point) {
 	if (line.points.empty() || !std::isfinite(rawX))
 		return false;
 
@@ -366,7 +373,7 @@ bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
 		const auto& first = line.points[index - 1];
 		const auto& second = line.points[index];
 		if (rawX < std::min(first.rawX, second.rawX)
-				|| rawX > std::max(first.rawX, second.rawX))
+			|| rawX > std::max(first.rawX, second.rawX))
 			continue;
 		const double span = second.rawX - first.rawX;
 		const double ratio = span == 0.0 ? 0.0 : (rawX - first.rawX) / span;
@@ -379,27 +386,39 @@ bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
 	}
 
 	const auto closest = std::min_element(line.points.begin(), line.points.end(),
-			[rawX](const auto& left, const auto& right) {
-				return std::abs(left.rawX - rawX) < std::abs(right.rawX - rawX);
-			});
+		[rawX](const auto& left, const auto& right) {
+			return std::abs(left.rawX - rawX) < std::abs(right.rawX - rawX);
+		});
 	point = *closest;
 	return std::isfinite(point.x) && std::isfinite(point.y);
 }
 
 TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
+	if (preview.normalized)
+		return preview;
 	TrackPreviewResult normalized = preview;
+	normalized.normalized = true;
+	normalized.normalizationScale = 1.0;
+	normalized.presentationScale = 1.0;
+	bool degreeProjection = !preview.lines.empty();
 	double rawChainageSpan = 0.0;
 	double minX = std::numeric_limits<double>::infinity();
 	double maxX = -std::numeric_limits<double>::infinity();
 	double minY = std::numeric_limits<double>::infinity();
 	double maxY = -std::numeric_limits<double>::infinity();
 	for (const auto& line : preview.lines) {
+		if (!line.points.empty() && !line.authoredStationProjection)
+			degreeProjection = false;
+		if (!std::isfinite(line.displayOffset))
+			degreeProjection = false;
 		double lineMinRawX = std::numeric_limits<double>::infinity();
 		double lineMaxRawX = -std::numeric_limits<double>::infinity();
 		for (const auto& point : line.points) {
 			if (!std::isfinite(point.rawX) || !std::isfinite(point.x)
-					|| !std::isfinite(point.y))
+				|| !std::isfinite(point.y)) {
+				degreeProjection = false;
 				continue;
+			}
 			lineMinRawX = std::min(lineMinRawX, point.rawX);
 			lineMaxRawX = std::max(lineMaxRawX, point.rawX);
 			minX = std::min(minX, point.x);
@@ -416,11 +435,19 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
 		: 1000.0;
 	if (!std::isfinite(scale) || scale <= 0.0)
 		return normalized;
+	normalized.normalizationScale = scale;
+	if (degreeProjection && std::isfinite(projectedSpan) && projectedSpan > 0.0
+		&& std::isfinite(rawChainageSpan) && rawChainageSpan > 0.0)
+		normalized.presentationScale = scale / kHistoricalDegreeUnits;
 	for (auto& line : normalized.lines) {
 		line.displayOffset *= scale;
+		if (!std::isfinite(line.displayOffset))
+			normalized.presentationScale = 1.0;
 		for (auto& point : line.points) {
 			point.x *= scale;
 			point.y *= scale;
+			if (!std::isfinite(point.x) || !std::isfinite(point.y + line.displayOffset))
+				normalized.presentationScale = 1.0;
 		}
 	}
 	return normalized;

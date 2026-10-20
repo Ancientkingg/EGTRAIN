@@ -1,0 +1,276 @@
+// RunController.h brings in SceneModel.h in the way that the member named signals needs, before the other Qt headers do.
+#include "app/RunController.h"
+#include "app/RunResultsDock.h"
+#include "app/DialogFolders.h"
+#include "app/MainWindowSupport.h"
+#include "app/PathMessages.h"
+#include "app/ResultViews.h"
+#include "diagrams/RunExports.h"
+#include "diagrams/RunResults.h"
+#include "util/TimeFormat.h"
+#include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
+#include <QAction>
+#include <QBuffer>
+#include <QDockWidget>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLabel>
+#include <QMainWindow>
+#include <QMenu>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QTableWidget>
+#include <QToolButton>
+#include <QVBoxLayout>
+#include <memory>
+#include <string>
+
+RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController, ResultViews* views, Host& host)
+	: m_window(window), m_runController(runController), m_host(host) {
+	m_dock = new QDockWidget("Run Results", m_window);
+	m_dock->setObjectName("runResultsDock");
+	m_dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+	m_table = new QTableWidget(m_dock);
+	m_table->setObjectName("runResultsTable");
+	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_table->setColumnCount(11);
+	m_table->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)",
+		"Energy (kWh)", "Energy with regen (kWh)",
+		"Substation (kWh)", "Substation with regen (kWh)"});
+	m_table->setAlternatingRowColors(true);
+	m_table->horizontalHeader()->setStretchLastSection(true);
+
+	QWidget* container = new QWidget(m_dock);
+	QVBoxLayout* containerLayout = new QVBoxLayout(container);
+	containerLayout->setContentsMargins(0, 0, 0, 0);
+	m_summaryLabel = EditorLayout::wrappedLabel(QString(), container);
+	m_summaryLabel->setObjectName("runResultsContextLabel");
+	containerLayout->addWidget(m_summaryLabel);
+	auto* resultsCaption = new QLabel(container);
+	resultsCaption->setObjectName("runResultsViewsCaption");
+	DialogLayout::setHelp(resultsCaption, "Results");
+	containerLayout->addWidget(resultsCaption);
+	QHBoxLayout* resultViews = new QHBoxLayout();
+	auto* diagramsButton = new QToolButton(container);
+	diagramsButton->setText("Open result view...");
+	diagramsButton->setObjectName("runResultsViewsButton");
+	diagramsButton->setPopupMode(QToolButton::InstantPopup);
+	QMenu* resultMenu = new QMenu(diagramsButton);
+	diagramsButton->setMenu(resultMenu);
+	const auto addResultViewAction = [views, resultMenu](const QString& text, auto slot) {
+		QAction* action = resultMenu->addAction(text);
+		action->setObjectName(QString("resultView_%1").arg(text).remove(' '));
+		QObject::connect(action, &QAction::triggered, views, slot);
+	};
+	addResultViewAction(ResultViewName::kTimetable, &ResultViews::showTimetableTable);
+	addResultViewAction(ResultViewName::kTimetableGraph, &ResultViews::showTimetableGraph);
+	addResultViewAction(ResultViewName::kDelays, &ResultViews::showDelayDiagram);
+	addResultViewAction(ResultViewName::kDelayAnalysis, &ResultViews::showDelayAnalysis);
+	resultMenu->addSeparator();
+	addResultViewAction(ResultViewName::kSpeedDistance, &ResultViews::showSpeedDistanceDiagram);
+	addResultViewAction(ResultViewName::kSpeedTime, &ResultViews::showSpeedTimeDiagram);
+	addResultViewAction(ResultViewName::kTimeDistance, &ResultViews::showTimeDistanceDiagram);
+	addResultViewAction(ResultViewName::kTractiveEffortDistance, &ResultViews::showTractiveEffortDistanceDiagram);
+	resultMenu->addSeparator();
+	addResultViewAction(ResultViewName::kTrainPaths, &ResultViews::displayTrainPathDiagrams);
+	addResultViewAction(ResultViewName::kBlockingTime, &ResultViews::showBlockingTimeDiagram);
+	addResultViewAction(ResultViewName::kCapacity, &ResultViews::showCapacityAnalysis);
+	addResultViewAction(ResultViewName::kCapacityByArea, &ResultViews::showAreaCapacity);
+	resultViews->addWidget(diagramsButton);
+	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
+	exportCsvBtn->setObjectName("resultView_ExportCSV");
+	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
+	QObject::connect(exportCsvBtn, &QPushButton::clicked, m_dock, [this]() {
+		const auto operation = m_host.captureTelemetryOperation();
+		const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
+		saveCsvInteractive(
+			m_window, "run_summary.csv", operation,
+			[run] { return run ? buildRunSummaryCsv(run->results) : std::string(); },
+			[run](const QString& path, const std::string& bytes) {
+				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, run ? run->provenance : RunProvenance());
+			});
+	});
+	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
+	exportPngBtn->setObjectName("resultView_ExportPNG");
+	exportPngBtn->setToolTip("Save the table as an image");
+	QObject::connect(exportPngBtn, &QPushButton::clicked, m_dock, [this]() {
+		const auto operation = m_host.captureTelemetryOperation();
+		QString path = QFileDialog::getSaveFileName(m_window, "Export Table", dialog_folders::suggestedPath("run_summary.png"), "PNG Image (*.png)");
+		if (path.isEmpty())
+			return;
+		if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
+			path += ".png";
+		QByteArray data;
+		QBuffer buffer(&data);
+		if (!buffer.open(QIODevice::WriteOnly) || !fullTableImage(*m_table).save(&buffer, "PNG")) {
+			operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
+			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("write the image to", path));
+			return;
+		}
+		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
+		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes,
+			m_runController->completedRun() ? m_runController->completedRun()->provenance : RunProvenance());
+		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
+		if (!written)
+			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("export the image and provenance to", path));
+	});
+	resultViews->addWidget(exportCsvBtn);
+	resultViews->addWidget(exportPngBtn);
+	resultViews->addStretch();
+	containerLayout->addLayout(resultViews);
+	QHBoxLayout* delayRow = new QHBoxLayout();
+	auto* delayCaption = new QLabel(container);
+	delayCaption->setObjectName("delayComparisonCaption");
+	DialogLayout::setHelp(delayCaption, "Delay comparison");
+	containerLayout->addWidget(delayCaption);
+	m_delayFeedbackLabel = EditorLayout::wrappedLabel(QString(), container);
+	m_delayFeedbackLabel->setObjectName("delayFeedbackLabel");
+	containerLayout->addWidget(m_delayFeedbackLabel);
+	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
+	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
+	m_setDelayBaselineButton->setToolTip("Freeze this completed run with no incidents or entrance delays as the delay baseline");
+	QObject::connect(m_setDelayBaselineButton, &QPushButton::clicked, m_runController, &RunController::setDelayBaseline);
+	delayRow->addWidget(m_setDelayBaselineButton);
+	m_compareDelayButton = new QPushButton("Compare delays", container);
+	m_compareDelayButton->setObjectName("compareDelayButton");
+	m_compareDelayButton->setToolTip("Compare the completed run with the frozen delay baseline");
+	QObject::connect(m_compareDelayButton, &QPushButton::clicked, m_runController, &RunController::showDelayComparison);
+	delayRow->addWidget(m_compareDelayButton);
+	delayRow->addStretch();
+	containerLayout->addLayout(delayRow);
+	m_table->setMinimumSize(0, 0);
+	containerLayout->addWidget(m_table, 1);
+	m_dock->setWidget(container);
+	m_window->addDockWidget(Qt::BottomDockWidgetArea, m_dock);
+	m_dock->hide();
+}
+
+void RunResultsDock::refresh() {
+	if (!m_runController->completedRun() || m_runController->completedRun()->results.trains.empty())
+		return;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
+	refreshSummary();
+	m_dock->setWindowTitle(QStringLiteral("Run Results \u2014 %1").arg(completedRunContext(run->provenance)));
+
+	const RunResults& results = run->results;
+	const int totalColumns = 11;
+	m_table->clear();
+	m_table->setColumnCount(totalColumns);
+	m_table->setHorizontalHeaderLabels(
+		{"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)",
+			"Travel time (h:mm:ss)", "Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
+			"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
+	m_table->setRowCount(static_cast<int>(results.trains.size()) + 1);
+
+	// Start and end as clock times, travel time as a duration, energy with one
+	// decimal; a dash marks values the run did not produce.
+	const auto clockText = [&run](const RunResultValue& value) {
+		return value.available
+			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), run->settings.startOffsetSeconds))
+			: QStringLiteral("-");
+	};
+	const auto durationText = [](const RunResultValue& value) {
+		if (!value.available)
+			return QStringLiteral("-");
+		const long long total = static_cast<long long>(value.value);
+		return QString("%1:%2:%3")
+			.arg(total / 3600)
+			.arg((total % 3600) / 60, 2, 10, QChar('0'))
+			.arg(total % 60, 2, 10, QChar('0'));
+	};
+	const auto energyText = [](const RunResultValue& value) {
+		return value.available ? QString::number(value.value, 'f', 1) : QStringLiteral("-");
+	};
+	for (int row = 0; row < static_cast<int>(results.trains.size()); ++row) {
+		const TrainRunResult& result = results.trains[static_cast<std::size_t>(row)];
+		m_table->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(result.trainId)));
+		m_table->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(result.operatingCode)));
+		m_table->setItem(row, 2,
+			new QTableWidgetItem(QString::number(result.performancePercent, 'f', 1)));
+		m_table->setItem(row, 3,
+			new QTableWidgetItem(QString::number(result.appliedMaximumSpeedKmh, 'f', 1)));
+		m_table->setItem(row, 4, new QTableWidgetItem(clockText(result.startSeconds)));
+		m_table->setItem(row, 5, new QTableWidgetItem(clockText(result.endSeconds)));
+		m_table->setItem(row, 6, new QTableWidgetItem(durationText(result.travelSeconds)));
+		m_table->setItem(row, 7, new QTableWidgetItem(energyText(result.energyConsumedKWh)));
+		m_table->setItem(row, 8, new QTableWidgetItem(energyText(result.energyWithRegenKWh)));
+		m_table->setItem(row, 9, new QTableWidgetItem(energyText(result.substationKWh)));
+		m_table->setItem(row, 10, new QTableWidgetItem(energyText(result.substationWithRegenKWh)));
+	}
+
+	const int totalRow = static_cast<int>(results.trains.size());
+	m_table->setItem(totalRow, 0, new QTableWidgetItem(QStringLiteral("Network total")));
+	m_table->setItem(totalRow, 1, new QTableWidgetItem(QStringLiteral("-")));
+	m_table->setItem(totalRow, 2, new QTableWidgetItem(QStringLiteral("-")));
+	m_table->setItem(totalRow, 3, new QTableWidgetItem(QStringLiteral("-")));
+	m_table->setItem(totalRow, 4, new QTableWidgetItem(clockText(results.networkStartSeconds)));
+	m_table->setItem(totalRow, 5, new QTableWidgetItem(clockText(results.networkEndSeconds)));
+	m_table->setItem(totalRow, 6, new QTableWidgetItem(durationText(results.networkTravelSeconds)));
+	m_table->setItem(totalRow, 7, new QTableWidgetItem(energyText(results.energyConsumedKWh)));
+	m_table->setItem(totalRow, 8, new QTableWidgetItem(energyText(results.energyWithRegenKWh)));
+	m_table->setItem(totalRow, 9, new QTableWidgetItem(energyText(results.substationKWh)));
+	m_table->setItem(totalRow, 10, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
+	m_table->resizeColumnsToContents();
+	const bool openingResults = !m_dock->isVisible();
+	m_dock->show();
+	m_dock->raise();
+	if (openingResults && !m_dock->isFloating()
+		&& m_window->dockWidgetArea(m_dock) == Qt::BottomDockWidgetArea)
+		m_window->resizeDocks({m_dock}, {m_window->height() / 2}, Qt::Vertical);
+	m_host.runResultsRefreshed();
+}
+
+void RunResultsDock::refreshSummary() {
+	if (!m_runController->completedRun() || m_runController->completedRun()->results.trains.empty())
+		return;
+	int destinationTerminationCount = 0;
+	for (const TrainRunResult& result : m_runController->completedRun()->results.trains) {
+		if (result.destinationTerminated)
+			++destinationTerminationCount;
+	}
+	QString summary = QString("Run: %1 | Occurrences: %2 | Status: Completed")
+						  .arg(completedRunContext(m_runController->completedRun()->provenance),
+							  QString::fromStdString(runOccurrencesText(m_runController->lastRunSelectedOccurrences(),
+								  m_runController->lastRunTotalOccurrences(), m_runController->lastRunSelectedInPeriodOccurrences())));
+	if (m_host.advancedDetailsEnabled()) {
+		summary += QString(" | %1 | Destination terminations: %2")
+					   .arg(QString::fromStdString(directIncidentEvidenceText(m_runController->completedRun()->results)))
+					   .arg(destinationTerminationCount);
+	}
+	if (const auto& baseline = m_runController->delayBaseline())
+		summary += QString("\nDelay baseline: %1").arg(completedRunContext(baseline->provenance));
+	m_summaryLabel->setText(summary);
+}
+
+void RunResultsDock::clear(const QString& summary, const QString& title) {
+	m_table->setRowCount(0);
+	m_summaryLabel->setText(summary);
+	m_dock->setWindowTitle(title);
+	m_dock->hide();
+}
+
+void RunResultsDock::updateAvailability(bool resultsAvailable) {
+	if (auto* viewsButton = m_dock->findChild<QToolButton*>("runResultsViewsButton"))
+		viewsButton->setEnabled(resultsAvailable);
+	for (QPushButton* button : m_dock->findChildren<QPushButton*>()) {
+		if (button->objectName().startsWith("resultView_"))
+			button->setEnabled(resultsAvailable);
+	}
+	for (QAction* action : m_dock->findChildren<QAction*>())
+		if (action->objectName().startsWith("resultView_"))
+			action->setEnabled(resultsAvailable);
+	const RunController::DelayBaselineState delay = m_runController->delayBaselineState(resultsAvailable);
+	m_setDelayBaselineButton->setEnabled(delay.canSet);
+	m_setDelayBaselineButton->setToolTip(delay.canSet
+			? QStringLiteral("Freeze this completed run with no incidents or entrance delays as the delay baseline")
+			: QStringLiteral("Complete a run with no incidents or entrance delays before setting a delay baseline"));
+	m_compareDelayButton->setEnabled(delay.canCompare);
+	m_compareDelayButton->setToolTip(delay.canCompare
+			? QStringLiteral("Compare the completed run with the frozen delay baseline")
+			: QStringLiteral("Run a completed scenario with incidents or entrance delays after setting a baseline"));
+	m_delayFeedbackLabel->setText(delay.feedback);
+}

@@ -20,6 +20,8 @@ What should happen?
 
 ## Evidence
 
+Do not attach private project data, and remove anything you do not want to share.
+
 Logs, screenshots, input scene, or command output:
 
 ## Verification

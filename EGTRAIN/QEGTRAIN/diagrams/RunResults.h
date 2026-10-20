@@ -1,6 +1,8 @@
 #ifndef RUNRESULTS_H
 #define RUNRESULTS_H
 
+#include "simulation/InitialParameters.h"
+
 #include <string>
 #include <vector>
 
@@ -35,6 +37,7 @@ struct RunProvenance {
 	int paxMode = 0;
 	int tsmMode = 0;
 	int routeChoiceMode = 0;
+	unsigned long randomSeed = kDefaultRandomSeed;
 	std::vector<RunOccurrenceProvenance> selectedOccurrences;
 };
 
@@ -42,13 +45,13 @@ std::string hashSceneBundle(const std::string& bundlePath);
 std::string hashSceneDirectory(const std::string& sceneDirectory);
 std::string hashSceneInputSnapshot(const std::string& snapshot);
 RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
-		bool dirty, const std::string& savedSha256);
+	bool dirty, const std::string& savedSha256);
 bool writeRunArtifactWithProvenance(const std::string& artifactPath,
-		const std::string& artifactKind, const std::string& artifactBytes,
-		const RunProvenance& run);
+	const std::string& artifactKind, const std::string& artifactBytes,
+	const RunProvenance& run);
 bool writeDelayArtifactWithProvenance(const std::string& artifactPath,
-		const std::string& artifactKind, const std::string& artifactBytes,
-		const RunProvenance& baselineRun, const RunProvenance& scenarioRun);
+	const std::string& artifactKind, const std::string& artifactBytes,
+	const RunProvenance& baselineRun, const RunProvenance& scenarioRun);
 
 struct RunResultValue {
 	bool available = false;
@@ -78,6 +81,21 @@ struct TrainRunResult {
 	RunResultValue firstDirectIncidentLocation;
 	bool destinationTerminationRequested = false;
 	bool destinationTerminated = false;
+	// Entrance delay the scenario applied to this train, in seconds.  Zero with an empty station when none was
+	// applied.  The station uses the same names as TimetableResultRow::stationId; its planned departure already
+	// contains the delay.
+	double entranceDelaySeconds = 0.0;
+	std::string entranceDelayStationId;
+};
+
+// Whether the planned and the simulated time of an arrival or departure exist.  Available: both.  NoPlan: only the
+// simulated time.  NotReached: only the planned time.  NoPlanAndNotReached: neither.  The delay is available only
+// with Available.
+enum class TimetableValueStatus {
+	Available,
+	NoPlan,
+	NotReached,
+	NoPlanAndNotReached
 };
 
 struct TimetableResultRow {
@@ -94,6 +112,8 @@ struct TimetableResultRow {
 	RunResultValue simulatedDepartureSeconds;
 	RunResultValue arrivalDelaySeconds;
 	RunResultValue departureDelaySeconds;
+	TimetableValueStatus arrivalStatus = TimetableValueStatus::NoPlanAndNotReached;
+	TimetableValueStatus departureStatus = TimetableValueStatus::NoPlanAndNotReached;
 };
 
 struct RunResults {
@@ -122,37 +142,19 @@ struct DelayRunSnapshot {
 	std::vector<TimetableResultRow> timetable;
 };
 
-struct DelayComparisonRow {
-	std::string serviceId;
-	int occurrence = 1;
-	std::string operatingCode;
-	RunResultValue baselineFinalArrival;
-	RunResultValue scenarioFinalArrival;
-	RunResultValue positiveContribution;
-	std::string attribution; // "primary" or "secondary"
-	std::vector<std::string> incidentIds;
-	RunResultValue firstDirectTime;
-	RunResultValue firstDirectLocation;
-	bool destinationTerminationRequested = false;
-	bool destinationTerminated = false;
-};
-
-struct DelayComparisonResult {
-	bool valid = false;
-	std::string diagnostic;
-	std::vector<DelayComparisonRow> rows;
-	RunResultValue totalArrivalDelay;
-};
-
 // Preserve the legacy MJ-to-kWh conversion used by text outputs.
 constexpr double kEnergyMJToKWh = 0.27778;
 constexpr double energyMJKWh(double energyMJ) {
 	return energyMJ * kEnergyMJToKWh;
 }
 
-RunResults buildRunResults(const std::vector<const Train*>& trains, double timestep);
+RunResults buildRunResults(const std::vector<const Train*>& trains, double timestepSeconds);
 std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains);
-DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
-		const DelayRunSnapshot& scenario);
+// For the Run Results summary: "Direct incident evidence recorded for 1 of 3 trains". A train counts when the
+// run recorded at least one direct incident effect on it.
+std::string directIncidentEvidenceText(const RunResults& results);
+// For the Run Results summary: "196/196 selected" when every ticked occurrence enters the simulation inside the
+// run period, and "196/196 selected, 185 in the run period" when some of them do not.
+std::string runOccurrencesText(int selected, int total, int selectedInPeriod);
 
 #endif // RUNRESULTS_H

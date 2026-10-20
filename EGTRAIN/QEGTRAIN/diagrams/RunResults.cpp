@@ -1,7 +1,7 @@
 #include "diagrams/RunResults.h"
 
 #include "scene/SceneModel.h"
-#include "simulation/RollingStock.h"
+#include "diagrams/SimulationHeaders.h"
 #include "util/TrajectoryUtil.h"
 
 #include <QCryptographicHash>
@@ -16,8 +16,6 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
-#include <map>
-#include <set>
 #include <utility>
 
 namespace {
@@ -93,13 +91,14 @@ QJsonObject runJson(const RunProvenance& run) {
 	result.insert(QStringLiteral("pax_mode"), run.paxMode);
 	result.insert(QStringLiteral("tsm_mode"), run.tsmMode);
 	result.insert(QStringLiteral("route_choice_mode"), run.routeChoiceMode);
+	result.insert(QStringLiteral("random_seed"), static_cast<qint64>(run.randomSeed));
 	result.insert(QStringLiteral("selected_occurrences"), selected);
 	return result;
 }
 
 bool writeSidecar(const std::string& artifactPath, const std::string& artifactKind,
-		const QJsonObject& runObject, const QJsonObject* baselineObject = nullptr,
-		const QJsonObject* scenarioObject = nullptr) {
+	const QJsonObject& runObject, const QJsonObject* baselineObject = nullptr,
+	const QJsonObject* scenarioObject = nullptr) {
 	const QString path = QString::fromStdString(artifactPath);
 	QFileInfo artifactInfo(path);
 	QJsonObject artifact;
@@ -124,7 +123,7 @@ bool writeSidecar(const std::string& artifactPath, const std::string& artifactKi
 
 template <typename SidecarWriter>
 bool writeArtifactWithSidecar(const std::string& artifactPath,
-		const std::string& artifactBytes, SidecarWriter writeProvenance) {
+	const std::string& artifactBytes, SidecarWriter writeProvenance) {
 	const QString path = QString::fromStdString(artifactPath);
 	QSaveFile artifact(path);
 	if (!artifact.open(QIODevice::WriteOnly))
@@ -147,7 +146,7 @@ RunResultValue availableTimetableValue(double value) {
 }
 
 const TrainEvent* timetableEventForOccurrence(const Train& train, const std::string& stationId,
-																int occurrence) {
+	int occurrence) {
 	int seen = 0;
 	for (const TrainEvent& event : train.TimetablePoints) {
 		if (event.SuccessorID != stationId)
@@ -164,42 +163,10 @@ RunResultValue delayValue(const RunResultValue& planned, const RunResultValue& s
 	return availableValue(simulated.value - planned.value);
 }
 
-using OccurrenceKey = std::pair<std::string, int>;
-
-OccurrenceKey occurrenceKey(const std::string& serviceId, int occurrence,
-		const std::string& trainId = {}) {
-	return {serviceId.empty() ? trainId : serviceId, occurrence};
-}
-
-std::set<OccurrenceKey> selectedOccurrences(const RunResults& results) {
-	std::set<OccurrenceKey> keys;
-	for (const TrainRunResult& train : results.trains)
-		keys.insert(occurrenceKey(train.serviceId, train.occurrence, train.trainId));
-	return keys;
-}
-
-struct FinalArrival {
-	std::string stationId;
-	int journeyIndex = 0;
-	int callIndex = 0;
-	RunResultValue arrival;
-};
-
-std::map<OccurrenceKey, FinalArrival> finalArrivals(
-		const std::vector<TimetableResultRow>& rows) {
-	std::map<OccurrenceKey, FinalArrival> result;
-	for (const TimetableResultRow& row : rows) {
-		result[occurrenceKey(row.serviceId, row.occurrence, row.trainId)] =
-				{row.stationId, row.journeyIndex, row.callIndex, row.simulatedArrivalSeconds};
-	}
-	return result;
-}
-
-const TrainRunResult* runResultFor(const RunResults& results, const OccurrenceKey& key) {
-	for (const TrainRunResult& train : results.trains)
-		if (occurrenceKey(train.serviceId, train.occurrence, train.trainId) == key)
-			return &train;
-	return nullptr;
+TimetableValueStatus timetableValueStatus(const RunResultValue& planned, const RunResultValue& simulated) {
+	if (planned.available)
+		return simulated.available ? TimetableValueStatus::Available : TimetableValueStatus::NotReached;
+	return simulated.available ? TimetableValueStatus::NoPlan : TimetableValueStatus::NoPlanAndNotReached;
 }
 
 bool coveredAndFinite(const std::vector<double>& values, int first, int last) {
@@ -235,7 +202,7 @@ std::string hashSceneInputSnapshot(const std::string& snapshot) {
 }
 
 RunInputProvenance captureSavedInput(const std::string& savedPath, const std::string& inputKind,
-		bool dirty, const std::string& savedSha256) {
+	bool dirty, const std::string& savedSha256) {
 	RunInputProvenance result;
 	result.kind = savedPath.empty() ? "unsaved" : inputKind;
 	result.path = savedPath.empty() ? std::string() : absolutePath(savedPath).toStdString();
@@ -283,16 +250,16 @@ RunInputProvenance captureSavedInput(const std::string& savedPath, const std::st
 }
 
 bool writeRunArtifactWithProvenance(const std::string& artifactPath,
-		const std::string& artifactKind, const std::string& artifactBytes,
-		const RunProvenance& run) {
+	const std::string& artifactKind, const std::string& artifactBytes,
+	const RunProvenance& run) {
 	return writeArtifactWithSidecar(artifactPath, artifactBytes, [&]() {
 		return writeSidecar(artifactPath, artifactKind, runJson(run));
 	});
 }
 
 bool writeDelayArtifactWithProvenance(const std::string& artifactPath,
-		const std::string& artifactKind, const std::string& artifactBytes,
-		const RunProvenance& baselineRun, const RunProvenance& scenarioRun) {
+	const std::string& artifactKind, const std::string& artifactBytes,
+	const RunProvenance& baselineRun, const RunProvenance& scenarioRun) {
 	const QJsonObject baseline = runJson(baselineRun);
 	const QJsonObject scenario = runJson(scenarioRun);
 	return writeArtifactWithSidecar(artifactPath, artifactBytes, [&]() {
@@ -309,7 +276,7 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 		if (!trainPtr)
 			continue;
 		const Train& train = *trainPtr;
-		if (!train.Stations || train.numStations <= 0)
+		if (train.Stations.empty() || train.numStations <= 0)
 			continue;
 		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
 		if (train.numStations > Train::kMaxTimetableStations) {
@@ -338,15 +305,17 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 			}
 			row.arrivalDelaySeconds = delayValue(row.plannedArrivalSeconds, row.simulatedArrivalSeconds);
 			row.departureDelaySeconds = delayValue(row.plannedDepartureSeconds, row.simulatedDepartureSeconds);
+			row.arrivalStatus = timetableValueStatus(row.plannedArrivalSeconds, row.simulatedArrivalSeconds);
+			row.departureStatus = timetableValueStatus(row.plannedDepartureSeconds, row.simulatedDepartureSeconds);
 			results.push_back(std::move(row));
 		}
 	}
 	return results;
 }
 
-RunResults buildRunResults(const std::vector<const Train*>& trains, double timestep) {
+RunResults buildRunResults(const std::vector<const Train*>& trains, double timestepSeconds) {
 	RunResults results;
-	if (trains.empty() || !std::isfinite(timestep))
+	if (trains.empty() || !std::isfinite(timestepSeconds))
 		return results;
 
 	results.trains.reserve(trains.size());
@@ -367,32 +336,33 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		row.appliedMaximumSpeedKmh = train.appliedMaximumSpeedKmh;
 		row.directIncidentIds = train.directIncidentIds;
 		if (!row.directIncidentIds.empty() && std::isfinite(train.firstDirectIncidentTime)
-				&& train.firstDirectIncidentTime >= 0.0) {
+			&& train.firstDirectIncidentTime >= 0.0) {
 			row.firstDirectIncidentTime = availableValue(train.firstDirectIncidentTime);
 			row.firstDirectIncidentLocation = availableValue(train.firstDirectIncidentLocation);
 		}
 		row.destinationTerminationRequested = train.destinationTerminationRequested;
 		row.destinationTerminated = train.destinationTerminated;
+		row.entranceDelaySeconds = train.EntranceDelay;
+		row.entranceDelayStationId = train.entranceDelayStationId;
 
-		const bool boundsInPositionSeries = train.earliestActiveTrajectoryIndex >= 0 &&
-			train.End_Time >= train.earliestActiveTrajectoryIndex &&
-			train.End_Time < static_cast<int>(train.instant_spatial_position.size());
+		const bool boundsInPositionSeries = train.earliestActiveTrajectoryIndex >= 0
+			&& train.End_Time >= train.earliestActiveTrajectoryIndex
+			&& train.End_Time < static_cast<int>(train.instant_spatial_position.size());
 		const auto segments = boundsInPositionSeries
 			? validTrajectorySegments(train.instant_spatial_position,
-									train.earliestActiveTrajectoryIndex, train.End_Time)
+				  train.earliestActiveTrajectoryIndex, train.End_Time)
 			: std::vector<TrajectorySegment>();
 
-		if (!segments.empty() && std::isfinite(timestep)) {
+		if (!segments.empty() && std::isfinite(timestepSeconds)) {
 			const int first = segments.front().first;
 			const int last = segments.back().last;
-			row.startSeconds = availableValue(trajectoryTimeSeconds(first, timestep));
-			row.endSeconds = availableValue(trajectoryTimeSeconds(last, timestep));
+			row.startSeconds = availableValue(trajectoryTimeSeconds(first, timestepSeconds));
+			row.endSeconds = availableValue(trajectoryTimeSeconds(last, timestepSeconds));
 			if (row.startSeconds.available && row.endSeconds.available)
 				row.travelSeconds = availableValue(row.endSeconds.value - row.startSeconds.value);
 
 			const bool energySeriesAvailable =
-				coveredAndFinite(train.instant_train_power_consumption, first, last) &&
-				coveredAndFinite(train.instant_train_energy_consumption, first, last);
+				coveredAndFinite(train.instant_train_power_consumption, first, last) && coveredAndFinite(train.instant_train_energy_consumption, first, last);
 			if (energySeriesAvailable) {
 				row.energyConsumedKWh = availableValue(energyMJKWh(train.TotalEnergyConsumed));
 				row.energyWithRegenKWh = availableValue(energyMJKWh(train.TotalEnergyConsWithRegBrak));
@@ -426,7 +396,7 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		addTotal(row.energyWithRegenKWh, energyWithRegen, energyWithRegenComplete);
 		addTotal(row.substationKWh, substation, substationComplete);
 		addTotal(row.substationWithRegenKWh, substationWithRegen,
-				substationWithRegenComplete);
+			substationWithRegenComplete);
 	}
 	if (networkTimesComplete) {
 		results.networkStartSeconds = availableValue(networkStart);
@@ -444,75 +414,16 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 	return results;
 }
 
-DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
-		const DelayRunSnapshot& scenario) {
-	DelayComparisonResult result;
-	const auto reject = [&result](const std::string& message) {
-		result.valid = false;
-		result.diagnostic = message;
-		return result;
-	};
-	if (baseline.scenarioId.empty() || scenario.scenarioId.empty()
-			|| baseline.scenarioId == scenario.scenarioId)
-		return reject("Baseline and scenario IDs must be present and different");
-	if (baseline.caseRevision != scenario.caseRevision)
-		return reject("Baseline and scenario runs use different scene revisions");
-	if (baseline.baseTimeSeconds != scenario.baseTimeSeconds
-			|| baseline.durationSeconds != scenario.durationSeconds
-			|| baseline.timestep != scenario.timestep)
-		return reject("Baseline and scenario time settings do not match");
-	if (baseline.hasIncidents || baseline.hasEntranceDelays)
-		return reject("Delay baseline must be incident-free and have no entrance delays");
-	if (!scenario.hasIncidents || scenario.hasEntranceDelays)
-		return reject("Delay comparison scenario must have incidents and no entrance delays");
-	if (selectedOccurrences(baseline.run) != selectedOccurrences(scenario.run))
-		return reject("Baseline and scenario selected occurrence identities do not match");
+std::string directIncidentEvidenceText(const RunResults& results) {
+	const auto withEvidence = std::count_if(results.trains.begin(), results.trains.end(),
+		[](const TrainRunResult& train) { return !train.directIncidentIds.empty(); });
+	return "Direct incident evidence recorded for " + std::to_string(withEvidence) + " of " + std::to_string(results.trains.size())
+		+ (results.trains.size() == 1 ? " train" : " trains");
+}
 
-	bool hasDirectEvidence = false;
-	for (const TrainRunResult& train : scenario.run.trains)
-		hasDirectEvidence = hasDirectEvidence || !train.directIncidentIds.empty();
-	if (!hasDirectEvidence)
-		return reject("Incident run has no direct incident evidence for attribution");
-
-	const auto baselineArrivals = finalArrivals(baseline.timetable);
-	const auto scenarioArrivals = finalArrivals(scenario.timetable);
-	double total = 0.0;
-	for (const OccurrenceKey& key : selectedOccurrences(scenario.run)) {
-		const auto baselineIt = baselineArrivals.find(key);
-		const auto scenarioIt = scenarioArrivals.find(key);
-		if (baselineIt == baselineArrivals.end() || scenarioIt == scenarioArrivals.end())
-			return reject("A selected occurrence has no final timetable endpoint");
-		const FinalArrival& baselineFinal = baselineIt->second;
-		const FinalArrival& scenarioFinal = scenarioIt->second;
-		if (baselineFinal.stationId != scenarioFinal.stationId
-				|| baselineFinal.journeyIndex != scenarioFinal.journeyIndex
-				|| baselineFinal.callIndex != scenarioFinal.callIndex)
-			return reject("Baseline and scenario final timetable endpoints do not match");
-		if (!baselineFinal.arrival.available || !scenarioFinal.arrival.available)
-			return reject("Baseline and scenario require a simulated arrival at every final timetable endpoint");
-		const double contribution = scenarioFinal.arrival.value - baselineFinal.arrival.value;
-		if (!std::isfinite(contribution) || contribution <= 0.0)
-			continue;
-		const TrainRunResult* train = runResultFor(scenario.run, key);
-		if (!train)
-			continue;
-		DelayComparisonRow row;
-		row.serviceId = key.first;
-		row.occurrence = key.second;
-		row.operatingCode = train->operatingCode;
-		row.baselineFinalArrival = baselineFinal.arrival;
-		row.scenarioFinalArrival = scenarioFinal.arrival;
-		row.positiveContribution = availableValue(contribution);
-		row.attribution = train->directIncidentIds.empty() ? "secondary" : "primary";
-		row.incidentIds = train->directIncidentIds;
-		row.firstDirectTime = train->firstDirectIncidentTime;
-		row.firstDirectLocation = train->firstDirectIncidentLocation;
-		row.destinationTerminationRequested = train->destinationTerminationRequested;
-		row.destinationTerminated = train->destinationTerminated;
-		result.rows.push_back(std::move(row));
-		total += contribution;
-	}
-	result.valid = true;
-	result.totalArrivalDelay = availableValue(total);
-	return result;
+std::string runOccurrencesText(int selected, int total, int selectedInPeriod) {
+	std::string text = std::to_string(selected) + "/" + std::to_string(total) + " selected";
+	if (selectedInPeriod != selected)
+		text += ", " + std::to_string(selectedInPeriod) + " in the run period";
+	return text;
 }

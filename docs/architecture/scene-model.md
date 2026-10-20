@@ -15,6 +15,12 @@ the loaded model through the infrastructure/signalling and operations builders
 and prepares runtime output directories. Neither builder opens provenance files
 or consults an `Input/` tree.
 
+The infrastructure builder checks the whole scene before it writes to the
+run. If it still finds an error while it builds the runtime, it puts the
+previous infrastructure back, so a build that returns an error leaves it in
+place. Only the single-track locks of a run are cleared, as at the start of
+every build.
+
 ## Canonical directory
 
 | File | Role | Input status |
@@ -34,6 +40,34 @@ may therefore load without scenarios or passengers; the writer creates a
 baseline `scenarios.json` even when there are no named scenarios. Runnable
 validation additionally requires populated infrastructure, routes, rolling
 stock, services, and positive simulation duration.
+
+The writer emits JSON with four-space indentation, sorted keys, and a final
+newline. It omits optional keys that are absent, always writes `scenarios.json`,
+and writes `views.json` and `passengers.json` only when the scene has views or
+passengers. A committed file in another form is rewritten by the next save. A
+scene that this version of the writer has saved gives the same bytes when it is
+loaded and saved again.
+
+Each key of the scene files is written in one place and read in one place.
+`SceneWriter.cpp` has an encoder for each file (`encodeSceneMetadata`,
+`encodeInfrastructure`, `encodeStations`, `encodeSignalling`,
+`encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
+`encodePassengers`), and `loadScene` in `SceneModel.cpp` and
+`SceneFieldReader.cpp` read the files. The importer fills a `SceneModel` and
+writes it with the encoders, so an imported scene has the form of a saved one.
+The exporter writes the items of its area sidecar with `encodeSignallingArea`,
+and the importer reads them with `decodeSignallingArea`.
+
+`test_scene_codec_contract` (`tools/e2e/test_scene_codec_contract.py`) fails when
+a key of the scene files is written outside `SceneWriter.cpp`, is read outside
+`SceneModel.cpp` and `SceneFieldReader.cpp`, or when a file in `scene/` includes a
+header of `simulation/`. It lists its exceptions with their reasons:
+`SceneBundle.cpp` and `SceneCompatibility.cpp` read `schema_version` and
+`saved_with_app_version` before the loader runs, and `SceneExporter.cpp` and
+`SceneImporter.cpp` handle `signalling_areas` as the top-level key of the area
+sidecar of a legacy folder and `base_time` and `simulation_settings` (with its
+three settings) as the keys of the settings sidecar. The limits of the native runtime, which the validator
+and the builders check against, are in `scene/RuntimeLimits.h`.
 
 ## Model ownership
 
@@ -72,6 +106,15 @@ Run; incomplete intermediate departures and insufficient dwell windows remain
 warnings for historical schedules. These checks do not predict physical running
 time. Inert off-route context retains historical finite negative offsets.
 
+Validation also warns, once per route and composition used by a service, when
+arcs of the route are steeper than the composition can brake on or start on
+(`scene.route.gradient.steep`). The warning does not block Run.
+
+Runnable validation also warns, once per single-track restriction, when its
+start, end or protected blocks have no signalling level
+(`scene.single_track.no_effect`): the restriction then has no effect at run
+time. The warning does not block Run.
+
 The stop list is authoritative: empty means no scheduled calls, regardless of
 the historical `through` field. Nonempty stops are never discarded because that
 field is true. Canonical input/output retains the field for compatibility;
@@ -93,6 +136,13 @@ The optional service `category` is descriptive metadata, independent of physical
 properties, performance, speed limits and stops. Missing values mean no category;
 unknown strings survive canonical folder and bundle persistence. Legacy export
 cannot represent this field and omits it.
+
+The optional service `visualization_color` is a display colour written as
+`#RRGGBB`. It has no effect on the simulation. The model keeps the text as
+loaded and the writer omits it when empty. Folder and bundle persistence
+preserve it; legacy export omits it. A non-empty value in any other form
+gives the warning `scene.service.color.invalid`, which does not block Run, and
+the default train colour is used for that service.
 
 Passenger journey windows use absolute seconds from midnight. They are not
 random passenger draws or simulation results. DAS and RouteChoice CSV files
@@ -124,6 +174,33 @@ Blank-platform rows at stations outside the route remain warning-labelled inert
 schedule context for legacy compatibility. No provenance flag distinguishes
 imported rows from otherwise identical authored rows.
 
+`sceneRouteStations` lists the stations of a route from that traversal in travel
+order, counting consecutive visits of one station once. The service editor's
+route choices and the reference-route chooser of the diagrams use it.
+
+`scene/StopInsertion` adds a stop at a chosen position of a timetable without
+disturbing the others. `sceneStopInsertionWindow` returns the route visits
+that lie strictly between the neighbouring stops: they start after the last
+resolved stop before the position and end at the visit of the first resolved
+stop at or after it, resolved over the whole timetable. The stations of those
+visits, and their platforms, are the choices for the new stop, so a station
+whose only visit lies after the next stop is not offered. A stop before the
+position that is neither resolved nor off-route context leaves no window and is
+named in the result. `insertSceneStop` resolves a copy of the service with the
+new stop and inserts it only when the new stop resolves and every stop that
+resolved before still resolves to the same route visit; otherwise the service
+is unchanged and the error names the stops concerned. Two stops with the same station and platform inside
+one window bind to its visits in order. `sceneServiceTraversal` and
+`sceneRemainingStopTraversal` build the traversal and the visits left after the
+resolved stops before an index.
+
+`scene/SceneReferences` and `scene/SceneIds` hold the id rules of the editors, without Qt.
+`sceneDirectDeleteConsumers` lists what still uses a track, node, block, connection, station,
+platform, signal, route, train unit, composition or service, so that a delete can be refused with
+that list. The `sceneRewrite...References` functions rewrite every reference to an entity after a
+rename; the caller renames the entity itself. The `sceneUnique...Id` functions return the base id
+when it is free and otherwise the first of `base_2`, `base_3` and so on.
+
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's
 in-period count includes entries in `[0, effective duration)`. Configured totals
@@ -144,6 +221,30 @@ with no legs, and their actual planned times are sampled from the canonical
 windows using the existing random-number behavior. Platform stopping lists are
 populated from the resolved occurrence stops without invoking the
 filesystem-era platform loader.
+
+### Edit history
+
+`scene/SceneHistory` keeps whole-scene snapshots for Undo and Redo and has no Qt
+dependency. `record` appends a copy of the scene and drops the snapshots after
+the current position, so an edit after Undo abandons the Redo branch. `undo`
+and `redo` move the position and return the snapshot that becomes the live
+scene. Each snapshot carries a label that `record` derives from the counts of
+the parts of the scene (`Add service`, `Delete stop`, or `Edit` when the change
+is not one part added or removed), the scenarios that differ from the saved
+scene, and its memory as `estimateSceneModelBytes` counts it. That estimate
+adds up the structs, the vectors and the strings too long for the string
+object, so it depends on the standard library and is a bound, not a
+measurement.
+
+The history keeps at most 100 undo steps and an estimated 128 MiB. Both limits
+are parameters of the constructor. When either is exceeded the oldest
+snapshots are dropped; the live one never is, even when it alone is larger than
+the memory limit. One position can be marked as saved, by `markSaved` or by
+`reset` for a scene that was just opened. The scene is clean exactly when the
+position is the saved one. A saved snapshot that is dropped, by the abandoned
+Redo branch or by a limit, leaves no saved position, and the scene stays dirty
+until the next save. `reset` starts a new history from a scene that was opened,
+created or recovered.
 
 ## Validation layers
 
@@ -169,9 +270,12 @@ bundle is never downgraded. Older inputs are migratable only through explicit
 incremental registry steps; the production registry is currently empty.
 
 An upgrade always writes a copy through private staging and the existing
-transactional writer. The source directory or bundle remains unchanged on
-success and failure. Directory scenes and transparent bundles share the same
-current model, and a newer EGTRAIN release is required for newer formats.
+transactional writer. Before the copy is written, the upgraded scene is loaded
+and checked with `validateScene`, the semantic checks and not the runnable
+ones. An error stops the upgrade and no copy is written; warnings do not stop
+it. The source directory or bundle remains unchanged on success and failure.
+Directory scenes and transparent bundles share the same current model, and a
+newer EGTRAIN release is required for newer formats.
 
 The loader accepts historical aliases for existing scenes, while the writer
 emits only preferred V1 keys. The aliases and their exact mappings are listed
@@ -188,18 +292,78 @@ The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in `source` and `import_report`; full
 legacy trees are not duplicated.
 
+### Scene versions in use
+
+Every build so far has written `schema_version` 1, and `bundle_version` 1 in a
+bundle. The loader has accepted no other value since it was introduced
+(`loadScene` in `SceneModel.cpp`, `loadSceneBundle` in `SceneBundle.cpp`), so no
+older version number exists. The older scenes that exist differ from today's in
+layout, not in number. The format has grown only by optional keys and optional
+files, such as `views.json`, `saved_with_app_version`, `signalling_areas` in
+`signalling.json`, and the service keys `category` and `visualization_color`.
+None of them changed a number.
+
+The probe reads `scene.json` (directory) or the bundle manifest, and, only
+when `scene.json` has a `legacy_source` key, `infrastructure.json`. A scene
+with `schema_version` 1, and `bundle_version` 1 in a bundle, is current unless
+it has the draft layout described in the table. The table lists the classes of
+scene and what the application does when one is opened from its window.
+Automated runs do not show the dialogs.
+
+A scene that the probe rejects as older or newer carries one error diagnostic
+whose message gives the schema number, the bundle layout number of a bundle,
+the `saved_with_app_version` and the numbers this version reads. A scene that is
+current or that a migration can convert carries none. `scene_tool validate` and
+`pack` and the headless start probe the path first and report this diagnostic,
+not the loader's errors, and exit with code 1. A window start with a file name
+reports it in the message **Cannot Open Case Study** and then starts as without
+a file name. A window start with `--scene` gives such a scene to the window
+without loading it, prints the diagnostic and shows the dialog from the table;
+it exits with code 1 when the scene is not opened.
+
+After a clean load, `scene_tool validate` and the `--scene` option also run the
+semantic checks (the runnable checks for `--scene` and for `validate
+--runnable`) and exit with code 1 on any error. A scene whose runnable checks
+report errors therefore opens in the window with Run disabled, but `--scene`
+refuses to start on it: the headless start prints the diagnostics, and the
+window start first shows "Cannot Start EGTRAIN".
+
+| Class | How it is recognised | What the application does |
+| --- | --- | --- |
+| Current layout | Directory: `schema_version` 1 in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no compatibility dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases). |
+| Draft layout | Saved by builds before the canonical model of 2026-08-08 (main-77.1 and earlier). A `scene.json` with a `legacy_source` key and an `infrastructure.json` with no nodes and no arcs; the simulator read the railway from a `legacy/` text tree. `schema_version` is 1, like today's, so the number does not separate these scenes. Neither sign identifies the layout alone: a current scene may carry a `legacy_source` key, and an empty `infrastructure.json` alone is left to the loader. | Deliberately unsupported: these scenes are not converted and no migration is provided, also when one is registered for the number. The probe classes the scene as unsupported with the diagnostic `scene.compatibility.draft`, which names the draft layout and the date and says to import the original legacy case again. The dialog is "Older Scene Not Supported" with that message, and `--scene` and `scene_tool` exit with code 1 and print it. Use the current case studies, or convert the original legacy input folder again with **File > Load Legacy Case...** or `scene_tool import`. The Paimpol scene of main-77.1 is stored as a fixture. |
+| Number below 1 | `schema_version` below 1 in `scene.json`; in a bundle, `schema_version` or `bundle_version` below 1. | Deliberately unsupported. The scene is not opened and the dialog is titled "Older Scene Not Supported". Its message is the diagnostic `scene.compatibility.older` with the numbers of the scene and of this version. |
+| Newer | `schema_version` above 1 (directory or bundle), or `bundle_version` above 1 (bundle). | Never downgraded. The scene is not opened; the dialog is "Newer Scene" with **Check for Updates...** and **Cancel**. `--scene` and `scene_tool` print the diagnostic `scene.compatibility.newer` with the numbers of the scene and of this version. |
+| Unreadable | `schema_version` (in a bundle also `bundle_version`) missing, not an integer, or outside the integer range; a `saved_with_app_version` that is not a string; a directory without a readable `scene.json`; in a bundle also a `format` other than `"egscene"`, a bad manifest, a missing `scene.json`, an unsafe archive, and, for `bundle_version` 1, an entry that is not part of the format or another missing required entry. | The scene is not opened. The dialog is "Cannot Open Case Study". Its text gives the file name and a sentence that the file is damaged or is not an EGTRAIN case study (for a folder, that the folder holds no EGTRAIN scene or that its `scene.json` is damaged), then the first diagnostic. The same title and text are used when a scene passes the probe and the loader then reports errors; the diagnostic then ends with "Error count: N", so the title alone does not mean that a version is unreadable. A window start with a file name shows the same message. |
+| Upgradable | A number below the current one for which the registry holds a migration path. No such number exists today: the production registry is empty. | The dialog is "Older Scene" with **Upgrade a Copy...** and **Cancel**; the upgrade writes a copy and leaves the original unchanged. The registry is empty because every scene written so far has version number 1; neither a migration nor a no-op migration is registered. |
+
+A scene with one number above 1 and the other below 1 is treated as newer.
+
+A version number changes only for a change that makes existing scenes
+unreadable. The change that does it registers the migration step for the
+previous number and adds a scene of that number as a test fixture, in the same
+change. Optional keys, optional files and new validation warnings never change
+a number. `test_sceneversions` enforces the rule: raising `schema_version` or
+`bundle_version` makes it fail until the fixtures in
+`tests/fixtures/scene-versions` are reconsidered. A number below the current one
+passes only with a fixture of that number and either a registered migration for
+it or a manifest entry that lists every fixture of that number as deliberately
+unsupported.
+
 ## Bundle format (v2)
 
 The transparent `.egscene` transport container packages the existing V1 JSON
-files without changing `SceneModel` or the V1 schema. Its manifest and safety
-rules are documented in [V2 Transparent Scene Bundle](scene-bundle.md).
+files without changing `SceneModel` or the V1 schema. Here "V2" names the
+container and "V1" the data schema; the container's own number is
+`bundle_version` 1, and the data inside has `schema_version` 1. Its manifest and
+safety rules are documented in [V2 Transparent Scene Bundle](scene-bundle.md).
 Directories remain the editable source of truth; bundle loading extracts to a
 temporary directory and reuses `loadScene`.
 
 ## Native runtime path
 
 The infrastructure/signalling builder accepts an already loaded and validated
-`SceneModel` and populates the existing runtime globals. The operations builder
+`SceneModel` and populates the run that it is given. The operations builder
 then creates services, train occurrences, the selected scenario, entrance
 delays, and passengers in memory. Each native `Train` carries operating code,
 service ID, occurrence, performance, configured cap, composition maximum, and
@@ -215,6 +379,8 @@ Canonical signalling areas assign levels to the base and derived switch
 sections before route construction copies those sections. An area has a
 complete chainage span, a level from 0 through 5, and optional canonical track
 scope. Track-scoped areas override a network-wide area; conflicting values for
-one section are rejected. Missing coverage keeps the native unset value. Normal
+one section are rejected. Missing coverage keeps the native unset value, and
+runnable validation warns about the route sections it leaves unset. Normal
 runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
-conventional or ETCS default.
+conventional or ETCS default. The levels and the rule that gives a section its
+level are described in [Signalling levels](signalling-levels.md).

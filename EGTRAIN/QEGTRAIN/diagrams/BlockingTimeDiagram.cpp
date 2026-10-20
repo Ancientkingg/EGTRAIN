@@ -1,11 +1,28 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/CapacityAnalysis.h"
+#include "util/CsvWriter.h"
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
+#include <locale>
 #include <sstream>
 
 namespace {
+
+// Ends of a section and of an envelope that differ by no more are the same position.
+constexpr double kBlockSectionToleranceKm = 1e-6;
+// A section no longer than this has no extent.
+constexpr double kBlockSectionMinimumLengthKm = 1e-9;
+
+// Positions of the columns of the blocking-time export.
+constexpr std::size_t kColumnBlock = 1;
+constexpr std::size_t kColumnPosition = 4;
+constexpr std::size_t kColumnSegmentType = 5;
+constexpr std::size_t kColumnStartX = 9;
+constexpr std::size_t kColumnEndX = 10;
+constexpr std::size_t kColumnLayer = 21;
+constexpr std::size_t kColumnReferenceSection = 22;
 
 bool hasValue(const std::string& value) {
 	return !value.empty() && value != "None";
@@ -26,6 +43,14 @@ std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
 	if (tokens.empty() && hasValue(blockId))
 		tokens.push_back(blockId);
 	return tokens;
+}
+
+std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count, const char* relation) {
+	std::ostringstream text;
+	text.imbue(std::locale::classic());
+	text << std::fixed << std::setprecision(3) << "Reference section: " << extent.order << " of " << count << ", "
+		 << extent.id << ", " << extent.lowerKm() << " to " << extent.upperKm() << " km (" << relation << ")";
+	return text.str();
 }
 
 bool overlaps(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramInput& b) {
@@ -84,8 +109,8 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 				for (size_t secondBlock = 0; secondBlock < trains[secondTrain].size(); secondBlock++) {
 					if (!validBlockingTimeDiagramInput(trains[secondTrain][secondBlock]))
 						continue;
-					if (shareBlockingTimeResource(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock]) &&
-						overlaps(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock])) {
+					if (shareBlockingTimeResource(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock])
+						&& overlaps(trains[firstTrain][firstBlock], trains[secondTrain][secondBlock])) {
 						critical[firstTrain][firstBlock] = true;
 						critical[secondTrain][secondBlock] = true;
 					}
@@ -152,13 +177,14 @@ std::vector<BlockingTimeDiagramSegment> filterBlockingTimeDiagramSegments(
 		return filtered;
 
 	for (const BlockingTimeDiagramSegment& source : segments) {
-		if ((!allowedTrainIds.empty() &&
-			 std::find(allowedTrainIds.begin(), allowedTrainIds.end(), source.trainName) == allowedTrainIds.end()) ||
-			(!allowedBlockIds.empty() && std::none_of(allowedBlockIds.begin(), allowedBlockIds.end(),
-				[&source](const std::string& allowedBlockId) {
-					return shareBlockingTimeResource(source.blockId, allowedBlockId);
-				})) ||
-			source.endTime <= startTime || source.startTime >= endTime)
+		if ((!allowedTrainIds.empty()
+				&& std::find(allowedTrainIds.begin(), allowedTrainIds.end(), source.trainName) == allowedTrainIds.end())
+			|| (!allowedBlockIds.empty()
+				&& std::none_of(allowedBlockIds.begin(), allowedBlockIds.end(),
+					[&source](const std::string& allowedBlockId) {
+						return shareBlockingTimeResource(source.blockId, allowedBlockId);
+					}))
+			|| source.endTime <= startTime || source.startTime >= endTime)
 			continue;
 
 		BlockingTimeDiagramSegment segment = source;
@@ -179,11 +205,10 @@ std::vector<std::vector<BlockingTimePlannedReference>> clipBlockingTimePlannedRe
 		return std::isfinite(point.time) && std::isfinite(point.positionKm);
 	};
 	const auto boundary = [](const BlockingTimePlannedReference& first,
-		const BlockingTimePlannedReference& second, double time) {
+							  const BlockingTimePlannedReference& second, double time) {
 		BlockingTimePlannedReference point = first;
 		point.time = time;
-		point.positionKm += (second.positionKm - first.positionKm) *
-			((time - first.time) / (second.time - first.time));
+		point.positionKm += (second.positionKm - first.positionKm) * ((time - first.time) / (second.time - first.time));
 		point.stationName.clear();
 		point.eventType = "clipped planned interpolation";
 		return point;
@@ -225,20 +250,185 @@ std::vector<BlockingTimePlannedReference> filterBlockingTimePlannedReferences(
 		return filtered;
 
 	const auto segmentIntersects = [startTime, endTime](double first, double second) {
-		return std::isfinite(first) && std::isfinite(second) &&
-			std::max(first, second) >= startTime && std::min(first, second) <= endTime;
+		return std::isfinite(first) && std::isfinite(second) && std::max(first, second) >= startTime && std::min(first, second) <= endTime;
 	};
 	for (std::size_t i = 0; i < references.size(); ++i) {
 		const BlockingTimePlannedReference& reference = references[i];
 		if (!std::isfinite(reference.time))
 			continue;
 		const bool pointVisible = reference.time >= startTime && reference.time <= endTime;
-		const bool previousVisible = i > 0 && references[i - 1].trainName == reference.trainName &&
-			segmentIntersects(references[i - 1].time, reference.time);
-		const bool nextVisible = i + 1 < references.size() && references[i + 1].trainName == reference.trainName &&
-			segmentIntersects(reference.time, references[i + 1].time);
+		const bool previousVisible = i > 0 && references[i - 1].trainName == reference.trainName
+			&& segmentIntersects(references[i - 1].time, reference.time);
+		const bool nextVisible = i + 1 < references.size() && references[i + 1].trainName == reference.trainName
+			&& segmentIntersects(reference.time, references[i + 1].time);
 		if (pointVisible || previousVisible || nextVisible)
 			filtered.push_back(reference);
 	}
 	return filtered;
+}
+
+std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<BlockSectionInput>& inputs) {
+	std::vector<BlockSectionExtent> extents;
+	extents.reserve(inputs.size());
+	for (std::size_t i = 0; i < inputs.size(); ++i) {
+		BlockSectionExtent extent;
+		extent.order = static_cast<int>(i) + 1;
+		extent.id = inputs[i].id;
+		extent.startKm = inputs[i].startKm;
+		extent.endKm = inputs[i].endKm;
+		if (!std::isfinite(extent.startKm) || !std::isfinite(extent.endKm))
+			extent.issue = "coordinate is not finite";
+		else if (std::abs(extent.endKm - extent.startKm) <= kBlockSectionMinimumLengthKm)
+			extent.issue = "zero length";
+		extent.geometryValid = extent.issue.empty();
+		extents.push_back(std::move(extent));
+	}
+	return extents;
+}
+
+void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
+	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId) {
+	for (BlockingTimeDiagramSegment& segment : segments) {
+		segment.referenceSection = 0;
+		segment.referenceNote.clear();
+		if (extents.empty() || segment.startPositionKm == segment.endPositionKm) continue;
+		const double lower = std::min(segment.startPositionKm, segment.endPositionKm);
+		const double upper = std::max(segment.startPositionKm, segment.endPositionKm);
+		std::vector<const BlockSectionExtent*> exact, shared;
+		for (const BlockSectionExtent& extent : extents) {
+			if (!extent.geometryValid) continue;
+			if (std::abs(extent.lowerKm() - lower) <= kBlockSectionToleranceKm
+				&& std::abs(extent.upperKm() - upper) <= kBlockSectionToleranceKm && extent.id == segment.blockId)
+				exact.push_back(&extent);
+			if (std::min(upper, extent.upperKm()) - std::max(lower, extent.lowerKm()) > kBlockSectionToleranceKm
+				&& shareBlockingTimeResource(extent.id, segment.blockId))
+				shared.push_back(&extent);
+		}
+		const auto& candidates = exact.empty() ? shared : exact;
+		if (candidates.size() == 1) {
+			segment.referenceSection = candidates.front()->order;
+			segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size(),
+				exact.empty() ? "shares a block with this envelope's section" : "same section");
+		} else if (candidates.size() > 1) {
+			segment.referenceNote = "Ambiguous reference sections on route " + referenceRouteId + ": ";
+			for (const auto* candidate : candidates)
+				segment.referenceNote += (candidate == candidates.front() ? "" : ", ") + std::to_string(candidate->order) + ":" + candidate->id;
+		} else {
+			segment.referenceNote = "Not a section of the reference route " + referenceRouteId;
+		}
+	}
+}
+
+std::vector<BlockSectionExtent> scopedBlockSectionExtents(const std::vector<BlockSectionExtent>& extents,
+	const std::vector<int>& indices) {
+	if (indices.empty()) return extents;
+	std::vector<BlockSectionExtent> selected;
+	for (int index : indices)
+		if (index >= 0 && static_cast<std::size_t>(index) < extents.size()) selected.push_back(extents[index]);
+	return selected;
+}
+
+std::vector<int> blockSectionRangeIndices(int first, int last, int count) {
+	std::vector<int> indices;
+	const int low = std::min(first, last), high = std::max(first, last);
+	for (int index = low; index >= 0 && index <= high && index < count; ++index)
+		indices.push_back(index);
+	return indices;
+}
+
+bool blockingSegmentInSections(const BlockingTimeDiagramSegment& segment, const std::vector<BlockSectionExtent>& sections) {
+	const double lower = std::min(segment.startPositionKm, segment.endPositionKm);
+	const double upper = std::max(segment.startPositionKm, segment.endPositionKm);
+	return std::any_of(sections.begin(), sections.end(), [&](const BlockSectionExtent& section) {
+		return section.geometryValid && shareBlockingTimeResource(section.id, segment.blockId)
+			&& (lower == upper ? lower >= section.lowerKm() && lower <= section.upperKm()
+							   : std::min(section.upperKm(), upper) > std::max(section.lowerKm(), lower));
+	});
+}
+
+bool positionInBlockSections(double positionKm, const std::vector<BlockSectionExtent>& sections) {
+	return std::any_of(sections.begin(), sections.end(), [positionKm](const BlockSectionExtent& section) {
+		return section.geometryValid && positionKm >= section.lowerKm() && positionKm <= section.upperKm();
+	});
+}
+
+std::optional<std::pair<double, double>> blockSectionBounds(const std::vector<BlockSectionExtent>& extents) {
+	std::optional<std::pair<double, double>> bounds;
+	for (const auto& extent : extents) {
+		if (!extent.geometryValid) continue;
+		if (!bounds) bounds = {extent.lowerKm(), extent.upperKm()};
+		else {
+			bounds->first = std::min(bounds->first, extent.lowerKm());
+			bounds->second = std::max(bounds->second, extent.upperKm());
+		}
+	}
+	return bounds;
+}
+
+std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>& extents,
+	const std::vector<int>& indices) {
+	if (indices.empty()) return {};
+	const auto selected = scopedBlockSectionExtents(extents, indices);
+	for (const auto& section : selected)
+		for (std::size_t index = 0; index < extents.size(); ++index)
+			if (std::find(indices.begin(), indices.end(), static_cast<int>(index)) == indices.end()
+				&& shareBlockingTimeResource(section.id, extents[index].id))
+				return "Selected section resources also occur outside this scope; the capacity analysis cannot distinguish those occurrences.";
+	for (std::size_t index = 1; index < selected.size(); ++index)
+		if (shareBlockingTimeResource(selected.front().id, selected[index].id))
+			return "Selected entry resource occurs more than once; the capacity analysis cannot identify a unique entry occurrence.";
+	return {};
+}
+
+bool blockingTimeEntryAmbiguous(const std::vector<BlockingTimeDiagramInput>& occupations,
+	const std::string& entryBlockId) {
+	return std::count_if(occupations.begin(), occupations.end(), [&entryBlockId](const auto& occupation) {
+		return validBlockingTimeDiagramInput(occupation) && std::isfinite(occupation.startRunTime)
+			&& occupation.startRunTime >= 0 && shareBlockingTimeResource(occupation.blockId, entryBlockId);
+	}) > 1;
+}
+
+const std::vector<std::string>& blockingTimeCsvHeader() {
+	static const std::vector<std::string> header = {"Train", "Block", "Occupation start[s]", "Occupation end[s]",
+		"Position[km]", "Segment type", "Planned reference", "Station", "Planned time[s]", "Start X[km]", "End X[km]",
+		"Original start[s]", "Original end[s]", "Approach[s]", "Run start[s]", "Run end[s]", "Clearance[s]",
+		"Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer", "Reference section"};
+	return header;
+}
+
+std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<BlockSectionExtent>& extents) {
+	std::vector<std::vector<std::string>> rows;
+	rows.reserve(extents.size());
+	for (const BlockSectionExtent& extent : extents) {
+		std::vector<std::string> row(blockingTimeCsvHeader().size());
+		row[kColumnBlock] = extent.id;
+		row[kColumnSegmentType] = kBlockSectionSegmentType;
+		row[kColumnReferenceSection] = std::to_string(extent.order);
+		if (extent.geometryValid) {
+			row[kColumnPosition] = csv::formatDouble((extent.startKm + extent.endKm) / 2.0);
+			row[kColumnStartX] = csv::formatDouble(extent.startKm);
+			row[kColumnEndX] = csv::formatDouble(extent.endKm);
+			row[kColumnLayer] = kBlockSectionLayer;
+		} else {
+			row[kColumnLayer] = kBlockSectionMissingLayer;
+		}
+		rows.push_back(std::move(row));
+	}
+	return rows;
+}
+
+std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents) {
+	constexpr std::size_t kListedIds = 3;
+	std::vector<std::string> ids;
+	for (const BlockSectionExtent& extent : extents)
+		if (!extent.geometryValid)
+			ids.push_back(extent.id);
+	if (ids.empty())
+		return std::string();
+	std::string note = " Reference sections without a usable extent: ";
+	for (std::size_t i = 0; i < ids.size() && i < kListedIds; ++i)
+		note += (i > 0 ? ", " : "") + ids[i];
+	if (ids.size() > kListedIds)
+		note += " and " + std::to_string(ids.size() - kListedIds) + " more";
+	return note + ".";
 }

@@ -1,0 +1,605 @@
+#include "editors/IncidentPanel.h"
+
+#include <QApplication>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QFormLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QPushButton>
+#include <QString>
+#include <QStringList>
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+static bool expect(bool condition, const char* message) {
+	if (!condition)
+		std::cerr << "failed: " << message << "\n";
+	return condition;
+}
+
+static SceneService service(const char* id) {
+	SceneService result;
+	result.id = id;
+	result.route = "r1";
+	return result;
+}
+
+static SceneIncident signalFailure(const char* id, const char* target) {
+	SceneIncident incident;
+	incident.id = id;
+	incident.type = "signal_failure";
+	incident.target = target;
+	incident.startSeconds = 10.0;
+	incident.endSeconds = 20.0;
+	incident.hasEndSeconds = true;
+	return incident;
+}
+
+static SceneIncident breakdown(const char* id, const char* target) {
+	SceneIncident incident;
+	incident.id = id;
+	incident.type = "train_breakdown";
+	incident.target = target;
+	incident.startSeconds = 100.0;
+	incident.endSeconds = 200.0;
+	incident.hasEndSeconds = true;
+	return incident;
+}
+
+// A case of one hour with a signal, two blocks and two services. Service s1 runs every 20 minutes and s2 once; a block
+// is also called s2. The scenario base is the default and holds a signal failure and a breakdown of the second run of s1
+// with a speed cap. The scenario alt holds one breakdown that is not limited to a run.
+static SceneModel incidentScene() {
+	SceneModel scene;
+	scene.name = "Incidents";
+	scene.settings.hasDuration = true;
+	scene.settings.durationSeconds = 3600.0;
+	SceneSignal signal;
+	signal.id = "sig1";
+	sceneSignals(scene) = {signal};
+	SceneBlock first;
+	first.id = "blk1";
+	SceneBlock second;
+	second.id = "s2";
+	scene.blocks = {first, second};
+	SceneService repeated = service("s1");
+	repeated.hasRepeat = true;
+	repeated.headwaySeconds = 1200.0;
+	scene.services = {repeated, service("s2")};
+	SceneScenario base;
+	base.id = "base";
+	base.name = "Baseline";
+	SceneIncident capped = breakdown("i2", "s1");
+	capped.hasOccurrence = true;
+	capped.occurrence = 2;
+	capped.hasReducedSpeed = true;
+	capped.reducedSpeedKmh = 30.0;
+	base.incidents = {signalFailure("i1", "sig1"), capped};
+	SceneScenario alt;
+	alt.id = "alt";
+	alt.name = "Alternative";
+	alt.incidents = {breakdown("i3", "s2")};
+	scene.scenarios = {base, alt};
+	scene.defaultScenarioId = "base";
+	return scene;
+}
+
+// Answers the questions of the panel and records the messages, without a dialog.
+class FakePrompts : public UserPrompts {
+public:
+	QString errorTitle;
+	QString errorMessage;
+	int errorCount = 0;
+	int confirmCount = 0;
+	QString confirmQuestion;
+	bool confirmAnswer = false;
+
+	void showError(QWidget*, const QString& title, const QString& message, bool = false) override {
+		++errorCount;
+		errorTitle = title;
+		errorMessage = message;
+	}
+	bool confirm(QWidget*, const QString&, const QString& question) override {
+		++confirmCount;
+		confirmQuestion = question;
+		return confirmAnswer;
+	}
+};
+
+using Log = std::vector<std::string>;
+
+// The order in which a panel and its document report an edit.
+struct Events {
+	Log log;
+	SceneDocument::ChangeKinds kinds;
+
+	Events(IncidentPanel& panel, SceneDocument& document) {
+		QObject::connect(&document, &SceneDocument::changed, &panel, [this](SceneDocument::ChangeKinds changedKinds) {
+			log.push_back("documentChanged");
+			kinds = changedKinds;
+		});
+		QObject::connect(&panel, &IncidentPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
+	}
+};
+
+static QStringList items(const QListWidget* list) {
+	QStringList result;
+	for (int row = 0; row < list->count(); ++row)
+		result << list->item(row)->text();
+	return result;
+}
+
+static QStringList choices(const QComboBox* combo) {
+	QStringList result;
+	for (int index = 0; index < combo->count(); ++index)
+		result << combo->itemText(index);
+	return result;
+}
+
+// The position of the choice of the target `id` and `occurrence`, or -1.
+static int choice(const QComboBox* combo, const char* id, int occurrence) {
+	for (int index = 0; index < combo->count(); ++index) {
+		if (combo->itemData(index).toString() == id && combo->itemData(index, Qt::UserRole + 1).toInt() == occurrence)
+			return index;
+	}
+	return -1;
+}
+
+int main(int argc, char** argv) {
+	QApplication app(argc, argv);
+	bool ok = true;
+	const Log edit({"documentChanged", "panelChanged"});
+
+	{
+		IncidentPanel panel;
+		ok &= expect(panel.listWidget()->count() == 0 && !panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled()
+				&& !panel.idEdit()->isEnabled() && !panel.targetCombo()->isEnabled() && panel.targetCombo()->count() == 1,
+			"a panel without a document shows nothing and offers nothing");
+		SceneDocument document;
+		panel.setDocument(&document);
+		panel.addIncident();
+		panel.duplicateIncident();
+		panel.deleteIncident();
+		panel.commitIdEdit();
+		panel.commitPendingEditors();
+		ok &= expect(!panel.addButton()->isEnabled() && document.revision() == 0 && !document.isDirty() && document.model().scenarios.empty(),
+			"a panel stays disabled while its document holds no scene, and its actions change nothing");
+	}
+
+	{
+		SceneDocument document;
+		IncidentPanel panel;
+		FakePrompts prompts;
+		RunSelection selection;
+		panel.setPrompts(&prompts);
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		Events events(panel, document);
+
+		// refresh
+		document.replace(incidentScene(), false);
+		selection.selectScenario("base");
+		panel.refresh();
+		ok &= expect(items(panel.listWidget()) == QStringList({"i1 (signal_failure)", "i2 (train_breakdown) #2 / 30 km/h"})
+				&& panel.listWidget()->currentRow() == 0 && panel.listWidget()->isEnabled() && panel.addButton()->isEnabled()
+				&& panel.duplicateButton()->isEnabled() && panel.deleteButton()->isEnabled(),
+			"the incidents of the selected scenario are listed, and the first is selected");
+		ok &= expect(panel.idEdit()->text() == "i1" && panel.typeCombo()->currentText() == "signal_failure"
+				&& panel.startSecondsEdit()->text() == "10" && panel.endSecondsEdit()->text() == "20" && panel.hasEndSecondsCheck()->isChecked()
+				&& !panel.hasReducedSpeedCheck()->isEnabled() && !panel.reducedSpeedKmhEdit()->isEnabled()
+				&& !panel.terminateAtDestinationCheck()->isEnabled() && !panel.hasReducedSpeedCheck()->isChecked(),
+			"the selected signal failure shows its fields, and the fields of a breakdown wait");
+		ok &= expect(choices(panel.targetCombo()) == QStringList({"Choose target", "sig1", "blk1", "s2"})
+				&& panel.targetCombo()->currentText() == "sig1" && panel.targetCombo()->isEnabled(),
+			"the targets of a signal failure are the signals and the blocks");
+		ok &= expect(events.log.empty() && !document.isDirty() && document.revision() == 1 && !selection.isScenarioModified("base"),
+			"showing a scene edits nothing");
+
+		// a breakdown
+		panel.listWidget()->setCurrentRow(1);
+		ok &= expect(panel.idEdit()->text() == "i2" && panel.typeCombo()->currentText() == "train_breakdown"
+				&& panel.hasReducedSpeedCheck()->isEnabled() && panel.hasReducedSpeedCheck()->isChecked()
+				&& panel.reducedSpeedKmhEdit()->isEnabled() && panel.reducedSpeedKmhEdit()->value() == 30.0
+				&& panel.terminateAtDestinationCheck()->isEnabled() && !panel.terminateAtDestinationCheck()->isChecked(),
+			"a breakdown shows its speed cap");
+		ok &= expect(choices(panel.targetCombo())
+					== QStringList({"Choose target", "s1-1 | route r1 | entry +0 s", "s1-2 | route r1 | entry +1200 s",
+						"s1-3 | route r1 | entry +2400 s", "s2 | route r1 | entry +0 s"})
+				&& panel.targetCombo()->currentIndex() == 2
+				&& panel.targetCombo()->itemData(2, Qt::ToolTipRole).toString() == "s1-2 | route r1 | entry +1200 s [s1, #2]",
+			"the targets of a breakdown are the occurrences of the services, and the occurrence of the incident is chosen");
+		ok &= expect(events.log.empty(), "selecting an incident edits nothing");
+
+		// the type decides which targets are valid
+		panel.listWidget()->setCurrentRow(0);
+		panel.typeCombo()->setCurrentText("train_breakdown");
+		ok &= expect(document.model().scenarios[0].incidents[0].type == "train_breakdown" && document.model().scenarios[0].incidents[0].target.empty()
+				&& panel.targetCombo()->currentIndex() == 0 && panel.hasReducedSpeedCheck()->isEnabled()
+				&& choices(panel.targetCombo()).size() == 5 && panel.listWidget()->item(0)->text() == "i1 (train_breakdown)"
+				&& events.log == edit && events.kinds == SceneDocument::Scenarios && document.lastChangeLabel() == "Change incident type"
+				&& selection.isScenarioModified("base"),
+			"a breakdown has no signal as its target, and the targets are the services");
+		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "s1", 3));
+		ok &= expect(document.model().scenarios[0].incidents[0].target == "s1" && document.model().scenarios[0].incidents[0].hasOccurrence
+				&& document.model().scenarios[0].incidents[0].occurrence == 3 && document.lastChangeLabel() == "Change incident target",
+			"a chosen occurrence is the target of the breakdown");
+		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "s2", 1));
+		panel.typeCombo()->setCurrentText("signal_failure");
+		ok &= expect(document.model().scenarios[0].incidents[0].type == "signal_failure" && document.model().scenarios[0].incidents[0].target == "s2"
+				&& !document.model().scenarios[0].incidents[0].hasOccurrence && document.model().scenarios[0].incidents[0].occurrence == 1
+				&& panel.targetCombo()->currentText() == "s2" && !panel.hasReducedSpeedCheck()->isEnabled(),
+			"a target that is valid for both types stays, and a signal failure has no occurrence");
+		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "sig1", 0));
+		panel.typeCombo()->setCurrentText("train_breakdown");
+		ok &= expect(document.model().scenarios[0].incidents[0].target.empty(), "a signal is dropped as the target of a breakdown");
+		panel.typeCombo()->setCurrentText("signal_failure");
+		ok &= expect(document.model().scenarios[0].incidents[0].target.empty() && panel.targetCombo()->currentIndex() == 0,
+			"a signal failure starts without a target after the type changes");
+		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "sig1", 0));
+		ok &= expect(document.model().scenarios[0].incidents[0].target == "sig1" && !document.model().scenarios[0].incidents[0].hasOccurrence,
+			"a signal is the target of a signal failure");
+		panel.targetCombo()->setCurrentIndex(0);
+		ok &= expect(document.model().scenarios[0].incidents[0].target.empty(), "Choose target clears the target");
+		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "sig1", 0));
+
+		// a breakdown that loses its speed cap when it becomes a signal failure
+		panel.listWidget()->setCurrentRow(1);
+		panel.typeCombo()->setCurrentText("signal_failure");
+		const SceneIncident& converted = document.model().scenarios[0].incidents[1];
+		ok &= expect(converted.type == "signal_failure" && !converted.hasReducedSpeed && converted.reducedSpeedKmh == 0.0 && !converted.hasOccurrence
+				&& converted.occurrence == 1 && !converted.terminateAtDestination && !panel.hasReducedSpeedCheck()->isChecked()
+				&& !panel.reducedSpeedKmhEdit()->isEnabled() && converted.target.empty(),
+			"a signal failure has none of the fields of a breakdown");
+		panel.typeCombo()->setCurrentText("train_breakdown");
+		ok &= expect(!panel.hasReducedSpeedCheck()->isChecked() && panel.hasReducedSpeedCheck()->isEnabled() && !panel.reducedSpeedKmhEdit()->isEnabled()
+				&& panel.reducedSpeedKmhEdit()->value() == 40.0,
+			"the speed cap of a new breakdown is off and offers 40 km/h");
+
+		// the speed cap
+		events.log.clear();
+		panel.hasReducedSpeedCheck()->setChecked(true);
+		ok &= expect(converted.hasReducedSpeed && converted.reducedSpeedKmh == 40.0 && panel.reducedSpeedKmhEdit()->isEnabled() && events.log == edit
+				&& document.lastChangeLabel() == "Change incident reduced speed",
+			"switching the speed cap on writes the speed that is shown");
+		panel.reducedSpeedKmhEdit()->setValue(45.5);
+		panel.commitReducedSpeed();
+		ok &= expect(converted.reducedSpeedKmh == 45.5 && converted.hasReducedSpeed
+				&& panel.listWidget()->item(1)->text() == "i2 (train_breakdown) / 45.5 km/h",
+			"a speed is written to the document and shown in the list");
+		events.log.clear();
+		panel.commitReducedSpeed();
+		ok &= expect(events.log.empty(), "an unchanged speed does not touch the document");
+		panel.hasReducedSpeedCheck()->setChecked(false);
+		ok &= expect(!converted.hasReducedSpeed && converted.reducedSpeedKmh == 0.0 && !panel.reducedSpeedKmhEdit()->isEnabled()
+				&& panel.reducedSpeedKmhEdit()->value() == 40.0,
+			"switching the speed cap off removes it, and the field offers 40 km/h again");
+		panel.refresh();
+		ok &= expect(panel.listWidget()->item(1)->text() == "i2 (train_breakdown)", "the list shows the incident without a speed cap");
+
+		// the end of the incident
+		events.log.clear();
+		panel.hasEndSecondsCheck()->setChecked(false);
+		ok &= expect(!converted.hasEndSeconds && converted.endSeconds == 0.0 && panel.endSecondsEdit()->text() == "0" && events.log == edit
+				&& !panel.hasEndSecondsCheck()->isChecked(),
+			"a breakdown can go on without a recovery end");
+		panel.endSecondsEdit()->setText("500");
+		panel.commitEndSeconds();
+		ok &= expect(converted.hasEndSeconds && converted.endSeconds == 500.0 && panel.hasEndSecondsCheck()->isChecked() == false,
+			"a recovery end is written to the document");
+		panel.refresh();
+		ok &= expect(panel.hasEndSecondsCheck()->isChecked() && panel.endSecondsEdit()->text() == "500", "the recovery end is shown again");
+		panel.endSecondsEdit()->setText("");
+		panel.commitEndSeconds();
+		ok &= expect(converted.endSeconds == 0.0 && converted.hasEndSeconds && panel.endSecondsEdit()->text() == "0",
+			"a blank recovery end is shown and stored as zero");
+		panel.hasEndSecondsCheck()->setChecked(true);
+		ok &= expect(converted.hasEndSeconds && panel.hasEndSecondsCheck()->isChecked(), "the recovery end switches on");
+		panel.startSecondsEdit()->setText("250");
+		panel.commitStartSeconds();
+		ok &= expect(converted.startSeconds == 250.0 && document.lastChangeLabel() == "Change incident start", "a start is written to the document");
+		events.log.clear();
+		panel.commitStartSeconds();
+		ok &= expect(events.log.empty(), "an unchanged start does not touch the document");
+		panel.terminateAtDestinationCheck()->setChecked(true);
+		ok &= expect(converted.terminateAtDestination && events.log == edit, "a breakdown can end at the destination");
+
+		// ids
+		events.log.clear();
+		prompts.errorCount = 0;
+		panel.idEdit()->setText("  i2b  ");
+		panel.commitIdEdit();
+		ok &= expect(converted.id == "i2b" && panel.listWidget()->item(1)->text() == "i2b (train_breakdown)" && events.log == edit
+				&& document.lastChangeLabel() == "Rename incident",
+			"a new id is written to the document, trimmed, and the list shows it");
+		events.log.clear();
+		panel.idEdit()->setText("i3");
+		panel.commitIdEdit();
+		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Incident ID already exists" && panel.idEdit()->text() == "i2b"
+				&& converted.id == "i2b" && events.log.empty(),
+			"an id that an incident of another scenario has is refused, and the field shows the old id again");
+		panel.idEdit()->setText(" ");
+		panel.commitIdEdit();
+		ok &= expect(prompts.errorCount == 2 && prompts.errorTitle == "Invalid Incident ID" && panel.idEdit()->text() == "i2b" && events.log.empty(),
+			"an empty id is refused, and the field shows the old id again");
+		panel.idEdit()->setText("i2b");
+		panel.commitIdEdit();
+		ok &= expect(prompts.errorCount == 2 && events.log.empty(), "an unchanged id does not touch the document");
+
+		// add, duplicate and delete
+		document.markSaved();
+		selection.clearModifiedScenarios();
+		events.log.clear();
+		panel.addIncident();
+		const SceneIncident& added = document.model().scenarios[0].incidents.back();
+		ok &= expect(document.model().scenarios[0].incidents.size() == 3 && added.id == "new_incident" && added.type == "signal_failure"
+				&& added.hasEndSeconds && panel.listWidget()->count() == 3 && panel.listWidget()->currentRow() == 2
+				&& panel.idEdit()->text() == "new_incident" && document.isDirty() && selection.isScenarioModified("base")
+				&& events.log == edit && document.lastChangeLabel() == "Add incident",
+			"an incident is added to the selected scenario, selected and shown");
+		panel.addIncident();
+		ok &= expect(document.model().scenarios[0].incidents.back().id == "new_incident_2", "the id of another new incident is unique");
+		events.log.clear();
+		panel.listWidget()->setCurrentRow(0);
+		panel.duplicateIncident();
+		ok &= expect(document.model().scenarios[0].incidents.size() == 5 && document.model().scenarios[0].incidents[1].id == "i1_copy"
+				&& document.model().scenarios[0].incidents[1].target == "sig1" && panel.listWidget()->currentRow() == 1
+				&& events.log == edit && document.lastChangeLabel() == "Duplicate incident",
+			"a copy is put after the incident, with an id of its own, and selected");
+		prompts.confirmCount = 0;
+		events.log.clear();
+		panel.deleteIncident();
+		ok &= expect(prompts.confirmCount == 1 && prompts.confirmQuestion == "Delete incident 'i1_copy'?"
+				&& document.model().scenarios[0].incidents.size() == 5 && events.log.empty(),
+			"declining the question keeps the incident");
+		prompts.confirmAnswer = true;
+		panel.deleteIncident();
+		ok &= expect(document.model().scenarios[0].incidents.size() == 4 && document.model().scenarios[0].incidents[1].id == "i2b"
+				&& panel.listWidget()->count() == 4 && events.log == edit && document.lastChangeLabel() == "Delete incident",
+			"a deleted incident is removed");
+
+		// the other scenario
+		selection.selectScenario("alt");
+		panel.refresh();
+		ok &= expect(items(panel.listWidget()) == QStringList({"i3 (train_breakdown)"}) && panel.idEdit()->text() == "i3"
+				&& panel.targetCombo()->currentIndex() == 1 && panel.targetCombo()->currentText().startsWith("Historical scope: all generated services [s2]"),
+			"the incidents of the selected scenario are shown, and a breakdown of every occurrence is a historical scope");
+		events.log.clear();
+		selection.clearModifiedScenarios();
+		panel.startSecondsEdit()->setText("5");
+		panel.commitStartSeconds();
+		ok &= expect(document.model().scenarios[1].incidents[0].startSeconds == 5.0 && selection.isScenarioModified("alt")
+				&& !selection.isScenarioModified("base"),
+			"an edit marks the selected scenario");
+		selection.selectScenario("base");
+		panel.refresh();
+
+		// pending edits
+		document.markSaved();
+		events.log.clear();
+		panel.listWidget()->setCurrentRow(0);
+		panel.startSecondsEdit()->setText("77");
+		panel.commitPendingEditors();
+		ok &= expect(document.model().scenarios[0].incidents[0].startSeconds == 77.0 && events.log == edit,
+			"unfinished text is taken into the document");
+		events.log.clear();
+		panel.endSecondsEdit()->setText("99");
+		panel.hasEndSecondsCheck()->blockSignals(true);
+		panel.hasEndSecondsCheck()->setChecked(true);
+		panel.hasEndSecondsCheck()->blockSignals(false);
+		panel.commitPendingEditors();
+		ok &= expect(document.model().scenarios[0].incidents[0].endSeconds == 99.0, "an unfinished recovery end is taken in when it is switched on");
+		panel.commitPendingEditors();
+		ok &= expect(events.log == edit, "committing again changes nothing");
+
+		// the scene is in use by a run
+		document.markSaved();
+		events.log.clear();
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(!panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled() && !panel.duplicateButton()->isEnabled()
+				&& !panel.deleteButton()->isEnabled() && !panel.idEdit()->isEnabled() && !panel.typeCombo()->isEnabled()
+				&& !panel.targetCombo()->isEnabled() && !panel.startSecondsEdit()->isEnabled() && !panel.endSecondsEdit()->isEnabled()
+				&& !panel.hasEndSecondsCheck()->isEnabled() && !panel.hasReducedSpeedCheck()->isEnabled()
+				&& !panel.terminateAtDestinationCheck()->isEnabled() && panel.idEdit()->text().isEmpty(),
+			"nothing can be done with the incidents, and the fields are empty, while a run uses the scene");
+		panel.idEdit()->setText("while-running");
+		panel.startSecondsEdit()->setText("1");
+		panel.commitPendingEditors();
+		panel.commitIdEdit();
+		panel.addIncident();
+		panel.duplicateIncident();
+		panel.deleteIncident();
+		panel.typeCombo()->setCurrentText("train_breakdown");
+		ok &= expect(document.model().scenarios[0].incidents[0].id == "i1" && document.model().scenarios[0].incidents.size() == 4 && events.log.empty()
+				&& !document.isDirty(),
+			"pending text and actions change nothing while a run uses the scene");
+		document.setEditable(true);
+		panel.refresh();
+		ok &= expect(panel.idEdit()->text() == "i1" && panel.listWidget()->isEnabled(), "the incidents can be edited again after the run");
+
+		// another scene replaces unfinished text without an edit
+		panel.idEdit()->setText("abandoned");
+		SceneModel other = incidentScene();
+		other.scenarios[0].incidents.resize(1);
+		other.scenarios[0].incidents[0].id = "only";
+		document.replace(other, false);
+		ok &= expect(items(panel.listWidget()) == QStringList({"only (signal_failure)"}) && panel.idEdit()->text() == "only" && !document.isDirty(),
+			"opening another scene replaces unfinished text without an edit");
+
+		// detach
+		panel.setDocument(nullptr);
+		ok &= expect(panel.listWidget()->count() == 0 && !panel.listWidget()->isEnabled() && panel.targetCombo()->count() == 1,
+			"a detached panel shows nothing");
+		const quint64 revisionDetached = document.revision();
+		panel.addIncident();
+		document.replace(incidentScene(), false);
+		ok &= expect(panel.listWidget()->count() == 0 && document.revision() == revisionDetached + 1,
+			"a detached panel neither edits nor follows the document");
+	}
+
+	{
+		// the targets follow the document
+		SceneDocument document;
+		IncidentPanel panel;
+		RunSelection selection;
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		document.replace(incidentScene(), false);
+		selection.selectScenario("base");
+		panel.refresh();
+		panel.listWidget()->setCurrentRow(1);
+		ok &= expect(panel.targetCombo()->count() == 5, "the breakdown can have four occurrences as its target");
+
+		SceneModel& model = document.mutableModel();
+		model.services.push_back(service("s3"));
+		ok &= expect(panel.targetCombo()->count() == 5, "a service that the document has not announced is not offered");
+		document.markChanged(SceneDocument::Services, "Add service");
+		ok &= expect(panel.targetCombo()->count() == 6 && choice(panel.targetCombo(), "s3", 1) == 5 && panel.targetCombo()->currentIndex() == 2,
+			"a service that is added is offered, and the target of the incident stays");
+
+		model.services[0].id = "s1b";
+		model.scenarios[0].incidents[1].target = "s1b";
+		document.markChanged(SceneDocument::Services | SceneDocument::Scenarios, "Rename service");
+		ok &= expect(choice(panel.targetCombo(), "s1b", 2) == 2 && panel.targetCombo()->currentIndex() == 2 && panel.targetCombo()->count() == 6,
+			"a renamed service is offered under its new id, and the target of the incident follows it");
+
+		model.services.erase(model.services.begin() + 2);
+		document.markChanged(SceneDocument::Services, "Delete service");
+		ok &= expect(panel.targetCombo()->count() == 5, "a service that is deleted is no longer offered");
+
+		model.services.erase(model.services.begin());
+		document.markChanged(SceneDocument::Services, "Delete service");
+		ok &= expect(panel.targetCombo()->currentText() == "Invalid removed target [s1b, 2]" && panel.targetCombo()->currentData().toString() == "s1b"
+				&& document.model().scenarios[0].incidents[1].target == "s1b",
+			"a target that is gone is shown as such and is not changed");
+
+		model.settings.durationSeconds = 7200.0;
+		model.services.insert(model.services.begin(), service("s1"));
+		model.services[0].hasRepeat = true;
+		model.services[0].headwaySeconds = 1200.0;
+		document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
+		ok &= expect(panel.targetCombo()->count() == 9, "a longer case has more occurrences to choose from");
+		panel.setOccurrenceDuration([] { return 2400.0; });
+		document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
+		ok &= expect(panel.targetCombo()->count() == 5, "the duration that the window gives counts the occurrences");
+		panel.setOccurrenceDuration({});
+
+		panel.listWidget()->setCurrentRow(0);
+		sceneSignals(model).push_back(SceneSignal{"sig2", ""});
+		document.markChanged(SceneDocument::Infrastructure, "Add signal");
+		ok &= expect(panel.targetCombo()->findText("sig2") >= 0, "a signal that is added is offered to a signal failure");
+		model.blocks.erase(model.blocks.begin());
+		document.markChanged(SceneDocument::Infrastructure, "Delete block");
+		ok &= expect(panel.targetCombo()->findText("blk1") < 0 && panel.targetCombo()->findText("sig2") >= 0,
+			"a block that is deleted is no longer offered");
+		sceneSignals(model).erase(sceneSignals(model).begin());
+		document.markChanged(SceneDocument::Infrastructure, "Delete signal");
+		ok &= expect(panel.targetCombo()->currentText() == "Invalid removed target: sig1" && panel.targetCombo()->currentData().toString() == "sig1",
+			"a signal that is gone is shown as the removed target of the signal failure");
+		sceneSignals(model).push_back(SceneSignal{"sig3", ""});
+		document.markChanged(SceneDocument::Scenarios, "Edit scenario");
+		ok &= expect(panel.targetCombo()->findText("sig3") < 0, "the targets stay as they are when only scenarios change");
+	}
+
+	{
+		auto* document = new SceneDocument;
+		IncidentPanel panel;
+		panel.setDocument(document);
+		document->replace(incidentScene(), false);
+		delete document;
+		panel.idEdit()->setText("after the document");
+		panel.commitIdEdit();
+		panel.addIncident();
+		panel.refresh();
+		ok &= expect(panel.listWidget()->count() == 0 && !panel.addButton()->isEnabled(),
+			"a panel whose document is gone shows nothing and edits nothing");
+	}
+
+	{
+		// the empty state follows the list and the selection
+		SceneDocument document;
+		IncidentPanel panel;
+		FakePrompts prompts;
+		prompts.confirmAnswer = true;
+		RunSelection selection;
+		panel.setPrompts(&prompts);
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a panel without a scene does not point to Add Incident, which is disabled");
+		document.replace(incidentScene(), false);
+		selection.selectScenario("alt");
+		panel.refresh();
+		ok &= expect(panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->text().isEmpty(),
+			"a selected incident has no empty-state message");
+		panel.deleteIncident();
+		ok &= expect(panel.emptyStateLabel()->text() == "This scenario has no incidents. Use Add Incident."
+				&& !panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->property("dialogHelp").toBool()
+				&& panel.addButton()->isEnabled() && !panel.idEdit()->isEnabled(),
+			"a scenario without incidents says so, and the Add button it points to is enabled");
+		panel.addIncident();
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "adding an incident removes the message");
+		panel.listWidget()->setCurrentRow(-1);
+		ok &= expect(panel.emptyStateLabel()->text() == "Select an incident or use Add Incident.",
+			"a scenario with incidents and no selected row asks for a selection");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a scene that a run uses does not point to the disabled Add button");
+	}
+
+	{
+		// a check box stands in front of the field it switches on
+		SceneDocument document;
+		IncidentPanel panel;
+		panel.setDocument(&document);
+		document.replace(incidentScene(), false);
+		QFormLayout* form = panel.idEdit()->parentWidget()->findChild<QFormLayout*>();
+		const auto labelOf = [form](QWidget* field) -> QWidget* {
+			int row = -1;
+			QFormLayout::ItemRole role = QFormLayout::SpanningRole;
+			if (!form)
+				return nullptr;
+			form->getWidgetPosition(field, &row, &role);
+			QLayoutItem* label = row >= 0 && role == QFormLayout::FieldRole ? form->itemAt(row, QFormLayout::LabelRole) : nullptr;
+			return label ? label->widget() : nullptr;
+		};
+		ok &= expect(form && labelOf(panel.endSecondsEdit()) == panel.hasEndSecondsCheck()
+				&& labelOf(panel.reducedSpeedKmhEdit()) == panel.hasReducedSpeedCheck(),
+			"the recovery end and the reduced speed are fields of rows that start with their check boxes");
+		ok &= expect(form && qobject_cast<QLabel*>(labelOf(panel.startSecondsEdit())) && qobject_cast<QLabel*>(labelOf(panel.idEdit())),
+			"the other fields have text labels");
+		panel.resize(420, 700);
+		panel.show();
+		QApplication::processEvents();
+		const auto topLeft = [&panel](const QWidget* widget) { return widget->mapTo(&panel, QPoint(0, 0)); };
+		const auto precedes = [&topLeft](const QWidget* check, const QWidget* field) {
+			return topLeft(check).y() + check->height() <= topLeft(field).y();
+		};
+		ok &= expect(precedes(panel.hasEndSecondsCheck(), panel.endSecondsEdit())
+				&& precedes(panel.hasReducedSpeedCheck(), panel.reducedSpeedKmhEdit()),
+			"each check box is drawn above the field it switches on");
+		const auto inside = [&panel, &topLeft](const QWidget* widget) { return panel.rect().contains(QRect(topLeft(widget), widget->size())); };
+		ok &= expect(inside(panel.addButton()) && inside(panel.idEdit()), "the Add button and the first field are inside the panel");
+		ok &= expect(panel.hasEndSecondsCheck()->text() == "Use recovery end (s)", "the check box of the recovery end names its unit");
+	}
+
+	{
+		// a scene without a scenario has no Add button that works, so the empty state does not point to it
+		SceneModel scene = incidentScene();
+		scene.scenarios.clear();
+		SceneDocument document;
+		IncidentPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "without a scenario the empty state does not point to Add Incident");
+	}
+
+	if (!ok)
+		return 1;
+	std::cout << "all incident panel tests passed\n";
+	return 0;
+}

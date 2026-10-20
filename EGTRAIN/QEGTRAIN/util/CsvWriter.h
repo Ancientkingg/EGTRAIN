@@ -29,7 +29,7 @@ std::string makeRow(const std::vector<std::string>& fields);
 
 // Build a full document from a header row followed by data rows.
 std::string makeDocument(const std::vector<std::string>& header,
-						 const std::vector<std::vector<std::string>>& rows);
+	const std::vector<std::vector<std::string>>& rows);
 
 } // namespace csv
 

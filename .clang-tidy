@@ -1,34 +1,68 @@
 # clang-tidy configuration for EGTRAIN.
 #
-# This is a large legacy C++14/17 simulation codebase (see project documentation for
-# known issues: god files, raw arrays, global state,
-# Windows-only code). The check selection below favours checks that find
-# *real bugs* (bugprone-*, correctness-related clang-analyzer-*) over
-# checks that would demand a wholesale style rewrite (modernize-*,
-# cppcoreguidelines-* are mostly disabled — they'd produce thousands of
-# findings unrelated to correctness in code this size).
+# The selection favours checks that find real bugs (bugprone-*,
+# clang-analyzer-*, performance-*) over checks that would demand a style
+# rewrite of the legacy simulation code (modernize-* beyond use-nullptr and
+# use-override, and cppcoreguidelines-*).
 #
-# Run with:
-#   clang-tidy -p build_mac <file> --config-file=.clang-tidy
+# Run `python3 tools/tidy.py`. It configures a build, runs clang-tidy 23.1 on the
+# sources of the modules listed in MODULES in that script, and fails on any finding.
+# The pull request checks run the same script on the changed sources. simulation/
+# is not analysed yet; the header filter below leaves its headers out too.
 #
+# The checks below apply to every analysed module. tests/.clang-tidy inherits them
+# and relaxes a few for the tests. Vendored code under EGTRAIN/QEGTRAIN/io/third_party/
+# has its own .clang-tidy that switches the analysis off.
+#
+# A check is switched off below only when its findings are a matter of style, or
+# when it cannot see how Qt owns and connects objects. docs/development/coding-guidelines.md
+# gives the reason of each one.
+#
+# Two checks are not selected, because their findings are not worth fixing:
+#   readability-implicit-bool-conversion  2269 findings, 862 of them outside tests/. Almost all are a
+#       pointer or an integer used as a condition (`if (ptr)`, `!ptr`, `a && ptr`), the idiom of the Qt
+#       code and of this code. With those conditions allowed 455 remain, mostly the
+#       same idiom inside a larger expression such as `a && !m_worker`. scene/, io/ and util/ have 44,
+#       all of the first kind.
+#   cppcoreguidelines-owning-memory  918 findings, 735 of them outside tests/. The check follows
+#       gsl::owner, and nearly every finding is `new` for a widget, layout, action or thread that a Qt
+#       parent owns. scene/, io/ and util/ have none.
 Checks: >
   -*,
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-narrowing-conversions,
+  -bugprone-signed-bitwise,
+  -bugprone-exception-escape,
+  -bugprone-throwing-static-initialization,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-unchecked-string-to-number-conversion,
+  -bugprone-nondeterministic-pointer-iteration-order,
+  -bugprone-derived-method-shadowing-base-method,
+  -bugprone-misplaced-widening-cast,
   clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  -clang-analyzer-optin.core.EnumCastOutOfRange,
   performance-*,
   -performance-no-int-to-ptr,
+  -performance-enum-size,
+  -performance-avoid-endl,
+  -performance-inefficient-vector-operation,
+  -performance-inefficient-string-concatenation,
+  -performance-faster-string-find,
+  -performance-prefer-single-char-overloads,
   readability-misleading-indentation,
   readability-redundant-control-flow,
   readability-redundant-declaration,
   readability-duplicate-include,
   misc-redundant-expression,
   misc-unused-parameters,
+  modernize-use-nullptr,
+  modernize-use-override,
 
 WarningsAsErrors: ''
 
-HeaderFilterRegex: '(Capacity|Infrastructure|IOClass|NumberGenerator|Optimisation|Owl|Passengers|Rescheduling|RollingStock|Signalling|Simulation|Util)\.(h|hpp)$'
+HeaderFilterRegex: 'EGTRAIN/QEGTRAIN/(app|diagrams|editors|graphics|graphics/items|io|recovery|scene|telemetry|tests/e2e|update|util|widgets)/[^/]+\.(h|hpp)$'
 
 FormatStyle: file
 

@@ -9,7 +9,7 @@ The application provides the complete authoring and analysis path. It does not
 invent the railway records. An instructor supplies authoritative infrastructure,
 signalling, and rolling-stock values and records the train-unit source references
 in the editor. The committed `Assignment_Gvc_Gdg_Ut` scene is a synthetic smoke
-fixture, not a distributable TU Delft case. Issues
+fixture; its sources and terms are in [DATA.md](../../DATA.md). Issues
 [#182](https://github.com/Ancientkingg/EGTRAIN/issues/182),
 [#228](https://github.com/Ancientkingg/EGTRAIN/issues/228), and
 [#181](https://github.com/Ancientkingg/EGTRAIN/issues/181) track optional project
@@ -76,8 +76,8 @@ with an implicit conventional or ETCS setting.
 | 19 | Generate a multi-hour timetable | Increase repeat count while retaining the interval and code step. | Check occurrence identities and planned offsets. |
 | 20 | Simulate signal failure | Map S451 to the corresponding canonical signal or block, set the 08:30 to 09:00 window, and run the same occurrence set as the baseline. | Inspect the affected traffic and blocking-time change. |
 | 21 | Simulate rolling-stock breakdown | Target IC 1727 at 08:25, set the 40 km/h cap, and request destination termination at Utrecht. | Check that sibling repeats are unchanged and the target continues under signalling. |
-| 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and open delay comparison. | Interpret direct primary rows, propagated secondary rows, and the reconciled total arrival delay. |
-| 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit propagated delay. |
+| 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and choose **Compare delays**. | Read the recorded direct evidence and the additional delay of each occurrence, and the sum of the additional delays at the final arrival. A delay without recorded evidence is not shown to be propagated. |
+| 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit the delay of the other trains. |
 | 24 | Export results | Use CSV from result tables and PNG from diagrams. | Keep the input settings and selected occurrences with submitted evidence. |
 | 25 | Save and distribute | Save the canonical folder, use **Save As** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
 
@@ -93,8 +93,22 @@ are section-scoped results. The Gdg overtaking exercise therefore uses separate
 ordered sections before and after Gdg where the train order changes. Compression
 is analysis output and does not rewrite the authored timetable.
 
+The capacity consumption of step 18 is the cycle of the selected train chain as a
+percentage of the period that the student enters. EGTRAIN compares it with no
+threshold and states no recommended value, and the repository holds none. The
+course recommendation named in step 18 comes from the course material.
+
+**Capacity by area** reports the share of the period that the selected trains
+occupy each resource of an area, and names the resource with the largest share.
+It is a view of the selected traffic, not the capacity of the line, and it
+states no trains per hour. Its traffic is labelled complete only when no train
+of the run in the area is left unchecked and no occupation is unusable.
+Parity with the legacy tool is not established. See
+[How capacity is analysed](../guides/capacity-analysis.md#capacity-by-area).
+
 Delay comparison requires equivalent run settings and the same selected
-occurrences. A positive arrival difference is primary only when the runtime
-recorded direct incident evidence for that occurrence. Other positive rows are
-secondary. EGTRAIN leaves the causal interpretation and railway explanation to
-the student.
+occurrences. The window reports the difference and the recorded direct incident
+evidence, and never states a cause; the matching rules and the figures are in
+[How delays are calculated](../guides/delay-analysis.md#delay-comparison-against-a-baseline).
+EGTRAIN leaves the causal interpretation and railway explanation to the
+student.

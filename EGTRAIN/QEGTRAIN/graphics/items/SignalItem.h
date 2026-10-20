@@ -15,11 +15,14 @@ class SignalItem : public QGraphicsEllipseItem {
 	// Q_OBJECT
 
 public:
-	SignalItem(const QRectF& rect, QGraphicsItem* parent = 0);
-	~SignalItem();
+	SignalItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
+	~SignalItem() override;
 
 	void setAspectCode(int code);
 	int aspectCode() const;
+	// A failed signal is a red lamp with a cross, whatever its code is.
+	void setFailed(bool failed);
+	bool failed() const { return m_failed; }
 	void setReversedDirection(bool reversed);
 	void setGroupedSignals(const QVector<QPair<int, bool>>& aspects);
 	int groupedSignalCount() const { return m_groupedSignals.size(); }
@@ -28,7 +31,7 @@ public:
 	QRectF boundingRect() const override;
 
 	// reimplemented functions
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	// trackline to which signal belongs
 	int trackID;
@@ -48,16 +51,20 @@ public:
 
 	// to allow cast
 	enum { Type = UserType + 6 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
 
 private:
 	int m_aspectCode;
+	bool m_failed = false;
 	QColor m_lampColor;
 	QVector<QPair<int, bool>> m_groupedSignals;
 	QString m_inspectionIdentity;
 };
+
+// The state of a signal head in tooltips, the inspector and the scripted runs.
+QString signalAspectLabel(const SignalItem* signal);
 
 #endif // SIGNALITEM_H

@@ -1,0 +1,69 @@
+name: Format
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # Every pull request to main starts this workflow, so that the result job below always reports and main can require
+  # it. The format job runs for a pull request that changes the sources or the format settings, and for a manual start.
+  changes:
+    name: Select the format job
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      format: ${{ steps.select.outputs.format }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job.
+      - name: Select the format job from the changed files
+        id: select
+        run: |
+          format=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
+            format=false
+            while IFS= read -r file; do
+              case "$file" in
+                EGTRAIN/QEGTRAIN/*) format=true ;;
+                .clang-format) format=true ;;
+                .clang-format-ignore) format=true ;;
+                tools/format.py) format=true ;;
+                .github/workflows/format.yml) format=true ;;
+              esac
+            done <<< "$files"
+          fi
+          echo "format=$format" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: format
+    needs: changes
+    if: needs.changes.outputs.format == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # The version is the one tools/format.py accepts.
+      - name: Install clang-format
+        run: python3 -m pip install 'clang-format==23.1.3'
+      - name: Check the format of the sources
+        run: python3 tools/format.py
+
+  # The one check that main requires. It succeeds when every job above succeeded or was skipped.
+  result:
+    name: Format result
+    if: always()
+    needs: [changes, check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail when a job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

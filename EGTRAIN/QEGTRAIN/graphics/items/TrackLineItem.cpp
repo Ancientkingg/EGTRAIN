@@ -2,7 +2,7 @@
 
 // adjust value of selectionOffset to control the margin used when clicking on the line item
 TrackLineItem::TrackLineItem(const QLineF& line, QGraphicsItem* parent)
-	: QGraphicsLineItem(line, parent), selectionOffset(20), m_operationalState(TrackOperationalState::Free) {
+	: QGraphicsLineItem(line, parent), track(-1), arc(nullptr), selectionOffset(20), m_operationalState(TrackOperationalState::Free) {
 	createSelectionPolygon();
 }
 
@@ -31,7 +31,7 @@ void TrackLineItem::createSelectionPolygon() {
 			 << line().p1() + offset2
 			 << line().p2() + offset2
 			 << line().p2() + offset1;
-	selectionPolygon = nPolygon;
+	selectionPolygon = std::move(nPolygon);
 	update();
 }
 
@@ -48,16 +48,6 @@ QPainterPath TrackLineItem::shape() const {
 void TrackLineItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
-
-	const TrackStateVisual stateVisual = classifyTrackState(m_operationalState);
-	if (stateVisual.style != Qt::NoPen && stateVisual.width > 0) {
-		QPen underlay(stateVisual.color);
-		underlay.setWidth(stateVisual.width);
-		underlay.setStyle(stateVisual.style);
-		underlay.setCosmetic(true);
-		painter->setPen(underlay);
-		painter->drawLine(line());
-	}
 
 	painter->setPen(pen());
 	painter->drawLine(line());

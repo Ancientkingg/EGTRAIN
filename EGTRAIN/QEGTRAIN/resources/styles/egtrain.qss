@@ -18,6 +18,10 @@ QToolBar::separator {
     margin: 5px 7px;
 }
 
+QToolBar QToolButton#qt_toolbar_ext_button {
+    padding: 0;
+}
+
 QLabel#speedSlowerLabel, QLabel#speedFasterLabel {
     color: #5b6871;
     font-size: 11px;
@@ -58,6 +62,10 @@ QToolButton#openCaseButton {
 QToolButton#openCaseButton:hover, QToolButton#openCaseButton:focus {
     background: #dce6eb;
     border-color: #315a70;
+}
+
+QToolButton:disabled {
+    color: #64717a;
 }
 
 QToolButton:checked {
@@ -108,9 +116,38 @@ QCheckBox {
     padding: 5px 2px;
 }
 
+QListView::indicator, QTableView::indicator, QTreeView::indicator {
+    width: 14px;
+    height: 14px;
+    background: #ffffff;
+    border: 1px solid #5b6871;
+    border-radius: 2px;
+}
+
+QListView::indicator:checked, QTableView::indicator:checked, QTreeView::indicator:checked {
+    background: #315a70;
+    border-color: #315a70;
+    image: url(:/icons/check-mark.svg);
+}
+
+QListView::indicator:disabled, QTableView::indicator:disabled, QTreeView::indicator:disabled {
+    background: #e4e8eb;
+    border-color: #c9d3db;
+}
+
+QListView::indicator:checked:disabled, QTableView::indicator:checked:disabled,
+QTreeView::indicator:checked:disabled {
+    background: #9aa5ab;
+    border-color: #9aa5ab;
+}
+
 QCheckBox[secondaryLayerToggle="true"] {
     color: #5b6871;
     margin-left: 16px;
+}
+
+QCheckBox:disabled {
+    color: #64717a;
 }
 
 QCheckBox:focus {
@@ -167,18 +204,18 @@ QPushButton:pressed {
     background: #d8e1e5;
 }
 
-QDialog#runReviewDialog {
+QDialog#runReviewDialog, QDialog[dialogPresentation="true"] {
     background: #f8fafb;
 }
 
-QLabel#runReviewHeading {
+QLabel#dialogHeading {
     background: transparent;
     color: #24313a;
-    font-size: 20px;
     font-weight: 600;
 }
 
-QLabel#runReviewContext, QLabel#runReviewFactLabel {
+QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext,
+QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
     background: transparent;
     color: #5b6871;
 }
@@ -188,7 +225,7 @@ QLabel#runReviewFactValue {
     font-weight: 600;
 }
 
-QLabel#runReviewStatus {
+QLabel[dialogStatus="neutral"], QLabel#runReviewStatus {
     background: #e7edf1;
     border: 1px solid #c5d0d7;
     border-radius: 2px;
@@ -196,10 +233,39 @@ QLabel#runReviewStatus {
     padding: 9px;
 }
 
-QLabel#runReviewStatus[warning="true"] {
+QLabel[dialogStatus="warning"], QLabel#runReviewStatus[warning="true"] {
     background: #f5eadc;
     border: 1px solid #d8b98e;
     color: #74451c;
+}
+
+QLabel[dialogStatus="error"] {
+    background: #f7e8e6;
+    border: 1px solid #c98f88;
+    border-radius: 2px;
+    color: #81352d;
+    padding: 9px;
+}
+
+QDialog#aboutDialog QPushButton[aboutLink="true"] {
+    color: #315a70;
+    text-decoration: underline;
+    text-align: left;
+    padding: 2px 4px;
+}
+
+QDialog#aboutDialog QPushButton[aboutLink="true"]:focus {
+    border: 2px solid #315a70;
+}
+
+QDialog#caseChooserDialog QListWidget::item:disabled {
+    color: #5b6871;
+    background: transparent;
+}
+
+QDialog#caseChooserDialog QListWidget::item:selected {
+    background: #d8e1e5;
+    color: #24313a;
 }
 
 QLabel#runReviewDetails {
@@ -208,17 +274,42 @@ QLabel#runReviewDetails {
     padding: 8px;
 }
 
-QPushButton#runReviewRunButton {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default,
+QMessageBox QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
     background: #315a70;
     border-color: #315a70;
     color: #ffffff;
-    font-weight: 600;
+}
+
+QPushButton#runReviewRunButton {
     min-width: 110px;
 }
 
-QPushButton#runReviewRunButton:hover, QPushButton#runReviewRunButton:focus {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:hover,
+QMessageBox QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
     background: #26495c;
     border-color: #26495c;
+}
+
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus,
+QMessageBox QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
+    border-color: #315a70;
+    outline: 2px solid #315a70;
+}
+
+QPushButton:disabled,
+QComboBox:disabled,
+QLineEdit:disabled {
+    background: #e4e8eb;
+    border-color: #c9d3db;
+    color: #64717a;
+}
+
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:disabled,
+QMessageBox QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
+    background: #dce3e7;
+    border-color: #c9d3db;
+    color: #64717a;
 }
 
 QTabWidget::pane {
@@ -241,6 +332,11 @@ QLineEdit[readOnly="true"] {
     background: #eceeec;
     color: #5b6871;
     border-color: #c8ced2;
+}
+
+QDialog[dialogPresentation="true"] QLineEdit[readOnly="true"]:focus {
+    border-color: #315a70;
+    outline: 1px solid #315a70;
 }
 
 QSlider::groove:horizontal {
@@ -271,6 +367,25 @@ QProgressBar::chunk {
 QPlainTextEdit {
     background: #12191f;
     color: #dde3e5;
+}
+
+QPlainTextEdit#signallingGroupDetails {
+    background: #ffffff;
+    color: #24313a;
+    border: 1px solid #c9d3db;
+    padding: 6px;
+}
+
+QPlainTextEdit#signallingGroupDetails:focus {
+    border-color: #315a70;
+}
+
+QLabel#infrastructureGuidance {
+    color: #5b6871;
+}
+
+QLabel#resultContextText {
+    color: #5b6871;
 }
 
 QGraphicsView#networkView {
@@ -329,4 +444,13 @@ QMenu::item {
 QMenu::item:selected {
     background: #d8e1e5;
     color: #24313a;
+}
+
+QMenu::item:disabled {
+    color: #64717a;
+}
+
+QMenu::item:disabled:selected {
+    background: transparent;
+    color: #64717a;
 }

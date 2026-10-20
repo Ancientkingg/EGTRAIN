@@ -1,10 +1,7 @@
-# Vendored third-party code — never reformat.
-EGTRAIN/QEGTRAIN/pugixml.cpp
-EGTRAIN/QEGTRAIN/pugixml.hpp
+# Vendored third-party code is never reformatted.
+EGTRAIN/QEGTRAIN/io/third_party/**
 
-# Build artifacts and generated files.
-build_mac/
-EGTRAIN/QEGTRAIN/GeneratedFiles/
-EGTRAIN/QEGTRAIN/x64/
-EGTRAIN/QEGTRAIN/CMakeFiles/
-EGTRAIN/x64/
+# Build output and generated files.
+build/**
+build-*/**
+build_*/**

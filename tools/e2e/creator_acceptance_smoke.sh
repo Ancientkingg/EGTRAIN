@@ -2,8 +2,16 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-SCENE_TOOL="$ROOT/build/scene_tool"
+PREVIEW_ONLY=0
+DIALOG_CONTRACT=0
+if [[ "${1:-}" == "--preview-infrastructure" ]]; then
+	PREVIEW_ONLY=1
+	export QEGTRAIN_E2E_PREVIEW_ONLY=1 QEGTRAIN_E2E_PREVIEW_PARITY=1
+elif [[ "${1:-}" == "--dialog-contract" ]]; then
+	DIALOG_CONTRACT=1
+fi
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
+SCENE_TOOL="${QEGTRAIN_SCENE_TOOL:-$ROOT/build/scene_tool}"
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2
@@ -91,12 +99,34 @@ PY
 APP_EXIT=$?
 set -e
 
+if [[ "$PREVIEW_ONLY" -eq 1 ]]; then
+	if [[ -n "${QEGTRAIN_E2E_PREVIEW_LOG:-}" ]]; then
+		cp "$LOG" "$QEGTRAIN_E2E_PREVIEW_LOG"
+	fi
+	if [[ "$APP_EXIT" -ne 0 ]] \
+		|| ! grep -Fqx E2E_CREATOR_PREVIEW_PRIMITIVES_OK "$LOG" \
+		|| ! grep -Fqx E2E_PREVIEW_IDENTITY_LIFETIME_OK "$LOG" \
+		|| ! grep -Fqx E2E_PREVIEW_PREPARED_RUNTIME_PARITY_OK "$LOG"; then
+		tail -40 "$LOG" >&2
+		exit 1
+	fi
+	echo "creator preview infrastructure smoke passed"
+	exit 0
+fi
+
 if [[ "$APP_EXIT" -ne 0 ]] || ! grep -Fqx E2E_CREATOR_ACCEPTANCE_OK "$LOG" \
-	|| ! grep -Fqx E2E_CREATOR_PENDING_OPEN_OK "$LOG"; then
+	|| ! grep -Fqx E2E_CREATOR_PENDING_OPEN_OK "$LOG" \
+	|| ! grep -Fqx E2E_FOLLOW_SERVICE_ADDED_OK "$LOG"; then
 	echo "creator acceptance smoke failed (app exit $APP_EXIT)" >&2
 	echo "--- log tail ---" >&2
 	tail -40 "$LOG" >&2 || true
 	exit 1
+fi
+
+if [[ "$DIALOG_CONTRACT" -eq 1 ]]; then
+	python3 "$ROOT/tools/e2e/dialog_presentation_contract.py" "$APP" "$FOLDER"
+	echo "creator acceptance dialog contract passed"
+	exit 0
 fi
 
 "$SCENE_TOOL" validate "$FOLDER"
@@ -130,7 +160,6 @@ LEGACY_CASE_NAMES = (
     "copenhagen",
     "milano_brescia",
     "assignment_gvc_gdg_ut",
-    "lebanon",
 )
 LEGACY_PATH_PARTS = (
     "legacy/",
@@ -436,8 +465,10 @@ def check_exports(bundle_path):
         "run_summary.csv": "incident",
         "run_summary.png": "incident",
         "capacity_analysis.csv": "incident",
+        "area_capacity.csv": "incident",
         "capacity_compressed_blocking_time.csv": "incident",
         "capacity_compressed_blocking_time.png": "incident",
+        "delay_analysis.csv": "incident",
         "delay_comparison.csv": "delay",
     }
     for name, scenario in expected.items():
@@ -494,10 +525,25 @@ def check_exports(bundle_path):
                for row in actual), "scope clipping must retain original end-time evidence")
 
     with (exports / "capacity_compressed_blocking_time.csv").open(newline="", encoding="utf-8") as stream:
-        compressed_rows = list(csv.DictReader(stream))
+        compressed_all = list(csv.DictReader(stream))
+    section_layers = {"block section extent", "block section extent (geometry missing)"}
+    compressed_rows = [row for row in compressed_all if row["Layer"] not in section_layers]
+    compressed_sections = [row for row in compressed_all if row["Layer"] in section_layers]
     expect(compressed_rows and all(row["Layer"] == "calculated blocking envelope"
                and row["Start X[km]"] and row["End X[km]"] for row in compressed_rows),
            "compressed diagram must have projected envelopes and no recorded movement")
+    # The physical sections of the reference route are listed once, in route order, without a train.
+    ordinary_sections = [row for row in blocking_rows if row["Layer"] in section_layers]
+    section_key = lambda rows: [(row["Block"], row["Start X[km]"], row["End X[km]"], row["Reference section"])
+                                for row in rows]
+    expect(compressed_sections and all(row["Layer"] == "block section extent" and not row["Train"]
+               and row["Start X[km]"] and row["End X[km]"] for row in compressed_sections),
+           "compressed CSV must list physical sections with their extents and no train")
+    expect([row["Reference section"] for row in compressed_sections]
+           == [str(order) for order in range(1, len(compressed_sections) + 1)],
+           "each physical section must appear once in the compressed CSV, in route order")
+    expect(section_key(compressed_sections) == section_key(ordinary_sections),
+           "compressed and ordinary blocking-time CSV must list the same physical sections")
     original_by_block = {(row["Train"], row["Block"]):
                          (float(row["Original start[s]"]), float(row["Original end[s]"]))
                          for row in actual}
@@ -518,6 +564,57 @@ def check_exports(bundle_path):
     summary = next(row for row in capacity_rows if row["Record type"] == "summary")
     expect(number(summary["Cycle time[s]"], "capacity cycle") > 0,
            "capacity cycle is not positive")
+
+    with (exports / "area_capacity.csv").open(newline="", encoding="utf-8") as stream:
+        area_rows = list(csv.DictReader(stream))
+    area_summary = [row for row in area_rows if row["Record type"] == "summary"]
+    area_resources = [row for row in area_rows if row["Record type"] == "resource"]
+    expect(len(area_summary) == 1 and area_resources,
+           "area capacity export lacks its summary or resource records")
+    expect(number(area_summary[0]["Period[s]"], "area capacity period") > 0,
+           "area capacity period is not positive")
+    expect(any(row["Governing"] == "yes" for row in area_resources),
+           "area capacity export must name a governing resource")
+    expect(all(row["Area"] == area_summary[0]["Area"] and row["Traffic"] == area_summary[0]["Traffic"]
+               for row in area_rows),
+           "area capacity records must name one area and one kind of traffic")
+
+    # delay_analysis.csv is the Calls tab of the incident run: the arrival of each timetable row with its delay.
+    with (exports / "timetable.csv").open(newline="", encoding="utf-8") as stream:
+        timetable_rows = {(row["Train"], row["Journey order"]): row for row in csv.DictReader(stream)}
+    with (exports / "delay_analysis.csv").open(newline="", encoding="utf-8") as stream:
+        calls = list(csv.DictReader(stream))
+    expect(calls and len(calls) == len(timetable_rows)
+           and {(row["Train"], row["Journey order"]) for row in calls} == set(timetable_rows),
+           "delay_analysis.csv does not list the arrival of each timetable row")
+    expect(all(row["Event"] == "Arrival"
+               and row["Delay[s]"] == timetable_rows[row["Train"], row["Journey order"]]["Arrival delay[s]"]
+               and (row["Delay[s]"] != "" or row["Class"] == "Not available")
+               for row in calls),
+           "delay_analysis.csv delays differ from timetable.csv or a missing delay is not marked")
+
+    # delay_comparison.csv is the Against baseline tab for a run whose arrivals are all 15 s later than the baseline.
+    with (exports / "delay_comparison.csv").open(newline="", encoding="utf-8") as stream:
+        comparison = list(csv.DictReader(stream))
+    occurrences = [row for row in comparison if row["Record type"] == "occurrence"]
+    totals = [row for row in comparison if row["Record type"] == "total"]
+    expect(len(occurrences) == len(EXPECTED_OCCURRENCES) and len(totals) == 1
+           and any(row["Record type"] == "call" for row in comparison),
+           "delay_comparison.csv lacks an occurrence record for each occurrence, its call records or its total")
+    expect(all(row["Arrival change"] == "Later" and number(row["Arrival difference[s]"], "arrival difference") == 15
+               and number(row["Input delay[s]"], "input delay") == 0 for row in occurrences),
+           "delay_comparison.csv occurrence records do not show a 15 s later final arrival and no input delay")
+    expect(any(row["Direct incident evidence"] == "yes" and row["Incident IDs"] for row in occurrences),
+           "delay_comparison.csv records no direct incident evidence for the incident run")
+    expect(all(number(row["Arrival difference[s]"], "call difference") == 15
+               for row in comparison if row["Record type"] == "call" and row["Arrival difference[s]"]),
+           "delay_comparison.csv call records do not show the 15 s of the altered arrivals")
+    total = totals[0]
+    expect(int(total["Occurrences"]) == len(EXPECTED_OCCURRENCES) and int(total["Later"]) == len(EXPECTED_OCCURRENCES)
+           and int(total["Not available"]) == 0 and total["Complete"] == "yes"
+           and number(total["Positive sum[s]"], "positive sum") == 15 * len(EXPECTED_OCCURRENCES)
+           and number(total["Net sum[s]"], "net sum") == 15 * len(EXPECTED_OCCURRENCES),
+           "delay_comparison.csv total does not add the 15 s of each occurrence")
 
 
 for label, root in (("saved folder", folder), ("unpacked bundle", unpacked)):

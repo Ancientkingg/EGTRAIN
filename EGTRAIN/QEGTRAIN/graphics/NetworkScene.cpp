@@ -1,6 +1,8 @@
 #include "graphics/NetworkScene.h"
 
+#include <QApplication>
 #include <QGraphicsView>
+#include <limits>
 
 NetworkScene::NetworkScene(QObject* parent)
 	: QGraphicsScene(parent) {
@@ -20,19 +22,48 @@ QTransform NetworkScene::viewTransformFor(QWidget* widget) const {
 QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* widget) const {
 	const QList<QGraphicsItem*> hitItems = items(
 		scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder, viewTransformFor(widget));
+	SignalItem* nearestSignal = nullptr;
+	qreal nearestDistance = std::numeric_limits<qreal>::max();
+	NodeItem* paddedNode = nullptr;
+	const QTransform device = viewTransformFor(widget);
+	const QPointF click = device.map(scenePos);
 	for (QGraphicsItem* item : hitItems) {
 		for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
-			if (qgraphicsitem_cast<NodeItem*>(candidate)
-				|| qgraphicsitem_cast<StationNodeItem*>(candidate)
+			// Artwork owns its station identity even when its structural parent
+			// has a different last-wins station membership.
+			if (candidate->data(PreviewGraphics::Kind).toString() == "station")
+				return candidate;
+			if (auto* signal = qgraphicsitem_cast<SignalItem*>(candidate)) {
+				const QPointF local = signal->mapFromScene(scenePos);
+				if (signal->QGraphicsEllipseItem::shape().contains(local))
+					return signal;
+				const qreal distance = QLineF(click, device.map(signal->sceneBoundingRect().center())).length();
+				if (distance < nearestDistance) {
+					nearestDistance = distance;
+					nearestSignal = signal;
+				}
+				break;
+			}
+			if (auto* node = qgraphicsitem_cast<NodeItem*>(candidate)) {
+				if (node->shape().contains(node->mapFromScene(scenePos)))
+					return node;
+				if (!paddedNode)
+					paddedNode = node;
+				break;
+			}
+			// Node and signal targets sit above the broad track/connection selection shapes.
+			// Keep looking for painted signals or trains before falling back to the node or the padded signal.
+			if ((paddedNode || nearestSignal) && (qgraphicsitem_cast<TrackLineItem*>(candidate) || qgraphicsitem_cast<ConnectionItem*>(candidate)))
+				break;
+			if (qgraphicsitem_cast<StationNodeItem*>(candidate)
 				|| qgraphicsitem_cast<TrackLineItem*>(candidate)
 				|| qgraphicsitem_cast<ConnectionItem*>(candidate)
-				|| qgraphicsitem_cast<SignalItem*>(candidate)
 				|| qgraphicsitem_cast<TrainBodyItem*>(candidate)
 				|| qgraphicsitem_cast<PassengerItem*>(candidate))
 				return candidate;
 		}
 	}
-	return nullptr;
+	return paddedNode ? static_cast<QGraphicsItem*>(paddedNode) : nearestSignal;
 }
 
 // handles the click on graphical items
@@ -46,7 +77,9 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsScene::mousePressEvent(mouseEvent);
 
 	if (mouseEvent->button() == Qt::LeftButton) {
-		if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
+		if (item && item->data(PreviewGraphics::Kind).isValid())
+			emit MousePressedOnPreview(item);
+		else if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
 			emit MousePressedOnNode(node);
 		else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item))
 			emit MousePressedOnStationNode(stationNode);
@@ -61,11 +94,21 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 		else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item))
 			emit MousePressedOnPassenger(passenger);
 
-		if (!item)
-			emit DisableHighlight();
+		m_pressedOnEmptyCanvas = !item;
 	}
 
 	emit MousePressedOnScene();
+}
+
+// A click on empty canvas clears the selection. A drag that starts there pans the view and keeps it.
+void NetworkScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) {
+	QGraphicsScene::mouseReleaseEvent(mouseEvent);
+	if (mouseEvent->button() != Qt::LeftButton || !m_pressedOnEmptyCanvas)
+		return;
+	m_pressedOnEmptyCanvas = false;
+	const QPoint moved = mouseEvent->screenPos() - mouseEvent->buttonDownScreenPos(Qt::LeftButton);
+	if (moved.manhattanLength() < QApplication::startDragDistance())
+		emit DisableHighlight();
 }
 
 void NetworkScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {

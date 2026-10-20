@@ -7,8 +7,11 @@
 
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/SignalItem.h"
+#include "graphics/SignalGeometry.h"
 
 #include <iostream>
+#include <cmath>
+#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -33,6 +36,43 @@ static QByteArray renderStrokeMask(int width, Qt::PenStyle style) {
 			mask.append(image.pixelColor(x, y).alpha() > 0 ? '1' : '0');
 	return mask;
 }
+
+// Paints a head that is `size` device pixels wide on a black background. The
+// image is 4 pixels wider than the head and the head is in its middle.
+static QImage renderHead(int code, bool failed, int size) {
+	SignalItem head(QRectF(-10, -10, 20, 20));
+	head.setAspectCode(code);
+	head.setFailed(failed);
+	QImage image(size + 4, size + 4, QImage::Format_ARGB32_Premultiplied);
+	image.fill(Qt::black);
+	QPainter painter(&image);
+	painter.setRenderHint(QPainter::Antialiasing, false);
+	painter.translate(image.width() / 2.0, image.height() / 2.0);
+	painter.scale(size / 20.0, size / 20.0);
+	head.paint(&painter, nullptr, nullptr);
+	return image;
+}
+
+// Number of pixels of the mark colour (dark, or white for the failed cross) on
+// the face of the lamp, away from its outline.
+static int markPixels(const QImage& image, bool light = false) {
+	const double c = image.width() / 2.0, r = (image.width() - 4) / 2.0 * 0.9;
+	const QColor markColor = light ? QColor(Qt::white) : QColor(30, 30, 30);
+	int count = 0;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			count += std::hypot(x + 0.5 - c, y + 0.5 - c) <= r && image.pixelColor(x, y) == markColor;
+	return count;
+}
+
+static int pixelsOfColor(const QImage& image, const QColor& color) {
+	int count = 0;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			count += image.pixelColor(x, y) == color;
+	return count;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QGuiApplication app(argc, argv);
@@ -40,9 +80,11 @@ int main(int argc, char* argv[]) {
 	const TrackVisual freeBase = freeTrackVisual();
 	ok &= expect(freeBase.color == QColor(120, 120, 120), "local track uses historical gray");
 	ok &= expect(classifyTrackSpeed(200.0 / 3.6).color == QColor(30, 130, 210)
-		&& classifyTrackSpeed(200.0 / 3.6).width == 4, "historical high-speed boundary");
-	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(80, 80, 80)
-		&& classifyTrackSpeed(120.0 / 3.6).width == 3, "historical mainline boundary");
+			&& classifyTrackSpeed(200.0 / 3.6).width == 4,
+		"historical high-speed boundary");
+	ok &= expect(classifyTrackSpeed(120.0 / 3.6).color == QColor(160, 160, 160)
+			&& classifyTrackSpeed(120.0 / 3.6).width == 3,
+		"historical mainline boundary");
 	ok &= expect(classifyTrackSpeed(119.0 / 3.6).color == QColor(120, 120, 120), "historical local boundary");
 	ok &= expect(freeBase.width == 2, "free track uses one documented overview width");
 
@@ -61,7 +103,7 @@ int main(int argc, char* argv[]) {
 	const QByteArray occupiedMask = renderStrokeMask(occupiedTrack.width, occupiedTrack.style);
 	const QByteArray blockedMask = renderStrokeMask(blockedTrack.width, blockedTrack.style);
 	ok &= expect(permissiveMask != occupiedMask && occupiedMask != blockedMask
-		&& permissiveMask != blockedMask,
+			&& permissiveMask != blockedMask,
 		"track states remain distinguishable by stroke structure without color");
 	ok &= expect(trackStatePriority(TrackOperationalState::Free) < trackStatePriority(TrackOperationalState::Prepared), "free track priority");
 	ok &= expect(trackStatePriority(TrackOperationalState::Prepared) < trackStatePriority(TrackOperationalState::Occupied), "permissive signalling priority");
@@ -75,6 +117,11 @@ int main(int argc, char* argv[]) {
 	ok &= expect(cautionSignal.lamp == QColor(Qt::yellow) && cautionSignal.cue == SignalCueKind::Caution, "yellow caution signal cue");
 	ok &= expect(proceed180Signal.lamp == QColor(Qt::green) && proceed180Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 180");
 	ok &= expect(proceed270Signal.lamp == QColor(Qt::green) && proceed270Signal.cue == SignalCueKind::Proceed, "green proceed signal cue 270");
+	ok &= expect(classifySignalAspect(751).lamp == QColor(Qt::red) && classifySignalAspect(751).cue == SignalCueKind::Stop
+			&& classifySignalAspect(751).iconResource == ":/icons/signal-stop.svg" && classifySignalCue(751) == SignalCueKind::Stop,
+		"code 751 is a stop");
+	ok &= expect(classifySignalCue(-1) == SignalCueKind::Neutral && classifySignalCue(42) == SignalCueKind::Neutral,
+		"unknown codes are neither stop, caution nor proceed");
 	ok &= expect(classifySignalAspect(-1).iconResource == ":/icons/signal-neutral.svg", "neutral signal icon");
 	ok &= expect(classifySignalAspect(0).iconResource == ":/icons/signal-stop.svg", "stop signal icon");
 	ok &= expect(classifySignalAspect(75).iconResource == ":/icons/signal-caution.svg", "caution signal icon");
@@ -91,20 +138,32 @@ int main(int argc, char* argv[]) {
 	const TrainVisual intercity = classifyTrainType("IC", "IC 2201");
 	const TrainVisual sprinter = classifyTrainType("", "sprinter 301");
 	const TrainVisual freight = classifyTrainType("freight", "F01");
-	const TrainVisual highSpeed = classifyTrainType("", "ICE 10");
-	const TrainVisual passenger = classifyTrainType("", "regional");
-	ok &= expect(passenger.fill == QColor("#9BA5AA") && passenger.outline == QColor("#4A5960"),
-		"passenger train uses the neutral instrument palette");
-	ok &= expect(sprinter.fill == QColor("#86AA96") && sprinter.outline == QColor("#3F6A54"),
-		"sprinter train uses the muted green palette");
-	ok &= expect(intercity.fill == QColor("#C6A86E") && intercity.outline == QColor("#765623"),
-		"intercity train uses the muted brass palette");
-	ok &= expect(highSpeed.fill == QColor("#86A6B9") && highSpeed.outline == QColor("#3E627A"),
-		"high-speed train uses the steel blue palette");
-	ok &= expect(freight.fill == QColor("#A99787") && freight.outline == QColor("#5D4C3F"),
-		"freight train uses the muted brown palette");
-	ok &= expect(intercity.fill != sprinter.fill && intercity.fill != freight.fill && sprinter.fill != freight.fill,
-		"train category contrast");
+	ok &= expect(defaultTrainFill() == QColor(235, 210, 55) && defaultTrainOutline() == QColor(110, 90, 20),
+		"default train colours");
+	const std::pair<const char*, const char*> trainInputs[] = {
+		{"freight", "F01"}, {"IC", "IC 2201"}, {"", "sprinter 301"}, {"", "ICE 10"}, {"", "regional"}};
+	for (const auto& input : trainInputs) {
+		const TrainVisual classified = classifyTrainType(input.first, input.second);
+		const TrainVisual resolved = resolveTrainVisual(input.first, input.second);
+		const TrainVisual invalid = resolveTrainVisual(input.first, input.second, QColor());
+		ok &= expect(classified.fill == QColor(235, 210, 55) && classified.outline == QColor(110, 90, 20),
+			"classified train uses the default colours whatever its type");
+		ok &= expect(resolved.fill == QColor(235, 210, 55) && resolved.outline == QColor(110, 90, 20),
+			"resolved train without a service colour uses the default colours");
+		ok &= expect(invalid.fill == QColor(235, 210, 55) && invalid.outline == QColor(110, 90, 20),
+			"invalid service colour gives the default colours");
+		ok &= expect(resolved.kind == classified.kind && resolved.shape == classified.shape
+				&& resolved.iconResource == classified.iconResource,
+			"resolved train keeps the classified kind, shape and icon");
+	}
+	const QColor serviceColor(40, 130, 210);
+	const TrainVisual coloured = resolveTrainVisual("IC", "IC 2201", serviceColor);
+	ok &= expect(coloured.fill == serviceColor && coloured.outline == serviceColor.darker(200)
+			&& coloured.outline != coloured.fill,
+		"service colour sets the fill and a darker outline");
+	ok &= expect(coloured.kind == TrainVisualKind::Intercity
+			&& coloured.iconResource == ":/icons/train-intercity.svg",
+		"service colour keeps the classified kind and icon");
 	ok &= expect(intercity.shape == TrainBadgeShape::Capsule, "intercity badge shape");
 	ok &= expect(sprinter.shape == TrainBadgeShape::Rounded, "sprinter badge shape");
 	ok &= expect(freight.shape == TrainBadgeShape::Square, "freight badge shape");
@@ -112,7 +171,7 @@ int main(int argc, char* argv[]) {
 		"train category silhouettes");
 
 	const StationVisual station = classifyStation();
-	ok &= expect(station.iconResource == ":/icons/train_station.png", "station uses the original pictogram");
+	ok &= expect(station.iconResource == ":/icons/station.svg", "station uses the shared building pictogram");
 	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
 	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
 
@@ -122,114 +181,93 @@ int main(int argc, char* argv[]) {
 	ok &= expect(simulationSpeedMode(0) == "Fastest", "fastest speed mode");
 	ok &= expect(simulationSpeedMode(500) == "2.0x real time", "slowed speed mode");
 
-	const QColor badgeSurface = TrainBadgeItem::badgeSurfaceColor();
-	const QColor badgeText = TrainBadgeItem::badgePrimaryTextColor();
-	ok &= expect(badgeSurface == QColor("#26313B") && badgeText == QColor("#F2F5F7"),
-		"train badge uses the documented dark surface and bright primary text");
-	ok &= expect(badgeText.lightness() - badgeSurface.lightness() >= 100,
-		"train badge surface and primary text have strong luminance contrast");
-
 	TrainBadgeItem badge;
 	badge.setIdentifier("1725");
 	badge.setTooltipDetails("Intercity 1725 northbound", "1725", "Intercity");
 	badge.setSpeedText("102 km/h");
-	using Presentation = TrainBadgeItem::Presentation;
-	ok &= expect(TrainBadgeItem::presentationForZoom(1.0, false) == Presentation::Overview,
-		"zoom below the identity threshold uses the overview marker");
-	ok &= expect(TrainBadgeItem::presentationForZoom(
-		TrainBadgeItem::identityZoomThreshold() - 0.01, false) == Presentation::Overview,
-		"zoom just below the identity threshold stays overview");
-	ok &= expect(TrainBadgeItem::presentationForZoom(
-		TrainBadgeItem::identityZoomThreshold(), false) == Presentation::Identity,
-		"the identity threshold itself enters identity mode");
-	ok &= expect(TrainBadgeItem::presentationForZoom(2.4, false) == Presentation::Identity,
-		"mid-range zoom keeps the identity chip");
-	ok &= expect(TrainBadgeItem::presentationForZoom(
-		TrainBadgeItem::detailedZoomThreshold() - 0.01, false) == Presentation::Identity,
-		"zoom just below the detailed threshold keeps identity");
-	ok &= expect(TrainBadgeItem::presentationForZoom(
-		TrainBadgeItem::detailedZoomThreshold(), false) == Presentation::Detailed,
-		"the detailed threshold itself enters detailed mode");
-	ok &= expect(TrainBadgeItem::presentationForZoom(6.0, false) == Presentation::Detailed,
-		"high zoom keeps the detailed label");
-	ok &= expect(TrainBadgeItem::presentationForZoom(0.8, true) == Presentation::Detailed
-		&& TrainBadgeItem::presentationForZoom(0.8, true)
-			== TrainBadgeItem::presentationForZoom(6.0, true),
-		"selected or followed trains are promoted to detailed at any zoom");
-	const QRectF overview = badge.badgeRect();
-	ok &= expect(overview.size() == TrainBadgeItem::markerSize(),
-		"overview train overlay is an 18 by 16 marker");
-	ok &= expect(!badge.showsIdentifier() && !badge.showsSpeed(),
-		"overview marker hides identifier and speed");
-	ok &= expect(badge.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
-		"train overlay ignores view transformations");
-	ok &= expect(badge.acceptedMouseButtons() == Qt::NoButton,
-		"train overlay remains non-interactive");
+	ok &= expect(badge.shape().isEmpty() && badge.toolTip().isEmpty(),
+		"unpainted tracking badge has no ghost shape or tooltip");
 
-	badge.setPresentation(TrainBadgeItem::Presentation::Identity);
-	const QRectF identity = badge.badgeRect();
-	ok &= expect(identity.height() == 22.0 && identity.width() < TrainBadgeItem::maximumWidth(
-		TrainBadgeItem::Presentation::Identity), "short identity chip is content-sized");
-	ok &= expect(badge.showsIdentifier() && !badge.showsSpeed() && badge.speedTextRect().isEmpty(),
-		"identity chip shows identity without speed");
-
-	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
-	const QRectF detailed = badge.badgeRect();
-	ok &= expect(detailed.height() == 26.0 && detailed.width() <= TrainBadgeItem::maximumWidth(
-		TrainBadgeItem::Presentation::Detailed), "detailed train label stays within 132 pixels");
-	ok &= expect(badge.showsIdentifier() && badge.showsSpeed(),
-		"detailed train label shows enabled speed");
-	ok &= expect(badge.identifierTextRect().right() <= badge.speedTextRect().left(),
-		"detailed identity and speed do not overlap");
-	ok &= expect(overview.bottom() == identity.bottom() && identity.bottom() == detailed.bottom(),
-		"all train overlay modes expand from one anchor");
-	const qreal detailedWidthWithSpeed = detailed.width();
-	badge.setSpeedVisible(false);
-	ok &= expect(!badge.showsSpeed() && badge.badgeRect().width() < detailedWidthWithSpeed,
-		"speed toggle removes detailed speed text and unused width");
-	badge.setSpeedVisible(true);
-	badge.setPromoted(true);
-	ok &= expect(badge.isPromoted() && badge.zValue() > 5.0
-		&& TrainBadgeItem::promotedBorderColor() == QColor("#315A70"),
-		"promoted train label uses the application accent above ordinary overlays");
-
-	const QPolygonF forwardNose = badge.directionNose();
-	badge.setReversed(true);
-	const QPolygonF reversedNose = badge.directionNose();
-	ok &= expect(forwardNose.first().x() > forwardNose.at(1).x()
-		&& reversedNose.first().x() < reversedNose.at(1).x(),
-		"integrated train nose follows runtime direction");
-	ok &= expect(badge.toolTip().contains("Intercity 1725 northbound")
-		&& badge.toolTip().contains("Operating code: 1725")
-		&& badge.toolTip().contains("Speed: 102 km/h")
-		&& badge.toolTip().contains("Type: Intercity"),
-		"train tooltip retains full operational details");
-
-	badge.setIdentifier("H-Ballerup-Osterport-1");
-	const QString elided = badge.displayedIdentifier();
-	ok &= expect(elided != "H-Ballerup-Osterport-1" && elided.endsWith('1'),
-		"long train identifiers use middle elision and preserve the suffix");
-
-	// A combined cue retains opposing Stop/Proceed sectors and both directions;
-	// the source aspect on the representative remains unchanged.
-	SignalItem combined(QRectF(-10, -10, 20, 20));
-	combined.setAspectCode(180);
-	combined.setGroupedSignals({{0, true}, {180, false}, {180, true}});
-	QImage opposing(48, 48, QImage::Format_ARGB32_Premultiplied);
-	opposing.fill(Qt::black);
+	const SignalGeometry horizontal = signalGeometry(QPointF(), QPointF(-8, 0),
+		QPointF(8, 0), QPointF(0, 1), 150);
+	ok &= expect(horizontal.reversedHead == QPointF(-8, -30)
+			&& horizontal.forwardHead == QPointF(8, 30),
+		"interpolated horizontal endpoints place reversed signal to the left");
+	const SignalGeometry diagonal = signalGeometry(QPointF(40, 20), QPointF(34, 12),
+		QPointF(46, 28), QPointF(-0.8, 0.6), 150);
+	ok &= expect(diagonal.reversedHead == QPointF(58, -6)
+			&& diagonal.forwardHead == QPointF(22, 46),
+		"non-horizontal endpoints preserve direction and authored normal");
+	const qreal presentationScale = 0.45;
+	const SignalGeometry measured = signalGeometry(QPointF(), QPointF(-8, 0),
+		QPointF(8, 0), QPointF(0, 1), 150 * presentationScale);
+	ok &= expect(measured.reversedHead.x() == -8 && measured.forwardHead.x() == 8
+			&& std::fabs(measured.reversedHead.y() + 13.5) < 1e-12
+			&& std::fabs(measured.forwardHead.y() - 13.5) < 1e-12
+			&& std::fabs(measured.forwardBase.length() - 13.5) < 1e-12
+			&& measured.forwardPost.length() == 8,
+		"historical presentation conversion affects lateral separation, not physical longitudinal signal points");
+	SignalItem head(QRectF(-10, -10, 20, 20));
+	head.setAspectCode(0);
+	ok &= expect(!head.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+		"signal heads scale with the scene");
+	ok &= expect(head.childItems().size() == 1
+			&& head.childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
+		"signal retains an invisible device-space semantic target");
+	QImage signalImage(48, 48, QImage::Format_ARGB32_Premultiplied);
+	signalImage.fill(Qt::black);
 	{
-		QPainter painter(&opposing);
+		QPainter painter(&signalImage);
 		painter.translate(24, 24);
-		combined.paint(&painter, nullptr, nullptr);
+		head.paint(&painter, nullptr, nullptr);
 	}
-	ok &= expect(combined.aspectCode() == 180 && combined.groupedSignalCount() == 3,
-		"grouping does not overwrite an individual operational aspect");
-	ok &= expect(opposing.pixelColor(32, 24) == QColor(Qt::red)
-		&& opposing.pixelColor(16, 24) == QColor(Qt::green),
-		"opposing Stop and Proceed remain visible in one grouped plate");
-	ok &= expect(combined.boundingRect().contains(QPointF(-11, 0))
-		&& combined.boundingRect().contains(QPointF(11, 0)),
-		"the grouped cue bounds include both direction ticks");
+	// The stop mark is a bar through the centre, so sample beside it.
+	ok &= expect(signalImage.pixelColor(24, 24 - 5) == QColor(Qt::red),
+		"individual stop head paints its own aspect without sectors or direction ticks");
+
+	// Every state can be told apart without colour where a mark fits, and only
+	// the colour is left below 6 device pixels.
+	const QImage stop = renderHead(0, false, 48), bacc = renderHead(751, false, 48);
+	const QImage caution = renderHead(75, false, 48), proceed = renderHead(180, false, 48);
+	const QImage clear = renderHead(270, false, 48), unavailable = renderHead(-1, false, 48);
+	const QImage failed = renderHead(270, true, 48);
+	const int c = stop.width() / 2;
+	ok &= expect(stop.pixelColor(c, c - 10) == QColor(Qt::red) && bacc.pixelColor(c, c - 10) == QColor(Qt::red),
+		"stop and BACC second red heads are red");
+	ok &= expect(caution.pixelColor(c, c - 10) == QColor(Qt::yellow), "caution head is yellow");
+	ok &= expect(proceed.pixelColor(c, c - 10) == QColor(Qt::green) && clear.pixelColor(c, c - 10) == QColor(Qt::green),
+		"codes 180 and 270 are green");
+	ok &= expect(markPixels(proceed) == 0 && markPixels(clear) == 0, "a proceed head has no mark");
+	ok &= expect(stop.pixelColor(c, c) == QColor(30, 30, 30) && stop.pixelColor(c + 10, c) == QColor(30, 30, 30) && stop.pixelColor(c + 10, c - 4) == QColor(Qt::red),
+		"a stop head has a bar through its centre");
+	ok &= expect(caution.pixelColor(c, c) == QColor(30, 30, 30) && caution.pixelColor(c + 10, c) == QColor(Qt::yellow),
+		"a caution head has a dot in its centre and no bar");
+	ok &= expect(markPixels(stop) > 0 && markPixels(caution) > 0 && markPixels(stop) != markPixels(caution),
+		"stop and caution heads carry different marks");
+	ok &= expect(stop == bacc, "code 751 is painted like code 0");
+	ok &= expect(unavailable.pixelColor(c, c - 10) == QColor(Qt::black)
+			&& pixelsOfColor(unavailable, QColor(Qt::red)) + pixelsOfColor(unavailable, QColor(Qt::yellow))
+					+ pixelsOfColor(unavailable, QColor(Qt::green))
+				== 0
+			&& pixelsOfColor(unavailable, QColor(150, 150, 150)) > 40 && unavailable.pixelColor(c, c) == QColor(150, 150, 150),
+		"an unavailable head is an empty gray ring with a dash");
+	ok &= expect(renderHead(42, false, 48) == unavailable, "a code that no aspect uses is painted as unavailable");
+	ok &= expect(failed.pixelColor(c, c - 10) == QColor(Qt::red) && failed.pixelColor(c + 10, c) == QColor(Qt::red)
+			&& failed.pixelColor(c + 6, c + 6) == QColor(Qt::white) && failed.pixelColor(c - 6, c + 6) == QColor(Qt::white)
+			&& failed.pixelColor(c + 6, c - 6) == QColor(Qt::white) && failed.pixelColor(c - 6, c - 6) == QColor(Qt::white),
+		"a failed head is red with a white cross, whatever its code");
+	ok &= expect(renderHead(-1, true, 48) == failed && renderHead(0, true, 48) == failed, "a failed head ignores its code");
+	ok &= expect(markPixels(failed, true) > 0 && markPixels(stop, true) == 0, "a failed head differs from a stop head without colour");
+	for (const int code : {0, 75})
+		ok &= expect(markPixels(renderHead(code, false, 6)) > 0 && markPixels(renderHead(code, false, 5)) == 0,
+			"marks appear at 6 device pixels and not below");
+	ok &= expect(renderHead(-1, false, 6).pixelColor(5, 5) == QColor(150, 150, 150)
+			&& renderHead(-1, false, 5).pixelColor(4, 4) == QColor(Qt::black)
+			&& markPixels(renderHead(75, true, 5), true) == 0 && markPixels(renderHead(75, true, 6), true) > 0,
+		"the dash and the cross follow the same 6 pixel rule");
+	ok &= expect(renderHead(0, false, 5).pixelColor(3, 3) == QColor(Qt::red) && renderHead(75, false, 5).pixelColor(3, 3) == QColor(Qt::yellow)
+			&& renderHead(180, false, 5).pixelColor(3, 3) == QColor(Qt::green),
+		"colour remains below 6 device pixels");
 	if (!ok)
 		return 1;
 

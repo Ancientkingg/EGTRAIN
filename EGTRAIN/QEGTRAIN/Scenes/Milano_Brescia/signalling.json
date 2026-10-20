@@ -1686,6 +1686,14 @@
             "id": "route47"
         }
     ],
+    "signalling_areas": [
+        {
+            "end_km": 79.0,
+            "id": "network-fixed-block",
+            "level": 0,
+            "start_km": 0.0
+        }
+    ],
     "signals": [],
     "single_track_restrictions": [],
     "station_boundaries": []

@@ -62,14 +62,22 @@ struct SceneConnection {
 	double speedLimitMs = 0.0;
 };
 
+// Platform size used when a platform states none, in metres.
+inline constexpr double kDefaultPlatformLengthM = 100.0;
+inline constexpr double kDefaultPlatformWidthM = 2.5;
+
 struct ScenePlatform {
 	std::string id;
 	std::vector<std::string> nodeIds;
 	bool hasLength = false;
-	double lengthM = 100.0;
+	double lengthM = kDefaultPlatformLengthM;
 	bool hasWidth = false;
-	double widthM = 2.5;
+	double widthM = kDefaultPlatformWidthM;
 };
+
+// Passenger capacity of a platform of this size, before it is rounded to the
+// integer the runtime stores.
+double scenePlatformCapacity(double lengthM, double widthM);
 
 struct SceneStation {
 	std::string id;
@@ -190,6 +198,7 @@ struct SceneService {
 	int operatingCodeStep = 0;
 	std::vector<SceneStop> stops;
 	std::string category;
+	std::string visualizationColor;
 };
 
 struct SceneServiceOccurrence {
@@ -204,7 +213,7 @@ struct SceneServiceOccurrence {
 	}
 	bool operator<(const SceneServiceOccurrence& other) const {
 		return serviceId < other.serviceId
-				|| (serviceId == other.serviceId && occurrence < other.occurrence);
+			|| (serviceId == other.serviceId && occurrence < other.occurrence);
 	}
 };
 
@@ -325,19 +334,35 @@ struct SceneModel {
 
 SceneModel makeNewSceneModel();
 
+// The scenario of a case that stores none: no incidents and no entrance delays.
+SceneScenario makeBaselineScenario();
+
 std::string sceneOutputDirectoryComponent(const std::string& sceneName);
+// Accepts exactly "#" followed by six hexadecimal digits in either case.
+bool sceneParseVisualizationColor(const std::string& text, int* red = nullptr, int* green = nullptr,
+	int* blue = nullptr);
+// The visualization_color text of the service with this id; empty when the
+// service has none or the id is unknown.
+std::string sceneServiceVisualizationColor(const SceneModel& model, const std::string& serviceId);
 double sceneServiceScheduledEntry(const SceneService& service, int occurrence = 1);
 int sceneServiceInWindowCount(const SceneService& service, double durationSeconds,
-		const SceneRunSelection& selection = {});
+	const SceneRunSelection& selection = {});
 int sceneServiceOccurrenceCount(const SceneService& service, double durationSeconds);
 std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence);
 bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
-		SceneServiceStopPair& result);
+	SceneServiceStopPair& result);
 
 // Resolve ordered (and repeated) unit references and apply the legacy
 // multi-unit physical/tractive-effort aggregation rules.
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
-		SceneCompositionRuntime& result, std::string& diagnostic);
+	SceneCompositionRuntime& result, std::string& diagnostic);
+
+// Gravitational acceleration [m/s^2] that the gradient and braking limits are
+// derived from.
+inline constexpr double kSceneGravityMs2 = 9.81;
+
+// Factor on the total train mass in the equation of motion.
+double sceneTrainMassFactor(const SceneTrainPhysical& physical);
 
 // GUI/editor callers use the preferred scenario without a duplicate flat
 // incident vector in SceneModel.
@@ -345,6 +370,11 @@ SceneScenario* defaultScenario(SceneModel& scene);
 const SceneScenario* defaultScenario(const SceneModel& scene);
 std::vector<SceneIncident>& defaultScenarioIncidents(SceneModel& scene);
 const std::vector<SceneIncident>& defaultScenarioIncidents(const SceneModel& scene);
+
+// The signals of the scene. Code that includes Qt reads them here, because Qt defines signals as a keyword
+// and so SceneModel::signals does not compile there.
+std::vector<SceneSignal>& sceneSignals(SceneModel& scene);
+const std::vector<SceneSignal>& sceneSignals(const SceneModel& scene);
 
 struct SceneLoadResult {
 	SceneModel scene; // partial on structural failure
@@ -359,7 +389,7 @@ struct SceneInputSnapshot {
 };
 
 std::string buildSceneDirectorySnapshot(
-		const std::vector<std::pair<std::string, std::string>>& files);
+	const std::vector<std::pair<std::string, std::string>>& files);
 SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir);
 
 SceneLoadResult loadScene(const std::string& sceneDir);

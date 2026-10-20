@@ -57,38 +57,40 @@ def test_preview_snapshot_comparator() -> None:
 
     source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
     test_source = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_networklegend.cpp").read_text(encoding="utf-8")
+    e2e_sources = sorted((ROOT / "EGTRAIN/QEGTRAIN/tests/e2e").glob("*.cpp"))
+    e2e_source = "\n".join(path.read_text(encoding="utf-8") for path in e2e_sources)
     for path, text in (
         ("MainWindow.cpp", source),
         ("test_networklegend.cpp", test_source),
     ):
         if _has_direct_entry_label_equality(text):
             raise SystemExit(f"{path} still compares entryLabels directly")
-    if _has_direct_preview_code_equality(source):
-        raise SystemExit("MainWindow.cpp still compares previewCodes directly")
+    if _has_direct_preview_code_equality(source + e2e_source):
+        raise SystemExit("previewCodes is still compared directly")
     if not re.search(
         r"currentItems\.size\(\)\s*!=\s*renderedItems\.size\(\)\s*"
         r"\|\|\s*!std::equal\(currentItems\.cbegin\(\),\s*currentItems\.cend\(\),\s*"
         r"renderedItems\.cbegin\(\)\)",
-        source,
+        source + e2e_source,
     ):
         raise SystemExit("scene-drop item comparison must size-check before std::equal")
     if not re.search(
         r"previewCodes\.size\(\)\s*!=\s*expectedPreviewCodes\.size\(\)\s*"
         r"\|\|\s*!std::equal\(previewCodes\.cbegin\(\),\s*previewCodes\.cend\(\),\s*"
         r"expectedPreviewCodes\.cbegin\(\)\)",
-        source,
+        source + e2e_source,
     ):
         raise SystemExit("previewCodes comparison must size-check before std::equal")
     if not re.search(
         r"if\s*\(\s*actual\.size\(\)\s*!=\s*expected\.size\(\)\s*"
         r"\|\|\s*!std::equal\(actual\.begin\(\),\s*actual\.end\(\),\s*expected\.begin\(\)\)\s*\)",
-        source,
+        e2e_source,
     ):
         raise SystemExit("Tab traversal comparison must size-check before std::equal")
     match = re.search(
         r"auto samePreviewContent = \[\]\(const PreviewContentSnapshot& left, "
         r"const PreviewContentSnapshot& right\) \{(?P<body>.*?)\n\t\};",
-        source,
+        e2e_source,
         re.DOTALL,
     )
     if not match:
@@ -112,16 +114,9 @@ def test_preview_snapshot_comparator() -> None:
 
 def main() -> None:
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
-    vcxproj = (ROOT / "EGTRAIN/QEGTRAIN/QEGTRAIN.vcxproj").read_text(encoding="utf-8")
 
     if "WIN32_EXECUTABLE TRUE" not in cmake and "add_executable(QEGTRAIN WIN32" not in cmake:
         raise SystemExit("CMake QEGTRAIN target is not configured as a Windows GUI executable")
-
-    if "<SubSystem>Console</SubSystem>" in vcxproj:
-        raise SystemExit("Visual Studio project still links QEGTRAIN with the console subsystem")
-
-    if vcxproj.count("<SubSystem>Windows</SubSystem>") < 2:
-        raise SystemExit("Visual Studio Debug and Release configurations must use Windows subsystem")
 
     test_preview_snapshot_comparator()
 

@@ -16,7 +16,7 @@ enum class SceneMigrationStepKind {
 
 struct SceneMigrationStep {
 	using Transform = std::function<bool(const std::filesystem::path& stagedScene,
-			std::vector<SceneDiagnostic>& diagnostics)>;
+		std::vector<SceneDiagnostic>& diagnostics)>;
 
 	int fromVersion;
 	int toVersion;
@@ -46,11 +46,11 @@ private:
 const SceneMigrationRegistry& productionSceneMigrationRegistry();
 
 bool sceneMigrationPathAvailable(const SceneMigrationRegistry& registry,
-		SceneMigrationStepKind kind, int fromVersion, int toVersion);
+	SceneMigrationStepKind kind, int fromVersion, int toVersion);
 bool applySceneMigrationChain(const SceneMigrationRegistry& registry,
-		SceneMigrationStepKind kind, int fromVersion, int toVersion,
-		const std::filesystem::path& stagedScene,
-		std::vector<SceneDiagnostic>& diagnostics);
+	SceneMigrationStepKind kind, int fromVersion, int toVersion,
+	const std::filesystem::path& stagedScene,
+	std::vector<SceneDiagnostic>& diagnostics);
 
 struct SceneMigrationResult {
 	bool migrated = false;
@@ -61,6 +61,6 @@ struct SceneMigrationResult {
 
 SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 	const std::string& destinationPath,
-		const SceneMigrationRegistry& registry = productionSceneMigrationRegistry());
+	const SceneMigrationRegistry& registry = productionSceneMigrationRegistry());
 
 #endif // SCENEMIGRATION_H

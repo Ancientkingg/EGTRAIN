@@ -1,6 +1,8 @@
 #include "diagrams/TimetableTableWindow.h"
+#include "app/DialogFolders.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QBuffer>
 #include <QBrush>
@@ -8,6 +10,8 @@
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
+#include <QScreen>
 #include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
@@ -53,29 +57,36 @@ SortableItem* makeItem(const QString& text, bool available, double sortKey) {
 } // namespace
 
 TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
-										   long long startOffsetSeconds,
-										   std::function<std::string(const QStringList&)> csvProvider,
-										   QWidget* parent)
+	long long startOffsetSeconds,
+	std::function<std::string(const QStringList&)> csvProvider,
+	QWidget* parent)
 	: QDialog(parent),
 	  m_rows(std::move(rows)),
 	  m_startOffset(startOffsetSeconds),
 	  m_csvProvider(std::move(csvProvider)) {
 	setModal(false);
-	setWindowTitle("Timetable: planned vs simulated");
-	resize(1080, 640);
+	setProperty("dialogPresentation", true);
+	setWindowTitle("Timetable");
+	const QRect available = screen() ? screen()->availableGeometry() : QRect(0, 0, 1280, 800);
+	setMaximumSize(available.width() * 9 / 10, available.height() * 4 / 5);
+	resize(qMin(1080, maximumWidth()), qMin(640, maximumHeight()));
 
 	m_trainsButton = new TrainFilterButton(this);
 	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
-			this, &TimetableTableWindow::applyTrainVisibility);
+		this, &TimetableTableWindow::applyTrainVisibility);
 
 	QPushButton* csvButton = new QPushButton("Export CSV...", this);
 	csvButton->setToolTip("Write the rows of the visible trains to a CSV file");
-	csvButton->setEnabled(static_cast<bool>(m_csvProvider));
+	csvButton->setVisible(static_cast<bool>(m_csvProvider));
 	connect(csvButton, &QPushButton::clicked, this, &TimetableTableWindow::exportCsv);
 
 	QPushButton* pngButton = new QPushButton("Export PNG...", this);
 	pngButton->setToolTip("Save the table as an image");
 	connect(pngButton, &QPushButton::clicked, this, &TimetableTableWindow::exportPng);
+
+	// No button of the window is a default button, so Enter presses none.
+	for (QPushButton* button : findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+		button->setAutoDefault(false);
 
 	QHBoxLayout* topBar = new QHBoxLayout();
 	topBar->addWidget(m_trainsButton);
@@ -85,37 +96,66 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 
 	m_table = new QTableWidget(this);
 	m_table->setColumnCount(9);
-	m_table->setHorizontalHeaderLabels({
-		"Train/service", "Station", "Journey order", "Planned arrival", "Planned departure",
+	m_table->setHorizontalHeaderLabels({"Train/service", "Station", "Journey order", "Planned arrival", "Planned departure",
 		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
 	m_table->setAlternatingRowColors(true);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->verticalHeader()->setVisible(false);
 
+	m_contextLabel = new QLabel(this);
+	m_contextLabel->setObjectName("timetableContext");
+	m_contextLabel->setTextFormat(Qt::PlainText);
+	m_contextLabel->setWordWrap(true);
+	m_contextLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	m_contextLabel->setMaximumHeight(fontMetrics().height() * 3);
+	m_contextLabel->hide();
 	QVBoxLayout* layout = new QVBoxLayout(this);
+	layout->setSpacing(8);
 	layout->addLayout(topBar);
+	layout->addWidget(m_contextLabel);
 	layout->addWidget(m_table, 1);
 
-	QStringList trainOrder;
 	QSet<QString> seen;
 	for (const TimetableResultRow& row : m_rows) {
 		const QString id = QString::fromStdString(row.trainId);
 		if (!seen.contains(id)) {
 			seen.insert(id);
-			trainOrder.append(id);
+			m_trainOrder.append(id);
 		}
 	}
-	QVector<QPair<QString, QColor>> trains;
-	for (const QString& id : trainOrder)
-		trains.append({id, QColor()});
-	m_trainsButton->setTrains(trains);
+	fillTrainFilter();
 
 	fillTable();
+}
+
+void TimetableTableWindow::setTrainColors(const QHash<QString, QColor>& colors) {
+	m_trainColors = colors;
+	fillTrainFilter();
+	applyTrainVisibility();
+}
+
+void TimetableTableWindow::fillTrainFilter() {
+	QVector<QPair<QString, QColor>> trains;
+	for (const QString& id : m_trainOrder)
+		trains.append({id, m_trainColors.value(id)});
+	m_trainsButton->setTrains(trains);
 }
 
 void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {
 	m_runProvenance = std::move(provenance);
 	m_hasRunProvenance = true;
+	setPresentation(QStringLiteral("Timetable"),
+		QStringLiteral("Case: %1 | Scenario: %2")
+			.arg(QString::fromStdString(m_runProvenance.caseName),
+				QString::fromStdString(m_runProvenance.appliedScenario)));
+}
+
+void TimetableTableWindow::setPresentation(const QString& heading, const QString& context) {
+	setWindowTitle(heading);
+	m_contextLabel->setMaximumHeight(m_contextLabel->fontMetrics().height() * 3);
+	m_contextLabel->setText(context);
+	m_contextLabel->setToolTip(plainToolTip(context));
+	m_contextLabel->setVisible(!context.isEmpty());
 }
 
 void TimetableTableWindow::fillTable() {
@@ -150,18 +190,18 @@ void TimetableTableWindow::fillTable() {
 		auto* trainItem = makeItem(trainId, true, 0.0);
 		trainItem->setData(Qt::UserRole, trainId);
 		m_table->setItem(row, 0, trainItem);
-		m_table->setItem(row, 1, makeItem(QString::fromStdString(result.stationId), true,
-			static_cast<double>(result.journeyIndex)));
-		m_table->setItem(row, 2, makeItem(QString::number(result.journeyIndex), true,
-			static_cast<double>(result.journeyIndex)));
-		m_table->setItem(row, 3, makeItem(timeText(result.plannedArrivalSeconds),
-			result.plannedArrivalSeconds.available, result.plannedArrivalSeconds.value));
-		m_table->setItem(row, 4, makeItem(timeText(result.plannedDepartureSeconds),
-			result.plannedDepartureSeconds.available, result.plannedDepartureSeconds.value));
-		m_table->setItem(row, 5, makeItem(timeText(result.simulatedArrivalSeconds),
-			result.simulatedArrivalSeconds.available, result.simulatedArrivalSeconds.value));
-		m_table->setItem(row, 6, makeItem(timeText(result.simulatedDepartureSeconds),
-			result.simulatedDepartureSeconds.available, result.simulatedDepartureSeconds.value));
+		m_table->setItem(row, 1, makeItem(QString::fromStdString(result.stationId), true, static_cast<double>(result.journeyIndex)));
+		m_table->setItem(row, 2, makeItem(QString::number(result.journeyIndex), true, static_cast<double>(result.journeyIndex)));
+		m_table->setItem(row, 3, makeItem(timeText(result.plannedArrivalSeconds), result.plannedArrivalSeconds.available, result.plannedArrivalSeconds.value));
+		m_table->setItem(row, 4,
+			makeItem(timeText(result.plannedDepartureSeconds), result.plannedDepartureSeconds.available,
+				result.plannedDepartureSeconds.value));
+		m_table->setItem(row, 5,
+			makeItem(timeText(result.simulatedArrivalSeconds), result.simulatedArrivalSeconds.available,
+				result.simulatedArrivalSeconds.value));
+		m_table->setItem(row, 6,
+			makeItem(timeText(result.simulatedDepartureSeconds), result.simulatedDepartureSeconds.available,
+				result.simulatedDepartureSeconds.value));
 		auto* arrivalDelayItem = makeItem(delayText(result.arrivalDelaySeconds),
 			result.arrivalDelaySeconds.available, result.arrivalDelaySeconds.value);
 		auto* departureDelayItem = makeItem(delayText(result.departureDelaySeconds),
@@ -196,15 +236,16 @@ void TimetableTableWindow::applyTrainVisibility() {
 }
 
 void TimetableTableWindow::exportCsv() {
+	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
 	const std::string content = m_csvProvider(m_trainsButton->visibleTrainIds());
 	if (content.empty()) {
 		QMessageBox::information(this, "Nothing to export",
-								 "There is no data to export for the visible trains.");
+			"There is no data to export for the visible trains.");
 		return;
 	}
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", "timetable.csv", "CSV File (*.csv)");
+	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath("timetable.csv"), "CSV File (*.csv)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
@@ -212,29 +253,33 @@ void TimetableTableWindow::exportCsv() {
 	const bool written = m_hasRunProvenance
 		? writeRunArtifactWithProvenance(path.toStdString(), "csv", content, m_runProvenance)
 		: writeArtifact(path, content);
+	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the data and provenance to:\n%1").arg(path));
 }
 
 void TimetableTableWindow::exportPng() {
-	QString path = QFileDialog::getSaveFileName(this, "Export Table", "timetable.png", "PNG Image (*.png)");
+	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
+	QString path = QFileDialog::getSaveFileName(this, "Export Table", dialog_folders::suggestedPath("timetable.png"), "PNG Image (*.png)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 		path += ".png";
 	QPixmap pix = m_table->grab();
-	QByteArray data;
-	QBuffer buffer(&data);
+	QByteArray png;
+	QBuffer buffer(&png);
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
+		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
-							 QString("Could not write the image to:\n%1").arg(path));
+			QString("Could not write the image to:\n%1").arg(path));
 		return;
 	}
-	const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
+	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
 	const bool written = m_hasRunProvenance
 		? writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_runProvenance)
 		: writeArtifact(path, bytes);
+	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the image and provenance to:\n%1").arg(path));

@@ -1,0 +1,146 @@
+{
+  "clock_s": 25600.0,
+  "run_id": "line-run",
+  "seq": 401,
+  "signals": [
+    {
+      "code": 180,
+      "failed": false,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@0-B0@"
+    },
+    {
+      "code": 75,
+      "failed": false,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@1-B0@"
+    },
+    {
+      "code": 0,
+      "failed": false,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@2-B0@"
+    },
+    {
+      "code": 0,
+      "failed": false,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@3-B0@"
+    },
+    {
+      "code": 75,
+      "failed": false,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@4-B0@"
+    },
+    {
+      "code": 0,
+      "failed": true,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@5-B0@"
+    },
+    {
+      "code": 270,
+      "failed": false,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@6-B0@"
+    },
+    {
+      "code": 270,
+      "failed": false,
+      "level": 0,
+      "reversed": false,
+      "section_id": "@7-B0@"
+    },
+    {
+      "code": 180,
+      "failed": false,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@7-B0@"
+    },
+    {
+      "code": 75,
+      "failed": false,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@6-B0@"
+    },
+    {
+      "code": 0,
+      "failed": true,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@5-B0@"
+    },
+    {
+      "code": 75,
+      "failed": false,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@4-B0@"
+    },
+    {
+      "code": 0,
+      "failed": false,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@3-B0@"
+    },
+    {
+      "code": 0,
+      "failed": false,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@2-B0@"
+    },
+    {
+      "code": 270,
+      "failed": false,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@1-B0@"
+    },
+    {
+      "code": 270,
+      "failed": false,
+      "level": 0,
+      "reversed": true,
+      "section_id": "@0-B0@"
+    }
+  ],
+  "sim_time_s": 400.0,
+  "step": 400,
+  "trains": [
+    {
+      "direction": "forward",
+      "in_network": true,
+      "occurrence": 1,
+      "onboard": 0,
+      "operating_code": "F1",
+      "route_pos_m": 7999.9999,
+      "service_id": "F1",
+      "speed_ms": 0.0,
+      "x_km": 8.0
+    },
+    {
+      "direction": "forward",
+      "in_network": true,
+      "occurrence": 1,
+      "onboard": 0,
+      "operating_code": "F2",
+      "route_pos_m": 4577.77,
+      "service_id": "F2",
+      "speed_ms": 11.111,
+      "x_km": 4.57777
+    }
+  ],
+  "v": 1
+}

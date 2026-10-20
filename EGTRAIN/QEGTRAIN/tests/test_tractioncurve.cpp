@@ -49,15 +49,15 @@ int main() {
 	{
 		const auto pts = sampleTractionCurve({{12.0, 12.0, 100.0, 0.0, 0.0}});
 		expect(pts.size() == 1 && closeTo(pts[0].first, 12.0) && closeTo(pts[0].second, 100.0),
-			   "point interval yields a single sample");
+			"point interval yields a single sample");
 	}
 
 	// Association warnings.
 	expect(tractionAssociationWarning(true, true).empty(),
-			   "unit with curve has no warning when provenance is absent");
+		"unit with curve has no warning when provenance is absent");
 	expect(!tractionAssociationWarning(false, false).empty(), "undefined unit warns");
 	expect(tractionAssociationWarning(true, false).find("no traction curve") != std::string::npos,
-			   "missing curve warns");
+		"missing curve warns");
 
 	if (!ok)
 		return 1;

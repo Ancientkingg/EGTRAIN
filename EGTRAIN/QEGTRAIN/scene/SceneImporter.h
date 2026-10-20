@@ -43,11 +43,11 @@ struct SceneTrainTractionSourceResult {
 };
 
 SceneImportResult importLegacyScene(const std::string& legacyDir,
-									const std::string& sceneDir,
-									const std::string& sceneName);
+	const std::string& sceneDir,
+	const std::string& sceneName);
 
 ScenePassengerImportResult importLegacyPassengers(const std::string& legacyRootOrPassengerDir,
-														const SceneModel& scene);
+	const SceneModel& scene);
 
 // Strict live-reload entry points. The historical importer below intentionally
 // keeps its permissive row handling; these functions require a complete file.

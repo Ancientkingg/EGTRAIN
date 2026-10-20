@@ -1,7 +1,9 @@
 #include "scene/SceneMigration.h"
 
 #include "scene/SceneBundle.h"
+#include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
+#include "scene/Utf8Path.h"
 
 #include <algorithm>
 #include <cctype>
@@ -13,7 +15,7 @@ namespace fs = std::filesystem;
 namespace {
 
 void addDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::string& code,
-		const std::string& message, const std::string& file = {}) {
+	const std::string& message, const std::string& file = {}) {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = SceneSeverity::Error;
 	diagnostic.code = code;
@@ -23,12 +25,12 @@ void addDiagnostic(std::vector<SceneDiagnostic>& diagnostics, const std::string&
 }
 
 const std::vector<SceneMigrationStep>& stepsFor(const SceneMigrationRegistry& registry,
-		SceneMigrationStepKind kind) {
+	SceneMigrationStepKind kind) {
 	return kind == SceneMigrationStepKind::Schema ? registry.schemaSteps() : registry.bundleSteps();
 }
 
 bool appendPath(const std::vector<SceneMigrationStep>& steps, int current, int target,
-		std::vector<const SceneMigrationStep*>& path) {
+	std::vector<const SceneMigrationStep*>& path) {
 	if (current == target)
 		return true;
 	for (const auto& step : steps) {
@@ -43,13 +45,13 @@ bool appendPath(const std::vector<SceneMigrationStep>& steps, int current, int t
 }
 
 std::vector<const SceneMigrationStep*> findPath(const SceneMigrationRegistry& registry,
-		SceneMigrationStepKind kind, int fromVersion, int toVersion) {
+	SceneMigrationStepKind kind, int fromVersion, int toVersion) {
 	const auto& steps = stepsFor(registry, kind);
 	if (fromVersion >= toVersion)
 		return {};
 	std::vector<const SceneMigrationStep*> result;
 	return appendPath(steps, fromVersion, toVersion, result) ? result
-			: std::vector<const SceneMigrationStep*>{};
+															 : std::vector<const SceneMigrationStep*>{};
 }
 
 bool isSafeDirectory(const fs::path& path) {
@@ -59,33 +61,34 @@ bool isSafeDirectory(const fs::path& path) {
 }
 
 bool copyDirectoryTree(const fs::path& source, const fs::path& destination,
-		std::vector<SceneDiagnostic>& diagnostics) {
+	std::vector<SceneDiagnostic>& diagnostics) {
 	if (!isSafeDirectory(source) || !isSafeDirectory(destination)) {
 		addDiagnostic(diagnostics, "scene.migration.source", "Migration source and staging must be directories",
-				source.string());
+			source.u8string());
 		return false;
 	}
 	std::error_code ec;
 	for (fs::recursive_directory_iterator iterator(source, fs::directory_options::skip_permission_denied, ec),
-			end; iterator != end; iterator.increment(ec)) {
+		end;
+		iterator != end; iterator.increment(ec)) {
 		if (ec) {
 			addDiagnostic(diagnostics, "scene.migration.source", "Cannot traverse scene source: " + ec.message(),
-					source.string());
+				source.u8string());
 			return false;
 		}
 		const fs::path current = iterator->path();
 		const auto status = fs::symlink_status(current, ec);
 		if (ec || status.type() == fs::file_type::symlink
-				|| (status.type() != fs::file_type::directory
-					&& status.type() != fs::file_type::regular)) {
+			|| (status.type() != fs::file_type::directory
+				&& status.type() != fs::file_type::regular)) {
 			addDiagnostic(diagnostics, "scene.migration.source",
-					"Migration source contains a symlink or special file", current.string());
+				"Migration source contains a symlink or special file", current.u8string());
 			return false;
 		}
 		const fs::path relative = fs::relative(current, source, ec);
 		if (ec) {
 			addDiagnostic(diagnostics, "scene.migration.source", "Cannot resolve scene source path",
-					current.string());
+				current.u8string());
 			return false;
 		}
 		const fs::path target = destination / relative;
@@ -98,7 +101,7 @@ bool copyDirectoryTree(const fs::path& source, const fs::path& destination,
 		}
 		if (ec) {
 			addDiagnostic(diagnostics, "scene.migration.source", "Cannot stage scene source: " + ec.message(),
-					current.string());
+				current.u8string());
 			return false;
 		}
 	}
@@ -109,8 +112,7 @@ bool createPrivateDirectory(const fs::path& parent, const std::string& prefix, f
 	std::error_code ec;
 	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
 		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-"
-				+ std::to_string(attempt));
+		const fs::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
 		if (fs::create_directory(candidate, ec)) {
 			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
 			if (ec) {
@@ -129,11 +131,11 @@ bool createPrivateDirectory(const fs::path& parent, const std::string& prefix, f
 }
 
 bool validDestination(const fs::path& destination, const fs::path& source,
-		std::vector<SceneDiagnostic>& diagnostics) {
+	std::vector<SceneDiagnostic>& diagnostics) {
 	if (destination.empty() || destination.filename().empty()
-			|| destination.filename() == "." || destination.filename() == "..") {
+		|| destination.filename() == "." || destination.filename() == "..") {
 		addDiagnostic(diagnostics, "scene.migration.destination", "Migration destination must be a named path",
-				destination.string());
+			destination.u8string());
 		return false;
 	}
 	const fs::path parent = destination.parent_path().empty() ? fs::path(".") : destination.parent_path();
@@ -141,7 +143,7 @@ bool validDestination(const fs::path& destination, const fs::path& source,
 	const auto parentStatus = fs::symlink_status(parent, ec);
 	if (ec || parentStatus.type() != fs::file_type::directory) {
 		addDiagnostic(diagnostics, "scene.migration.destination",
-				"Migration destination parent must be an existing directory", parent.string());
+			"Migration destination parent must be an existing directory", parent.u8string());
 		return false;
 	}
 	std::error_code sourceEc;
@@ -150,30 +152,30 @@ bool validDestination(const fs::path& destination, const fs::path& source,
 	const fs::path canonicalDestination = fs::weakly_canonical(destination, destinationEc);
 	if (sourceEc || destinationEc) {
 		addDiagnostic(diagnostics, "scene.migration.destination",
-				"Cannot resolve migration source or destination", destination.string());
+			"Cannot resolve migration source or destination", destination.u8string());
 		return false;
 	}
 	if (canonicalSource == canonicalDestination) {
 		addDiagnostic(diagnostics, "scene.migration.destination",
-				"Migration source and destination must differ", destination.string());
+			"Migration source and destination must differ", destination.u8string());
 		return false;
 	}
 	const auto pathMismatch = std::mismatch(canonicalSource.begin(), canonicalSource.end(),
-			canonicalDestination.begin(), canonicalDestination.end());
+		canonicalDestination.begin(), canonicalDestination.end());
 	if (fs::is_directory(source) && pathMismatch.first == canonicalSource.end()) {
 		addDiagnostic(diagnostics, "scene.migration.destination",
-				"Migration destination must not be inside the source scene", destination.string());
+			"Migration destination must not be inside the source scene", destination.u8string());
 		return false;
 	}
 	const auto status = fs::symlink_status(destination, ec);
 	if (!ec && status.type() != fs::file_type::not_found) {
 		addDiagnostic(diagnostics, "scene.migration.destination",
-				"Migration destination already exists or is unsafe", destination.string());
+			"Migration destination already exists or is unsafe", destination.u8string());
 		return false;
 	}
 	if (ec != std::errc::no_such_file_or_directory && ec) {
 		addDiagnostic(diagnostics, "scene.migration.destination",
-				"Cannot inspect migration destination: " + ec.message(), destination.string());
+			"Cannot inspect migration destination: " + ec.message(), destination.u8string());
 		return false;
 	}
 	return true;
@@ -197,23 +199,23 @@ const SceneMigrationRegistry& productionSceneMigrationRegistry() {
 }
 
 bool sceneMigrationPathAvailable(const SceneMigrationRegistry& registry,
-		SceneMigrationStepKind kind, int fromVersion, int toVersion) {
+	SceneMigrationStepKind kind, int fromVersion, int toVersion) {
 	return fromVersion < toVersion && !findPath(registry, kind, fromVersion, toVersion).empty();
 }
 
 bool sceneMigrationAvailable(const SceneMigrationRegistry& registry,
-		const SceneCompatibilityProbeResult& probe) {
+	const SceneCompatibilityProbeResult& probe) {
 	if (probe.classification == SceneCompatibilityClass::Newer
-			|| probe.classification == SceneCompatibilityClass::Malformed
-			|| probe.classification == SceneCompatibilityClass::Current)
+		|| probe.classification == SceneCompatibilityClass::Malformed
+		|| probe.classification == SceneCompatibilityClass::Current)
 		return false;
 	const bool schemaOk = probe.schemaVersion >= kCurrentSceneSchemaVersion
-			|| sceneMigrationPathAvailable(registry, SceneMigrationStepKind::Schema,
-					probe.schemaVersion, kCurrentSceneSchemaVersion);
+		|| sceneMigrationPathAvailable(registry, SceneMigrationStepKind::Schema,
+			probe.schemaVersion, kCurrentSceneSchemaVersion);
 	const bool bundleOk = probe.sourceKind != SceneSourceKind::Bundle || !probe.bundleVersion
-			|| *probe.bundleVersion >= kCurrentSceneBundleVersion
-			|| sceneMigrationPathAvailable(registry, SceneMigrationStepKind::Bundle,
-					*probe.bundleVersion, kCurrentSceneBundleVersion);
+		|| *probe.bundleVersion >= kCurrentSceneBundleVersion
+		|| sceneMigrationPathAvailable(registry, SceneMigrationStepKind::Bundle,
+			*probe.bundleVersion, kCurrentSceneBundleVersion);
 	return schemaOk && bundleOk;
 }
 
@@ -222,20 +224,20 @@ bool SceneMigrationResult::success() const {
 }
 
 bool applySceneMigrationChain(const SceneMigrationRegistry& registry,
-		SceneMigrationStepKind kind, int fromVersion, int toVersion,
-		const fs::path& stagedScene, std::vector<SceneDiagnostic>& diagnostics) {
+	SceneMigrationStepKind kind, int fromVersion, int toVersion,
+	const fs::path& stagedScene, std::vector<SceneDiagnostic>& diagnostics) {
 	if (fromVersion == toVersion)
 		return true;
 	if (fromVersion > toVersion) {
 		addDiagnostic(diagnostics, "scene.migration.version",
-			"Migration steps cannot downgrade a scene version", stagedScene.string());
+			"Migration steps cannot downgrade a scene version", stagedScene.u8string());
 		return false;
 	}
 	const std::vector<const SceneMigrationStep*> chain = findPath(registry, kind,
-			fromVersion, toVersion);
+		fromVersion, toVersion);
 	if (chain.empty()) {
 		addDiagnostic(diagnostics, "scene.migration.unavailable",
-			"No registered migration path reaches the current scene format", stagedScene.string());
+			"No registered migration path reaches the current scene format", stagedScene.u8string());
 		return false;
 	}
 	for (const SceneMigrationStep* step : chain) {
@@ -244,7 +246,7 @@ bool applySceneMigrationChain(const SceneMigrationRegistry& registry,
 			if (diagnostics.size() == diagnosticCount)
 				addDiagnostic(diagnostics, "scene.migration.step",
 					"Registered migration step failed" + (step->id.empty() ? std::string() : ": " + step->id),
-					stagedScene.string());
+					stagedScene.u8string());
 			return false;
 		}
 	}
@@ -252,16 +254,15 @@ bool applySceneMigrationChain(const SceneMigrationRegistry& registry,
 }
 
 SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
-		const std::string& destinationPath, const SceneMigrationRegistry& registry) {
+	const std::string& destinationPath, const SceneMigrationRegistry& registry) {
 	SceneMigrationResult result;
-	const fs::path source(sourcePath);
-	const fs::path destination(destinationPath);
+	const fs::path source = pathFromUtf8(sourcePath);
+	const fs::path destination = pathFromUtf8(destinationPath);
 	std::error_code ec;
 	const auto sourceStatus = fs::symlink_status(source, ec);
-	if (ec || (sourceStatus.type() != fs::file_type::directory
-			&& sourceStatus.type() != fs::file_type::regular)) {
+	if (ec || (sourceStatus.type() != fs::file_type::directory && sourceStatus.type() != fs::file_type::regular)) {
 		addDiagnostic(result.diagnostics, "scene.migration.source",
-				"Migration source is missing, invalid, or a symlink", sourcePath);
+			"Migration source is missing, invalid, or a symlink", sourcePath);
 		return result;
 	}
 	if (!validDestination(destination, source, result.diagnostics))
@@ -270,20 +271,20 @@ SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 	result.diagnostics.insert(result.diagnostics.end(), probe.diagnostics.begin(), probe.diagnostics.end());
 	if (probe.classification != SceneCompatibilityClass::OlderMigratable) {
 		addDiagnostic(result.diagnostics, "scene.migration.unavailable",
-				"No registered migration path reaches the current scene format", sourcePath);
+			"No registered migration path reaches the current scene format", sourcePath);
 		return result;
 	}
 
 	const fs::path tempParent = fs::temp_directory_path(ec);
 	if (ec || tempParent.empty()) {
 		addDiagnostic(result.diagnostics, "scene.migration.staging",
-				"Cannot locate a temporary directory for migration");
+			"Cannot locate a temporary directory for migration");
 		return result;
 	}
 	fs::path staging;
 	if (!createPrivateDirectory(tempParent, "egscene-migrate-", staging)) {
 		addDiagnostic(result.diagnostics, "scene.migration.staging",
-				"Cannot create a private migration staging directory");
+			"Cannot create a private migration staging directory");
 		return result;
 	}
 	struct Cleanup {
@@ -298,7 +299,7 @@ SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 
 	bool staged = false;
 	if (probe.sourceKind == SceneSourceKind::Bundle) {
-		const SceneSaveResult extracted = extractSceneBundleForMigration(sourcePath, staging.string());
+		const SceneSaveResult extracted = extractSceneBundleForMigration(sourcePath, staging.u8string());
 		result.diagnostics.insert(result.diagnostics.end(), extracted.diagnostics.begin(), extracted.diagnostics.end());
 		staged = extracted.success();
 	} else {
@@ -311,24 +312,29 @@ SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 			probe.schemaVersion, kCurrentSceneSchemaVersion, staging, result.diagnostics))
 		return result;
 	if (probe.sourceKind == SceneSourceKind::Bundle && probe.bundleVersion
-				&& *probe.bundleVersion < kCurrentSceneBundleVersion) {
+		&& *probe.bundleVersion < kCurrentSceneBundleVersion) {
 		if (!applySceneMigrationChain(registry, SceneMigrationStepKind::Bundle,
 				*probe.bundleVersion, kCurrentSceneBundleVersion, staging, result.diagnostics))
 			return result;
 	}
 
-	const SceneLoadResult loaded = loadScene(staging.string());
+	const SceneLoadResult loaded = loadScene(staging.u8string());
 	result.diagnostics.insert(result.diagnostics.end(), loaded.diagnostics.begin(), loaded.diagnostics.end());
 	if (hasErrors(loaded.diagnostics))
 		return result;
-	std::string extension = destination.extension().string();
+	// The copy is written only when the upgraded scene has no validation error.
+	const std::vector<SceneDiagnostic> validation = validateScene(loaded.scene);
+	result.diagnostics.insert(result.diagnostics.end(), validation.begin(), validation.end());
+	if (hasErrors(validation))
+		return result;
+	std::string extension = destination.extension().u8string();
 	std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char value) {
 		return static_cast<char>(std::tolower(value));
 	});
 	const bool destinationBundle = extension == ".egscene";
 	const SceneSaveResult saved = destinationBundle
-			? saveSceneBundle(loaded.scene, destination.string())
-			: saveScene(loaded.scene, destination.string());
+		? saveSceneBundle(loaded.scene, destination.u8string())
+		: saveScene(loaded.scene, destination.u8string());
 	result.diagnostics.insert(result.diagnostics.end(), saved.diagnostics.begin(), saved.diagnostics.end());
 	if (!saved.success())
 		return result;

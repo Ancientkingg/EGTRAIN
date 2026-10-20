@@ -15,9 +15,11 @@ struct TrackPreviewLine {
 	std::string id;
 	std::vector<TrackPreviewPoint> points;
 	double displayOffset = 0.0;
+	bool authoredStationProjection = false; // Set only after the entire line maps successfully.
 };
 
 struct TrackPreviewConnection {
+	std::string id; // Authored connection, including duplicate endpoint pairs.
 	std::string firstTrackId;
 	std::string firstNodeId;
 	std::string secondTrackId;
@@ -40,6 +42,11 @@ struct TrackPreviewSignal {
 };
 
 struct TrackPreviewResult {
+	bool normalized = false;		 // Normalization is idempotent; reload after scene edits.
+	double normalizationScale = 1.0; // Projected coordinates to normalized scene coordinates.
+	// Degree-derived conversion requires successful authored projection on every
+	// visible nonempty line; raw/mixed/invalid or degenerate scenes retain one.
+	double presentationScale = 1.0; // Historical presentation distances to scene coordinates.
 	std::vector<TrackPreviewLine> lines;
 	std::vector<TrackPreviewConnection> connections;
 	std::vector<TrackPreviewStation> stations;
@@ -54,9 +61,9 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene);
 // These helpers operate on projected scene coordinates only; rawX remains the
 // canonical chainage used to interpolate runtime positions.
 bool trackPreviewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId,
-		TrackPreviewPoint& point);
+	TrackPreviewPoint& point);
 bool trackPreviewPointAtX(const TrackPreviewLine& line, double rawX,
-		TrackPreviewPoint& point);
+	TrackPreviewPoint& point);
 TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview);
 
 #endif

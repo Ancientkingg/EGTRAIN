@@ -1,0 +1,582 @@
+{
+    "arcs": [
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.1",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.100",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.2",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.2",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.101",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.3",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.3",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.102",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.4",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.4",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.103",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.5",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.5",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.104",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.6",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.6",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.105",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.7",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.7",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.106",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.8",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.8",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.107",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.9",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.9",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.108",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.10",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T0.node.10",
+            "gradient_percent": 0.0,
+            "id": "T0.arc.109",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T0.node.11",
+            "track": "T0"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T1.node.1",
+            "gradient_percent": 0.0,
+            "id": "T1.arc.100",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T1.node.2",
+            "track": "T1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T1.node.2",
+            "gradient_percent": 0.0,
+            "id": "T1.arc.101",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T1.node.3",
+            "track": "T1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T1.node.3",
+            "gradient_percent": 0.0,
+            "id": "T1.arc.102",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T1.node.4",
+            "track": "T1"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T2.node.1",
+            "gradient_percent": 0.0,
+            "id": "T2.arc.100",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T2.node.2",
+            "track": "T2"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T2.node.2",
+            "gradient_percent": 0.0,
+            "id": "T2.arc.101",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T2.node.3",
+            "track": "T2"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T2.node.3",
+            "gradient_percent": 0.0,
+            "id": "T2.arc.102",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T2.node.4",
+            "track": "T2"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T3.node.1",
+            "gradient_percent": 0.0,
+            "id": "T3.arc.100",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T3.node.2",
+            "track": "T3"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T3.node.2",
+            "gradient_percent": 0.0,
+            "id": "T3.arc.101",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T3.node.3",
+            "track": "T3"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T3.node.3",
+            "gradient_percent": 0.0,
+            "id": "T3.arc.102",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T3.node.4",
+            "track": "T3"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.1",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.100",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.2",
+            "track": "T4"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.2",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.101",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.3",
+            "track": "T4"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.3",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.102",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.4",
+            "track": "T4"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.4",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.103",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.5",
+            "track": "T4"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.5",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.104",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.6",
+            "track": "T4"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.6",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.105",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.7",
+            "track": "T4"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.7",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.106",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.8",
+            "track": "T4"
+        },
+        {
+            "curvature_radius_m": 10000.0,
+            "from": "T4.node.8",
+            "gradient_percent": 0.0,
+            "id": "T4.arc.107",
+            "speed_limit_ms": 36.111111111111,
+            "to": "T4.node.9",
+            "track": "T4"
+        }
+    ],
+    "blocks": [
+        {
+            "id": "0-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "1-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "2-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "3-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "4-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "5-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "6-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "7-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "8-T0",
+            "length_km": 0.25,
+            "track": "T0"
+        },
+        {
+            "id": "0-T1",
+            "length_km": 0.015,
+            "track": "T1"
+        },
+        {
+            "id": "1-T1",
+            "length_km": 0.015,
+            "track": "T1"
+        },
+        {
+            "id": "0-T2",
+            "length_km": 0.4,
+            "track": "T2"
+        },
+        {
+            "id": "0-T3",
+            "length_km": 0.015,
+            "track": "T3"
+        },
+        {
+            "id": "1-T3",
+            "length_km": 0.015,
+            "track": "T3"
+        },
+        {
+            "id": "0-T4",
+            "length_km": 0.5,
+            "track": "T4"
+        },
+        {
+            "id": "1-T4",
+            "length_km": 0.5,
+            "track": "T4"
+        },
+        {
+            "id": "2-T4",
+            "length_km": 0.5,
+            "track": "T4"
+        },
+        {
+            "id": "3-T4",
+            "length_km": 0.5,
+            "track": "T4"
+        },
+        {
+            "id": "4-T4",
+            "length_km": 0.5,
+            "track": "T4"
+        },
+        {
+            "id": "5-T4",
+            "length_km": 0.5,
+            "track": "T4"
+        }
+    ],
+    "connections": [
+        {
+            "from": "T0.node.10",
+            "id": "connection.1",
+            "to": "T1.node.2"
+        },
+        {
+            "from": "T1.node.3",
+            "id": "connection.2",
+            "to": "T2.node.2"
+        },
+        {
+            "from": "T2.node.3",
+            "id": "connection.3",
+            "to": "T3.node.2"
+        },
+        {
+            "from": "T3.node.3",
+            "id": "connection.4",
+            "to": "T4.node.2"
+        }
+    ],
+    "nodes": [
+        {
+            "id": "T0.node.1",
+            "track": "T0",
+            "x_km": 0.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.2",
+            "track": "T0",
+            "x_km": 0.25,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.3",
+            "track": "T0",
+            "x_km": 0.5,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.4",
+            "track": "T0",
+            "x_km": 0.75,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.5",
+            "track": "T0",
+            "x_km": 1.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.6",
+            "track": "T0",
+            "x_km": 1.25,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.7",
+            "track": "T0",
+            "x_km": 1.5,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.8",
+            "track": "T0",
+            "x_km": 1.75,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.9",
+            "track": "T0",
+            "x_km": 2.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.10",
+            "track": "T0",
+            "x_km": 2.1,
+            "y_km": 0.0
+        },
+        {
+            "id": "T0.node.11",
+            "track": "T0",
+            "x_km": 2.25,
+            "y_km": 0.0
+        },
+        {
+            "id": "T1.node.1",
+            "track": "T1",
+            "x_km": 2.125,
+            "y_km": 0.0
+        },
+        {
+            "id": "T1.node.2",
+            "track": "T1",
+            "x_km": 2.135,
+            "y_km": 0.0
+        },
+        {
+            "id": "T1.node.3",
+            "track": "T1",
+            "x_km": 2.145,
+            "y_km": 0.0
+        },
+        {
+            "id": "T1.node.4",
+            "track": "T1",
+            "x_km": 2.155,
+            "y_km": 0.0
+        },
+        {
+            "id": "T2.node.1",
+            "track": "T2",
+            "x_km": 2.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "T2.node.2",
+            "track": "T2",
+            "x_km": 2.159,
+            "y_km": 0.0
+        },
+        {
+            "id": "T2.node.3",
+            "track": "T2",
+            "x_km": 2.175,
+            "y_km": 0.0
+        },
+        {
+            "id": "T2.node.4",
+            "track": "T2",
+            "x_km": 2.4,
+            "y_km": 0.0
+        },
+        {
+            "id": "T3.node.1",
+            "track": "T3",
+            "x_km": 2.2,
+            "y_km": 0.0
+        },
+        {
+            "id": "T3.node.2",
+            "track": "T3",
+            "x_km": 2.21,
+            "y_km": 0.0
+        },
+        {
+            "id": "T3.node.3",
+            "track": "T3",
+            "x_km": 2.22,
+            "y_km": 0.0
+        },
+        {
+            "id": "T3.node.4",
+            "track": "T3",
+            "x_km": 2.23,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.1",
+            "track": "T4",
+            "x_km": 2.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.2",
+            "track": "T4",
+            "x_km": 2.25,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.3",
+            "track": "T4",
+            "x_km": 2.4,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.4",
+            "track": "T4",
+            "x_km": 2.5,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.5",
+            "track": "T4",
+            "x_km": 3.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.6",
+            "track": "T4",
+            "x_km": 3.5,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.7",
+            "track": "T4",
+            "x_km": 4.0,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.8",
+            "track": "T4",
+            "x_km": 4.5,
+            "y_km": 0.0
+        },
+        {
+            "id": "T4.node.9",
+            "track": "T4",
+            "x_km": 5.0,
+            "y_km": 0.0
+        }
+    ],
+    "tracks": [
+        {
+            "id": "T0"
+        },
+        {
+            "id": "T1"
+        },
+        {
+            "id": "T2"
+        },
+        {
+            "id": "T3"
+        },
+        {
+            "id": "T4"
+        }
+    ]
+}

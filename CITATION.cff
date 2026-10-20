@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+type: software
+title: "EGTRAIN"
+abstract: "EGTRAIN is a desktop application for microscopic railway simulation. It covers railway networks, signalling, rolling stock, services, timetables, train movement, passenger operations and results in an interactive Qt interface."
+authors:
+  - family-names: Quaglietta
+    given-names: Egidio
+    orcid: "https://orcid.org/0000-0002-7936-5832"
+    affiliation: "Delft University of Technology, Department of Transport and Planning"
+  - family-names: Bruin
+    given-names: Samuel
+    affiliation: "Delft University of Technology"
+    website: "https://samuelbruin.com/"
+license: GPL-3.0-only
+repository-code: "https://github.com/Ancientkingg/EGTRAIN"
+url: "https://github.com/Ancientkingg/EGTRAIN"

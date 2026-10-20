@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 LOG="${TMPDIR:-/tmp}/qegtrain-track-preview-e2e.log"
 TMP_ROOT=""
 
@@ -17,7 +17,7 @@ else
 	TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-track-preview.XXXXXX")"
 	trap 'rm -rf "$TMP_ROOT"' EXIT
 	SCENE="$TMP_ROOT/scene"
-	cp -R "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Lebanon" "$SCENE"
+	cp -R "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut" "$SCENE"
 	python3 -c 'from pathlib import Path; import json, sys; Path(sys.argv[1]).write_text(json.dumps({"services": []}))' "$SCENE/services.json"
 	python3 -c 'from pathlib import Path; import json, sys; Path(sys.argv[1]).write_text(json.dumps({"train_units": [], "compositions": []}))' "$SCENE/rolling_stock.json"
 fi
@@ -26,6 +26,7 @@ set +e
 cd "$ROOT/EGTRAIN/QEGTRAIN"
 QEGTRAIN_E2E_TRACK_PREVIEW=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
+QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
 "$APP" -n 3 -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
 APP_EXIT=$?
 set -e
@@ -36,6 +37,8 @@ required_markers=(
 	E2E_TRACK_PREVIEW_RUN_GATED_OK
 	E2E_TRACK_PREVIEW_SAVE_RELOAD_OK
 	E2E_TRACK_PREVIEW_STRUCTURAL_REJECTION_OK
+	E2E_SELECTION_CUE_PREVIEW_OK
+	E2E_FOLLOW_NO_SERVICES_OK
 )
 missing_markers=()
 for marker in "${required_markers[@]}"; do

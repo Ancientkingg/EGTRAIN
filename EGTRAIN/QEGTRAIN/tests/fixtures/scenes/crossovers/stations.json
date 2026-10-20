@@ -1,0 +1,43 @@
+{
+    "stations": [
+        {
+            "id": "A",
+            "name": "A",
+            "platforms": [
+                {
+                    "id": "A.platform.1",
+                    "nodes": [
+                        "T0.node.1"
+                    ]
+                }
+            ],
+            "position_km": 0.0
+        },
+        {
+            "id": "B",
+            "name": "B",
+            "platforms": [
+                {
+                    "id": "B.platform.1",
+                    "nodes": [
+                        "T4.node.3"
+                    ]
+                }
+            ],
+            "position_km": 2.4
+        },
+        {
+            "id": "C",
+            "name": "C",
+            "platforms": [
+                {
+                    "id": "C.platform.1",
+                    "nodes": [
+                        "T4.node.9"
+                    ]
+                }
+            ],
+            "position_km": 5.0
+        }
+    ]
+}

@@ -10,7 +10,7 @@ def main() -> None:
     if "i <= N_BLSPrev_Conn" in text:
         raise SystemExit("connected-block cleanup reads one entry past the initialized range")
     dependencies = text[
-        text.index("void setDependenciesBetweenBlocks()") : text.index("bool areBlocksConnected")
+        text.index("void setDependenciesBetweenBlocks(SimulationRun& run)") : text.index("bool areBlocksConnected")
     ]
     if "N_ConnectedBS >= maxConnectedBlocks" not in dependencies:
         raise SystemExit("connected-block insertion does not enforce the IDConnectedBS capacity")

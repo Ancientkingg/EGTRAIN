@@ -1,8 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#define PI 3.14159265
-
 #ifdef signals
 #define EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #undef signals
@@ -13,144 +11,112 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 
-#include <iostream>
+#include <QHash>
 #include <QMainWindow>
-#include <QPainter>
-#include <QColor>
-#include <QBrush>
-#include <QPixmap>
-#include <QtGui>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QPen>
-#include <array>
-#include <QGraphicsEllipseItem>
-#include <QPoint>
-#include <QSizePolicy>
-#include <QLineF>
-#include <QMessageBox>
-#include <QWheelEvent>
-#include <QScrollBar>
-#include <QScrollArea>
-#include <QMouseEvent>
-#include <QObject>
-#include <qmath.h>
-#include <QApplication>
-#include <QImage>
-#include <string>
-#include <QGraphicsTextItem>
-#include <QLabel>
-#include <QTextOption>
-#include <QGraphicsSceneMouseEvent>
-#include <QMenu>
-#include <QTransform>
-#include <cmath>
-#include <QDockWidget>
-#include <Qt>
-#include <QLineEdit>
-#include <QTreeWidget>
-#include <sstream>
-#include <QGraphicsPixmapItem>
-#include <QGraphicsItemGroup>
-#include <QList>
-#include <QFont>
-#include <QFormLayout>
-#include <QGraphicsEffect>
-#include <QTimer>
-#include <QTime>
-#include <algorithm>
-#include <limits>
-#include <QVBoxLayout>
-#include <list>
-#include <vector>
-#include "diagrams/BlockingTimeDiagram.h"
-#include <map>
-#include <set>
-#include <utility>
-#include <unordered_map>
-#include <tuple>
-#include <optional>
-#include <QStatusBar>
-#include <QSlider>
-#include <QHBoxLayout>
-#include <QFileDialog>
-#include <QComboBox>
-#include <QVariantAnimation>
 #include <QPointer>
-#include <QTableWidget>
-#include <QListWidget>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QIntValidator>
-#include <QDoubleSpinBox>
-#include <QSpinBox>
-#include <QTabWidget>
-#include <QSet>
+#include <QString>
+#include <QVector>
+#include <array>
+#include <functional>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "scene/SceneDiagnostic.h"
-#include "scene/SceneValidator.h"
-#include "scene/TrackPreview.h"
-
-// charts
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QCategoryAxis>
-QT_CHARTS_USE_NAMESPACE
-
-class ConsoleWidget; // forward declaration for m_logPane
-class DiagramWindow;
-class UpdateChecker;
-class QFileSystemWatcher;
-class SelfUpdater;
-class QProgressDialog;
-class QPlainTextEdit;
-struct UpdateCheckResult;
-struct StableRelease;
-
-// custom GUI files
-#include "graphics/NetworkView.h"
-#include "graphics/NetworkScene.h"
-#include "graphics/items/TrackLineItem.h"
-#include "graphics/items/VirtualArcItem.h"
-#include "graphics/items/NodeItem.h"
-#include "graphics/items/StationNodeItem.h"
-#include "graphics/items/StationOverlayItem.h"
-#include "graphics/items/PlatformItem.h"
-#include "graphics/items/IconItem.h"
-#include "graphics/items/PassengerItem.h"
-#include "graphics/items/ConnectionItem.h"
-#include "graphics/items/SignalItem.h"
-#include "graphics/items/TrainBodyItem.h"
-#include "graphics/items/TrainItemGroup.h"
-#include "graphics/items/TrainBadgeItem.h"
-#include "widgets/NetworkLegendWidget.h"
-#include "widgets/InfoDockWidget.h"
-#include "graphics/items/HighlightEffect.h"
-#include "widgets/TimeProgressBar.h"
-
-// EGTRAIN files
-#include "simulation/Infrastructure.h"
-#include "simulation/Signalling.h"
-
-#include "app/DispatchController.h"
-#include "app/GuiSimulationSnapshot.h"
+#include "app/FollowAvailability.h"
 #include "app/GuiReplayHistory.h"
-
-#include "simulation/Rescheduling.h"
-
-#include <QThread>
-#include <QToolBar>
-
-#include "simulation/SimulationWorker.h"
-#include "diagrams/CapacityAnalysis.h"
+#include "app/ResultViews.h"
+#include "app/RunResultsDock.h"
+#include "app/RunController.h"
+#include "app/RunSelection.h"
+#include "app/SceneSession.h"
 #include "diagrams/RunResults.h"
+#include "graphics/NetworkPresenter.h"
+#include "recovery/RecoveryStore.h"
+#include "scene/SceneDiagnostic.h"
+#include "widgets/InspectorPanel.h"
 
-// boolean to define if GUI is used or not
-extern bool GUI;
+class AboutDialog;
+class CaseSettingsPanel;
+class ColorChoiceButton;
+class CompositionPanel;
+class ConsoleWidget;
+class ElidedLabel;
+class EntranceDelayPanel;
+class FollowCamera;
+class IncidentPanel;
+class InfrastructurePanel;
+class NetworkLegendWidget;
+class NetworkScene;
+class NetworkView;
+class PassengerItem;
+class PassengerPanel;
+class QAction;
+class QCheckBox;
+class QCloseEvent;
+class QComboBox;
+class QDockWidget;
+class QDoubleSpinBox;
+class QDragEnterEvent;
+class QDropEvent;
+class QGraphicsItem;
+class QLabel;
+class QLineEdit;
+class QListWidget;
+class QMenu;
+class QMovie;
+class QPoint;
+class QPointF;
+class QProgressDialog;
+class QPushButton;
+class QSettings;
+class QShowEvent;
+class QSlider;
+class QSpinBox;
+class QTabWidget;
+class QTableWidget;
+class QThread;
+class QTimer;
+class QToolBar;
+class QTreeWidget;
+class QTreeWidgetItem;
+class QVBoxLayout;
+class QWidget;
+class RecoveryController;
+class SceneDocument;
+class SceneEditorPanel;
+class SceneHistory;
+class ScenarioPanel;
+class SelfUpdater;
+class ServicePanel;
+class SignalItem;
+class SimulationWorker;
+class StationNodeItem;
+class TelemetryConsent;
+class TimeProgressBar;
+class TimetableStopsPanel;
+class TrackLineItem;
+class TrainBodyItem;
+class TrainItemGroup;
+class TrainUnitPanel;
+class TrainUnitSourceLinker;
+class UpdateChecker;
+class UpdateTelemetryController;
+class UserPrompts;
+class ValidationPanel;
+namespace telemetry {
+class OperationObservation;
+} // namespace telemetry
+struct CompletedRunData;
+struct GuiPassengerState;
+struct GuiSimulationSnapshot;
+struct SceneHistoryEntry;
+struct StableRelease;
+struct UpdateCheckResult;
 
 using namespace std;
-
-struct SceneSaveResult;
 
 bool startupTimingEnabled();
 void beginStartupTiming();
@@ -164,12 +130,12 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host, private InspectorPanel::Host, private ResultViews::Host, private RunResultsDock::Host {
 	Q_OBJECT
 
 public:
-	explicit MainWindow(QWidget* parent = 0);
-	~MainWindow();
+	explicit MainWindow(QWidget* parent = nullptr);
+	~MainWindow() override;
 
 	// setup GUI
 	void setupGUI();
@@ -186,25 +152,6 @@ public:
 	// track ordering
 	void orderTracks();
 
-	// painting
-	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
-	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
-	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal scale = 1.0);
-	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
-	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
-	void paintPassengerInfoIcon(PassengerItem* paxItem);
-	void paintArc(QPointF start, QPointF end, int pen_width, int track, Arc* Arc, int track_separation);
-	void arcDrawing(QPointF start, QPointF end, int pen_width, int track, Arc* Arc);
-	void paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection);
-	void paintSignal(double X, int size, int pen_width, int track, int track_separation, int sectionIndex);
-	void paintTrain(const GuiTrainState& train, int size, int pen_width);
-	QPointF Coord2ScreenPoint(double x, double y, double factor);
-	void calculateStationCoordAndShift(int geo_scale);
-	void egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY);
-	void egtrainPoint2Screen(Node* Node, int track, double separation);
-	void egtrainPoint2Screen(Connections* connections, int track1, int track2, double separation);
-
 	// loading GIF
 	void setLoadingGIF();
 	void showLoadingGIF();
@@ -214,24 +161,8 @@ public:
 	// fit view
 	void fitView();
 
-	// double to string with precision
-	string to_string_precision(double value, int precision);
-
-	// geographical functions
-	void neighbourStations(double X, int tracklineID, int* stationIdx);
-	bool hasTrackGeometry(int track) const;
-
-	// setup info dock widget
-	void setupInfoDockWidget();
 	void setupRunResultsDock();
 	void refreshRunResults();
-
-	// update signal aspects
-	void updateSignalAspect(const std::string& ID, double code, bool reversed);
-
-	// get train polygon (list)
-	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
-	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	// train path diagram
 	bool hasRunResults() const;
@@ -239,9 +170,8 @@ public:
 	QMenu* editorsMenu();
 	void showStartupChooser();
 
-	// VCoupling notifications
-	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);
-	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
+	// The last choice of View > Show Passengers, which the start uses when -pax is not given.
+	static bool savedShowPassengers();
 
 protected:
 	void showEvent(QShowEvent* e) override;
@@ -251,44 +181,16 @@ protected:
 
 public slots:
 	void handleHelpAbout();
-	void handleCloseInfoDockWidget();
-	void displayNodeInfo(NodeItem* el);
-	void displayStationNodeInfo(StationNodeItem* re);
-	void displayArcInfo(TrackLineItem* line);
-	void displayConnectionInfo(ConnectionItem* line);
-	void displaySignallingInfo(SignalItem* signal);
-	void displayTrainInfo(TrainBodyItem* trainItem);
-	void displayPassengerInfo(PassengerItem* paxItem);
-	void handleDisableHighlight();
 	// updates according to simulation
 	void waitForUpdates();
-	void updateSignalling();
-	void updatePlatforms(int t);
-	void updateTrainPaxInfo();
-	void updatePaxIconInfo();
-	void removeTrainPaxInfoIcon();
-	void removePaxInfoIcon();
-	void updateBlockOccupationStatus(const GuiTrainState& train);
-	void clearOperationalTrackStates();
-	void updateTrainPosition(int t);
-	void startSimulation();
-	void runCurrent();
-	void onSimulationFinished();
-	void newScene();
-	void openSceneDialog();
-	void openSceneFolderDialog();
-	void saveScene();
-	void saveSceneAs();
-	void runScene();
-	void actionLoad_Network();
-	// display train path diagrams
-	void displayTrainPathDiagrams();
 	void zoomIn();
 	void zoomOut();
 	void fitToView();
 
 private:
-	Ui::MainWindow* ui;
+	// the scripted GUI runs in tests/e2e
+	friend class MainWindowTestAccess;
+	std::unique_ptr<Ui::MainWindow> ui;
 
 	// central widget
 	QWidget* centralWidget;
@@ -302,6 +204,9 @@ private:
 	// QGraphicsView
 	NetworkView* networkView;
 
+	// The registries of the items on the scene, and the clearing of the scene
+	std::unique_ptr<NetworkPresenter> m_presenter;
+
 	// progess bar
 	TimeProgressBar* progressBar;
 
@@ -309,151 +214,93 @@ private:
 	QLabel* loadingLabel;
 	QMovie* loadingMovie;
 
-	// passenger icon
-	QPixmap pax_pixmap;
-	QPixmap pax_pixmap_scaled;
-
-	// dock widget
-	QWidget* infoWidget;
-	QVBoxLayout* infoWidgetMainLayout;
-	InfoDockWidget* infoDockWidget;
+	// The inspector dock: the form of the selected item
+	InspectorPanel* m_inspector = nullptr;
 	QDockWidget* m_runResultsDock = nullptr;
 	QTableWidget* m_runResultsTable = nullptr;
 	QPushButton* m_setDelayBaselineButton = nullptr;
 	QPushButton* m_compareDelayButton = nullptr;
-	QWidget* arcInfoWidget;
-	QLineEdit* arcIDText;
-	QLineEdit* arcFirstNodeIDText;
-	QLineEdit* arcSecondNodeIDText;
-	QLineEdit* arcTrackIDText;
-	QLineEdit* arcLengthText;
-	QLineEdit* arcCurvatureText;
-	QLineEdit* arcGradientText;
-	QLineEdit* arcSpeedLimitText;
-	QLineEdit* arcOperationalStateText;
-	QLineEdit* arcConnectedSignalsText;
-	QFormLayout* arcFormLayout;
-	QWidget* nodeInfoWidget;
-	QLineEdit* nodeIDText;
-	QLineEdit* nodeTrackIDText;
-	QLineEdit* nodeXText;
-	QLineEdit* nodeYText;
-	QLineEdit* nodeStationNameText;
-	QLineEdit* nodeRegionText;
-	QLineEdit* nodeConnectedTracksText;
-	QLineEdit* nodeSignalledText;
-	QFormLayout* nodeFormLayout;
-	QWidget* connectionInfoWidget;
-	QLineEdit* connectionFirstTrackIDText;
-	QLineEdit* connectionSecondTrackIDText;
-	QLineEdit* connectionXFirstNodeText;
-	QLineEdit* connectionXSecondNodeText;
-	QFormLayout* connectionFormLayout;
-	QWidget* signallingInfoWidget;
-	QLineEdit* signallingTrackIDText;
-	QLineEdit* signallingXText;
-	QLineEdit* signallingIDSectionAheadText;
-	QLineEdit* signallingLengthSectionAheadText;
-	QLineEdit* signallingAspectText;
-	QLineEdit* signallingProtectedSectionText;
-	QLineEdit* signallingNextTrackText;
-	QPlainTextEdit* signallingGroupDetails;
-	QFormLayout* signallingFormLayout;
-	QWidget* trainInfoWidget;
-	QLineEdit* trainIDText;
-	QLineEdit* trainTypeText;
-	QLineEdit* trainLengthText;
-	QLineEdit* trainWagonsText;
-	QFormLayout* trainFormLayout;
+	// The windows of the result views, and the dock that opens them. The pointers above are parts of the dock.
+	ResultViews* m_resultViews = nullptr;
+	std::unique_ptr<RunResultsDock> m_runResultsPanel;
 
-	// effect on clicked item
-	HighlightEffect* effect;
-
-	// MainWindow creates the worker and thread. Qt owns deletion through deleteLater connections.
-	// QPointer nulls itself if Qt deletes either object before MainWindow clears the fields.
-	QPointer<SimulationWorker> m_worker;
-	QPointer<QThread> m_workerThread;
+	// Set only for the close() that follows a stopped run. The question about unsaved changes
+	// was answered when the close was requested.
+	bool m_closeConfirmed = false;
 	QSlider* m_speedSlider;
 	QLabel* m_speedLabel;
 	QAction* m_followAction = nullptr;
 	QComboBox* m_followTrainCombo = nullptr;
+	// Says in one sentence whether the selected train is followed, and why not.
+	ElidedLabel* m_followStatusLabel = nullptr;
+	// Moves the view to the followed train. It belongs to the network view.
+	FollowCamera* m_followCamera = nullptr;
+	// What each row of the train list shows: the phase of its train and whether the displayed
+	// snapshot holds the train. A row is written again only when this changes.
+	QVector<std::optional<std::pair<FollowPhase, bool>>> m_followRowShown;
 	QPointer<QMenu> m_sceneContextMenu;
+	QPointer<AboutDialog> m_aboutDialog;
 	int m_followTrainIndex = -1;
-	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
-	int m_e2eAttempts = 0;
-	bool m_e2eFinished = false;
-	int m_operationalLifecycleE2eCompletions = 0;
-	bool m_editorE2eFinished = false;
-	bool m_creatorAcceptanceFinished = false;
-	int m_creatorAcceptancePhase = 0;
-	int m_creatorAcceptancePolls = 0;
-	QPointer<DiagramWindow> m_creatorBaselineDiagram;
-	QMap<int, QPointF> m_prevTrainPositions;
-	QMap<int, TrainBadgeItem*> m_trainBadges;
-	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
+	// Draws the newest delivered snapshot once the 33 ms render limit is over,
+	// for a pause or an end of run that no later snapshot follows.
+	QTimer* m_trailingRenderTimer = nullptr;
+	QPointer<SimulationWorker> m_trailingRenderWorker;
+	std::shared_ptr<const GuiSimulationSnapshot> m_lastRenderedSnapshot;
 	bool m_playbackProfileViewApplied = false;
-	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
-	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
-	std::set<TrackLineItem*> m_activeTrackItems;
 
 	// toolbar
 	QToolBar* m_toolBar;
 	QAction* m_openCaseAction = nullptr;
 	QAction* m_newSceneAction = nullptr;
-	QAction* m_checkForUpdatesAction = nullptr;
-	QAction* m_automaticUpdateChecksAction = nullptr;
-	UpdateChecker* m_updateChecker = nullptr;
-	SelfUpdater* m_selfUpdater = nullptr;
-	QProgressDialog* m_updateProgress = nullptr;
-	bool m_manualUpdateCheck = false;
+	// The messages and questions of the editors that have moved out of the window
+	std::unique_ptr<UserPrompts> m_userPrompts;
+	// The update checks, the self update, the privacy dialogs and the telemetry sender
+	std::unique_ptr<UpdateTelemetryController> m_updateTelemetry;
 
 	bool m_promptedLoad = false; // ensures the load prompt only fires once
 
-	long long m_startOffsetSeconds = 0; // simulation start, seconds since midnight
 	ConsoleWidget* m_logPane = nullptr; // in-app log output
 	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
-	QMenu* m_editorsMenu = nullptr;		// Editors top-level menu (dock toggles)
-	QString m_sceneDir;
-	std::string m_savedSceneSha256;
-	SceneModel m_sceneModel;
-	TrackPreviewResult m_cachedTrackPreview;
-	bool m_sceneLoaded = false;
-	bool m_sceneIsBundle = false;
-	std::optional<int> m_sceneBundleVersion;
-	bool m_sceneDirty = false;
+	QHash<QDockWidget*, QAction*> m_editorActions;
+	QMenu* m_editorsMenu = nullptr; // Editors top-level menu (dock toggles)
+	// The scene, its unsaved state and its revision. The editors work on it through their panels.
+	SceneDocument* m_document = nullptr;
+	// Opens, creates and saves scenes. Holds where the scene came from and the diagnostics of its last validation.
+	SceneSession* m_session = nullptr;
+	// Reviews, prepares, starts and stops the run, and keeps what the run leaves.
+	RunController* m_runController = nullptr;
+	// Undo and Redo. The history holds the scene as it was after each edit, and sceneDocumentChanged adds to it.
+	std::unique_ptr<SceneHistory> m_history;
+	// True while the editors are refreshed with a restored scene. Until then they hold the scene before it, so what they
+	// hold is not committed.
+	bool m_restoringHistory = false;
+	// Recovery copies of the scene while it has unsaved edits. Null when this run keeps none.
+	std::unique_ptr<RecoveryController> m_recovery;
+	// The file or folder that the scene came from, and its size and time when the window last read or wrote it.
+	RecoverySource m_recoverySource;
+	// The file that a recovered scene is a copy of. Save As starts there.
+	QString m_recoveredSourceHint;
+	bool m_recoveryFailureShown = false;
+	QAction* m_undoAction = nullptr;
+	QAction* m_redoAction = nullptr;
 	bool m_committingPendingEditorValues = false;
-	struct TrainUnitSourceLink {
-		QString dataPath;
-		QString tractionPath;
-		std::optional<SceneTrainPhysical> acceptedPhysical;
-		std::vector<std::array<double, 5>> acceptedTraction;
-		QString dataSignature;
-		QString tractionSignature;
-		QString dataStatus;
-		QString tractionStatus;
-		bool dataDeferred = false;
-		bool tractionDeferred = false;
-		quint64 generation = 0;
-	};
-	std::map<std::string, TrainUnitSourceLink> m_trainUnitSourceLinks;
-	QFileSystemWatcher* m_trainUnitSourceWatcher = nullptr;
-	QTimer* m_trainUnitSourceDebounceTimer = nullptr;
-	QSet<QString> m_pendingTrainUnitSourcePaths;
-	bool m_processingTrainUnitSourceChanges = false;
+	// The editor panels, in the order in which commitPendingEditorValues takes their pending edits.
+	std::vector<SceneEditorPanel*> m_editorPanels;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
 	QAction* m_advancedDetailsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
-	QMenu* m_recentScenesMenu = nullptr;
+	QAction* m_outputFolderAction = nullptr;
+	// The validation table, the loaded data tree and the validation status of the status bar belong to m_validation.
+	ValidationPanel* m_validation = nullptr;
 	QDockWidget* m_validationDock = nullptr;
-	QTableWidget* m_validationTable = nullptr;
-	QLabel* m_validationStatusLabel = nullptr;
 	QDockWidget* m_loadedDataDock = nullptr;
-	QTreeWidget* m_loadedDataTree = nullptr;
 	QDockWidget* m_caseSettingsDock = nullptr;
+	CaseSettingsPanel* m_caseSettingsPanel = nullptr;
+	// The fields of m_caseSettingsPanel, for the scripted runs in tests/e2e
 	QLineEdit* m_caseNameEdit = nullptr;
 	QLineEdit* m_caseDescriptionEdit = nullptr;
 	QLineEdit* m_caseBaseTimeEdit = nullptr;
@@ -461,6 +308,8 @@ private:
 	QDoubleSpinBox* m_caseBufferSecondsEdit = nullptr;
 	QDoubleSpinBox* m_caseRecoveryPercentEdit = nullptr;
 	QDockWidget* m_infrastructureDock = nullptr;
+	InfrastructurePanel* m_infrastructurePanel = nullptr;
+	// Parts of m_infrastructurePanel, for the scripted runs in tests/e2e and the facets that MainWindow implements
 	QComboBox* m_infrastructureFacetCombo = nullptr;
 	QTableWidget* m_infrastructureTable = nullptr;
 	QPushButton* m_addInfrastructureButton = nullptr;
@@ -469,94 +318,61 @@ private:
 	QPushButton* m_insertBlockButton = nullptr;
 	QPushButton* m_moveBlockUpButton = nullptr;
 	QPushButton* m_moveBlockDownButton = nullptr;
-	QWidget* m_routeSectionDetailWidget = nullptr;
 	QComboBox* m_routeSectionCatalogCombo = nullptr;
 	QListWidget* m_routeSectionListWidget = nullptr;
 	QPushButton* m_addRouteSectionButton = nullptr;
 	QPushButton* m_removeRouteSectionButton = nullptr;
 	QPushButton* m_moveRouteSectionUpButton = nullptr;
 	QPushButton* m_moveRouteSectionDownButton = nullptr;
-	std::vector<int> m_blockRowModelIndices;
-	QString m_infrastructureSelectionId;
-	std::vector<SceneDiagnostic> m_sceneDiagnostics;
-	QString m_runtimeStatus = QStringLiteral("Not built");
-	QRectF m_previewFitBounds;
-	QPointF m_previewZoomFocus;
-	bool m_previewHasSelectedTrack = false;
-	bool m_previewHasSignals = false;
-	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
-	bool m_resultsAvailable = false;
-	bool m_sceneChangedDuringRun = false;
-	std::string m_selectedScenarioId;
-	std::string m_appliedScenarioId;
-	std::set<std::string> m_modifiedScenarioIds;
-	RunResults m_completedRunResults;
-	std::vector<TimetableResultRow> m_completedTimetableResults;
-	RunProvenance m_pendingRunProvenance;
-	RunProvenance m_completedRunProvenance;
-	std::optional<DelayRunSnapshot> m_delayBaseline;
-	QString m_delayBaselineStatus;
-	quint64 m_sceneRevision = 0;
+	RunSelection m_runSelection;
 	QLabel* m_runResultsSummaryLabel = nullptr;
 	QLabel* m_delayFeedbackLabel = nullptr;
-	int m_lastRunSelectedOccurrences = 0;
-	int m_lastRunTotalOccurrences = 0;
 	int m_startupTimingIteration = 0;
 	int m_startupTimingWarmTrials = 0;
 	QString m_startupTimingScenePath;
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
+	TrainUnitPanel* m_trainUnitPanel = nullptr;
+	TrainUnitSourceLinker* m_trainUnitSourceLinker = nullptr;
+	// Parts of m_trainUnitPanel, for the scripted runs in tests/e2e
 	QListWidget* m_trainUnitListWidget = nullptr;
 	QLineEdit* m_trainUnitIdEdit = nullptr;
 	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
 	QLineEdit* m_trainUnitSourceDataEdit = nullptr;
 	QLineEdit* m_trainUnitSourceTractionEdit = nullptr;
-	QPushButton* m_linkTrainUnitSourceDataButton = nullptr;
-	QPushButton* m_unlinkTrainUnitSourceDataButton = nullptr;
-	QPushButton* m_retryTrainUnitSourceDataButton = nullptr;
-	QLabel* m_trainUnitSourceDataStatusLabel = nullptr;
-	QPushButton* m_linkTrainUnitSourceTractionButton = nullptr;
-	QPushButton* m_unlinkTrainUnitSourceTractionButton = nullptr;
-	QPushButton* m_retryTrainUnitSourceTractionButton = nullptr;
-	QLabel* m_trainUnitSourceTractionStatusLabel = nullptr;
 	QTableWidget* m_trainUnitTractionTable = nullptr;
 	QPushButton* m_addTrainUnitButton = nullptr;
-	QPushButton* m_duplicateTrainUnitButton = nullptr;
-	QPushButton* m_deleteTrainUnitButton = nullptr;
 	QPushButton* m_addTrainUnitTractionButton = nullptr;
-	QPushButton* m_removeTrainUnitTractionButton = nullptr;
 
-	// composition editor dock (first editable scene panel)
+	// composition editor dock
 	QDockWidget* m_compositionDock = nullptr;
-	QListWidget* m_compositionListWidget = nullptr;		 // one row per SceneComposition
-	QLineEdit* m_compositionIdEdit = nullptr;			 // id of the selected composition
-	QListWidget* m_compositionUnitsListWidget = nullptr; // ordered unit ids of the selected composition
+	CompositionPanel* m_compositionPanel = nullptr;
+	// Parts of m_compositionPanel, for the scripted runs in tests/e2e
+	QListWidget* m_compositionListWidget = nullptr;
+	QLineEdit* m_compositionIdEdit = nullptr;
+	QListWidget* m_compositionUnitsListWidget = nullptr;
 	QPushButton* m_addCompositionButton = nullptr;
-	QPushButton* m_duplicateCompositionButton = nullptr;
-	QPushButton* m_deleteCompositionButton = nullptr;
 	QPushButton* m_addUnitButton = nullptr;
-	QPushButton* m_removeUnitButton = nullptr;
-	QPushButton* m_moveUnitUpButton = nullptr;
-	QPushButton* m_moveUnitDownButton = nullptr;
-	QLabel* m_compositionUnitSourceDataLabel = nullptr;		// original parameter source of the selected unit
-	QLabel* m_compositionUnitSourceTractionLabel = nullptr; // original tractive-effort source of the selected unit
-	QLabel* m_compositionUnitWarningLabel = nullptr;		// missing or mismatched association
-	QPushButton* m_plotTractionButton = nullptr;			// open the tractive-effort plot
+	QLabel* m_compositionUnitSourceDataLabel = nullptr;
+	QPushButton* m_plotTractionButton = nullptr;
 	QPushButton* m_plotTrainUnitTractionButton = nullptr;
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
-	QListWidget* m_serviceListWidget = nullptr;		// one row per SceneService
-	QLineEdit* m_serviceIdEdit = nullptr;			// id of the selected service
+	ServicePanel* m_servicePanel = nullptr;
+	// Parts of m_servicePanel, for the scripted runs in tests/e2e
+	QListWidget* m_serviceListWidget = nullptr;
+	QLineEdit* m_serviceIdEdit = nullptr;
 	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
 	QComboBox* m_serviceCategoryCombo = nullptr;
-	QComboBox* m_serviceCompositionCombo = nullptr; // references a SceneComposition.id
-	QComboBox* m_serviceRouteCombo = nullptr;		// references a SceneRoute.id
+	ColorChoiceButton* m_serviceColorButton = nullptr;
+	QComboBox* m_serviceCompositionCombo = nullptr;
+	QComboBox* m_serviceRouteCombo = nullptr;
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
-	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
+	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr;
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
-	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr; // whole seconds
+	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr;
 	QCheckBox* m_serviceHasRepeatCountCheck = nullptr;
 	QLineEdit* m_serviceRepeatCountEdit = nullptr;
 	QDoubleSpinBox* m_servicePerformancePercentEdit = nullptr;
@@ -565,27 +381,24 @@ private:
 	QCheckBox* m_serviceHasOperatingCodeStepCheck = nullptr;
 	QLineEdit* m_serviceOperatingCodeStepEdit = nullptr;
 	QPushButton* m_addServiceButton = nullptr;
-	QPushButton* m_duplicateServiceButton = nullptr;
-	QPushButton* m_deleteServiceButton = nullptr;
 	QTableWidget* m_serviceOccurrenceTable = nullptr;
-	QPushButton* m_selectAllOccurrencesButton = nullptr;
 	QPushButton* m_selectNoneOccurrencesButton = nullptr;
-	QLabel* m_serviceOccurrenceSelectionLabel = nullptr;
-	bool m_updatingServiceOccurrencePreview = false;
-	SceneRunSelection m_excludedSceneOccurrences;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
+	TimetableStopsPanel* m_timetableStopsPanel = nullptr;
+	// Parts of m_timetableStopsPanel, for the scripted runs in tests/e2e
 	QTableWidget* m_stopTableWidget = nullptr;
 	QPushButton* m_addStopButton = nullptr;
-	QPushButton* m_removeStopButton = nullptr;
+	QPushButton* m_insertStopAfterButton = nullptr;
 	QPushButton* m_moveStopUpButton = nullptr;
 	QPushButton* m_moveStopDownButton = nullptr;
 	QComboBox* m_stopTimeModeCombo = nullptr;
 	QLabel* m_stopTimeBaseLabel = nullptr;
-	bool m_stopClockMode = false;
 
 	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
+	ScenarioPanel* m_scenarioPanel = nullptr;
+	// Parts of m_scenarioPanel, for the scripted runs in tests/e2e
 	QListWidget* m_scenarioListWidget = nullptr;
 	QLineEdit* m_scenarioIdEdit = nullptr;
 	QLineEdit* m_scenarioNameEdit = nullptr;
@@ -593,22 +406,22 @@ private:
 	QPushButton* m_blankScenarioButton = nullptr;
 	QPushButton* m_duplicateScenarioButton = nullptr;
 	QPushButton* m_deleteScenarioButton = nullptr;
-	QPushButton* m_importScenarioButton = nullptr;
-	QPushButton* m_exportScenarioButton = nullptr;
-	QListWidget* m_incidentListWidget = nullptr;	 // one row per SceneIncident
-	QLineEdit* m_incidentIdEdit = nullptr;			 // id of the selected incident
-	QComboBox* m_incidentTypeCombo = nullptr;		 // "signal_failure" | "train_breakdown"
-	QComboBox* m_incidentTargetCombo = nullptr;		 // signal id or service id depending on type
-	QLineEdit* m_incidentStartSecondsEdit = nullptr; // whole seconds
-	QLineEdit* m_incidentEndSecondsEdit = nullptr;	 // whole seconds
+	IncidentPanel* m_incidentPanel = nullptr;
+	// Parts of m_incidentPanel, for the scripted runs in tests/e2e
+	QListWidget* m_incidentListWidget = nullptr;
+	QLineEdit* m_incidentIdEdit = nullptr;
+	QComboBox* m_incidentTypeCombo = nullptr;
+	QComboBox* m_incidentTargetCombo = nullptr;
+	QLineEdit* m_incidentStartSecondsEdit = nullptr;
+	QLineEdit* m_incidentEndSecondsEdit = nullptr;
 	QCheckBox* m_incidentHasReducedSpeedCheck = nullptr;
 	QDoubleSpinBox* m_incidentReducedSpeedKmhEdit = nullptr;
 	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
 	QCheckBox* m_incidentTerminateAtDestinationCheck = nullptr;
 	QPushButton* m_addIncidentButton = nullptr;
-	QPushButton* m_duplicateIncidentButton = nullptr;
-	QPushButton* m_deleteIncidentButton = nullptr;
 	// entrance-delay editor: rows belong to the selected scenario
+	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
+	// Parts of m_entranceDelayPanel, for the scripted runs in tests/e2e
 	QListWidget* m_entranceDelayListWidget = nullptr;
 	QComboBox* m_entranceDelayServiceCombo = nullptr;
 	QSpinBox* m_entranceDelayOccurrenceEdit = nullptr;
@@ -632,110 +445,141 @@ private:
 	QCheckBox* m_signalLayerCheck = nullptr;
 	QCheckBox* m_passengerLayerCheck = nullptr;
 	QAction* m_showMapKeyAction = nullptr;
-	bool m_stationLayerVisible = true;
-	bool m_stationNamesVisible = true;
-	bool m_trainLayerVisible = true;
-	bool m_trainSpeedLabelsVisible = true;
-	bool m_signalLayerVisible = true;
-	bool m_passengerLayerVisible = true;
-	QList<QGraphicsItem*> m_stationDecorations;
-	QList<StationOverlayItem*> m_stationOverlays;
-	QString m_selectedStationName;
-	bool m_hasSelectedStationIdentity = false;
-	double m_selectedStationNodeId = 0.0;
-	int m_selectedStationTrack = -1;
-	QList<QGraphicsItem*> m_signalDecorations;
-	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
+	QAction* m_showPassengersAction = nullptr;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 	GuiReplayHistory m_completedReplay;
 	QWidget* m_replayBar = nullptr;
 	QSlider* m_replaySlider = nullptr;
 	QLabel* m_replayLabel = nullptr;
+	QLabel* m_replayCoverageLabel = nullptr;
+	QPushButton* m_replayStartButton = nullptr;
 	QPushButton* m_replayPlayButton = nullptr;
 	QTimer* m_replayTimer = nullptr;
 	bool m_replayActive = false;
 	int m_replayRequestedTime = 0;
 	bool m_showingTrackPreview = true;
-	std::shared_ptr<const GuiSimulationSnapshot> m_operationalLifecycleE2eFirstFrame;
 
-	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance
 	void refreshFollowTrainChoices();
+	// What followAvailability needs to know about the train of a row of the train list.
+	FollowAvailabilityInput followInput(int row) const;
+	// followAvailability for a train, or for no train when it is not in the list.
+	FollowAvailability followAvailabilityOf(int trainIndex) const;
+	// Writes the list entries, the status label and the Follow control from followAvailability
+	// and returns its answer for the selected train.
+	FollowAvailability updateFollowAvailability();
+	bool trainHasGeometry(int trainIndex) const;
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
-	void setupUpdateActions();
-	void maybePromptForUpdateChecks();
-	void startUpdateCheck(bool manual);
-	void handleUpdateCheckFinished(const UpdateCheckResult& result);
-	void startSelfUpdate(const StableRelease& release);
-	void handleSelfUpdateFinished(bool success, const QString& error);
 	void showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard);
 	void centerSceneItem(QGraphicsItem* item);
+	// Moves the view to the followed train at once, or stops the camera when the view does not follow it.
+	void cutToFollowedTrain(const FollowAvailability& following);
 	void setFollowTrain(int trainIndex);
-	void displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode);
 	TrainItemGroup* resolveTrainItem(int trainIndex) const;
 	TrainBodyItem* resolveTrainBodyItem(int trainIndex) const;
 	StationNodeItem* resolveStationNodeItem(double nodeId, int track) const;
 	TrackLineItem* resolveArcItem(double arcId, int track) const;
 	SignalItem* resolveSignalItem(int track, double position, bool reversed) const;
 	PassengerItem* resolvePassengerItem(const std::string& passengerId) const;
-	void addRecentScene(const QString& path);
-	void rebuildRecentScenesMenu();
-	bool requestOpenScene(const QString& path);
-	bool maybeSaveScene();
-	const TrackPreviewLine* cachedTrackLine(int track) const;
+	// SceneSession::Host: what the session asks of the window, and the points at which it tells the window that the scene
+	// changed. captureTelemetryOperation, dialogsSuppressed and sceneActionsChanged also serve RunController::Host.
+	telemetry::OperationObservation captureTelemetryOperation() const noexcept override;
+	bool dialogsSuppressed() const override;
+	void commitPendingEdits() override;
+	bool afterRunStopped(std::function<void()> action) override;
+	void bringToFront() override;
+	void offerUpdateCheck() override;
+	void sceneActionsChanged() override;
+	QString recoveredSceneSource() const override;
+	SceneLoadResult readScene(const QString& path, bool& identityOk) override;
+	void sceneWillBeReplaced() override;
+	void sceneCreated(const telemetry::OperationObservation& operation) override;
+	bool sceneOpened(const SceneSession::OpenedScene& opened) override;
+	void sceneSaved() override;
+	// RunController::Host: what the controller asks of the window, and the points at which it tells the window that the
+	// run changed.
+	bool advancedDetailsEnabled() const override;
+	bool telemetryActive() const override;
+	int stepDelayMs() const override;
+	// The time in seconds over which the occurrences of a service are counted.
+	double serviceOccurrenceDuration() const override;
+	int totalServiceOccurrences() const override;
+	int inPeriodServiceOccurrences() const override;
+	const SceneScenario* selectedScenario() const override;
+	const std::vector<SceneIncident>& selectedScenarioIncidents() const override;
+	QString scenarioContext() const override;
+	void validateScene() override;
+	void showLoadedData() override;
+	void showValidation() override;
+	void runPreparing() override;
+	void teardownForRun() override;
+	void invalidateRunResults() override;
+	std::vector<SceneDiagnostic> timedPreparation(
+		const std::function<std::vector<SceneDiagnostic>()>& prepare, bool& identityOk) override;
+	void loadedDataChanged() override;
+	void caseLayersChanged() override;
+	void buildRunCanvas() override;
+	bool startupTimingHoldsRun(bool identityOk) override;
+	void setStartOffset(long long seconds) override;
+	void runStarting() override;
+	void workerReady() override;
+	void runPhaseChanged(RunController::RunPhase phase) override;
+	void runPanelsChanged() override;
+	void playbackEnded() override;
+	bool endFollowing() override;
+	void resultsKept() override;
+	void resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun) override;
+	bool runFinished() override;
+	void runProgressEnded() override;
+	void replayReady(GuiReplayHistory history) override;
+	void runEnded() override;
+	void runSettled() override;
+	void delayBaselineChanged() override;
+
+	void registerEditorDock(QDockWidget* dock);
+	QMenu* createPopupMenu() override;
+	void revealEditorDock(QDockWidget* dock);
+	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	void renderTrackPreview(const SceneModel& sceneModel);
-	bool finishSceneSave(const SceneSaveResult& result);
-	bool saveSceneToCurrentDir();
-	bool saveSceneAsToBundle();
-	bool saveSceneAsToDirectory();
-	bool copyScenePassthroughFiles(const QString& targetDir);
-	void updateSceneWindowTitle();
 	void updateCaseLayersPanel();
-	void refreshCaseSettingsPanel();
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
-	void refreshInfrastructurePanel();
-	void refreshInfrastructureTable();
-	void refreshBlockTrackFilter();
-	void refreshRouteSectionPanel();
-	void commitInfrastructureCell(int row, int column);
-	void commitPlatformGeometryCell(int row, int column, double value);
-	void addInfrastructureEntity();
-	void insertBlock();
-	void moveBlock(int offset);
-	void addRouteSection();
-	void removeRouteSection();
-	void moveRouteSectionUp();
-	void moveRouteSectionDown();
-	void deleteInfrastructureEntity();
-	void updateInfrastructureSelection();
-	std::string uniqueInfrastructureId(const std::string& baseId, const QString& facet) const;
-	QStringList directDeleteConsumers(const QString& facet, const std::string& id,
-		const std::string& scope = {}) const;
+	// Enables the infrastructure dock and shows the panel again.
+	void refreshInfrastructurePanel(bool resetSelection = false);
 	void refreshValidationPanel();
-	void refreshLoadedDataTree();
-	void updateScenarioPresentation();
-	bool advancedDetailsEnabled() const;
-	void updateDiagnosticPresentation();
-	void activateLoadedDataItem(QTreeWidgetItem* item);
-	void markSceneDirty();
-	void invalidateRunResults();
+	// Opens the editor or the view that a row of the loaded data tree stands for.
+	void openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item);
+	void sceneDocumentChanged();
+	void invalidateAfterSceneChange();
+	void setupEditMenu();
+	void undoScene();
+	void redoScene();
+	void stepSceneHistory(bool redo);
+	void restoreSceneFromHistory(const SceneHistoryEntry& entry);
+	void refreshAllEditorPanels();
+	void updateUndoRedoActions();
+	// Autosave and recovery. The scene changed, was saved, or was replaced by another scene.
+	void startRecovery();
+	void recoverySceneChanged();
+	void recoverySceneSaved();
+	void recoverySceneReplaced(const RecoverySource& source);
+	// Offers the copies that an earlier run left behind. Returns whether the user opened one.
+	bool offerRecovery();
+	bool openRecoveredScene(const RecoveryCandidate& candidate);
+	std::set<std::string> modifiedScenarioIds() const;
 
 	// passenger editor: canonical passengers, journeys, and ordered legs
 	QDockWidget* m_passengerDock = nullptr;
+	PassengerPanel* m_passengerPanel = nullptr;
+	// The fields of m_passengerPanel, for the scripted runs in tests/e2e
 	QListWidget* m_passengerListWidget = nullptr;
 	QLineEdit* m_passengerIdEdit = nullptr;
 	QPushButton* m_addPassengerButton = nullptr;
-	QPushButton* m_deletePassengerButton = nullptr;
-	QPushButton* m_importPassengerButton = nullptr;
-	QTableWidget* m_passengerImportResultTable = nullptr;
-	QLabel* m_passengerDiagnosticLabel = nullptr;
 	QTabWidget* m_passengerTabs = nullptr;
 	QListWidget* m_passengerJourneyListWidget = nullptr;
 	QPushButton* m_addPassengerJourneyButton = nullptr;
-	QPushButton* m_deletePassengerJourneyButton = nullptr;
 	QLineEdit* m_passengerJourneyIdEdit = nullptr;
 	QLineEdit* m_passengerJourneyActivityEdit = nullptr;
 	QComboBox* m_passengerJourneyOriginCombo = nullptr;
@@ -743,270 +587,81 @@ private:
 	std::array<QDoubleSpinBox*, 4> m_passengerJourneyWindowEdits{};
 	QListWidget* m_passengerLegListWidget = nullptr;
 	QPushButton* m_addPassengerLegButton = nullptr;
-	QPushButton* m_deletePassengerLegButton = nullptr;
-	QPushButton* m_movePassengerLegUpButton = nullptr;
-	QPushButton* m_movePassengerLegDownButton = nullptr;
 	QLineEdit* m_passengerLegIdEdit = nullptr;
 	QComboBox* m_passengerLegOriginCombo = nullptr;
 	QComboBox* m_passengerLegDestinationCombo = nullptr;
 	QComboBox* m_passengerLegServiceCombo = nullptr;
 	QSpinBox* m_passengerLegOccurrenceEdit = nullptr;
-	void refreshPassengerPanel();
-	void updatePassengerDetailPanel();
-	void updatePassengerJourneyPanel();
-	void updatePassengerLegPanel();
-	void addPassenger();
-	void deletePassenger();
-	void addPassengerJourney();
-	void deletePassengerJourney();
-	void addPassengerLeg();
-	void deletePassengerLeg();
-	void movePassengerLeg(int offset);
-	void importPassengers();
-	void commitPassengerIdEdit();
-	void commitPassengerJourneyIdEdit();
-	void commitPassengerJourneyActivity();
-	void commitPassengerJourneyStation(bool origin, const QString& text);
-	void commitPassengerJourneyWindow(int index);
-	void commitPassengerLegIdEdit();
-	void commitPassengerLegStation(bool origin, const QString& text);
-	void commitPassengerLegService(const QString& text);
-	void commitPassengerLegOccurrence();
-	ScenePassenger* selectedPassenger();
-	ScenePassengerJourney* selectedPassengerJourney();
-	ScenePassengerLeg* selectedPassengerLeg();
-	std::string uniquePassengerId(const std::string& baseId) const;
-	std::string uniquePassengerJourneyId(const std::string& baseId) const;
-	std::string uniquePassengerLegId(const std::string& baseId) const;
 
-	// composition editor
-	void refreshCompositionPanel();
-	void updateCompositionDetailPanel();
-	void updateCompositionUnitButtons();
-	void addComposition();
-	void duplicateComposition();
-	void deleteComposition();
-	void commitCompositionIdEdit();
-	void addUnitToComposition();
-	void removeUnitFromComposition();
-	void moveCompositionUnitUp();
-	void moveCompositionUnitDown();
-	void plotSelectedCompositionUnitTraction(); // open the tractive-effort plot for the selected unit
+	// opens the tractive-effort plot of a unit
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
-	const SceneTrainUnit* trainUnitById(const std::string& id) const;
-	std::string uniqueCompositionId(const std::string& baseId) const;
 
 	// train-unit editor
-	void refreshTrainUnitPanel();
-	void updateTrainUnitDetailPanel();
-	void refreshTrainUnitTractionTable();
-	void addTrainUnit();
-	void duplicateTrainUnit();
-	void deleteTrainUnit();
-	void commitTrainUnitIdEdit();
-	void commitTrainUnitSources();
-	void linkTrainUnitSource(bool traction);
-	void unlinkTrainUnitSource(bool traction);
-	void retryTrainUnitSource(bool traction);
-	void scheduleTrainUnitSourceChange(const QString& path);
-	void processTrainUnitSourceChanges();
-	void processTrainUnitSourceFile(const QString& path, bool traction);
-	void refreshTrainUnitSourceWatches();
-	void clearTrainUnitSourceLinks();
 	void updateTrainUnitSourceStatus();
 	void refreshInputTractionDiagrams(const std::string& unitId);
-	void commitTrainUnitPhysical(int fieldIndex);
-	void addTrainUnitTractionRow();
-	void removeTrainUnitTractionRow();
-	void commitTrainUnitTractionCell(int row, int column, double value);
-	std::string uniqueTrainUnitId(const std::string& baseId) const;
 
-	// service editor (service-level fields; stops are edited by the stop editor below)
-	void refreshServicePanel();
-	void updateServiceDetailPanel();
-	void addService();
-	void duplicateService();
-	void deleteService();
-	void commitServiceIdEdit();
-	void commitServiceOperatingCode();
-	void commitServiceCategory(int index);
-	void commitServiceComposition(const QString& text);
-	void commitServiceRoute(int index);
-	void commitServiceHasEntryTime(bool checked);
-	void commitServiceEntryTimeSeconds();
-	void commitServiceHasRepeat(bool checked);
-	void commitServiceHeadwaySeconds();
-	void commitServiceHasRepeatCount(bool checked);
-	void commitServiceRepeatCount();
-	void commitServicePerformancePercent(double value);
-	void commitServiceHasMaximumSpeed(bool checked);
-	void commitServiceMaximumSpeed();
-	void commitServiceHasOperatingCodeStep(bool checked);
-	void commitServiceOperatingCodeStep();
-	void commitPendingServiceSettings();
-	void refreshServiceOccurrencePreview();
-	void updateServiceOccurrenceSelection(QTableWidgetItem* item);
-	void selectAllServiceOccurrences();
-	void selectNoneServiceOccurrences();
-	double serviceOccurrenceDuration() const;
-	int totalServiceOccurrences() const;
-	int inPeriodServiceOccurrences() const;
-	int selectedServiceOccurrences() const;
-	int selectedServiceOccurrencesInPeriod() const;
-	SceneRunSelection selectedSceneOccurrences() const;
-	void pruneExcludedServiceOccurrences();
-	void migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId);
-	std::string uniqueServiceId(const std::string& baseId) const;
-	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
-
-	// stop (timetable) editor: edits copied SceneStop records through one modal
-	void refreshStopList();
-	void updateStopActions();
-	void addStop();
-	void removeStop();
-	void moveStopUp();
-	void moveStopDown();
-	void editStop(int row);
-
-	// incident editor
-	void refreshScenarioList();
+	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
-	void updateScenarioDetailPanel();
-	void selectScenario(int row);
-	void addBlankScenario();
-	void duplicateScenario();
-	void deleteScenario();
-	void importScenario();
-	void exportScenario();
-	void commitScenarioIdEdit();
-	void commitScenarioNameEdit();
-	void commitScenarioDescriptionEdit();
-	void updateIncidentDetailPanel();
-	void refreshIncidentTargetCombo();
-	void addIncident();
-	void duplicateIncident();
-	void deleteIncident();
-	void commitIncidentIdEdit();
-	void commitIncidentType(const QString& text);
-	void commitIncidentTarget(const QString& text);
-	void commitIncidentStartSeconds();
-	void commitIncidentEndSeconds();
-	void commitIncidentReducedSpeed();
-	void commitIncidentHasReducedSpeed(bool checked);
-	void commitIncidentHasEndSeconds(bool checked);
-	void commitIncidentTerminateAtDestination(bool checked);
-	void refreshEntranceDelayPanel();
-	void updateEntranceDelayDetailPanel();
-	void addEntranceDelay();
-	void duplicateEntranceDelay();
-	void deleteEntranceDelay();
-	void commitEntranceDelayService(int index);
-	void commitEntranceDelayOccurrence();
-	void commitEntranceDelayStation(int index);
-	void commitEntranceDelaySeconds();
-	SceneEntranceDelay* selectedEntranceDelay();
-	std::string uniqueIncidentId(const std::string& baseId) const;
-	std::string uniqueScenarioId(const std::string& baseId) const;
 	SceneScenario* selectedScenario();
-	const SceneScenario* selectedScenario() const;
-	SceneIncident* selectedIncident();
 	std::vector<SceneIncident>& selectedScenarioIncidents();
-	const std::vector<SceneIncident>& selectedScenarioIncidents() const;
-	void markScenarioModified();
-	QString scenarioContext() const;
-	QString runReviewText() const;
-	bool showRunReview();
-	void setDelayBaseline();
-	void showDelayComparison();
 	void refreshRunResultsSummary();
-	DelayRunSnapshot completedDelaySnapshot() const;
-	RunProvenance captureRunProvenance() const;
 
-	void runVisualPolishE2E();
-	void runStationOverlayE2E();
-	void runEditorSmokeE2E();
-	void runCreatorAcceptanceE2E();
-	void runSceneRenderE2E();
-	void runTrackPreviewE2E();
-	void runLegacyImportE2E();
-	void runSceneDropE2E();
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
 		const std::string* inputSnapshot = nullptr) const;
 	void failStartupTiming(const QString& message);
-	void clearSimulationWorker(bool requestStop);
-	void stopTrainAnimation(int train);
-	void stopTrainAnimations();
 	void clearReplay();
+	void showReplayBar();
+	bool writeReplayText(std::optional<int> shownTime);
 	void seekReplay(int requestedTime);
 	void renderSnapshot(bool historical);
 	bool replayTrainHasPosition(int trainIndex) const;
 
-	// list of signals
-	QList<SignalItem*> allSignals;
-	SignalItem* m_inspectedSignal = nullptr; // scene-owned; cleared before scene teardown
-	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
-	void buildSignalIndex();
-	void buildTrackIndexes();
 	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
-	bool isTrainOverlayPromoted(int trainIndex) const;
+
+	// InspectorPanel::Host: what the inspector dock asks of the window.
+	bool showingTrackPreview() const override;
+	const SceneModel* loadedScene() const override;
+	quint64 loadedSceneRevision() const override;
+	int regionOfTrack(int track) const override;
+	bool passengerGui() const override;
+	GuiPassengerState passengerState(const std::string& id) const override;
+	bool replayActive() const override;
+	void closeSceneContextMenu() override;
+	void inspectionChanged() override;
+	void signalInspected() override;
+	void followTrain(int trainIndex) override;
+
+	// ResultViews::Host and RunResultsDock::Host: what the result windows and the dock ask of the window. captureTelemetryOperation,
+	// dialogsSuppressed and advancedDetailsEnabled also serve the hosts above.
+	const SceneModel& sceneModel() const override;
+	void resultMessage(const QString& text, int milliseconds) override;
+	void runResultsRefreshed() override;
+
+	// NetworkPresenter::FrameHost: the parts of a frame that the follow camera, the legend and the signal inspector take.
+	bool isTrainOverlayPromoted(int trainIndex) const override;
+	void trainWillUpdate(int trainIndex) override;
+	bool trainPlaced(int trainIndex, const QPointF& center) override;
+	void trainHidden(int trainIndex) override;
+	bool trainAdded(int trainIndex, bool firstLiveTrain) override;
+	void signalsApplied() override;
+	void trainsApplied(bool anyAdded, bool cameraMoved) override;
+
+	// These open a result view, for the scripted runs in tests/e2e.
+	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
+	void buildPerTrainDiagram(int mode);
+	void showDelayDiagram();
+	void showBlockingTimeDiagram();
+
 	void updateViewportOverlays();
 	void updateSignalCues();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);
-	bool paxTextVisible() const;
 	void updateNetworkLegend();
-	bool hasRawRunResults() const;
-
-	// list of train items (whose simulation is running)
-	QList<TrainItemGroup*> allTrains;
-
-	// list of arcs
-	QList<TrackLineItem*> allArcs;
-
-	// list of platform items
-	QList<PlatformItem*> allPlatforms;
-
-	// Non-owning scene item observers. scene->clear() deletes these items.
-	QGraphicsItemGroup* trainPaxInfoItem;
-	TrainItemGroup* trainPaxItem;
-
-	// Non-owning scene item observers. scene->clear() deletes these items.
-	QGraphicsItemGroup* paxIconInfoItem;
-	PassengerItem* paxIconItem;
-
-	// associates regions and station indexes
-	std::vector<std::vector<int>> regionStations;
-
-	// scene item sizes
-	int global_scale;
-	int node_size;
-	int station_node_size;
-	int station_name_graphID; // to be on the opposite side of tracks
-	int line_width;
-	int track_separation;
-	int station_size;
-	int geo_scale; // scale used to convert latitude,longitude to screen coordinates
 
 private slots:
-	void setStartTime();
-	void chooseOutputFolder();
-	void showSpeedDistanceDiagram();
-	void showSpeedTimeDiagram();
-	void showTimeDistanceDiagram();
-	void showTractiveEffortDistanceDiagram();
-	void showTimetableGraph();
-	void buildRouteDiagram(bool timetable, int referenceIndex);
-	void showTimetableTable();
-	void showDelayDiagram();
-	void showBlockingTimeDiagram();
-	void showCapacityAnalysis();
-	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
-		RunProvenance provenance, std::vector<BlockingTimeDiagramSegment> segments,
-		double routeStartKm, double routeEndKm, const QString& referenceId);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
-
 };
 
 #endif // MAINWINDOW_H

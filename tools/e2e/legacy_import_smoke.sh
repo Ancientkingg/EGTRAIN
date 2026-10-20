@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 LOG="${TMPDIR:-/tmp}/qegtrain-legacy-import-e2e.log"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-legacy-import.XXXXXX")"
 trap 'rm -rf "$TMP_ROOT"' EXIT

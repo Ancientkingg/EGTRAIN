@@ -1,25 +1,16 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include "simulation/SimulationRun.h"
+#include "util/Log.h"
 #include <algorithm>
 #include <cstdio>
 #include <cmath>
+#include <map>
 #include <numeric>
+#include <optional>
 #include <vector>
 
-double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
-
-int Resched_Interval = 300;	  // Variable that set the time to gather train information from EGTRAIN to ROMA
-int Time_To_Collect_Info = 0; // Variable to measure the time passed from the last information update
-double PH = 1800;			  // This is the Prediction Horizon Set in ROMA and must be used to initialize the ROMA batch call and the corresponding char
-char Init_Time[20], Pred_Hor[20];
-string InstanceName = "E1";	 // This is the name of the instance that must be run in both ROMA and EGTRAIN
-int InstanceIndex = 1;		 // This is the index of the instance
-int DelayDispatcherImpl = 0; // This is the delay in [s] with which the dispatcher implements the solution obtained from the ROMA tool*/
-extern InitialParameters initial_variables;
-
-string Name_Of_Integ_Folder = ""; // Name of the batch file of ROMA
-
-OrderList TrainEntranceOrder;
+using namespace std;
 
 namespace {
 bool energySeriesCovers(const std::vector<double>& values, int first, int last) {
@@ -33,24 +24,24 @@ bool energySeriesCovers(const std::vector<double>& values, int first, int last) 
 }
 
 bool canComputeTrainEnergy(Train& train) {
-	if (train.earliestActiveTrajectoryIndex < 0 || train.End_Time < train.earliestActiveTrajectoryIndex ||
-		train.End_Time >= static_cast<int>(train.instant_spatial_position.size()) ||
-		!std::isfinite(train.departure_time))
+	if (train.earliestActiveTrajectoryIndex < 0 || train.End_Time < train.earliestActiveTrajectoryIndex
+		|| train.End_Time >= static_cast<int>(train.instant_spatial_position.size())
+		|| !std::isfinite(train.departure_time))
 		return false;
 	// Completed runs can leave a non-finite terminal power sample; the shared
 	// energy calculation treats that boundary sample as zero.
 	train.sanitizeTerminalPowerSample();
 	const int energyStart = static_cast<int>(train.departure_time);
-	return energyStart >= 0 && energyStart <= train.End_Time &&
-		energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time) &&
-		energySeriesCovers(train.instant_train_energy_consumption, energyStart, train.End_Time) &&
-		!validTrajectorySegments(train.instant_spatial_position,
-									 train.earliestActiveTrajectoryIndex, train.End_Time)
-			.empty();
+	return energyStart >= 0 && energyStart <= train.End_Time
+		&& energySeriesCovers(train.instant_train_power_consumption, energyStart, train.End_Time)
+		&& energySeriesCovers(train.instant_train_energy_consumption, energyStart, train.End_Time)
+		&& !validTrajectorySegments(train.instant_spatial_position,
+			train.earliestActiveTrajectoryIndex, train.End_Time)
+				.empty();
 }
 
 void calculateDelayStatistics(Stations& result, const std::vector<double>& delays,
-		const std::vector<double>& consecutive, bool includeNonPositive) {
+	const std::vector<double>& consecutive, bool includeNonPositive) {
 	result.N_Stopped_Trains = static_cast<int>(delays.size());
 	result.N_Delayed_Arr = result.N_Delayed_Arr_3min = result.N_Delayed_Arr_5min = 0;
 	result.Av_Arrival_Delay = result.Std_Arrival_Delay = 0;
@@ -99,12 +90,12 @@ void calculateDelayStatistics(Stations& result, const std::vector<double>& delay
 	}
 }
 
-void calculateStationDelayStatistics(Stations& station, bool includeNonPositive) {
+void calculateStationDelayStatistics(SimulationRun& run, Stations& station, bool includeNonPositive) {
 	std::vector<double> arrivals;
 	std::vector<double> consecutive;
 	const auto append = [&arrivals, &consecutive, includeNonPositive](const Train& train, int index) {
 		const bool recorded = includeNonPositive
-			? train.StationArrivals[index] != -1
+			? train.StationArrivals[index] >= 0 && train.ScheduledArrivals[index] >= 0
 			: train.StationDelay[index] != -1;
 		if (!recorded)
 			return;
@@ -112,8 +103,8 @@ void calculateStationDelayStatistics(Stations& station, bool includeNonPositive)
 		consecutive.push_back(train.StationConsecDelay[index]);
 	};
 
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex) {
-		const Train& train = regional_train[trainIndex];
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex) {
+		const Train& train = run.trains[trainIndex];
 		if (station.stationName == "Final_Station") {
 			if (train.numStations > 0)
 				append(train, train.numStations - 1);
@@ -129,89 +120,58 @@ void calculateStationDelayStatistics(Stations& station, bool includeNonPositive)
 } // namespace
 
 // Updated Function to Calculate the arrival delay at each station for each train
-void calculateArrivalDelayAllTrains() {
-	for (int j = 0; j < numRegions; j++) {
+void calculateArrivalDelayAllTrains(SimulationRun& run) {
+	for (int j = 0; j < run.numTrains; j++) {
 		// Determine the actual arrivals at the train stations
-		regional_train[j].Determine_Actual_Station_Arrivals();
+		run.trains[j].Determine_Actual_Station_Arrivals();
 		// Compute the arrival delays
-		regional_train[j].computeArrivalDelaysAtStations();
+		run.trains[j].computeArrivalDelaysAtStations();
 	}
 }
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
-void calculateDelayStatsAtStation(Stations& S) {
-	calculateStationDelayStatistics(S, false);
+void calculateDelayStatsAtStation(SimulationRun& run, Stations& S) {
+	calculateStationDelayStatistics(run, S, false);
 }
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
-void calculatePosAndNegDelayStatsAtStation(Stations& S) {
-	calculateStationDelayStatistics(S, true);
+void calculatePosAndNegDelayStatsAtStation(SimulationRun& run, Stations& S) {
+	calculateStationDelayStatistics(run, S, true);
 }
 
 // Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
-void Compute_Input_Delays() {
-	std::vector<double> delays(numRegions);
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
-		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays;
-	calculateDelayStatistics(TotalInputDelays, delays, {}, false);
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
-		delays[trainIndex] = regional_train[trainIndex].EntranceDelay;
-	calculateDelayStatistics(EntranceInputDelays, delays, {}, false);
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
-		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays
-			- regional_train[trainIndex].EntranceDelay;
-	calculateDelayStatistics(DisturbanceInput, delays, {}, false);
+void Compute_Input_Delays(SimulationRun& run) {
+	std::vector<double> delays(run.numTrains);
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex)
+		delays[trainIndex] = run.trains[trainIndex].TotalInputDelays;
+	calculateDelayStatistics(run.totalInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex)
+		delays[trainIndex] = run.trains[trainIndex].EntranceDelay;
+	calculateDelayStatistics(run.entranceInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex)
+		delays[trainIndex] = run.trains[trainIndex].TotalInputDelays
+			- run.trains[trainIndex].EntranceDelay;
+	calculateDelayStatistics(run.disturbanceInput, delays, {}, false);
 }
 
 // Function to calculate the train delay statistics for all the station considered in the network
-void calculateDelayStatsForAllStations() {
-	for (int s = 0; s < numStations; s++) {
-		calculateDelayStatsAtStation(StationArray[s]);
+void calculateDelayStatsForAllStations(SimulationRun& run) {
+	for (int s = 0; s < run.infra.numStations; s++) {
+		calculateDelayStatsAtStation(run, run.infra.stations[s]);
 	}
 }
 
 // Function to calculate positive and negative train delay statistics for all stations
-void calculatePosAndNegDelayStatsForAllStations() {
-	for (int s = 0; s < numStations; s++) {
-		calculatePosAndNegDelayStatsAtStation(StationArray[s]);
+void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run) {
+	for (int s = 0; s < run.infra.numStations; s++) {
+		calculatePosAndNegDelayStatsAtStation(run, run.infra.stations[s]);
 	}
 }
 
 // Function to calculate positive an negative delays of trains for all the trains considered in the simulation
-void calculatePosAndNegArrivalDelayAllTrains() {
-	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].Actual_Arrivals();
-		regional_train[j].Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
-	}
-}
-
-// Function to call and launch ROMA for computing a new rescheduling plan
-void callRoma(string instancename, double inittime, double PH) {
-	// Name of the ROMA Batch file
-	string Name_Of_Batch_Plus_Data = Name_Of_Integ_Folder + "batch_ROMA.bat";
-	char endOfpred[20]; // This value is the sum of the current time instant t and the PH (e.g. if we are at t=150 and PH=1800 This variable is t+PH=1950) and the corresponding char
-						// Convert all parameters in char
-	if (inittime < 0)
-		snprintf(Init_Time, sizeof(Init_Time), "%d", 0); // with this if and else conditions it is assured that the initial time of ROMA is never lower than 0 (i.e. negative)
-	else
-		snprintf(Init_Time, sizeof(Init_Time), "%d", (int)inittime);
-
-	char DelayDisp[20]; // variable for storing the value of the Dispatching Delay
-	char Resch_Int[20];
-	snprintf(Resch_Int, sizeof(Resch_Int), "%d", Resched_Interval);
-	snprintf(Pred_Hor, sizeof(Pred_Hor), "%d", (int)PH);
-	snprintf(endOfpred, sizeof(endOfpred), "%d", (int)(inittime + PH));
-	snprintf(DelayDisp, sizeof(DelayDisp), "%d", DelayDispatcherImpl);
-	Name_Of_Batch_Plus_Data = Name_Of_Batch_Plus_Data + " " + InstanceName + " " + Init_Time + " " + Resch_Int + " " + Pred_Hor + " " + endOfpred + " " + DelayDisp;
-
-	// Launch the batch file to activate ROMA and receive a new train order from it
-	system((char*)Name_Of_Batch_Plus_Data.c_str());
-}
-
-// Function to compute the critical headways for all the trains
-void ComputeCriticalHeadwaysForLocationsForAllTrains(Train* T, int numTrains) {
-	for (int i = 0; i < numTrains; i++) {
-		T[i].DetermineCriticalHWForAllLocations();
+void calculatePosAndNegArrivalDelayAllTrains(SimulationRun& run) {
+	for (int j = 0; j < run.numTrains; j++) {
+		run.trains[j].Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
 	}
 }
 
@@ -229,21 +189,8 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains) {
 	}
 }
 
-// Function to compute the headways of all the trains
-void ComputeHwMatrixForAllTrains(Train* T, int numTrains, string MainFolder) {
-#pragma omp parallel
-	{
-#pragma omp for
-		for (int i = 0; i < numTrains; i++) {
-			T[i].SetLocationNames();
-			T[i].ComputeHwMatrix(T, numTrains);
-			T[i].PrintHeadwayMatrix(MainFolder);
-		}
-	}
-}
-
 // Function to Compute the Energy Consumption for the Timetable
-void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string OutputFolder) {
+void ComputeTimetableEnergyConsumption(Regional* Trains, int numTrains, string OutputFolder) {
 	double TotalEnergyConsumed = 0, TotalEnergyConsWithRegBraking = 0, TotalEnergySubstationRequest = 0, TotalEnergySubstRequestWithRegBraking = 0;
 
 	ofstream OutputPerTrain;
@@ -275,284 +222,35 @@ void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, string Outp
 }
 
 // Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
-void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains) {
+void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains) {
 	for (int i = 0; i < numTrains; i++) {
 		Trains[i].ComputeTimetablingPoints();
 	}
 }
 
-// Function to Detect the implemented Order for all the OL in the network
-void Detect_Implemented_Order_For_All_OL() {
-	for (int i = 0; i < N_OrderLists; i++) {
-		OL[i].Detect_Implemented_Order();
-	}
-}
-
-// Function to Determine the Max and the min Headway for all locations
-void DetermineMaxHW_MinHWForAllLocations(Train* T, int N_Train) {
-	int index = 0;
-	for (list<Location>::iterator p = AllLocations.begin(); p != AllLocations.end(); p++) {
-
-		cout << "MaxHW & MinHW For Location " << index << "\n";
-		index++;
-		double MAX_HW = -1;
-		string CRITCOUPLE = "None";
-		double MIN_HW = 9999999;
-		string MINCOUPLE = "None";
-
-		for (int i = 0; i < N_Train; i++) {
-			bool LocationFound = false;
-			if (T[i].LocationNames.size() > 0) {
-				for (list<Location>::iterator h = T[i].LocationNames.begin(); h != T[i].LocationNames.end(); h++) {
-					LocationFound = h->areLocationsEqual(*p);
-					if (LocationFound == 1) {	 // if the location has been found then take its Max HW value and the critical Couple and break the for loop and pass to another train
-						if (h->MaxHW > MAX_HW) { // if the max value is higher then the MAX_HW then this is the MAX_HW
-							MAX_HW = h->MaxHW;
-							CRITCOUPLE = h->CriticalTrainCouple;
-						}
-						if (h->MinHW < MIN_HW) {
-							MIN_HW = h->MinHW;
-							MINCOUPLE = h->MinimumTrainCouple;
-						}
-						break;
-					}
-				}
-			}
-		}
-		// Now Set the MaxHW and the critical couple of train for the location, as well as the minimum HW and the Minimum Couple sequence
-		p->MaxHW = MAX_HW;
-		p->CriticalTrainCouple = CRITCOUPLE;
-		p->MinHW = MIN_HW;
-		p->MinimumTrainCouple = MINCOUPLE;
-	}
-}
-
-// Function to draw stochastic Train Delays from a Gaussian Distribution, the St Dev of the delays Perc_Std_Dev must be expressed as a percentage of the scheduled dwell time at stations (e.g. if it is the 20% put Perc_Std_Dev=0.2)
-
-void drawGaussianTrainDwellTimes(double Perc_Std_Dev, int index_scenario) {
-	string OutputName;
-	char INDEX_SCENARIO[20];
-	// Define the name of the scenario to produce
-	snprintf(INDEX_SCENARIO, sizeof(INDEX_SCENARIO), "%d", index_scenario);
-	OutputName = InputMainFolder + "/TimeTable/Scenarios_DW/";
-	OutputName = OutputName + "Scenario_DW_Times_" + INDEX_SCENARIO + ".txt";
-	ofstream Output;
-	Output.open(OutputName.c_str(), ios::app);
-	for (int i = 0; i < numRegions; i++) {
-		int N_Dwell_Times = regional_train[i].numStations + 1;
-		double* DwellTimes = new double[N_Dwell_Times];
-		NumberGenerator GenDelay; // Generator of Stochastic Delays
-								  // Drawing the Entrance Delay of the train in the network. The Default is set with a Mean of 1 minute and a StDev of 25 sec
-		/*DwellTimes[0]=GenDelay.getGaussianFloat(60,25);*/
-		// When the Entrance Delay is loaded from other external files the DwellTimes[0] can be simply imposed to 0
-		DwellTimes[0] = 0;
-		// Drawing Stochastic delays to the dwell time at the stations
-		for (int s = 0; s < regional_train[i].numStations; s++) {
-			DwellTimes[s + 1] = GenDelay.getGaussianFloat(regional_train[i].Stations[s].dwellTime, regional_train[i].Stations[s].dwellTime * Perc_Std_Dev);
-			if (DwellTimes[s + 1] < regional_train[i].Stations[s].dwellTime)
-				DwellTimes[s + 1] = regional_train[i].Stations[s].dwellTime;
-			// Additional condition that impose all the departure times from the first station to the scheduled one(this is valid only for the particular application that I am doing but in general it has to be removed from the code)
-			if (s == 0)
-				DwellTimes[s + 1] = regional_train[i].Stations[s].dwellTime;
-		}
-		// Printing the stochastic Dwell Times for the ith train
-		for (int j = 0; j < N_Dwell_Times; j++) {
-			Output << DwellTimes[j] << " ";
-		}
-		Output << "\n";
-		delete[] DwellTimes;
-	}
-	Output.close();
-}
-
-// Function to receive the entrance delays affected by an error distributed according to a Gaussian variable with standard deviation Std_Dev. Index is the Index of the scenario
-void Generate_Entrance_Delays_Affected_By_Error(string Folder, double Std_Dev, int index) { // Folder is the path of the Folder where the input files are saved
-	double *Matr, *MatrWithError;
-	string FileName = "Rollout_";
-	char Scen_Index[20];
-	snprintf(Scen_Index, sizeof(Scen_Index), "%d", index);
-	FileName = Folder + FileName + Scen_Index + ".txt";
-	ifstream InputFile;
-	InputFile.open((char*)FileName.c_str(), ios::binary);
-	if (!InputFile) {
-		cout << "Error: Impossible to open file\n";
-	}
-	int i = 0; // i is the index of the trains
-	Matr = new double[numRegions];
-	MatrWithError = new double[numRegions]; // Initializing Matr Array
-	while (InputFile) {
-		InputFile >> Matr[i];
-		NumberGenerator Er;
-		MatrWithError[i] = Er.getGaussianFloat(Matr[i], Std_Dev * Matr[i]);
-		if (MatrWithError[i] < 0)
-			MatrWithError[i] = 0; // Do not allow that MatrWithError is less than 0
-		i++;					  // increasing the index i
-	}
-	InputFile.close(); // Closing the InputFile
-	ofstream OutputFile;
-	string OutputFileName = InputMainFolder;
-	OutputFileName = OutputFileName + "/TimeTable/Scenarios_Entr_Delays_With_Error/Rollout_" + Scen_Index + ".txt";
-	OutputFile.open((char*)OutputFileName.c_str());
-	for (int i = 0; i < numRegions; i++) {
-		OutputFile << MatrWithError[i] << "\n";
-	}
-	OutputFile.close();
-}
-
-// Function to Generate the Entrance Delays affected by Error for all the Scenarios
-void Generate_Entrance_Delays_With_Error_For_All_Scenarios(string Folder, double Std_Dev, int Number_Of_Scenarios) {
-	for (int i = 1; i <= Number_Of_Scenarios; i++) {
-		Generate_Entrance_Delays_Affected_By_Error(Folder, Std_Dev, i);
-	}
-}
-
-// Function to Generate Multiple disturbed scenarios with stochastic Dwell times
-void Generate_Multiple_Train_Dwell_Times_From_Gaussian(int Number_of_Scenarios) {
-	for (int i = 1; i <= Number_of_Scenarios; i++) {
-		drawGaussianTrainDwellTimes(0.8, i);
-	}
-}
-
-// Function to Implement the ROMA Solution in EGTRAIN
-void Implement_ROMA_Solution(string InstanceName, int Instant_Sol_Returned, double PH) {
-	char Init_Time[20], Pred_Hor[20], Resch_Int[20];
-	snprintf(Init_Time, sizeof(Init_Time), "%d", Instant_Sol_Returned);
-	snprintf(Pred_Hor, sizeof(Pred_Hor), "%d", (int)PH);
-	snprintf(Resch_Int, sizeof(Resch_Int), "%d", Resched_Interval);
-	string NameFolderOutputROMA = Name_Of_Integ_Folder + "Output_ROMA/instance_" + InstanceName + "/" + Resch_Int + "-" + Pred_Hor + "/" + Init_Time + "-" + Pred_Hor; // This is the name of the folder where ROMA saves its outputs
-																																									   // Reset all the OL to update
-	resetOlToUpdate();
-	// Update all OL
-	loadAllOrderLists((char*)NameFolderOutputROMA.c_str());
-	// Set OL0 as OL1
-	Set_OL0_as_OL1();
-}
-
-
-// Function to Initialize all the Locations in the Network, i.e. the Location list AllLocations
-void InitializeAndComputeMaxHwForAllLocations(Train* T, int N_Train, string MainFolder) {
-	SetAllLocations(T, N_Train);					 // Set the all the location in the network and their names
-	DetermineMaxHW_MinHWForAllLocations(T, N_Train); // Compute their maximum headway
-	PrintLocationHeadways(MainFolder);				 // Print out the results in a txt file
-}
-
-// Function to Load the Stochastic Dwell Times drawn from the Previous function and assign it to the StopTime Variable of the trains
-void Load_And_Set_Stoc_Dwell_Times(char* FileName) {
-	ifstream TrainDwellTimes;
-	TrainDwellTimes.open(FileName, ios::binary);
-	double* Matr;
-	if (!TrainDwellTimes) {
-		cout << "Error: Impossible to open file\n";
-	} else {
-		cout << "File Stochastic Train Delays loaded correctly\n";
-	}
-	int i = 0, j = 0;									// j is the index of the file read and i is the index of the trains
-	Matr = new double[regional_train[i].numStations + 1]; // Initializing Matr Array for the first Train regional_train[0]
-	while (TrainDwellTimes) {
-		TrainDwellTimes >> Matr[j];
-		if (j == 0) {
-			regional_train[i].departure_time = regional_train[i].departure_time + Matr[j];
-		} else {
-			regional_train[i].Stations[j - 1].StopTime = Matr[j] / timestep;
-			regional_train[i].StationDisturbance[j - 1] = regional_train[i].Stations[j - 1].StopTime - regional_train[i].Stations[j - 1].dwellTime;
-		} // Define the new StopTime and calculate the disturbance to dwell time for Station [j-1]
-		j++;
-		if (j > regional_train[i].numStations) {
-			i++;
-			j = 0;
-			Matr = new double[regional_train[i].numStations + 1];
-		} // Reinitializing the dynamic array for the other trains
-	}
-	cout << "Stochastic Dwell times loaded for " << i - 1 << " trains\n";
-	TrainDwellTimes.close(); // Closing Block Section Data File
-	delete[] Matr;
-}
-
-// Function to Load Departure Delays from a station identified by the name which is given as input
-void Load_Departure_Delay_At_Station(char* FileName, string stationName) {
-	double* Matr;
-	ifstream InputFile;
-	InputFile.open(FileName, ios::binary);
-	if (!InputFile) {
-		cout << "Error: Impossible to open file\n";
-	} else {
-		cout << "File Train Departure Delays at " << stationName << " loaded correctly\n";
-	}
-	int i = 0;				  // i is the index of the trains
-	Matr = new double[numRegions]; // Initializing Matr Array
-	while (InputFile) {
-		InputFile >> Matr[i];
-		regional_train[i].EntranceDelay = Matr[i];
-		for (int j = 0; j < regional_train[i].numStations; j++) {
-			if (regional_train[i].Stations[j].stationName == stationName) {
-				regional_train[i].ScheduledDepartures[j] = regional_train[i].ScheduledDepartures[j] + regional_train[i].EntranceDelay;
-				break;
-			}
-		}
-		i++; // increase index i
-	}
-	cout << "Departure Delay at Station " << stationName << " loaded for " << i - 1 << " trains\n";
-	InputFile.close(); // Closing Block Section Data File
-	delete[] Matr;
-}
-
-// Load Files of a given disturbed scenario identified by its index and saved in the Folder
-void Load_Dwell_Time_Disturbed_Scenario(string Folder, int index) {
-	string Name_Of_File = "Scenario_DW_Times_";
-	char Scenario_Index[20];
-	snprintf(Scenario_Index, sizeof(Scenario_Index), "%d", index);
-	Name_Of_File = Folder + Name_Of_File + Scenario_Index + ".txt";
-	Load_And_Set_Stoc_Dwell_Times((char*)Name_Of_File.c_str());
-}
-
-// Function to Load the Scenario of Entrance delays (from station stationName)identified by its index and saved in Folder
-void Load_Entrance_Delay_Disturbed_Scenario(string Folder, string stationName, int index) {
-	string Name_Of_File = "Rollout_";
-	char Scenario_Index[20];
-	snprintf(Scenario_Index, sizeof(Scenario_Index), "%d", index);
-	Name_Of_File = Folder + Name_Of_File + Scenario_Index + ".txt";
-	Load_Departure_Delay_At_Station((char*)Name_Of_File.c_str(), stationName);
-}
-
-// Function to print out all the Results of a network Location
-void PrintLocationHeadways(string MainFolder) {
-	string FileName;
-	FileName = FileName + MainFolder + "/AllHWForAllLocations.txt";
-	ofstream OutputFile;
-	OutputFile.open((char*)FileName.c_str(), ios::binary);
-
-	if (AllLocations.size() > 0) {
-		OutputFile << "LocationID CriticalHW[s] CriticalTrainCouple MinimumHW[s] MinimumTrainCouple\n";
-		for (list<Location>::iterator p = AllLocations.begin(); p != AllLocations.end(); p++) {
-			OutputFile << p->Name << " " << p->MaxHW << " " << p->CriticalTrainCouple << " " << p->MinHW << " " << p->MinimumTrainCouple << "\n";
-		}
-	}
-	OutputFile.close(); // Close the file
-}
-
 // Function to Print all the trajectories
-void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
+void PrintTrainPathDiagram(const SimulationRun& run, Regional* S, int N_S, string FolderName) {
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
 	ofstream FileOutput;
 	FileOutput.open((char*)FileName.c_str(), ios::binary);
 	FileOutput << "Train/Time ";
-	for (int t = 0; t < initial_variables.times; t++) {
+	for (int t = 0; t < run.settings.times; t++) {
 		FileOutput << t * timestep << " ";
 	}
 	FileOutput << "\n";
 	for (int i = 0; i < N_S; i++) {
 		FileOutput << S[i].trainDescription << " ";
 		const auto exportCells = trajectoryExportCells(S[i].instant_spatial_position,
-													 S[i].earliestActiveTrajectoryIndex, S[i].End_Time);
-		for (int t = 0; t < initial_variables.times; t++) {
+			S[i].earliestActiveTrajectoryIndex, S[i].End_Time);
+		for (int t = 0; t < run.settings.times; t++) {
 			const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 			if (position == -9999) {
 				FileOutput << -9999 << " ";
-			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
+			} else if (run.infra.routes[S[i].indexOfRoute].reversed_direction == 0) {
 				FileOutput << position << " ";
 			} else {
-				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
+				FileOutput << run.infra.routes[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
 			}
 		}
 		FileOutput << "\n";
@@ -562,202 +260,14 @@ void PrintTrainPathDiagram(Train* S, int N_S, string FolderName) {
 }
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
-void Print_Computing_Times(string FolderName) {
+void Print_Computing_Times(const SimulationRun& run, string FolderName) {
 	string FileName;
 	FileName = FileName + FolderName + "/Computing_Times.txt";
 	ofstream Comp_Times;
 	Comp_Times.open((char*)FileName.c_str());
 	Comp_Times << "TOT_Comp_Time_EGTRAIN[s]" << " " << "TOT_Comp_Time_ROMA" << " " << "TOT_COMP_TIME" << "\n";
-	Comp_Times << Comp_Time_EGTRAIN << " " << Comp_Time_ROMA << " " << Comp_Time_EGTRAIN + Comp_Time_ROMA << "\n";
+	Comp_Times << run.compTimeEgtrain << " " << run.compTimeRoma << " " << run.compTimeEgtrain + run.compTimeRoma << "\n";
 	Comp_Times.close();
-}
-
-// Function to Print the Implemented Order of all the OLs in a text file
-void Print_Implemented_Order_For_All_OL(string FolderName) {
-	for (int i = 0; i < N_OrderLists; i++)
-		OL[i].Print_Implemented_Order(FolderName, i);
-}
-
-// Function to print the trajectory of the trains in a PNG image by using Powershell that activates a macro in the excel file TrajROMA-EGTRAIN
-//  To use This script it is necessary that the ExecutionPolicy of PowerShell is put on RemoteSigned both for the 32 and the x86 (i.e. 64 bit) versions of Powershell
-//  if it does not accept the function Set-ExecutionPolicy RemoteSigned, go in regedit-> HKEY LocalMAchine-> Microsoft-> PowerShell->ShellIDs and create a string variable called ExecutionPolicy whose value is RemoteSigned (do the same also for the Wow6432 version of the Powershell)
-void Print_Trajectories_As_Image(string InstanceName, char* Resch_Int, char* Pred_Hor) {
-	// Printing the trajectories for all trains in the Folder C:/TEMP/
-	for (int i = 0; i < numRegions; i++) {
-		regional_train[i].PrintTrajectory();
-	}
-
-	string FolderOutputEGTRAIN = initial_variables.OutputMainFolder + "\\"; // This is written with the backslash and not with the normal slach because this address will be read by Excel data import that recognizes the backslash
-	FolderOutputEGTRAIN = FolderOutputEGTRAIN + "TrainPathDiagram";
-	ofstream PathofPrintingFolder; // This file will contain the path in which the image of the trajectory graph must be saved
-	PathofPrintingFolder.open(initial_variables.InputMainFolder + "/FolderEGTRAIN.txt");
-	PathofPrintingFolder << FolderOutputEGTRAIN; // Writing on the file the folder in which the image will be printed
-	PathofPrintingFolder.close();
-
-	// Call the script of powershell to open the Excel file TrajROMA-EGTRAIN, and execute its macro to make the graphs and save it as a PNG image
-	// system(initial_variables.InputMainFolder+"/MakeTrajectFigures.ps1");
-}
-
-void Print_Trajectories_Of_All_Trains_At_Instant(int t, string FolderName) {
-	string SubFolderName = "Trajectories";
-	char Instant_t[50];
-	snprintf(Instant_t, sizeof(Instant_t), "%d", t);
-	SubFolderName = FolderName + SubFolderName + "_" + Instant_t + "/";
-	// create subfolder
-	_mkdir((char*)SubFolderName.c_str());
-	for (int k = 0; k < numRegions; k++) {
-		if ((regional_train[k].CanEnter == 1) || (regional_train[k].OutOfSimulation == 1)) {
-			if (regional_train[k].instant_spatial_position[t] > 43) // This condition allows to print files only when the train is departed from Utrecht, if you do not want this just eliminate this line
-				regional_train[k].PrintTrainTrajectory_At_Instant(t, SubFolderName);
-		}
-	}
-}
-
-// Function to Initialize all the Locations in the infrastructure in order to Identify all the HWs
-void SetAllLocations(Train* T, int N_Train) {
-	for (int i = 0; i < N_Train; i++) {
-
-		cout << "SetLocations" << i << "\n";
-		if (T[i].LocationNames.size() > 0) {
-			for (list<Location>::iterator p = T[i].LocationNames.begin(); p != T[i].LocationNames.end(); p++) {
-				bool IsLocationThere = false;
-				Location TEMPLoc; // Create a temporary Location to add to the AllLocations list
-				TEMPLoc.Name = p->Name;
-
-				if (AllLocations.size() == 0) {
-					AllLocations.push_back(TEMPLoc);
-				} else {
-					list<Location>::iterator k = AllLocations.begin();
-					while (k != AllLocations.end()) {
-						IsLocationThere = p->areLocationsEqual(*k);
-						if (IsLocationThere == 1)
-							break; // break the while if the location is already in the list
-
-						k++;
-					}
-					if (IsLocationThere == 0) { // if the location is not there, add it to the AllLocations list
-						AllLocations.push_back(TEMPLoc);
-					} else { // do nothing
-					}
-				}
-			}
-		}
-	}
-}
-
-void SortOutOrderedTrainArray(Train* T, int numTrains, OrderList& TrainEntranceOrder) {
-
-	list<TrainEvent> OutputLista;
-	for (int i = 0; i < numTrains; i++) {
-		TrainEvent A;
-		A.Time = T[i].departure_time;
-		A.trainDescription = T[i].trainDescription;
-		OutputLista.push_back(A);
-	}
-
-	orderListOfTrainEvents(OutputLista);
-
-	list<TrainEvent>::iterator p = OutputLista.begin();
-
-	while (p != OutputLista.end()) {
-		TrainEntranceOrder.TE[TrainEntranceOrder.numTeList].Time = p->Time;
-		TrainEntranceOrder.TE[TrainEntranceOrder.numTeList].trainDescription = p->trainDescription;
-		TrainEntranceOrder.numTeList++;
-		p++;
-	}
-}
-
-// Function to simulate the trains in free flow to be used for computing the Headways
-void TrainSimulationForComputingHW(double v1, double v2, double v3) {
-	for (int i = 0; i < numRegions; i++) {
-		activateSignallingSystem();
-		for (int t = 0; t < initial_variables.times; t++) {
-			regional_train[i].Trajectory_Block_Section_Free_Flow(t, v1, v2, v3);
-			regional_train[i].recordEarliestActiveTrajectoryIndex(t);
-		}
-	}
-}
-
-// Function to initialise all StationPlatforms for the simulation of passenger flows
-// The function takes as input all the Array and number of all block sections, the array and number of all trains, the array of all defined rutes, as well as the length and width of the platforms (to be expressed in meters)
-// Length and width of the platforms are assumed to be the same for all platforms in this function. If different dimensions needs to be assigned to each and every platform then the function should be extended with possibility to gather such a varying design from an external data input (manual entry or file)
-
-void Initialise_All_Station_Platforms(list<StationPlatform>& ALLPLATFORMS, int& N_ALLPLATFORMS, Section* Blocks, int N_Blocks, Train* Trains, int numTrains, vector<Route> All_Routes, double platform_length, double platform_width) {
-	if (N_Blocks > 0) {
-		for (int i = 0; i < N_Blocks; i++) {
-			for (int j = 0; j < Blocks[i].total_arcs; j++) {
-				if (Blocks[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1) {
-					StationPlatform SP;
-					SP.ID = Blocks[i].arcs_in_signalling_block_section[j].endNode.stationPlatformId;
-					SP.StationID = Blocks[i].arcs_in_signalling_block_section[j].endNode.stationName;
-					SP.BlockSectionID = Blocks[i].ID;
-					SP.length = platform_length;
-					SP.width = platform_width;
-					SP.X = Blocks[i].arcs_in_signalling_block_section[j].endNode.X;
-					double OccupationAreaOfaPassenger = 3.14159 * pow(0.8, 2); // This formula considers that a person occupies a circular area having a radius of 0.8 meters
-					double PlatformArea = SP.length * SP.width;
-					double numberofPax = PlatformArea / OccupationAreaOfaPassenger;
-					SP.Max_Passenger_Volume = (int)(numberofPax * 0.8); // It is considered that the maximum volume of passengera allowed on a platform is 80% of the floor of the ration between the area of the platform and the average occupation area of a passenger
-
-					for (int h = 0; h < numTrains; h++) {
-						if (Trains[h].numStations > 0) {
-							for (int k = 0; k < Trains[h].numStations; k++) {
-								if (Trains[h].Stations[k].stationName == SP.StationID) {
-									bool StationPlatformFound = 0;
-									for (int r = 0; r < All_Routes[Trains[h].indexOfRoute].N_Block_Sections; r++) {
-										if (All_Routes[Trains[h].indexOfRoute].sequence_of_block_sections[r].ID == SP.BlockSectionID) {
-
-											// Assign information of Stopping platform to the Station Node of the train
-											Trains[h].Stations[k].stationPlatformId = SP.ID;
-
-											// Update the list of stopping train at the platform with the traindescription of Trains[h]
-											SP.List_Trains_Stopping_At_Platform.push_back(Trains[h].trainDescription);
-											StationPlatformFound = 1;
-											break;
-										}
-									}
-								}
-							}
-						}
-					}
-
-					ALLPLATFORMS.push_back(SP);
-					N_ALLPLATFORMS++;
-				}
-			}
-		}
-	}
-}
-
-// Function to update the list of trains stopping at platforms after that a new RTTP has been produced ( this might for instance due to train rerouting in stations)
-void Update_List_Trains_Stopping_At_Platforms(list<StationPlatform>& ALLPLATFORMS, int& N_ALLPLATFORMS, Train* Trains, int numTrains, vector<Route> All_Routes) {
-	// iterating over all the station platforms in the modelled railway network
-	for (list<StationPlatform>::iterator s = ALLPLATFORMS.begin(); s != ALLPLATFORMS.end(); s++) {
-		// Clear the previous list of trains stopiing at the platform
-		s->List_Trains_Stopping_At_Platform.clear();
-		// Reset the list of trains stopping at the platform based on the new RTTP which might include train stop skipping and station rerouting
-		for (int h = 0; h < numTrains; h++) {
-			if (Trains[h].numStations > 0) {
-				for (int k = 0; k < Trains[h].numStations; k++) {
-					if (Trains[h].Stations[k].stationName == s->StationID) {
-						bool StationPlatformFound = 0;
-						for (int r = 0; r < All_Routes[Trains[h].indexOfRoute].N_Block_Sections; r++) {
-							if (All_Routes[Trains[h].indexOfRoute].sequence_of_block_sections[r].ID == s->BlockSectionID) {
-
-								// Assign information of Stopping platform to the Station Node of the train
-								Trains[h].Stations[k].stationPlatformId = s->ID;
-
-								// Update the list of stopping train at the platform with the traindescription of Trains[h]
-								s->List_Trains_Stopping_At_Platform.push_back(Trains[h].trainDescription);
-								StationPlatformFound = 1;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 // Function to check the start of the Journey (hence check their entrance on the network) for all simulated passengers
@@ -769,44 +279,69 @@ void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, list<P
 	}
 }
 
-void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, list<Passenger> ALL_PAX) {
-	// Reset the previous number of people on the platform
-	PLAT.Current_N_Passengers = 0;
-	PLAT.Current_List_Pax_On_Platform.clear(); // Delete the previous list of passengers on the platform
-	for (list<Passenger>::iterator p = ALL_PAX.begin(); p != ALL_PAX.end(); p++) {
-		if ((p->IsIntheNetwork == 1) && (p->CurrentStatus == "OnPlatform") && (p->Current_WaitingStationID == PLAT.StationID) && (p->Current_WaitingStationPlatformID == PLAT.ID)) {
+namespace {
+bool isWaitingOnPlatform(const Passenger& p) {
+	return p.IsIntheNetwork && p.CurrentStatus == "OnPlatform";
+}
 
-			PLAT.Current_N_Passengers++; // Increasing number of passengers on platform
+// Counts a passenger who waits on a platform and adds the pair of the passenger ID and the actual departure time of the trip
+// to wait for to the list of the platform
+void addWaitingPassenger(const Passenger& p, WaitingAtPlatform& waiting) {
+	waiting.count++;
+	for (const Journey& journey : p.Journeys) {
+		if (journey.ID != p.current_JourneyID)
+			continue;
+		const auto activetrip = std::find_if(journey.Trips.begin(), journey.Trips.end(),
+			[&p](const Trip& trip) { return trip.TripID == p.current_TripID; });
+		if (activetrip != journey.Trips.end())
+			waiting.passengers.emplace_back(p.ID, activetrip->Actual_Departure_Time);
+	}
+}
+} // namespace
 
-			if (p->Journeys.empty() != 1) {
-				for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
-					if (j->ID == p->current_JourneyID) {
-						for (list<Trip>::iterator activetrip = j->Trips.begin(); activetrip != j->Trips.end(); activetrip++) {
-							if (activetrip->TripID == p->current_TripID) {
-								PLAT.Current_List_Pax_On_Platform.push_back(make_pair(p->ID, activetrip->Actual_Departure_Time)); // Assigning PAx ID and Actual Departure time in the passenger list of the platform
-								break;																							  // break loop over trips
-							}
-						}
-					}
-				}
-			}
-		}
+WaitingAtPlatform passengersWaitingAtPlatform(const string& stationId, const string& platformId, const list<Passenger>& ALL_PAX) {
+	WaitingAtPlatform waiting;
+	for (const Passenger& p : ALL_PAX) {
+		if (isWaitingOnPlatform(p) && p.Current_WaitingStationID == stationId && p.Current_WaitingStationPlatformID == platformId)
+			addWaitingPassenger(p, waiting);
 	}
 	// Order the list of passengers waiting at the platform in chronological order of their actual departure time
-	if (PLAT.Current_List_Pax_On_Platform.empty() != 1) {
-		PLAT.Current_List_Pax_On_Platform.sort(orderPassengerListOnPlatform);
+	waiting.passengers.sort(orderPassengerListOnPlatform);
+	return waiting;
+}
+
+void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, const list<Passenger>& ALL_PAX) {
+	map<pair<string, string>, WaitingAtPlatform> waitingAt; // by station ID and platform ID
+	for (const Passenger& p : ALL_PAX) {
+		if (isWaitingOnPlatform(p))
+			addWaitingPassenger(p, waitingAt[{p.Current_WaitingStationID, p.Current_WaitingStationPlatformID}]);
+	}
+	for (auto& platformWaiting : waitingAt)
+		platformWaiting.second.passengers.sort(orderPassengerListOnPlatform);
+
+	const WaitingAtPlatform nobody;
+	for (StationPlatform& plat : ALL_PLAT) {
+		const auto found = waitingAt.find({plat.StationID, plat.ID});
+		const WaitingAtPlatform& waiting = found == waitingAt.end() ? nobody : found->second;
+		plat.Current_N_Passengers = waiting.count;
+		plat.Current_List_Pax_On_Platform = waiting.passengers;
 	}
 }
 
-void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, list<Passenger> ALL_PAX) {
-	if (ALL_PLAT.empty() != 1) {
-		for (list<StationPlatform>::iterator plat = ALL_PLAT.begin(); plat != ALL_PLAT.end(); plat++) {
-			Update_List_Passengers_Waiting_At_Platform(*plat, ALL_PAX);
-		}
-	}
+namespace {
+// The shared index when it describes the list, otherwise an index of the list that lives in `own`.
+template <class Index, class List>
+const Index& indexOf(const Index& shared, List& list, std::optional<Index>& own) {
+	if (shared.covers(list))
+		return shared;
+	own.emplace();
+	own->build(list);
+	return *own;
 }
+} // namespace
 
-void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, list<StationPlatform> ALLPLATFORMS) {
+void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T,
+	list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS) {
 	// if the train is stopped for a service stop
 	if (T.StoppedForServiceStop == 1) {
 		int N_AlightPax = 0;
@@ -882,7 +417,7 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 
 										// check that the waiting station of the trip is the same as the one departure station of teh nexttripID
 										if (p->Current_WaitingStationID != nexttrip->Dep_Station_ID) {
-											cout << "Warning: Passenger " << p->ID << "will depart from a station different than the one planned for active trip " << p->current_TripID << " in journey " << p->current_JourneyID << "\n";
+											EG_LOG(SimPax, Warning) << "Warning: Passenger " << p->ID << "will depart from a station different than the one planned for active trip " << p->current_TripID << " in journey " << p->current_JourneyID << "\n";
 										} else {
 											// if the arrival station of teh previous trip is the same as the departure station of the next trip then check whether the passenger is waiting at the scheduled platform
 											// Set first of all that the next trip has started
@@ -939,66 +474,68 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 		}
 		// Specifying Boarding procedure
 		// Boarding procedure will follow the order at which passengers arrived at the platform
-		for (list<StationPlatform>::iterator Platform = ALLPLATFORMS.begin(); Platform != ALLPLATFORMS.end(); Platform++) {
-			if ((Platform->StationID == T.CurrentServiceStop) && (Platform->ID == T.CurrentServiceStopPlatform)) {
+		std::optional<PlatformIndex> callPlatforms;
+		const StationPlatform* PlatformIt = indexOf(run.platformIndex, ALLPLATFORMS, callPlatforms).find(T.CurrentServiceStop, T.CurrentServiceStopPlatform);
+		if (PlatformIt != nullptr) {
+			// With the passenger GUI the count and the list of the waiting passengers of the platform are updated at every time instant.
+			// Without it they are worked out here for this platform only, and the platform is not modified.
+			std::optional<WaitingAtPlatform> refreshed;
+			if (!run.settings.PAX_GUI) {
+				refreshed = passengersWaitingAtPlatform(PlatformIt->StationID, PlatformIt->ID, run.passengers);
+			}
+			const int waitingCount = refreshed ? refreshed->count : PlatformIt->Current_N_Passengers;
+			const list<pair<string, double>>& waitingList = refreshed ? refreshed->passengers : PlatformIt->Current_List_Pax_On_Platform;
 
-				// Update the list of passengers currently waiting at the platform
-				// it would be possible to update the list of passenger waiting at the platform only when a train approaches a stop and not at every single time instant
-				// NOTE: if you want to show the list of passengers updating on the platform at every time instant then you should comment the line below and uncommnet ,hence use the function "UPdateList of Waiting PAssengers at all platforms" in the "Train_Simulation_Mixed_Signalling_With_Passengersfunction"
-				if (!initial_variables.PAX_GUI) {
-					Update_List_Passengers_Waiting_At_Platform(*Platform, AllDailyPassengers);
-				}
+			// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
+			CurrentPlatformOccupationRate = passengerOccupancyRatio(waitingCount + N_AlightPax, PlatformIt->Max_Passenger_Volume);
 
-				// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
-				CurrentPlatformOccupationRate = (Platform->Current_N_Passengers + N_AlightPax) / Platform->Max_Passenger_Volume;
+			if (!waitingList.empty()) {
+				std::optional<PassengerIndex> callPassengers;
+				const PassengerIndex& passengerIndex = indexOf(run.passengerIndex, ALLPAX, callPassengers);
+				for (const pair<string, double>& Pax : waitingList) {
+					for (Passenger* p : passengerIndex.find(Pax.first)) {
+						// iterating through the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
+						// if the passenger p needs to board the current train then
+						if ((p->CurrentStatus == "OnPlatform") && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
+							// Let the passenger having as train to wait the current train T and Waiting station the currentService Stop board the train
+							// passengers can board only if the number of onboard passengers is lower than the max capacity
+							if (T.Current_OnBoard_Passengers < T.MAX_OnBoard_Passengers) {
+								N_BoardedPax++;
+								T.Current_OnBoard_Passengers++;
+								p->CurrentStatus = "OnBoard";
+								p->Current_Train_Boarded = T.trainDescription;
+								p->Current_WaitingStationID = "None";
+								p->Current_WaitingStationPlatformID = "None";
+								p->Current_Train_To_Wait = "None";
 
-				if (Platform->Current_List_Pax_On_Platform.empty() != 1) {
-					for (list<pair<string, double>>::iterator Pax = Platform->Current_List_Pax_On_Platform.begin(); Pax != Platform->Current_List_Pax_On_Platform.end(); Pax++) {
-						for (list<Passenger>::iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
-							// iterating through the list of All passengers in the order in which passengers have appeared and arrived at the platform
-							// if the ID of the passenger is the same ID of the one in the listo of passengers on the platform and the passenger p needs to board the current train then
-							if ((p->ID == Pax->first) && (p->CurrentStatus == "OnPlatform") && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
-								// Let the passenger having as train to wait the current train T and Waiting station the currentService Stop board the train
-								// passengers can board only if the number of onboard passengers is lower than the max capacity
-								if (T.Current_OnBoard_Passengers < T.MAX_OnBoard_Passengers) {
-									N_BoardedPax++;
-									T.Current_OnBoard_Passengers++;
-									p->CurrentStatus = "OnBoard";
-									p->Current_Train_Boarded = T.trainDescription;
-									p->Current_WaitingStationID = "None";
-									p->Current_WaitingStationPlatformID = "None";
-									p->Current_Train_To_Wait = "None";
+								if (p->Journeys.empty() != 1) {
+									for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
+										if ((j->ID == p->current_JourneyID) && (j->IsJourneyCompleted == 0)) {
+											list<Trip>::iterator currenttrip = j->Trips.begin();
+											while (currenttrip != j->Trips.end()) {
+												if (currenttrip->TripID == p->current_TripID) {
 
-									if (p->Journeys.empty() != 1) {
-										for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
-											if ((j->ID == p->current_JourneyID) && (j->IsJourneyCompleted == 0)) {
-												list<Trip>::iterator currenttrip = j->Trips.begin();
-												while (currenttrip != j->Trips.end()) {
-													if (currenttrip->TripID == p->current_TripID) {
-
-														int Waiting_Time = t + SimulationStartingTime - currenttrip->Actual_Departure_Time;
-														j->Waitingtime = j->Waitingtime + Waiting_Time;
-														break; // when the waiting time has been set for the correct journey and trip it is possible to break the while loop over the trips in the active journey
-													}
-													currenttrip++; // advance the current trip iterator by one.
+													int Waiting_Time = t + SimulationStartingTime - currenttrip->Actual_Departure_Time;
+													j->Waitingtime = j->Waitingtime + Waiting_Time;
+													break; // when the waiting time has been set for the correct journey and trip it is possible to break the while loop over the trips in the active journey
 												}
+												currenttrip++; // advance the current trip iterator by one.
 											}
-											break; // break the loop over the journey once the active one has been found
 										}
+										break; // break the loop over the journey once the active one has been found
 									}
-
 								}
 
-								else { // if the train is full and the passenger cannot board the train then the Route Choice Function shall be called
+							}
 
-									cout << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
-									// Call Route Choice Function TO BE ADDED
-								}
+							else { // if the train is full and the passenger cannot board the train then the Route Choice Function shall be called
+
+								EG_LOG(SimPax, Info) << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
+								// Call Route Choice Function TO BE ADDED
 							}
 						}
 					}
 				}
-				break; // breaking the for loop over all platforms when the correct one has been found
 			}
 		}
 

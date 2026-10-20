@@ -1,0 +1,32 @@
+{
+  "clock_s": 25620.0,
+  "run_id": "line-run",
+  "seq": 421,
+  "sim_time_s": 420.0,
+  "step": 420,
+  "trains": [
+    {
+      "direction": "forward",
+      "in_network": true,
+      "occurrence": 1,
+      "onboard": 0,
+      "operating_code": "F1",
+      "route_pos_m": 7999.9999,
+      "service_id": "F1",
+      "speed_ms": 0.0,
+      "x_km": 8.0
+    },
+    {
+      "direction": "forward",
+      "in_network": true,
+      "occurrence": 1,
+      "onboard": 0,
+      "operating_code": "F2",
+      "route_pos_m": 4799.99,
+      "service_id": "F2",
+      "speed_ms": 11.111,
+      "x_km": 4.79999
+    }
+  ],
+  "v": 1
+}

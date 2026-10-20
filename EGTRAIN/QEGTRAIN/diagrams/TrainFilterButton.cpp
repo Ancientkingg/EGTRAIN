@@ -38,7 +38,7 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 	layout->addLayout(quickRow);
 
 	m_list = new QListWidget(panel);
-	m_list->setSelectionMode(QAbstractItemView::NoSelection);
+	m_list->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_list->setMinimumSize(240, 320);
 	connect(m_list, &QListWidget::itemChanged, this, [this](QListWidgetItem*) {
 		if (m_updating)
@@ -97,7 +97,7 @@ void TrainFilterButton::applySearchFilter() {
 	for (int i = 0; i < m_list->count(); ++i) {
 		QListWidgetItem* item = m_list->item(i);
 		item->setHidden(!needle.isEmpty()
-						&& !item->text().contains(needle, Qt::CaseInsensitive));
+			&& !item->text().contains(needle, Qt::CaseInsensitive));
 	}
 }
 

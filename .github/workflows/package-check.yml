@@ -1,0 +1,122 @@
+name: Package check
+
+# Builds the three packages, the Windows installer and the Windows portable archive on a pull request
+# that changes how they are built, so that a change to a package job is tried before a release.
+# Nothing is signed with a real identity or published: the packages are artifacts of the run, and a
+# release still comes from the release workflow.
+on:
+  pull_request:
+    branches: [main]
+  # One run a night on main covers changes that reach the packages through other files, such as the
+  # root CMakeLists.txt. A scheduled run uses the default branch.
+  schedule:
+    - cron: '47 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same pull request replaces its running check. A scheduled or manual run has
+# a group of its own and no other run cancels it.
+concurrency:
+  group: package-check-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Every pull request to main starts this workflow, so that the result job below always reports and main can require
+  # it. The packages build for a pull request that changes a packaging input, and for a nightly or manual run.
+  changes:
+    name: Select the package jobs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      package: ${{ steps.select.outputs.package }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job.
+      - name: Select the package jobs from the changed files
+        id: select
+        run: |
+          package=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
+            package=false
+            while IFS= read -r file; do
+              case "$file" in
+                .github/workflows/package-check.yml) package=true ;;
+                .github/workflows/package.yml) package=true ;;
+                .github/workflows/release.yml) package=true ;;
+                tools/release/*) package=true ;;
+                installer/*) package=true ;;
+                Info.plist.in) package=true ;;
+                EGTRAIN/QEGTRAIN/update/*) package=true ;;
+                EGTRAIN/QEGTRAIN/app/main.cpp) package=true ;;
+              esac
+            done <<< "$files"
+          fi
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+
+  # The package and release assets jobs follow this job, so a skipped version job skips them too.
+  version:
+    name: Select application version
+    needs: changes
+    if: needs.changes.outputs.package == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/release/version.py
+
+  package:
+    needs: version
+    uses: ./.github/workflows/package.yml
+    permissions:
+      actions: read
+      contents: read
+    with:
+      version: ${{ needs.version.outputs.version }}
+
+  release-assets:
+    name: Check the release assets
+    needs: [version, package]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List downloaded files
+        run: find artifacts -type f
+
+      - name: Build the release assets
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets
+
+      - name: List the release assets
+        run: ls -l release-assets
+
+  # The one check that main requires. It succeeds when every job above succeeded or was skipped.
+  result:
+    name: Package check result
+    if: always()
+    needs: [changes, version, package, release-assets]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail when a job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

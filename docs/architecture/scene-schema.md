@@ -56,7 +56,9 @@ An `import_report` row has `category`, `source_count`, `converted_count`,
 counts describe the conversion source, not simulation results.
 
 Counts, GUI switches, output paths, and network feature flags from legacy
-`InitialParameters` are not V1 scene keys.
+`InitialParameters` are not V1 scene keys. `scene_tool export` stores the base
+time and the simulation settings in `EGTRAINInitialParameters.json` with the keys
+of `scene.json`, and the legacy import reads that file.
 
 ## `infrastructure.json`
 
@@ -67,7 +69,10 @@ empty or omitted on input and are emitted by the writer.
 - `tracks[]`: `{ "id": string }`.
 - `nodes[]`: `id`, `track`, numeric `x_km`, numeric `y_km`.
 - `arcs[]`: `id`, `track`, `from`, `to`, numeric `curvature_radius_m`,
-  `gradient_percent`, and `speed_limit_ms`.
+  `gradient_percent`, and `speed_limit_ms`. The simulation uses
+  `gradient_percent` unchanged as rise per length: `0.01` means a 1% slope.
+  The key keeps its legacy spelling for compatibility. Loading, editing and
+  saving do not rescale the value; the editor labels it "Gradient (rise/length)".
 - `blocks[]`: `id`, `track`, numeric `length_km`. Block IDs cannot contain `/`,
   which is reserved as the separator in connection-derived section identities.
 - `connections[]`: `id`, `from`, `to`, and optional numeric `speed_limit_ms`.
@@ -93,25 +98,67 @@ Required root arrays are `signals` and `routes`.
   targets remain supported. A signal-failure target that matches both a signal
   ID and a section reference is ambiguous and invalid.
 - `routes[]`: required `id` and string-array `blocks`; optional string
-  `corridor` and boolean `reversed`.
+  `corridor` and boolean `reversed`. A route runs in reverse when its sections
+  are listed in reverse order. Validation reports `scene.route.direction` for a
+  route marked `reversed` whose sections run forward.
 - `signalling_areas[]`: required `id`, numeric `start_km`, numeric `end_km`,
   and integer `level` from 0 through 5; optional `track` refers to a canonical
-  track ID. The array is optional.
+  track ID. The array is optional. The editor writes -99999999 as the level of an
+  area whose system is not chosen yet; the loader reads the number and
+  validation reports it.
 - `block_dependencies[]`: `{ "block": string, "depends_on": string }`.
 - `single_track_restrictions[]`: preferred explicit
   `start_block`, `end_block`, `protected_start_block`, and
-  `protected_end_block`.
+  `protected_end_block`. See [Single-track restrictions](#single-track-restrictions).
 - `station_boundaries[]`: required `entrance_block`, optional `exit_block`,
   and optional boolean `direction`.
 
 A signalling area covers a native section only when the section's complete
-coordinate span lies inside the area. Network-wide areas are applied before
+coordinate span lies inside the area. The span is compared with the chainage of
+the section's own track, and each edge has a tolerance of 1e-8 km. A section
+that an area edge cuts is not covered by that area. Network-wide areas are applied before
 track-scoped areas; a track-scoped value overrides the network-wide value.
 Either connected track matches a derived switch section. Different values at
 the same precedence tier that cover one section are invalid. The builder
 applies areas after base and switch sections exist and before routes copy them.
 A section with no matching area retains the unset signalling value. The loader
-and writer never create a default level.
+and writer never create a default level. Runnable validation reports the route
+sections without a level in one `scene.signalling.level.missing` warning;
+sections that are on no route are not reported. When the scene has areas, the
+warning's suggested fix lists the stretches of each track without a level and
+the areas next to each.
+
+Area diagnostics name the area and give the values behind them:
+
+- `scene.signalling_area.range` (error): the message shows `start_km`, `end_km`
+  and the extent of the blocks of the network or of the area's track.
+- `scene.signalling_area.level` (error): the message shows the level that lies
+  outside 0 to 5. An area without a chosen system gets the message "has no
+  signalling system" instead.
+- `scene.ref.unresolved` on `signalling_areas[].track` (error): the message
+  names the unknown track and lists the tracks of the network.
+- `scene.signalling_area.conflict` (error, runnable validation): one error for
+  each pair of areas that give sections different levels, with the number of
+  sections, the first one, its km range and the name of both levels.
+- `scene.signalling_area.splits_section` (warning, runnable validation): one
+  warning for each area edge that lies inside a route section, naming the
+  section and its km positions, because that section is not part of the area.
+- `scene.signalling_area.empty` (warning, runnable validation): the area
+  contains no complete section; the message shows the extent of the blocks.
+
+What each level does, and how signalling areas differ from block sections, is in
+[Signalling levels](signalling-levels.md).
+
+Validation reports the arcs of a route that its trains cannot brake or start on
+in one `scene.route.gradient.steep` warning per route and composition that a
+service uses. The braking limit of a composition is
+`mass_factor * max_deceleration_ms2 / g`, applied to descents. The starting
+limit is the tractive effort at 0 m/s divided by `g * total_train_mass`,
+applied to ascents; other resistances are ignored. Both limits are in the unit
+of `gradient_percent`. A route driven in reverse sees the opposite sign of each
+stored value. The warning names the steepest arcs with their stored values. A
+route whose direction cannot be resolved is compared by absolute value with the
+smaller limit.
 
 Section references are resolved from the transient section inventory derived
 from the authored tracks, blocks, arcs, and connections. Route order is
@@ -122,6 +169,66 @@ validation warning; newly authored scenes require a declared connection.
 Unknown or malformed
 compound section tokens are invalid. The inventory is not persisted as a
 second topology model.
+
+### Single-track restrictions
+
+A restriction holds a single-track stretch for one direction. `start_block` and
+`end_block` are the first and last plain sections of the stretch, in either order. `protected_start_block` and
+`protected_end_block` are the sections at its two ends where a passing loop
+joins it. The stretch consists of these four sections and every section between
+`start_block` and `end_block` on a route that contains both. A route is affected
+by the sections of the stretch that it contains.
+
+While a train is in the stretch, trains on routes of the opposite direction see
+all its sections as occupied and wait in front of it, at the loop if their route
+has one. Trains of the same direction are not held and follow under the normal
+signalling rules. The direction of a train follows the order of the sections of its
+route; the optional `reversed` flag has to agree.
+If trains of both directions are already inside, the previous holder keeps
+priority; without a previous holder, the forward direction wins. Pending
+reservations can keep the stretch held after the last occupant leaves.
+
+A free stretch is reserved before an approaching train's next movement could
+consume its last opportunity to brake. The calculation uses the existing inverse
+braking curve and an upper bound on next-step speed from the train's starting
+tractive effort, mass, resistances and current arc. It includes the approach
+speed targets of fixed-block signalling. A stationary train can ask when it could
+accelerate into this braking window. A due route entry asks without trajectory
+samples. One requesting direction reserves the stretch; simultaneous requests
+on a free stretch go to the forward direction. Occupied holders keep priority.
+
+Pending entries retain the reservation through slowing, dwell, breakdowns and
+other temporary stops. Same-direction followers can commit before their leader
+clears. Passage, termination, removal or a changed route, destination or entry
+identity cancels that owner's reservation. A failed or non-finite braking lookup,
+or a braking point before the route origin, requests conservatively rather than
+assuming that the train can wait until later.
+
+At signalling levels 0 to 5 each route against the holder gets an end of authority
+at the end of the section before each signalled stretch on that route. If the
+stretch starts at the route origin, the authority is at that origin. The authority
+uses the existing direction filter, so the holder and same-direction followers
+ignore it. The opposing train stops and continues when the stretch is released.
+Fixed-block aspects remain in effect too. Without a signalling level the
+restriction does not keep opposing trains apart. A train that has to wait needs
+a route that gives it somewhere to wait outside the stretch, such as a loop.
+On a through route without a loop it stops on the track that the other train
+needs; a reservation prevents zone overlap but cannot create a passing place.
+
+A stub track is a track that trains enter and leave at one end. It has no loop at
+its closed end, so a restriction over a stub gives `protected_end_block` the same
+section as `end_block`. A section named in two roles is one section of the
+stretch. A train of the other direction waits at the entry of its route when the
+first section of its route lies in the held stretch, and in front of the stretch
+otherwise. The stretch is free again when the last train of the holding direction
+has left it. At level 0, without the restriction, trains of opposite directions
+on a stub pass through each other, or stand head to head until the end of the run
+when they meet at a block edge.
+
+Runnable validation reports each restriction whose start, end or protected
+blocks have no signalling level in one `scene.single_track.no_effect` warning.
+The warning names the restriction by its index in `single_track_restrictions`
+and lists the blocks that have no level.
 
 ## `rolling_stock.json`
 
@@ -158,6 +265,16 @@ High speed/international, Freight, Metro/urban and Suburban, and preserves
 unknown strings exactly. Category does not affect simulation or inferred train
 display types. Folder and bundle saves preserve it; legacy export omits it
 because the old format has no category field.
+
+`visualization_color` is an optional string in schema V1 that sets a display
+colour for the service. The accepted form is `#RRGGBB`, with six hexadecimal
+digits in either case, for example `#3C8DD2`. The loader keeps the text as
+written. It is for display only and does not affect the simulation. The writer
+omits it when unset, so a scene without it is saved unchanged. Folder and
+bundle saves preserve it; legacy export omits it because the old format has
+no field for it. Any other non-empty text gives the validation warning
+`scene.service.color.invalid`, and the default train colour is used for that
+service.
 
 Optional runtime controls are:
 
@@ -198,6 +315,18 @@ missing planned fields; the importer does not synthesize a value from the
 other field. Validation may warn when an intermediate schedule is incomplete.
 These are input plans in seconds relative to the scene's base-time origin, not
 simulation results.
+
+A train stands at a stop for `dwell_seconds`, counted from its arrival in steps
+of one second, and also until the planned departure of the stop when it has
+one. Boarding and alighting passengers can make the stop longer, never shorter:
+the stop lasts the passenger-dependent dwell when that is longer than
+`dwell_seconds`. The passenger-dependent dwell is 0 when nobody boards or
+alights, so a stop without passengers lasts exactly its planned dwell, in a
+scene without passengers as well. Otherwise it is a fixed time plus the time of
+the busiest door of the train. A door takes a boarding time and an alighting
+time, both counted per passenger, so a door that nobody uses takes no time
+(`Train::computePaxDependentDwellTimeAtStations`, after Fernandez et al. 2007
+and Gibson et al. 1989).
 
 An empty `stops` array means no scheduled calls without requiring `through`.
 Nonempty stops take precedence over `through: true`. Legacy export writes the
@@ -287,24 +416,15 @@ An occurrence-specific reduced-speed breakdown can instead be authored as:
 ### Delay comparison provenance
 
 The results UI can freeze a completed incident-free, no-entrance-delay run as
-the delay baseline. A comparison run must contain incidents, no entrance
-delays, and the same scene revision, base time, duration, timestep, and full
-selected `(service_id, occurrence)` identity set; its scenario ID must differ
-from the baseline. Baseline and scenario results are value snapshots, not
-runtime train pointers.
-
-For each occurrence, final arrival is the simulated arrival at its last
-authored timetable station and call. Baseline and scenario must use the same
-endpoint and both arrivals must be available; otherwise comparison is rejected.
-Only positive `scenario - baseline` values are rows, and their exact sum is
-the total arrival delay. A positive row is `primary` only when the scenario
-occurrence has direct runtime evidence (incident ID plus first direct time and
-location); otherwise it is `secondary`. No attribution is inferred from a
-timetable difference alone. A comparison is rejected when the incident run
-has no direct evidence anywhere. Signal-failure evidence is direct only when
-the train stops at an active `SignalFailure` EoA; a breakdown hold or applied
-speed cap is direct evidence. Destination request and termination outcome are
-reported with each row.
+the delay baseline, and the delay analysis window compares a later run with it.
+Baseline and scenario results are value snapshots, not runtime train pointers.
+The two runs must agree on scene revision, base time, duration, timestep and
+the selected `(service_id, occurrence)` identities. The window reports the
+difference and the recorded direct incident evidence, and never states a cause.
+The checks, formulas and limits are in
+[How delays are calculated](../guides/delay-analysis.md#delay-comparison-against-a-baseline).
+The incident IDs, first direct time and location, and termination outcome of
+each train are in `run_summary.csv`.
 
 ## `passengers.json`
 
@@ -313,8 +433,9 @@ and `journeys`. A journey has `id`, `origin`, `destination`, optional
 `activity`, required `planned_departure` and `planned_arrival` objects, and a
 `legs` array. Each time-window object uses numeric `start_seconds` and
 `end_seconds`, expressed as absolute seconds from midnight, not seconds from
-`base_time`. Each leg has `id`, `origin`, `destination`, `service`, and an
-optional integer `occurrence` that defaults to `1`.
+`base_time`. A journey with an empty activity is written without the `activity`
+key. Each leg has `id`, `origin`, `destination`, `service`, and an optional
+integer `occurrence` that defaults to `1`.
 
 A leg's destination must follow its origin in the referenced service's stop
 order. Repeated stations use the first ordered matching pair. A non-empty run
@@ -403,9 +524,11 @@ operating_code entry_time_seconds headway_seconds route_index data_file traction
 It maps the explicit physical, traction, and timetable relationships into the
 canonical files, imports numeric `Routes/Route<N>.txt` files as routes, reads
 stations from the legacy track-line station file, and reports skipped or
-unresolved values in `scene.json.import_report`. Import is an explicit boundary;
-the resulting scene must be validated and corrected before it is used when the
-report exposes ambiguous source relationships.
+unresolved values in `scene.json.import_report`. The importer writes the files
+with the encoders of `SceneWriter`, so an imported scene has the form of a saved
+one: `signalling_areas` is absent when the area sidecar lists no area. Import is
+an explicit boundary; the resulting scene must be validated and corrected before
+it is used when the report exposes ambiguous source relationships.
 
 The reverse exporter remains available for interoperability. It does not make
 legacy files authoritative, and the normal runtime never invokes it. Canonical

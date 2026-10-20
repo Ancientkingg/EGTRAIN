@@ -3,11 +3,24 @@
 #include "graphics/VisualPolish.h"
 
 #include <algorithm>
+#include <cmath>
+
+namespace {
+// Narrowest head, in device pixels, that still draws its mark.
+constexpr qreal kMinMarkPixels = 6.0;
+} // namespace
 
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_lampColor(QColor(128, 128, 128)) {
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
-	setFlag(QGraphicsItem::ItemIgnoresTransformations);
+	// Invisible picking geometry stays device-sized while the actual head scales
+	// with the authored scene. NetworkScene resolves child hits to this signal.
+	auto* target = new QGraphicsEllipseItem(QRectF(-6.0, -6.0, 12.0, 12.0), this);
+	target->setPos(rect.center());
+	target->setFlag(QGraphicsItem::ItemIgnoresTransformations);
+	target->setPen(Qt::NoPen);
+	target->setBrush(Qt::NoBrush);
+	target->setAcceptedMouseButtons(Qt::NoButton);
 
 	// initialize parameters
 	trackID = -1;
@@ -33,6 +46,13 @@ int SignalItem::aspectCode() const {
 	return m_aspectCode;
 }
 
+void SignalItem::setFailed(bool failed) {
+	if (m_failed == failed)
+		return;
+	m_failed = failed;
+	update();
+}
+
 void SignalItem::setReversedDirection(bool reversed) {
 	if (reversedDirection == reversed)
 		return;
@@ -51,7 +71,8 @@ QString SignalItem::inspectionIdentity() const {
 	if (!m_inspectionIdentity.isEmpty())
 		return m_inspectionIdentity;
 	return QStringLiteral("Track %1 at %2 km; ahead %3; behind %4")
-		.arg(trackID).arg(X, 0, 'g', 10)
+		.arg(trackID)
+		.arg(X, 0, 'g', 10)
 		.arg(QString::fromStdString(sectionAheadId.empty() ? "none" : sectionAheadId))
 		.arg(QString::fromStdString(sectionBehindId.empty() ? "none" : sectionBehindId));
 }
@@ -64,53 +85,61 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 
-	// Preserve each distinct aspect, including Stop, with equal-sized sectors.
-	// The central count distinguishes even a same-aspect cluster from a lone plate.
-	painter->setPen(QPen(graphicsEffect() ? QColor(110, 170, 255) : Qt::white, 1.0));
-	if (m_groupedSignals.size() > 1) {
-		QVector<QColor> colors;
-		for (const int code : {0, 75, 180, -1}) {
-			for (const auto& member : m_groupedSignals) {
-				if (classifySignalCue(member.first) == classifySignalCue(code)) {
-					colors.append(classifySignalAspect(member.first).lamp);
-					break;
-				}
-			}
-		}
-		for (int i = 0; i < colors.size(); ++i) {
-			painter->setBrush(colors.at(i));
-			painter->drawPie(rect(), 90 * 16 - i * 360 * 16 / colors.size(),
-				-360 * 16 / colors.size());
-		}
-		painter->setPen(QPen(Qt::white, 1.0));
-		painter->setBrush(QColor(0, 0, 0, 200));
-		const QRectF countRect = rect().adjusted(rect().width() * 0.19, rect().height() * 0.19,
-			-rect().width() * 0.19, -rect().height() * 0.19);
-		painter->drawEllipse(countRect);
-		QFont font = painter->font();
-		font.setPixelSize(qMax(6, qRound(8.0 / scale())));
-		font.setBold(true);
-		painter->setFont(font);
-		painter->drawText(countRect, Qt::AlignCenter,
-			m_groupedSignals.size() <= 9 ? QString::number(m_groupedSignals.size()) : QStringLiteral("+"));
+	const QRectF lamp = rect();
+	const SignalCueKind cue = classifySignalCue(m_aspectCode);
+	// Without signalling data the head is an empty ring, not a lit lamp.
+	const bool unavailable = !m_failed && cue == SignalCueKind::Neutral;
+	const QColor ringColor(150, 150, 150);
+	if (unavailable) {
+		QPen ring(ringColor);
+		ring.setCosmetic(true);
+		ring.setWidthF(1.5);
+		painter->setPen(ring);
+		painter->setBrush(Qt::NoBrush);
 	} else {
-		painter->setBrush(m_lampColor);
-		painter->drawEllipse(rect());
+		painter->setPen(pen());
+		painter->setBrush(m_failed ? QColor(Qt::red) : m_lampColor);
 	}
-	painter->setPen(QPen(Qt::white, 1.0));
-	const QPointF center = rect().center();
-	for (const bool reversed : {true, false}) {
-		if (m_groupedSignals.size() > 1) {
-			bool present = false;
-			for (const auto& member : m_groupedSignals)
-				present |= member.second == reversed;
-			if (!present)
-				continue;
-		} else if (reversedDirection != reversed) {
-			continue;
-		}
-		const qreal direction = reversed ? -1.0 : 1.0;
-		painter->drawLine(center + QPointF(direction * rect().width() * 0.55, -2.0),
-			center + QPointF(direction * rect().width() * 0.55, 2.0));
+	painter->drawEllipse(lamp);
+
+	// Marks tell the states apart without colour. They need room: below
+	// kMinMarkPixels device pixels only the colour is left.
+	const QTransform& world = painter->worldTransform();
+	const qreal devicePixels = lamp.width() * std::hypot(world.m11(), world.m12()) * painter->device()->devicePixelRatioF();
+	if (devicePixels < kMinMarkPixels)
+		return;
+	const QPointF c = lamp.center();
+	const qreal r = lamp.width() / 2.0;
+	QPen mark(m_failed ? QColor(Qt::white) : unavailable ? ringColor
+														 : QColor(30, 30, 30));
+	mark.setCosmetic(true);
+	mark.setWidthF(1.5);
+	painter->setPen(mark);
+	if (m_failed) {
+		painter->drawLine(QLineF(c.x() - 0.5 * r, c.y() - 0.5 * r, c.x() + 0.5 * r, c.y() + 0.5 * r));
+		painter->drawLine(QLineF(c.x() - 0.5 * r, c.y() + 0.5 * r, c.x() + 0.5 * r, c.y() - 0.5 * r));
+	} else if (cue == SignalCueKind::Stop) {
+		painter->drawLine(QLineF(c.x() - 0.6 * r, c.y(), c.x() + 0.6 * r, c.y()));
+	} else if (cue == SignalCueKind::Caution) {
+		painter->setBrush(QColor(30, 30, 30));
+		painter->drawEllipse(c, 0.2 * r, 0.2 * r);
+	} else if (unavailable) {
+		painter->drawLine(QLineF(c.x() - 0.4 * r, c.y(), c.x() + 0.4 * r, c.y()));
+	}
+}
+
+QString signalAspectLabel(const SignalItem* signal) {
+	if (signal->failed())
+		return QStringLiteral("Failed");
+	switch (classifySignalCue(signal->aspectCode())) {
+		case SignalCueKind::Stop:
+			return QStringLiteral("Stop");
+		case SignalCueKind::Caution:
+			return QStringLiteral("Caution");
+		case SignalCueKind::Proceed:
+			return QStringLiteral("Proceed");
+		case SignalCueKind::Neutral:
+		default:
+			return QStringLiteral("Unavailable");
 	}
 }

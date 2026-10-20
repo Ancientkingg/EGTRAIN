@@ -6,27 +6,43 @@
 #include <QVector>
 #include <QWidget>
 
-enum class NetworkLegendEntryKind { Track, Train, Station, Signal, Passenger };
+enum class NetworkLegendEntryKind { Track,
+	Train,
+	Station,
+	Signal,
+	Passenger };
+
+// How a signal row draws its head: a lit lamp, an empty ring or a crossed lamp.
+enum class NetworkLegendSignalLook { Lamp,
+	Unavailable,
+	Failed };
 
 struct NetworkLegendEntry {
 	NetworkLegendEntryKind kind = NetworkLegendEntryKind::Track;
 	QString label;
+	QString toolTip;
 	QColor color;
 	QColor outlineColor;
 	int lineWidth = 0;
 	Qt::PenStyle penStyle = Qt::NoPen;
 	TrackOperationalState trackState = TrackOperationalState::Free;
-	TrainVisualKind trainKind = TrainVisualKind::Passenger;
-	TrainBadgeShape trainShape = TrainBadgeShape::Rounded;
 	SignalCueKind signalCue = SignalCueKind::Neutral;
+	NetworkLegendSignalLook signalLook = NetworkLegendSignalLook::Lamp;
 	QString iconResource;
+};
+
+// One train on the canvas. serviceId is empty for a train without a service.
+struct NetworkLegendTrain {
+	QColor fill;
+	QColor outline;
+	QString serviceId;
 };
 
 struct NetworkLegendContent {
 	bool hasTracks = false;
 	bool showOperationalTrackStates = true;
 	bool hasSelectedTrack = false;
-	QVector<TrainVisual> trainVisuals;
+	QVector<NetworkLegendTrain> trains;
 	QVector<StationVisual> stationVisuals;
 	bool hasSignals = false;
 	bool hasPassengers = false;

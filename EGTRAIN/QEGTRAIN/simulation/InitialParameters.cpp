@@ -1,6 +1,5 @@
 #include "simulation/InitialParameters.h"
-
-#include <iostream>
+#include "util/Log.h"
 
 InitialParameters::InitialParameters(int caseStudy)
 	: startingSimulationTime(0), GUI(true), times(0), numTrackLines(0), N_Routes(0),
@@ -11,13 +10,12 @@ InitialParameters::InitialParameters(int caseStudy)
 
 void InitialParameters::set_case(int caseStudy) {
 	static const char* names[] = {
-		"", "Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut", "Lebanon"
-	};
+		"", "Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut"};
 	if (caseStudy < 1 || caseStudy >= static_cast<int>(sizeof(names) / sizeof(names[0]))) {
 		name.clear();
-		std::cout << "No case selected";
+		EG_LOG(SimSetup, Warning) << "No case selected";
 		return;
 	}
 	name = names[caseStudy];
-	std::cout << "\nSelected Case study: " << caseStudy << '\n';
+	EG_LOG(SimSetup, Info) << "\nSelected Case study: " << caseStudy << '\n';
 }

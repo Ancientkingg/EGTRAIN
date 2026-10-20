@@ -31,20 +31,20 @@ private:
 double trajectoryTimeSeconds(int index, double timestep);
 
 bool isValidTrajectorySample(int index, int activeFirst, int activeLast,
-							 int sampleCount, double positionMeters);
+	int sampleCount, double positionMeters);
 
 std::vector<double> trajectoryExportCells(const std::vector<double>& positionsMeters,
-										 int activeFirst, int activeLast);
+	int activeFirst, int activeLast);
 
 std::vector<double> shiftedTrajectoryExportCells(const std::vector<double>& values,
-										 int activeFirst, int activeLast,
-										 int departureTime, int outputFirst, int outputLast);
+	int activeFirst, int activeLast,
+	int departureTime, int outputFirst, int outputLast);
 
 int recordEarliestTrajectoryIndex(int currentIndex, int candidateIndex, bool canEnter);
 
 int replicatedEarliestTrajectoryIndex(int sourceIndex, int offset);
 
 std::vector<TrajectorySegment> validTrajectorySegments(
-		const std::vector<double>& positionsMeters, int activeFirst, int activeLast);
+	const std::vector<double>& positionsMeters, int activeFirst, int activeLast);
 
 #endif // TRAJECTORYUTIL_H

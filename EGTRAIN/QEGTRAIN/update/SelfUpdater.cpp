@@ -1,12 +1,15 @@
 #include "update/SelfUpdater.h"
+#include "update/Distribution.h"
+#include "update/UpdateRecord.h"
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QProcess>
 #include <QTemporaryDir>
+
+#include <chrono>
 
 #ifndef EGTRAIN_PACKAGED_BUILD
 #define EGTRAIN_PACKAGED_BUILD 0
@@ -16,8 +19,43 @@ namespace {
 
 constexpr int kDownloadTimeoutMs = 30000;
 constexpr qint64 kMaxManifestBytes = 128 * 1024;
+// A staging folder newer than this may belong to a download that another instance is running.
+constexpr std::chrono::minutes kStaleStagingAge{60};
+// When an update starts, the folders of earlier attempts are removed once nothing in them changed for
+// this long. A download or an unpacking that is running changes its folder all the time.
+constexpr std::chrono::minutes kEarlierAttemptAge{5};
+// The manifest entry of the installer that an installed Windows copy runs.
+constexpr char kInstallerKey[] = "windows-x64-installer";
+// Runs the installer without a window or a message box and without restarting the computer.
+constexpr char kInstallerArguments[] = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART";
 
-QString executableName() {
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+struct TestHook {
+	SelfUpdateCapability capability;
+	QString releaseBase;
+};
+
+TestHook& testHook() {
+	static TestHook hook;
+	return hook;
+}
+
+// The tests serve the release over http from the loopback address.
+constexpr bool kAllowLoopbackHttp = true;
+#else
+constexpr bool kAllowLoopbackHttp = false;
+#endif
+
+// True when url is where the release publishes the package with this name.
+bool isTrustedPackageUrl(const QString& tag, const QString& name, const QUrl& url) {
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+	if (!testHook().releaseBase.isEmpty())
+		return url == QUrl(QStringLiteral("%1/%2/%3").arg(testHook().releaseBase, tag, name));
+#endif
+	return isExpectedReleaseAssetUrl(tag, name, url);
+}
+
+[[maybe_unused]] QString executableName() {
 #if defined(Q_OS_WIN)
 	return QStringLiteral("QEGTRAIN.exe");
 #else
@@ -33,16 +71,17 @@ QString helperName() {
 #endif
 }
 
-bool writableParent(const QString& path) {
-	const QFileInfo info(path);
-	const QFileInfo parent(info.absolutePath());
-	return parent.exists() && parent.isDir() && parent.isWritable();
-}
-
 } // namespace
 
+UpdatePackage updatePackageFor(Distribution distribution, const QString& platformKey) {
+	UpdatePackage package;
+	package.usesInstaller = distribution == Distribution::WindowsInstalled;
+	package.manifestKey = package.usesInstaller && !platformKey.isEmpty() ? QString::fromLatin1(kInstallerKey) : platformKey;
+	return package;
+}
+
 SelfUpdater::SelfUpdater(QObject* parent)
-	: QObject(parent), m_network(this), m_timeout(this) {
+	: QObject(parent), m_transport(createHttpTransport(this, kAllowLoopbackHttp)), m_timeout(this) {
 	qRegisterMetaType<UpdatePreparationInput>("UpdatePreparationInput");
 	qRegisterMetaType<UpdatePreparationResult>("UpdatePreparationResult");
 	m_timeout.setSingleShot(true);
@@ -50,7 +89,7 @@ SelfUpdater::SelfUpdater(QObject* parent)
 		if (!m_reply)
 			return;
 		m_cancelRequested = false;
-		QNetworkReply* reply = m_reply;
+		HttpReply* reply = m_reply;
 		m_reply = nullptr;
 		reply->abort();
 		reply->deleteLater();
@@ -65,7 +104,17 @@ SelfUpdater::~SelfUpdater() {
 	}
 }
 
-SelfUpdateCapability SelfUpdater::capability() const {
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+void SelfUpdater::setTestHook(const SelfUpdateCapability& replacement, const QString& releaseBase) {
+	testHook() = {replacement, releaseBase};
+}
+#endif
+
+SelfUpdateCapability SelfUpdater::capability() {
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+	if (!testHook().releaseBase.isEmpty())
+		return testHook().capability;
+#endif
 	SelfUpdateCapability result;
 #if !EGTRAIN_PACKAGED_BUILD
 	result.reason = QStringLiteral("Self-update is available only in packaged release builds.");
@@ -87,6 +136,11 @@ SelfUpdateCapability SelfUpdater::capability() const {
 	if (!QFileInfo(QDir(result.currentPath).filePath("Contents/MacOS/QEGTRAIN")).isFile()
 		|| !QFileInfo(QDir(result.currentPath).filePath("Contents/Info.plist")).isFile()) {
 		result.reason = QStringLiteral("The packaged macOS app is incomplete.");
+		return result;
+	}
+	if (isReadOnlyLocation(result.currentPath)) {
+		result.reason = QStringLiteral("EGTRAIN is running from a read-only location, such as a disk image. "
+									   "Move EGTRAIN to the Applications folder first.");
 		return result;
 	}
 #elif defined(Q_OS_WIN)
@@ -111,11 +165,14 @@ SelfUpdateCapability SelfUpdater::capability() const {
 	return result;
 #endif
 
+	const UpdatePackage package = updatePackageFor(currentDistribution(), updateDistributionKey());
+	result.manifestKey = package.manifestKey;
+	result.usesInstaller = package.usesInstaller;
 	if (!QFileInfo(result.helperPath).isFile()) {
 		result.reason = QStringLiteral("The packaged update helper is missing.");
 		return result;
 	}
-	if (!writableParent(result.currentPath)) {
+	if (!canCreateFilesIn(QFileInfo(result.currentPath).absolutePath())) {
 		result.reason = QStringLiteral("The packaged installation is not writable.");
 		return result;
 	}
@@ -124,10 +181,16 @@ SelfUpdateCapability SelfUpdater::capability() const {
 #endif
 }
 
+void SelfUpdater::cleanupStaleStaging() {
+	const SelfUpdateCapability current = capability();
+	if (current.supported)
+		removeStaleUpdateStaging(QFileInfo(current.currentPath).absolutePath(), kStaleStagingAge);
+}
+
 bool SelfUpdater::canSelfUpdate(const StableRelease& release) const {
 	const SelfUpdateCapability current = capability();
 	return current.supported && release.asset(updateManifestAssetName())
-		&& release.asset(updatePackageName());
+		&& releaseHasUpdatePackage(release, current.manifestKey);
 }
 
 void SelfUpdater::start(const StableRelease& release) {
@@ -138,14 +201,17 @@ void SelfUpdater::start(const StableRelease& release) {
 		emit finished(false, current.reason);
 		return;
 	}
-	if (!release.asset(updateManifestAssetName()) || !release.asset(updatePackageName())) {
+	if (!release.asset(updateManifestAssetName()) || !releaseHasUpdatePackage(release, current.manifestKey)) {
 		emit finished(false, QStringLiteral("This release does not provide a verified update package."));
 		return;
 	}
+	removeStaleUpdateStaging(QFileInfo(current.currentPath).absolutePath(), kEarlierAttemptAge);
 	m_busy = true;
 	m_ready = false;
 	m_cancelRequested = false;
 	m_release = release;
+	m_manifestKey = current.manifestKey;
+	m_usesInstaller = current.usesInstaller;
 	m_currentPath = current.currentPath;
 	m_launchPath = current.launchPath;
 	m_helperPath = current.helperPath;
@@ -161,16 +227,14 @@ void SelfUpdater::requestManifest() {
 		fail(QStringLiteral("The release manifest is missing."));
 		return;
 	}
-	QNetworkRequest request(asset->downloadUrl);
-	request.setHeader(QNetworkRequest::UserAgentHeader,
-		QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()));
-	request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-		QNetworkRequest::NoLessSafeRedirectPolicy);
+	HttpRequest request;
+	request.url = asset->downloadUrl;
+	request.userAgent = QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()).toUtf8();
 	m_manifestData.clear();
-	QNetworkReply* reply = m_network.get(request);
+	HttpReply* reply = m_transport->get(request);
 	m_reply = reply;
 	m_timeout.start(kDownloadTimeoutMs);
-	connect(reply, &QNetworkReply::readyRead, this, [this, reply]() {
+	connect(reply, &HttpReply::readyRead, this, [this, reply]() {
 		if (reply != m_reply)
 			return;
 		m_timeout.start(kDownloadTimeoutMs);
@@ -178,12 +242,12 @@ void SelfUpdater::requestManifest() {
 		if (m_manifestData.size() > kMaxManifestBytes)
 			fail(QStringLiteral("The update manifest is too large."));
 	});
-	connect(reply, &QNetworkReply::downloadProgress, this,
+	connect(reply, &HttpReply::downloadProgress, this,
 		[this, reply](qint64, qint64) {
 			if (reply == m_reply)
 				m_timeout.start(kDownloadTimeoutMs);
 		});
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	connect(reply, &HttpReply::finished, this, [this, reply]() {
 		if (reply == m_reply)
 			handleReply(reply, true);
 	});
@@ -191,12 +255,11 @@ void SelfUpdater::requestManifest() {
 
 void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 	const ReleaseAsset* asset = m_release.asset(manifest.assetName);
-	if (!asset || !isExpectedReleaseAssetUrl(m_release.tag, manifest.assetName, asset->downloadUrl)) {
+	if (!asset || !isTrustedPackageUrl(m_release.tag, manifest.assetName, asset->downloadUrl)) {
 		fail(QStringLiteral("The release package URL is not trusted."));
 		return;
 	}
-	QTemporaryDir staging(QDir(QFileInfo(m_currentPath).absolutePath()).filePath(
-		QStringLiteral(".qegtrain-update-XXXXXX")));
+	QTemporaryDir staging(QDir(QFileInfo(m_currentPath).absolutePath()).filePath(QStringLiteral(".qegtrain-update-XXXXXX")));
 	if (!staging.isValid()) {
 		fail(QStringLiteral("Could not create update staging storage."));
 		return;
@@ -211,15 +274,13 @@ void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 	}
 	m_manifest = manifest;
 	m_packageBytes = 0;
-	QNetworkRequest request(asset->downloadUrl);
-	request.setHeader(QNetworkRequest::UserAgentHeader,
-		QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()));
-	request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-		QNetworkRequest::NoLessSafeRedirectPolicy);
-	QNetworkReply* reply = m_network.get(request);
+	HttpRequest request;
+	request.url = asset->downloadUrl;
+	request.userAgent = QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()).toUtf8();
+	HttpReply* reply = m_transport->get(request);
 	m_reply = reply;
 	m_timeout.start(kDownloadTimeoutMs);
-	connect(reply, &QNetworkReply::readyRead, this, [this, reply]() {
+	connect(reply, &HttpReply::readyRead, this, [this, reply]() {
 		if (reply != m_reply)
 			return;
 		m_timeout.start(kDownloadTimeoutMs);
@@ -234,20 +295,20 @@ void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 		}
 		m_packageBytes += data.size();
 	});
-	connect(reply, &QNetworkReply::downloadProgress, this,
+	connect(reply, &HttpReply::downloadProgress, this,
 		[this, reply](qint64 received, qint64 total) {
 			if (reply != m_reply)
 				return;
 			m_timeout.start(kDownloadTimeoutMs);
 			emit progress(received, total);
 		});
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	connect(reply, &HttpReply::finished, this, [this, reply]() {
 		if (reply == m_reply)
 			handleReply(reply, false);
 	});
 }
 
-void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
+void SelfUpdater::handleReply(HttpReply* reply, bool manifestReply) {
 	if (reply != m_reply)
 		return;
 	m_reply = nullptr;
@@ -257,20 +318,20 @@ void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
 		fail(QStringLiteral("Update cancelled."));
 		return;
 	}
-	if (reply->error() != QNetworkReply::NoError) {
+	if (reply->failed()) {
 		const QString error = reply->errorString();
 		reply->deleteLater();
 		fail(error.isEmpty() ? QStringLiteral("The update download failed.") : error);
 		return;
 	}
-	const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+	const int status = reply->statusCode();
 	if (status < 200 || status >= 300) {
 		reply->deleteLater();
 		fail(QStringLiteral("GitHub returned HTTP %1 while downloading the update.").arg(status));
 		return;
 	}
 	if (manifestReply) {
-		const qint64 contentLength = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
+		const qint64 contentLength = reply->contentLength();
 		if (contentLength > kMaxManifestBytes) {
 			reply->deleteLater();
 			fail(QStringLiteral("The update manifest is too large."));
@@ -284,7 +345,7 @@ void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
 		}
 		QString error;
 		const std::optional<UpdateManifest> manifest = parseUpdateManifest(
-			m_manifestData, m_release.tag, updatePlatformKey(), &error);
+			m_manifestData, m_release.tag, m_manifestKey, &error);
 		m_manifestData.clear();
 		reply->deleteLater();
 		if (!manifest) {
@@ -317,7 +378,7 @@ void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
 
 void SelfUpdater::fail(const QString& error) {
 	if (m_reply) {
-		QNetworkReply* reply = m_reply;
+		HttpReply* reply = m_reply;
 		m_reply = nullptr;
 		reply->abort();
 		reply->deleteLater();
@@ -352,6 +413,7 @@ void SelfUpdater::startPreparation() {
 	input.packagePath = m_packageFile.fileName();
 	input.stagingRoot = m_stagingRoot;
 	input.currentPath = m_currentPath;
+	input.installer = m_usesInstaller;
 	input.manifest = m_manifest;
 
 	emit preparing(m_manifest.version);
@@ -377,7 +439,8 @@ void SelfUpdater::handlePreparationFinished(const UpdatePreparationResult& resul
 	}
 	if (!result.success) {
 		fail(result.error.isEmpty()
-			? QStringLiteral("The update package is incomplete.") : result.error);
+				? QStringLiteral("The update package is incomplete.")
+				: result.error);
 		return;
 	}
 	m_stagedPath = result.stagedPath;
@@ -396,34 +459,55 @@ void SelfUpdater::clearStaging() {
 bool SelfUpdater::restart() {
 	if (!m_ready || m_stagedPath.isEmpty())
 		return false;
+	if (startHelper())
+		return true;
+	clearStaging();
+	m_ready = false;
+	return false;
+}
+
+bool SelfUpdater::startHelper() {
 	const QString helperCopy = QDir(m_stagingRoot).filePath(helperName());
 	QFile::remove(helperCopy);
 	if (!QFile::copy(m_helperPath, helperCopy))
 		return false;
 #if !defined(Q_OS_WIN)
-	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions()
-		| QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
+	QFile::setPermissions(helperCopy, QFileInfo(m_helperPath).permissions() | QFile::WriteOwner | QFile::ExeOwner | QFile::ExeGroup | QFile::ExeOther);
 #endif
+	// The copy is the only file that stays in the staging folder on Windows. An old time lets the
+	// sweep of the new version remove the folder at once. Qt changes the time of an open file only.
+	QFile helperFile(helperCopy);
+	if (helperFile.open(QIODevice::ReadWrite | QIODevice::ExistingOnly)) {
+		helperFile.setFileTime(QDateTime::fromSecsSinceEpoch(0), QFileDevice::FileModificationTime);
+		helperFile.close();
+	}
+	if (m_usesInstaller) {
+		// The staged path is the installer. The helper replaces no file of the installation itself.
+		QStringList installerArguments = {
+			QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
+			QStringLiteral("--installer"), m_stagedPath,
+			QStringLiteral("--installer-args"), QString::fromLatin1(kInstallerArguments),
+			QStringLiteral("--launch"), m_launchPath};
+		installerArguments += updateRecordArguments(m_release.version, updateRecordPath());
+		return QProcess::startDetached(helperCopy, installerArguments);
+	}
 	QString backup = m_currentPath + QStringLiteral(".egtrain-old");
 	const QFileInfo previousBackup(backup);
 	if (previousBackup.isSymLink())
 		return false;
 	if (previousBackup.exists()) {
 		const bool removed = previousBackup.isDir()
-			? QDir(backup).removeRecursively() : QFile::remove(backup);
+			? QDir(backup).removeRecursively()
+			: QFile::remove(backup);
 		if (!removed)
 			return false;
 	}
-	const QStringList arguments = {
+	QStringList arguments = {
 		QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
 		QStringLiteral("--current"), m_currentPath,
 		QStringLiteral("--staged"), m_stagedPath,
 		QStringLiteral("--backup"), backup,
 		QStringLiteral("--launch"), m_launchPath};
-	if (!QProcess::startDetached(helperCopy, arguments)) {
-		clearStaging();
-		m_ready = false;
-		return false;
-	}
-	return true;
+	arguments += updateRecordArguments(m_release.version, updateRecordPath());
+	return QProcess::startDetached(helperCopy, arguments);
 }

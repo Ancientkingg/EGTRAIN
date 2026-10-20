@@ -6,10 +6,22 @@
 #include <QString>
 #include <string>
 
-enum class TrainVisualKind { Passenger, Sprinter, Intercity, HighSpeed, Freight };
-enum class TrainBadgeShape { Rounded, Capsule, Square };
-enum class TrackOperationalState { Free, Prepared, Occupied, Blocked };
-enum class SignalCueKind { Neutral, Stop, Caution, Proceed };
+enum class TrainVisualKind { Passenger,
+	Sprinter,
+	Intercity,
+	HighSpeed,
+	Freight };
+enum class TrainBadgeShape { Rounded,
+	Capsule,
+	Square };
+enum class TrackOperationalState { Free,
+	Prepared,
+	Occupied,
+	Blocked };
+enum class SignalCueKind { Neutral,
+	Stop,
+	Caution,
+	Proceed };
 
 struct TrackVisual {
 	QColor color;
@@ -46,7 +58,11 @@ TrackVisual freeTrackVisual();
 TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond);
 TrackStateVisual classifyTrackState(TrackOperationalState state);
 int trackStatePriority(TrackOperationalState state);
+QColor defaultTrainFill();
+QColor defaultTrainOutline();
 TrainVisual classifyTrainType(const std::string& type, const std::string& description);
+TrainVisual resolveTrainVisual(const std::string& type, const std::string& description,
+	const QColor& serviceColor = QColor());
 TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind);
 int trainBadgeCornerRadius(TrainBadgeShape shape);
 SignalVisual classifySignalAspect(int code);

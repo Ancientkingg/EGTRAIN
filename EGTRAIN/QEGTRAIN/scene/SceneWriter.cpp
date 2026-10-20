@@ -1,10 +1,12 @@
 #include "scene/SceneWriter.h"
+#include "scene/SceneFieldReader.h"
+#include "scene/SceneFields.h"
+#include "scene/StagedDirectory.h"
+#include "scene/Utf8Path.h"
 
-#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <set>
 #include <system_error>
 #include <utility>
 
@@ -20,7 +22,7 @@ bool ScenarioLoadResult::success() const {
 }
 
 static void addWriteError(SceneSaveResult& result, const std::string& file,
-		const std::string& message) {
+	const std::string& message) {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = SceneSeverity::Error;
 	diagnostic.code = "scene.save.write";
@@ -30,108 +32,52 @@ static void addWriteError(SceneSaveResult& result, const std::string& file,
 }
 
 static void addCleanupWarning(SceneSaveResult& result, const fs::path& path,
-		const std::string& message) {
+	const std::string& message) {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = SceneSeverity::Warning;
 	diagnostic.code = "scene.save.cleanup";
-	diagnostic.file = path.string();
+	diagnostic.file = path.u8string();
 	diagnostic.message = message;
 	result.diagnostics.push_back(std::move(diagnostic));
 }
 
-struct StagingDirectory {
-	fs::path path;
-
-	~StagingDirectory() {
-		if (path.empty())
-			return;
-		std::error_code ec;
-		fs::remove_all(path, ec);
-	}
-
-	void release() { path.clear(); }
-};
-
-static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix,
-		fs::path& result) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-"
-				+ std::to_string(attempt));
-		ec.clear();
-		if (fs::create_directory(candidate, ec)) {
-			ec.clear();
-			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
-			if (ec) {
-				std::error_code cleanupError;
-				fs::remove_all(candidate, cleanupError);
-				return false;
-			}
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::file_exists)
-			return false;
-	}
-	return false;
-}
-
-static bool uniqueSiblingPath(const fs::path& parent, const std::string& prefix,
-		fs::path& result) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-"
-				+ std::to_string(attempt));
-		ec.clear();
-		const auto status = fs::symlink_status(candidate, ec);
-		if (!ec && status.type() == fs::file_type::not_found) {
-			result = candidate;
-			return true;
-		}
-		if (ec == std::errc::no_such_file_or_directory) {
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::no_such_file_or_directory)
-			return false;
-	}
-	return false;
-}
-
 static bool inspectDestination(const fs::path& destination, bool& exists,
-		SceneSaveResult& result) {
+	SceneSaveResult& result) {
 	std::error_code ec;
 	const auto status = fs::symlink_status(destination, ec);
 	if (ec && ec != std::errc::no_such_file_or_directory) {
-		addWriteError(result, destination.string(), "Cannot inspect scene destination: " + ec.message());
+		addWriteError(result, destination.u8string(), "Cannot inspect scene destination: " + ec.message());
 		return false;
 	}
 	exists = !ec && status.type() != fs::file_type::not_found;
 	if (exists && status.type() != fs::file_type::directory) {
-		addWriteError(result, destination.string(),
-				"Scene destination must be a directory and cannot be a symlink");
+		addWriteError(result, destination.u8string(),
+			"Scene destination must be a directory and cannot be a symlink");
 		return false;
 	}
 	return true;
 }
 
-static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
-		const std::string& filename, const json& value) {
-	std::string bytes;
+static bool serializeJson(SceneSaveResult& result, const std::string& filename,
+	const json& value, std::string& bytes) {
 	try {
 		bytes = value.dump(4) + "\n";
 	} catch (const json::exception& error) {
 		addWriteError(result, filename, "Cannot serialize " + filename + ": " + error.what());
 		return false;
 	}
-	std::ofstream output(scenePath / filename, std::ios::binary);
+	return true;
+}
+
+static bool writeBytes(SceneSaveResult& result, const std::string& filename, const fs::path& path,
+	const std::string& bytes) {
+	std::ofstream output(path, std::ios::binary);
 	if (!output) {
 		addWriteError(result, filename, "Cannot open " + filename + " for writing");
 		return false;
 	}
 	output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+	output.close();
 	if (!output) {
 		addWriteError(result, filename, "Cannot write " + filename);
 		return false;
@@ -139,17 +85,75 @@ static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 	return true;
 }
 
+// Writes into a scene directory that is private to the save, so truncating is safe.
+static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
+	const std::string& filename, const json& value) {
+	std::string bytes;
+	if (!serializeJson(result, filename, value, bytes))
+		return false;
+	result.writeAttempted = true;
+	return writeBytes(result, filename, scenePath / filename, bytes);
+}
+
+// Writes a file that may already exist: the old content stays until the new content is complete.
+static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path,
+	const json& value) {
+	const std::string filename = path.filename().u8string();
+	std::string bytes;
+	if (!serializeJson(result, filename, value, bytes))
+		return false;
+	fs::path target = path;
+	std::error_code ec;
+	if (fs::is_symlink(path, ec)) {
+		target = fs::canonical(path, ec);
+		if (ec) {
+			addWriteError(result, filename, "Cannot resolve " + filename + ": " + ec.message());
+			return false;
+		}
+	}
+	// A rename replaces a file that cannot be opened for writing, so that is refused first.
+	ec.clear();
+	if (fs::is_regular_file(target, ec) && !std::ofstream(target, std::ios::binary | std::ios::app)) {
+		addWriteError(result, filename, "Cannot open " + filename + " for writing");
+		return false;
+	}
+	fs::path temporary;
+	if (uniqueSiblingPath(target.parent_path(), target.filename().u8string() + ".tmp-", temporary)) {
+		addWriteError(result, filename, "Cannot create a temporary file for " + filename);
+		return false;
+	}
+	result.writeAttempted = true;
+	bool published = false;
+	if (writeBytes(result, filename, temporary, bytes)) {
+		ec.clear();
+		const fs::file_status existing = fs::status(target, ec);
+		if (!ec && fs::is_regular_file(existing))
+			fs::permissions(temporary, existing.permissions(), fs::perm_options::replace, ec);
+		ec.clear();
+		fs::rename(temporary, target, ec);
+		if (ec)
+			addWriteError(result, filename, "Cannot replace " + filename + ": " + ec.message());
+		else
+			published = true;
+	}
+	if (!published) {
+		ec.clear();
+		fs::remove(temporary, ec);
+	}
+	return published;
+}
+
 static bool copyExistingSceneContents(const fs::path& source, const fs::path& staging,
-		SceneSaveResult& result) {
+	SceneSaveResult& result) {
 	std::error_code ec;
 	fs::copy(source, staging, fs::copy_options::recursive | fs::copy_options::copy_symlinks, ec);
 	if (ec) {
-		addWriteError(result, source.string(), "Cannot stage the previous scene contents: " + ec.message());
+		addWriteError(result, source.u8string(), "Cannot stage the previous scene contents: " + ec.message());
 		return false;
 	}
 	for (const char* filename : {"scene.json", "infrastructure.json", "stations.json",
-			"signalling.json", "rolling_stock.json", "services.json", "scenarios.json",
-			"passengers.json", "views.json", "incidents.json"}) {
+			 "signalling.json", "rolling_stock.json", "services.json", "scenarios.json",
+			 "passengers.json", "views.json", "incidents.json"}) {
 		ec.clear();
 		fs::remove_all(staging / filename, ec);
 		if (ec) {
@@ -161,20 +165,75 @@ static bool copyExistingSceneContents(const fs::path& source, const fs::path& st
 }
 
 static json writePhysical(const SceneTrainPhysical& physical) {
-	return {
-		{"mass_of_traction_unit_kg", physical.mass_of_traction_unit_kg},
-		{"mass_of_a_wagon_kg", physical.mass_of_a_wagon_kg},
-		{"number_of_wagons", physical.number_of_wagons},
-		{"max_speed_ms", physical.max_speed_ms},
-		{"max_deceleration_ms2", physical.max_deceleration_ms2},
-		{"frontal_area_m2", physical.frontal_area_m2},
-		{"resistance_coefficient", physical.resistance_coefficient},
-		{"jerk_ms3", physical.jerk_ms3},
-		{"length_m", physical.length_m},
-	};
+	json value = json::object();
+	for (const SceneTrainPhysicalField& field : kSceneTrainPhysicalFields)
+		value[field.key] = physical.*field.member;
+	return value;
 }
 
-static json writeTrainUnits(const SceneModel& scene) {
+json encodeSignallingArea(const SceneSignallingArea& area) {
+	json value = {
+		{"id", area.id},
+		{"start_km", area.startKm},
+		{"end_km", area.endKm},
+		{"level", area.level},
+	};
+	if (!area.trackId.empty())
+		value["track"] = area.trackId;
+	return value;
+}
+
+json encodeSignalling(const SceneModel& scene) {
+	json signalling = {
+		{"signals", json::array()},
+		{"routes", json::array()},
+		{"block_dependencies", json::array()},
+		{"single_track_restrictions", json::array()},
+		{"station_boundaries", json::array()},
+	};
+	for (const auto& signal : scene.signals) {
+		json value = {{"id", signal.id}};
+		if (!signal.protectedSection.empty())
+			value["protected_section"] = signal.protectedSection;
+		signalling["signals"].push_back(std::move(value));
+	}
+	if (!scene.signallingAreas.empty()) {
+		signalling["signalling_areas"] = json::array();
+		for (const auto& area : scene.signallingAreas)
+			signalling["signalling_areas"].push_back(encodeSignallingArea(area));
+	}
+	for (const auto& route : scene.routes) {
+		json value = {{"id", route.id}, {"blocks", route.blocks}};
+		if (route.hasCorridor || !route.corridor.empty())
+			value["corridor"] = route.corridor;
+		if (route.reversed)
+			value["reversed"] = true;
+		signalling["routes"].push_back(value);
+	}
+	for (const auto& dependency : scene.blockDependencies) {
+		signalling["block_dependencies"].push_back({
+			{"block", dependency.block},
+			{"depends_on", dependency.dependsOn},
+		});
+	}
+	for (const auto& restriction : scene.singleTrackRestrictions) {
+		signalling["single_track_restrictions"].push_back({
+			{"start_block", restriction.startBlock},
+			{"end_block", restriction.endBlock},
+			{"protected_start_block", restriction.protectedStartBlock},
+			{"protected_end_block", restriction.protectedEndBlock},
+		});
+	}
+	for (const auto& boundary : scene.stationBoundaries) {
+		json value = {{"entrance_block", boundary.entranceBlock}, {"direction", boundary.direction}};
+		if (boundary.hasExitBlock || !boundary.exitBlock.empty())
+			value["exit_block"] = boundary.exitBlock;
+		signalling["station_boundaries"].push_back(value);
+	}
+	return signalling;
+}
+
+json encodeRollingStock(const SceneModel& scene) {
 	json trainUnits = json::array();
 	for (const auto& unit : scene.trainUnits) {
 		json value = {{"id", unit.id}};
@@ -195,18 +254,14 @@ static json writeTrainUnits(const SceneModel& scene) {
 		}
 		trainUnits.push_back(value);
 	}
-	return trainUnits;
-}
-
-static json writeCompositions(const SceneModel& scene) {
 	json compositions = json::array();
 	for (const auto& composition : scene.compositions) {
 		compositions.push_back({{"id", composition.id}, {"units", composition.units}});
 	}
-	return compositions;
+	return {{"train_units", trainUnits}, {"compositions", compositions}};
 }
 
-static json writeStops(const SceneService& service) {
+static json encodeStops(const SceneService& service) {
 	json stops = json::array();
 	for (const auto& stop : service.stops) {
 		json value = {
@@ -224,19 +279,21 @@ static json writeStops(const SceneService& service) {
 	return stops;
 }
 
-static json writeServices(const SceneModel& scene) {
+json encodeServices(const SceneModel& scene) {
 	json services = json::array();
 	for (const auto& service : scene.services) {
 		json value = {
 			{"id", service.id},
 			{"composition", service.composition},
 			{"route", service.route},
-			{"stops", writeStops(service)},
+			{"stops", encodeStops(service)},
 		};
 		if (!service.operatingCode.empty())
 			value["operating_code"] = service.operatingCode;
 		if (!service.category.empty())
 			value["category"] = service.category;
+		if (!service.visualizationColor.empty())
+			value["visualization_color"] = service.visualizationColor;
 		if (service.performancePercent != 100.0)
 			value["performance_percent"] = service.performancePercent;
 		if (service.hasMaximumSpeed)
@@ -254,7 +311,7 @@ static json writeServices(const SceneModel& scene) {
 		}
 		services.push_back(value);
 	}
-	return services;
+	return {{"services", services}};
 }
 
 static json writeScenarioValue(const SceneScenario& scenario) {
@@ -297,25 +354,22 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 	return value;
 }
 
-static json writeScenarios(const SceneModel& scene) {
+json encodeScenarios(const SceneModel& scene) {
 	json scenarios = json::array();
 	if (scene.scenarios.empty()) {
-		SceneScenario baseline;
-		baseline.id = "baseline";
-		baseline.name = "Baseline";
-		scenarios.push_back(writeScenarioValue(baseline));
+		scenarios.push_back(writeScenarioValue(makeBaselineScenario()));
 	} else {
 		for (const auto& scenario : scene.scenarios)
 			scenarios.push_back(writeScenarioValue(scenario));
 	}
 	std::string defaultId = scene.defaultScenarioId;
 	if (defaultId.empty())
-		defaultId = scene.scenarios.empty() ? "baseline" : scene.scenarios.front().id;
+		defaultId = scene.scenarios.empty() ? makeBaselineScenario().id : scene.scenarios.front().id;
 	return {{"default_scenario_id", defaultId}, {"scenarios", scenarios}};
 }
 
 static void addScenarioDiagnostic(ScenarioLoadResult& result, SceneSeverity severity,
-		const std::string& code, const std::string& message, const std::string& path = "") {
+	const std::string& code, const std::string& message, const std::string& path = "") {
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = severity;
 	diagnostic.code = code;
@@ -325,129 +379,18 @@ static void addScenarioDiagnostic(ScenarioLoadResult& result, SceneSeverity seve
 	result.diagnostics.push_back(std::move(diagnostic));
 }
 
-static bool scenarioString(const json& object, const char* key, ScenarioLoadResult& result,
-		std::string& output, bool required, const std::string& path) {
-	if (!object.is_object()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-				"Scenario field must be an object", path);
-		return false;
-	}
-	if (!object.contains(key)) {
-		if (required)
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
-					std::string("Missing ") + key, path + "." + key);
-		return false;
-	}
-	if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	output = object[key].get<std::string>();
-	return true;
-}
-
-static bool scenarioNumber(const json& object, const char* key, ScenarioLoadResult& result,
-		double& output, const std::string& path) {
-	if (!object.contains(key)) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
-				std::string("Missing ") + key, path + "." + key);
-		return false;
-	}
-	if (!object[key].is_number()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	try {
-		output = object[key].get<double>();
-	} catch (const json::exception&) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	return true;
-}
-
-static bool scenarioInteger(const json& object, const char* key, ScenarioLoadResult& result,
-		int& output, const std::string& path) {
-	if (!object.contains(key))
-		return true;
-	if (!object[key].is_number_integer()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	try {
-		output = object[key].get<int>();
-	} catch (const json::exception&) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	return true;
-}
-
-static void parseScenarioIncident(const json& value, std::size_t index,
-		ScenarioLoadResult& result) {
-	const std::string path = "incidents[" + std::to_string(index) + "]";
-	if (!value.is_object()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-				"Incident must be an object", path);
-		return;
-	}
-	SceneIncident incident;
-	scenarioString(value, "id", result, incident.id, true, path);
-	scenarioString(value, "type", result, incident.type, true, path);
-	scenarioString(value, "target", result, incident.target, true, path);
-	scenarioNumber(value, "start_seconds", result, incident.startSeconds, path);
-	if (value.contains("end_seconds"))
-		incident.hasEndSeconds = scenarioNumber(value, "end_seconds", result, incident.endSeconds, path);
-	incident.hasOccurrence = value.contains("occurrence")
-		&& scenarioInteger(value, "occurrence", result, incident.occurrence, path);
-	if (value.contains("reduced_speed_kmh"))
-		incident.hasReducedSpeed = scenarioNumber(value, "reduced_speed_kmh", result,
-				incident.reducedSpeedKmh, path);
-	if (value.contains("terminate_at_destination")) {
-		if (!value["terminate_at_destination"].is_boolean())
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-					"Invalid terminate_at_destination", path + ".terminate_at_destination");
-		else
-			incident.terminateAtDestination = value["terminate_at_destination"].get<bool>();
-	}
-	result.scenario.incidents.push_back(std::move(incident));
-}
-
-static void parseScenarioEntranceDelay(const json& value, std::size_t index,
-		ScenarioLoadResult& result) {
-	const std::string path = "entrance_delays[" + std::to_string(index) + "]";
-	if (!value.is_object()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-				"Entrance delay must be an object", path);
-		return;
-	}
-	SceneEntranceDelay delay;
-	scenarioString(value, "service", result, delay.serviceId, true, path);
-	scenarioInteger(value, "occurrence", result, delay.occurrence, path);
-	scenarioString(value, "station", result, delay.stationId, true, path);
-	scenarioNumber(value, "delay_seconds", result, delay.delaySeconds, path);
-	result.scenario.entranceDelays.push_back(std::move(delay));
-}
-
 SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::string& filePath) {
 	SceneSaveResult result;
-	const fs::path path(filePath);
-	result.wroteAll = writeJsonFile(result, path.parent_path(), path.filename().string(),
-		writeScenarioValue(scenario));
+	result.wroteAll = writeJsonFileReplacing(result, pathFromUtf8(filePath), writeScenarioValue(scenario));
 	return result;
 }
 
 ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	ScenarioLoadResult result;
-	std::ifstream input{fs::path(filePath)};
+	std::ifstream input{pathFromUtf8(filePath)};
 	if (!input) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.file.missing",
-				"Cannot open scenario JSON");
+			"Cannot open scenario JSON");
 		return result;
 	}
 
@@ -456,46 +399,23 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 		input >> value;
 	} catch (const json::parse_error& error) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.json.parse",
-				std::string("JSON parse error: ") + error.what());
+			std::string("JSON parse error: ") + error.what());
 		return result;
 	}
 	if (!value.is_object()) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.root.type",
-				"Scenario JSON root must be an object");
+			"Scenario JSON root must be an object");
 		return result;
 	}
 
-	const std::set<std::string> allowed = {"id", "name", "description", "incidents", "entrance_delays"};
-	for (const auto& field : value.items()) {
-		if (allowed.find(field.key()) == allowed.end())
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.unknown",
-					"Scenario JSON does not allow field " + field.key(), field.key());
-	}
-	scenarioString(value, "id", result, result.scenario.id, true, "scenario");
-	scenarioString(value, "name", result, result.scenario.name, true, "scenario");
-	scenarioString(value, "description", result, result.scenario.description, false, "scenario");
-	if (!value.contains("incidents") || !value["incidents"].is_array()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
-				"incidents must be an array", "incidents");
-	} else {
-		for (std::size_t index = 0; index < value["incidents"].size(); ++index)
-			parseScenarioIncident(value["incidents"][index], index, result);
-	}
-	if (value.contains("entrance_delays")) {
-		if (!value["entrance_delays"].is_array()) {
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
-					"entrance_delays must be an array", "entrance_delays");
-		} else {
-			for (std::size_t index = 0; index < value["entrance_delays"].size(); ++index)
-				parseScenarioEntranceDelay(value["entrance_delays"][index], index, result);
-		}
-	}
+	const SceneFieldReader reader("scenario.json", kScenarioFileFieldCodes, result.diagnostics);
+	result.scenario = decodeScenarioFile(reader, value);
 	return result;
 }
 
-static json writePassengers(const SceneModel& scene) {
-	json passengers = json::array();
-	for (const auto& passenger : scene.passengers) {
+json encodePassengers(const std::vector<ScenePassenger>& passengers) {
+	json values = json::array();
+	for (const auto& passenger : passengers) {
 		json value = {{"id", passenger.id}, {"journeys", json::array()}};
 		for (const auto& journey : passenger.journeys) {
 			json journeyValue = {
@@ -503,13 +423,13 @@ static json writePassengers(const SceneModel& scene) {
 				{"origin", journey.originStationId},
 				{"destination", journey.destinationStationId},
 				{"planned_departure", {
-					{"start_seconds", journey.plannedDepartureStartSeconds},
-					{"end_seconds", journey.plannedDepartureEndSeconds},
-				}},
+										  {"start_seconds", journey.plannedDepartureStartSeconds},
+										  {"end_seconds", journey.plannedDepartureEndSeconds},
+									  }},
 				{"planned_arrival", {
-					{"start_seconds", journey.plannedArrivalStartSeconds},
-					{"end_seconds", journey.plannedArrivalEndSeconds},
-				}},
+										{"start_seconds", journey.plannedArrivalStartSeconds},
+										{"end_seconds", journey.plannedArrivalEndSeconds},
+									}},
 				{"legs", json::array()},
 			};
 			if (!journey.activity.empty())
@@ -525,74 +445,12 @@ static json writePassengers(const SceneModel& scene) {
 			}
 			value["journeys"].push_back(journeyValue);
 		}
-		passengers.push_back(value);
+		values.push_back(value);
 	}
-	return {{"passengers", passengers}};
+	return {{"passengers", values}};
 }
 
-static json writeViews(const SceneModel& scene) {
-	json tracks = json::array();
-	for (const auto& view : scene.trackViews) {
-		json value = {{"track", view.trackId}, {"level", view.level}, {"region", view.region}};
-		if (!view.visible)
-			value["visible"] = false;
-		tracks.push_back(std::move(value));
-	}
-
-	json stations = json::array();
-	for (const auto& view : scene.stationViews) {
-		json regions = json::array();
-		for (const auto& region : view.regions)
-			regions.push_back({{"id", region.first}, {"position_km", region.second}});
-		json value = {
-			{"station", view.stationId},
-			{"latitude", view.latitude},
-			{"longitude", view.longitude},
-			{"regions", std::move(regions)},
-		};
-		if (!view.corridors.empty())
-			value["corridors"] = view.corridors;
-		stations.push_back(std::move(value));
-	}
-	return {{"tracks", tracks}, {"stations", stations}};
-}
-
-static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
-	SceneSaveResult result;
-
-	json sceneJson = {
-		{"schema_version", scene.schemaVersion},
-		{"name", scene.name},
-		{"saved_with_app_version", EGTRAIN_APP_VERSION},
-		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
-	};
-	if (!scene.description.empty())
-		sceneJson["description"] = scene.description;
-	if (!scene.baseTime.empty())
-		sceneJson["base_time"] = scene.baseTime;
-	json settings = json::object();
-	if (scene.settings.hasDuration)
-		settings["duration_seconds"] = scene.settings.durationSeconds;
-	if (scene.settings.hasBufferTime)
-		settings["buffer_time_seconds"] = scene.settings.bufferTimeSeconds;
-	if (scene.settings.hasRecoveryTime)
-		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
-	if (!settings.empty())
-		sceneJson["simulation_settings"] = settings;
-	if (!scene.importReport.empty()) {
-		sceneJson["import_report"] = json::array();
-		for (const auto& row : scene.importReport) {
-			sceneJson["import_report"].push_back({
-				{"category", row.category},
-				{"source_file", row.sourceFile},
-				{"source_count", row.sourceCount},
-				{"converted_count", row.convertedCount},
-				{"skipped_count", row.skippedCount},
-				{"unresolved_references", row.unresolvedReferences},
-			});
-		}
-	}
-
+json encodeInfrastructure(const SceneModel& scene) {
 	json infrastructure = {
 		{"tracks", json::array()},
 		{"nodes", json::array()},
@@ -638,7 +496,10 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 			value["speed_limit_ms"] = connection.speedLimitMs;
 		infrastructure["connections"].push_back(value);
 	}
+	return infrastructure;
+}
 
+json encodeStations(const SceneModel& scene) {
 	json stations = json::array();
 	for (const auto& station : scene.stations) {
 		json value = {{"id", station.id}, {"name", station.name}, {"platforms", json::array()}};
@@ -654,80 +515,91 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 		}
 		stations.push_back(value);
 	}
+	return {{"stations", stations}};
+}
 
-	json signalling = {
-		{"signals", json::array()},
-		{"routes", json::array()},
-		{"block_dependencies", json::array()},
-		{"single_track_restrictions", json::array()},
-		{"station_boundaries", json::array()},
-	};
-	for (const auto& signal : scene.signals) {
-		json value = {{"id", signal.id}};
-		if (!signal.protectedSection.empty())
-			value["protected_section"] = signal.protectedSection;
-		signalling["signals"].push_back(std::move(value));
+json encodeViews(const SceneModel& scene) {
+	json tracks = json::array();
+	for (const auto& view : scene.trackViews) {
+		json value = {{"track", view.trackId}, {"level", view.level}, {"region", view.region}};
+		if (!view.visible)
+			value["visible"] = false;
+		tracks.push_back(std::move(value));
 	}
-	if (!scene.signallingAreas.empty()) {
-		signalling["signalling_areas"] = json::array();
-		for (const auto& area : scene.signallingAreas) {
-			json value = {
-				{"id", area.id},
-				{"start_km", area.startKm},
-				{"end_km", area.endKm},
-				{"level", area.level},
-			};
-			if (!area.trackId.empty())
-				value["track"] = area.trackId;
-			signalling["signalling_areas"].push_back(std::move(value));
+
+	json stations = json::array();
+	for (const auto& view : scene.stationViews) {
+		json regions = json::array();
+		for (const auto& region : view.regions)
+			regions.push_back({{"id", region.first}, {"position_km", region.second}});
+		json value = {
+			{"station", view.stationId},
+			{"latitude", view.latitude},
+			{"longitude", view.longitude},
+			{"regions", std::move(regions)},
+		};
+		if (!view.corridors.empty())
+			value["corridors"] = view.corridors;
+		stations.push_back(std::move(value));
+	}
+	return {{"tracks", tracks}, {"stations", stations}};
+}
+
+json encodeSceneMetadata(const SceneModel& scene) {
+	json metadata = {
+		{"schema_version", scene.schemaVersion},
+		{"name", scene.name},
+		{"saved_with_app_version", EGTRAIN_APP_VERSION},
+		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
+	};
+	if (!scene.description.empty())
+		metadata["description"] = scene.description;
+	if (!scene.baseTime.empty())
+		metadata["base_time"] = scene.baseTime;
+	json settings = json::object();
+	if (scene.settings.hasDuration)
+		settings["duration_seconds"] = scene.settings.durationSeconds;
+	if (scene.settings.hasBufferTime)
+		settings["buffer_time_seconds"] = scene.settings.bufferTimeSeconds;
+	if (scene.settings.hasRecoveryTime)
+		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
+	if (!settings.empty())
+		metadata["simulation_settings"] = settings;
+	if (!scene.importReport.empty()) {
+		metadata["import_report"] = json::array();
+		for (const auto& row : scene.importReport) {
+			metadata["import_report"].push_back({
+				{"category", row.category},
+				{"source_file", row.sourceFile},
+				{"source_count", row.sourceCount},
+				{"converted_count", row.convertedCount},
+				{"skipped_count", row.skippedCount},
+				{"unresolved_references", row.unresolvedReferences},
+			});
 		}
 	}
-	for (const auto& route : scene.routes) {
-		json value = {{"id", route.id}, {"blocks", route.blocks}};
-		if (route.hasCorridor || !route.corridor.empty())
-			value["corridor"] = route.corridor;
-		if (route.reversed)
-			value["reversed"] = true;
-		signalling["routes"].push_back(value);
-	}
-	for (const auto& dependency : scene.blockDependencies) {
-		signalling["block_dependencies"].push_back({
-			{"block", dependency.block},
-			{"depends_on", dependency.dependsOn},
-		});
-	}
-	for (const auto& restriction : scene.singleTrackRestrictions) {
-		signalling["single_track_restrictions"].push_back({
-			{"start_block", restriction.startBlock},
-			{"end_block", restriction.endBlock},
-			{"protected_start_block", restriction.protectedStartBlock},
-			{"protected_end_block", restriction.protectedEndBlock},
-		});
-	}
-	for (const auto& boundary : scene.stationBoundaries) {
-		json value = {{"entrance_block", boundary.entranceBlock}, {"direction", boundary.direction}};
-		if (boundary.hasExitBlock || !boundary.exitBlock.empty())
-			value["exit_block"] = boundary.exitBlock;
-		signalling["station_boundaries"].push_back(value);
-	}
+	return metadata;
+}
+
+static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
+	SceneSaveResult result;
 
 	const auto writeCanonical = [&](const std::string& filename, const json& value) {
 		return writeJsonFile(result, scenePath, filename, value);
 	};
 	bool wroteAll = true;
-	wroteAll = writeCanonical("scene.json", sceneJson) && wroteAll;
-	wroteAll = writeCanonical("infrastructure.json", infrastructure) && wroteAll;
-	wroteAll = writeCanonical("stations.json", {{"stations", stations}}) && wroteAll;
-	wroteAll = writeCanonical("signalling.json", signalling) && wroteAll;
-	wroteAll = writeCanonical("rolling_stock.json",
-			{{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}}) && wroteAll;
-	wroteAll = writeCanonical("services.json", {{"services", writeServices(scene)}}) && wroteAll;
-	wroteAll = writeCanonical("scenarios.json", writeScenarios(scene)) && wroteAll;
+	wroteAll = writeCanonical("scene.json", encodeSceneMetadata(scene)) && wroteAll;
+	wroteAll = writeCanonical("infrastructure.json", encodeInfrastructure(scene)) && wroteAll;
+	wroteAll = writeCanonical("stations.json", encodeStations(scene)) && wroteAll;
+	wroteAll = writeCanonical("signalling.json", encodeSignalling(scene)) && wroteAll;
+	wroteAll = writeCanonical("rolling_stock.json", encodeRollingStock(scene)) && wroteAll;
+	wroteAll = writeCanonical("services.json", encodeServices(scene)) && wroteAll;
+	wroteAll = writeCanonical("scenarios.json", encodeScenarios(scene)) && wroteAll;
 	const bool hasViews = !scene.trackViews.empty() || !scene.stationViews.empty();
 	if (hasViews)
-		wroteAll = writeCanonical("views.json", writeViews(scene)) && wroteAll;
+		wroteAll = writeCanonical("views.json", encodeViews(scene)) && wroteAll;
 	if (!scene.passengers.empty()) {
-		wroteAll = writeCanonical("passengers.json", writePassengers(scene)) && wroteAll;
+		wroteAll = writeCanonical("passengers.json", encodePassengers(scene.passengers)) && wroteAll;
 	}
 
 	result.wroteAll = wroteAll && !hasErrors(result.diagnostics);
@@ -736,26 +608,27 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 
 SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
 	SceneSaveResult result;
-	const fs::path destination(sceneDir);
-	const std::string destinationName = destination.filename().string();
+	const fs::path destination = pathFromUtf8(sceneDir);
+	const std::string destinationName = destination.filename().u8string();
 	if (destination.empty() || destinationName.empty() || destinationName == "."
-			|| destinationName == "..") {
+		|| destinationName == "..") {
 		addWriteError(result, sceneDir, "Scene destination must be a named directory");
 		return result;
 	}
 
 	const fs::path parent = destination.parent_path().empty() ? fs::path(".")
-			: destination.parent_path();
+															  : destination.parent_path();
 	std::error_code ec;
+	result.writeAttempted = true;
 	fs::create_directories(parent, ec);
 	if (ec) {
-		addWriteError(result, parent.string(), "Cannot create scene parent directory: " + ec.message());
+		addWriteError(result, parent.u8string(), "Cannot create scene parent directory: " + ec.message());
 		return result;
 	}
 	ec.clear();
 	const auto parentStatus = fs::symlink_status(parent, ec);
 	if (ec || parentStatus.type() != fs::file_type::directory) {
-		addWriteError(result, parent.string(), "Scene destination parent must be a directory");
+		addWriteError(result, parent.u8string(), "Scene destination parent must be a directory");
 		return result;
 	}
 
@@ -763,18 +636,21 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	if (!inspectDestination(destination, hadDestination, result))
 		return result;
 
-	StagingDirectory staging;
-	if (!createUniqueDirectory(parent, destinationName + ".staging-", staging.path)) {
-		addWriteError(result, destination.string(), "Cannot create a private scene staging directory");
+	StagedDirectory staging;
+	ec = createStagedDirectory(parent, destinationName + ".staging-", true, staging);
+	if (ec) {
+		addWriteError(result, destination.u8string(), "Cannot create a private scene staging directory");
 		return result;
 	}
 	if (hadDestination && !copyExistingSceneContents(destination, staging.path, result))
 		return result;
+	const bool stagingAttempted = result.writeAttempted;
 	result = writeSceneGeneration(scene, staging.path);
+	result.writeAttempted = result.writeAttempted || stagingAttempted;
 	if (!result.wroteAll || hasErrors(result.diagnostics))
 		return result;
 
-	const SceneLoadResult staged = loadScene(staging.path.string());
+	const SceneLoadResult staged = loadScene(staging.path.u8string());
 	result.diagnostics.insert(result.diagnostics.end(), staged.diagnostics.begin(), staged.diagnostics.end());
 	if (hasErrors(staged.diagnostics)) {
 		result.wroteAll = false;
@@ -789,44 +665,30 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 
 	fs::path backup;
 	if (hadDestination) {
-		if (!uniqueSiblingPath(parent, destinationName + ".backup-", backup)) {
-			addWriteError(result, destination.string(), "Cannot reserve a private scene backup path");
-			result.wroteAll = false;
-			return result;
-		}
-		ec.clear();
-		fs::rename(destination, backup, ec);
+		ec = uniqueSiblingPath(parent, destinationName + ".backup-", backup);
 		if (ec) {
-			addWriteError(result, destination.string(), "Cannot move the previous scene generation: "
-					+ ec.message());
+			addWriteError(result, destination.u8string(), "Cannot reserve a private scene backup path");
 			result.wroteAll = false;
 			return result;
 		}
 	}
 
-	ec.clear();
-	fs::rename(staging.path, destination, ec);
-	if (ec) {
-		addWriteError(result, destination.string(), "Cannot publish scene generation: " + ec.message());
-		if (hadDestination) {
-			std::error_code restoreError;
-			fs::rename(backup, destination, restoreError);
-			if (restoreError)
-				addWriteError(result, destination.string(), "Cannot restore the previous scene generation: "
-						+ restoreError.message());
-		}
+	const StagedPublishResult published = publishStagedDirectory(staging, destination, backup);
+	if (published.step == StagedPublishStep::MoveToBackup) {
+		addWriteError(result, destination.u8string(), "Cannot move the previous scene generation: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}
-	staging.release();
-
-	if (hadDestination) {
-		ec.clear();
-		fs::remove_all(backup, ec);
-		if (ec)
-			addCleanupWarning(result, backup,
-					"Cannot remove the previous scene generation: " + ec.message());
+	if (published.step == StagedPublishStep::Rename) {
+		addWriteError(result, destination.u8string(), "Cannot publish scene generation: " + published.error.message());
+		if (published.restoreError)
+			addWriteError(result, destination.u8string(), "Cannot restore the previous scene generation: " + published.restoreError.message());
+		result.wroteAll = false;
+		return result;
 	}
+	if (published.removeBackupError)
+		addCleanupWarning(result, backup,
+			"Cannot remove the previous scene generation: " + published.removeBackupError.message());
 
 	result.wroteAll = !hasErrors(result.diagnostics);
 	if (result.wroteAll)

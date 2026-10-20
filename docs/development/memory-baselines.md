@@ -69,9 +69,43 @@ The generated record and raw logs are under
 directory rather than a source directory. `peak-rss.json` contains the exact
 absolute native command argv and output path for each row.
 
-These process-level observations do not identify fixed legacy arrays as the
-source of peak RSS: the smaller Milano-Brescia run peaked slightly higher than
-Copenhagen. No fixed-storage refactor follow-up is justified by this evidence
-alone. A future follow-up requires allocation-level evidence that isolates a
-material fixed-storage cost; this collector intentionally defines no memory
-ceiling or universal threshold.
+Both cases peaked at almost the same value although Milano-Brescia is the much
+smaller network: fixed-size arrays that were allocated for every run, whatever
+the scene, dominated both. The next baseline was recorded after they were
+replaced.
+
+## Baseline recorded 2026-10-09
+
+The runtime arrays are sized from the scene since #463 and #486. The protocol
+was run twice on macOS 27.0.1 (Darwin 27.0.0, arm64) with a Release executable
+built from `main` at `10cf22c`. Other builds were running on the machine at the
+time, so the elapsed times are not those of an idle machine. The peak RSS of
+the two runs differs by 1.6 percent for Copenhagen and 0.9 percent for
+Milano-Brescia.
+
+| Run | Case | Peak RSS (bytes) | Peak RSS (MiB) | Elapsed (s) | Exit |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | Copenhagen | 334,839,808 | 319.3 | 42.293266 | 0 |
+| 1 | Milano-Brescia (`Milano_Brescia`) | 95,256,576 | 90.8 | 2.939590 | 0 |
+| 2 | Copenhagen | 329,695,232 | 314.4 | 48.098261 | 0 |
+| 2 | Milano-Brescia (`Milano_Brescia`) | 96,124,928 | 91.7 | 2.122596 | 0 |
+
+Against the baseline of 2026-08-29 the peak RSS fell from 2,058.0 MiB to about
+319 MiB for Copenhagen and from 2,134.5 MiB to about 91 MiB for Milano-Brescia.
+
+### Idle memory after startup
+
+The idle memory is what the process holds before it has loaded a network. It is
+measured by starting the executable with a scene path that does not exist: the
+process initialises, reports the missing scene and exits.
+
+```text
+/usr/bin/time -l <app> --scene <path-that-does-not-exist> -g 0 -TSM 0 -RC 0
+```
+
+Three runs of the same executable gave a `maximum resident set size` of
+16,662,528, 16,662,528 and 16,695,296 bytes (15.9 MiB) and a
+`peak memory footprint` of 5,341,712, 5,341,712 and 5,374,480 bytes (5.1 MiB).
+Release v1.0.2 reached about 1.7 GB of resident memory in the same start,
+because static constructors touched the fixed arrays before any scene was
+loaded (#463).

@@ -49,11 +49,11 @@ int main() {
 	ok &= expect(pair.pairs[0].minimumHeadway == 15.0, "governing minimum headway uses offsets");
 	ok &= expect(pair.pairs[0].buffer == 5.0, "scheduled buffer is not clamped");
 	ok &= expect(pair.pairs[0].governingEvidence.size() == 1
-		&& pair.pairs[0].governingEvidence[0].leaderBlockId == "2-B0"
-		&& pair.pairs[0].governingEvidence[0].followerBlockId == "2-B0",
+			&& pair.pairs[0].governingEvidence[0].leaderBlockId == "2-B0"
+			&& pair.pairs[0].governingEvidence[0].followerBlockId == "2-B0",
 		"headway retains governing block evidence");
 	const auto tied = analyzeCapacity({train("A", 0.0,
-		{occupation("AB", 0.0, 20.0), occupation("AC", 0.0, 20.0)}),
+										   {occupation("AB", 0.0, 20.0), occupation("AC", 0.0, 20.0)}),
 		train("B", 20.0, {occupation("AB", 5.0, 25.0), occupation("AC", 5.0, 25.0)})});
 	ok &= expect(tied.pairs[0].governingEvidence.size() == 2,
 		"tied governing resources are all retained");
@@ -77,9 +77,8 @@ int main() {
 		train("B", 20.0, {occupation("2-B0", 5.0, 5.0)})});
 	ok &= expect(!zeroDuration.pairs[0].hasSharedConstraint,
 		"zero-duration occupations are rejected consistently with the diagram");
-	const auto nearTouch = analyzeCapacity({
-		train("A", 0.0, {occupation("G", 0.0, 20.0), occupation("X", 0.0, 20.00000005)}),
-		train("B", 20.0, {occupation("G", 5.0, 25.0), occupation("X", 5.0, 25.0)})},
+	const auto nearTouch = analyzeCapacity({train("A", 0.0, {occupation("G", 0.0, 20.0), occupation("X", 0.0, 20.00000005)}),
+											   train("B", 20.0, {occupation("G", 5.0, 25.0), occupation("X", 5.0, 25.0)})},
 		100.0, "B");
 	ok &= expect(nearTouch.conflictFree && nearTouch.criticalBlocks.size() == 2,
 		"touch tolerance is not also classified as an overlap conflict");
@@ -87,21 +86,20 @@ int main() {
 	const std::vector<CapacityAnalysisTrain> sequence = {
 		train("A", 0.0, {occupation("AB", 0.0, 20.0), occupation("AC", 0.0, 100.0)}),
 		train("B", 100.0, {occupation("AB", 0.0, 10.0), occupation("BC", 0.0, 5.0)}),
-		train("C", 30.0, {occupation("AC", 0.0, 50.0), occupation("BC", 0.0, 5.0),
-			occupation("CD", 0.0, 10.0)}),
+		train("C", 30.0, {occupation("AC", 0.0, 50.0), occupation("BC", 0.0, 5.0), occupation("CD", 0.0, 10.0)}),
 		train("D", 120.0, {occupation("CD", 0.0, 5.0)})};
 	const auto before = sequence;
 	const auto compressed = analyzeCapacity(sequence, 200.0, "C");
 	ok &= expect(sequence[0].occupations[0].startOccTime == before[0].occupations[0].startOccTime
-		&& sequence[2].scheduledReferenceTime == before[2].scheduledReferenceTime,
+			&& sequence[2].scheduledReferenceTime == before[2].scheduledReferenceTime,
 		"capacity analysis does not mutate inputs");
 	ok &= expect(compressed.compression.size() == 4
-		&& compressed.compression[1].compressedReference == 20.0
-		&& compressed.compression[2].compressedReference == 100.0
-		&& compressed.compression[3].compressedReference == 110.0,
+			&& compressed.compression[1].compressedReference == 20.0
+			&& compressed.compression[2].compressedReference == 100.0
+			&& compressed.compression[3].compressedReference == 110.0,
 		"compression considers every earlier train");
 	ok &= expect(compressed.compression[2].governingPredecessors.size() == 1
-		&& compressed.compression[2].governingPredecessors[0].predecessorIdentity == "A",
+			&& compressed.compression[2].governingPredecessors[0].predecessorIdentity == "A",
 		"nonadjacent predecessor governs compression");
 	ok &= expect(compressed.conflictFree, "compressed occupations have no overlaps");
 	const auto hasCritical = [&compressed](const char* leaderId, const char* followerId, const char* blockId) {
@@ -112,35 +110,35 @@ int main() {
 			});
 	};
 	ok &= expect(compressed.criticalBlocks.size() == 3 && hasCritical("A", "B", "AB")
-		&& hasCritical("A", "C", "AC") && hasCritical("C", "D", "CD"),
+			&& hasCritical("A", "C", "AC") && hasCritical("C", "D", "CD"),
 		"adjacent and nonadjacent governing touches are retained separately");
 	auto compressedSegments = buildBlockingTimeDiagramSegments(compressed.compressedOccupations,
 		compressed.trainIdentities);
 	restoreCompressedOriginalTimes(compressedSegments, compressed.compression);
 	ok &= expect(!compressedSegments.empty()
-		&& compressedSegments.front().endClearTime == 20.0
-		&& compressedSegments.front().startPositionKm == 0.0
-		&& compressedSegments.front().endPositionKm == 0.1,
+			&& compressedSegments.front().endClearTime == 20.0
+			&& compressedSegments.front().startPositionKm == 0.0
+			&& compressedSegments.front().endPositionKm == 0.1,
 		"compressed adapter retains original clearance and directed spatial endpoints");
 	const auto criticalSegment = std::find_if(compressedSegments.begin(), compressedSegments.end(),
 		[](const BlockingTimeDiagramSegment& segment) {
 			return segment.capacityCritical && segment.blockId == "AB";
 		});
 	ok &= expect(criticalSegment != compressedSegments.end()
-		&& criticalSegment->style != BlockingTimeSegmentStyle::Critical,
+			&& criticalSegment->style != BlockingTimeSegmentStyle::Critical,
 		"touching capacity-critical styling stays distinct from red overlap conflict");
 	ok &= expect(compressedSegments.size() > 2
-		&& compressed.compression[1].scheduledReference == 100.0
-		&& compressed.compression[1].originalReference == 0.0
-		&& compressedSegments[2].trainName == "B"
-		&& compressedSegments[2].startTime == 20.0
-		&& compressedSegments[2].originalStartTime == 0.0
-		&& compressedSegments[2].originalEndTime == 10.0,
+			&& compressed.compression[1].scheduledReference == 100.0
+			&& compressed.compression[1].originalReference == 0.0
+			&& compressedSegments[2].trainName == "B"
+			&& compressedSegments[2].startTime == 20.0
+			&& compressedSegments[2].originalStartTime == 0.0
+			&& compressedSegments[2].originalEndTime == 10.0,
 		"compressed diagram adapter and export evidence undo profile rather than timetable shift");
 	ok &= expect(compressed.cycleTime == 100.0 && compressed.cyclePercentage == 50.0,
 		"explicit cycle endpoint and transparent period percentage are exact");
 	ok &= expect(compressed.firstIdentity == "A" && compressed.cycleEndIdentity == "C"
-		&& compressed.compression.back().identity == "D",
+			&& compressed.compression.back().identity == "D",
 		"cycle endpoint is explicit and independent of the last selected train");
 	const auto missingCycleEnd = analyzeCapacity(sequence, 200.0);
 	ok &= expect(missingCycleEnd.cycleEndIdentity.empty() && missingCycleEnd.cycleTime < 0.0,

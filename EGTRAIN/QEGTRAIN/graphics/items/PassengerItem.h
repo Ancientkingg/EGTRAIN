@@ -8,14 +8,14 @@ class PassengerItem : public QGraphicsPixmapItem {
 	// Q_OBJECT
 
 public:
-	PassengerItem(const QPixmap& pixmap, QGraphicsItem* parent = 0);
-	~PassengerItem();
+	PassengerItem(const QPixmap& pixmap, QGraphicsItem* parent = nullptr);
+	~PassengerItem() override;
 
 	std::string passengerId;
 
 	// to allow cast
 	enum { Type = UserType + 10 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}

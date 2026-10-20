@@ -19,7 +19,6 @@ class TestOwnershipInventory(unittest.TestCase):
         observer_lines = "\n".join(item[2] for item in results["Non-owning pointers"])
         self.assertIn("trainPaxItem", observer_lines)
         self.assertIn("paxIconItem", observer_lines)
-        self.assertIn("TDS_arc", observer_lines)
         self.assertTrue(results["Unclassified raw pointers"])
         for entries in results.values():
             self.assertEqual(entries, sorted(entries, key=lambda item: (item[0], item[1])))
@@ -29,7 +28,7 @@ class TestOwnershipInventory(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "EGTRAIN/QEGTRAIN"
-            (source / "app").mkdir(parents=True)
+            (source / "graphics").mkdir(parents=True)
             (source / "simulation").mkdir()
             fixture = source / "simulation/Fixture.cpp"
             fixture.write_text(
@@ -48,7 +47,7 @@ class TestOwnershipInventory(unittest.TestCase):
                 'new (storage) Widget;\n'
                 'auto text = R"tag(new HiddenWidget; int hidden[900];)tag";\n'
             )
-            (source / "app/MainWindow.h").write_text(
+            (source / "graphics/NetworkPresenter.h").write_text(
                 "class QGraphicsItemGroup;\n"
                 "class TrainItemGroup;\n"
                 "class PassengerItem;\n"

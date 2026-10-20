@@ -1,0 +1,4 @@
+# Format the sources with clang-format (#574)
+5f64379fc61e7f55fffc9e3aa368a55e298236e9
+# Re-wrap statements that the formatter would join into long lines (#571)
+7097e603f963f215180d7cc5b5d298d191a75d3f

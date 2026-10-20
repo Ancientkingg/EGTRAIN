@@ -13,6 +13,25 @@ from unittest import mock
 import measure_peak_rss
 
 
+def process_exited(pid: int) -> bool:
+    """True when no process runs under `pid`; a zombie that nobody reaped has exited."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return True
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8")
+        # The state follows the command name, which is in parentheses and may contain any character.
+        return stat.rpartition(")")[2].split()[0] == "Z"
+    except (OSError, IndexError):
+        pass
+    try:
+        state = subprocess.run(["ps", "-o", "stat=", "-p", str(pid)], capture_output=True, text=True, check=False).stdout
+    except OSError:
+        return False
+    return state.strip().startswith("Z")
+
+
 class TestMacosTimeParser(unittest.TestCase):
     def test_parses_realistic_output(self):
         output = """        0.02 real         0.00 user         0.00 sys
@@ -266,13 +285,28 @@ time.sleep(60)
             child_pid = int(child_pid_file.read_text(encoding="utf-8"))
             deadline = time.monotonic() + 5.0
             while time.monotonic() < deadline:
-                try:
-                    os.kill(child_pid, 0)
-                except ProcessLookupError:
+                if process_exited(child_pid):
                     break
                 time.sleep(0.05)
             else:
                 self.fail(f"spawned child {child_pid} survived process-group timeout")
+
+    @unittest.skipUnless(hasattr(os, "killpg"), "requires POSIX process groups")
+    def test_process_exited_treats_a_zombie_as_exited(self):
+        # A child that nobody waits for stays a zombie after it ends, as an orphan does under a PID 1 that never reaps.
+        zombie = subprocess.Popen([sys.executable, "-c", "pass"])
+        running = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+        try:
+            deadline = time.monotonic() + 10.0
+            while not process_exited(zombie.pid) and time.monotonic() < deadline:
+                time.sleep(0.05)
+            self.assertTrue(process_exited(zombie.pid), "an unreaped child that ended counts as running")
+            self.assertIsNone(zombie.returncode)
+            self.assertFalse(process_exited(running.pid), "a running child counts as exited")
+        finally:
+            running.kill()
+            running.wait()
+            zombie.wait()
 
     def test_run_record_contains_required_schema_fields(self):
         output = Path("/tmp/measurement")

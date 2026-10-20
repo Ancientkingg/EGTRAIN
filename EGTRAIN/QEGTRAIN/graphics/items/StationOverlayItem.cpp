@@ -14,6 +14,16 @@ constexpr qreal kSymbolPixels = 16.0;
 constexpr qreal kLabelPixels = 11.0;
 constexpr qreal kLabelGap = 8.0;
 constexpr qreal kFitCollisionStep = 20.0;
+constexpr qreal kNameCollisionGap = 2.0;
+// A name meets the pictogram of a neighbour at the same height along the artwork line.
+// It covers that pictogram only when they share more than this many pixels both ways.
+constexpr qreal kPictogramOverlapPixels = 2.0;
+
+// Enlarges item by factor about pivot in one change. The item transform acts after the
+// item scale, so pivot is in the coordinates of the scaled item (its parent without pos).
+void enlargeAbout(QGraphicsItem* item, const QPointF& pivot, qreal factor) {
+	item->setTransform(QTransform().translate(pivot.x(), pivot.y()).scale(factor, factor).translate(-pivot.x(), -pivot.y()));
+}
 
 QList<QPointF> fitCollisionCandidates() {
 	return {
@@ -125,8 +135,9 @@ void StationOverlayItem::setFitCollisionOffset(const QPointF& offset) {
 		return;
 	prepareGeometryChange();
 	m_fitCollisionOffset = offset;
-	setAcceptedMouseButtons(!offset.isNull() && m_fitSymbolVisible && m_displacedClickHandler
-		? Qt::LeftButton : Qt::NoButton);
+	setAcceptedMouseButtons(!m_sceneDecoration && !offset.isNull() && m_fitSymbolVisible && m_displacedClickHandler
+			? Qt::LeftButton
+			: Qt::NoButton);
 	update();
 }
 
@@ -135,15 +146,17 @@ void StationOverlayItem::setFitSymbolVisible(bool visible) {
 		return;
 	prepareGeometryChange();
 	m_fitSymbolVisible = visible;
-	setAcceptedMouseButtons(visible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
-		? Qt::LeftButton : Qt::NoButton);
+	setAcceptedMouseButtons(!m_sceneDecoration && visible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
+			? Qt::LeftButton
+			: Qt::NoButton);
 	update();
 }
 
 void StationOverlayItem::setDisplacedClickHandler(std::function<void(const QString&)> handler) {
 	m_displacedClickHandler = std::move(handler);
-	setAcceptedMouseButtons(m_fitSymbolVisible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
-		? Qt::LeftButton : Qt::NoButton);
+	setAcceptedMouseButtons(!m_sceneDecoration && m_fitSymbolVisible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
+			? Qt::LeftButton
+			: Qt::NoButton);
 }
 
 void StationOverlayItem::setSourceIdentities(const QList<SourceIdentity>& identities) {
@@ -268,6 +281,8 @@ QRectF StationOverlayItem::boundingRect() const {
 
 QPainterPath StationOverlayItem::shape() const {
 	QPainterPath path;
+	if (m_sceneDecoration)
+		return path;
 	if (m_fitSymbolVisible)
 		path.addRect(translatedSymbol(m_symbolRect));
 	if (isLabelVisible())
@@ -278,6 +293,8 @@ QPainterPath StationOverlayItem::shape() const {
 void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
+	if (m_sceneDecoration)
+		return;
 	painter->save();
 	painter->translate(m_viewportOffset);
 	const QColor markerColor(210, 215, 220);
@@ -364,6 +381,8 @@ bool StationOverlayItem::priorityLess(const StationOverlayItem& left, const Stat
 		return left.isSelected();
 	if (left.isFollowed() != right.isFollowed())
 		return left.isFollowed();
+	if (left.m_platformCount != right.m_platformCount)
+		return left.m_platformCount > right.m_platformCount;
 	if (left.isInterchange() != right.isInterchange())
 		return left.isInterchange();
 	if (left.isEndpoint() != right.isEndpoint())
@@ -380,6 +399,91 @@ bool StationOverlayItem::priorityLess(const StationOverlayItem& left, const Stat
 	if (!qFuzzyCompare(left.m_stableAnchor.x() + 1.0, right.m_stableAnchor.x() + 1.0))
 		return left.m_stableAnchor.x() < right.m_stableAnchor.x();
 	return left.m_stableAnchor.y() < right.m_stableAnchor.y();
+}
+
+qreal StationOverlayItem::readableItemScale(qreal nativeSizePx, qreal presentationScale,
+	qreal viewScale, qreal minPx) {
+	if (nativeSizePx <= 0.0 || viewScale <= 0.0)
+		return presentationScale;
+	return std::max(presentationScale, minPx / (nativeSizePx * viewScale));
+}
+
+void StationOverlayItem::attachArtwork(QGraphicsPixmapItem* picture, QGraphicsTextItem* name,
+	int platformCount) {
+	m_picture = picture;
+	m_name = name;
+	m_platformCount = std::max(0, platformCount);
+	m_appliedViewScale = 0.0;
+	if (m_picture) {
+		const QPixmap& pixmap = m_picture->pixmap();
+		const QSizeF size = QSizeF(pixmap.size()) / pixmap.devicePixelRatio();
+		m_pictureSceneScale = m_picture->scale() > 0.0 ? m_picture->scale() : 1.0;
+		m_pictureNativePixels = size.height();
+		m_pictureAnchor = m_picture->offset() + QPointF(size.width() / 2.0, size.height());
+	}
+	if (m_name) {
+		const QFont font = m_name->font();
+		m_nameSceneScale = m_name->scale() > 0.0 ? m_name->scale() : 1.0;
+		m_nameNativePixels = font.pixelSize() > 0 ? font.pixelSize() : QFontMetricsF(font).height();
+		m_nameAnchor = QPointF(m_name->boundingRect().width() / 2.0, 0.0);
+	}
+}
+
+void StationOverlayItem::applyViewScale(qreal viewScale) {
+	viewScale = std::abs(viewScale);
+	if (viewScale <= 0.0 || viewScale == m_appliedViewScale)
+		return;
+	m_appliedViewScale = viewScale;
+	if (m_picture) {
+		const qreal scale = readableItemScale(m_pictureNativePixels, m_pictureSceneScale, viewScale, MinPictogramPixels);
+		enlargeAbout(m_picture, m_pictureAnchor * m_pictureSceneScale, scale / m_pictureSceneScale);
+	}
+	if (m_name) {
+		const qreal scale = readableItemScale(m_nameNativePixels, m_nameSceneScale, viewScale, MinNamePixels);
+		enlargeAbout(m_name, m_nameAnchor * m_nameSceneScale, scale / m_nameSceneScale);
+	}
+}
+
+void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>& stations,
+	const QTransform& sceneToViewport) {
+	// Overlaps are tested in device pixels. The priority order uses a fixed reference point,
+	// so panning cannot reorder it.
+	const QTransform scaling(sceneToViewport.m11(), sceneToViewport.m12(),
+		sceneToViewport.m21(), sceneToViewport.m22(), 0.0, 0.0);
+	QList<StationOverlayItem*> ordered;
+	QList<QPair<const StationOverlayItem*, QRectF>> pictograms;
+	for (StationOverlayItem* station : stations) {
+		if (!station)
+			continue;
+		if (station->m_name)
+			ordered.append(station);
+		if (station->m_picture && station->m_picture->isVisible())
+			pictograms.append({station, scaling.mapRect(station->m_picture->sceneBoundingRect())});
+	}
+	std::stable_sort(ordered.begin(), ordered.end(),
+		[](const StationOverlayItem* left, const StationOverlayItem* right) {
+			return priorityLess(*left, *right, QPointF());
+		});
+	QList<QRectF> placed;
+	for (StationOverlayItem* station : ordered) {
+		const QRectF name = scaling.mapRect(station->m_name->sceneBoundingRect());
+		const QRectF rect = name.adjusted(-kNameCollisionGap, -kNameCollisionGap, kNameCollisionGap, kNameCollisionGap);
+		const bool keep = station->isSelected() || station->isFollowed();
+		// A pictogram is never hidden, so a name gives way to the pictogram of any other
+		// station that it covers, as well as to the name of a station that ranks higher.
+		const bool hidden = !keep
+			&& (std::any_of(placed.cbegin(), placed.cend(),
+					[&rect](const QRectF& other) { return rect.intersects(other); })
+				|| std::any_of(pictograms.cbegin(), pictograms.cend(),
+					[&name, station](const QPair<const StationOverlayItem*, QRectF>& pictogram) {
+						const QRectF shared = name.intersected(pictogram.second);
+						return pictogram.first != station && shared.width() > kPictogramOverlapPixels
+							&& shared.height() > kPictogramOverlapPixels;
+					}));
+		station->m_nameHiddenByCollision = hidden;
+		if (!hidden)
+			placed.append(rect);
+	}
 }
 
 void StationOverlayItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {

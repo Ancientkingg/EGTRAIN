@@ -1,4 +1,5 @@
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/CompletedRunData.h"
 #include "util/CsvWriter.h"
 
 #include <algorithm>
@@ -12,11 +13,11 @@ std::map<std::string, std::optional<double>> anchors(const RouteDiagramPath& pat
 	for (const auto& node : path.nodes) {
 		if (!std::isfinite(node.positionKm)) continue;
 		for (const auto& key : {node.nodeId.empty() ? std::string() : "node:" + node.nodeId,
-				node.stationId.empty() ? std::string() : "station:" + node.stationId}) {
+				 node.stationId.empty() ? std::string() : "station:" + node.stationId}) {
 			if (key.empty()) continue;
 			auto inserted = result.emplace(key, node.positionKm);
 			if (!inserted.second && inserted.first->second
-					&& std::abs(*inserted.first->second - node.positionKm) > 1e-7)
+				&& std::abs(*inserted.first->second - node.positionKm) > 1e-7)
 				inserted.first->second.reset();
 		}
 	}
@@ -47,17 +48,18 @@ RouteDiagramProjection buildRouteDiagramProjection(const RouteDiagramPath& sourc
 	std::sort(pairs.begin(), pairs.end());
 	pairs.erase(std::unique(pairs.begin(), pairs.end(), [](const auto& a, const auto& b) {
 		return std::abs(a.first - b.first) < 1e-7 && std::abs(a.second - b.second) < 1e-7;
-	}), pairs.end());
+	}),
+		pairs.end());
 	if (pairs.size() < 2) return {};
 	// A source coordinate cannot identify two different reference positions.
 	for (std::size_t i = 1; i < pairs.size(); ++i)
 		if (std::abs(pairs[i].first - pairs[i - 1].first) < 1e-7
-				&& std::abs(pairs[i].second - pairs[i - 1].second) >= 1e-7)
+			&& std::abs(pairs[i].second - pairs[i - 1].second) >= 1e-7)
 			return {};
 	const bool reverse = pairs.back().second < pairs.front().second;
 	for (std::size_t i = 1; i < pairs.size(); ++i) {
 		if (pairs[i].first <= pairs[i - 1].first
-				|| (reverse ? pairs[i].second >= pairs[i - 1].second : pairs[i].second <= pairs[i - 1].second))
+			|| (reverse ? pairs[i].second >= pairs[i - 1].second : pairs[i].second <= pairs[i - 1].second))
 			return {};
 	}
 	return {false, std::move(pairs)};
@@ -77,6 +79,34 @@ std::optional<double> RouteDiagramProjection::map(double positionKm) const {
 }
 
 
+std::pair<double, double> blockSectionAxisRange(const std::vector<BlockSectionExtent>& extents, const RouteDiagramPath& reference) {
+	double low = 0.0, high = 1.0;
+	if (const auto bounds = blockSectionBounds(extents)) {
+		low = bounds->first;
+		high = bounds->second;
+	} else {
+		bool any = false;
+		for (const auto& node : reference.nodes) {
+			if (!std::isfinite(node.positionKm)) continue;
+			low = any ? std::min(low, node.positionKm) : node.positionKm;
+			high = any ? std::max(high, node.positionKm) : node.positionKm;
+			any = true;
+		}
+	}
+	return {low - 0.01, std::max(low + 0.02, high + 0.01)};
+}
+
+// A stop keeps the canonical node ID and route X assigned by the native operations builder. Never substitute the map X
+// fallback of the node.
+std::optional<double> routeDiagramStopPosition(const CompletedStop& stop,
+	const RouteDiagramPath& source, const RouteDiagramProjection& projection) {
+	if (stop.nodeId.empty()) return {};
+	for (const auto& node : source.nodes)
+		if (node.nodeId == stop.nodeId && std::abs(node.positionKm - stop.routeX) < 1e-6)
+			return projection.map(node.positionKm);
+	return {};
+}
+
 double routeDiagramTrajectoryKm(double positionMeters) {
 	return positionMeters / 1000.0;
 }
@@ -88,7 +118,8 @@ std::string buildRouteDiagramCsv(const std::vector<std::vector<std::string>>& ro
 		if (!row.empty() && std::find(visibleTrainIds.begin(), visibleTrainIds.end(), row.front()) != visibleTrainIds.end())
 			filtered.push_back(row);
 	return csv::makeDocument({"Train", "Reference route", "Source route", "Event", "Station",
-		"Journey order", "Call", "Elapsed time[s]", "Reference route X[km]"}, filtered);
+								 "Journey order", "Call", "Elapsed time[s]", "Reference route X[km]"},
+		filtered);
 }
 
 std::map<double, std::string> routeDiagramStationLabels(const RouteDiagramPath& path) {

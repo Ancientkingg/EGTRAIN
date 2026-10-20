@@ -3,11 +3,13 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from test_ci_workflow import release_pipeline_text
+
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 ENTITY_ASSETS = {
     "icons/station.svg": "resources/icons/station.svg",
-    "icons/train_station.png": "resources/icons/train_station.png",
+    "icons/station-dark.svg": "resources/icons/station-dark.svg",
     "icons/passenger.svg": "resources/icons/passenger.svg",
     "icons/train-passenger.svg": "resources/icons/train-passenger.svg",
     "icons/train-sprinter.svg": "resources/icons/train-sprinter.svg",
@@ -32,12 +34,12 @@ def main() -> None:
         for element in ET.parse(qrc_path).iterfind(".//file")
     }
     source_text = "\n".join(
-        path.read_text(errors="replace")
-        for source_root in (SOURCE_ROOT / "app", SOURCE_ROOT / "graphics")
+        path.read_text(encoding="utf-8", errors="replace")
+        for source_root in (SOURCE_ROOT / "app", SOURCE_ROOT / "graphics", SOURCE_ROOT / "widgets")
         for path in source_root.rglob("*")
         if path.suffix in {".cpp", ".h"}
     )
-    cmake = (ROOT / "CMakeLists.txt").read_text()
+    cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
 
     for alias, relative_path in ASSETS.items():
         if not (SOURCE_ROOT / relative_path).is_file():
@@ -47,6 +49,13 @@ def main() -> None:
         if f'":/{alias}"' not in source_text and alias != "icons/station.svg":
             raise SystemExit(f"application and graphics source do not reference :/{alias}")
 
+    stylesheet = (SOURCE_ROOT / "resources/styles/egtrain.qss").read_text(encoding="utf-8")
+    for alias in re.findall(r"url\(:/([^)]+)\)", stylesheet):
+        if qrc_entries.get(alias) != f"../resources/{alias}":
+            raise SystemExit(f"stylesheet references a resource missing from the qrc: {alias}")
+        if not (SOURCE_ROOT / "resources" / alias).is_file():
+            raise SystemExit(f"stylesheet references a missing asset: {alias}")
+
     if not any(f'":/{alias}"' in source_text for alias in ENTITY_ASSETS):
         raise SystemExit("application and graphics source do not reference an SVG resource")
 
@@ -55,7 +64,7 @@ def main() -> None:
     if "Qt5::Svg" not in cmake:
         raise SystemExit("CMake does not link Qt5::Svg")
 
-    release = (ROOT / ".github/workflows/release.yml").read_text()
+    release = release_pipeline_text()
     if re.search(r"^\s*modules:.*\bqtsvg\b", release, re.MULTILINE):
         raise SystemExit("Windows release job lists qtsvg as an optional module")
     for requirement in ("Qt5Svg.dll", '$dist/imageformats/qsvg.dll'):
@@ -106,7 +115,7 @@ def main() -> None:
     )
     for path in SOURCE_ROOT.rglob("*"):
         if path.suffix in {".cpp", ".h", ".ui", ".qss"}:
-            source = path.read_text(errors="replace")
+            source = path.read_text(encoding="utf-8", errors="replace")
             for pattern in bare_load_patterns:
                 match = pattern.search(source)
                 if match:
