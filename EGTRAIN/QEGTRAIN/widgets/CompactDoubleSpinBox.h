@@ -25,7 +25,7 @@ public:
 		FocusWheel::guard(this);
 	}
 
-	/// The full text, with up to 17 significant digits, while the field has focus, else the compact text.
+	/// The full text, the fewest digits that read back as the value, while the field has focus, else the compact text.
 	QString textFromValue(double value) const override {
 		return hasFocus() ? fullText(value) : compactText(value);
 	}
@@ -69,17 +69,14 @@ protected:
 	}
 
 private:
-	// The value with the fewest digits that read back as the same number, with the prefix and the suffix of the field.
-	// From 1e-4 up to 1e15 it has no exponent.
-	QString shortestValueText() const {
-		const double number = value();
-		const double magnitude = std::fabs(number);
-		const bool plain = magnitude >= 1e-4 && magnitude < 1e15;
-		return prefix() + QString::number(number, plain ? 'f' : 'g', QLocale::FloatingPointShortest) + suffix();
-	}
+	// The full text with the prefix and the suffix of the field.
+	QString shortestValueText() const { return prefix() + fullText(value()) + suffix(); }
 
+	// The value with the fewest digits that read back as the same number. From 1e-4 up to 1e15 it has no exponent.
 	static QString fullText(double value) {
-		return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
+		const double magnitude = std::fabs(value);
+		const bool plain = magnitude >= 1e-4 && magnitude < 1e15;
+		return QString::number(value, plain ? 'f' : 'g', QLocale::FloatingPointShortest);
 	}
 
 	static QString compactText(double value) {
