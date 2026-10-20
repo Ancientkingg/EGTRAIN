@@ -830,12 +830,12 @@ QPushButton#runReviewCancelButton:default:pressed {
     background: #e3eaee;
 }
 
-/* A button that opens a menu keeps room on its right for the arrow. Qt 5 matches the popup mode by its number, 2. */
-QToolButton[popupMode="2"], QToolButton[popupMode="InstantPopup"], QToolButton#runResultsViewsButton {
+/* A button that opens a menu keeps room on its right for the arrow. */
+QToolButton[popupMode="InstantPopup"], QToolButton#runResultsViewsButton {
     padding-right: 20px;
 }
 
-QToolButton[popupMode="2"]::menu-indicator, QToolButton[popupMode="InstantPopup"]::menu-indicator {
+QToolButton[popupMode="InstantPopup"]::menu-indicator {
     subcontrol-origin: padding;
     subcontrol-position: center right;
     right: 6px;
