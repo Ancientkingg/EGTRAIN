@@ -98,7 +98,7 @@ private:
 	void readRequest(QTcpSocket* socket) {
 		QByteArray& buffer = m_pending[socket];
 		buffer += socket->readAll();
-		const int end = buffer.indexOf("\r\n\r\n");
+		const auto end = buffer.indexOf("\r\n\r\n");
 		if (end < 0)
 			return;
 		RecordedRequest request;
@@ -109,7 +109,7 @@ private:
 			request.path = requestLine.at(1);
 		int bodyBytes = 0;
 		for (const QByteArray& line : lines) {
-			const int colon = line.indexOf(':');
+			const auto colon = line.indexOf(':');
 			if (colon < 0)
 				continue;
 			const QByteArray name = line.left(colon).trimmed().toLower();

@@ -43,7 +43,7 @@ inline bool inInstallation(const QString& path, const QString& applicationDir) {
 /// The folder that holds the case at `casePath`, a scene folder or a bundle, or the empty string.
 inline QString folderOfCase(const QString& casePath) {
 	const QString file = absolute(normalized(casePath));
-	const int slash = file.lastIndexOf('/');
+	const auto slash = file.lastIndexOf('/');
 	if (slash < 0)
 		return {};
 	if (slash == 0 || (slash == 2 && file[1] == ':'))

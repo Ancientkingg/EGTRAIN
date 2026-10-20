@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QTemporaryDir>
+#include <QTimeZone>
 
 #include <iostream>
 
@@ -34,20 +35,20 @@ static bool testParse() {
 	bool ok = true;
 	const std::optional<UpdateRecord> record = parseUpdateRecord(kValidRecord);
 	ok &= expect(record && record->version == SemanticVersion{9, 8, 7}, "a valid record gives its version");
-	ok &= expect(record && record->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), Qt::UTC),
+	ok &= expect(record && record->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), QTimeZone::utc()),
 		"a valid record gives its time");
 	ok &= expect(record && record->time.timeSpec() == Qt::UTC, "the time is UTC");
 	ok &= expect(record && record->outcome == UpdateOutcome::RolledBack, "a rolled-back record gives that outcome");
 	const std::optional<UpdateRecord> notApplied = parseUpdateRecord(kNotAppliedRecord);
 	ok &= expect(notApplied && notApplied->outcome == UpdateOutcome::NotApplied
 			&& notApplied->version == SemanticVersion{9, 8, 7}
-			&& notApplied->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), Qt::UTC),
+			&& notApplied->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), QTimeZone::utc()),
 		"a not-applied record gives that outcome, its version and its time");
 
 	const std::optional<UpdateRecord> crlf =
 		parseUpdateRecord("outcome=rolled-back\r\nversion=9.8.7\r\ntime=2026-10-09T12:00:00Z\r\n");
 	ok &= expect(crlf && crlf->version == SemanticVersion{9, 8, 7}
-			&& crlf->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), Qt::UTC),
+			&& crlf->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), QTimeZone::utc()),
 		"a record with CRLF line ends is read");
 	const std::optional<UpdateRecord> reordered =
 		parseUpdateRecord("time=2026-10-09T12:00:00Z\nversion=9.8.7\noutcome=rolled-back");
@@ -226,7 +227,7 @@ static bool testTakeInstaller(const QString& directory) {
 }
 
 static bool testDescribe() {
-	const QDateTime time(QDate(2026, 10, 9), QTime(12, 0, 0), Qt::UTC);
+	const QDateTime time(QDate(2026, 10, 9), QTime(12, 0, 0), QTimeZone::utc());
 	const UpdateRecordText rolledBack =
 		describeUpdateRecord(UpdateRecord{SemanticVersion{9, 8, 7}, time, UpdateOutcome::RolledBack});
 	const UpdateRecordText notApplied =

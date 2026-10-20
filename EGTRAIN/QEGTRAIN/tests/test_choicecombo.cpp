@@ -324,7 +324,7 @@ struct WheelForm {
 				FocusWheel::watch(body);
 		}
 		dialog.show();
-		QApplication::setActiveWindow(&dialog);
+		dialog.activateWindow();
 		QApplication::processEvents();
 		if (kind == FormKind::Watched) {
 			// Fields inside a widget that is added later, the way a table or a tab page adds its editors.

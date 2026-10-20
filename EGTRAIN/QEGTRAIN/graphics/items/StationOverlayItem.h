@@ -117,7 +117,7 @@ public:
 	/// The station stands for a node of the run.
 	bool hasSourceIdentity() const { return !m_sourceIdentities.isEmpty(); }
 	/// The number of nodes of the run that the station stands for.
-	int sourceIdentityCount() const { return m_sourceIdentities.size(); }
+	int sourceIdentityCount() const { return static_cast<int>(m_sourceIdentities.size()); }
 	/// The station stands for the node with this ID on this track line.
 	bool matchesSourceIdentity(double nodeId, int track) const;
 	/// The ID of the first node; 0 without one.

@@ -320,7 +320,7 @@ void TimetableStopsPanel::fitColumns() {
 		for (int row = 0; row < m_table->rowCount(); ++row) {
 			// The delegate reports what its style needs to draw the text whole, which can be more than the advance of the text.
 			const QModelIndex cell = m_table->model()->index(row, column);
-			widest = std::max(widest, m_table->itemDelegate(cell)->sizeHint(option, cell).width());
+			widest = std::max(widest, m_table->itemDelegate()->sizeHint(option, cell).width());
 		}
 		int& width = widths[static_cast<std::size_t>(column)];
 		width = std::max(header->sectionSizeHint(column), clockTime ? widest : std::min(widest, typicalValue));

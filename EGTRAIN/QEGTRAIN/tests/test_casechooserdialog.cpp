@@ -322,12 +322,12 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 		// open nothing, not the case that was selected before.
 		QListWidget* list = shown.dialog.list();
 		list->setFocus();
-		click(list, list->item(texts.size() - 2));
+		click(list, list->item(static_cast<int>(texts.size()) - 2));
 		check(currentText(list) == QLatin1String("Unavailable: gone case") && !shown.dialog.openButton()->isEnabled()
 				&& shown.dialog.selectedPath().isEmpty() && !statusText(shown.dialog).isEmpty(),
 			scenario, "an unavailable row is not selected with a reason and Open disabled");
 		sendKey(list, Qt::Key_Return);
-		doubleClick(list, list->item(texts.size() - 2));
+		doubleClick(list, list->item(static_cast<int>(texts.size()) - 2));
 		check(shown.dialog.isVisible() && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue
 				&& shown.dialog.chosenPath().isEmpty(),
 			scenario, "Enter or a double click on an unavailable row opened a case");

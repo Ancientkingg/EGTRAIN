@@ -40,10 +40,9 @@ add_compile_definitions(_USE_MATH_DEFINES)
 # On Windows, <zmq.hpp> drags in <windows.h>. Tame it so the SDK does not
 # collide with the project: WIN32_LEAN_AND_MEAN trims the include (and drops the
 # legacy winsock.h that fights ZeroMQ's winsock2.h), NOMINMAX drops the min/max
-# macros, NOGDI drops the GDI Arc() that clashes with our class Arc, and
-# _HAS_STD_BYTE=0 resolves the std::byte vs SDK byte ambiguity (std::byte unused).
+# macros, and NOGDI drops the GDI Arc() that clashes with our class Arc.
 if(MSVC)
-    add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX NOGDI _HAS_STD_BYTE=0)
+    add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX NOGDI)
     # MainWindow.cpp exceeds the section limit of a standard object file in RelWithDebInfo builds.
     add_compile_options(/bigobj)
     # Qt 5.15 headers need a macro override to compile with Visual Studio 2026.
@@ -114,6 +113,14 @@ include_directories(${SRC_DIR})
 # --- Dependencies ---
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network Help)
+# Qt 6 defines the qhelpgenerator target in its tools package, Qt 5 in its Help package.
+if(QT_VERSION_MAJOR EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS ToolsTools)
+endif()
+# With Qt 5, _HAS_STD_BYTE=0 resolves the std::byte vs SDK byte ambiguity (std::byte unused). Qt 6 needs std::byte.
+if(MSVC AND QT_VERSION_MAJOR EQUAL 5)
+    add_compile_definitions(_HAS_STD_BYTE=0)
+endif()
 
 # --- ZeroMQ / nlohmann_json ---
 find_package(cppzmq REQUIRED)

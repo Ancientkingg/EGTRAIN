@@ -664,12 +664,14 @@ def main() -> None:
     # random when the new file is still in use. The job puts the DLL directories on PATH instead.
     if "-DVCPKG_APPLOCAL_DEPS=OFF" not in workflow or "installed/x64-windows/bin\" | Out-File -Append" not in workflow:
         missing.append("Windows build without the per-executable DLL copy, with the DLL directories on PATH")
-    # Each platform configures with the option, so a warning in a strict target fails its leg.
-    if workflow.count("cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON") != 3:
+    # Each platform configures with the option, with Qt 5 and with Qt 6, so a warning in a strict target fails its leg.
+    if workflow.count("cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON") != 5:
         missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
     apt_installs = re.findall(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
     apt_packages = [package for install in apt_installs for package in install.replace("\\", " ").split()]
-    if len(apt_installs) != 2 or apt_installs[0] != apt_installs[1]:
+    # The second install is the one of the Linux Qt 6 leg, which gets Qt from the action. The first and the last are the
+    # Qt 5 leg and the leak check.
+    if len(apt_installs) != 3 or apt_installs[0] != apt_installs[-1]:
         missing.append("the same Linux packages in the build and leak check jobs")
     if not apt_packages or any(
         not re.search(rf"(?<![\w.+-]){re.escape(package)}(?![\w.+-])", release_workflow)
@@ -711,8 +713,8 @@ def main() -> None:
         cache_legs != {"macOS": "ccache", "Windows": "sccache", "Linux": "ccache"}
         or "        uses: hendrikmuhs/ccache-action@v1.2\n" not in compiler_cache
         or "          variant: ${{ matrix.cache }}\n" not in compiler_cache
-        or f"          key: ${{{{ matrix.name }}}}{image_key}\n" not in compiler_cache
-        or "          restore-keys: |\n            ${{ matrix.name }}\n" not in compiler_cache
+        or f"          key: ${{{{ matrix.cache-key || matrix.name }}}}{image_key}\n" not in compiler_cache
+        or "          restore-keys: |\n            ${{ matrix.cache-key || matrix.name }}\n" not in compiler_cache
         or re.findall(r"^        if: (.+)$", compiler_cache, re.MULTILINE) != ["needs.changes.outputs.build == 'true'"]
         or any(launcher_flags not in step_block(build_job, name) for name in configure_names)
         or "Set up compiler cache" not in build_step_names
@@ -757,6 +759,22 @@ def main() -> None:
         re.DOTALL,
     ):
         missing.append("Windows image size CTest")
+    # The Qt 6 legs install Qt 6.8.3 with the action on every runner, keep Homebrew's qt@5 out of the macOS prefix and leave out
+    # each test that fails with Qt 6 under a comment that names it. They do not fail the result job yet.
+    qt6_legs = re.findall(r"^ +- name: (\w+), Qt 6\n(?: +[\w-]+: \S+\n)* +qt: 6$", build_job, re.MULTILINE)
+    qt6_excluded = re.search(
+        r" -E '\^\(([\w|]+)(?:\$\{\{ matrix\.qt6-extra-skip \}\})?\)\$'\n", step_block(build_job, "Test (Qt 6)"))
+    qt6_extra = re.findall(r"^ +qt6-extra-skip: '\|([\w|]+)'$", build_job, re.MULTILINE)
+    build_comments = "".join(re.findall(r"^ +# (.*)$", build_job, re.MULTILINE))
+    if (
+        sorted(qt6_legs) != ["Linux", "Windows", "macOS"]
+        or "    continue-on-error: ${{ matrix.qt == 6 }}\n" not in build_job
+        or "          version: '6.8.3'\n          modules: qtcharts\n" not in step_block(build_job, "Install Qt 6")
+        or "qt@5" in step_block(build_job, "Configure (macOS, Qt 6)")
+        or not qt6_excluded
+        or any(name not in build_comments for name in qt6_excluded.group(1).split("|") + "|".join(qt6_extra).split("|"))
+    ):
+        missing.append("Qt 6 legs on macOS, Windows and Linux that are not required yet, with every excluded test explained")
     package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
     package_assembly = (
         'installed/x64-windows/bin/*.dll" $dist/',

@@ -268,7 +268,7 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	// then open an editor on its first cell and lose track of it, so no editor opens while the rows are filled again.
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->clearContents();
-	m_table->setColumnCount(headers.size());
+	m_table->setColumnCount(static_cast<int>(headers.size()));
 	m_table->setHorizontalHeaderLabels(headers);
 	if (current)
 		current->fillRows(*this);

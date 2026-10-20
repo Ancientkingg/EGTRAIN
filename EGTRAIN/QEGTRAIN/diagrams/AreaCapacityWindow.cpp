@@ -101,7 +101,7 @@ QString referenceText(const CapacityAnalysisResult& chain, const std::string& id
 }
 
 QTableWidget* makeTable(QWidget* parent, const QStringList& headers, const std::vector<QStringList>& rows) {
-	auto* table = new QTableWidget(static_cast<int>(rows.size()), headers.size(), parent);
+	auto* table = new QTableWidget(static_cast<int>(rows.size()), static_cast<int>(headers.size()), parent);
 	table->setHorizontalHeaderLabels(headers);
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	table->setSelectionBehavior(QAbstractItemView::SelectRows);

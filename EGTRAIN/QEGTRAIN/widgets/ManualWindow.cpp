@@ -60,6 +60,10 @@ ManualWindow::ManualWindow(const QString& helpFile, QWidget* parent) : QWidget(p
 	// The collection file holds the registration and the search index. A new one for each window needs no cleanup
 	// when the application or the help file changes.
 	m_engine = new QHelpEngine(m_collectionDir.filePath(QStringLiteral("manual.qhc")), this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	// Qt 6 opens a collection file read-only unless told otherwise, and this one is written here.
+	m_engine->setReadOnly(false);
+#endif
 	if (m_collectionDir.isValid() && QFileInfo::exists(helpFile) && m_engine->setupData()
 		&& m_engine->registerDocumentation(helpFile) && m_engine->setupData())
 		m_namespace = QHelpEngineCore::namespaceName(helpFile);

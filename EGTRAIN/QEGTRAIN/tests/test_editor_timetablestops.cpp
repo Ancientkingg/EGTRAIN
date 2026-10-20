@@ -353,7 +353,7 @@ int main(int argc, char** argv) {
 		for (int row = 0; row < table->rowCount(); ++row) {
 			for (int index = 3; index < 5; ++index) {
 				const QModelIndex cell = table->model()->index(row, index);
-				whole = whole && table->itemDelegate(cell)->sizeHint(option, cell).width() <= table->columnWidth(index);
+				whole = whole && table->itemDelegate()->sizeHint(option, cell).width() <= table->columnWidth(index);
 			}
 		}
 		ok &= expect((!dayPrefix || column(table, 3).back().startsWith("+1d ")) && whole,

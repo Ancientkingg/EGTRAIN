@@ -240,7 +240,7 @@ bool TelemetryQueue::prune(const QDateTime& now) {
 	for (Category category : {Category::Usage, Category::Diagnostics}) {
 		auto& list = records(category);
 		const auto before = list.size();
-		for (int i = list.size() - 1; i >= 0; --i)
+		for (auto i = list.size() - 1; i >= 0; --i)
 			if (rollback || list[i].event.occurredAt > now || list[i].event.occurredAt.msecsTo(now) >= kLifetimeMs) list.removeAt(i);
 		if (before != list.size() && !saveCategory(category)) return false;
 	}
@@ -334,8 +334,8 @@ bool TelemetryQueue::purgeOtherStamps(Category category, const QString& currentS
 			|| QString::number(generation) != currentStamp) return false;
 	} else return false;
 	auto& list = records(category);
-	const int oldSize = list.size();
-	for (int i = list.size() - 1; i >= 0; --i)
+	const auto oldSize = list.size();
+	for (auto i = list.size() - 1; i >= 0; --i)
 		if (list[i].stamp != currentStamp) list.removeAt(i);
 	return list.size() == oldSize || saveCategory(category);
 }
@@ -369,7 +369,7 @@ PreparedBatch TelemetryQueue::prepareBatch(Category category, const QString& sta
 bool TelemetryQueue::discardBatch(const BatchToken& token) {
 	if (!healthy() || token.ownershipId != m_ownershipId || token.ids.isEmpty() || token.ids.size() > 50) return false;
 	auto& list = records(token.category);
-	for (int i = list.size() - 1; i >= 0; --i)
+	for (auto i = list.size() - 1; i >= 0; --i)
 		if (list[i].stamp == token.stamp && token.ids.contains(list[i].event.id)) list.removeAt(i);
 	return saveCategory(token.category);
 }

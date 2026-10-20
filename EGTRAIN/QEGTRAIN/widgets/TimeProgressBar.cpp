@@ -31,7 +31,7 @@ void TimeProgressBar::setProgress(int timestep, int totalSteps, long long startO
 
 	const auto formatCount = [](int count) {
 		QString text = QString::number(count);
-		for (int index = text.size() - 3; index > 0; index -= 3)
+		for (auto index = text.size() - 3; index > 0; index -= 3)
 			text.insert(index, QChar(','));
 		return text;
 	};
