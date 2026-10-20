@@ -118,6 +118,7 @@
 #include <QVariant>
 #include <QWheelEvent>
 #include <QWidget>
+#include <QWindow>
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
@@ -137,6 +138,11 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+// QtGui exports this function for Qt Test. It delivers a mouse event as the window system does, so that
+// QGuiApplication::mouseButtons() follows the button and a second press makes a double click.
+Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
+	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
 
 namespace {
 
@@ -4550,6 +4556,26 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!w.m_serviceDock->screen()->availableGeometry().contains(w.m_serviceDock->frameGeometry())
 				|| serviceScroll->horizontalScrollBar()->isVisible())
 				facetFailure(ok, "presentation", "the floated Services dock opens outside the screen or narrower than its content");
+			// A double click on the title of the docked dock floats it inside the screen as well, once the button is released, also
+			// when it last floated past the edge of the screen. Qt keeps the floating geometry of a dock when it is resized.
+			const QRect serviceScreen = w.m_serviceDock->screen()->availableGeometry();
+			w.m_serviceDock->setGeometry(QRect(QPoint(serviceScreen.right() - 100, serviceScreen.top()), w.m_serviceDock->size() - QSize(1, 1)));
+			QApplication::processEvents();
+			w.m_serviceDock->setFloating(false);
+			QApplication::processEvents();
+			const QPoint serviceTitle = w.m_serviceDock->mapTo(&w, QPoint(w.m_serviceDock->width() / 2, w.m_serviceDock->widget()->y() / 2));
+			int clickTime = 1000000;
+			for (const QEvent::Type type : {QEvent::MouseButtonPress, QEvent::MouseButtonRelease, QEvent::MouseButtonPress, QEvent::MouseButtonRelease})
+				qt_handleMouseEvent(w.windowHandle(), serviceTitle, w.mapToGlobal(serviceTitle),
+					type == QEvent::MouseButtonPress ? Qt::LeftButton : Qt::NoButton, Qt::LeftButton, type, Qt::NoModifier, ++clickTime);
+			QElapsedTimer floatWaited;
+			floatWaited.start();
+			while (floatWaited.elapsed() < 2000 && !(w.m_serviceDock->isFloating() && serviceScreen.contains(w.m_serviceDock->frameGeometry()))) {
+				QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+				QThread::msleep(5);
+			}
+			if (!w.m_serviceDock->isFloating() || !serviceScreen.contains(w.m_serviceDock->frameGeometry()))
+				facetFailure(ok, "presentation", "the Services dock floated by a double click opens outside the screen");
 			w.m_serviceDock->setFloating(false);
 			w.m_caseLayersDock->hide();
 			w.resize(1280, 698);
