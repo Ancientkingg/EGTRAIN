@@ -38,7 +38,7 @@ An editor dock, such as Rolling stock units, opens at least as wide as its size 
 
 ## Tables and progress bar
 
-Tables follow [Interface style](../architecture/interface-style.md#tables). Their colours are set in the stylesheet, so a dark system theme does not darken them under the dark text.
+Tables follow [Interface style](interface-style.md#tables). Their colours are set in the stylesheet, so a dark system theme does not darken them under the dark text.
 
 The timetable table colours a delay above 60 s `#81352d`, a delay above 0 s `#74451c` and any other delay `#006400`. Each has a contrast of at least 6.9:1 on both row colours.
 

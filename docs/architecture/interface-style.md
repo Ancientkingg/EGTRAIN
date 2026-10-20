@@ -81,7 +81,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` and `#d
 
 ## Exceptions
 
-- **Network canvas and railway notation:** drawn in code with their own colours and sizes, described in the [network renderer style map](../ui/renderer-style-map.md). Canvas text uses a default `QFont`, not the sheet.
+- **Network canvas and railway notation:** drawn in code with their own colours and sizes, described in the [network renderer style map](renderer-style-map.md). Canvas text uses a default `QFont`, not the sheet.
 - **Chart text:** Qt Charts draws axes, ticks and legends with its own fonts; only the title, brushes and pens are set (`DiagramWindow::applyChartStyle`).
 - **Console:** fixed-pitch text `#dde3e5` on `#12191f`, 13.7:1.
 

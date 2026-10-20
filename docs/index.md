@@ -66,6 +66,7 @@ development/live-sharing
 telemetry/README
 architecture/dialog-presentation
 architecture/main-window-style
+architecture/interface-style
 architecture/renderer-style-map
 architecture/historical-track-comparison
 development/playback-profiling
