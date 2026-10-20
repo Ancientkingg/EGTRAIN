@@ -248,6 +248,25 @@ bool exerciseInvalidChoice() {
 	}
 	return ok;
 }
+
+// A field with focus opens a list that shows each of its items whole, without scrolling.
+bool exercisePopupHeight() {
+	StopForm f(QRect(0, 0, 1280, 800), 1.0, QStringLiteral("p31"));
+	f.mode->setFocus();
+	QApplication::processEvents();
+	bool ok = check(f.mode->hasFocus(), "the planned time display did not take focus, so the test proves nothing");
+	f.mode->showPopup();
+	QApplication::processEvents();
+	QAbstractItemView* list = f.mode->view();
+	ok &= check(list->isVisible() && list->verticalScrollBar()->maximum() == 0, "the list of a field with focus scrolls");
+	for (int row = 0; row < f.mode->count(); ++row) {
+		const QRect item = list->visualRect(f.mode->model()->index(row, 0));
+		ok &= check(item.top() >= 0 && item.bottom() <= list->viewport()->rect().bottom(), "an item of the list of a field with focus is cut");
+	}
+	f.mode->hidePopup();
+	return ok;
+}
+
 // Turns the wheel one step down over target. The event goes to the widget under the pointer, which is the line edit
 // of a spin box. A widget that ignores a wheel event passes it on to its parent, so the event goes up the parents
 // until one accepts it.
@@ -411,8 +430,9 @@ int main(int argc, char** argv) {
 	const bool selection = exerciseSelection();
 	const bool elision = exerciseElision();
 	const bool invalid = exerciseInvalidChoice();
+	const bool popupHeight = exercisePopupHeight();
 	const bool wheelInstalled = exerciseWheel(FormKind::Installed);
 	const bool wheelPlain = exerciseWheel(FormKind::Plain);
 	const bool wheelWatched = exerciseWheel(FormKind::Watched);
-	return small && scaledSmall && large && selection && elision && invalid && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
+	return small && scaledSmall && large && selection && elision && invalid && popupHeight && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
 }
