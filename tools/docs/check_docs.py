@@ -18,14 +18,19 @@ The kinds of finding are:
   json          a json example that is not valid JSON
   dash          a line with an em dash or an en dash
   local-path    a line with an absolute path of a user's machine
+  github-only   a GitHub alert (> [!NOTE]), a <details> element, a link that starts with /, or a link to
+                github.com/Ancientkingg/EGTRAIN/blob/ for a file in the repository
+  heading       a file that does not start with its one # heading, or a heading that skips a level
+
+The heading check skips .github/, whose issue templates start with front matter.
 
 Each finding is printed as path:line: [kind] message, followed by a summary line. The exit code is
 0 when nothing is found, 1 when there are findings and 2 when the check cannot run (Git fails, or
 a document is not valid UTF-8). A bash or sh example that contains a here-document is not checked.
 
 Only inline links [text](target) and images ![alt](target) are read, outside fenced code blocks and
-inline code spans. Reference-style links, autolinks, HTML and setext headings are not read. Links
-with a scheme (https:, mailto:) are never fetched. Nothing is rendered.
+inline code spans. Reference-style links, autolinks, HTML other than <details> and setext headings
+are not read. Links with a scheme (https:, mailto:) are never fetched. Nothing is rendered.
 """
 import argparse
 import json
@@ -47,7 +52,7 @@ EN_DASH = "\u2013"
 
 FENCE_OPEN = re.compile(r"^ *(`{3,}(?=[^`]*$)|~{3,})[ \t]*(\S*)")
 FENCE_CLOSE = re.compile(r"^ *(`{3,}|~{3,})[ \t]*$")
-HEADING = re.compile(r"^ {0,3}#{1,6} +(.*)$")
+HEADING = re.compile(r"^ {0,3}(#{1,6}) +(.*)$")
 CLOSING_HASHES = re.compile(r"(^|[ \t]+)#+[ \t]*$")
 HEADING_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)")
@@ -55,9 +60,12 @@ LINK_TITLE = r"""(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?"""
 LINK = re.compile(r"(!?)\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(\s*(<[^>]*>|[^\s)]*)" + LINK_TITLE + r"\s*\)")
 SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 LOCAL_PATH = re.compile(r"/Users/|/home/[A-Za-z]|[A-Za-z]:[\\/]Users[\\/]")
+ALERT = re.compile(r"^ {0,3}> *\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]", re.IGNORECASE)
+DETAILS = re.compile(r"<details[\s>]", re.IGNORECASE)
+BLOB_LINK = re.compile(r"^https?://github\.com/Ancientkingg/EGTRAIN/blob/[^/]+/([^?#]+)", re.IGNORECASE)
 
 Finding = namedtuple("Finding", "path line kind message")
-Document = namedtuple("Document", "lines anchors links blocks")
+Document = namedtuple("Document", "lines anchors links blocks headings")
 Link = namedtuple("Link", "line image text target")
 Block = namedtuple("Block", "line info body")
 Reference = namedtuple("Reference", "path link target fragment")
@@ -103,7 +111,7 @@ def find_links(text: str, first_line: int):
 
 def parse(text: str) -> Document:
     lines = [line.rstrip("\r") for line in text.split("\n")]
-    anchors, blocks, counts = set(), [], {}
+    anchors, blocks, headings, counts = set(), [], [], {}
     paragraphs, paragraph = [], []  # runs of unfenced, non-blank lines as (number, line)
     fence = None  # marker, line, info word and body lines of the open fenced block
     for number, line in enumerate(lines, 1):
@@ -125,7 +133,8 @@ def parse(text: str) -> Document:
             continue
         heading = HEADING.match(line)
         if heading:
-            title = CLOSING_HASHES.sub("", heading.group(1)).strip()
+            headings.append((number, len(heading.group(1))))
+            title = CLOSING_HASHES.sub("", heading.group(2)).strip()
             if title:
                 base = anchor_of(title)
                 repeats = counts.get(base, 0)
@@ -140,7 +149,7 @@ def parse(text: str) -> Document:
         if numbered_lines:
             prose = CODE_SPAN.sub("_", "\n".join(line for _, line in numbered_lines))
             links.extend(find_links(prose, numbered_lines[0][0]))
-    return Document(lines, anchors, links, blocks)
+    return Document(lines, anchors, links, blocks, headings)
 
 
 def read_document(root, path: str) -> Document:
@@ -273,6 +282,49 @@ def check_local_paths(documents: dict) -> list:
     ]
 
 
+def check_github_only(documents: dict, listed: set) -> list:
+    findings = []
+    for path, document in documents.items():
+        fenced = set()
+        for block in document.blocks:
+            fenced.update(range(block.line, block.line + len(block.body) + 2))
+        for number, line in enumerate(document.lines, 1):
+            prose = "" if number in fenced else CODE_SPAN.sub("_", line)
+            if ALERT.match(prose):
+                findings.append(Finding(path, number, "github-only", "GitHub alert"))
+            if DETAILS.search(prose):
+                findings.append(Finding(path, number, "github-only", "<details> element"))
+        for link in document.links:
+            blob = BLOB_LINK.match(link.target)
+            if link.target.startswith("/"):
+                message = f"link from the repository root: {link.target}"
+            elif blob and unquote(blob.group(1)) in listed:
+                message = f"GitHub link to a file in the repository: {link.target}"
+            else:
+                continue
+            findings.append(Finding(path, link.line, "github-only", message))
+    return findings
+
+
+def check_headings(documents: dict) -> list:
+    findings = []
+    for path, document in documents.items():
+        # The issue templates start with front matter.
+        if path.startswith(".github/"):
+            continue
+        first = next((number for number, line in enumerate(document.lines, 1) if line.strip()), 1)
+        tops = [number for number, level in document.headings if level == 1]
+        if not tops or tops[0] != first:
+            findings.append(Finding(path, first, "heading", "the file does not start with a # heading"))
+        findings += [Finding(path, number, "heading", "a second # heading") for number in tops[1:]]
+        previous = 1
+        for number, level in document.headings:
+            if level > previous + 1:
+                findings.append(Finding(path, number, "heading", f"level {level} heading after level {previous}"))
+            previous = level
+    return findings
+
+
 def check(root, files) -> list:
     """Returns the findings for the listed files, relative to root, sorted by path, line, kind and message."""
     listed = set(files)
@@ -294,6 +346,8 @@ def check(root, files) -> list:
     findings += check_json(documents)
     findings += check_dashes(documents)
     findings += check_local_paths(documents)
+    findings += check_github_only(documents, listed)
+    findings += check_headings(documents)
     return sorted(findings)
 
 

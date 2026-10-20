@@ -129,6 +129,33 @@ class KindTests(TreeTestCase):
         findings = self.landing("```text", f"a {EM_DASH} b", "/Users/someone/project", "```")
         self.assertEqual(findings, [(LANDING, 4, "dash"), (LANDING, 5, "local-path")])
 
+    def test_github_only_markdown_is_reported(self):
+        blob = "https://github.com/Ancientkingg/EGTRAIN/blob/main"
+        files = {
+            LANDING: doc(
+                "# Docs",
+                "",
+                "> [!NOTE]",
+                "> Text.",
+                "",
+                "<details><summary>More</summary>",
+                "",
+                f"[file]({blob}/docs/a.md) [missing]({blob}/docs/gone.md) and `<details>`",
+                "",
+                "[a](a.md)",
+            ),
+            "docs/a.md": doc("# A", "", "```text", "> [!NOTE]", "```"),
+        }
+        self.assertEqual(self.found(files), [(LANDING, line, "github-only") for line in (3, 6, 8)])
+
+    def test_heading_order_is_reported(self):
+        files = {
+            LANDING: doc("Intro", "", "# Docs", "", "### Skipped", "", "# Second", "", "[a](a.md)"),
+            "docs/a.md": doc("## A"),
+        }
+        expected = [(LANDING, 1), (LANDING, 5), (LANDING, 7), ("docs/a.md", 1)]
+        self.assertEqual(self.found(files), [(path, line, "heading") for path, line in expected])
+
     def test_link_message_names_the_target_as_written(self):
         findings = self.findings({LANDING: doc("# Docs", "", "[x](../docs/Missing%20File.md#top)")})
         self.assertEqual(len(findings), 1)
@@ -357,7 +384,8 @@ class ParserTests(TreeTestCase):
 
     def test_target_starting_with_a_slash_is_a_finding(self):
         files = {LANDING: doc("# Docs", "", "[x](/docs/a.md)"), "docs/a.md": doc("# A")}
-        self.assertEqual(self.found(files), [(LANDING, 3, "link"), ("docs/a.md", 1, "unreachable")])
+        expected = [(LANDING, 3, "github-only"), (LANDING, 3, "link"), ("docs/a.md", 1, "unreachable")]
+        self.assertEqual(self.found(files), expected)
 
     def test_link_to_a_directory_that_holds_a_listed_file_is_accepted(self):
         files = {
@@ -448,7 +476,7 @@ class ReferenceTests(TreeTestCase):
             "README.md": doc("# Project"),
             LANDING: doc("# Docs"),
             "notes/todo.md": doc("# Todo"),
-            ".github/ISSUE_TEMPLATE/bug.md": doc("# Bug"),
+            ".github/ISSUE_TEMPLATE/bug.md": doc("---", "name: Bug", "---", "## Steps"),
         }
         self.assertEqual(self.found(files), [])
 

@@ -2407,7 +2407,9 @@ relative links, heading anchors, image references and alt text, images below
 `docs/` that no document uses, documents below `docs/` that `docs/README.md`
 does not reach through links, the syntax of `bash`, `sh` and `json` examples
 (a `bash` or `sh` example with a here-document is skipped), em dashes and en
-dashes, and absolute local paths. It prints one line per finding as
+dashes, absolute local paths, Markdown that only GitHub renders (alerts,
+`<details>`, links that start with `/`, and GitHub links to files in the
+repository), and the heading order (one `#` heading first, no skipped levels). It prints one line per finding as
 `path:line: [kind] message` and exits with 1 when it finds any. It exits with 2
 when it cannot run, for example outside a Git repository. A `json` example must
 be valid JSON, so an excerpt with comments or ellipses takes another info word
