@@ -32,7 +32,7 @@ An editor dock, such as Rolling stock units, opens at least as wide as its size 
 
 ## Tables and progress bar
 
-Every table and list has a light header: `#e3eaee` sections with `#24313a` text in weight 600, padding of 4 by 8 px and a `#c9d3db` line on the right and below each section. The corner button of a table has the same face. The weight is set on the header widget, so the sections are sized with the font that paints them. Rows are white with `#f4f7f9` alternate rows and `#e3eaee` grid lines; the colours are set in the stylesheet, so a dark system theme does not darken them under the dark text. See [Interface style](../architecture/interface-style.md#tables) for the other table rules.
+Every table and list has a light header: `#e3eaee` sections with `#24313a` text in weight 600, padding of 4 by 8 px and a `#c9d3db` line on the right and below each section. The corner button of a table has the same face. Table rows are white with `#f4f7f9` alternate rows and `#e3eaee` grid lines; the colours are set in the stylesheet, so a dark system theme does not darken them under the dark text. See [Interface style](../architecture/interface-style.md#tables) for the other table rules.
 
 The timetable table colours a delay above 60 s `#81352d`, a delay above 0 s `#74451c` and any other delay `#006400`. Each has a contrast of at least 6.9:1 on both row colours.
 

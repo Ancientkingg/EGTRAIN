@@ -9,7 +9,7 @@ The visual specification of the EGTRAIN windows, docks, dialogs and tables. Most
 
 ## Type scale
 
-Sizes are relative to the font of the widget, so they follow a larger platform font, except the three fixed sizes in the sheet.
+Sizes are relative to the font of the widget, so they follow a larger platform font, except the fixed pixel sizes in the sheet (14 px and 11 px).
 
 | Role | Size | Weight | Where |
 | --- | --- | --- | --- |
@@ -73,7 +73,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` and `#d
 
 ## Tables
 
-- The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on `QHeaderView`, not on its sections, so Qt sizes each section with the font it paints and a header is not cut.
+- The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on `QHeaderView`. Qt sizes header sections with the header font but paints them with the body font, so `MainWindow` gives `QHeaderView` the body font in place of the smaller platform header font of macOS, which would cut the titles.
 - Cells are on the field colour with alternate rows and band-coloured grid lines.
 - Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that `DelayAnalysisWindow` and `AreaCapacityWindow` name as numeric. Names, ids, codes and statuses are aligned to the left. Qt 5 cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.
 - Delays in the timetable results are signed and coloured with the delay tokens.
@@ -99,4 +99,4 @@ Both would also have added font files, an OFL notice in three packages and an un
 Remaining concerns:
 
 - Windows and Linux rendering of this look has not been seen yet.
-- Qt 5 has no tabular-figure feature, so numeric alignment relies on right alignment.
+- Digits line up only through right alignment ([tables](#tables)).
