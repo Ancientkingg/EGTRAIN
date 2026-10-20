@@ -573,6 +573,28 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 	}
+	// The energy headers are short with the full name as their tooltip, and every column is as wide as its header and values.
+	const QStringList energyHeaders{"Energy (kWh)", "Energy with regen (kWh)", "Substation (kWh)", "Substation with regen (kWh)"};
+	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
+		"Substation request with regenerative braking (kWh)"};
+	for (int i = 0; i < energyHeaders.size(); ++i) {
+		const auto* header = w.m_runResultsTable->horizontalHeaderItem(7 + i);
+		if (!header || header->text() != energyHeaders[i] || header->toolTip() != energyNames[i]) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results energy header %d\n", 7 + i);
+			QCoreApplication::exit(2);
+			return;
+		}
+	}
+	for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column) {
+		const auto* view = static_cast<const QAbstractItemView*>(w.m_runResultsTable);
+		const int needed = std::max(w.m_runResultsTable->horizontalHeader()->sectionSizeHint(column), view->sizeHintForColumn(column));
+		if (w.m_runResultsTable->columnWidth(column) < needed) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results column %d is %d px wide, its header or a value needs %d\n", column,
+				w.m_runResultsTable->columnWidth(column), needed);
+			QCoreApplication::exit(2);
+			return;
+		}
+	}
 	// Names are left-aligned, numbers and times right-aligned.
 	for (int row = 0; row < w.m_runResultsTable->rowCount(); ++row) {
 		for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column) {
