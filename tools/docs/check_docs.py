@@ -91,7 +91,7 @@ CPP_TOKEN = re.compile(r"//[^\n]*|/\*.*?\*/|'(?:[^'\\\n]|\\.)*'|\"((?:[^\"\\\n]|
 UI_STRING = re.compile(r"<string(?:\s[^>]*)?>([^<]*)</string>")
 CPP_ESCAPE = re.compile(r"\\(.)")
 MNEMONIC = re.compile(r"&(.)")
-KEY = re.compile(r"^((Ctrl|Cmd|Command|Shift|Alt|Option)\+)*(F\d+|Esc|Enter|Return|Tab|Up|Down|Left|Right|.)$|^arrow keys$", re.I)
+KEY = re.compile(r"^((Ctrl|Shift|Alt)\+)*(F\d+|Esc|Enter|Return|Tab|Up|Down|Left|Right|.)$|^arrow keys$", re.I)
 # Names that the application shows but its source does not hold. Qt gives the standard buttons their text:
 # QDialogButtonBox::Ok, Close and RestoreDefaults, QMessageBox::Save, and QMessageBox::Discard, which reads Don't Save on macOS.
 QT_BUTTON_NAMES = {"OK", "Close", "Save", "Don't Save", "Restore Defaults"}
@@ -445,17 +445,19 @@ def source_strings(root, listed) -> set:
 
 
 def check_ui_names(root, listed, documents: dict) -> list:
-    terms = [(path, line, term) for path, document in documents.items() if path.startswith(MANUAL[0]) for line, term in document.bold]
     strings = source_strings(root, listed) | QT_BUTTON_NAMES | SYSTEM_NAMES
     findings = []
-    for path, line, term in terms:
-        heading = term.endswith(":") or (term.endswith(".") and not term.endswith("..."))
-        if heading or KEY.match(term):
+    for path, document in documents.items():
+        if not path.startswith(MANUAL[0]):
             continue
-        for part in term.split(" > "):
-            named = part in strings or part + ":" in strings or (part.endswith("...") and part[:-3] in strings)
-            if not named:
-                findings.append(Finding(path, line, "ui-name", f"not a string of the application: {part}"))
+        for line, term in document.bold:
+            heading = term.endswith(":") or (term.endswith(".") and not term.endswith("..."))
+            if heading or KEY.match(term):
+                continue
+            for part in term.split(" > "):
+                named = part in strings or part + ":" in strings or (part.endswith("...") and part[:-3] in strings)
+                if not named:
+                    findings.append(Finding(path, line, "ui-name", f"not a string of the application: {part}"))
     return findings
 
 
