@@ -266,7 +266,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series. Chart replacement clears it. </p>
+<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears it. </p>
 
 </div>
 </div>
@@ -284,7 +284,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows the chart and takes ownership of it. The navigation help is built from the series the chart has when it is set. </p>
+<p>Shows the chart and takes ownership of it. Numeric axes that keep the ticks Qt gives them get ticks on round values. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set: the "layer" property of a series, else planned or simulated by its name. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -479,7 +479,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus <span class="tt">startOffsetSeconds</span>, the clock time of second 0 in seconds since midnight. False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller; reset restores the bounds at setChart. </p>
+<p>Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus <span class="tt">startOffsetSeconds</span>, the clock time of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is in range. False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller; reset restores the bounds at setChart. </p>
 
 </div>
 </div>
