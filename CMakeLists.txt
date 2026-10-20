@@ -1517,10 +1517,9 @@ if(EGTRAIN_BUILD_TESTS)
 			egtrain_add_visual_polish_smoke(live 35 300 dpr1 color dpr2)
 			egtrain_add_visual_polish_smoke(stations 30 240 stations)
 			# Takes the pictures of docs/images into a temporary folder and checks that each has the size that
-			# docs/images/captures.json gives. Pixels are not compared, because fonts differ between systems. It is
-			# disabled until the pictures, which predate the current dialog style, are taken again in one go. The
-			# pictures are taken with Qt 5, so a Qt 6 build should not run it then either: the offscreen font of Qt 6
-			# has another height, and dialogs take their size from it.
+			# docs/images/captures.json gives. Pixels are not compared, because fonts differ between systems. The
+			# pictures predate the current dialog style and were taken with Qt 5, whose offscreen font has another height,
+			# and dialogs take their size from it, so the test stays disabled until the pictures are taken again.
 			add_test(NAME test_capture_screenshots
 				COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/docs/capture_screenshots.sh --sizes)
 			set_tests_properties(test_capture_screenshots PROPERTIES
