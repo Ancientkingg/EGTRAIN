@@ -50,7 +50,7 @@ EGTRAIN has one light look, also when the system uses a dark appearance. On macO
 
 A focused push button shows a 2 px `#2e7491` border and no rectangle around its text. The filled default button of a dialog shows focus as a 2 px `#0b2430` border. In **Run simulation** only **Run simulation** is filled: **Cancel** keeps the plain face when it has the focus, although Enter then presses it.
 
-A button that opens a menu, such as **Open result view...** in Run Results and **Trains** in a result window, keeps 20 px on its right for the arrow. **Trains**, **Occurrences** and **Stations** in the result windows have the white face, border, radius and states of the push buttons beside them, and the padding of a tool button, so the top bar of a result window keeps its height. A drop-down list, such as the train list beside **Follow**, draws its arrow without a frame of its own.
+A button that opens a menu, such as **Open result view...** in Run Results and **Trains** in a result window, keeps 20 px on its right for the arrow. **Trains**, **Occurrences** and **Stations** in the result windows have the white face, border, radius, states, height and font size of the push buttons beside them. macOS gives a tool button a smaller font, so `TrainFilterButton` takes the application font. A drop-down list, such as the train list beside **Follow**, draws its arrow without a frame of its own.
 
 ## Tables and progress bar
 

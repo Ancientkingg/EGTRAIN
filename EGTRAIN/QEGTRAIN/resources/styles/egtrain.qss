@@ -329,10 +329,16 @@ QToolButton#runResultsViewsButton:focus {
     padding: 4px 19px 4px 6px;
 }
 
-/* The buttons that choose the trains, occurrences or stations of a result window keep the padding of a tool button, with
-   20 px on their right for the arrow, and so their size. */
+/* The buttons that choose the trains, occurrences or stations of a result window are as tall as the push buttons beside
+   them, with 20 px on their right for the arrow. A tool button is 3 px taller than its text and padding, so these have
+   4 px above the text and 3 px below it, which puts the text at the height of the text of a push button. */
+QDialog TrainFilterButton {
+    min-height: 0;
+    padding: 4px 20px 3px 6px;
+}
+
 QDialog TrainFilterButton:focus {
-    padding: 2px 19px 2px 5px;
+    padding: 3px 19px 2px 5px;
 }
 
 QComboBox:focus, QLineEdit:focus, QAbstractSpinBox:focus {
