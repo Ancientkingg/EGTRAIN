@@ -342,8 +342,8 @@ packages installed and the Qt 5.15 <code class="docutils literal notranslate"><s
 </pre></div>
 </div>
 <p>CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
-one the packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, in jobs that are not
-required yet and without the tests that still fail with Qt 6, which <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code> lists.
+one the packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request must
+pass those jobs too.
 CMake searches a folder in <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> before the system folders, so the examples above use Qt 5
 even when Qt 6 is installed elsewhere. To try Qt 6, configure a separate build
 folder with <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> set to the Qt 6 folder, for example <code class="docutils literal notranslate"><span class="pre">~/Qt/6.8.3/macos</span></code>. With Homebrew, add
