@@ -490,7 +490,7 @@ var searchData=
   ['showblockingtimediagram_487',['showBlockingTimeDiagram',['../class_result_views.html#aa9e252a043e4690bee758082e1f58722',1,'ResultViews']]],
   ['showcapacityanalysis_488',['showCapacityAnalysis',['../class_result_views.html#a9f539b64e7342aee59d626baebfd8617',1,'ResultViews']]],
   ['showdelayanalysis_489',['showDelayAnalysis',['../class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0',1,'ResultViews']]],
-  ['showdelaycomparison_490',['showDelayComparison',['../class_run_controller.html#a79232c79c291ccc00866c147ea876fc5',1,'RunController']]],
+  ['showdelaycomparison_490',['showDelayComparison',['../class_result_views.html#ab69f276ad826f38e008da0d7f935ff9a',1,'ResultViews']]],
   ['showdelaydiagram_491',['showDelayDiagram',['../class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071',1,'ResultViews']]],
   ['showerror_492',['showError',['../class_user_prompts.html#a577030d596229c409a5bd863b50327f4',1,'UserPrompts']]],
   ['showevent_493',['showEvent',['../class_main_window.html#a42ada5bd809f34d0c4a46837eb440d80',1,'MainWindow']]],

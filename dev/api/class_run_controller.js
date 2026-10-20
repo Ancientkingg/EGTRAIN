@@ -45,7 +45,6 @@ var class_run_controller =
     [ "setPassengerGui", "class_run_controller.html#a2a96a681e6d790e2ffa4d2885d0133e8", null ],
     [ "setStartOffsetSeconds", "class_run_controller.html#a25b675fa944459154a84a85060bf428b", null ],
     [ "settingsCaseName", "class_run_controller.html#a7067864027cd0bacf4dd54dccee5d36d", null ],
-    [ "showDelayComparison", "class_run_controller.html#a79232c79c291ccc00866c147ea876fc5", null ],
     [ "startOffsetSeconds", "class_run_controller.html#a27141eef74890a579818d7f2ce934d4d", null ],
     [ "startSimulation", "class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51", null ],
     [ "stopRequested", "class_run_controller.html#a1ac70e812eeef72f529a7ebf1ded8395", null ],

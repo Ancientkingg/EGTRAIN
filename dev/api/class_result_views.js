@@ -9,6 +9,7 @@ var class_result_views =
     [ "showBlockingTimeDiagram", "class_result_views.html#aa9e252a043e4690bee758082e1f58722", null ],
     [ "showCapacityAnalysis", "class_result_views.html#a9f539b64e7342aee59d626baebfd8617", null ],
     [ "showDelayAnalysis", "class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0", null ],
+    [ "showDelayComparison", "class_result_views.html#ab69f276ad826f38e008da0d7f935ff9a", null ],
     [ "showDelayDiagram", "class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071", null ],
     [ "showSpeedDistanceDiagram", "class_result_views.html#aac25495cbc2eeebd47d6343d7494868a", null ],
     [ "showSpeedTimeDiagram", "class_result_views.html#a0f3f690fe5e7f9f99d753b5afaff1f1c", null ],
