@@ -20,8 +20,6 @@ This page lists the keys that EGTRAIN sets, grouped as the menus are. On macOS, 
 | **Edit > Find...** | Ctrl+F | ⌘F |
 | **Edit > Preferences...** | none | ⌘, as **EGTRAIN > Preferences...** |
 
-The entries **Undo** and **Redo** add the name of the edit that they revert or repeat.
-
 ## View
 
 | Entry | Windows and Linux | macOS |
@@ -32,7 +30,7 @@ The entries **Undo** and **Redo** add the name of the edit that they revert or r
 | **View > Console Log** | Ctrl+Shift+L | ⇧⌘L |
 | **View > Scene Validation** | Ctrl+Shift+V | ⇧⌘V |
 
-**Zoom In**, **Zoom Out** and **Fit** are also buttons of the toolbar and act on the network view. **Follow** has no shortcut.
+**Follow** has no shortcut.
 
 ## Simulation
 
@@ -42,7 +40,7 @@ The entries **Undo** and **Redo** add the name of the edit that they revert or r
 | **Simulation > Pause** | Ctrl+. | ⌘. |
 | **Simulation > Stop** | Ctrl+Esc | ⌘⎋ |
 
-**Run**, **Pause** and **Stop** are also buttons of the toolbar. While a run is paused, **Pause** reads **Resume** and the same key resumes it.
+While a run is paused, **Pause** reads **Resume** and the same key resumes it. Windows takes Ctrl+Esc to open the Start menu, so on Windows use the **Stop** button of the toolbar or the menu.
 
 ## Help
 
@@ -50,7 +48,7 @@ The entries **Undo** and **Redo** add the name of the edit that they revert or r
 | --- | --- | --- |
 | **Help > EGTRAIN Manual** | F1 | F1, and ⌘? |
 
-F1 works in every window of EGTRAIN and opens the section of the manual about the window you are in, when the manual has one. On macOS the system takes ⌘? to search the **Help** menu, so use F1 there.
+F1 opens the section of the manual about the window you are in, when the manual has one. It does not work while a dialog is open. On macOS the system takes ⌘? to search the **Help** menu, so use F1 there.
 
 ## Find
 
@@ -75,6 +73,12 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Settings** | **OK** | **Cancel** |
 | **Reference route** | **OK** | **Cancel** |
 | **About EGTRAIN** | **Close** | **Close** |
+| **Unsaved Scene** | **Save** | **Cancel** |
+| **Save Scene As Folder** | **No** | **No** |
+| **Import Legacy Case** | **No** | **No** |
+| **Automatically Check for EGTRAIN Updates?** | **Check Automatically** | **Don't Check Automatically** |
+| EGTRAIN *version* is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
+| **Linked source changed** | **Keep local** | **Keep local** |
 
 ## Result windows
 
