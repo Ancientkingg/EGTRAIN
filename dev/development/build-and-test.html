@@ -2910,7 +2910,9 @@ relative links, heading anchors, image references and alt text, images below
 <code class="docutils literal notranslate"><span class="pre">docs/</span></code> that no document uses, documents below <code class="docutils literal notranslate"><span class="pre">docs/</span></code> that <code class="docutils literal notranslate"><span class="pre">docs/README.md</span></code>
 does not reach through links, the syntax of <code class="docutils literal notranslate"><span class="pre">bash</span></code>, <code class="docutils literal notranslate"><span class="pre">sh</span></code> and <code class="docutils literal notranslate"><span class="pre">json</span></code> examples
 (a <code class="docutils literal notranslate"><span class="pre">bash</span></code> or <code class="docutils literal notranslate"><span class="pre">sh</span></code> example with a here-document is skipped), em dashes and en
-dashes, and absolute local paths. It prints one line per finding as
+dashes, absolute local paths, Markdown that only GitHub renders (alerts,
+<code class="docutils literal notranslate"><span class="pre">&lt;details&gt;</span></code>, links that start with <code class="docutils literal notranslate"><span class="pre">/</span></code>, and GitHub links to files in the
+repository), and the heading order (one <code class="docutils literal notranslate"><span class="pre">#</span></code> heading first, no skipped levels). It prints one line per finding as
 <code class="docutils literal notranslate"><span class="pre">path:line:</span> <span class="pre">[kind]</span> <span class="pre">message</span></code> and exits with 1 when it finds any. It exits with 2
 when it cannot run, for example outside a Git repository. A <code class="docutils literal notranslate"><span class="pre">json</span></code> example must
 be valid JSON, so an excerpt with comments or ellipses takes another info word
