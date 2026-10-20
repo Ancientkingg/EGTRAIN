@@ -36,6 +36,9 @@ inline int heightForContent(QDialog& dialog, int width) {
 	const QMargins margins = layout->contentsMargins();
 	const int innerWidth = width - margins.left() - margins.right();
 	const int frame = 2 * scroll->frameWidth();
+	// A vertical scroll bar that shows stays until the content fits at the width beside it, so the content is measured
+	// at that width.
+	const int scrollBar = scroll->verticalScrollBar()->isVisible() ? scroll->width() - frame - scroll->viewport()->width() : 0;
 	int height = margins.top() + margins.bottom();
 	int shown = 0;
 	for (int i = 0; i < layout->count(); ++i) {
@@ -45,7 +48,7 @@ inline int heightForContent(QDialog& dialog, int width) {
 		++shown;
 		if (item->widget() == scroll) {
 			QWidget* content = scroll->widget();
-			height += frame + (content->hasHeightForWidth() ? content->heightForWidth(innerWidth - frame) : content->sizeHint().height());
+			height += frame + (content->hasHeightForWidth() ? content->heightForWidth(innerWidth - frame - scrollBar) : content->sizeHint().height());
 		} else {
 			height += item->hasHeightForWidth() ? item->heightForWidth(innerWidth) : item->sizeHint().height();
 		}
