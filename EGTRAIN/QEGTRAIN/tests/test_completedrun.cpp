@@ -41,6 +41,8 @@
 #include <QScrollBar>
 #include <QHeaderView>
 #include <QImage>
+#include <QKeyEvent>
+#include <QProxyStyle>
 #include <QTableWidget>
 #include <QTemporaryDir>
 #include <QTimer>
@@ -1541,6 +1543,46 @@ void testScopeDialogsWithLongIds() {
 	QApplication::setFont(original);
 }
 
+// The order of the footer and the focus policy of its buttons on macOS, where Cancel comes first.
+class MacFooterStyle : public QProxyStyle {
+public:
+	MacFooterStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		if (hint == SH_DialogButtonLayout)
+			return QDialogButtonBox::MacLayout;
+		if (hint == SH_Button_FocusPolicy)
+			return Qt::TabFocus;
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
+
+// With the footer of macOS the scope dialog opens with OK as the default and the focus on the route. Cancel with the
+// focus leaves the default to OK, so Return accepts. Runs last: it changes the application style.
+void testScopeDialogMacFooter() {
+	QApplication::setStyle(new MacFooterStyle);
+	BlockingTimeScopeChoices choices;
+	choices.caseEndSeconds = 600.0;
+	choices.routes = {{"r0", "north", {"a", "b"}}};
+	BlockingTimeScope scope = defaultBlockingTimeScope(choices.caseEndSeconds);
+	const bool accepted = askScope(choices, scope, [](QDialog& dialog) {
+		QApplication::processEvents();
+		auto* buttons = dialog.findChild<QDialogButtonBox*>();
+		QPushButton* okButton = buttons ? buttons->button(QDialogButtonBox::Ok) : nullptr;
+		QPushButton* cancelButton = buttons ? buttons->button(QDialogButtonBox::Cancel) : nullptr;
+		check(okButton && cancelButton, "the scope dialog has OK and Cancel");
+		if (!okButton || !cancelButton)
+			return;
+		check(dialog.focusWidget() == dialog.findChildren<QComboBox*>().value(0), "the route has the focus when the scope dialog opens");
+		check(okButton->isDefault() && !cancelButton->isDefault(), "OK is the default button of the scope dialog and Cancel is not");
+		cancelButton->setFocus(Qt::TabFocusReason);
+		QApplication::processEvents();
+		check(okButton->isDefault() && !cancelButton->isDefault(), "Cancel with the focus leaves the default to OK");
+		QKeyEvent enter(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+		QApplication::sendEvent(cancelButton, &enter);
+	});
+	check(accepted, "Return accepts the scope dialog while Cancel has the focus");
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1594,6 +1636,7 @@ int main(int argc, char** argv) {
 	testCapacityDialog();
 	testFullTableImage();
 	testScopeDialogsWithLongIds();
+	testScopeDialogMacFooter();
 
 	if (failures)
 		std::cerr << failures << " checks failed\n";

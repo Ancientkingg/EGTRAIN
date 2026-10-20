@@ -544,8 +544,8 @@ QMenu::separator {
     margin: 4px 0;
 }
 
-/* Cancel of Run simulation becomes the default while it has the focus; it keeps the plain face, so only the run button
-   is filled. */
+/* Outside a macOS footer, Cancel of Run simulation becomes the default while it has the focus; it keeps the plain face,
+   so only the run button is filled. */
 QPushButton#runReviewCancelButton:default {
     background: #ffffff;
     border: 1px solid #315a70;

@@ -367,6 +367,9 @@ bool exerciseWheel(FormKind kind) {
 		: kind == FormKind::Plain					 ? QStringLiteral("plain scroll area: ")
 													 : QStringLiteral("watched form: ");
 	bool ok = check(f.scroll->verticalScrollBar()->maximum() > 0, qPrintable(form + "the wheel form does not scroll, so the test proves nothing"));
+	// An installed form opens with the focus on its first field.
+	if (QWidget* focused = QApplication::focusWidget())
+		focused->clearFocus();
 	for (QWidget* field : f.fields()) {
 		const QString name = form + field->metaObject()->className();
 		const QString before = f.value(field);

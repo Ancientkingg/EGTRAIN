@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QAbstractButton>
+#include <QAbstractItemView>
 #include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -8,11 +9,13 @@
 #include <QGuiApplication>
 #include <QLabel>
 #include <QLayout>
+#include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStyle>
 #include <QTimer>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QtGlobal>
 
@@ -63,6 +66,8 @@ inline int heightForContent(QDialog& dialog, int width) {
 /// boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls
 /// the body. The footer buttons are styled again, because the caller named them and made one
 /// the default after they were built, and a style cached by then misses the rules that name it.
+/// The first field of body takes the focus, else the default button, so that the dialog opens with
+/// the default that the caller chose. In a footer laid out for macOS the buttons are not auto default.
 inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	const QString& context, QWidget* body,
 	QDialogButtonBox* actions,
@@ -128,10 +133,35 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		});
 	layout->addWidget(scroll, 1);
 	layout->addWidget(actions);
+	// In a footer laid out for macOS a footer button that gets the focus does not take the default, as in native dialogs,
+	// so Return still presses the default button. Elsewhere it does, and Return presses that button.
+	const bool macFooter = actions->style()->styleHint(QStyle::SH_DialogButtonLayout, nullptr, actions) == QDialogButtonBox::MacLayout;
+	// The button that is the default when the dialog opens: the one the caller chose, else the first accept button,
+	// which the button box makes the default when it is shown.
+	QPushButton* defaultButton = nullptr;
 	for (QAbstractButton* button : actions->buttons()) {
+		auto* push = qobject_cast<QPushButton*>(button);
+		if (push && macFooter)
+			push->setAutoDefault(false);
+		if (push && (push->isDefault() || (!defaultButton && actions->buttonRole(push) == QDialogButtonBox::AcceptRole)))
+			defaultButton = push;
 		button->style()->unpolish(button);
 		button->style()->polish(button);
 	}
+	// The first field of the body takes the focus, else the default button. Otherwise Qt 5 gives the focus to the button
+	// box, which comes first in the focus chain and passes it to the first button of its layout, Cancel on macOS, and
+	// that button takes the default while it has the focus. An item view is not taken, because one without a current
+	// row makes its first row current when it gets the focus.
+	QWidget* focus = defaultButton;
+	for (QWidget* widget = body->nextInFocusChain(); body->isAncestorOf(widget); widget = widget->nextInFocusChain()) {
+		if ((widget->focusPolicy() & Qt::TabFocus) && widget->isEnabled() && widget->isVisibleTo(&dialog)
+			&& !qobject_cast<QPushButton*>(widget) && !qobject_cast<QToolButton*>(widget) && !qobject_cast<QAbstractItemView*>(widget)) {
+			focus = widget;
+			break;
+		}
+	}
+	if (focus)
+		focus->setFocus();
 
 	// The scroll viewport, not its content, determines the dialog's minimum size.
 	// Reserve room for window decorations and keep the footer outside the viewport.
