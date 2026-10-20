@@ -178,6 +178,31 @@ bool exercise(const QRect& screen, qreal scale) {
 	return ok;
 }
 
+// Without a field in the body the default button has the focus. Tab moves it to the next footer button and Space presses
+// that button.
+bool exerciseFooterKeys() {
+	QDialog dialog;
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	DialogLayout::install(dialog, QStringLiteral("Choose case"), QString(), new QWidget, buttons, QRect(0, 0, 1280, 800));
+	dialog.show();
+	dialog.activateWindow();
+	QApplication::processEvents();
+	QPushButton* okButton = buttons->button(QDialogButtonBox::Ok);
+	QPushButton* cancelButton = buttons->button(QDialogButtonBox::Cancel);
+	bool ok = check(okButton->hasFocus() && okButton->isDefault() && !cancelButton->isDefault(), "OK does not have the focus and the default");
+	QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+	QApplication::sendEvent(okButton, &tab);
+	ok &= check(cancelButton->hasFocus(), "Tab does not move from OK to Cancel");
+	QKeyEvent spacePress(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, QStringLiteral(" "));
+	QKeyEvent spaceRelease(QEvent::KeyRelease, Qt::Key_Space, Qt::NoModifier, QStringLiteral(" "));
+	QApplication::sendEvent(cancelButton, &spacePress);
+	QApplication::sendEvent(cancelButton, &spaceRelease);
+	ok &= check(dialog.result() == QDialog::Rejected && !dialog.isVisible(), "Space does not press the focused Cancel");
+	return ok;
+}
+
 // An installed dialog whose body is a plain widget of a given height.
 struct Opened {
 	QDialog dialog;
@@ -939,6 +964,7 @@ int main(int argc, char** argv) {
 	const bool small = exercise(QRect(0, 0, 1280, 800), 1.0);
 	const bool scaledSmall = exercise(QRect(0, 0, 1280, 800), 1.5);
 	const bool large = exercise(QRect(0, 0, 1920, 1080), 1.5);
+	const bool footerKeys = exerciseFooterKeys();
 	const bool contentHeight = exerciseContentHeight(1.0) && exerciseContentHeight(1.5);
 	const bool contextHeight = exerciseContextHeight(1.0) && exerciseContextHeight(1.5);
 	const bool statusAfterOpen = exerciseStatusAfterOpen(1.0) && exerciseStatusAfterOpen(1.5);
@@ -954,7 +980,7 @@ int main(int argc, char** argv) {
 	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
-	return small && scaledSmall && large && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
+	return small && scaledSmall && large && footerKeys && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
 			&& scaledDefaultWidth
 		? 0
 		: 1;
