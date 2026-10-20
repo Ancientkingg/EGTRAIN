@@ -622,9 +622,6 @@ endif()
 
 if(WIN32)
     set_target_properties(QEGTRAIN PROPERTIES WIN32_EXECUTABLE TRUE)
-    if(TARGET Qt::WinMain)
-        target_link_libraries(QEGTRAIN PRIVATE Qt::WinMain)
-    endif()
     # The main thread gets the 8 MiB it has on macOS and Linux. The reserve of an executable is
     # also the stack size of each thread that is started without one, so only the application
     # has it and the other executables keep the linker default.
