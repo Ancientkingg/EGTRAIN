@@ -61,14 +61,13 @@ jobs:
         run: python3 tools/docs/check_docs.py
 
   # A skipped matrix job is listed under its unexpanded name, so the legs always start and each step checks the output
-  # of the changes job. The Qt 6 legs build and test the same sources with Qt 6.8. They are not required yet: a failure
-  # shows on the pull request but does not fail the result job.
+  # of the changes job. The Qt 6 legs build and test the same sources with Qt 6.8, and the result job counts them like the
+  # Qt 5 legs.
   build:
     name: build (${{ matrix.name }})
     needs: changes
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
-    continue-on-error: ${{ matrix.qt == 6 }}
     strategy:
       fail-fast: false
       matrix:

@@ -3142,14 +3142,12 @@ Q_GUI_EXPORT bool qt_sendShortcutOverrideEvent(QObject* o, ulong timestamp, int 
 bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& failure) {
 	const auto key = [](QObject* receiver, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
 		// A shortcut goes first, as with a real key press: Qt 6 no longer looks for one when a key event is sent.
-		if (qt_sendShortcutOverrideEvent(receiver, 0, code, modifiers)) {
-			QApplication::processEvents();
-			return;
+		if (!qt_sendShortcutOverrideEvent(receiver, 0, code, modifiers)) {
+			QKeyEvent press(QEvent::KeyPress, code, modifiers);
+			QKeyEvent release(QEvent::KeyRelease, code, modifiers);
+			QApplication::sendEvent(receiver, &press);
+			QApplication::sendEvent(receiver, &release);
 		}
-		QKeyEvent press(QEvent::KeyPress, code, modifiers);
-		QKeyEvent release(QEvent::KeyRelease, code, modifiers);
-		QApplication::sendEvent(receiver, &press);
-		QApplication::sendEvent(receiver, &release);
 		QApplication::processEvents();
 	};
 	const auto targetLabelled = [&w](const QString& prefix) {

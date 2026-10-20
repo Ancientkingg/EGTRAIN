@@ -760,16 +760,16 @@ def main() -> None:
     ):
         missing.append("Windows image size CTest")
     # The Qt 6 legs install Qt 6.8.3 with the action on every runner, keep Homebrew's qt@5 out of the macOS prefix and run
-    # the same tests as the Qt 5 legs. They do not fail the result job yet.
+    # the same tests as the Qt 5 legs. The result job counts them like the Qt 5 legs.
     qt6_legs = re.findall(r"^ +- name: (\w+), Qt 6\n(?: +[\w-]+: \S+\n)* +qt: 6$", build_job, re.MULTILINE)
     if (
         sorted(qt6_legs) != ["Linux", "Windows", "macOS"]
-        or "    continue-on-error: ${{ matrix.qt == 6 }}\n" not in build_job
+        or "continue-on-error" in build_job
         or "          version: '6.8.3'\n          modules: qtcharts\n" not in step_block(build_job, "Install Qt 6")
         or "qt@5" in step_block(build_job, "Configure (macOS, Qt 6)")
         or "matrix.qt" in test_step
     ):
-        missing.append("Qt 6 legs on macOS, Windows and Linux that are not required yet and run the same tests")
+        missing.append("Qt 6 legs on macOS, Windows and Linux that run the same tests and count in the result job")
     package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
     package_assembly = (
         'installed/x64-windows/bin/*.dll" $dist/',

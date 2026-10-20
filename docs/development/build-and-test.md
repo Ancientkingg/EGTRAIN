@@ -63,8 +63,8 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
 ```
 
 CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
-one the packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, in jobs that are not
-required yet.
+one the packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request must
+pass those jobs too.
 CMake searches a folder in `CMAKE_PREFIX_PATH` before the system folders, so the examples above use Qt 5
 even when Qt 6 is installed elsewhere. To try Qt 6, configure a separate build
 folder with `CMAKE_PREFIX_PATH` set to the Qt 6 folder, for example `~/Qt/6.8.3/macos`. With Homebrew, add
