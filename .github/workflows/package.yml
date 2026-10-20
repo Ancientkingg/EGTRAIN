@@ -171,6 +171,17 @@ jobs:
           find "$APP/Contents/PlugIns/sqldrivers" -type f ! -name 'libqsqlite.dylib' -delete
           report_size "after trimming"
 
+      # The frameworks of the official Qt 6 hold x86_64 and arm64 code, and the app runs on arm64 only.
+      - name: Keep only the arm64 code of the Qt 6 libraries
+        if: inputs.qt == '6'
+        run: |
+          set -euo pipefail
+          find build/QEGTRAIN.app -type f | while read -r file; do
+            case "$(lipo -archs "$file" 2>/dev/null)" in
+              *x86_64*arm64* | *arm64*x86_64*) lipo -thin arm64 "$file" -output "$file.arm64" && mv "$file.arm64" "$file" ;;
+            esac
+          done
+
       - name: Remove build machine paths
         # Some Homebrew libraries keep a run path into the Cellar, and the Qt plugins keep their install names under
         # /opt/homebrew. Nothing loads through them, but they would let the app load a library from a machine that has
