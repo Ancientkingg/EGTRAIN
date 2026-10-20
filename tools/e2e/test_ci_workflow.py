@@ -841,10 +841,13 @@ def main() -> None:
     # locally: on the changed sources of a pull request and on all sources in the nightly and manual runs. The nightly run starts at
     # a minute that is not on the hour and does not start with the CMake run.
     tidy_version = re.search(r'^CLANG_TIDY_VERSION = "(\d+)\.\d+"$', tidy_script, re.MULTILINE)
-    # The compile database is made with the Qt of the CMake workflow, which the script finds through QT_ROOT_DIR.
-    if qt_install not in step_block(job_block(tidy_workflow, "check"), "Install Qt 6") or 'os.environ.get("QT_ROOT_DIR")' not in tidy_script:
-        missing.append("tidy check with Qt 6.8.3 from the action, passed to CMake by tools/tidy.py")
     tidy_step = step_block(job_block(tidy_workflow, "check"), "Run clang-tidy")
+    # The compile database is made with the Qt of the CMake workflow, which CMake finds through CMAKE_PREFIX_PATH.
+    if (
+        qt_install not in step_block(job_block(tidy_workflow, "check"), "Install Qt 6")
+        or "        env:\n          CMAKE_PREFIX_PATH: ${{ env.QT_ROOT_DIR }}\n" not in tidy_step
+    ):
+        missing.append("tidy check with Qt 6.8.3 from the action, passed to CMake in CMAKE_PREFIX_PATH")
     tidy_install = step_block(job_block(tidy_workflow, "check"), "Install clang-tidy")
     tidy_trigger = tidy_workflow.split("\njobs:", 1)[0]
     tidy_nightly = re.search(r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", tidy_trigger, re.MULTILINE)

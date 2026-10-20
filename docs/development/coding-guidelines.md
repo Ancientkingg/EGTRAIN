@@ -33,9 +33,8 @@ the files that Qt generates (moc, uic and resources), and analyses the sources o
 in parallel. It needs CMake, Ninja, Qt 6 and clang-tidy 23.1, the release that the findings
 are agreed for: `brew install llvm` on macOS, or the `llvm.sh` script of apt.llvm.org on
 Ubuntu (PyPI has no clang-tidy 23). The environment variable `CLANG_TIDY` names the
-executable when it is not the `clang-tidy` on PATH, and `QT_ROOT_DIR` the Qt 6 folder, which the script
-passes to CMake; without it CMake reads `CMAKE_PREFIX_PATH` from the environment. The script adds the
-macOS SDK path itself.
+executable when it is not the `clang-tidy` on PATH. Set `CMAKE_PREFIX_PATH` to the Qt 6 folder. The
+script adds the macOS SDK path itself.
 
 - `python3 tools/tidy.py` analyses every source.
 - `python3 tools/tidy.py FILE...` analyses the named sources.

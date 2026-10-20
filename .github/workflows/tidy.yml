@@ -67,8 +67,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      # The compile database is made with the Qt of the CMake workflow. tools/tidy.py passes QT_ROOT_DIR, which the action
-      # sets, to CMake.
+      # The compile database is made with the Qt of the CMake workflow.
       - name: Install Qt 6
         uses: jurplel/install-qt-action@v4
         with:
@@ -91,6 +90,8 @@ jobs:
           sudo apt-get install -y clang-tidy-23
 
       - name: Run clang-tidy
+        env:
+          CMAKE_PREFIX_PATH: ${{ env.QT_ROOT_DIR }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
             python3 tools/tidy.py --changed-from HEAD^1
