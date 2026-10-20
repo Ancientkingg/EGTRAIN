@@ -114,14 +114,6 @@ bool isPlannedSeries(const QAbstractSeries* series) {
 	return series->name().contains("planned", Qt::CaseInsensitive);
 }
 
-// The kind of line a series draws, as the legend names it: the layer its chart builder gave it, else planned or simulated.
-QString lineKind(const QAbstractSeries* series) {
-	QString kind = series->property("layer").toString();
-	if (kind.isEmpty()) kind = isPlannedSeries(series) ? QStringLiteral("planned") : QStringLiteral("simulated");
-	kind[0] = kind[0].toUpper();
-	return kind;
-}
-
 constexpr QMargins kChartMargins(12, 8, 12, 8);
 
 // Puts the ticks of a numeric axis on round values: the multiples of 1, 2 or 5 times a power of ten that divide its range
@@ -132,12 +124,9 @@ void roundTicks(QValueAxis* axis) {
 	const double span = high - low;
 	if (!(span > 0.0) || !std::isfinite(span)) return;
 	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
-	double step = 10 * power;
-	for (const double factor : {1.0, 2.0, 5.0})
-		if (span / (factor * power) <= 8) {
-			step = factor * power;
-			break;
-		}
+	double step = power;
+	for (const double factor : {2.0, 5.0, 10.0})
+		if (span / step > 8) step = factor * power;
 	axis->setTickType(QValueAxis::TicksDynamic);
 	// Qt reaches each tick by adding the interval to the one before. The interval is the step cut to 31 significant bits,
 	// a hair shorter, so the sums from an anchor at zero are exact and zero reads "0.0", not "-0.0", and each tick lies a
@@ -649,7 +638,10 @@ void DiagramWindow::refreshLegend() {
 		if (!xy) continue; // an area series is the fill of an envelope whose outline is a line series
 		const QPen pen = m_basePens.value(series, xy->pen());
 		const bool filled = series->property("inspectionFilled").toBool();
-		const QString name = lineKind(series);
+		// The kind is the layer the chart builder gave the series, else planned or simulated.
+		QString name = series->property("layer").toString();
+		if (name.isEmpty()) name = isPlannedSeries(series) ? QStringLiteral("planned") : QStringLiteral("simulated");
+		name[0] = name[0].toUpper();
 		const auto known = std::find_if(kinds.begin(), kinds.end(), [&name](const LineKindLegend::Kind& kind) { return kind.name == name; });
 		if (known == kinds.end())
 			kinds.push_back({name, QPen(text, pen.widthF(), pen.style()), filled});
