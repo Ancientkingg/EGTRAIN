@@ -210,7 +210,7 @@ QWidget#mapKeyBody QLabel {
     font-size: 11px;
 }
 
-QPushButton:focus, QComboBox:focus, QLineEdit:focus {
+QPushButton:focus, QComboBox:focus, QLineEdit:focus, QTableWidget#runResultsTable:focus {
     border-color: #315a70;
 }
 
@@ -353,10 +353,6 @@ QTableWidget#runResultsTable {
     border: 1px solid #c9d3db;
 }
 
-QTableWidget#runResultsTable:focus {
-    border-color: #315a70;
-}
-
 QTabWidget::pane {
     border: 1px solid #c9d3db;
     background: #f8fafb;
@@ -470,16 +466,13 @@ QLabel#resultContextText {
     color: #5b6871;
 }
 
-/* The focus frame is 2 px wide. The padding keeps the canvas at the same place with and without it. */
 QGraphicsView#networkView {
     background: #12191f;
-    border: 1px solid #3a4a54;
-    padding: 1px;
+    border: 2px solid #3a4a54;
 }
 
 QGraphicsView#networkView:focus {
-    border: 2px solid #5f8fa8;
-    padding: 0;
+    border-color: #5f8fa8;
 }
 
 QScrollBar:vertical, QScrollBar:horizontal {
