@@ -112,7 +112,7 @@
             "required": ["section_id", "code", "level", "failed", "reversed"],
             "properties": {
               "section_id": { "type": "string", "description": "Id of the section." },
-              "code": { "type": ["integer", "null"], "description": "Signalling code of the section: 270 green, 180 yellow, 75 red, 751 red_red (level 5 only) or 0 for an occupied or failed section; see docs/architecture/signalling-levels.md. null for a section without a signalling level." },
+              "code": { "type": ["integer", "null"], "description": "Signalling code of the section: 270 green, 180 yellow, 75 red, 751 red_red (level 5 only) or 0 for an occupied or failed section; see docs/guides/signalling-levels.md. null for a section without a signalling level." },
               "level": { "type": ["integer", "null"], "minimum": 0, "maximum": 5, "description": "Signalling level of the section, 0 to 5. null for a section without a level." },
               "failed": { "type": "boolean", "description": "A signal failure covers the section in this step." },
               "reversed": { "type": "boolean", "description": "The entry describes the section for trains on a reversed route." }

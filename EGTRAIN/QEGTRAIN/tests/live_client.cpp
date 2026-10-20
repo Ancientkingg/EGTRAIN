@@ -1,4 +1,4 @@
-// A small client of the live stream (docs/architecture/external-sharing.md, docs/guides/live-sharing.md).
+// A small client of the live stream (docs/architecture/external-sharing.md, docs/development/live-sharing.md).
 //
 //   live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS] [--set-delay-ms MS]
 //

@@ -22,14 +22,14 @@ namespace {
 // The page of each section, relative to the root of the manual. The published guides have the same paths.
 QString pageOf(const QString& section) {
 	static const QHash<QString, QString> pages = {
-		{QStringLiteral("main-window"), QStringLiteral("guides/scenes-and-application.html#review-what-loaded")},
+		{QStringLiteral("main-window"), QStringLiteral("guides/main-window.html#review-what-loaded")},
 		{QStringLiteral("case-settings"), QStringLiteral("guides/glossary.html#case-settings")},
-		{QStringLiteral("timetable-editor"), QStringLiteral("guides/scenes-and-application.html#timetable-stops")},
+		{QStringLiteral("timetable-editor"), QStringLiteral("guides/editing-a-case.html#timetable-stops")},
 		{QStringLiteral("run-results"), QStringLiteral("guides/getting-started.html#read-the-results")},
 		{QStringLiteral("train-diagram"), QStringLiteral("guides/how-to.html#results-and-exports")},
 		{QStringLiteral("timetable-results"), QStringLiteral("guides/delay-analysis.html#where-delays-are-calculated")},
 		{QStringLiteral("delay-analysis"), QStringLiteral("guides/delay-analysis.html#the-delay-analysis-window")},
-		{QStringLiteral("train-paths"), QStringLiteral("guides/scenes-and-application.html#timetable-graphs-and-train-paths")},
+		{QStringLiteral("train-paths"), QStringLiteral("guides/diagram-navigation.html#timetable-graphs-and-train-paths")},
 		{QStringLiteral("blocking-time"), QStringLiteral("guides/glossary.html#blocking-time")},
 		{QStringLiteral("capacity"), QStringLiteral("guides/capacity-analysis.html")},
 		{QStringLiteral("capacity-by-area"), QStringLiteral("guides/capacity-analysis.html#capacity-by-area")},

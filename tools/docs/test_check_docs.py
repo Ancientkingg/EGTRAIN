@@ -156,6 +156,26 @@ class KindTests(TreeTestCase):
         expected = [(LANDING, 1), (LANDING, 5), (LANDING, 7), ("docs/a.md", 1)]
         self.assertEqual(self.found(files), [(path, line, "heading") for path, line in expected])
 
+    def test_manual_link_outside_the_manual_is_reported(self):
+        files = {
+            LANDING: doc("# Docs", "", "[guide](guides/g.md)"),
+            "docs/guides/g.md": doc("# G", "", "[a](a.md) ![Shot](../images/p.png)", "[dev](../dev.md) [readme](../../README.md)"),
+            "docs/guides/a.md": doc("# A"),
+            "docs/images/p.png": b"image",
+            "docs/dev.md": doc("# Dev"),
+            "README.md": doc("# Project"),
+        }
+        self.assertEqual(self.found(files), [("docs/guides/g.md", 4, "manual-link")] * 2)
+
+    def test_toctree_entries_make_documents_reachable(self):
+        files = {
+            LANDING: doc("# Docs", "", "[contents](index.md)"),
+            "docs/index.md": doc("# Index", "", "```{toctree}", ":caption: Manual", "", "guides/g", "```"),
+            "docs/guides/g.md": doc("# G"),
+            "docs/lost.md": doc("# Lost"),
+        }
+        self.assertEqual(self.found(files), [("docs/lost.md", 1, "unreachable")])
+
     def test_link_message_names_the_target_as_written(self):
         findings = self.findings({LANDING: doc("# Docs", "", "[x](../docs/Missing%20File.md#top)")})
         self.assertEqual(len(findings), 1)

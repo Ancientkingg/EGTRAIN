@@ -1,6 +1,6 @@
 # Feature status 2026-10-17
 
-This page records what was checked in EGTRAIN on one day, and what the check found. It is a dated snapshot, like the [release rehearsal of 2026-08-23](../development/release-rehearsal-2026-08-23.md). It is not a specification and it is not kept up to date. Later changes are not reflected here.
+This page records what was checked in EGTRAIN on one day, and what the check found. It is a dated snapshot, like the [release rehearsal of 2026-10-17](release-rehearsal-2026-10-17.md). It is not a specification and it is not kept up to date. Later changes are not reflected here.
 
 ## Snapshot
 
@@ -23,7 +23,7 @@ The test names in the tables are the tests that `ctest -N` lists at this commit 
 | placeholder | The control exists and does nothing useful. |
 | unreachable | The code exists and a user of the shipped application cannot get to it. |
 
-A cell that starts with a test name is a CTest test. Some tests are registered on some platforms only: the Bash smokes are not registered on Windows, and the visual polish smokes run on macOS only. The [platform coverage table](../development/build-and-test.md#platform-coverage) lists them.
+A cell that starts with a test name is a CTest test. Some tests are registered on some platforms only: the Bash smokes are not registered on Windows, and the visual polish smokes run on macOS only. The [platform coverage table](../build-and-test.md#platform-coverage) lists them.
 
 ### Manual sessions
 

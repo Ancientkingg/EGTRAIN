@@ -47,7 +47,7 @@ bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc
 const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
 /// Applies the signal_failure incidents of step timestepIndex: each failed section joins run.blocksOccupied, and every route that
 /// contains it gets an end of authority in front of it. In the step after a failure ends, its sections go to run.blocksConnected to
-/// be released. See "Common behaviour" in docs/architecture/signalling-levels.md.
+/// be released. See "Common behaviour" in docs/guides/signalling-levels.md.
 void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex);
 /// Gives every route against the direction that holds a single-track zone an end of authority in front of each stretch of the zone on
 /// that route, at levels 0 to 5. The authorities last for the current step.
@@ -149,7 +149,7 @@ public:
 	TDS();
 };
 
-/// Main signal aspect of a block section. The codes that go with each state are in docs/architecture/signalling-levels.md.
+/// Main signal aspect of a block section. The codes that go with each state are in docs/guides/signalling-levels.md.
 enum class SignalState : unsigned char {
 	Green,	///< Code 270; the default.
 	Yellow, ///< Code 180.
@@ -426,7 +426,7 @@ void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& B
 void releaseDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev);
 
 /// Frees the double switches that would hold a train in their middle; see "Double switches" under "Common behaviour" in
-/// docs/architecture/signalling-levels.md.
+/// docs/guides/signalling-levels.md.
 void unlockDoubleSwitches(SimulationRun& run);
 
 /// For a train with its tail at route position S (m) on the level 3 or 4 section BS with a diverging switch: puts the block sections
@@ -477,7 +477,7 @@ void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks);
 
 // --- Release Blocks in Mixed Signalling ---
 /// Clears each route section flagged in connected (one flag per route section, nonzero when in BlocksConnected) and the sections
-/// behind it. See "Codes and what they do to a following train" in docs/architecture/signalling-levels.md.
+/// behind it. See "Codes and what they do to a following train" in docs/guides/signalling-levels.md.
 void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected);
 
 /// Bit n of the result is set when a section of the route has signalling level n (0 to 5). A section without a level, or
@@ -485,7 +485,7 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected
 unsigned routeLevelMask(const Route& route);
 
 /// Writes the codes, states and speed limits of every route for the next step from run.blocksOccupied, with the routine of each level
-/// the route has. See "What happens in a step" in docs/architecture/signalling-levels.md.
+/// the route has. See "What happens in a step" in docs/guides/signalling-levels.md.
 void activateMixedSignallingSystem(SimulationRun& run);
 /// The same with other red speeds (m/s), the limits that the fixed-block levels write behind an occupied section: redSpeed1 on the red
 /// section of levels 0 and 5, redSpeed2 on the double red section of level 5. The call above passes signalCode1 and signalCode2.
@@ -496,7 +496,7 @@ void activateMixedSignallingSystem(SimulationRun& run, double redSpeed1, double 
 void releaseMixedSignallingSystem(SimulationRun& run);
 
 /// Releases section blockID when a train leaves its route there; see "Codes and what they do to a following train" in
-/// docs/architecture/signalling-levels.md.
+/// docs/guides/signalling-levels.md.
 void relLastSectionMixedSignalling(SimulationRun& run, std::string blockID);
 
 

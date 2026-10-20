@@ -1,6 +1,6 @@
 # Updating EGTRAIN
 
-This page says how EGTRAIN checks for a newer release and how it installs one. The [README](../../README.md#quick-start) describes the first install of each system.
+This page says how EGTRAIN checks for a newer release and how it installs one. [Installing EGTRAIN](install.md) describes the first install of each system.
 
 ## Checks and consent
 

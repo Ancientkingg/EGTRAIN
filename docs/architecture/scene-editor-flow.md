@@ -136,7 +136,7 @@ surface.
 
 The signalling area table of the Infrastructure pane has a list for the
 signalling system and a list for the track. The system list holds the six levels
-with the names of [Signalling levels](signalling-levels.md), which also says what
+with the names of [Signalling levels](../guides/signalling-levels.md), which also says what
 each level does. The track list holds "(all tracks)" and each track of the scene
 with the extent of its blocks. A value that does not exist is listed first as
 "Invalid level N" or "Invalid track: X". An area whose system is not chosen lists

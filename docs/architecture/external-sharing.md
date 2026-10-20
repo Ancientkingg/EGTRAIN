@@ -1,6 +1,6 @@
 # External state sharing
 
-A run shares its state as the [live stream](#live-stream) of `--live`, whose promises are in [Live contract version 1](#live-contract-version-1). [Sharing a live run](../guides/live-sharing.md) is the guide for a client. The options `-TSM` and `-RC` are removed: a start that passes either stops with exit code 1 and an error that names `--live`.
+A run shares its state as the [live stream](#live-stream) of `--live`, whose promises are in [Live contract version 1](#live-contract-version-1). [Sharing a live run](../development/live-sharing.md) is the guide for a client. The options `-TSM` and `-RC` are removed: a start that passes either stops with exit code 1 and an error that names `--live`.
 
 This page describes the code as it is. Function names are given so that a maintainer can find them.
 
@@ -120,7 +120,7 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 
 ## Live contract version 1
 
-This section is what a consumer of the live stream can rely on. It holds for contract version 1, the value of `v` in every frame, request, reply and in `live-endpoint.json`. The sections around it describe the code that keeps these promises. [Sharing a live run](../guides/live-sharing.md) shows how to start a run with the stream and has a small client.
+This section is what a consumer of the live stream can rely on. It holds for contract version 1, the value of `v` in every frame, request, reply and in `live-endpoint.json`. The sections around it describe the code that keeps these promises. [Sharing a live run](../development/live-sharing.md) shows how to start a run with the stream and has a small client.
 
 ### Transport
 
@@ -178,7 +178,7 @@ A train is named by `service_id` and `occurrence` together, for the whole run.
 - `speed_ms` is in metres per second. The simulation holds km/h, and the frame divides it by 3.6.
 - A value that the run does not hold is `null`: the position, the coordinate and the speed of a train that has not entered or has left, and a coordinate of a head that lies in no block section. The internal marks for these (`-9999`, `-1`) never leave the process. A number that is not finite is `null` too.
 - `in_network` is true from the step in which the train is due until it has left the simulation.
-- `code` of a signal is the signalling code of the section (270 green, 180 yellow, 75 red, 751 red_red, 0 occupied or failed; see [Signalling levels](signalling-levels.md)). `level` is the signalling level, 0 to 5. Both are `null` for a section without a level. The frames have no aspect ahead of a train and no section of a train: only the list of signals.
+- `code` of a signal is the signalling code of the section (270 green, 180 yellow, 75 red, 751 red_red, 0 occupied or failed; see [Signalling levels](../guides/signalling-levels.md)). `level` is the signalling level, 0 to 5. Both are `null` for a section without a level. The frames have no aspect ahead of a train and no section of a train: only the list of signals.
 
 ### Ordering
 

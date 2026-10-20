@@ -9,7 +9,11 @@ The application provides the complete authoring and analysis path. It does not
 invent the railway records. An instructor supplies authoritative infrastructure,
 signalling, and rolling-stock values and records the train-unit source references
 in the editor. The committed `Assignment_Gvc_Gdg_Ut` scene is a synthetic smoke
-fixture; its sources and terms are in [DATA.md](../../DATA.md). Issues
+fixture with three stations, no signals and four services that all use one
+placeholder `SLT_Sprinter` composition. It validates, runs and packs as
+`.egscene`, but its railway data are not authoritative: do not use it for model
+answers or publish it as the completed assignment. Its sources and terms are in
+`DATA.md` at the top of the repository. Issues
 [#182](https://github.com/Ancientkingg/EGTRAIN/issues/182),
 [#228](https://github.com/Ancientkingg/EGTRAIN/issues/228), and
 [#181](https://github.com/Ancientkingg/EGTRAIN/issues/181) track optional project
@@ -104,11 +108,11 @@ It is a view of the selected traffic, not the capacity of the line, and it
 states no trains per hour. Its traffic is labelled complete only when no train
 of the run in the area is left unchecked and no occupation is unusable.
 Parity with the legacy tool is not established. See
-[How capacity is analysed](../guides/capacity-analysis.md#capacity-by-area).
+[How capacity is analysed](capacity-analysis.md#capacity-by-area).
 
 Delay comparison requires equivalent run settings and the same selected
 occurrences. The window reports the difference and the recorded direct incident
 evidence, and never states a cause; the matching rules and the figures are in
-[How delays are calculated](../guides/delay-analysis.md#delay-comparison-against-a-baseline).
+[How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline).
 EGTRAIN leaves the causal interpretation and railway explanation to the
 student.

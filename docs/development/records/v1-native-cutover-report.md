@@ -76,7 +76,7 @@ reflect empty active source files, not dropped records.
   The native GUI derives its fallback layout from canonical coordinates.
 - Disabled order-list, dwell-disturbance, ROMA/rescheduling, and unused case
   variants remain classified as dead/inert in the
-  [active-input matrix](v1-scene-migration-matrix.md); no schema fields were
+  [active-input matrix](../../guides/v1-scene-migration-matrix.md); no schema fields were
   created for them.
 - Generated trajectory, TDS, rescheduling, timetable-graph, and exchange files
   are output/interoperability data and are written below the configured output

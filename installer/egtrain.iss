@@ -1,7 +1,7 @@
 ; EGTRAIN installer for Windows. It installs for the current user and asks for no administrator rights.
 ; Compile with Inno Setup 6.3 or newer:
 ;   ISCC.exe /DVersion=X.Y.Z /DPayload=<package directory> [/O<output directory>] installer\egtrain.iss
-; installer\README.md describes the parameters and what the installer does.
+; docs\development\windows-installer.md describes the parameters and what the installer does.
 
 #ifndef Version
 #error Pass the release version with /DVersion=X.Y.Z.

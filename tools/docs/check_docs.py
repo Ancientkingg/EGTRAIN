@@ -13,7 +13,8 @@ The kinds of finding are:
   anchor        a link to a heading that the target document does not have
   image-alt     an image with empty alt text
   orphan-image  an image below docs/ that no document links to
-  unreachable   a document below docs/ that docs/README.md does not reach through links
+  unreachable   a document below docs/ that docs/README.md does not reach through links and the entries of
+                {toctree} blocks
   shell         a bash or sh example that does not split into shell words
   json          a json example that is not valid JSON
   dash          a line with an em dash or an en dash
@@ -21,6 +22,7 @@ The kinds of finding are:
   github-only   a GitHub alert (> [!NOTE]), a <details> element, a link that starts with /, or a link to
                 github.com/Ancientkingg/EGTRAIN/blob/ for a file in the repository
   heading       a file that does not start with its one # heading, or a heading that skips a level
+  manual-link   a link from a page in docs/guides/, the manual, to a file outside docs/guides/ and docs/images/
 
 The heading check skips .github/, whose issue templates start with front matter.
 
@@ -45,6 +47,7 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[2]
 LANDING_PAGE = "docs/README.md"
+MANUAL = ("docs/guides/", "docs/images/")  # the manual and the images it may show
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp")
 SHELL_INFO_WORDS = ("bash", "sh")
 EM_DASH = "\u2014"
@@ -222,6 +225,14 @@ def check_reachability(refs: list, documents: dict) -> list:
     for path, _, target, _ in refs:
         if target in documents:
             edges.setdefault(path, set()).add(target)
+    for path, document in documents.items():
+        for block in document.blocks:
+            if block.info == "{toctree}":
+                for entry in block.body:
+                    entry = entry.strip()
+                    if entry and not entry.startswith(":"):
+                        target = posixpath.normpath(posixpath.join(posixpath.dirname(path), entry + ".md"))
+                        edges.setdefault(path, set()).add(target)
     reached = {LANDING_PAGE}
     pending = [LANDING_PAGE]
     while pending:
@@ -325,6 +336,14 @@ def check_headings(documents: dict) -> list:
     return findings
 
 
+def check_manual_links(refs: list) -> list:
+    return [
+        Finding(path, link.line, "manual-link", f"the manual links outside docs/guides/: {link.target}")
+        for path, link, target, _ in refs
+        if path.startswith(MANUAL[0]) and not target.startswith(MANUAL)
+    ]
+
+
 def check(root, files) -> list:
     """Returns the findings for the listed files, relative to root, sorted by path, line, kind and message."""
     listed = set(files)
@@ -348,6 +367,7 @@ def check(root, files) -> list:
     findings += check_local_paths(documents)
     findings += check_github_only(documents, listed)
     findings += check_headings(documents)
+    findings += check_manual_links(refs)
     return sorted(findings)
 
 
