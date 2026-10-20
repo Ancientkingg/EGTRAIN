@@ -23,8 +23,8 @@ class OpenMpRuntimeTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.package = Path(self.temp.name)
         (self.package / "plugins").mkdir()
-        (self.package / "QEGTRAIN.exe").write_bytes(b"MZ\0Qt5Core.dll\0libzmq-mt-4_3_5.dll\0compatibility\0")
-        (self.package / "plugins" / "qwindows.dll").write_bytes(b"MZ\0Qt5Gui.dll\0")
+        (self.package / "QEGTRAIN.exe").write_bytes(b"MZ\0Qt6Core.dll\0libzmq-mt-4_3_5.dll\0compatibility\0")
+        (self.package / "plugins" / "qwindows.dll").write_bytes(b"MZ\0Qt6Gui.dll\0")
 
     def tearDown(self):
         self.temp.cleanup()
@@ -36,7 +36,7 @@ class OpenMpRuntimeTests(unittest.TestCase):
         for name, reported in ((b"VCOMP140.DLL", "VCOMP140.DLL"), (b"vcomp140d.dll", "vcomp140d.dll"),
                                (b"libomp.dylib", "libomp.dylib"), (b"libgomp.so.1", "libgomp.so"),
                                (b"libomp140.x86_64.dll", "libomp140.x86_64.dll")):
-            (self.package / "QEGTRAIN.exe").write_bytes(b"MZ\0Qt5Core.dll\0" + name + b"\0")
+            (self.package / "QEGTRAIN.exe").write_bytes(b"MZ\0Qt6Core.dll\0" + name + b"\0")
             with self.assertRaises(SystemExit) as raised:
                 check(self.package)
             self.assertIn("names the OpenMP runtime library " + reported, str(raised.exception))
@@ -51,7 +51,7 @@ class OpenMpRuntimeTests(unittest.TestCase):
 OTOOL_TEXT = """Load command 3
           cmd LC_ID_DYLIB
       cmdsize 64
-         name @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore (offset 24)
+         name @executable_path/../Frameworks/QtCore.framework/Versions/A/QtCore (offset 24)
    time stamp 1 Thu Jan  1 01:00:01 1970
 Load command 4
           cmd LC_LOAD_DYLINKER
@@ -60,7 +60,7 @@ Load command 4
 Load command 9
           cmd LC_LOAD_DYLIB
       cmdsize 88
-         name @executable_path/../Frameworks/QtDBus.framework/Versions/5/QtDBus (offset 24)
+         name @executable_path/../Frameworks/QtDBus.framework/Versions/A/QtDBus (offset 24)
    time stamp 2 Thu Jan  1 01:00:02 1970
 Load command 10
           cmd LC_LOAD_WEAK_DYLIB
@@ -90,7 +90,7 @@ class LoadCommandParserTests(unittest.TestCase):
     def test_dependencies_and_rpaths_without_the_install_name(self):
         dependencies, rpaths = package_start_smoke.parse_load_commands(OTOOL_TEXT)
         self.assertEqual(dependencies, [
-            "@executable_path/../Frameworks/QtDBus.framework/Versions/5/QtDBus",
+            "@executable_path/../Frameworks/QtDBus.framework/Versions/A/QtDBus",
             "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
             "@rpath/libre.dylib",
             "/usr/lib/libupward.dylib",
@@ -135,13 +135,13 @@ class BundleClosureTests(unittest.TestCase):
 
     def add_closed_bundle(self):
         self.add("Contents/MacOS/QEGTRAIN", [
-            "@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore",
+            "@executable_path/../Frameworks/QtCore.framework/Versions/A/QtCore",
             "/usr/lib/libSystem.B.dylib",
             "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
         ])
-        self.add("Contents/Frameworks/QtCore.framework/Versions/5/QtCore", ["/usr/lib/libc++.1.dylib"])
+        self.add("Contents/Frameworks/QtCore.framework/Versions/A/QtCore", ["/usr/lib/libc++.1.dylib"])
         self.add("Contents/PlugIns/platforms/libqcocoa.dylib", [
-            "@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore",
+            "@executable_path/../Frameworks/QtCore.framework/Versions/A/QtCore",
             "@executable_path/../Frameworks/libfirst.dylib",
         ])
         self.add("Contents/Frameworks/libfirst.dylib", ["@loader_path/libsecond.dylib"])
@@ -154,9 +154,9 @@ class BundleClosureTests(unittest.TestCase):
 
     def test_dependency_on_a_missing_file_fails(self):
         self.add_closed_bundle()
-        self.loads["libqcocoa.dylib"][0].append("@executable_path/../Frameworks/QtDBus.framework/Versions/5/QtDBus")
+        self.loads["libqcocoa.dylib"][0].append("@executable_path/../Frameworks/QtDBus.framework/Versions/A/QtDBus")
         self.assertIn(
-            "Contents/PlugIns/platforms/libqcocoa.dylib: @executable_path/../Frameworks/QtDBus.framework/Versions/5/QtDBus"
+            "Contents/PlugIns/platforms/libqcocoa.dylib: @executable_path/../Frameworks/QtDBus.framework/Versions/A/QtDBus"
             " does not exist inside the app", self.failure())
 
     def test_absolute_path_that_is_not_a_system_library_fails(self):
@@ -180,13 +180,13 @@ class BundleClosureTests(unittest.TestCase):
         for program_rpaths, passes in (([], False), (["@executable_path/../Frameworks"], True)):
             with self.subTest(program_rpaths=program_rpaths):
                 self.add_closed_bundle()
-                self.loads["libqcocoa.dylib"][0][0] = "@rpath/QtCore.framework/Versions/5/QtCore"
+                self.loads["libqcocoa.dylib"][0][0] = "@rpath/QtCore.framework/Versions/A/QtCore"
                 self.loads["libqcocoa.dylib"][1].append("@loader_path/../../lib")
                 self.loads["QEGTRAIN"][1].extend(program_rpaths)
                 if passes:
                     self.assertIn("6 Mach-O files", self.run_check())
                 else:
-                    self.assertIn("Contents/PlugIns/platforms/libqcocoa.dylib: @rpath/QtCore.framework/Versions/5/QtCore"
+                    self.assertIn("Contents/PlugIns/platforms/libqcocoa.dylib: @rpath/QtCore.framework/Versions/A/QtCore"
                                   " does not exist inside the app", self.failure())
 
     def test_path_that_leaves_the_app_fails(self):
@@ -218,7 +218,7 @@ class BundleClosureTests(unittest.TestCase):
     def test_file_that_is_not_a_mach_o_file_is_ignored(self):
         self.add_closed_bundle()
         self.add_other("Contents/Resources/Scenes/Paimpol/scene.json", b'{"name": "Paimpol"}')
-        self.add_other("Contents/Frameworks/QtCore.framework/Versions/5/_CodeSignature/CodeResources", b"<?xml version=\"1.0\"?>")
+        self.add_other("Contents/Frameworks/QtCore.framework/Versions/A/_CodeSignature/CodeResources", b"<?xml version=\"1.0\"?>")
         self.assertIn("6 Mach-O files", self.run_check())
 
 
@@ -238,8 +238,8 @@ class AppBundleTests(unittest.TestCase):
 
 ELF_MAGIC = b"\x7fELF"
 LDD_TEXT = """\tlinux-vdso.so.1 (0x00007ffd5a7f2000)
-\tlibQt5Widgets.so.5 => /tmp/x/squashfs-root/usr/lib/libQt5Widgets.so.5 (0x00007f3e4c000000)
-\tlibQt5Charts.so.5 => not found
+\tlibQt6Widgets.so.6 => /tmp/x/squashfs-root/usr/lib/libQt6Widgets.so.6 (0x00007f3e4c000000)
+\tlibQt6Charts.so.6 => not found
 \tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f3e4bc00000)
 \t/lib64/ld-linux-x86-64.so.2 (0x00007f3e4d000000)
 """
@@ -248,8 +248,8 @@ LDD_TEXT = """\tlinux-vdso.so.1 (0x00007ffd5a7f2000)
 class LddParserTests(unittest.TestCase):
     def test_libraries_with_a_target_and_without(self):
         self.assertEqual(package_start_smoke.parse_ldd(LDD_TEXT), [
-            ("libQt5Widgets.so.5", "/tmp/x/squashfs-root/usr/lib/libQt5Widgets.so.5"),
-            ("libQt5Charts.so.5", "not found"),
+            ("libQt6Widgets.so.6", "/tmp/x/squashfs-root/usr/lib/libQt6Widgets.so.6"),
+            ("libQt6Charts.so.6", "not found"),
             ("libc.so.6", "/lib/x86_64-linux-gnu/libc.so.6"),
         ])
 
@@ -260,8 +260,8 @@ class LddParserTests(unittest.TestCase):
                 self.assertEqual(package_start_smoke.parse_ldd(text), [])
 
     def test_target_with_a_space(self):
-        self.assertEqual(package_start_smoke.parse_ldd("\tlibQt5Core.so.5 => /opt/my app/lib/libQt5Core.so.5 (0x00007f3e4c000000)\n"),
-                         [("libQt5Core.so.5", "/opt/my app/lib/libQt5Core.so.5")])
+        self.assertEqual(package_start_smoke.parse_ldd("\tlibQt6Core.so.6 => /opt/my app/lib/libQt6Core.so.6 (0x00007f3e4c000000)\n"),
+                         [("libQt6Core.so.6", "/opt/my app/lib/libQt6Core.so.6")])
 
 
 class LddOutputTests(unittest.TestCase):
@@ -288,7 +288,7 @@ class LddOutputTests(unittest.TestCase):
 
     def test_listing_with_a_missing_library_is_returned_whatever_the_status(self):
         text, _ = self.run_ldd(1, LDD_TEXT)
-        self.assertIn("libQt5Charts.so.5 => not found", text)
+        self.assertIn("libQt6Charts.so.6 => not found", text)
 
     def test_failure_without_a_listing_names_the_file_and_shows_standard_error(self):
         message = self.raised(2, "", "ldd: error while loading shared libraries\n")
@@ -372,14 +372,14 @@ class LinuxLibrariesTests(unittest.TestCase):
 
     def add_closed_app_dir(self):
         self.add("usr/bin/QEGTRAIN", [
-            ("libQt5Core.so.5", self.inside("usr/bin/../lib/libQt5Core.so.5")),
+            ("libQt6Core.so.6", self.inside("usr/bin/../lib/libQt6Core.so.6")),
             ("libzmq.so.5", self.inside("usr/lib/libzmq.so.5")),
             ("libc.so.6", "/lib/x86_64-linux-gnu/libc.so.6"),
             ("libicuuc.so.70", "/usr/lib/x86_64-linux-gnu/libicuuc.so.70"),
         ])
         self.add("usr/bin/scene_tool", [("libstdc++.so.6", "/lib/x86_64-linux-gnu/libstdc++.so.6")])
         self.add("usr/plugins/platforms/libqxcb.so", [
-            ("libQt5XcbQpa.so.5", self.inside("usr/lib/libQt5XcbQpa.so.5")),
+            ("libQt6XcbQpa.so.6", self.inside("usr/lib/libQt6XcbQpa.so.6")),
             ("libxcb.so.1", "/lib/x86_64-linux-gnu/libxcb.so.1"),
         ])
 
@@ -390,29 +390,24 @@ class LinuxLibrariesTests(unittest.TestCase):
 
     def test_qt_library_outside_the_package_fails(self):
         self.add_closed_app_dir()
-        outside = str(self.root / "qt" / "libQt5Core.so.5")
-        self.libraries["QEGTRAIN"][0] = ("libQt5Core.so.5", outside)
+        outside = str(self.root / "qt" / "libQt6Core.so.6")
+        self.libraries["QEGTRAIN"][0] = ("libQt6Core.so.6", outside)
         message = self.failure()
-        self.assertIn(f"usr/bin/QEGTRAIN: libQt5Core.so.5 resolves to {outside}, outside the package", message)
+        self.assertIn(f"usr/bin/QEGTRAIN: libQt6Core.so.6 resolves to {outside}, outside the package", message)
         self.assertNotIn("libc.so.6", message)
         self.assertNotIn("libicuuc", message)
 
     def test_directory_with_the_name_of_the_package_as_a_prefix_is_outside(self):
         self.add_closed_app_dir()
-        self.libraries["QEGTRAIN"][0] = ("libQt5Core.so.5", str(self.root / "AppDir2" / "usr" / "lib" / "libQt5Core.so.5"))
-        self.assertIn("usr/bin/QEGTRAIN: libQt5Core.so.5 resolves to", self.failure())
+        self.libraries["QEGTRAIN"][0] = ("libQt6Core.so.6", str(self.root / "AppDir2" / "usr" / "lib" / "libQt6Core.so.6"))
+        self.assertIn("usr/bin/QEGTRAIN: libQt6Core.so.6 resolves to", self.failure())
 
     def test_path_that_leaves_the_package_with_dot_dot_fails(self):
         self.add_closed_app_dir()
-        self.libraries["QEGTRAIN"][0] = ("libQt5Core.so.5", self.inside("usr/bin/../../../libQt5Core.so.5"))
-        self.assertIn("usr/bin/QEGTRAIN: libQt5Core.so.5 resolves to", self.failure())
+        self.libraries["QEGTRAIN"][0] = ("libQt6Core.so.6", self.inside("usr/bin/../../../libQt6Core.so.6"))
+        self.assertIn("usr/bin/QEGTRAIN: libQt6Core.so.6 resolves to", self.failure())
 
     def test_library_that_is_not_found_fails(self):
-        self.add_closed_app_dir()
-        self.libraries["libqxcb.so"][0] = ("libQt5XcbQpa.so.5", None)
-        self.assertIn("usr/plugins/platforms/libqxcb.so: libQt5XcbQpa.so.5 is not found", self.failure())
-
-    def test_qt6_library_that_is_not_found_fails(self):
         self.add_closed_app_dir()
         self.libraries["libqxcb.so"][0] = ("libQt6XcbQpa.so.6", None)
         self.assertIn("usr/plugins/platforms/libqxcb.so: libQt6XcbQpa.so.6 is not found", self.failure())
@@ -424,9 +419,9 @@ class LinuxLibrariesTests(unittest.TestCase):
 
     def test_plugin_is_checked(self):
         self.add_closed_app_dir()
-        self.libraries["libqxcb.so"][0] = ("libQt5XcbQpa.so.5", "/usr/lib/x86_64-linux-gnu/libQt5XcbQpa.so.5")
+        self.libraries["libqxcb.so"][0] = ("libQt6XcbQpa.so.6", "/usr/lib/x86_64-linux-gnu/libQt6XcbQpa.so.6")
         message = self.failure()
-        self.assertIn("usr/plugins/platforms/libqxcb.so: libQt5XcbQpa.so.5 resolves to", message)
+        self.assertIn("usr/plugins/platforms/libqxcb.so: libQt6XcbQpa.so.6 resolves to", message)
         self.assertNotIn("usr/bin/QEGTRAIN", message)
 
     def test_file_that_is_not_an_elf_file_is_ignored(self):
@@ -461,12 +456,12 @@ class LinuxLibrariesTests(unittest.TestCase):
 
     def test_all_problems_are_listed_in_one_message(self):
         self.add_closed_app_dir()
-        self.libraries["QEGTRAIN"][0] = ("libQt5Core.so.5", "/usr/lib/x86_64-linux-gnu/libQt5Core.so.5")
+        self.libraries["QEGTRAIN"][0] = ("libQt6Core.so.6", "/usr/lib/x86_64-linux-gnu/libQt6Core.so.6")
         self.libraries["QEGTRAIN"][1] = ("libzmq.so.5", None)
-        self.libraries["libqxcb.so"][0] = ("libQt5XcbQpa.so.5", None)
+        self.libraries["libqxcb.so"][0] = ("libQt6XcbQpa.so.6", None)
         message = self.failure()
-        for line in ("usr/bin/QEGTRAIN: libQt5Core.so.5 resolves to", "usr/bin/QEGTRAIN: libzmq.so.5 is not found",
-                     "usr/plugins/platforms/libqxcb.so: libQt5XcbQpa.so.5 is not found"):
+        for line in ("usr/bin/QEGTRAIN: libQt6Core.so.6 resolves to", "usr/bin/QEGTRAIN: libzmq.so.5 is not found",
+                     "usr/plugins/platforms/libqxcb.so: libQt6XcbQpa.so.6 is not found"):
             self.assertIn(line, message)
 
 
