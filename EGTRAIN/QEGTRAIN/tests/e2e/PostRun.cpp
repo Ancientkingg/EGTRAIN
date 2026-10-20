@@ -564,11 +564,15 @@ void MainWindowTestAccess::runSettled(MainWindow& w) {
 // first completion reruns the case. The second changes the scenario and then opens the case again, each of which must leave
 // no graphics of the run.
 void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
-	const QStringList timeHeaders{"Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)"};
-	for (int i = 0; i < timeHeaders.size(); ++i) {
+	// The time headers keep their names. The energy headers are short with the full name as their tooltip.
+	const QStringList headers{"Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)", "Energy (kWh)", "Energy with regen (kWh)",
+		"Substation (kWh)", "Substation with regen (kWh)"};
+	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
+		"Substation request with regenerative braking (kWh)"};
+	for (int i = 0; i < headers.size(); ++i) {
 		const auto* header = w.m_runResultsTable ? w.m_runResultsTable->horizontalHeaderItem(4 + i) : nullptr;
-		if (!header || header->text() != timeHeaders[i]) {
-			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results time header\n");
+		if (!header || header->text() != headers[i] || (i >= 3 && header->toolTip() != energyNames[i - 3])) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results header %d\n", 4 + i);
 			QCoreApplication::exit(2);
 			return;
 		}

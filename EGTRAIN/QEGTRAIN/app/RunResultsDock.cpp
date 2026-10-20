@@ -56,6 +56,11 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_table->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)",
 		"Energy (kWh)", "Energy with regen (kWh)",
 		"Substation (kWh)", "Substation with regen (kWh)"});
+	// The energy headers are short; the tooltip of each gives the full name.
+	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
+		"Substation request with regenerative braking (kWh)"};
+	for (int index = 0; index < energyNames.size(); ++index)
+		m_table->horizontalHeaderItem(7 + index)->setToolTip(energyNames[index]);
 	m_table->setAlternatingRowColors(true);
 	m_table->horizontalHeader()->setStretchLastSection(true);
 	// Tab leaves the table for the buttons after it; the arrow keys move between the cells.
@@ -186,13 +191,8 @@ void RunResultsDock::refresh() {
 	m_dock->setWindowTitle(QStringLiteral("Run Results \u2014 %1").arg(completedRunContext(run->provenance)));
 
 	const RunResults& results = run->results;
-	const int totalColumns = 11;
-	m_table->clear();
-	m_table->setColumnCount(totalColumns);
-	m_table->setHorizontalHeaderLabels(
-		{"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)",
-			"Travel time (h:mm:ss)", "Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
-			"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
+	// The headers and their tooltips stay as the constructor set them.
+	m_table->clearContents();
 	m_table->setRowCount(static_cast<int>(results.trains.size()) + 1);
 
 	// Start and end as clock times, travel time as a duration, energy with one
@@ -239,7 +239,7 @@ void RunResultsDock::refresh() {
 	m_table->setItem(totalRow, 10, new QTableWidgetItem(energyText(results.substationWithRegenKWh)));
 	// Names stay left-aligned; numbers and times are right-aligned, as in every table of results.
 	for (int row = 0; row <= totalRow; ++row)
-		for (int column = 2; column < totalColumns; ++column)
+		for (int column = 2; column < m_table->columnCount(); ++column)
 			m_table->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	m_table->resizeColumnsToContents();
 	const bool openingResults = !m_dock->isVisible();
