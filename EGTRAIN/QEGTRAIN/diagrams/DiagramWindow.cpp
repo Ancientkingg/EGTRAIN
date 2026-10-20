@@ -648,13 +648,15 @@ void DiagramWindow::refreshLegend() {
 		else
 			known->filled = known->filled || filled;
 	}
+	// Drawn section boundaries always get an entry, also in a chart with no envelope, as no caption explains them.
 	const auto* overlay = sectionOverlayOf(m_sectionOverlay);
-	if (overlay && overlay->drawsBoundaries()) {
+	const bool sections = overlay && overlay->drawsBoundaries();
+	if (sections) {
 		QColor stroke = palette().color(QPalette::Text);
 		stroke.setAlpha(100); // as the overlay draws the boundaries
 		kinds.push_back({QStringLiteral("Physical section"), QPen(stroke, 1, Qt::DotLine), false});
 	}
-	if (kinds.size() > 1) m_lineLegend = new LineKindLegend(chart, std::move(kinds), font(), text);
+	if (kinds.size() > 1 || sections) m_lineLegend = new LineKindLegend(chart, std::move(kinds), font(), text);
 }
 
 void DiagramWindow::setTrainColors(const QHash<QString, QColor>& colors) {

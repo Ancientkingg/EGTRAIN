@@ -718,6 +718,14 @@ static bool exerciseBlockSections() {
 	auto extents = buildBlockSectionExtents({{authored, 1, 3}, {authored, 1, 3}, {"@reverse@", 8, 5}, {"@missing<&>@", 4, 4}});
 	window.setBlockSections(extents, "reference<&>");
 	ok &= expect(legendKinds(window) == QStringList({"Simulated", "Physical section"}), "the legend names the drawn section boundaries");
+	DiagramWindow sectionsOnly("Physical sections only");
+	auto* empty = new QChart;
+	auto* km = new QValueAxis;
+	km->setRange(0, 10);
+	empty->addAxis(km, Qt::AlignBottom);
+	sectionsOnly.setChart(empty);
+	sectionsOnly.setBlockSections(extents, "reference<&>");
+	ok &= expect(legendKinds(sectionsOnly) == QStringList({"Physical section"}), "a chart with only section boundaries names them in the legend");
 	window.show();
 	QApplication::processEvents();
 	auto* view = window.findChild<QChartView*>();
