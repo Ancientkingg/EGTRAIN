@@ -16,13 +16,14 @@ var searchData=
   ['groupedsignalcount_13',['groupedSignalCount',['../class_signal_item.html#a97c27f04f12868e290a5cba4358c6896',1,'SignalItem']]],
   ['guard_14',['guard',['../namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe',1,'FocusWheel']]],
   ['guardall_15',['guardAll',['../namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea',1,'FocusWheel']]],
-  ['guidancelabel_16',['guidanceLabel',['../class_infrastructure_panel.html#afe2a929b6ca5ada5828a376e9d64f199',1,'InfrastructurePanel']]],
-  ['guireplayhistory_17',['GuiReplayHistory',['../class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae',1,'GuiReplayHistory::GuiReplayHistory(std::size_t budgetBytes=payloadLimit)'],['../class_gui_replay_history.html#ae9a7813ad6b22bca029ed20e2e41d7c4',1,'GuiReplayHistory::GuiReplayHistory(const GuiReplayHistory &amp;)=delete'],['../class_gui_replay_history.html#a79e4ea7d823679887b7992a4f90906bf',1,'GuiReplayHistory::GuiReplayHistory(GuiReplayHistory &amp;&amp;)=default']]],
-  ['guireplaytrainhasposition_18',['guiReplayTrainHasPosition',['../_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57',1,'GuiSimulationSnapshot.h']]],
-  ['guisectionreportspermissivesignalling_19',['guiSectionReportsPermissiveSignalling',['../_gui_simulation_snapshot_8h.html#a7c6d85d3d1c8db2484cb1e0612a25c00',1,'GuiSimulationSnapshot.h']]],
-  ['guisignaldisplaycode_20',['guiSignalDisplayCode',['../_gui_simulation_snapshot_8h.html#a4e5054d0bf4f163d0ab6bef2f25fff13',1,'GuiSimulationSnapshot.h']]],
-  ['guisignalhaslevel_21',['guiSignalHasLevel',['../_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a',1,'GuiSimulationSnapshot.h']]],
-  ['guisignalrestriction_22',['guiSignalRestriction',['../_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69',1,'GuiSimulationSnapshot.h']]],
-  ['guitraindisplayidentifier_23',['guiTrainDisplayIdentifier',['../_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a',1,'GuiSimulationSnapshot.h']]],
-  ['guitrainpublishesoccupiedarcs_24',['guiTrainPublishesOccupiedArcs',['../_gui_simulation_snapshot_8h.html#aa8c73afe282056bcc3e3e43d7ec87539',1,'GuiSimulationSnapshot.h']]]
+  ['guardedapplication_16',['GuardedApplication',['../class_guarded_application.html#ae3b7f27811775d0b9cfff3f0093a84e0',1,'GuardedApplication']]],
+  ['guidancelabel_17',['guidanceLabel',['../class_infrastructure_panel.html#afe2a929b6ca5ada5828a376e9d64f199',1,'InfrastructurePanel']]],
+  ['guireplayhistory_18',['GuiReplayHistory',['../class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae',1,'GuiReplayHistory::GuiReplayHistory(std::size_t budgetBytes=payloadLimit)'],['../class_gui_replay_history.html#ae9a7813ad6b22bca029ed20e2e41d7c4',1,'GuiReplayHistory::GuiReplayHistory(const GuiReplayHistory &amp;)=delete'],['../class_gui_replay_history.html#a79e4ea7d823679887b7992a4f90906bf',1,'GuiReplayHistory::GuiReplayHistory(GuiReplayHistory &amp;&amp;)=default']]],
+  ['guireplaytrainhasposition_19',['guiReplayTrainHasPosition',['../_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57',1,'GuiSimulationSnapshot.h']]],
+  ['guisectionreportspermissivesignalling_20',['guiSectionReportsPermissiveSignalling',['../_gui_simulation_snapshot_8h.html#a7c6d85d3d1c8db2484cb1e0612a25c00',1,'GuiSimulationSnapshot.h']]],
+  ['guisignaldisplaycode_21',['guiSignalDisplayCode',['../_gui_simulation_snapshot_8h.html#a4e5054d0bf4f163d0ab6bef2f25fff13',1,'GuiSimulationSnapshot.h']]],
+  ['guisignalhaslevel_22',['guiSignalHasLevel',['../_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a',1,'GuiSimulationSnapshot.h']]],
+  ['guisignalrestriction_23',['guiSignalRestriction',['../_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69',1,'GuiSimulationSnapshot.h']]],
+  ['guitraindisplayidentifier_24',['guiTrainDisplayIdentifier',['../_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a',1,'GuiSimulationSnapshot.h']]],
+  ['guitrainpublishesoccupiedarcs_25',['guiTrainPublishesOccupiedArcs',['../_gui_simulation_snapshot_8h.html#aa8c73afe282056bcc3e3e43d7ec87539',1,'GuiSimulationSnapshot.h']]]
 ];

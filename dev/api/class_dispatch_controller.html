@@ -140,6 +140,7 @@ Signals</h2></td></tr>
 <tr class="memitem:af339208c301d01ffd8c807c306f3530c" id="r_af339208c301d01ffd8c807c306f3530c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af339208c301d01ffd8c807c306f3530c">executionReturned</a> (qint64 elapsedMs, bool cancelled)</td></tr>
 <tr class="memitem:a440da7dc0354b8faa126829a204a596a" id="r_a440da7dc0354b8faa126829a204a596a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a440da7dc0354b8faa126829a204a596a">executionPostprocessing</a> ()</td></tr>
 <tr class="memdesc:a440da7dc0354b8faa126829a204a596a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution-thread observation: the steps have ended and the stages after them start.  <br /></td></tr>
+<tr class="memitem:ad19c9b2ae386006cd197ff8481d4f290" id="r_ad19c9b2ae386006cd197ff8481d4f290"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad19c9b2ae386006cd197ff8481d4f290">executionFailed</a> (qint64 elapsedMs)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -162,6 +163,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae26ebb03ac460fe3fc1dcf139eee8328" id="r_ae26ebb03ac460fe3fc1dcf139eee8328"><td class="memItemLeft"><a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae26ebb03ac460fe3fc1dcf139eee8328">takeReplayCandidate</a> ()</td></tr>
 <tr class="memitem:a756ed4264cc4dd25e79a258212a9fb60" id="r_a756ed4264cc4dd25e79a258212a9fb60"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a756ed4264cc4dd25e79a258212a9fb60">lastRunCompleted</a> () const</td></tr>
 <tr class="memdesc:a756ed4264cc4dd25e79a258212a9fb60"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the last run executed every stage, also if a stop arrived after its last check.  <br /></td></tr>
+<tr class="memitem:a67c2bc73f24aa64755af89e8344315e8" id="r_a67c2bc73f24aa64755af89e8344315e8"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a67c2bc73f24aa64755af89e8344315e8">lastRunError</a> () const</td></tr>
+<tr class="memdesc:a67c2bc73f24aa64755af89e8344315e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the last run ended with an error, or empty when it did not. Read it after the run has returned.  <br /></td></tr>
 <tr class="memitem:ad536dc8ce832b340187fc015e846fca1" id="r_ad536dc8ce832b340187fc015e846fca1"><td class="memItemLeft">std::shared_ptr&lt; <a class="el" href="class_run_control.html">RunControl</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad536dc8ce832b340187fc015e846fca1">runControl</a> () const</td></tr>
 <tr class="memitem:af3f0690a12a2103a1e80aca5cc5a8be9" id="r_af3f0690a12a2103a1e80aca5cc5a8be9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af3f0690a12a2103a1e80aca5cc5a8be9">setNextRunOutputFolder</a> (const std::string &amp;folder)</td></tr>
 <tr class="memitem:aa9bdc7665026c5a0ede5246e273d208c" id="r_aa9bdc7665026c5a0ede5246e273d208c"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa9bdc7665026c5a0ede5246e273d208c">nextRunOutputFolder</a> () const</td></tr>
@@ -260,6 +263,32 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Execution-thread observation: runSimulation starts the run. </p>
+
+</div>
+</div>
+<a id="ad19c9b2ae386006cd197ff8481d4f290" name="ad19c9b2ae386006cd197ff8481d4f290"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad19c9b2ae386006cd197ff8481d4f290">&#9670;&#160;</a></span>executionFailed</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DispatchController::executionFailed </td>
+          <td>(</td>
+          <td class="paramtype">qint64</td>          <td class="paramname"><span class="paramname"><em>elapsedMs</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Execution-thread observation: an exception ended the run. elapsedMs is the time since runSimulation started, in milliseconds. </p>
 
 </div>
 </div>
@@ -401,6 +430,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a67c2bc73f24aa64755af89e8344315e8" name="a67c2bc73f24aa64755af89e8344315e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67c2bc73f24aa64755af89e8344315e8">&#9670;&#160;</a></span>lastRunError()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string &amp; DispatchController::lastRunError </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Why the last run ended with an error, or empty when it did not. Read it after the run has returned. </p>
+
+</div>
+</div>
 <a id="afbac0de33112f6ead2aee19517b3f959" name="afbac0de33112f6ead2aee19517b3f959"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afbac0de33112f6ead2aee19517b3f959">&#9670;&#160;</a></span>liveEndpoint()</h2>
 
@@ -494,7 +550,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Builds the run of the scene apart from the run of the controller and puts it in its place when the scene is ready. A scene that is not ready ends the run that was there: the controller then holds a new run.</p>
-<p>selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene, or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files that a run appends to. Returns the diagnostics of the validation and the builders. </p>
+<p>selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene, or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files that a run appends to. Returns the diagnostics of the validation and the builders, and the error run.output.folder when the output folder cannot be made. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -639,11 +695,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics, the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without trains is not run: it emits executionRejected and logs an error. The control of the run is that of <a class="el" href="class_simulation_worker.html#a8fc8549b387f7df829e0405890df36ef" title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak...">SimulationWorker::active()</a>, or a new one when there is no worker. </p>
+<p>Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics, the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without trains is not run: it emits executionRejected and logs an error. The control of the run is that of <a class="el" href="class_simulation_worker.html#a8fc8549b387f7df829e0405890df36ef" title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak...">SimulationWorker::active()</a>, or a new one when there is no worker. An exception ends the run: its text goes to <a class="el" href="#a67c2bc73f24aa64755af89e8344315e8" title="Why the last run ended with an error, or empty when it did not. Read it after the run has returned.">lastRunError()</a> and the log, and executionFailed is emitted. The function itself does not throw. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_adfb494be209a1122219b5d24128a4ec2_cgraph.svg" width="1035" height="2187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_adfb494be209a1122219b5d24128a4ec2_cgraph.svg" width="344" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

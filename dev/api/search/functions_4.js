@@ -50,13 +50,14 @@ var searchData=
   ['excludeall_47',['excludeAll',['../class_run_selection.html#a3d53bdde6173e14c5fc20e0a9851ece5',1,'RunSelection']]],
   ['excluded_48',['excluded',['../class_run_selection.html#a8cca816811ab5177645f08407fae64f4',1,'RunSelection']]],
   ['executionbegan_49',['executionBegan',['../class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f',1,'DispatchController']]],
-  ['executionpostprocessing_50',['executionPostprocessing',['../class_dispatch_controller.html#a440da7dc0354b8faa126829a204a596a',1,'DispatchController']]],
-  ['executionrejected_51',['executionRejected',['../class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921',1,'DispatchController']]],
-  ['executionreturned_52',['executionReturned',['../class_dispatch_controller.html#af339208c301d01ffd8c807c306f3530c',1,'DispatchController']]],
-  ['exportbutton_53',['exportButton',['../class_scenario_panel.html#aeee76f8c2cfce9059549af70f129310b',1,'ScenarioPanel']]],
-  ['exportcsvto_54',['exportCsvTo',['../class_area_capacity_window.html#a6b33406f2e124a16cd2bbe59e021b29f',1,'AreaCapacityWindow::exportCsvTo()'],['../class_delay_analysis_window.html#aae76586959e847159ee6567831587f2d',1,'DelayAnalysisWindow::exportCsvTo()']]],
-  ['exportfinished_55',['exportFinished',['../classtelemetry_1_1_operation_observation.html#afca86c2dc6f1865b2d4fca65f8f70385',1,'telemetry::OperationObservation']]],
-  ['exportlegacyscene_56',['exportLegacyScene',['../_scene_exporter_8cpp.html#a3c8e917e697fb1590f70c3894717040b',1,'exportLegacyScene(const std::string &amp;sceneDir, const std::string &amp;outDir):&#160;SceneExporter.cpp'],['../_scene_exporter_8h.html#a3c8e917e697fb1590f70c3894717040b',1,'exportLegacyScene(const std::string &amp;sceneDir, const std::string &amp;outDir):&#160;SceneExporter.cpp']]],
-  ['exportscenario_57',['exportScenario',['../class_scenario_panel.html#a34f7b1632208d63c7fbed186373aa3fa',1,'ScenarioPanel']]],
-  ['extractscenebundleformigration_58',['extractSceneBundleForMigration',['../_scene_bundle_8cpp.html#a4f5b74e92a881f0905be1ecf36a247ea',1,'extractSceneBundleForMigration(const std::string &amp;bundlePath, const std::string &amp;destinationDirectory):&#160;SceneBundle.cpp'],['../_scene_bundle_8h.html#a4f5b74e92a881f0905be1ecf36a247ea',1,'extractSceneBundleForMigration(const std::string &amp;bundlePath, const std::string &amp;destinationDirectory):&#160;SceneBundle.cpp']]]
+  ['executionfailed_50',['executionFailed',['../class_dispatch_controller.html#ad19c9b2ae386006cd197ff8481d4f290',1,'DispatchController']]],
+  ['executionpostprocessing_51',['executionPostprocessing',['../class_dispatch_controller.html#a440da7dc0354b8faa126829a204a596a',1,'DispatchController']]],
+  ['executionrejected_52',['executionRejected',['../class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921',1,'DispatchController']]],
+  ['executionreturned_53',['executionReturned',['../class_dispatch_controller.html#af339208c301d01ffd8c807c306f3530c',1,'DispatchController']]],
+  ['exportbutton_54',['exportButton',['../class_scenario_panel.html#aeee76f8c2cfce9059549af70f129310b',1,'ScenarioPanel']]],
+  ['exportcsvto_55',['exportCsvTo',['../class_area_capacity_window.html#a6b33406f2e124a16cd2bbe59e021b29f',1,'AreaCapacityWindow::exportCsvTo()'],['../class_delay_analysis_window.html#aae76586959e847159ee6567831587f2d',1,'DelayAnalysisWindow::exportCsvTo()']]],
+  ['exportfinished_56',['exportFinished',['../classtelemetry_1_1_operation_observation.html#afca86c2dc6f1865b2d4fca65f8f70385',1,'telemetry::OperationObservation']]],
+  ['exportlegacyscene_57',['exportLegacyScene',['../_scene_exporter_8cpp.html#a3c8e917e697fb1590f70c3894717040b',1,'exportLegacyScene(const std::string &amp;sceneDir, const std::string &amp;outDir):&#160;SceneExporter.cpp'],['../_scene_exporter_8h.html#a3c8e917e697fb1590f70c3894717040b',1,'exportLegacyScene(const std::string &amp;sceneDir, const std::string &amp;outDir):&#160;SceneExporter.cpp']]],
+  ['exportscenario_58',['exportScenario',['../class_scenario_panel.html#a34f7b1632208d63c7fbed186373aa3fa',1,'ScenarioPanel']]],
+  ['extractscenebundleformigration_59',['extractSceneBundleForMigration',['../_scene_bundle_8cpp.html#a4f5b74e92a881f0905be1ecf36a247ea',1,'extractSceneBundleForMigration(const std::string &amp;bundlePath, const std::string &amp;destinationDirectory):&#160;SceneBundle.cpp'],['../_scene_bundle_8h.html#a4f5b74e92a881f0905be1ecf36a247ea',1,'extractSceneBundleForMigration(const std::string &amp;bundlePath, const std::string &amp;destinationDirectory):&#160;SceneBundle.cpp']]]
 ];

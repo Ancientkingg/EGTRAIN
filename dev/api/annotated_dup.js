@@ -101,6 +101,7 @@ var annotated_dup =
     [ "FollowAvailabilityInput", "struct_follow_availability_input.html", "struct_follow_availability_input" ],
     [ "FollowCamera", "class_follow_camera.html", "class_follow_camera" ],
     [ "FollowListUnderFrames", "struct_follow_list_under_frames.html", "struct_follow_list_under_frames" ],
+    [ "GuardedApplication", "class_guarded_application.html", "class_guarded_application" ],
     [ "GuiOccupiedArc", "struct_gui_occupied_arc.html", "struct_gui_occupied_arc" ],
     [ "GuiPassengerState", "struct_gui_passenger_state.html", "struct_gui_passenger_state" ],
     [ "GuiPlatformState", "struct_gui_platform_state.html", "struct_gui_platform_state" ],

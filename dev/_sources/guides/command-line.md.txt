@@ -94,8 +94,9 @@ The Console Log dock (**View > Console Log**, Ctrl+Shift+L) shows a message with
 ## Exit codes
 
 - 0: a run without a window that finished, `--help`, or a launch that handed its file to an open window.
-- 1: a bad argument (also an unknown option and a `--live` option that is not valid), a scene with errors, or, without a window, a run in which no train was loaded. With a window, a scene with errors shows the message box **Cannot Start EGTRAIN** and the program exits with 1. A launch without a window with a file name that is rejected or does not load also exits with 1. A scene that was saved with a newer EGTRAIN, with an older unsupported scene format or in the draft layout of the builds before 2026-08-08 is not loaded: the program prints the reason on standard error and exits with 1. With a window, `--scene` hands such a scene to the window, which shows the matching dialog. A launch with a window and a file name that does not open is not an error exit: the program starts as without a file name.
+- 1: a bad argument (also an unknown option and a `--live` option that is not valid), a scene with errors (also a scene folder that cannot be read), or, without a window, a run in which no train was loaded, a run whose output folder cannot be created, or a run that an error stopped. The reason is printed before the program exits. With a window, a scene with errors shows the message box **Cannot Start EGTRAIN** and the program exits with 1. A launch without a window with a file name that is rejected or does not load also exits with 1. A scene that was saved with a newer EGTRAIN, with an older unsupported scene format or in the draft layout of the builds before 2026-08-08 is not loaded: the program prints the reason on standard error and exits with 1. With a window, `--scene` hands such a scene to the window, which shows the matching dialog. A launch with a window and a file name that does not open is not an error exit: the program starts as without a file name.
 - 2: the live stream that `--live` asks for cannot start, for example because its port is in use. The start stops before a run, and the reason is on standard error; a window launch also shows it in a message box.
+- 70: an unexpected internal error during the start, also while a run without a window is prepared. The error is written to the log before the program exits.
 
 ## scene_tool
 
@@ -118,7 +119,7 @@ Usage:
 | `export` | Writes legacy files for a scene into `<outDir>`. |
 | `validate` | Checks a scene folder or an `.egscene` file and prints the diagnostics. With `--runnable` it also applies the runnable check that the application makes before it starts a run. |
 
-Each command exits with 0 on success and 1 otherwise. There is no `migrate` command.
+Each command exits with 0 on success and 1 otherwise, also when a path cannot be read or an unexpected error stops the command; the reason is printed on standard error. There is no `migrate` command.
 
 The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder. A build from source also produces it; see [Build And Test](../development/build-and-test.md).
 

@@ -39,7 +39,7 @@ Each run begins with a new run id, 16 hexadecimal digits from `std::random_devic
 | `hello` | at the start of `runSimulation`, after `executionBegan` and before the first step | `scene_name` from the [`SceneModel`] that `prepareScene` was given, `base_time_s` (`startingSimulationTime` of the settings of the run), `horizon_steps` (`times` of the settings of the run), `step_s` (`timestep`), and one entry for each train of the run, in the order of [`SimulationRun::trains`], with its service id, occurrence, operating code and route index |
 | `state` | at the end of each step `t` that is a multiple of the interval, in `publishSimulationSnapshot` | the trains of that step, and the signal list when it is due |
 | `event` `steps_finished` | when the step loop has ended, with the number of steps that ran | nothing else; the positions are final |
-| `event` `run_finished` | at the end of `runSimulation`, just before `executionReturned` is emitted | `status` `completed`, or `cancelled` when a stop was requested |
+| `event` `run_finished` | at the end of `runSimulation`, just before `executionReturned` is emitted, or `executionFailed` when an error ended the run after the `hello` frame | `status` `completed`, or `cancelled` when a stop was requested or an error ended the run |
 | `event` `applied`, `rejected` | when the run takes a command, or turns it down; see [Commands](#commands) | `command_id`, `cmd` and, for `rejected`, `reason` |
 
 `run_finished` means that the stages of `runSimulation` have ended. It does not mean that the output folder is complete: `printLastTrainServicePathDiagram` writes `TrainTrajectories/` after `runSimulation` returns (in `main` for a headless run, in the handler of `executionReturned` for a window run), and a window run does more end-of-run work there. A client must not read the output folder on this event.
@@ -166,7 +166,7 @@ A train is named by `service_id` and `occurrence` together, for the whole run.
 | `kind` | Other members | Meaning |
 | --- | --- | --- |
 | `steps_finished` | `step` | The step loop has ended and the positions are final. `step` is the number of steps that ran. The result files may still be written. |
-| `run_finished` | `step`, `status` | The stages of the run have ended. `status` is `completed`, or `cancelled` when the run was stopped. Not every result file is written yet. |
+| `run_finished` | `step`, `status` | The stages of the run have ended. `status` is `completed`, or `cancelled` when the run was stopped or an error ended it. Not every result file is written yet. |
 | `applied` | `step`, `command_id`, `cmd` | The run takes the command before the next step. |
 | `rejected` | `step`, `command_id`, `cmd`, `reason` | The run does not take a command that the server accepted. See [Errors](#errors). |
 

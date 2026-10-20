@@ -352,8 +352,8 @@
 <td><p>nothing else; the positions are final</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">event</span></code> <code class="docutils literal notranslate"><span class="pre">run_finished</span></code></p></td>
-<td><p>at the end of <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code>, just before <code class="docutils literal notranslate"><span class="pre">executionReturned</span></code> is emitted</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">status</span></code> <code class="docutils literal notranslate"><span class="pre">completed</span></code>, or <code class="docutils literal notranslate"><span class="pre">cancelled</span></code> when a stop was requested</p></td>
+<td><p>at the end of <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code>, just before <code class="docutils literal notranslate"><span class="pre">executionReturned</span></code> is emitted, or <code class="docutils literal notranslate"><span class="pre">executionFailed</span></code> when an error ended the run after the <code class="docutils literal notranslate"><span class="pre">hello</span></code> frame</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">status</span></code> <code class="docutils literal notranslate"><span class="pre">completed</span></code>, or <code class="docutils literal notranslate"><span class="pre">cancelled</span></code> when a stop was requested or an error ended the run</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">event</span></code> <code class="docutils literal notranslate"><span class="pre">applied</span></code>, <code class="docutils literal notranslate"><span class="pre">rejected</span></code></p></td>
 <td><p>when the run takes a command, or turns it down; see <a class="reference internal" href="#commands">Commands</a></p></td>
@@ -628,7 +628,7 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">run_finished</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code></p></td>
-<td><p>The stages of the run have ended. <code class="docutils literal notranslate"><span class="pre">status</span></code> is <code class="docutils literal notranslate"><span class="pre">completed</span></code>, or <code class="docutils literal notranslate"><span class="pre">cancelled</span></code> when the run was stopped. Not every result file is written yet.</p></td>
+<td><p>The stages of the run have ended. <code class="docutils literal notranslate"><span class="pre">status</span></code> is <code class="docutils literal notranslate"><span class="pre">completed</span></code>, or <code class="docutils literal notranslate"><span class="pre">cancelled</span></code> when the run was stopped or an error ended it. Not every result file is written yet.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">applied</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">command_id</span></code>, <code class="docutils literal notranslate"><span class="pre">cmd</span></code></p></td>

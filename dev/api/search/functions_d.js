@@ -25,8 +25,9 @@ var searchData=
   ['notereplaced_22',['noteReplaced',['../class_recovery_controller.html#a1d4a150a4e58ba80a0991975b83fcca6',1,'RecoveryController']]],
   ['notesaved_23',['noteSaved',['../class_recovery_controller.html#a3004744109d7ff44ef63448b4012f669',1,'RecoveryController']]],
   ['notetimestep_24',['noteTimestep',['../class_playback_profiler.html#a9d716bb40d6a1dff725614b1c1b77771',1,'PlaybackProfiler']]],
-  ['now_25',['now',['../classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61',1,'telemetry::Worker']]],
-  ['numberfield_26',['numberField',['../class_scene_field_reader.html#a932adc727f7c89d79dffd3087997ed7e',1,'SceneFieldReader']]],
-  ['numbergenerator_27',['NumberGenerator',['../class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149',1,'NumberGenerator']]],
-  ['numbertext_28',['numberText',['../class_infrastructure_facet.html#a93965812d3e22c65de39f10caac500ee',1,'InfrastructureFacet']]]
+  ['notify_25',['notify',['../class_guarded_application.html#ab74b1405a479cb372356cb54e70fd79d',1,'GuardedApplication']]],
+  ['now_26',['now',['../classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61',1,'telemetry::Worker']]],
+  ['numberfield_27',['numberField',['../class_scene_field_reader.html#a932adc727f7c89d79dffd3087997ed7e',1,'SceneFieldReader']]],
+  ['numbergenerator_28',['NumberGenerator',['../class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149',1,'NumberGenerator']]],
+  ['numbertext_29',['numberText',['../class_infrastructure_facet.html#a93965812d3e22c65de39f10caac500ee',1,'InfrastructureFacet']]]
 ];

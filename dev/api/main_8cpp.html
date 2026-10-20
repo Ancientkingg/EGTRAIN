@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('main_8cpp.html
 <code>#include &quot;<a class="el" href="_cannot_open_message_8h_source.html">app/CannotOpenMessage.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_crash_note_8h_source.html">app/CrashNote.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_dispatch_controller_8h_source.html">app/DispatchController.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_guarded_application_8h_source.html">app/GuardedApplication.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_main_window_8h_source.html">app/MainWindow.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_open_request_relay_8h_source.html">app/OpenRequestRelay.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_open_request_8h_source.html">app/SceneOpenRequest.h</a>&quot;</code><br />
@@ -127,9 +128,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('main_8cpp.html
 <code>#include &quot;<a class="el" href="_simulation_run_8h_source.html">simulation/SimulationRun.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_self_updater_8h_source.html">update/SelfUpdater.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_update_settings_8h_source.html">update/UpdateSettings.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_log_8h_source.html">util/Log.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_console_widget_8h_source.html">widgets/ConsoleWidget.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;climits&gt;</code><br />
+<code>#include &lt;exception&gt;</code><br />
 <code>#include &lt;iomanip&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
@@ -142,7 +145,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('main_8cpp.html
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for main.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp__incl.svg" width="5232" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp__incl.svg" width="5155" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -169,6 +172,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a35a15b86b10c598868367a9f2c9ead2f" id="r_a35a15b86b10c598868367a9f2c9ead2f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a35a15b86b10c598868367a9f2c9ead2f">printSceneDiagnostics</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
 <tr class="memitem:a7d6f46c0f2bd16f29457baf398a1605f" id="r_a7d6f46c0f2bd16f29457baf398a1605f"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a7d6f46c0f2bd16f29457baf398a1605f">reportCannotOpen</a> (const QString &amp;what, const QString &amp;reason, bool showBox, bool damaged=false)</td></tr>
 <tr class="memitem:a79a98a2b14abc8a0e41e6f8e5b6fd24c" id="r_a79a98a2b14abc8a0e41e6f8e5b6fd24c"><td class="memItemLeft">static <a class="el" href="struct_scene_request.html">SceneRequest</a>&#160;</td><td class="memItemRight"><a class="el" href="#a79a98a2b14abc8a0e41e6f8e5b6fd24c">readSceneRequest</a> (bool sceneOption, bool showBox)</td></tr>
+<tr class="memitem:aed07f9620734e5f118b11140cf0f35dd" id="r_aed07f9620734e5f118b11140cf0f35dd"><td class="memItemLeft">static int&#160;</td><td class="memItemRight"><a class="el" href="#aed07f9620734e5f118b11140cf0f35dd">runMain</a> (int argc, char *argv[])</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97" id="r_a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
@@ -319,7 +323,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a0ddf1224851353fc92bfbff6f499fa97_cgraph.svg" width="956" height="2668"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a0ddf1224851353fc92bfbff6f499fa97_cgraph.svg" width="1091" height="2734"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -636,6 +640,40 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_ab13d1f8855e80edeffbcd6e0c3818eb6_cgraph.svg" width="148" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aed07f9620734e5f118b11140cf0f35dd" name="aed07f9620734e5f118b11140cf0f35dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed07f9620734e5f118b11140cf0f35dd">&#9670;&#160;</a></span>runMain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int runMain </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>argc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *</td>          <td class="paramname"><span class="paramname"><em>argv</em></span>[]&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_aed07f9620734e5f118b11140cf0f35dd_cgraph.svg" width="967" height="2734"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

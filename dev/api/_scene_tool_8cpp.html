@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_tool_8c
 <code>#include &quot;<a class="el" href="_scene_exporter_8h_source.html">scene/SceneExporter.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_validator_8h_source.html">scene/SceneValidator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
+<code>#include &lt;exception&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -126,13 +127,14 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_tool_8c
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneTool.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_tool_8cpp__incl.svg" width="1696" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_tool_8cpp__incl.svg" width="1644" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a0eb54f38772c0fc75e926348389a3112" id="r_a0eb54f38772c0fc75e926348389a3112"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a0eb54f38772c0fc75e926348389a3112">printDiags</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diags)</td></tr>
 <tr class="memitem:afe75e832361013f80fc07bcc2201d6d2" id="r_afe75e832361013f80fc07bcc2201d6d2"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#afe75e832361013f80fc07bcc2201d6d2">printVersionRejection</a> (const std::string &amp;path)</td></tr>
+<tr class="memitem:a9a6cadca8ce86a763a1147ce5fc20615" id="r_a9a6cadca8ce86a763a1147ce5fc20615"><td class="memItemLeft">static int&#160;</td><td class="memItemRight"><a class="el" href="#a9a6cadca8ce86a763a1147ce5fc20615">runTool</a> (int argc, char **argv)</td></tr>
 <tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627" id="r_a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (int argc, char **argv)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -157,7 +159,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_tool_8cpp_a3c04138a5bfe5d72780bb7e82a18e627_cgraph.svg" width="1090" height="2462"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_tool_8cpp_a3c04138a5bfe5d72780bb7e82a18e627_cgraph.svg" width="907" height="2919"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -218,6 +220,40 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_tool_8cpp_afe75e832361013f80fc07bcc2201d6d2_cgraph.svg" width="806" height="220"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a9a6cadca8ce86a763a1147ce5fc20615" name="a9a6cadca8ce86a763a1147ce5fc20615"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a6cadca8ce86a763a1147ce5fc20615">&#9670;&#160;</a></span>runTool()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int runTool </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>argc</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **</td>          <td class="paramname"><span class="paramname"><em>argv</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_tool_8cpp_a9a6cadca8ce86a763a1147ce5fc20615_cgraph.svg" width="1120" height="2343"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -7,6 +7,8 @@ var dir_d422163b96683743ed3963d4aac17747 =
     [ "DispatchController.cpp", "_dispatch_controller_8cpp.html", "_dispatch_controller_8cpp" ],
     [ "DispatchController.h", "_dispatch_controller_8h.html", "_dispatch_controller_8h" ],
     [ "FollowAvailability.h", "_follow_availability_8h.html", "_follow_availability_8h" ],
+    [ "GuardedApplication.cpp", "_guarded_application_8cpp.html", null ],
+    [ "GuardedApplication.h", "_guarded_application_8h.html", "_guarded_application_8h" ],
     [ "GuiReplayHistory.cpp", "_gui_replay_history_8cpp.html", null ],
     [ "GuiReplayHistory.h", "_gui_replay_history_8h.html", "_gui_replay_history_8h" ],
     [ "GuiSimulationSnapshot.h", "_gui_simulation_snapshot_8h.html", "_gui_simulation_snapshot_8h" ],

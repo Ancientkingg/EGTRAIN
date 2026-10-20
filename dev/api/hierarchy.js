@@ -135,6 +135,9 @@ var hierarchy =
     [ "NetworkPresenter::PreviewOptions", "struct_network_presenter_1_1_preview_options.html", null ],
     [ "NetworkPresenter::PreviewOutcome", "struct_network_presenter_1_1_preview_outcome.html", null ],
     [ "PreviewStationMembership", "struct_preview_station_membership.html", null ],
+    [ "QApplication", null, [
+      [ "GuardedApplication", "class_guarded_application.html", null ]
+    ] ],
     [ "QComboBox", null, [
       [ "ChoiceComboBox", "class_choice_combo_box.html", null ]
     ] ],
