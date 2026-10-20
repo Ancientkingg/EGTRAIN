@@ -4753,14 +4753,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
 
 			// In a window of 1024 by 768 pixels, beside Case and Layers and with Run Results as high as it opens after a run, Rolling
-			// stock units shows its list, its buttons in one row, the ID field and its tabs without a scroll, and Services shows its
-			// list, its buttons in one row, its tabs and three rows of fields. In a window of 819 by 614 pixels (1024 by 768 at 125
-			// percent) the taller controls of this test leave room for the list, the buttons and the ID field of Rolling stock units
-			// and for one row of Services fields. The Timetable tab leaves the height of the Services list as it is.
+			// stock units shows its list, its buttons in one row, the ID field and its tabs without a vertical scroll, and Services
+			// shows its list, its buttons in one row, its tabs and room for three rows of fields. In a window of 819 by 614 pixels
+			// (1024 by 768 at 125 percent) the taller controls of this test leave room for the list, the buttons and the ID field of
+			// Rolling stock units and for one row of Services fields. The Timetable tab leaves the height of the Services list as it
+			// is. How many fields fill that room, and whether the narrower dock scrolls sideways, depends on the width of the font.
 			w.m_loadedDataDock->hide();
 			w.m_caseLayersDock->show();
 			const auto inView = [](const QWidget* part, const QWidget* view) {
-				return part->isVisible() && view->rect().contains(QRect(part->mapTo(view, QPoint(0, 0)), part->size()));
+				const int top = part->mapTo(view, QPoint(0, 0)).y();
+				return part->isVisible() && top >= 0 && top + part->height() <= view->height();
 			};
 			const auto partName = [](const QWidget* part) { return qobject_cast<const QTabBar*>(part) ? QStringLiteral("the tab row") : part->objectName(); };
 			const auto dockView = [](QDockWidget* dock) {
@@ -4813,12 +4815,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(ok, "presentation", QString("%1 of Services is not in view%2").arg(partName(part), where));
 				if (services->addButton()->y() != services->deleteButton()->y() || services->duplicateButton()->y() != services->deleteButton()->y())
 					facetFailure(ok, "presentation", "the buttons under the list of Services are not in one row");
-				int fieldRows = 0;
-				const QList<const QWidget*> fields{services->idEdit(), services->operatingCodeEdit(), services->categoryCombo(), services->colorButton()};
-				for (const QWidget* field : fields)
-					fieldRows += inView(field, servicesView) && inView(field, fieldsScroll->viewport()) ? 1 : 0;
-				if (fieldRows < (fullSize ? 3 : 1))
-					facetFailure(ok, "presentation", QString("Services shows %1 rows of fields%2").arg(fieldRows).arg(where));
+				const int fieldsTop = fieldsScroll->viewport()->mapTo(servicesView, QPoint(0, 0)).y();
+				const int fieldsShown = std::min(servicesView->height(), fieldsTop + fieldsScroll->viewport()->height()) - fieldsTop;
+				if (fieldsShown < (fullSize ? 3 : 1) * rowHeight)
+					facetFailure(ok, "presentation", QString("Services shows %1 pixels of its fields%2").arg(fieldsShown).arg(where));
 				const int listHeight = services->listWidget()->height();
 				services->pages()->setCurrentIndex(1);
 				QApplication::processEvents();
