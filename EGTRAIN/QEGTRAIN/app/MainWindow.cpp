@@ -256,6 +256,33 @@ protected:
 	}
 };
 
+// A status bar that ends a message wider than the room left of its permanent fields with an ellipsis. QStatusBar
+// draws the message from x 6 to 2 px left of the first visible field and cuts it off there; this draws it again elided.
+class ElidingStatusBar : public QStatusBar {
+public:
+	explicit ElidingStatusBar(QWidget* parent) : QStatusBar(parent) {}
+protected:
+	void paintEvent(QPaintEvent* event) override {
+		QStatusBar::paintEvent(event);
+		const QString message = currentMessage();
+		int right = width() - 12;
+		for (QWidget* field : findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+			if (field->isVisible())
+				right = qMin(right, field->x() - 2);
+		const QRect room(6, 0, right - 6, height());
+		const QString shown = fontMetrics().elidedText(message, Qt::ElideRight, room.width());
+		if (shown == message)
+			return;
+		QPainter painter(this);
+		painter.setClipRect(room);
+		QStyleOption option;
+		option.initFrom(this);
+		style()->drawPrimitive(QStyle::PE_PanelStatusBar, &option, &painter, this);
+		painter.setPen(palette().windowText().color());
+		painter.drawText(room, Qt::AlignLeading | Qt::AlignVCenter | Qt::TextSingleLine, shown);
+	}
+};
+
 using StartupClock = std::chrono::steady_clock;
 StartupClock::time_point g_startupTimingOrigin;
 quint64 g_startupTimingSequence = 0;
@@ -488,6 +515,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
 
 	ui->setupUi(this);
+	setStatusBar(new ElidingStatusBar(this));
 	setProperty("manualSection", QStringLiteral("main-window"));
 	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
 	m_history = std::make_unique<SceneHistory>();
@@ -591,6 +619,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_replayPlayButton->setText("Play");
 	m_replayPlayButton->setFixedWidth(qMax(pauseWidth, m_replayPlayButton->sizeHint().width()));
 	auto* replayEnd = new QPushButton("End", m_replayBar);
+	replayEnd->setObjectName("replayEndButton");
 	m_replaySlider = new ReplaySlider(m_replayBar);
 	m_replaySlider->setObjectName("completedReplaySlider");
 	m_replaySlider->setAccessibleName("Replay time");
@@ -986,7 +1015,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_followAction->setObjectName("actionFollow");
 	m_followAction->setCheckable(true);
 	m_followAction->setIcon(QIcon(":/icons/follow.svg"));
-	// One sentence in the status bar says whether the selected train is followed, and why not.
+	// One clause in the status bar names the state of the selected train; its tooltip says whether it is followed and why not.
 	m_followStatusLabel = new ElidedLabel(this);
 	m_followStatusLabel->setObjectName("followStatusLabel");
 	m_followStatusLabel->setAccessibleName("Follow status");
@@ -1723,10 +1752,8 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 
 void MainWindow::childEvent(QChildEvent* event) {
 	QMainWindow::childEvent(event);
-	if (event->polished()) {
-		if (auto* tabBar = qobject_cast<QTabBar*>(event->child()))
-			tabBar->setFocusPolicy(Qt::NoFocus);
-	}
+	if (auto* tabBar = qobject_cast<QTabBar*>(event->child()); tabBar && event->polished())
+		tabBar->setFocusPolicy(Qt::NoFocus);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* event) {

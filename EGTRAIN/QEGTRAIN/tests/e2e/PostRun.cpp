@@ -1316,10 +1316,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	};
 
 	// Play keeps its width when it reads Pause, so End does not move.
-	QPushButton* endButton = nullptr;
-	for (QPushButton* button : w.m_replayBar->findChildren<QPushButton*>())
-		if (button->text() == QLatin1String("End"))
-			endButton = button;
+	auto* endButton = w.m_replayBar->findChild<QPushButton*>("replayEndButton");
 	const int endX = endButton ? endButton->x() : -1;
 	w.m_replayPlayButton->click();
 	QApplication::processEvents();

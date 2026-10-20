@@ -80,6 +80,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStatusBar>
 #include <QString>
 #include <QTabWidget>
 #include <QTableWidget>

@@ -20,7 +20,7 @@ The two group separators of the toolbar are 1 px wide lines as tall as the toolb
 
 The closed train list ends a name that does not fit its 180 px with an ellipsis; the open list and the tooltip show the whole text.
 
-The status bar shows the zoom of the network view as **Zoom: Fit** for the whole network and as a factor such as **Zoom: 2x** otherwise. The Follow label beside it shows one clause, such as **Rail-1 enters at 08:25:50** or **Following Rail-1**, at most 400 px wide and elided with an ellipsis beyond that; its tooltip gives the whole explanation. Follow messages on the left of the status bar are the same clause, and a run that ends says **Simulation complete - results in the Diagrams menu**, so both fit a 1024 px window.
+The status bar shows the zoom of the network view as **Zoom: Fit** for the whole network and as a factor such as **Zoom: 2x** otherwise. The Follow label beside it shows one clause, such as **Rail-1 enters at 08:25:50** or **Following Rail-1**, at most 400 px wide and elided with an ellipsis beyond that; its tooltip gives the whole explanation. Follow messages on the left of the status bar are the same clause, and a run that ends says **Simulation complete - results in the Diagrams menu**. A message wider than the room left of the fields on the right ends in an ellipsis.
 
 ## Run results header
 
@@ -28,7 +28,7 @@ The dialog **Run simulation** shows the duration of the run as H:MM:SS, the form
 
 The text at the top of Run Results puts each entry on a line of its own: `Run: <case> / <scenario>`, `Occurrences: ...` and `Status: Completed`. With advanced details on, the direct incident evidence and `Destination terminations: <count>` follow, and `Delay baseline: <run>` comes last when a baseline is set. A long entry wraps inside its own line.
 
-When Run Results first opens at the bottom of the window it takes a third of the window height, or the height that its content needs with the table header and three rows when that is more, so the network and the replay row keep the rest. In a maximised window on a 1024 by 768 screen the table shows three rows. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets a third again.
+When Run Results first opens at the bottom of the window it takes a third of the window height, or the height that its content needs with the table header and three rows when that is more, so the network and the replay row keep the rest. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets that height again.
 
 The Case and Layers dock opens at the width of its widest layer toggle, **Stations and platforms**, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.
 

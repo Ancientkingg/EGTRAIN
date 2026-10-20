@@ -71,6 +71,7 @@
 #include <QScrollArea>
 #include <QSet>
 #include <QSize>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QThread>
@@ -2076,6 +2077,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				const int popupWidth = w.m_followTrainCombo->view()->minimumWidth();
 				const int entryWidth = w.m_followTrainCombo->view()->fontMetrics().horizontalAdvance(w.m_followTrainCombo->itemText(futureComboIndex));
 				const int listWidth = w.m_followTrainCombo->width();
+				// A message wider than the room left of the Follow label looks the same as its text elided to that room.
+				const QString messageBefore = w.statusBar()->currentMessage();
+				const QString longMessage = QStringLiteral("Simulation complete - results in the Diagrams menu. ").repeated(4);
+				w.statusBar()->showMessage(longMessage);
+				const QImage cutMessage = w.statusBar()->grab().toImage();
+				w.statusBar()->showMessage(w.statusBar()->fontMetrics().elidedText(longMessage, Qt::ElideRight, w.m_followStatusLabel->x() - 8));
+				if (w.statusBar()->grab().toImage() != cutMessage) {
+					ok = false;
+					failures << "a status message that does not fit is cut off without an ellipsis";
+				}
+				w.statusBar()->showMessage(messageBefore);
 				w.resize(1200, 800);
 				QApplication::processEvents();
 				if (shownNarrow != futureName + " enters at " + scheduled || entryWidth <= listWidth
