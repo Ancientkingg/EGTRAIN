@@ -3,9 +3,11 @@
 #include <QAbstractButton>
 #include <QApplication>
 #include <QEventLoop>
+#include <QFontMetrics>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
 #include <QTimer>
 
 #include <functional>
@@ -138,6 +140,22 @@ int main(int argc, char** argv) {
 		answerDialog<QInputDialog>(shown, [](QInputDialog* dialog) { dialog->reject(); });
 		ok &= expect(prompts.chooseItem(nullptr, "Add", "Unit:", {"unit-a", "unit-b"}).isEmpty(),
 			"cancelling the choice returns an empty text");
+		// The dialog is wide enough for its title and the window buttons beside it, and never wider than the screen.
+		int width = 0;
+		int screenWidth = 0;
+		const auto measure = [&](QInputDialog* dialog) {
+			width = dialog->width();
+			screenWidth = dialog->screen()->availableGeometry().width();
+			dialog->reject();
+		};
+		const QFontMetrics title(QApplication::font("QMdiSubWindowTitleBar"));
+		answerDialog<QInputDialog>(shown, measure);
+		prompts.chooseItem(nullptr, "Add Rolling Stock Unit", "Rolling stock unit:", {"Draisy"});
+		ok &= expect(shown == 1 && width >= title.horizontalAdvance("Add Rolling Stock Unit") + 10 * title.height(),
+			"the choice is narrower than its title and the window buttons");
+		answerDialog<QInputDialog>(shown, measure);
+		prompts.chooseItem(nullptr, QString(300, QLatin1Char('W')), "Rolling stock unit:", {"Draisy"});
+		ok &= expect(shown == 1 && width == screenWidth, "the choice with a title wider than the screen is not as wide as the screen");
 	}
 
 	if (!ok)

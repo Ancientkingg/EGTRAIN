@@ -1,8 +1,11 @@
 #ifndef USERPROMPTS_H
 #define USERPROMPTS_H
 
+#include <QApplication>
+#include <QFontMetrics>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QScreen>
 #include <QString>
 #include <QStringList>
 #include <QWidget>
@@ -52,11 +55,21 @@ public:
 	}
 
 	/// One of `items`, for example the id of a rolling stock unit; empty when the user cancels. It asks also in a
-	/// suppressed run.
+	/// suppressed run. The dialog is wide enough for its window title, within the screen.
 	virtual QString chooseItem(QWidget* parent, const QString& title, const QString& label, const QStringList& items) {
-		bool accepted = false;
-		const QString chosen = QInputDialog::getItem(parent, title, label, items, 0, false, &accepted);
-		return accepted ? chosen : QString();
+		QInputDialog dialog(parent);
+		dialog.setWindowTitle(title);
+		dialog.setLabelText(label);
+		dialog.setComboBoxItems(items);
+		dialog.setTextValue(items.value(0));
+		// The title bar shortens a title that does not fit beside the window buttons, and macOS centres the title, so the
+		// title gets room for them on both sides.
+		const QFontMetrics metrics(QApplication::font("QMdiSubWindowTitleBar"));
+		int width = qMax(dialog.sizeHint().width(), metrics.horizontalAdvance(title) + 10 * metrics.height());
+		if (const QScreen* screen = dialog.screen())
+			width = qMin(width, screen->availableGeometry().width());
+		dialog.resize(width, dialog.sizeHint().height());
+		return dialog.exec() == QDialog::Accepted ? dialog.textValue() : QString();
 	}
 
 private:
