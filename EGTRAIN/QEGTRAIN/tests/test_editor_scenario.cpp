@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QFontMetrics>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -176,8 +177,8 @@ int main(int argc, char** argv) {
 		// refresh
 		document.replace(scenarioScene(), false);
 		ok &= expect(items(panel.listWidget())
-					== QStringList({label("base", "Baseline | 0 incident(s) | 0 delay(s) | no incidents | default"),
-						label("alt", "Alternative | 1 incident(s) | 1 delay(s)")})
+					== QStringList({label("base", "Baseline\n0 incident(s) | 0 delay(s) | no incidents | default"),
+						label("alt", "Alternative\n1 incident(s) | 1 delay(s)")})
 				&& panel.listWidget()->currentRow() == 0 && selection.scenarioId() == "base" && panel.listWidget()->isEnabled(),
 			"a new scene is listed, and its default scenario is selected");
 		ok &= expect(panel.idEdit()->text() == "base" && panel.nameEdit()->text() == "Baseline"
@@ -191,8 +192,8 @@ int main(int argc, char** argv) {
 		// the labels
 		advanced = true;
 		panel.updatePresentation();
-		ok &= expect(panel.listWidget()->item(0)->text() == label("base", "Baseline | no incidents | 0 incident(s) | 0 delay(s) | Ready | default")
-				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative | (no description) | 1 incident(s) | 1 delay(s) | Ready")
+		ok &= expect(panel.listWidget()->item(0)->text() == label("base", "Baseline\n0 incident(s) | 0 delay(s) | no incidents | Ready | default")
+				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative\n1 incident(s) | 1 delay(s) | (no description) | Ready")
 				&& panel.listWidget()->item(1)->toolTip() == panel.listWidget()->item(1)->text(),
 			"the details add the description and the state of each scenario");
 		diagnostics = {diagnostic(SceneSeverity::Warning, "scenarios[0].incidents[0]"), diagnostic(SceneSeverity::Error, "scenarios[1]"),
@@ -203,8 +204,8 @@ int main(int argc, char** argv) {
 			"the state of a scenario follows the diagnostics under its path");
 		advanced = false;
 		panel.updatePresentation();
-		ok &= expect(panel.listWidget()->item(0)->text() == label("base", "Baseline | 0 incident(s) | 0 delay(s) | no incidents | default")
-				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative | 1 incident(s) | 1 delay(s) | Invalid"),
+		ok &= expect(panel.listWidget()->item(0)->text() == label("base", "Baseline\n0 incident(s) | 0 delay(s) | no incidents | default")
+				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative\n1 incident(s) | 1 delay(s) | Invalid"),
 			"the short list names only a scenario that is invalid");
 		diagnostics.clear();
 		selection.markScenarioModified("alt");
@@ -233,7 +234,7 @@ int main(int argc, char** argv) {
 		ok &= expect(document.model().scenarios[1].name == "Alternative route" && document.isDirty() && selection.isScenarioModified("alt")
 				&& events.log == Log({"documentChanged", "panelChanged"}) && events.kinds == SceneDocument::Scenarios
 				&& document.lastChangeLabel() == "Change scenario name"
-				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative route | 1 incident(s) | 1 delay(s) | modified"),
+				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative route\n1 incident(s) | 1 delay(s) | modified"),
 			"a name is written to the document, the scenario counts as edited and the list shows the name");
 		events.log.clear();
 		panel.commitNameEdit();
@@ -524,7 +525,7 @@ int main(int argc, char** argv) {
 		other.defaultScenarioId = "only";
 		selection.selectScenario("only");
 		document.replace(other, false);
-		ok &= expect(items(panel.listWidget()) == QStringList({label("only", "Only | 0 incident(s) | 0 delay(s) | default")}) && panel.nameEdit()->text() == "Only"
+		ok &= expect(items(panel.listWidget()) == QStringList({label("only", "Only\n0 incident(s) | 0 delay(s) | default")}) && panel.nameEdit()->text() == "Only"
 				&& panel.listWidget()->currentRow() == 0 && !document.isDirty(),
 			"opening another scene replaces the scenarios and unfinished text without an edit");
 
@@ -551,6 +552,21 @@ int main(int argc, char** argv) {
 		document.replace(scene, false);
 		ok &= expect(selection.scenarioId() == "alt" && panel.listWidget()->currentRow() == 1 && panel.idEdit()->text() == "alt",
 			"the default scenario is selected when no scenario is");
+	}
+
+	{
+		// a row is two lines high, and its counts line fits the list at the width that the panel asks for
+		SceneDocument document;
+		ScenarioPanel panel;
+		panel.setDocument(&document);
+		document.replace(scenarioScene(), false);
+		panel.resize(panel.sizeHint());
+		panel.show();
+		const QListWidget* list = panel.listWidget();
+		const QFontMetrics metrics = list->fontMetrics();
+		ok &= expect(list->visualItemRect(list->item(1)).height() >= 2 * metrics.lineSpacing()
+				&& metrics.horizontalAdvance(QStringLiteral("1 incident(s) | 1 delay(s)")) <= list->viewport()->width(),
+			"each row shows its counts on a second line that the list has room for");
 	}
 
 	{
