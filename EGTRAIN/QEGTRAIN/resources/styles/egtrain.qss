@@ -286,7 +286,7 @@ QTableWidget#runResultsTable:focus {
 /* Push buttons and fields have a white face, a 1 px border in the control colour, #7b8b96, and a 6 px radius, in dialogs
    and in the main window alike. The border has a contrast of 3.5:1 with the white face and 3.4:1 with the surface of a
    dialog. Push buttons, combo boxes and line edits are 28 px tall at a 13 px font. A button in a dialog has 14 px beside
-   its text; one in a dock keeps 7 px, so that the editor docks keep their width. */
+   its text; one in a dock or a diagram or timetable window keeps 7 px, so that those keep their width. */
 QPushButton, QToolButton#runResultsViewsButton {
     background: #ffffff;
     border: 1px solid #7b8b96;
@@ -323,6 +323,16 @@ QPushButton:focus {
 
 QDialog QPushButton:focus {
     padding: 4px 13px;
+}
+
+/* The diagram and timetable windows keep 7 px beside the text of their push buttons, so that the bar of buttons above the
+   chart or table keeps its width and the window fits within 90 percent of a narrow screen. */
+DiagramWindow QPushButton, TimetableTableWindow QPushButton {
+    padding: 5px 7px;
+}
+
+DiagramWindow QPushButton:focus, TimetableTableWindow QPushButton:focus {
+    padding: 4px 6px;
 }
 
 QToolButton#runResultsViewsButton:focus {
