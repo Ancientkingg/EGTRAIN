@@ -52,13 +52,15 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("trainUnitPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 
-	// top: the list of units and the buttons that manage it
+	// top: the list of units and the buttons that manage it, in one row. The title of the dock names the list, which
+	// shows about three rows, so that the fields below keep the height of a short dock.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
-	listLayout->addWidget(new QLabel("Rolling stock units", listPane));
+	listLayout->setContentsMargins(0, 0, 0, 0);
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("trainUnitList");
-	m_listWidget->setMaximumHeight(fontMetrics().lineSpacing() * 6);
+	m_listWidget->setAccessibleName("Rolling stock units");
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Unit", listPane);
@@ -69,13 +71,14 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_deleteButton->setObjectName("deleteTrainUnitButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	listLayout->addLayout(buttonLayout);
 	layout->addWidget(listPane);
 
 	// below: the id of the selected unit above its traction and physical values
 	QWidget* detailPane = new QWidget(this);
 	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
+	detailLayout->setContentsMargins(0, 0, 0, 0);
 	const auto addHeading = [](QWidget* page, QVBoxLayout* pageLayout, const QString& title) {
 		QLabel* heading = EditorLayout::sectionHeading(title, page);
 		heading->setObjectName("rollingStockSectionHeading");

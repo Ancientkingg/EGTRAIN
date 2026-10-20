@@ -40,6 +40,8 @@ The editor docks share one group of tabs on the right of the window, so each ope
 
 The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.
 
+The lists of Rolling stock units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below, so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling stock units and the list of Services. The list of Services keeps its height on the Timetable tab.
+
 ## Light look
 
 EGTRAIN has one light look, also when the system uses a dark appearance. On macOS the application keeps the light Aqua appearance, so native controls, menus, dialogs and title bars stay light. On other systems a dark system palette is replaced at startup by the light standard palette of the widget style, so selected rows, tooltips and charts stay light; Qt 6.8 and later is also asked for the light colour scheme. The title bar belongs to the window manager outside macOS and can still follow a dark system setting.

@@ -4751,6 +4751,88 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QApplication::processEvents();
 			if (!caseSettingsAction->isChecked() || w.m_caseSettingsDock->visibleRegion().isEmpty())
 				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
+
+			// In a window of 1024 by 768 pixels, beside Case and Layers and with Run Results as high as it opens after a run, Rolling
+			// stock units shows its list, its buttons in one row, the ID field and its tabs without a scroll, and Services shows its
+			// list, its buttons in one row, its tabs and three rows of fields. In a window of 819 by 614 pixels (1024 by 768 at 125
+			// percent) the taller controls of this test leave room for the list, the buttons and the ID field of Rolling stock units
+			// and for one row of Services fields. The Timetable tab leaves the height of the Services list as it is.
+			w.m_loadedDataDock->hide();
+			w.m_caseLayersDock->show();
+			const auto inView = [](const QWidget* part, const QWidget* view) {
+				return part->isVisible() && view->rect().contains(QRect(part->mapTo(view, QPoint(0, 0)), part->size()));
+			};
+			const auto partName = [](const QWidget* part) { return qobject_cast<const QTabBar*>(part) ? QStringLiteral("the tab row") : part->objectName(); };
+			const auto dockView = [](QDockWidget* dock) {
+				auto* scroll = dock->findChild<QScrollArea*>("editorContentScroll");
+				scroll->verticalScrollBar()->setValue(0);
+				return scroll->viewport();
+			};
+			TrainUnitPanel* units = w.m_trainUnitPanel;
+			ServicePanel* services = w.m_servicePanel;
+			for (const QSize size : {QSize(1024, 768), QSize(819, 614)}) {
+				const bool fullSize = size.width() == 1024;
+				const QString where = QString(" at %1 by %2 pixels after a run").arg(size.width()).arg(size.height());
+				for (QDockWidget* dock : editorDocks)
+					dock->hide();
+				w.m_runResultsDock->hide();
+				w.resize(size);
+				QApplication::processEvents();
+				w.refreshRunResults();
+				QApplication::processEvents();
+				for (QDockWidget* dock : editorDocks)
+					w.m_editorActions.value(dock)->trigger();
+				QApplication::processEvents();
+				w.m_serviceDock->widget()->updateGeometry();
+				QApplication::processEvents();
+				w.resizeDocks({w.m_serviceDock}, {w.m_serviceDock->sizeHint().width()}, Qt::Horizontal);
+				QApplication::processEvents();
+				w.m_trainUnitDock->raise();
+				units->tabs()->setCurrentIndex(0);
+				QApplication::processEvents();
+				const QWidget* unitsView = dockView(w.m_trainUnitDock);
+				QList<const QWidget*> unitParts{units->listWidget(), units->addButton(), units->duplicateButton(), units->deleteButton(), units->idEdit()};
+				if (fullSize)
+					unitParts.append(units->tabs()->tabBar());
+				for (const QWidget* part : unitParts)
+					if (!inView(part, unitsView))
+						facetFailure(ok, "presentation", QString("%1 of Rolling stock units is not in view%2").arg(partName(part), where));
+				if (units->addButton()->y() != units->deleteButton()->y() || units->duplicateButton()->y() != units->deleteButton()->y())
+					facetFailure(ok, "presentation", "the buttons under the list of Rolling stock units are not in one row");
+
+				w.m_serviceDock->raise();
+				services->pages()->setCurrentIndex(0);
+				QApplication::processEvents();
+				const QWidget* servicesView = dockView(w.m_serviceDock);
+				auto* fieldsScroll = qobject_cast<QScrollArea*>(services->pages()->widget(0));
+				fieldsScroll->verticalScrollBar()->setValue(0);
+				const QList<const QWidget*> serviceParts{services->listWidget(), services->addButton(), services->duplicateButton(),
+					services->deleteButton(), services->pages()->tabBar()};
+				for (const QWidget* part : serviceParts)
+					if (!inView(part, servicesView))
+						facetFailure(ok, "presentation", QString("%1 of Services is not in view%2").arg(partName(part), where));
+				if (services->addButton()->y() != services->deleteButton()->y() || services->duplicateButton()->y() != services->deleteButton()->y())
+					facetFailure(ok, "presentation", "the buttons under the list of Services are not in one row");
+				int fieldRows = 0;
+				const QList<const QWidget*> fields{services->idEdit(), services->operatingCodeEdit(), services->categoryCombo(), services->colorButton()};
+				for (const QWidget* field : fields)
+					fieldRows += inView(field, servicesView) && inView(field, fieldsScroll->viewport()) ? 1 : 0;
+				if (fieldRows < (fullSize ? 3 : 1))
+					facetFailure(ok, "presentation", QString("Services shows %1 rows of fields%2").arg(fieldRows).arg(where));
+				const int listHeight = services->listWidget()->height();
+				services->pages()->setCurrentIndex(1);
+				QApplication::processEvents();
+				if (services->listWidget()->height() != listHeight || !inView(services->pages()->tabBar(), servicesView))
+					facetFailure(ok, "presentation",
+						QString("the Timetable tab changes the list of Services from %1 to %2 pixels high or moves the tab row out of view%3")
+							.arg(listHeight)
+							.arg(services->listWidget()->height())
+							.arg(where));
+				services->pages()->setCurrentIndex(0);
+			}
+			w.m_incidentDock->hide();
+			w.m_caseLayersDock->hide();
+			w.resize(1280, 800);
 			for (QDockWidget* dock : editorDocks)
 				dock->hide();
 

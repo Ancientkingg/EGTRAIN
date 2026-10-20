@@ -106,13 +106,15 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	// The list sits above the tabs, so that a narrow dock keeps the fields, the tab names and the stop table whole.
 	QVBoxLayout* serviceLayout = new QVBoxLayout(this);
 
-	// top: the list of services and the buttons that manage it
+	// top: the list of services and the buttons that manage it, in one row. The title of the dock names the list, which
+	// shows about three rows, so that the tabs keep the height of a short dock, also when the Timetable tab is shown.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
 	listLayout->setContentsMargins(0, 0, 0, 0);
-	listLayout->addWidget(new QLabel("Services", listPane));
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("serviceList");
+	m_listWidget->setAccessibleName("Services");
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Service", listPane);
@@ -123,7 +125,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_deleteButton->setObjectName("deleteServiceButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	listLayout->addLayout(buttonLayout);
 	serviceLayout->addWidget(listPane);
 
