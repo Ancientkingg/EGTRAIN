@@ -420,6 +420,8 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	connect(m_clearPinButton, &QPushButton::clicked, this, &DiagramWindow::clearPin);
 	m_pinLabel = new QLabel("", this);
 	m_pinLabel->setObjectName("diagramPinLabel");
+	// Shown only while a train is selected: an empty label would still take a gap in the top bar.
+	m_pinLabel->hide();
 
 	QPushButton* resetZoomBtn = new QPushButton("Reset zoom", this);
 	resetZoomBtn->setToolTip("Restore full bounds; keep train filters and selection (Home or 0)");
@@ -494,7 +496,7 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 	m_rollingStockSubject = on;
 	m_trainsButton->setVisible(!on);
 	m_clearPinButton->setVisible(!on);
-	m_pinLabel->setVisible(!on);
+	m_pinLabel->setVisible(!on && !m_pinnedTrainId.isEmpty());
 	refreshNavigationHelp();
 }
 
@@ -893,16 +895,20 @@ void DiagramWindow::applyTrainVisibility() {
 
 void DiagramWindow::pinTrain(const QString& trainId) {
 	m_pinnedTrainId = trainId;
-	if (m_pinLabel)
+	if (m_pinLabel) {
 		m_pinLabel->setText(QString("Selected: %1").arg(trainId));
+		m_pinLabel->setVisible(!m_rollingStockSubject);
+	}
 	refreshEmphasis();
 	emit trainSelected(trainId);
 }
 
 void DiagramWindow::clearPin() {
 	m_pinnedTrainId.clear();
-	if (m_pinLabel)
-		m_pinLabel->setText("");
+	if (m_pinLabel) {
+		m_pinLabel->clear();
+		m_pinLabel->hide();
+	}
 	refreshEmphasis();
 }
 
