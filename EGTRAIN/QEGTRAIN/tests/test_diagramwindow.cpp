@@ -548,56 +548,6 @@ static QString navigationHelp(const DiagramWindow& window) {
 	return window.findChild<QLabel*>("diagramNavigationHelp")->text();
 }
 
-// The help line mentions planned lines only when the chart has a planned series, and
-// the rolling-stock subject never does.
-static bool exerciseNavigationHelp() {
-	const QString general = QStringLiteral(
-		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
-		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
-	const QString withPlanned = QStringLiteral(
-		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
-		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid.");
-	const QString inputTraction = QStringLiteral(
-		"Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; "
-		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
-	const QStringList plannedNames{"Train A (planned arrival)", "Train A (simulated arrival)"};
-	const QStringList plainNames{"Train A", "Train B (arrival delay)", "Train A (recorded trajectory)"};
-	bool ok = true;
-
-	DiagramWindow empty("Help without chart");
-	ok &= expect(navigationHelp(empty) == general, "help of a window without a chart has no planned sentence");
-
-	DiagramWindow planned("Help with planned series");
-	planned.setChart(makeNamedChart(plannedNames));
-	ok &= expect(navigationHelp(planned) == withPlanned, "help of a chart with a planned series has the planned sentence");
-
-	DiagramWindow plain("Help without planned series");
-	plain.setChart(makeNamedChart(plainNames));
-	ok &= expect(navigationHelp(plain) == general, "help of a chart without a planned series has no planned sentence");
-
-	DiagramWindow replaced("Help after replacing the chart");
-	replaced.setChart(makeNamedChart(plannedNames));
-	ok &= expect(navigationHelp(replaced) == withPlanned, "help has the planned sentence for the first chart");
-	replaced.setChart(makeNamedChart(plainNames));
-	ok &= expect(navigationHelp(replaced) == general, "help drops the planned sentence when the chart is replaced");
-	replaced.setChart(makeNamedChart(plannedNames));
-	ok &= expect(navigationHelp(replaced) == withPlanned, "help gets the planned sentence back for the third chart");
-
-	DiagramWindow upper("Help with an upper-case name");
-	upper.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)"}));
-	ok &= expect(navigationHelp(upper) == withPlanned, "the planned name test ignores letter case in the help");
-
-	DiagramWindow input("Help of an input traction curve");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
-	input.setChart(makeNamedChart({"Unit planned"}));
-	ok &= expect(navigationHelp(input) == inputTraction, "input traction help wins over a planned series");
-	input.setRollingStockSubject(false);
-	ok &= expect(navigationHelp(input) == withPlanned, "help follows the chart after the rolling-stock subject is switched off");
-	input.setRollingStockSubject(true);
-	ok &= expect(navigationHelp(input) == inputTraction, "help is the input traction text again after the subject is switched on");
-	return ok;
-}
-
 static QPushButton* topButton(QDialog& window, const QString& text) {
 	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
 		if (button->text() == text) return button;
@@ -1196,6 +1146,112 @@ static bool exerciseStationAxis() {
 	return ok;
 }
 
+static QStringList legendKinds(const DiagramWindow& window) {
+	const auto* legend = window.findChild<QChartView*>()->chart()->findChild<QGraphicsObject*>("lineKindLegend");
+	return legend ? legend->property("kinds").toStringList() : QStringList();
+}
+
+// A chart with more than one kind of line names the kinds in a legend below the plot: the layer of a series, else planned
+// or simulated by its name. The help line does not explain them, and the rolling-stock subject has its own help.
+static bool exerciseLegend() {
+	const QString general = QStringLiteral(
+		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	const QString inputTraction = QStringLiteral(
+		"Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	bool ok = true;
+
+	DiagramWindow window("Legend");
+	ok &= expect(navigationHelp(window) == general, "help of a window without a chart");
+	window.setChart(makeNamedChart({"Train A (planned arrival)", "Train A (simulated arrival)"}));
+	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}) && navigationHelp(window) == general,
+		"planned and simulated lines are named in the legend, not in the help");
+	window.setChart(makeNamedChart({"Train A", "Train B (arrival delay)", "Train A (recorded trajectory)"}));
+	ok &= expect(legendKinds(window).isEmpty(), "a chart with one kind of line has no legend");
+	window.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)", "Train B"}));
+	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "the planned name test ignores letter case");
+	QChart* layered = makeNamedChart({"A", "A (planned reference)", "A again"});
+	layered->series()[0]->setProperty("layer", "calculated blocking envelope");
+	layered->series()[2]->setProperty("layer", "recorded trajectory");
+	window.setChart(layered);
+	ok &= expect(legendKinds(window) == QStringList({"Calculated blocking envelope", "Planned", "Recorded trajectory"}),
+		"the layer of a series names its kind");
+
+	// At the size of the window on a 1280 by 800 screen the legend is inside the chart, below the plot and its axis texts.
+	window.setMaximumSize(1152, 640);
+	window.resize(1152, 640);
+	window.show();
+	drawnChartTexts(window);
+	const auto* legend = layered->findChild<QGraphicsObject*>("lineKindLegend");
+	const QRectF area = legend ? legend->mapRectToScene(legend->boundingRect()) : QRectF();
+	bool clear = !area.isEmpty() && layered->sceneBoundingRect().contains(area)
+		&& area.top() > layered->mapRectToScene(layered->plotArea()).bottom();
+	for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
+		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible() && !text->toPlainText().isEmpty())
+			clear = clear && !text->sceneBoundingRect().adjusted(4, 4, -4, -4).intersects(area);
+	ok &= expect(clear, "the legend lies inside the chart, below the plot and clear of the axis texts");
+
+	DiagramWindow input("Help of an input traction curve");
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setChart(makeNamedChart({"Unit planned"}));
+	ok &= expect(navigationHelp(input) == inputTraction, "input traction has its own help");
+	input.setRollingStockSubject(false);
+	ok &= expect(navigationHelp(input) == general, "help follows the chart after the rolling-stock subject is switched off");
+	return ok;
+}
+
+// Numeric axes that keep the ticks Qt gives them get round ticks: at most eight steps of 1, 2 or 5 times a power of ten,
+// labelled with the decimals of the step, zero as "0.0" and not "-0.0", none overlapping at the size of the window on a
+// 1280 by 800 screen. The range stays as the chart builder set it, and a zoom picks a smaller step.
+static bool exerciseRoundTicks() {
+	DiagramWindow window("Round ticks");
+	auto* chart = new QChart;
+	auto* series = new QLineSeries;
+	series->setName("A");
+	series->append(0.000595, -0.4);
+	series->append(37.0769, 0.7);
+	chart->addSeries(series);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	window.setChart(chart);
+	window.setMaximumSize(1152, 640);
+	window.resize(1152, 640);
+	window.show();
+	const QStringList texts = drawnChartTexts(window);
+	bool ok = expect(x->min() == 0.000595 && x->max() == 37.0769, "round ticks leave the range as it was");
+	bool labelled = !texts.contains("-0.0");
+	for (const char* label : {"5", "10", "15", "20", "25", "30", "35", "-0.4", "-0.2", "0.0", "0.2", "0.4", "0.6"})
+		labelled = labelled && texts.contains(label);
+	ok &= expect(labelled, "the ticks are round, with the decimals of their step");
+	QList<QRectF> labels;
+	for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
+		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible() && !text->toPlainText().isEmpty())
+			labels << text->sceneBoundingRect().adjusted(4, 4, -4, -4);
+	bool apart = true;
+	for (int a = 0; a < labels.size(); ++a)
+		for (int b = a + 1; b < labels.size(); ++b) apart = apart && !labels[a].intersects(labels[b]);
+	ok &= expect(apart, "no two texts of the chart overlap");
+	auto* view = window.findChild<QChartView*>();
+	for (int step = 0; step < 6; ++step) wheel(view, {}, {0, 120}, Qt::ControlModifier);
+	ok &= expect(x->tickType() == QValueAxis::TicksDynamic && x->tickInterval() > 0 && x->tickInterval() < 5 && x->max() - x->min() < 37,
+		"zooming in picks a smaller round step");
+	return ok;
+}
+
+// The clock axis puts its ticks on round clock times and keeps one at elapsed zero, the run start; a round tick less than
+// a step after it is left out.
+static bool exerciseClockTicks() {
+	DiagramWindow window("Clock ticks");
+	QChart* chart = makeNamedChart({"A"});
+	qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first())->setRange(0, 3600);
+	window.setChart(chart);
+	window.setTimeAxisY(true, 7 * 3600 + 25 * 60);
+	auto* clock = qobject_cast<QCategoryAxis*>(chart->axes(Qt::Vertical).first());
+	return expect(clock && clock->categoriesLabels() == QStringList({"07:25:00", "07:40:00", "07:50:00", "08:00:00", "08:10:00", "08:20:00"}),
+		"clock ticks are round, with the run start labelled");
+}
+
 // A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.
 static bool exerciseLongAxisTitle() {
 	DiagramWindow window("Blocking time");
@@ -1731,7 +1787,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseMenuSeparator();
 	ok &= exerciseTrainFilterKeysInWindow();
 	ok &= exerciseTrainColors();
-	ok &= exerciseNavigationHelp();
+	ok &= exerciseLegend();
 	ok &= exerciseButtonDefaults();
 	ok &= exerciseRunContext();
 	ok &= exerciseBlockSections();
@@ -1739,6 +1795,8 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseLongToolTips();
 	ok &= exerciseStationAxis();
 	ok &= exerciseLongAxisTitle();
+	ok &= exerciseRoundTicks();
+	ok &= exerciseClockTicks();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

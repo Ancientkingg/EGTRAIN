@@ -56,8 +56,9 @@ class DiagramWindow : public QDialog {
 public:
 	/// An empty window with the given title.
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
-	/// Shows the chart and takes ownership of it. The navigation help is built from the series the chart has when it
-	/// is set.
+	/// Shows the chart and takes ownership of it. Numeric axes that keep the ticks and labels Qt gives them get ticks on
+	/// round values. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the
+	/// series the chart has when it is set: the "layer" property of a series, else planned or simulated by its name.
 	void setChart(QChart* chart);
 	/// Sets the window title to `heading` and shows `context` and `warning` in labels of their own; an empty text hides
 	/// its label.
@@ -80,8 +81,9 @@ public:
 	/// colours have a meaning of their own.
 	void setTrainListColors(const QHash<QString, QColor>& colors);
 	/// Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus `startOffsetSeconds`, the clock time
-	/// of second 0 in seconds since midnight. False restores numeric labels. Set before or after setChart. Bounds and
-	/// reversal come from the caller; reset restores the bounds at setChart.
+	/// of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is in range.
+	/// False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller; reset
+	/// restores the bounds at setChart.
 	void setTimeAxisY(bool on, long long startOffsetSeconds = 0);
 	/// As setTimeAxisY, for the X axis.
 	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);
@@ -93,7 +95,8 @@ public:
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
 		const QString& suggestedFileName, const QStringList& trainIds = {});
 	/// Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A
-	/// chart-owned physical layer, not train series. Chart replacement clears it.
+	/// chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears
+	/// it.
 	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId);
 	/// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
 	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
@@ -150,6 +153,7 @@ private:
 	QString groupIdForSeries(QAbstractSeries* series) const;
 	void updateReadout(const QPointF& value, const QString& seriesName);
 	void refreshNavigationHelp();
+	void refreshLegend();
 
 	QPointer<QChartView> m_view;
 	QPointer<QLabel> m_readout;
@@ -164,6 +168,7 @@ private:
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;
 	QPointer<QGraphicsObject> m_sectionOverlay;
+	QPointer<QGraphicsObject> m_lineLegend;
 	QHash<QAbstractAxis*, QPair<double, double>> m_fullBounds;
 	long long m_startOffset = 0;
 	QVector<SeriesGroup> m_groups;

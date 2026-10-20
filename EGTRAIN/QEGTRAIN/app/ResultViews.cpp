@@ -584,7 +584,7 @@ void ResultViews::showBlockingTimeDiagram() {
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
 	const QString note = QString("Calculated envelopes, not observed occupation; movement only within scope. "
 								 "Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation. "
-								 "Envelope colours: blue blocks/stations, yellow switches, red conflicts. Neutral lines/strip: physical sections.")
+								 "Envelope colours: blue blocks/stations, yellow switches, red conflicts.")
 							 .arg(omitted)
 		+ (nothingPlotted ? QString(" No complete envelope could be projected in this scope.") : QString())
 		+ QString::fromStdString(blockSectionGeometryNote(extents));
@@ -867,8 +867,7 @@ void ResultViews::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult
 	window->setTrainListColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	const QString note = "Shifted calculated envelopes, not recorded movement. "
 						 "Unmapped/incomplete blocks omitted; no extrapolation. "
-						 "Envelope colours: blue blocks/stations, yellow switches, red conflicts, amber capacity-critical touching blocks. "
-						 "Neutral lines/strip: physical sections."
+						 "Envelope colours: blue blocks/stations, yellow switches, red conflicts, amber capacity-critical touching blocks."
 		+ (segments.empty() ? QString(" No complete compressed envelope could be projected in this scope.") : QString());
 	window->setPresentation("Compressed blocking-time diagram",
 		QString("%1 | cycle %2 to %3 [%4] | Reference: %5")
