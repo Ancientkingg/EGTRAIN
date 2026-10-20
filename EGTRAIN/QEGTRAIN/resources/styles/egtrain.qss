@@ -303,12 +303,23 @@ QAbstractSpinBox QLineEdit:disabled {
     padding: 0;
 }
 
+/* Outside a dialog a spin box has 2 px above and below its text and 4 px before it. With Qt 5 it then asks for no more room
+   than the Fusion spin box, so the editor docks and their tables keep the size they had with native spin boxes. In a
+   dialog it has the padding of the other fields. The arrows take 16 px at the right inside the border. */
 QAbstractSpinBox {
-    padding-right: 18px;
+    padding: 2px 0 2px 4px;
 }
 
 QAbstractSpinBox:focus {
-    padding-right: 17px;
+    padding: 1px 0 1px 3px;
+}
+
+QDialog QAbstractSpinBox {
+    padding: 4px 0 4px 7px;
+}
+
+QDialog QAbstractSpinBox:focus {
+    padding: 3px 0 3px 6px;
 }
 
 QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {

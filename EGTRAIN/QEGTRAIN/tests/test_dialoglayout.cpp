@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QToolBar>
 #include <QToolButton>
 #include <QFile>
@@ -19,12 +20,14 @@
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QStyleFactory>
 #include <QTableWidget>
 
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -902,6 +905,38 @@ bool exerciseFooterWithoutIcons() {
 	return ok;
 }
 
+// The size that a Fusion spin box asks for without the style sheet.
+QSize fusionSpinBoxSize() {
+	const std::unique_ptr<QStyle> fusion(QStyleFactory::create(QStringLiteral("Fusion")));
+	QDoubleSpinBox spinBox;
+	spinBox.setStyle(fusion.get());
+	return spinBox.sizeHint();
+}
+
+// A spin box outside a dialog, such as one in a cell of the traction table of Rolling stock units, asks for no more room
+// than the Fusion spin box, so that the editor docks and their tables keep their size. Both use Fusion, so the widget
+// style of the platform does not matter.
+bool exerciseCellSpinBoxSize(const QSize& fusionSize) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	// In Qt 6 a spin box of the style sheet is larger than the Fusion one whatever its padding, 69 x 28 px against
+	// 63 x 26 px at the offscreen font. The releases are built with Qt 5.
+	Q_UNUSED(fusionSize);
+	return true;
+#else
+	const std::unique_ptr<QStyle> fusion(QStyleFactory::create(QStringLiteral("Fusion")));
+	QTableWidget table(1, 1);
+	auto* spinBox = new QDoubleSpinBox;
+	spinBox->setStyle(fusion.get());
+	table.setCellWidget(0, 0, spinBox);
+	const QSize size = spinBox->sizeHint();
+	const bool ok = size.width() <= fusionSize.width() && size.height() <= fusionSize.height();
+	if (!ok)
+		std::cerr << "a spin box in a table asks for " << size.width() << " x " << size.height() << " px, the Fusion spin box for "
+				  << fusionSize.width() << " x " << fusionSize.height() << " px\n";
+	return ok;
+#endif
+}
+
 // A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow.
 bool exerciseMenuButtonRoom() {
 	QToolButton plain;
@@ -983,6 +1018,7 @@ bool exerciseRunReviewDefault() {
 
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
+	const QSize fusionSpinBox = fusionSpinBoxSize();
 	QFile qss(QStringLiteral(EGTRAIN_DIALOG_QSS));
 	if (!qss.open(QIODevice::ReadOnly)) {
 		std::cerr << "cannot load application QSS\n";
@@ -1013,8 +1049,9 @@ int main(int argc, char** argv) {
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
 	const bool footerIcons = exerciseFooterWithoutIcons();
+	const bool cellSpinBox = exerciseCellSpinBoxSize(fusionSpinBox);
 	return small && scaledSmall && large && footerKeys && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
-			&& scaledDefaultWidth && footerIcons
+			&& scaledDefaultWidth && footerIcons && cellSpinBox
 		? 0
 		: 1;
 }
