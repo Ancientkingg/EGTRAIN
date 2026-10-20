@@ -830,67 +830,73 @@ platform, and <code class="docutils literal notranslate"><span class="pre">partl
 <td><p>no</p></td>
 <td><p>Phases of a Bash script, registered on macOS only.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_capture_screenshots</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>Compares backslash paths with the forward-slash paths the application reports, writes them into a <code class="docutils literal notranslate"><span class="pre">QSettings</span></code> INI file where backslash is an escape, and creates a directory symlink.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>Checks the <code class="docutils literal notranslate"><span class="pre">.app</span></code> bundle layout with macOS tools, and the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> document type that its <code class="docutils literal notranslate"><span class="pre">Info.plist</span></code> declares.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>Tests the parser, the commands and the process handling of the macOS <code class="docutils literal notranslate"><span class="pre">/usr/bin/time</span> <span class="pre">-l</span></code> collector. It does not need that tool.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_image_size</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_image_size</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Reads the PE header of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_default_stack</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_default_stack</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Reads the PE header of <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_win32_configure_rejected</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_win32_configure_rejected</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. A Ninja build tree, such as the Windows CI leg, runs it with the default generator, which is Visual Studio on Windows.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_verify_signatures</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_verify_signatures</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Signs copies of <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> with a throwaway self-signed certificate through <code class="docutils literal notranslate"><span class="pre">New-SelfSignedCertificate</span></code> and <code class="docutils literal notranslate"><span class="pre">Set-AuthenticodeSignature</span></code>, and runs <code class="docutils literal notranslate"><span class="pre">tools/release/verify_signatures.ps1</span></code> on them. It is not registered when no PowerShell is found.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>partly</p></td>
 <td><p>The two pseudo-terminal launches, the two <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> launches, the window launch with a bundle argument, the open events and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window on all three systems.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_updatepreparation</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_updatepreparation</span></code></p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>The checks that stage a disk image and a zip package run on macOS only and need <code class="docutils literal notranslate"><span class="pre">hdiutil</span></code>, <code class="docutils literal notranslate"><span class="pre">ditto</span></code>, <code class="docutils literal notranslate"><span class="pre">codesign</span></code> and <code class="docutils literal notranslate"><span class="pre">python3</span></code>. The AppImage check runs on Linux only.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_make_dmg</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_make_dmg</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>The image, mount and signature checks need <code class="docutils literal notranslate"><span class="pre">hdiutil</span></code>, <code class="docutils literal notranslate"><span class="pre">ditto</span></code> and <code class="docutils literal notranslate"><span class="pre">codesign</span></code>. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_sign_macos</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_sign_macos</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
@@ -2131,6 +2137,22 @@ and prints <code class="docutils literal notranslate"><span class="pre">creator<
 without the option, as <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>, which checks the items of the
 preview but does not compare them with a run.</p>
 </section>
+<section id="documentation-pictures">
+<h2>Documentation pictures<a class="headerlink" href="#documentation-pictures" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>tools/docs/capture_screenshots.sh
+</pre></div>
+</div>
+<p>The pictures in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> come from this script. It starts a build made with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_BUILD_TESTS=ON</span></code> on the
+offscreen platform, where the capture phase in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/Captures.cpp</span></code> opens each case, puts the
+window or dialog in the state of the picture and saves it. Windows are 1200 by 750 pixels and dialogs keep their own
+size. The script writes the pictures and <code class="docutils literal notranslate"><span class="pre">docs/images/captures.json</span></code>, which gives the case, state, size and program
+version of each. A picture that cannot be scripted is added to <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> by hand, with <code class="docutils literal notranslate"><span class="pre">&quot;manual&quot;</span></code> holding the
+steps to take it, and the script keeps such entries. <code class="docutils literal notranslate"><span class="pre">--check</span></code> takes the pictures into a temporary folder and lists
+the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel within 32 of
+the reference in each colour channel, at its place or next to it, counts as unchanged. The release checklist
+runs it. <code class="docutils literal notranslate"><span class="pre">--sizes</span></code> checks only the sizes, because fonts differ between systems, and CTest runs it in a Qt 5
+build on macOS as <code class="docutils literal notranslate"><span class="pre">test_capture_screenshots</span></code>. <code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code> fails when a picture in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> and <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> disagree.</p>
+</section>
 <section id="smoke-artifacts">
 <h2>Smoke artifacts<a class="headerlink" href="#smoke-artifacts" title="Link to this heading">¶</a></h2>
 <p>Smoke scripts write temporary diagnostics below <code class="docutils literal notranslate"><span class="pre">${TMPDIR:-/tmp}</span></code>; on Windows
@@ -2428,8 +2450,10 @@ holds <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-Leba
 <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code> also lists the files of the Windows package. Before
 the updater replaces an installation, it requires every listed file and a
 fixed set of runtime files (<code class="docutils literal notranslate"><span class="pre">requiredRuntimeFiles()</span></code> in
-<code class="docutils literal notranslate"><span class="pre">update/WindowsStaging.h</span></code>) in the extracted package. Keep that set in step
-with the package verification in the Windows package job.</p>
+<code class="docutils literal notranslate"><span class="pre">update/WindowsStaging.h</span></code>) in the extracted package. The Qt libraries in that
+set are the Qt 6 ones when the package holds <code class="docutils literal notranslate"><span class="pre">Qt6Core.dll</span></code> and the Qt 5 ones
+otherwise, so a release built with Qt 5 can update to one built with Qt 6.
+Keep that set in step with the package verification in the Windows package job.</p>
 </li>
 <li><p>Production and tag releases run serially. A stale production run cannot
 publish after the branch advances, and an existing production release tag
@@ -3071,6 +3095,7 @@ in the web browser. The package jobs build the manual and fail when a package la
 <li><a class="reference internal" href="#editor-smoke-test">Editor Smoke Test</a></li>
 <li><a class="reference internal" href="#recovery-smoke-test">Recovery Smoke Test</a></li>
 <li><a class="reference internal" href="#gui-smoke-test">GUI Smoke Test</a></li>
+<li><a class="reference internal" href="#documentation-pictures">Documentation pictures</a></li>
 <li><a class="reference internal" href="#smoke-artifacts">Smoke artifacts</a></li>
 <li><a class="reference internal" href="#where-test-and-run-output-goes">Where test and run output goes</a></li>
 <li><a class="reference internal" href="#ci-and-release-branches">CI and release branches</a><ul>

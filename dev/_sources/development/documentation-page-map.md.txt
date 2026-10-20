@@ -131,7 +131,7 @@ All are taken again by the capture program and renamed to `<page>-<subject>.png`
 | `images/guide-minimal-platforms.png` | minimal scene | `images/tutorial-minimal-platforms.png` | Retake |
 | `images/guide-minimal-service.png` | minimal scene | `images/tutorial-minimal-service.png` | Retake |
 | `images/main-window-milano-brescia.png` | README | `images/readme-main-window.png` | Retake |
-| `images/speed-distance-milano-brescia.png` | README | `images/readme-speed-distance.png` | Retake |
+| `images/speed-distance-milano-brescia.png` | README | `images/case-studies-speed-distance.png` | Retake |
 | `ui/images/dialog-sheet-2026-10-17/item01.png` to `item06.png` | dialog sheet | `development/records/images/` | Move |
 | `ui/images/`: `assignment-corridor-current.png`, `assignment-detail-current.png`, `copenhagen-junction-current.png`, `copenhagen-junction-historical.png`, `netherlands-stretch-current.png`, `netherlands-stretch-historical.png`, `paimpol-detail-current.png`, `paimpol-detail-historical.png`, `paimpol-fit-current.png`, `paimpol-fit-historical.png` | historical track comparison | `architecture/images/` | Move |
 
@@ -149,7 +149,6 @@ Each topic gets one owner page; the others link to it.
 
 - Manual: `install.md`, `case-studies.md`, `main-window.md`, `privacy-and-diagnostics.md` and `shortcuts.md`.
 - Developer: a page on the simulation core, and the C++ reference (#918).
-- No script makes the current pictures in `docs/images/`.
 
 ## Files that name docs paths
 

@@ -491,6 +491,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_crashnote` | yes | yes | partly | Starts copies of itself that crash on purpose and reads their crash notes. On Windows it runs the signal and exception cases on the main thread only, and the notes have no stack. Every child leaves a system crash report. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
 | `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. |
+| `test_capture_screenshots` | yes | no | no | Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the parser, the commands and the process handling of the macOS `/usr/bin/time -l` collector. It does not need that tool. |
@@ -1626,6 +1627,23 @@ and prints `creator preview infrastructure smoke passed`. CTest runs the script 
 without the option, as `test_creator_acceptance_smoke`, which checks the items of the
 preview but does not compare them with a run.
 
+## Documentation pictures
+
+```bash
+bash tools/docs/capture_screenshots.sh
+```
+
+The pictures in `docs/images` come from this script. It starts a build made with `EGTRAIN_BUILD_TESTS=ON` on the
+offscreen platform, where the capture phase in `EGTRAIN/QEGTRAIN/tests/e2e/Captures.cpp` opens each case, puts the
+window or dialog in the state of the picture and saves it. Windows are 1200 by 750 pixels and dialogs keep their own
+size. The script writes the pictures and `docs/images/captures.json`, which gives the case, state, size and program
+version of each. A picture that cannot be scripted is added to `captures.json` by hand, with `"manual"` holding the
+steps to take it, and the script keeps such entries. `--check` takes the pictures into a temporary folder and lists
+the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel within 32 of
+the reference in each colour channel, at its place or next to it, counts as unchanged. The release checklist
+runs it. `--sizes` checks only the sizes, because fonts differ between systems, and CTest runs it in a Qt 5
+build on macOS as `test_capture_screenshots`. `check_docs.py` fails when a picture in `docs/images` and `captures.json` disagree.
+
 ## Smoke artifacts
 
 Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`; on Windows
@@ -1871,8 +1889,10 @@ application; CTest and the smoke scripts set it themselves.
   `update-manifest.json` also lists the files of the Windows package. Before
   the updater replaces an installation, it requires every listed file and a
   fixed set of runtime files (`requiredRuntimeFiles()` in
-  `update/WindowsStaging.h`) in the extracted package. Keep that set in step
-  with the package verification in the Windows package job.
+  `update/WindowsStaging.h`) in the extracted package. The Qt libraries in that
+  set are the Qt 6 ones when the package holds `Qt6Core.dll` and the Qt 5 ones
+  otherwise, so a release built with Qt 5 can update to one built with Qt 6.
+  Keep that set in step with the package verification in the Windows package job.
 - Production and tag releases run serially. A stale production run cannot
   publish after the branch advances, and an existing production release tag
   cannot be overwritten. If a failed-job retry encounters a used version,
