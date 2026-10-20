@@ -218,17 +218,13 @@ void ScenarioPanel::updatePresentation() {
 		const QString description = scenario.description.empty()
 			? QStringLiteral("(no description)")
 			: QString::fromStdString(scenario.description);
-		QString label = QStringLiteral("%1 \u2014 %2").arg(QString::fromStdString(scenario.id), QString::fromStdString(scenario.name));
+		// Two lines: the id and name, then the counts first, so a narrow dock cuts only the description and the markers.
+		QString label = QStringLiteral("%1 \u2014 %2\n%3 incident(s) | %4 delay(s)")
+							.arg(QString::fromStdString(scenario.id), QString::fromStdString(scenario.name),
+								QString::number(scenario.incidents.size()), QString::number(scenario.entranceDelays.size()));
 		if (details) {
-			label += QString(" | %1 | %2 incident(s) | %3 delay(s) | %4")
-						 .arg(description)
-						 .arg(static_cast<int>(scenario.incidents.size()))
-						 .arg(static_cast<int>(scenario.entranceDelays.size()))
-						 .arg(validationStatus(index));
+			label += QString(" | %1 | %2").arg(description, validationStatus(index));
 		} else {
-			label += QString(" | %1 incident(s) | %2 delay(s)")
-						 .arg(static_cast<int>(scenario.incidents.size()))
-						 .arg(static_cast<int>(scenario.entranceDelays.size()));
 			if (!scenario.description.empty())
 				label += QString(" | %1").arg(description);
 			if (validationStatus(index) == QStringLiteral("Invalid"))
