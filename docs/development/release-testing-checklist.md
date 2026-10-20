@@ -109,12 +109,12 @@ What the jobs prove today:
   `public.data` and so claims no archive type, and that the copy runs Paimpol to
   `End of Simulation`.
 - The Package Windows job checks that these files exist: `QEGTRAIN.exe`,
-  `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
-  `Qt5Charts.dll`, `Qt5Svg.dll`, `Qt5Network.dll`, `platforms/qwindows.dll`,
-  `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
-  `styles/qwindowsvistastyle.dll`, a `libzmq` DLL, `scene_tool.exe` and
-  `Scenes/Paimpol`. It fails when the software
-  OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
+  `egtrain_update_helper.exe`, `Qt6Core.dll`, `Qt6Gui.dll`, `Qt6Widgets.dll`,
+  `Qt6Charts.dll`, `Qt6Svg.dll`, `Qt6Network.dll`, `Qt6Help.dll`, `Qt6Sql.dll`,
+  `platforms/qwindows.dll`, `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
+  `styles/qmodernwindowsstyle.dll`, `sqldrivers/qsqlite.dll`, a `libzmq` DLL,
+  `scene_tool.exe` and `Scenes/Paimpol`. It fails when the software
+  OpenGL, Direct3D or DXC compiler libraries, Qt Quick, QML or virtual
   keyboard files or `vc_redist.x64.exe` are in the package. It copies the Visual
   C++ runtime DLLs that the program files import next to `QEGTRAIN.exe` and
   fails when a program file imports a DLL that is neither in the package nor part
@@ -134,15 +134,16 @@ What the jobs prove today:
   files, and leaves a file beside the folder in place. An install with the desktop
   task creates the desktop shortcut and the uninstall removes it. A second
   installer of the next patch version installed over the first, in the default
-  folder, leaves one entry, one folder and the higher version, and replaces the
-  `Scenes` folder. A copy of the same directory, started as a portable copy is,
+  folder, leaves one entry, one folder and the higher version, replaces the
+  `Scenes` folder and deletes the Qt 5 files that an installation of version
+  1.0.4 or older holds. A copy of the same directory, started as a portable copy is,
   registers no file type. The job then writes the portable archive from that
   directory, extracts it and starts the extracted program with the same start
   script.
 - The Package Linux job extracts the AppImage and checks the executable,
   the update helper, `Scenes/Paimpol`, the icon, `AppRun` and the Qt libraries.
   It then starts the extracted image through its `AppRun` on a virtual display,
-  after it has checked that every Qt 5 and ZeroMQ library of the programs and
+  after it has checked that every Qt and ZeroMQ library of the programs and
   plugins comes from the image and not from the runner.
 - The Rehearse Linux job runs the steps 1 to 9 of the clean-install rehearsal
   on the AppImage that the Package Linux job uploaded. It runs on every package

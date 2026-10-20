@@ -36,7 +36,7 @@ To cite EGTRAIN, use **Cite this repository** in the sidebar of the [GitHub repo
 - Build the application from source: [Getting started as a developer](docs/development/getting-started.md).
 - Build, test and contribute: [Build And Test](docs/development/build-and-test.md), [Coding guidelines](docs/development/coding-guidelines.md), [V1 Scene Model](docs/architecture/scene-model.md) and, for the repository layout, [QEGTRAIN source layout](docs/architecture/source-layout.md#repository-layout).
 
-EGTRAIN is a C++17 application built with Qt 5 and CMake. See [Documentation](docs/README.md) for the full list.
+EGTRAIN is a C++17 application built with Qt 6 and CMake. See [Documentation](docs/README.md) for the full list.
 
 ## Support
 

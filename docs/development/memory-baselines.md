@@ -13,7 +13,8 @@ other heavy workload is active:
 ```bash
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
+  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 cmake --build build
 python3 tools/memory/measure_peak_rss.py \
   --app build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \
@@ -51,7 +52,7 @@ exited with zero before citing a baseline.
 ## Baseline recorded 2026-08-29
 
 The protocol above was run alone on macOS 26.6.2 (Darwin 25.6.0, arm64) using
-a locally built Release executable. The collector invocation was:
+a locally built Release executable, built with Qt 5. The collector invocation was:
 
 ```bash
 python3 tools/memory/measure_peak_rss.py \

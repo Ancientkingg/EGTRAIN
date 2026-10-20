@@ -1,6 +1,6 @@
 # EGTRAIN code style.
 #
-#   - Tab indentation, braces attached, C++17, Qt 5 widgets code.
+#   - Tab indentation, braces attached, C++17, Qt 6 widgets code.
 #   - ColumnLimit 0: the formatter keeps the line breaks of the author and does
 #     not wrap to a width.
 #   - A continuation line gets one extra indent. Nothing is aligned after an

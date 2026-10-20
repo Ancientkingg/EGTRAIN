@@ -21,7 +21,7 @@ Sizes are relative to the font of the widget, so they follow a larger platform f
 | Body text, table cells, controls | body | normal | platform |
 | Small text: case readiness, panel titles, map key | 11 px | normal, or 600 for the titles and the key toggle | style sheet |
 
-There are two weights, normal and 600. Qt 5 turns `font-weight: 600` into `QFont::Bold`, the weight that `setBold(true)` sets in code, so the sheet and the code give the same face.
+There are two weights, normal and 600. Qt 6 keeps `font-weight: 600` as `QFont::DemiBold`, while `setBold(true)` in code sets `QFont::Bold` (700), so where the font has a semibold face the sheet and the code give different faces.
 
 ## Spacing and shape
 
@@ -82,7 +82,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 - The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on `QHeaderView`; the size is the platform header font.
 - Cells are on the field colour with alternate rows and band-coloured grid lines.
 - In a dialog a table has the control border, a 6 px radius and 2 px of padding, so that the header stays inside the rounded corners.
-- Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that `DelayAnalysisWindow` and `AreaCapacityWindow` name as numeric, and the headways, references, shifts and gaps of the capacity analysis dialog. Names, ids, codes and statuses are aligned to the left. Qt 5 cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.
+- Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that `DelayAnalysisWindow` and `AreaCapacityWindow` name as numeric, and the headways, references, shifts and gaps of the capacity analysis dialog. Names, ids, codes and statuses are aligned to the left. The style sheet cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.
 - Delays in the timetable results are signed and coloured with the delay tokens.
 - The stops table of the Services dock shares the width of the dock among its columns and can cut a header when the dock is narrow; each header has its full text as a tooltip.
 

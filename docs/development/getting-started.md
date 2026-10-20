@@ -1,14 +1,17 @@
 # Getting started as a developer
 
 This page takes you from a fresh clone to a built application, a first run, a changed test and the
-checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 5 and
+checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 6 and
 C++17 desktop application for railway micro-simulation, built with CMake.
 
-The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17. On Linux,
+The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17, and the macOS configure and build
+with Qt 6.8.3 on 2026-10-20. On Linux,
 configure, build, CTest, the headless run, both smokes and the test walkthrough below were run in a
 clean Ubuntu 24.04 arm64 container on 2026-10-17 at `dbaadd94`. One test, `test_measure_peak_rss`,
 failed there because the first process of the container did not reap orphaned children; the test
-counts such a zombie as exited. The Windows commands on this page were not run. CI installs the same packages as
+counts such a zombie as exited. That run used the Qt 5 packages of Ubuntu. On 2026-10-20 the build and CTest ran in
+such a container with the Qt 6.4.2 packages of Ubuntu: the tests that need a writable checkout or Git failed there, and
+the others passed. The Windows commands on this page were not run. CI installs the same packages as
 [Build and test](build-and-test.md#configure) lists, but it configures with more options; see
 [Which checks to run](#which-checks-to-run). The Visual Studio generator path in the build guide
 is not what CI uses and was not checked for this page.
@@ -19,8 +22,8 @@ is not what CI uses and was not checked for this page.
 | --- | --- | --- |
 | Git | any recent release | |
 | CMake | 3.16 or newer | `CMakeLists.txt` at the repository root |
-| C++ compiler | C++17 | Apple Clang on macOS, MSVC 2019 or newer on Windows (x64 only), GCC on Ubuntu |
-| Qt 5 | Core, Gui, Widgets, Charts, Svg and Network | CI uses Homebrew `qt@5`, Qt 5.15.2 `msvc2019_64` and the Ubuntu packages |
+| C++ compiler | C++17 | Apple Clang on macOS, MSVC 2022 or newer on Windows (x64 only), GCC on Ubuntu |
+| Qt 6 | Core, Gui, Widgets, Charts, Svg, Network and Help | CI uses Qt 6.8.3 from aqtinstall on all three systems; the Qt 6.4.2 of Ubuntu 24.04 also builds |
 | ZeroMQ, cppzmq, nlohmann-json | any release that CMake finds | `libzmq3-dev cppzmq-dev nlohmann-json3-dev` on Ubuntu, vcpkg on Windows |
 | Python | 3.9 or newer | CMake looks for it when tests are on; CI uses 3.12 |
 | clang-format | 23.1.3 exactly | Only to format C++ sources: `python3 -m pip install clang-format==23.1.3` |
@@ -38,28 +41,20 @@ git clone https://github.com/Ancientkingg/EGTRAIN.git
 cd EGTRAIN
 ```
 
-On macOS with Homebrew:
+On macOS, install Qt 6.8.3 with [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html)
+(or the Qt online installer) and the other libraries with Homebrew:
 
 ```bash
-brew install qt@5 zeromq cppzmq nlohmann-json
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
+python3 -m pip install aqtinstall
+aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"
+brew install zeromq cppzmq nlohmann-json
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
+  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 cmake --build build --parallel 4
 ```
 
-Homebrew deprecated `qt@5` on 2026-05-19 and disables it on 2027-05-19
-([formula](https://formulae.brew.sh/formula/qt@5)). After that date, install Qt 5.15 another way and point
-`CMAKE_PREFIX_PATH` at it, for example Qt 5.15.2 from the Qt online installer or from
-[aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). On an Intel Mac:
-
-```bash
-aqt install-qt mac desktop 5.15.2 clang_64 -m qtcharts -O "$HOME/Qt"
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$HOME/Qt/5.15.2/clang_64"
-```
-
-The macOS binaries of Qt 5.15.2 are for Intel only. On Apple silicon they need an Intel build with
-`-DCMAKE_OSX_ARCHITECTURES=x86_64` and an Intel build of ZeroMQ, and run under Rosetta;
-building Qt 5.15 from source is the other way. The [Qt 6 migration study](qt6-migration-study.md) describes the
-move to Qt 6, which removes the need for `qt@5`.
+[Configure](build-and-test.md#configure) explains the prefix path and the AGL option.
 
 On Ubuntu and Windows, take the install and configure lines from
 [Configure](build-and-test.md#configure); the Ubuntu line installs `git` and `python3` too. The build, test and run commands below use the macOS and
