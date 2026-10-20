@@ -548,6 +548,11 @@ static QString navigationHelp(const DiagramWindow& window) {
 	return window.findChild<QLabel*>("diagramNavigationHelp")->text();
 }
 
+static QStringList legendKinds(const DiagramWindow& window) {
+	const auto* legend = window.findChild<QChartView*>()->chart()->findChild<QGraphicsObject*>("lineKindLegend");
+	return legend ? legend->property("kinds").toStringList() : QStringList();
+}
+
 static QPushButton* topButton(QDialog& window, const QString& text) {
 	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
 		if (button->text() == text) return button;
@@ -707,9 +712,12 @@ static bool exerciseBlockSections() {
 	y->setRange(0, 100);
 	y->setReverse(true);
 	window.setChart(chart);
+	window.setBlockSections(buildBlockSectionExtents({{"@missing<&>@", 4, 4}}), "reference<&>");
+	ok &= expect(legendKinds(window).isEmpty(), "sections without geometry draw no boundaries and get no legend entry");
 	const std::string authored = "@repeat<&>" + std::string(80, 'X') + "@";
 	auto extents = buildBlockSectionExtents({{authored, 1, 3}, {authored, 1, 3}, {"@reverse@", 8, 5}, {"@missing<&>@", 4, 4}});
 	window.setBlockSections(extents, "reference<&>");
+	ok &= expect(legendKinds(window) == QStringList({"Simulated", "Physical section"}), "the legend names the drawn section boundaries");
 	window.show();
 	QApplication::processEvents();
 	auto* view = window.findChild<QChartView*>();
@@ -1055,6 +1063,15 @@ static QStringList drawnChartTexts(DiagramWindow& window) {
 	return texts;
 }
 
+// The scene rectangles of the visible texts of the chart that are not empty, less the 4-pixel margin of each text.
+static QList<QRectF> drawnTextRects(DiagramWindow& window) {
+	QList<QRectF> rects;
+	for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
+		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible() && !text->toPlainText().isEmpty())
+			rects << text->sceneBoundingRect().adjusted(4, 4, -4, -4);
+	return rects;
+}
+
 static QStringList elidedTexts(const QStringList& texts) {
 	QStringList elided;
 	for (const QString& text : texts)
@@ -1146,11 +1163,6 @@ static bool exerciseStationAxis() {
 	return ok;
 }
 
-static QStringList legendKinds(const DiagramWindow& window) {
-	const auto* legend = window.findChild<QChartView*>()->chart()->findChild<QGraphicsObject*>("lineKindLegend");
-	return legend ? legend->property("kinds").toStringList() : QStringList();
-}
-
 // A chart with more than one kind of line names the kinds in a legend below the plot: the layer of a series, else planned
 // or simulated by its name. The help line does not explain them, and the rolling-stock subject has its own help.
 static bool exerciseLegend() {
@@ -1187,9 +1199,7 @@ static bool exerciseLegend() {
 	const QRectF area = legend ? legend->mapRectToScene(legend->boundingRect()) : QRectF();
 	bool clear = !area.isEmpty() && layered->sceneBoundingRect().contains(area)
 		&& area.top() > layered->mapRectToScene(layered->plotArea()).bottom();
-	for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
-		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible() && !text->toPlainText().isEmpty())
-			clear = clear && !text->sceneBoundingRect().adjusted(4, 4, -4, -4).intersects(area);
+	for (const QRectF& rect : drawnTextRects(window)) clear = clear && !rect.intersects(area);
 	ok &= expect(clear, "the legend lies inside the chart, below the plot and clear of the axis texts");
 
 	DiagramWindow input("Help of an input traction curve");
@@ -1202,15 +1212,16 @@ static bool exerciseLegend() {
 }
 
 // Numeric axes that keep the ticks Qt gives them get round ticks: at most eight steps of 1, 2 or 5 times a power of ten,
-// labelled with the decimals of the step, zero as "0.0" and not "-0.0", none overlapping at the size of the window on a
-// 1280 by 800 screen. The range stays as the chart builder set it, and a zoom picks a smaller step.
+// labelled with the decimals of the step, zero as "0.0" and not "-0.0", a tick at each end of the range that is a round
+// value, none overlapping at the size of the window on a 1280 by 800 screen. The range stays as the chart builder set it,
+// and a zoom picks a smaller step.
 static bool exerciseRoundTicks() {
 	DiagramWindow window("Round ticks");
 	auto* chart = new QChart;
 	auto* series = new QLineSeries;
 	series->setName("A");
-	series->append(0.000595, -0.4);
-	series->append(37.0769, 0.7);
+	series->append(10.3, -0.35);
+	series->append(11.0, 0.4);
 	chart->addSeries(series);
 	chart->createDefaultAxes();
 	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
@@ -1219,22 +1230,19 @@ static bool exerciseRoundTicks() {
 	window.resize(1152, 640);
 	window.show();
 	const QStringList texts = drawnChartTexts(window);
-	bool ok = expect(x->min() == 0.000595 && x->max() == 37.0769, "round ticks leave the range as it was");
+	bool ok = expect(x->min() == 10.3 && x->max() == 11.0, "round ticks leave the range as it was");
 	bool labelled = !texts.contains("-0.0");
-	for (const char* label : {"5", "10", "15", "20", "25", "30", "35", "-0.4", "-0.2", "0.0", "0.2", "0.4", "0.6"})
+	for (const char* label : {"10.3", "10.4", "10.5", "10.6", "10.7", "10.8", "10.9", "11.0", "-0.3", "-0.2", "-0.1", "0.0", "0.1", "0.2", "0.3", "0.4"})
 		labelled = labelled && texts.contains(label);
 	ok &= expect(labelled, "the ticks are round, with the decimals of their step");
-	QList<QRectF> labels;
-	for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
-		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible() && !text->toPlainText().isEmpty())
-			labels << text->sceneBoundingRect().adjusted(4, 4, -4, -4);
+	const QList<QRectF> labels = drawnTextRects(window);
 	bool apart = true;
 	for (int a = 0; a < labels.size(); ++a)
 		for (int b = a + 1; b < labels.size(); ++b) apart = apart && !labels[a].intersects(labels[b]);
 	ok &= expect(apart, "no two texts of the chart overlap");
 	auto* view = window.findChild<QChartView*>();
 	for (int step = 0; step < 6; ++step) wheel(view, {}, {0, 120}, Qt::ControlModifier);
-	ok &= expect(x->tickType() == QValueAxis::TicksDynamic && x->tickInterval() > 0 && x->tickInterval() < 5 && x->max() - x->min() < 37,
+	ok &= expect(x->tickType() == QValueAxis::TicksDynamic && x->tickInterval() > 0 && x->tickInterval() < 0.09 && x->max() - x->min() < 0.5,
 		"zooming in picks a smaller round step");
 	return ok;
 }

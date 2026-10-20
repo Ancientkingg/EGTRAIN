@@ -127,7 +127,9 @@ constexpr QMargins kChartMargins(12, 8, 12, 8);
 // Puts the ticks of a numeric axis on round values: the multiples of 1, 2 or 5 times a power of ten that divide its range
 // into at most eight steps, labelled with as many decimals as the step has.
 void roundTicks(QValueAxis* axis) {
-	const double span = axis->max() - axis->min();
+	const double low = axis->min();
+	const double high = axis->max();
+	const double span = high - low;
 	if (!(span > 0.0) || !std::isfinite(span)) return;
 	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
 	double step = 10 * power;
@@ -137,10 +139,13 @@ void roundTicks(QValueAxis* axis) {
 			break;
 		}
 	axis->setTickType(QValueAxis::TicksDynamic);
-	axis->setTickInterval(step);
-	// Qt reaches each tick by adding the step to the one before, so the tick at zero can end a hair below zero and read
-	// "-0.0". In a range that holds zero, an anchor a millionth of a step above zero keeps that tick above it.
-	axis->setTickAnchor(axis->min() < 0 && axis->max() >= 0 ? step / 1e6 : 0.0);
+	// Qt reaches each tick by adding the interval to the one before. The interval is the step cut to 31 significant bits,
+	// a hair shorter, so the sums from an anchor at zero are exact and zero reads "0.0", not "-0.0", and each tick lies a
+	// hair nearer the anchor than its round value, so an end of the range on a round value keeps its tick. The anchor is
+	// zero when the range holds it, else a round value inside the range.
+	const int exponent = std::ilogb(step) - 30;
+	axis->setTickInterval(std::ldexp(std::floor(std::ldexp(step, -exponent)), exponent));
+	axis->setTickAnchor(low <= 0 && high >= 0 ? 0.0 : std::round((low + high) / 2 / step) * step);
 	const int decimals = std::max(0, static_cast<int>(-std::floor(std::log10(step) + 1e-9)));
 	axis->setLabelFormat(QStringLiteral("%.%1f").arg(decimals));
 }
@@ -714,9 +719,8 @@ void DiagramWindow::setChart(QChart* chart) {
 		for (auto* axis : chart->axes())
 			if (auto* value = qobject_cast<QValueAxis*>(axis)) {
 				m_fullBounds.insert(axis, {value->min(), value->max()});
-				// Round ticks for every numeric axis whose ticks and labels the chart builder left as Qt sets them.
-				if (qobject_cast<QCategoryAxis*>(axis) || value->tickType() != QValueAxis::TicksFixed || !value->labelFormat().isEmpty())
-					continue;
+				// Round ticks for every numeric axis whose ticks the chart builder left as Qt sets them.
+				if (qobject_cast<QCategoryAxis*>(axis) || value->tickType() != QValueAxis::TicksFixed) continue;
 				roundTicks(value);
 				connect(value, &QValueAxis::rangeChanged, value, [value] { roundTicks(value); });
 			}
@@ -953,23 +957,18 @@ void DiagramWindow::applyTimeAxis() {
 				break;
 			}
 		clock->setStartValue(low - interval);
-		const auto append = [this, clock](double tick) {
-			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
-		};
 		// Ticks fall on round clock times. Elapsed zero, the run start, keeps a tick of its own while it is in range, and a
 		// round tick less than a step from it is left out.
 		const bool runStart = low <= 0 && high >= 0;
-		bool startPending = runStart;
 		const double offset = static_cast<double>(m_startOffset);
+		std::vector<double> ticks;
+		if (runStart) ticks.push_back(0);
 		// NOLINTNEXTLINE(bugprone-float-loop-counter,clang-analyzer-security.FloatLoopCounter): ticks are placed at multiples of the interval
-		for (double tick = std::ceil((low + offset) / interval) * interval - offset; tick <= high; tick += interval) {
-			if (startPending && tick > -interval) {
-				append(0);
-				startPending = false;
-			}
-			if (!runStart || std::abs(tick) >= interval) append(tick);
-		}
-		if (startPending) append(0);
+		for (double tick = std::ceil((low + offset) / interval) * interval - offset; tick <= high; tick += interval)
+			if (!runStart || std::abs(tick) >= interval) ticks.push_back(tick);
+		std::sort(ticks.begin(), ticks.end());
+		for (const double tick : ticks)
+			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
 	};
 	connect(clock, &QValueAxis::rangeChanged, this, updateLabels);
 	updateLabels(min, max);

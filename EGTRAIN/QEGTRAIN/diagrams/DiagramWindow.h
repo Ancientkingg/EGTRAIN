@@ -56,9 +56,9 @@ class DiagramWindow : public QDialog {
 public:
 	/// An empty window with the given title.
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
-	/// Shows the chart and takes ownership of it. Numeric axes that keep the ticks and labels Qt gives them get ticks on
-	/// round values. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the
-	/// series the chart has when it is set: the "layer" property of a series, else planned or simulated by its name.
+	/// Shows the chart and takes ownership of it. Numeric axes that keep the ticks Qt gives them get ticks on round
+	/// values. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series
+	/// the chart has when it is set: the "layer" property of a series, else planned or simulated by its name.
 	void setChart(QChart* chart);
 	/// Sets the window title to `heading` and shows `context` and `warning` in labels of their own; an empty text hides
 	/// its label.
