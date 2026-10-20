@@ -1,6 +1,6 @@
 # Interface style
 
-The visual specification of the EGTRAIN windows, docks, dialogs and tables. Most rules live in the style sheet `EGTRAIN/QEGTRAIN/resources/styles/egtrain.qss`, which the main window applies to the whole application. The rest are set in code and named below. The network canvas, railway notation, chart text and console follow their own rules ([exceptions](#exceptions)).
+The visual specification of the EGTRAIN windows, docks, dialogs and tables. Most rules live in the style sheet `EGTRAIN/QEGTRAIN/resources/styles/egtrain.qss`, which `main` applies to the whole application before it shows the first window or message box. The rest are set in code and named below. The network canvas, railway notation, chart text and console follow their own rules ([exceptions](#exceptions)).
 
 ## Fonts
 
@@ -25,8 +25,8 @@ There are two weights, normal and 600. Qt 5 turns `font-weight: 600` into `QFont
 ## Spacing and shape
 
 - The padding of table headers, tabs, menu items and status labels, and the margins of toolbar separators, are multiples of 4 px.
-- Push buttons, combo boxes, line edits and spin boxes are 28 px tall at a 13 px font: a button has 5 px above and below its text, a field 4 px. A push button in a dialog has 14 px beside its text, one in a dock 7 px, so that the editor docks keep their width; a field has 7 px.
-- Push buttons, fields, the lists and tables of a dialog, status labels and the rows of the recovery prompt have a 6 px radius. Toolbar buttons, check box indicators, tabs, the progress bar and scroll handles keep 2 px. The slider handle is round.
+- Push buttons, combo boxes, line edits and the spin boxes of a dialog are 28 px tall at a 13 px font: a button has 5 px above and below its text, a field 4 px. A push button in a dialog has 14 px beside its text, one in a dock 7 px, so that the editor docks keep their width; a field has 7 px. Outside a dialog a spin box has 2 px above and below its text and 4 px before it. With Qt 5 it then asks for no more room than the Fusion spin box, so the editor docks and their tables keep the size they had with native spin boxes; with Qt 6 it is a few pixels larger. The arrows of a spin box take 16 px at its right.
+- Push buttons, toolbar buttons, the map key toggle, the train, occurrence and station buttons of the result windows, fields, the lists and tables of a dialog, status labels and the rows of the recovery prompt have a 6 px radius. Other tool buttons, such as the details toggles of a dialog and the scroll buttons of a tab bar, check box indicators, tabs, the progress bar and scroll handles keep 2 px. The slider handle is round.
 - Scroll bars are 10 px wide, without arrow buttons.
 
 ## Colour tokens
@@ -39,39 +39,38 @@ Contrast ratios follow the WCAG formula for the pair named in the last column.
 | Secondary text | `#5b6871` | help, context lines, small titles | 5.1:1 on window, 4.7:1 on band |
 | Status text | `#3f4d56` | neutral status label | 7.2:1 on band |
 | Disabled text | `#64717a` | disabled controls and menu items | 4.3:1 on disabled fill, 4.5:1 on window |
-| Accent | `#315a70` | focus of tool buttons and of the Run Results table, checked buttons, selected tab, progress fill, slider, links of About | white on accent 7.4:1 |
+| Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, progress fill, slider, links of About | white on accent 7.4:1 |
 | Accent dark | `#26495c` | hover of the slider handle | white on it 9.6:1 |
-| Action | `#2e7491` | default button fill, focus border of push buttons, fields, and the lists and tables of a dialog | white on it 5.2:1, 5.2:1 on field |
+| Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, fields, and the lists and tables of a dialog | white on it 5.2:1, 5.2:1 on field |
 | Action hover | `#296882` | default button under the pointer | white on it 6.2:1 |
 | Action pressed | `#23566c` | default button while pressed | white on it 8.0:1 |
 | Action focus | `#0b2430` | focus border of the default button | 3.1:1 on action, 15:1 on surface |
 | Window | `#eef2f5` | main window and panel background | |
 | Surface | `#f8fafb` | toolbar, docks, menus, and a dialog with everything in it that is not a field | |
-| Band | `#e3eaee` | dock titles, table headers, tabs, status bar, hover of tool buttons, pressed push button, scroll track, grid lines | |
+| Band | `#e3eaee` | dock titles, table headers, tabs, status bar, Open Case, hover of the tool buttons outside the toolbar, pressed push and toolbar buttons, scroll track, grid lines | |
 | Field | `#ffffff` | inputs, buttons, tables | |
 | Alternate row | `#f4f7f9` | every second table row | |
 | Disabled fill | `#eceeec` | disabled and read-only fields, progress groove | |
 | Selected | `#d8e1e5` | selected menu item, chosen case | text 10.0:1 |
 | Border | `#c9d3db` | borders and rules of tables outside dialogs, docks, tabs, separators, status labels, disabled fields | |
-| Control border | `#b4c0ca` | border of push buttons and fields, and of the lists and tables of a dialog | |
-| Control hover | `#8a9aa6` | border of a push button or field under the pointer | |
-| Outline | `#7b8b96` | toolbar button outline, slider groove | 3.5:1 on field |
+| Control border | `#7b8b96` | border of push buttons, toolbar buttons and fields, and of the lists and tables of a dialog; slider groove | 3.5:1 on field, 3.4:1 on surface, 3.1:1 on window |
+| Control hover | `#5b6871` | border of a push button, toolbar button or field under the pointer; the secondary text colour | 5.7:1 on field, 5.5:1 on surface |
 | Warning | `#f5eadc`, border `#d8b98e`, text `#74451c` | warning status label | 6.8:1 |
 | Error | `#f7e8e6`, border `#c98f88`, text `#81352d` | error status label | 7.1:1 |
 | Blocking | `#965c22` | case readiness when the case cannot run | 4.8:1 on window |
 | Delay late | `#81352d` above 60 s, `#74451c` above 0 s | timetable results | 8.0:1 or more on field, 7.5:1 or more on alternate row |
 | Delay not late | `#006400` | timetable results, 0 s or early | 7.4:1 on field, 6.9:1 on alternate row |
 
-The other values of the sheet are state shades of these roles: `#dce6eb` and `#dce3e7` for hover and disabled default buttons, `#d3e3ec` and `#bcd2df` for the checked Follow button, `#9aa5ab` for scroll handles and disabled check marks.
+The other values of the sheet are state shades of these roles: `#dce6eb` for Open Case under the pointer, `#dce3e7` for disabled default buttons, `#d8e1e5` for Open Case while pressed, `#d3e3ec` and `#bcd2df` for the checked Follow button, `#9aa5ab` for scroll handles and disabled check marks.
 
 ## States
 
 | State | Look |
 | --- | --- |
-| Enabled | Field fill with the control border; toolbar buttons with the outline colour |
-| Hover | Push buttons and fields: control hover border. Tool buttons: accent border and band fill. Default button: action hover fill |
-| Pressed | Push buttons: band fill. Default button: action pressed fill |
-| Focused | Push buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Default button: a 2 px action focus border. Tool buttons: accent border and band fill. Check box: band fill and an action border |
+| Enabled | Field fill with the control border, also for toolbar buttons |
+| Hover | Push buttons, toolbar buttons and fields: control hover border. Other tool buttons: accent border and band fill. Default button: action hover fill |
+| Pressed | Push buttons and toolbar buttons: band fill. Default button: action pressed fill |
+| Focused | Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Default button: a 2 px action focus border. Other tool buttons: accent border and band fill. Check box: band fill and an action border |
 | Disabled | Disabled fill, border colour and disabled text |
 | Selected | Item views use the platform selection colour; menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text |
 | Invalid | Fields are not recoloured. The message goes in a status label beside them (`DialogLayout::setStatus`, error or warning tokens), and the Scene Validation dock lists every issue |
@@ -94,6 +93,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` and `#d
 - **Groups:** a group box in a dialog is a bold title over its fields, without a frame.
 - **Status labels:** neutral, warning and error keep their colours, with a 6 px radius and 8 px padding.
 - **Default button:** the default button of a dialog footer or a message box is filled with the action colour and has white text. Run simulation in the run review has the same look.
+- **Footer buttons:** the buttons of a dialog footer and of a message box show only their text. The sheet turns off the icons that some desktop themes give OK, Cancel and Close, which would be hard to see on the filled default button.
 - **Links:** the links of About EGTRAIN are underlined accent text without a button face or border.
 
 ## Exceptions

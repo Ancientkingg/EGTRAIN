@@ -12,13 +12,13 @@ The readout next to the slider shows the current speed as **Fastest** or as a fa
 
 ## Toolbar buttons and Follow
 
-Every toolbar button has a white fill and a `#7b8b96` outline. A disabled button, such as Pause and Stop before a run, has a grey `#eceeec` fill, a light `#c9d3db` outline and grey text. Under the pointer and with keyboard focus a button turns `#e3eaee` with a `#315a70` outline. **Open Case** keeps its own darker fill and lighter outline.
+Every toolbar button has the face of a push button: a white fill, a `#7b8b96` outline and a 6 px radius. Under the pointer the outline turns `#5b6871`, while pressed the fill turns `#e3eaee`, and with keyboard focus the button has a 2 px `#2e7491` outline with 1 px less padding, so its text and icon do not move. A disabled button, such as Pause and Stop before a run, has a grey `#eceeec` fill, a light `#c9d3db` outline and grey text. **Open Case** keeps its darker `#e3eaee` fill and bold text.
 
 The two group separators of the toolbar are 1 px wide lines as tall as the toolbar row less the margins of the style sheet, at every window width. A menu separator is a 1 px `#c9d3db` line, the colour of the menu border, at every scale.
 
 A tooltip names the shortcut of its button as the platform writes it, such as Ctrl+R, or ⌘R on macOS.
 
-**Follow** shows a crosshair icon beside its text. While Follow is on, the button has a light `#d3e3ec` fill, a `#315a70` outline and dark text; under the pointer or with focus the fill turns `#bcd2df` and the outline `#24313a`.
+**Follow** shows a crosshair icon beside its text. While Follow is on, the button has a light `#d3e3ec` fill, a `#315a70` outline and dark text; under the pointer the fill turns `#bcd2df` and the outline `#24313a`, and with keyboard focus it has the 2 px `#2e7491` outline of the other toolbar buttons.
 
 The closed train list ends a name that does not fit its 180 px with an ellipsis; the open list and the tooltip show the whole text.
 
@@ -34,7 +34,7 @@ When Run Results first opens at the bottom of the window it takes a third of the
 
 The Case and Layers dock opens at the width of its widest layer toggle, **Stations and platforms**, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.
 
-The map key has a **Passenger count** row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.
+The toggle that opens the map key has the white fill, `#7b8b96` border, 6 px radius and states of a push button, with small grey bold text, and keeps that face while the key is open. The map key has a **Passenger count** row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.
 
 The editor docks share one group of tabs on the right of the window, so each open editor has the full height beside the network, also with Run Results open below it. Choosing an editor in the Editors menu opens it, or brings it to the front when it is open behind another tab. An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows. The tabs of the group keep their whole names and scroll when they do not fit.
 
@@ -48,9 +48,9 @@ EGTRAIN has one light look, also when the system uses a dark appearance. On macO
 
 ## Focus and buttons
 
-A focused push button shows a `#315a70` border and no rectangle around its text. The filled default button of a dialog shows focus as a `#315a70` ring separated from its fill by a light line. In **Run simulation** only **Run simulation** is filled: **Cancel** keeps the plain face when it has the focus, although Enter then presses it.
+A focused push button shows a 2 px `#2e7491` border and no rectangle around its text. The filled default button of a dialog shows focus as a 2 px `#0b2430` border. In **Run simulation** only **Run simulation** is filled: **Cancel** keeps the plain face when it has the focus, although Enter then presses it.
 
-A button that opens a menu, such as **Open result view...** in Run Results and **Trains** in a result window, keeps 20 px on its right for the arrow. A drop-down list, such as the train list beside **Follow**, draws its arrow without a frame of its own.
+A button that opens a menu, such as **Open result view...** in Run Results and **Trains** in a result window, keeps 20 px on its right for the arrow. **Trains**, **Occurrences** and **Stations** in the result windows have the white face, border, radius and states of the push buttons beside them, and the padding of a tool button, so the top bar of a result window keeps its height. A drop-down list, such as the train list beside **Follow**, draws its arrow without a frame of its own.
 
 ## Tables and progress bar
 
@@ -62,7 +62,7 @@ The timetable table colours a delay above 60 s `#81352d`, a delay above 0 s `#74
 
 The progress bar of a run fills in `#315a70`. Its text is `#24313a` on the empty part, 11.4:1 on `#eceeec`, and white on the fill, 7.4:1: `TimeProgressBar` draws the bar a second time over the fill with the stylesheet's `selection-color` as the text colour.
 
-In Run Results the **Open result view...** button has the white face, text size, grey border and padding of the **Export CSV...** and **Export PNG...** buttons beside it, the same `#315a70` border under the pointer or with focus, and the same grey face when disabled.
+In Run Results the **Open result view...** button has the white face, text size, grey border and padding of the **Export CSV...** and **Export PNG...** buttons beside it, the same `#5b6871` border under the pointer, 2 px `#2e7491` border with focus and `#e3eaee` fill while pressed, and the same grey face when disabled.
 
 ## Keyboard
 
