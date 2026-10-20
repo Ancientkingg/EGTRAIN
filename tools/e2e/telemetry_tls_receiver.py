@@ -83,7 +83,8 @@ def run_case(client: str, cert: str, key: str, ca: str, scenario: int) -> None:
             batch = json.loads(body)
             if (len(queued) != 1 or len(body) > 65536 or batch.get("schema_version") != 1
                     or batch.get("category") != "usage" or batch.get("events") != [json.loads(queued[0])]):
-                raise AssertionError("trusted wire event differs from the original durable queued event")
+                raise AssertionError("trusted wire event differs from the original durable queued event: "
+                                     f"queued {queued}, received {body.decode('utf-8', 'replace')}")
     finally:
         finished.set()
         listener.close()
