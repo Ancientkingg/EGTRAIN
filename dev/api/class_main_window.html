@@ -187,6 +187,8 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:af809c2679376142b241371e36aedc279" id="r_af809c2679376142b241371e36aedc279"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af809c2679376142b241371e36aedc279">dropEvent</a> (QDropEvent *event) override</td></tr>
 <tr class="memdesc:af809c2679376142b241371e36aedc279"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens the scene file that was dropped (<a class="el" href="class_scene_session.html#a78e07332f7b84f2b9814cfb35ca6ff3d" title="Opens the scene file that was dropped, as dragEnter() describes.">SceneSession::drop()</a>).  <br /></td></tr>
 <tr class="memitem:a8be34a38a90c8590385134ac1686a553" id="r_a8be34a38a90c8590385134ac1686a553"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8be34a38a90c8590385134ac1686a553">childEvent</a> (QChildEvent *event) override</td></tr>
+<tr class="memitem:af4c3fd241765e0e59c9f82ef0dcd894d" id="r_af4c3fd241765e0e59c9f82ef0dcd894d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af4c3fd241765e0e59c9f82ef0dcd894d">focusNextPrevChild</a> (bool next) override</td></tr>
+<tr class="memdesc:af4c3fd241765e0e59c9f82ef0dcd894d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the focus as QWidget::focusNextPrevChild() does, but passes over the docks behind the front tab of a group.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -279,7 +281,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Takes the tab bars of tabbed docks out of the Tab order. The menus raise each dock, and Qt keeps the bar of a single dock outside the window, where its focus cannot be seen. The bars show whole names and scroll. </p>
+<p>Takes the tab bars of tabbed docks and their scroll buttons out of the Tab order. The menus raise each dock, and Qt keeps the bar of a single dock outside the window, where its focus cannot be seen. The bars show whole names and scroll. </p>
 
 </div>
 </div>
@@ -431,6 +433,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Fits the canvas to the network, or to the preview bounds while a preview shows. </p>
+
+</div>
+</div>
+<a id="af4c3fd241765e0e59c9f82ef0dcd894d" name="af4c3fd241765e0e59c9f82ef0dcd894d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4c3fd241765e0e59c9f82ef0dcd894d">&#9670;&#160;</a></span>focusNextPrevChild()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool MainWindow::focusNextPrevChild </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>next</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Moves the focus as QWidget::focusNextPrevChild() does, but passes over the docks behind the front tab of a group. </p>
 
 </div>
 </div>
@@ -748,7 +777,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_main_window_aa23baa90bce7947069b101c037a4d76f_cgraph.svg" width="1366" height="1826"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_main_window_aa23baa90bce7947069b101c037a4d76f_cgraph.svg" width="1362" height="1375"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

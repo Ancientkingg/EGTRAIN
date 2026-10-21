@@ -9,6 +9,7 @@ var class_main_window =
     [ "editorsMenu", "class_main_window.html#a95f8adeed8bf39b58d6929f73e57487f", null ],
     [ "fitToView", "class_main_window.html#a1d8ba7c48f7b0684a705cdff2b1a3fad", null ],
     [ "fitView", "class_main_window.html#a2cfd0971aa8a2a72f60e7213ef421867", null ],
+    [ "focusNextPrevChild", "class_main_window.html#af4c3fd241765e0e59c9f82ef0dcd894d", null ],
     [ "handleHelpAbout", "class_main_window.html#af6401b80180a8574e05f043fedea8bfb", null ],
     [ "hasRunResults", "class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12", null ],
     [ "openGUI", "class_main_window.html#a07d2c6f665c664cf1357596a70560615", null ],
