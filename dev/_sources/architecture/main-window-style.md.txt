@@ -50,7 +50,7 @@ EGTRAIN has one light look, also when the system uses a dark appearance. On macO
 
 A focused push button shows a 2 px `#2e7491` border and no rectangle around its text. The filled default button of a dialog shows focus as a 2 px `#0b2430` border. In **Run simulation** only **Run simulation** is filled: **Cancel** keeps the plain face when it has the focus, although Enter then presses it.
 
-A button that opens a menu, such as **Open result view...** in Run Results and **Trains** in a result window, keeps 20 px on its right for the arrow. **Trains**, **Occurrences** and **Stations** in the result windows have the white face, border, radius, states, height and font size of the push buttons beside them. macOS gives a tool button a smaller font, so `TrainFilterButton` takes the application font. A drop-down list, such as the train list beside **Follow**, draws its arrow without a frame of its own.
+A button that opens a menu, such as **Open result view...** in Run Results and **Trains** in a result window, keeps 20 px on its right for the arrow. **Trains**, **Occurrences** and **Stations** in the result windows have the white face, border, radius, states, height and font size of the push buttons beside them. macOS gives a tool button a smaller font, so `TrainFilterButton` takes the application font. A drop-down list, such as the train list beside **Follow**, draws its arrow without a frame of its own. The train list beside **Follow** opens as wide as its longest entry; where the style draws the list as a menu, as on macOS, that width includes the room it keeps for a check mark before each entry.
 
 ## Tables and progress bar
 
@@ -62,7 +62,7 @@ The timetable table colours a delay above 60 s `#81352d`, a delay above 0 s `#74
 
 The progress bar of a run fills in `#315a70`. Its text is `#24313a` on the empty part, 11.4:1 on `#eceeec`, and white on the fill, 7.4:1: `TimeProgressBar` draws the bar a second time over the fill with the stylesheet's `selection-color` as the text colour.
 
-In Run Results the **Open result view...** button has the white face, text size, grey border and padding of the **Export CSV...** and **Export PNG...** buttons beside it, the same `#5b6871` border under the pointer, 2 px `#2e7491` border with focus and `#e3eaee` fill while pressed, and the same grey face when disabled.
+In Run Results the **Open result view...** button has the white face, height, text size, grey border and padding of the **Export CSV...** and **Export PNG...** buttons beside it, the same `#5b6871` border under the pointer, 2 px `#2e7491` border with focus and `#e3eaee` fill while pressed, and the same grey face when disabled.
 
 ## Keyboard
 

@@ -115,76 +115,89 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_user_prompts_
 <a href="_user_prompts_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef USERPROMPTS_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define USERPROMPTS_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QInputDialog&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QMessageBox&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;QStringList&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;QWidget&gt;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="_log_8h.html">util/Log.h</a>&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;cstdio&gt;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span></div>
-<div class="foldopen" id="foldopen00018" data-start="{" data-end="};">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="class_user_prompts.html">   18</a></span><span class="keyword">class </span><a class="code hl_function" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a> {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">   22</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a>(std::function&lt;<span class="keywordtype">bool</span>()&gt; suppressed = {}) : m_suppressed(std::move(suppressed)) {}</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">   23</a></span>    <span class="keyword">virtual</span> <a class="code hl_function" href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">~UserPrompts</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span></div>
-<div class="foldopen" id="foldopen00028" data-start="{" data-end="}">
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">   28</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">showError</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message, <span class="keywordtype">bool</span> warningIcon = <span class="keyword">false</span>) {</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>        <a class="code hl_define" href="_log_8h.html#a8883661965e0bfdea92853504744556e">EG_LOG</a>(AppUi, Error) &lt;&lt; title.toStdString() &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; message.toStdString() &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed()) {</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>            std::fprintf(stderr, <span class="stringliteral">&quot;QEGTRAIN_DIALOG_SUPPRESSED: %s: %s\n&quot;</span>, title.toStdString().c_str(), message.toStdString().c_str());</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>            std::fflush(stderr);</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>            <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>        }</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        <span class="keywordflow">if</span> (warningIcon)</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>            QMessageBox::warning(parent, title, message);</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>            QMessageBox::critical(parent, title, message);</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    }</div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QApplication&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QFontMetrics&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;QInputDialog&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;QMessageBox&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;QScreen&gt;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;QStringList&gt;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;QWidget&gt;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="_log_8h.html">util/Log.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;cstdio&gt;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span></div>
+<div class="foldopen" id="foldopen00021" data-start="{" data-end="};">
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno"><a class="line" href="class_user_prompts.html">   21</a></span><span class="keyword">class </span><a class="code hl_function" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a> {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">   25</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts</a>(std::function&lt;<span class="keywordtype">bool</span>()&gt; suppressed = {}) : m_suppressed(std::move(suppressed)) {}</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">   26</a></span>    <span class="keyword">virtual</span> <a class="code hl_function" href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">~UserPrompts</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span></div>
+<div class="foldopen" id="foldopen00031" data-start="{" data-end="}">
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">   31</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">showError</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message, <span class="keywordtype">bool</span> warningIcon = <span class="keyword">false</span>) {</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>        <a class="code hl_define" href="_log_8h.html#a8883661965e0bfdea92853504744556e">EG_LOG</a>(AppUi, Error) &lt;&lt; title.toStdString() &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; message.toStdString() &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed()) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>            std::fprintf(stderr, <span class="stringliteral">&quot;QEGTRAIN_DIALOG_SUPPRESSED: %s: %s\n&quot;</span>, title.toStdString().c_str(), message.toStdString().c_str());</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>            std::fflush(stderr);</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>            <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        }</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        <span class="keywordflow">if</span> (warningIcon)</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>            QMessageBox::warning(parent, title, message);</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>            QMessageBox::critical(parent, title, message);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    }</div>
 </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span></div>
-<div class="foldopen" id="foldopen00042" data-start="{" data-end="}">
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">   42</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">showInfo</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message) {</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed())</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>            <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        QMessageBox::information(parent, title, message);</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    }</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span></div>
+<div class="foldopen" id="foldopen00045" data-start="{" data-end="}">
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">   45</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">showInfo</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; message) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        <span class="keywordflow">if</span> (m_suppressed &amp;&amp; m_suppressed())</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>            <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        QMessageBox::information(parent, title, message);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    }</div>
 </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span></div>
-<div class="foldopen" id="foldopen00049" data-start="{" data-end="}">
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">   49</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">confirm</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; question) {</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordflow">return</span> QMessageBox::question(parent, title, question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>            == QMessageBox::Yes;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    }</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span></div>
+<div class="foldopen" id="foldopen00052" data-start="{" data-end="}">
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno"><a class="line" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">   52</a></span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">confirm</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; question) {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keywordflow">return</span> QMessageBox::question(parent, title, question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>            == QMessageBox::Yes;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    }</div>
 </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span></div>
-<div class="foldopen" id="foldopen00056" data-start="{" data-end="}">
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">   56</a></span>    <span class="keyword">virtual</span> QString <a class="code hl_function" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; label, <span class="keyword">const</span> QStringList&amp; items) {</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keywordtype">bool</span> accepted = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keyword">const</span> QString chosen = QInputDialog::getItem(parent, title, label, items, 0, <span class="keyword">false</span>, &amp;accepted);</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordflow">return</span> accepted ? chosen : QString();</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    }</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span></div>
+<div class="foldopen" id="foldopen00059" data-start="{" data-end="}">
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno"><a class="line" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">   59</a></span>    <span class="keyword">virtual</span> QString <a class="code hl_function" href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">chooseItem</a>(QWidget* parent, <span class="keyword">const</span> QString&amp; title, <span class="keyword">const</span> QString&amp; label, <span class="keyword">const</span> QStringList&amp; items) {</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        QInputDialog dialog(parent);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        dialog.setWindowTitle(title);</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        dialog.setLabelText(label);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        dialog.setComboBoxItems(items);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        dialog.setTextValue(items.value(0));</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="comment">// The title bar shortens a title that does not fit beside the window buttons, and macOS centres the title, so the</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <span class="comment">// title gets room for them on both sides.</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <span class="keyword">const</span> QFontMetrics metrics(QApplication::font(<span class="stringliteral">&quot;QMdiSubWindowTitleBar&quot;</span>));</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        <span class="keywordtype">int</span> width = qMax(dialog.sizeHint().width(), metrics.horizontalAdvance(title) + 10 * metrics.height());</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordflow">if</span> (<span class="keyword">const</span> QScreen* screen = dialog.screen())</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>            width = qMin(width, screen-&gt;availableGeometry().width());</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        dialog.resize(width, dialog.sizeHint().height());</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        <span class="keywordflow">return</span> dialog.exec() == QDialog::Accepted ? dialog.textValue() : QString();</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    }</div>
 </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    std::function&lt;bool()&gt; m_suppressed;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>};</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    std::function&lt;bool()&gt; m_suppressed;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>};</div>
 </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="preprocessor">#endif </span><span class="comment">// USERPROMPTS_H</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="preprocessor">#endif </span><span class="comment">// USERPROMPTS_H</span></div>
 <div class="ttc" id="a_log_8h_html"><div class="ttname"><a href="_log_8h.html">Log.h</a></div></div>
 <div class="ttc" id="a_log_8h_html_a8883661965e0bfdea92853504744556e"><div class="ttname"><a href="_log_8h.html#a8883661965e0bfdea92853504744556e">EG_LOG</a></div><div class="ttdeci">#define EG_LOG(category, level)</div><div class="ttdef"><b>Definition</b> Log.h:118</div></div>
-<div class="ttc" id="aclass_user_prompts_html_a00d1b9ed44839b3770d89613eef3edd9"><div class="ttname"><a href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">UserPrompts::chooseItem</a></div><div class="ttdeci">virtual QString chooseItem(QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:56</div></div>
-<div class="ttc" id="aclass_user_prompts_html_a291a8f1c4f80fb446f22c09a97f9885f"><div class="ttname"><a href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">UserPrompts::showInfo</a></div><div class="ttdeci">virtual void showInfo(QWidget *parent, const QString &amp;title, const QString &amp;message)</div><div class="ttdoc">A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then...</div><div class="ttdef"><b>Definition</b> UserPrompts.h:42</div></div>
-<div class="ttc" id="aclass_user_prompts_html_a577030d596229c409a5bd863b50327f4"><div class="ttname"><a href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">UserPrompts::showError</a></div><div class="ttdeci">virtual void showError(QWidget *parent, const QString &amp;title, const QString &amp;message, bool warningIcon=false)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:28</div></div>
+<div class="ttc" id="aclass_user_prompts_html_a00d1b9ed44839b3770d89613eef3edd9"><div class="ttname"><a href="class_user_prompts.html#a00d1b9ed44839b3770d89613eef3edd9">UserPrompts::chooseItem</a></div><div class="ttdeci">virtual QString chooseItem(QWidget *parent, const QString &amp;title, const QString &amp;label, const QStringList &amp;items)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:59</div></div>
+<div class="ttc" id="aclass_user_prompts_html_a291a8f1c4f80fb446f22c09a97f9885f"><div class="ttname"><a href="class_user_prompts.html#a291a8f1c4f80fb446f22c09a97f9885f">UserPrompts::showInfo</a></div><div class="ttdeci">virtual void showInfo(QWidget *parent, const QString &amp;title, const QString &amp;message)</div><div class="ttdoc">A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then...</div><div class="ttdef"><b>Definition</b> UserPrompts.h:45</div></div>
+<div class="ttc" id="aclass_user_prompts_html_a577030d596229c409a5bd863b50327f4"><div class="ttname"><a href="class_user_prompts.html#a577030d596229c409a5bd863b50327f4">UserPrompts::showError</a></div><div class="ttdeci">virtual void showError(QWidget *parent, const QString &amp;title, const QString &amp;message, bool warningIcon=false)</div><div class="ttdef"><b>Definition</b> UserPrompts.h:31</div></div>
 <div class="ttc" id="aclass_user_prompts_html_a7b5b9416946bfd5ad56a6a8c066d0cd9"><div class="ttname"><a href="class_user_prompts.html#a7b5b9416946bfd5ad56a6a8c066d0cd9">UserPrompts::~UserPrompts</a></div><div class="ttdeci">virtual ~UserPrompts()=default</div></div>
-<div class="ttc" id="aclass_user_prompts_html_a845441069b8fabe4f8d8dfff13c90888"><div class="ttname"><a href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts::UserPrompts</a></div><div class="ttdeci">UserPrompts(std::function&lt; bool()&gt; suppressed={})</div><div class="ttdef"><b>Definition</b> UserPrompts.h:22</div></div>
-<div class="ttc" id="aclass_user_prompts_html_aa74a16f2f04874e3e7910b1e8d422407"><div class="ttname"><a href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">UserPrompts::confirm</a></div><div class="ttdeci">virtual bool confirm(QWidget *parent, const QString &amp;title, const QString &amp;question)</div><div class="ttdoc">A Yes or No question whose default answer is No; true for Yes. It asks also in a suppressed run.</div><div class="ttdef"><b>Definition</b> UserPrompts.h:49</div></div>
+<div class="ttc" id="aclass_user_prompts_html_a845441069b8fabe4f8d8dfff13c90888"><div class="ttname"><a href="class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888">UserPrompts::UserPrompts</a></div><div class="ttdeci">UserPrompts(std::function&lt; bool()&gt; suppressed={})</div><div class="ttdef"><b>Definition</b> UserPrompts.h:25</div></div>
+<div class="ttc" id="aclass_user_prompts_html_aa74a16f2f04874e3e7910b1e8d422407"><div class="ttname"><a href="class_user_prompts.html#aa74a16f2f04874e3e7910b1e8d422407">UserPrompts::confirm</a></div><div class="ttdeci">virtual bool confirm(QWidget *parent, const QString &amp;title, const QString &amp;question)</div><div class="ttdoc">A Yes or No question whose default answer is No; true for Yes. It asks also in a suppressed run.</div><div class="ttdef"><b>Definition</b> UserPrompts.h:52</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->
