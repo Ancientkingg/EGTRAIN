@@ -762,10 +762,6 @@ bool exerciseDisabledControls() {
 // A question box with Yes and No, No the default, built and styled without running its event loop. Its default button
 // looks like the default button of a dialog footer and the other button keeps the plain look.
 bool exerciseMessageBoxDefault() {
-#ifdef Q_OS_WIN
-	// The offscreen platform on Windows is not known to show a QMessageBox safely.
-	return true;
-#else
 	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
 		QMessageBox::Yes | QMessageBox::No);
 	box.setDefaultButton(QMessageBox::No);
@@ -791,7 +787,6 @@ bool exerciseMessageBoxDefault() {
 	ok &= checkLooks(sameLook(disabledLook, dialogDefault.second),
 		"a disabled default button of a message box does not look like a disabled default button of a dialog", disabledLook, dialogDefault.second);
 	return ok;
-#endif
 }
 
 // The width of the drawn text of a button, from the pixels that differ strongly from its face. The button is widened first,
@@ -828,11 +823,6 @@ bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
 
 // The default button of an update prompt and of a dialog footer with long texts is not narrower than its text.
 bool exerciseDefaultButtonWidth(qreal scale) {
-#ifdef Q_OS_WIN
-	// The offscreen platform on Windows is not known to show a QMessageBox safely.
-	Q_UNUSED(scale);
-	return true;
-#else
 	const QFont appFont = qApp->font();
 	QFont font = appFont;
 	font.setPointSizeF(12 * scale);
@@ -873,7 +863,6 @@ bool exerciseDefaultButtonWidth(qreal scale) {
 	ok &= buttonShowsText(primary, "dialog footer", scale);
 	QApplication::setFont(appFont);
 	return ok;
-#endif
 }
 
 // Fusion with the icons that the GNOME and KDE themes give the standard buttons of a dialog footer.
@@ -893,13 +882,10 @@ bool exerciseFooterWithoutIcons() {
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Close, &dialog);
 	DialogLayout::install(dialog, QStringLiteral("Icons"), QString(), new QWidget, buttons, QRect(0, 0, 1280, 800));
 	QList<QAbstractButton*> shown = buttons->buttons();
-#ifndef Q_OS_WIN
-	// The offscreen platform on Windows is not known to show a QMessageBox safely.
 	QMessageBox box;
 	box.setStyle(&style);
 	box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel | QMessageBox::Close);
 	shown += box.buttons();
-#endif
 	bool ok = check(shown.size() >= 3, "the footers have no standard buttons");
 	for (const QAbstractButton* button : shown)
 		ok &= check(button->icon().isNull(), "a standard button of a dialog footer or a message box shows an icon");
@@ -1062,8 +1048,6 @@ bool exerciseRunReviewDefault() {
 	const ControlLook cancelLook = controlLook(cancel);
 	const ControlLook plainLook = controlLooks(ControlKind::PushButton, true, false).first;
 	ok &= checkLooks(cancelLook.face == plainLook.face, "the focused Cancel button looks like a default button", cancelLook, plainLook);
-#ifndef Q_OS_WIN
-	// The offscreen platform on Windows is not known to show a QMessageBox safely.
 	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
 		QMessageBox::Yes | QMessageBox::No);
 	box.setDefaultButton(QMessageBox::No);
@@ -1076,7 +1060,6 @@ bool exerciseRunReviewDefault() {
 	const ControlLook boxLook = controlLook(boxDefault);
 	ok &= checkLooks(reviewLook.face == boxLook.face,
 		"the Run simulation button does not have the face of the default button of a message box", reviewLook, boxLook);
-#endif
 	return ok;
 }
 

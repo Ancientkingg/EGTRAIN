@@ -14,9 +14,8 @@ class QLabel;
 class QPushButton;
 
 /// Offers the recovery copies that an earlier run left behind, one row for each, and reports what the
-/// user chose. It is a dialog of its own and not a QMessageBox, which the offscreen platform on Windows
-/// is not known to show safely. The dialog changes nothing on disk: the caller recovers or discards the
-/// copy that selectedIndex names.
+/// user chose. The dialog changes nothing on disk: the caller recovers or discards the copy that
+/// selectedIndex names.
 ///
 /// Recover and Discard act on the selected row, and Decide Later keeps every copy. Recover is the
 /// default button unless the original of the copy may hold newer work, and it is disabled for a copy
