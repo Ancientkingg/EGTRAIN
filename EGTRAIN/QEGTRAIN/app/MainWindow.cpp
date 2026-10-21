@@ -1342,6 +1342,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateDiagramActions();
 	});
 
+	// The editors on the right keep the full height of the window: Run Results and the other docks below the network end where
+	// the editors start, so that a short window still shows several rows of fields.
+	setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 	m_caseSettingsDock = new QDockWidget("Case Settings", this);
 	m_caseSettingsDock->setObjectName("caseSettingsDock");
 	m_caseSettingsDock->setProperty("manualSection", QStringLiteral("case-settings"));
