@@ -385,7 +385,8 @@ void NetworkLegendWidget::rebuildRows() {
 		auto* swatch = new LegendSwatch(entry, row);
 		swatch->setObjectName(QString("mapKeySwatch%1").arg(i));
 		rowLayout->addWidget(swatch);
-		auto* label = new LegendLabel(entry.label, row);
+		// A word joiner after each slash keeps a unit such as km/h on one line; the label still wraps between words.
+		auto* label = new LegendLabel(QString(entry.label).replace(QLatin1Char('/'), QString("/") + QChar(0x2060)), row);
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
 		label->setWordWrap(true);
