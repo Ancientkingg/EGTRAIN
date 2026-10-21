@@ -21,10 +21,13 @@
 #include <QApplication>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
+#include <QGraphicsTextItem>
+#include <QLineF>
 #include <QLoggingCategory>
 #include <QMap>
 #include <QObject>
 #include <QPixmap>
+#include <QtMath>
 
 #include <cmath>
 #include <iostream>
@@ -255,12 +258,26 @@ static std::vector<std::string> iconIds(const PlatformItem& platform) {
 	return ids;
 }
 
-// Where the icon at place i of n sits on the platform: the passengers share the width of the platform.
+// Where the icon at place i of n sits on the platform: the passengers share the length of the platform, centred on its
+// long axis.
 static bool iconAt(const PlatformItem& platform, int i, int n, qreal iconSize) {
-	const QRectF rect = platform.sceneBoundingRect();
+	const QRectF rect = platform.rect();
 	const qreal spacing = rect.width() / n;
+	const QPointF centre = platform.mapToScene(QPointF(rect.left() + spacing / 2 + spacing * i, rect.center().y()));
 	const QPointF at = platform.passengerIcons[i]->pos();
-	return near(at.x(), rect.left() + spacing / 2 + spacing * i - iconSize / 2) && near(at.y(), rect.center().y() - iconSize / 2);
+	return near(at.x(), centre.x() - iconSize / 2) && near(at.y(), centre.y() - iconSize / 2);
+}
+
+// Whether the platform is parallel, within half a degree, to direction, a unit vector that points to the right, with its
+// centre 1.15 times size from the node on the upper side of the track.
+static bool platformAlong(const PlatformItem& platform, const Node& node, const QPointF& direction, qreal size) {
+	const QRectF rect = platform.rect();
+	const QLineF axis(platform.mapToScene(QPointF(rect.left(), rect.center().y())),
+		platform.mapToScene(QPointF(rect.right(), rect.center().y())));
+	const QPointF centre = platform.mapToScene(rect.center());
+	const QPointF expected = QPointF(node.graphX, node.graphY) + QPointF(direction.y(), -direction.x()) * 1.15 * size;
+	return std::fabs(axis.dx() * direction.y() - axis.dy() * direction.x()) < axis.length() * std::sin(qDegreesToRadians(0.5))
+		&& near(centre.x(), expected.x()) && near(centre.y(), expected.y());
 }
 
 using Ids = std::vector<std::string>;
@@ -312,6 +329,10 @@ int main(int argc, char* argv[]) {
 			const PlatformItem* platform = presenter.allPlatforms.value(0);
 			ok &= expect(platform && platform->stationId == "B" && platform->platformId == "P1" && platform->maxVolume == 40,
 				"the platform takes its details from the source");
+			ok &= expect(platform && platform->rotation() == 0
+					&& platformAlong(*platform, source->track(0).member[1].endNode, QPointF(1, 0),
+						presenter.station_node_size * presenter.presentationScale()),
+				"the platform of a level track is level, above its node");
 		}
 
 		presenter.paintTrain(trainAt(7.5), model, false);
@@ -671,6 +692,47 @@ int main(int argc, char* argv[]) {
 		ok &= expect(switchPresenter.allArcs.size() == 1 && switchPresenter.allArcs[0]->arc == &track.member[1] && dots() == 0,
 			"a run draws the middle arc of a double switch and no node dot");
 		switchPresenter.clear();
+	}
+
+	// With the station B lower down the line runs diagonally. A platform lies along it on its upper side, while its counter
+	// stays level above it and its passengers share its length on its long axis.
+	{
+		source->passengers = true;
+		source->station(1).Y = 5.0;
+		source->track(0).member[0].endNode.stationName = "B";
+		source->track(0).member[0].endNode.stationPlatformId = "P2";
+		presenter.showRuntime(model);
+		const Arc& lastArc = source->track(0).member[1];
+		const QLineF unit = QLineF(lastArc.startNode.graphX, lastArc.startNode.graphY, lastArc.endNode.graphX, lastArc.endNode.graphY)
+								.unitVector();
+		const QPointF direction(unit.dx(), unit.dy());
+		const qreal size = presenter.station_node_size * presenter.presentationScale();
+		PlatformItem* const middlePlatform = presenter.allPlatforms.value(0);
+		PlatformItem* const endPlatform = presenter.allPlatforms.value(1);
+		ok &= expect(direction.y() > 0.1 && middlePlatform && endPlatform
+				&& platformAlong(*middlePlatform, lastArc.startNode, direction, size)
+				&& platformAlong(*endPlatform, lastArc.endNode, direction, size),
+			"a platform lies along its diagonal track, on the upper side");
+
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}, GuiPlatformState{"B", "P2", 30, {"q1", "q2"}}};
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		const qreal iconSize = presenter.pax_pixmap_scaled.width() * presenter.presentationScale();
+		bool upright = middlePlatform && endPlatform && middlePlatform->passengerIcons.size() == 2
+			&& endPlatform->passengerIcons.size() == 3;
+		for (const PlatformItem* platform : {middlePlatform, endPlatform}) {
+			if (!upright)
+				break;
+			const QRectF text = platform->textIcon->sceneBoundingRect();
+			upright = platform->textIcon->rotation() == 0 && text.bottom() <= platform->sceneBoundingRect().top() + 1e-6
+				&& near(text.center().x(), platform->sceneBoundingRect().center().x());
+			for (int i = 0; i < platform->passengerIcons.size(); ++i)
+				upright = upright && platform->passengerIcons[i]->rotation() == 0
+					&& iconAt(*platform, i, static_cast<int>(platform->passengerIcons.size()), iconSize);
+		}
+		ok &= expect(upright, "the counter and the passenger icons of a turned platform stay level, the icons on its long axis");
+		presenter.clear();
 	}
 
 	// Without the geometry of its stations a track line is drawn one track separation higher for each level.

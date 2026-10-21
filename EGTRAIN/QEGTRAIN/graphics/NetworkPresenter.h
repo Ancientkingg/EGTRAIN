@@ -384,7 +384,7 @@ private:
 	void egtrainPoint2Screen(Node* node, int track, double separation) const;
 	void egtrainPoint2Screen(Connections* connection, int track1, int track2, double separation) const;
 	void paintNode(QPointF coord, int size, int track, Node* node);
-	void paintStationPlatform(QPointF coord, int size, Node* node);
+	void paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node);
 	void paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
 	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
 	void paintConnection(QPointF start, QPointF end, int penWidth, Connections* connection);

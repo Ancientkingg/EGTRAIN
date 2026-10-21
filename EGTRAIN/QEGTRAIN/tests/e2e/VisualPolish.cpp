@@ -1254,12 +1254,16 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				continue;
 			PassengerItem* icon = platform->passengerIcons.first();
 			const QRectF sceneBounds = icon->sceneBoundingRect();
+			// The first icon stands on the long axis of the bar, whatever the direction of the bar.
+			const QRectF bar = platform->rect();
+			const QPointF onAxis = platform->mapToScene(
+				QPointF(bar.left() + bar.width() / platform->passengerIcons.size() / 2, bar.center().y()));
 			const qreal firstWidth = icon->deviceTransform(w.networkView->viewportTransform())
 										 .mapRect(icon->boundingRect())
 										 .width();
 			if (icon->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
-				|| !qFuzzyCompare(sceneBounds.center().y() + 1.0,
-					platform->sceneBoundingRect().center().y() + 1.0)) {
+				|| !qFuzzyCompare(sceneBounds.center().x() + 1.0, onAxis.x() + 1.0)
+				|| !qFuzzyCompare(sceneBounds.center().y() + 1.0, onAxis.y() + 1.0)) {
 				ok = false;
 				failures << "passenger glyph lost scene-scale centering";
 			}

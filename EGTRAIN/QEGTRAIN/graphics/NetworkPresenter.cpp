@@ -70,6 +70,7 @@
 #include <QGraphicsTextItem>
 #include <QPainterPath>
 #include <QVariantAnimation>
+#include <QtMath>
 
 #include <algorithm>
 #include <cfloat>
@@ -142,6 +143,24 @@ void interpolateBetweenStations(Stations& first, Stations& second, int region, d
 void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string& id) {
 	item->setData(PreviewGraphics::Kind, kind);
 	item->setData(PreviewGraphics::Id, QString::fromStdString(id));
+}
+
+// Turns a platform bar, which is centred on its own origin, to the direction of the track at node, and puts its centre
+// 1.15 times size from node on the upper side of the track, or on the left of a vertical track. The direction is the mean
+// of the directions from before to node and from node to after; at the end of a line after is node itself. A segment of
+// zero length has no direction, and a bar without one is level. The long side reads left to right, or top to bottom.
+void placePlatformBar(QGraphicsItem* bar, const QPointF& before, const QPointF& node, const QPointF& after, qreal size) {
+	QPointF direction;
+	for (const QLineF& segment : {QLineF(before, node), QLineF(node, after)})
+		if (segment.length() > 0)
+			direction += (segment.p2() - segment.p1()) / segment.length();
+	const qreal length = std::hypot(direction.x(), direction.y());
+	direction = length > 0 ? direction / length : QPointF(1, 0);
+	if (direction.x() < 0 || (direction.x() == 0 && direction.y() < 0))
+		direction = -direction;
+	const QPointF up = direction.x() == 0 ? QPointF(-1, 0) : QPointF(direction.y(), -direction.x());
+	bar->setPos(node + up * 1.15 * size);
+	bar->setRotation(qRadiansToDegrees(std::atan2(direction.y(), direction.x())));
 }
 } // namespace
 
@@ -468,9 +487,12 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				item->setData(PreviewGraphics::StationId, QString::fromStdString(value.stationId));
 				item->setData(PreviewGraphics::PlatformId, QString::fromStdString(value.platformId));
 				if (options.platformBars) {
-					QRectF barRect(0, 0, 5 * size, 0.9 * size);
-					barRect.moveCenter(rect.center() - QPointF(0, 1.15 * size));
-					auto* bar = new PlatformItem(barRect, square);
+					// The square has no position or transform of its own, so the bar is placed by points of the scene.
+					const auto pointAt = [&line](std::size_t at) {
+						return QPointF(line.points[at].x, line.points[at].y + line.displayOffset);
+					};
+					auto* bar = new PlatformItem(QRectF(-2.5 * size, -0.45 * size, 5 * size, 0.9 * size), square);
+					placePlatformBar(bar, pointAt(index - 1), pointAt(index), lineEnd ? pointAt(index) : pointAt(index + 1), size);
 					bar->setPen(QPen(Qt::white, 0));
 					bar->setBrush(Qt::white);
 					m_stationDecorations.push_back(bar);
@@ -933,7 +955,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			if (i > 0 && !trackSet.member[i - 1].endNode.stationName.empty()) { // station Node (only visible from end nodes [end_node] -> i>1)
 				paintStationNode(pt, station_node_size, track, &trackSet.member[i - 1].endNode, false);
 				if (m_source->passengerGui()) {
-					paintStationPlatform(pt, station_node_size, &trackSet.member[i - 1].endNode);
+					paintStationPlatform(pt_prev, pt, pte, station_node_size, &trackSet.member[i - 1].endNode);
 				}
 			}
 			// if it is a double switch then do not paint nodes Copenhagen case
@@ -958,7 +980,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 				if (!trackSet.member[i].endNode.stationName.empty()) { // station Node
 					paintStationNode(pte, station_node_size, track, &trackSet.member[i].endNode, true);
 					if (m_source->passengerGui()) {
-						paintStationPlatform(pte, station_node_size, &trackSet.member[i].endNode);
+						paintStationPlatform(pt, pte, pte, station_node_size, &trackSet.member[i].endNode);
 					}
 				} else {
 					paintNode(pte, doubleSwitch ? 0 : node_size, track, &trackSet.member[i].endNode);
@@ -1044,22 +1066,16 @@ void NetworkPresenter::paintStationNode(QPointF coord, int size, int track, Node
 	m_scene->addItem(el);
 }
 
-// paint platform next to station Node (upper side)
-void NetworkPresenter::paintStationPlatform(QPointF coord, int size, Node* node) {
+// paint platform next to station Node (upper side), along the track from before through coord to after
+void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node) {
 	QPen pen = QPen(Qt::white);
 	pen.setWidth(0);
 	pen.setCosmetic(true);
 
-	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
+	// a rectangle centred on the origin of the item, which lies along the track on the upper side of the station Node
 	const qreal diameter = size * presentationScale();
-	QRectF rect = QRectF(0, 0, 5 * diameter, 0.9 * diameter);
-
-	// platform on top of station Node
-	coord.setY(coord.y() - 1.15 * diameter);
-
-	rect.moveCenter(coord);
-
-	auto* platformItem = new PlatformItem(rect);
+	auto* platformItem = new PlatformItem(QRectF(-2.5 * diameter, -0.45 * diameter, 5 * diameter, 0.9 * diameter));
+	placePlatformBar(platformItem, before, coord, after, diameter);
 	platformItem->setPen(pen);
 	platformItem->setBrush(Qt::white);
 
@@ -1089,6 +1105,7 @@ void NetworkPresenter::paintStationPlatform(QPointF coord, int size, Node* node)
 	textItem->setDefaultTextColor(Qt::white);
 	textItem->setFont(font);
 	textItem->setScale(presentationScale());
+	// the label is level and centred above the bar, whatever the direction of the bar
 	textItem->setPos(QPointF(platformItem->sceneBoundingRect().center().x() - textItem->boundingRect().width() * presentationScale() / 2,
 		platformItem->sceneBoundingRect().top() - textItem->boundingRect().height() * presentationScale()));
 	textItem->setZValue(3); // draw on top of every item
@@ -2353,7 +2370,7 @@ void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
 }
 
 // The counter of a platform, and one icon for each passenger on it. An icon stays for as long as its passenger is on the
-// platform and moves when the passengers share the width of the platform differently. The icons that this adds, or that
+// platform and moves when the passengers share the length of the platform differently. The icons that this adds, or that
 // swap places, are listed in restack.
 void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack) {
 	const auto& passengerIds = state.passengerIds;
@@ -2388,7 +2405,8 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 		for (int i = 0; i < icons.size(); ++i)
 			staying.emplace(icons[i]->passengerId, std::make_pair(icons[i], i));
 
-	const QRectF platformRect = platform->sceneBoundingRect();
+	// the icons stand level, spread along the long axis of the bar
+	const QRectF platformRect = platform->rect();
 	const qreal iconSize = pax_pixmap_scaled.width() * presentationScale();
 	const qreal iconSpacing = nPaxIcons > 0 ? platformRect.width() / nPaxIcons : 0.0;
 	qreal iconX = platformRect.left() + iconSpacing / 2;
@@ -2398,7 +2416,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 	bool swapped = false;
 	for (int i = 0; i < nPaxIcons; ++i, iconX += iconSpacing) {
 		const std::string& paxID = passengerIds[static_cast<std::size_t>(i)];
-		const QPointF position(iconX - iconSize / 2, platformRect.center().y() - iconSize / 2);
+		const QPointF position = platform->mapToScene(QPointF(iconX, platformRect.center().y())) - QPointF(iconSize / 2, iconSize / 2);
 		if (sameIcons) {
 			icons[i]->setPos(position);
 			continue;

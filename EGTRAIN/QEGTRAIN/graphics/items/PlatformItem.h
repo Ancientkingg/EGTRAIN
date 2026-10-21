@@ -15,7 +15,7 @@
 /// track lines, connections and nodes.
 class PlatformItem : public QGraphicsRectItem {
 public:
-	/// A bar in rect, in scene coordinates, without a platform.
+	/// A bar in rect, in item coordinates, without a platform.
 	PlatformItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~PlatformItem() override;
 
