@@ -737,6 +737,8 @@ void ResultViews::showCapacityAnalysis() {
 		table->setHorizontalHeaderLabels(headers);
 		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		table->setSelectionBehavior(QAbstractItemView::SelectRows);
+		// Tab leaves the table for the buttons after it; the arrow keys move between the cells.
+		table->setTabKeyNavigation(false);
 		table->setAlternatingRowColors(true);
 		table->horizontalHeader()->setStretchLastSection(true);
 		tabs->addTab(table, QString());
