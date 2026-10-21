@@ -245,6 +245,8 @@ void InspectorPanel::refreshInspectedSignal() {
 // removes highlight from last clicked item
 void InspectorPanel::handleCloseInfoDockWidget() {
 	m_previewSelectedStationId.clear();
+	m_previewSelectionKind.clear();
+	m_previewSelectionId.clear();
 	m_presenter->m_inspectedSignal = nullptr;
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
@@ -452,6 +454,8 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 	}
 	infoDockWidget->setWindowTitle("Preview: " + title + " (not running)");
 	infoDockWidget->show();
+	m_previewSelectionKind = kind;
+	m_previewSelectionId = text(id);
 
 	// effect on clicked item
 	if (!m_presenter->effect) {

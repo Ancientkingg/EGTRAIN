@@ -498,6 +498,51 @@ static bool testUniqueIds() {
 	return ok;
 }
 
+static bool testSignalFailureTargets() {
+	bool ok = true;
+	SceneModel scene = referenceScene();
+	SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+	std::string switchSection;
+	for (const SceneSectionDescriptor& section : inventory.sections)
+		if (section.connectionDerived && switchSection.empty())
+			switchSection = section.id;
+	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-a1@") == "signal-1",
+		"a section that one signal protects gives that signal");
+	ok &= expect(sceneSignalFailureTarget(scene, inventory, "block-a1") == "signal-1", "the block id names the same section");
+	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-a2@") == "block-a2",
+		"a section that no signal protects gives its block");
+	ok &= expect(!switchSection.empty() && sceneSignalFailureTarget(scene, inventory, switchSection).empty(),
+		"a switch section that no signal protects gives no target");
+	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-x@").empty() && sceneSignalFailureTarget(scene, inventory, "").empty(),
+		"an id that names no section gives no target");
+
+	SceneSignal second;
+	second.id = "signal-2";
+	second.protectedSection = "@block-a1@";
+	scene.signals.push_back(second);
+	SceneSignal atSwitch;
+	atSwitch.id = "signal-3";
+	atSwitch.protectedSection = switchSection;
+	scene.signals.push_back(atSwitch);
+	inventory = buildSceneSectionInventory(scene);
+	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-a1@") == "block-a1",
+		"a section that two signals protect gives its block");
+	ok &= expect(!switchSection.empty() && sceneSignalFailureTarget(scene, inventory, switchSection) == "signal-3",
+		"a switch section that one signal protects gives that signal");
+
+	scene = referenceScene();
+	SceneSignal named;
+	named.id = "block-b2";
+	named.protectedSection = "block-b1";
+	scene.signals.push_back(named);
+	inventory = buildSceneSectionInventory(scene);
+	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-b1@") == "block-b1",
+		"a signal whose id also names a section is passed over for the block");
+	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-b2@").empty(),
+		"a block whose id is also the id of a signal gives no target");
+	return ok;
+}
+
 static bool testTrainUnitLookup() {
 	const SceneModel scene = referenceScene();
 	bool ok = true;
@@ -513,6 +558,7 @@ int main() {
 	ok &= testOperationRenames();
 	ok &= testDeleteConsumers();
 	ok &= testUniqueIds();
+	ok &= testSignalFailureTargets();
 	ok &= testTrainUnitLookup();
 	if (!ok)
 		return 1;

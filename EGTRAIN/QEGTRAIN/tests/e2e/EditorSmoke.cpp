@@ -55,6 +55,7 @@
 #include <QColor>
 #include <QComboBox>
 #include <QCoreApplication>
+#include <QCursor>
 #include <QDateTime>
 #include <QDialog>
 #include <QDir>
@@ -99,6 +100,7 @@
 #include <QSlider>
 #include <QScrollBar>
 #include <QSettings>
+#include <QShortcut>
 #include <QSize>
 #include <QSpinBox>
 #include <QStatusBar>
@@ -144,6 +146,9 @@
 // QGuiApplication::mouseButtons() follows the button and a second press makes a double click.
 Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
 	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
+// Also exported for Qt Test. It offers a key press to the shortcuts as a real one is offered, and is true when one took it.
+Q_GUI_EXPORT bool qt_sendShortcutOverrideEvent(QObject* o, ulong timestamp, int k, Qt::KeyboardModifiers mods,
+	const QString& text = QString(), bool autorep = false, ushort count = 1);
 
 namespace {
 
@@ -3644,6 +3649,80 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const SceneIncident* opened = w.m_incidentPanel->selectedIncident();
 			if (scenarioTabs->currentWidget() != w.m_incidentPanel || !opened || opened->id != editedIncidentId)
 				facetFailure(facetOk, "incident", "opening an incident from Loaded Data did not show it on the Incidents tab");
+		}
+		// A signal head that is selected on the network view is the target of a new incident. The scene has no authored
+		// signal, so the target is the block of the section of the head.
+		QGraphicsItem* head = nullptr;
+		if (w.scene && w.m_showingTrackPreview)
+			for (QGraphicsItem* item : w.scene->items())
+				if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "signal")
+					head = item;
+		const SceneSectionInventory sections = buildSceneSectionInventory(w.m_document->model());
+		const SceneSectionDescriptor* headSection = head
+			? sections.resolve(head->data(PreviewGraphics::Id).toString().toStdString())
+			: nullptr;
+		if (!headSection || headSection->sourceBlockId.empty() || !sceneSignals(w.m_document->model()).empty()) {
+			facetFailure(facetOk, "incident", "the track preview has no signal head of a block in a scene without authored signals");
+		} else {
+			const QString headId = head->data(PreviewGraphics::Id).toString();
+			const QString blockId = QString::fromStdString(headSection->sourceBlockId);
+			const int countBefore = w.m_incidentListWidget->count();
+			w.scene->select(head);
+			w.m_addIncidentButton->click();
+			QApplication::processEvents();
+			const SceneIncident* added = w.m_incidentListWidget->count() == countBefore + 1 ? w.m_incidentPanel->selectedIncident() : nullptr;
+			if (!added || added->type != "signal_failure" || QString::fromStdString(added->target) != blockId)
+				facetFailure(facetOk, "incident",
+					QString("Add Incident with the signal head of section %1 selected gave the target '%2', not the block %3 (offered: %4)")
+						.arg(headId, added ? QString::fromStdString(added->target) : QString(), blockId,
+							w.m_incidentTargetCombo->findData(blockId) > 0 ? "yes" : "no"));
+			if (added) {
+				// The pick button waits for a signal or a train on the network view, and an arc keeps it waiting. The signal
+				// head makes the incident, a breakdown by then, a signal failure of the block again. Esc ends a pick.
+				w.m_inspector->handleDisableHighlight();
+				w.m_incidentTypeCombo->setCurrentText("train_breakdown");
+				QGraphicsItem* arc = nullptr;
+				for (QGraphicsItem* item : w.scene->items())
+					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
+						arc = item;
+				QToolButton* pick = w.m_incidentPanel->pickTargetButton();
+				pick->click();
+				QApplication::processEvents();
+				const QString hint = "Click a signal or a train for the incident target. Esc cancels.";
+				const bool started = w.m_incidentPanel->isPickingTarget() && w.m_endTargetPickShortcut->isEnabled()
+					&& w.m_endTargetPickShortcut->key() == QKeySequence(Qt::Key_Escape)
+					&& w.networkView->viewport()->cursor().shape() == Qt::CrossCursor && w.statusBar()->currentMessage() == hint;
+				w.scene->select(arc);
+				QApplication::processEvents();
+				const bool kept = arc && w.m_incidentPanel->isPickingTarget()
+					&& w.statusBar()->currentMessage() == "The selected item is not a signal or a train. " + hint;
+				w.scene->select(head);
+				QApplication::processEvents();
+				const SceneIncident* picked = w.m_incidentPanel->selectedIncident();
+				const bool applied = picked && picked->type == "signal_failure" && QString::fromStdString(picked->target) == blockId
+					&& !pick->isChecked() && !w.m_endTargetPickShortcut->isEnabled()
+					&& w.networkView->viewport()->cursor().shape() == Qt::OpenHandCursor;
+				pick->click();
+				const bool restarted = w.m_incidentPanel->isPickingTarget();
+				// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
+				w.activateWindow();
+				QApplication::processEvents();
+				const bool escTaken = qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
+				QApplication::processEvents();
+				const bool ended = restarted && escTaken && !w.m_incidentPanel->isPickingTarget()
+					&& !w.m_endTargetPickShortcut->isEnabled() && w.statusBar()->currentMessage() != hint;
+				// Without a pick no shortcut takes Esc, so it reaches the focused widget, such as an open cell.
+				const bool escLeft = !qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
+				const auto yes = [](bool value) { return value ? "yes" : "no"; };
+				if (!started || !kept || !applied || !ended || !escLeft)
+					facetFailure(facetOk, "incident",
+						QString("picking the target on the network view failed (started: %1, kept on an arc: %2, picked: %3, ended by Esc: %4, "
+								"Esc left to the focus without a pick: %5)")
+							.arg(yes(started), yes(kept), yes(applied), yes(ended), yes(escLeft)));
+				acceptConfirmation();
+				w.m_incidentPanel->deleteIncident();
+			}
+			w.m_inspector->handleDisableHighlight();
 		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");

@@ -149,6 +149,12 @@ struct SceneSignallingAnalysis {
 /// The sections the native builder makes from the scene: the blocks of each track one after the other from its
 /// first node, then one switch section for each connection and each pair of blocks that hold its two nodes.
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene);
+/// The target that a signal failure of the section has, as the incident editor offers it: the signal that protects the
+/// section when exactly one does and its id names no section, otherwise the block of the section unless a signal has the
+/// same id. Empty for a switch section that no signal protects and for a reference that names no section. The reference
+/// is a runtime id or a block id.
+std::string sceneSignalFailureTarget(const SceneModel& scene, const SceneSectionInventory& inventory,
+	const std::string& sectionReference);
 
 /// The extent of the blocks of one track, or of the whole network when the track ID is empty.
 /// Sections that a connection derives are left out; found is false when there is no block.

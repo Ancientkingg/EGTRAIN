@@ -155,9 +155,27 @@ int main(int argc, char* argv[]) {
 	ok &= expect(!panel.resolvePreviewItem("node", "n1", QString(), false, 1), "no item is found without a scene");
 	host.hasScene = true;
 
+	ok &= expect(panel.previewSelectionKind() == "arc" && panel.previewSelectionId() == "a1",
+		"the panel keeps the kind and the id of the selected item of the preview");
+	QGraphicsEllipseItem* signalPreview = previewItem(scene, "signal", "@b1@");
+	signalPreview->setData(PreviewGraphics::TrackId, "T1");
+	TrackPreviewSignal head;
+	head.trackId = "T1";
+	head.sectionId = "@b1@";
+	presenter.m_cachedTrackPreview.previewSignals.push_back(head);
+	panel.displayPreviewInfo(signalPreview);
+	ok &= expect(panel.previewSelectionKind() == "signal" && panel.previewSelectionId() == "@b1@",
+		"a selected signal head of the preview is known by the section it stands at");
+	panel.displayPreviewInfo(previewItem(scene, "node", "n9"));
+	ok &= expect(panel.previewSelectionKind().isEmpty() && panel.previewSelectionId().isEmpty(),
+		"an item of the preview that the scene does not have leaves nothing selected");
+	panel.displayPreviewInfo(arcPreview);
+
 	panel.handleDisableHighlight();
 	ok &= expect(!panel.dock()->isVisible() && formHidden(panel, "Arc ID") && !arcPreview->graphicsEffect() && !presenter.effect,
 		"clearing the highlight hides the dock and the form and removes the highlight");
+	ok &= expect(panel.previewSelectionKind().isEmpty() && panel.previewSelectionId().isEmpty(),
+		"clearing the highlight forgets the selected item of the preview");
 
 	panel.displayPreviewInfo(nodePreview);
 	panel.clearPreviewInspection();
@@ -175,6 +193,7 @@ int main(int argc, char* argv[]) {
 	panel.displayNodeInfo(&runNode);
 	ok &= expect(panel.dock()->windowTitle() == "Node Info" && text(panel, "Node ID") == "7" && text(panel, "Y (m)") == "2250.00",
 		"a node of a run is shown with its position in metres");
+	ok &= expect(panel.previewSelectionKind().isEmpty(), "an item of a run is no selected item of the preview");
 	panel.clearPreviewInspection();
 	ok &= expect(text(panel, "Node ID") == "7", "the fields of a run stay when the canvas shows no preview");
 

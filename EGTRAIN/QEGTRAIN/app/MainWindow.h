@@ -73,6 +73,7 @@ class QPointF;
 class QProgressDialog;
 class QPushButton;
 class QSettings;
+class QShortcut;
 class QShowEvent;
 class QSlider;
 class QSpinBox;
@@ -113,6 +114,7 @@ class OperationObservation;
 struct CompletedRunData;
 struct GuiPassengerState;
 struct GuiSimulationSnapshot;
+struct IncidentTarget;
 struct SceneHistoryEntry;
 struct StableRelease;
 struct UpdateCheckResult;
@@ -461,6 +463,8 @@ private:
 	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
 	QCheckBox* m_incidentTerminateAtDestinationCheck = nullptr;
 	QPushButton* m_addIncidentButton = nullptr;
+	// Esc while the target of an incident is picked on the network view; enabled only then.
+	QShortcut* m_endTargetPickShortcut = nullptr;
 	// entrance-delay editor: rows belong to the selected scenario
 	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
 	// Parts of m_entranceDelayPanel, for the scripted runs in tests/e2e
@@ -649,6 +653,15 @@ private:
 
 	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
+	// The target that the selection on the network view gives an incident: a signal failure for a signal head, a breakdown
+	// of its occurrence for a train. The type is empty when the selection gives none. `reason` says why the selection is no
+	// target, for when it gives none or the incident panel does not offer it, and is empty when nothing is selected.
+	IncidentTarget selectedIncidentTarget(QString& reason) const;
+	// Starts or ends picking the target of the selected incident on the network view: the cursor of the view, the hint in
+	// the status bar and the Esc shortcut.
+	void setIncidentTargetPick(bool picking);
+	// While picking, gives the selected incident the target of what was just selected on the network view.
+	void pickIncidentTarget();
 	SceneScenario* selectedScenario();
 	std::vector<SceneIncident>& selectedScenarioIncidents();
 	void refreshRunResultsSummary();

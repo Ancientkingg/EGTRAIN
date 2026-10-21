@@ -220,6 +220,28 @@ const SceneSectionDescriptor* SceneSectionInventory::resolve(const std::string& 
 	return result;
 }
 
+// The validator refuses a signal failure whose target is both the id of a signal and a reference to a section.
+std::string sceneSignalFailureTarget(const SceneModel& scene, const SceneSectionInventory& inventory,
+	const std::string& sectionReference) {
+	const SceneSectionDescriptor* section = inventory.resolve(sectionReference);
+	if (!section)
+		return {};
+	const SceneSignal* protecting = nullptr;
+	int protectingCount = 0;
+	for (const SceneSignal& signal : scene.signals) {
+		if (!signal.protectedSection.empty() && inventory.resolve(signal.protectedSection) == section) {
+			protecting = &signal;
+			++protectingCount;
+		}
+	}
+	if (protectingCount == 1 && !protecting->id.empty() && !inventory.resolve(protecting->id))
+		return protecting->id;
+	const std::string& block = section->sourceBlockId;
+	const bool signalId = std::any_of(scene.signals.begin(), scene.signals.end(),
+		[&block](const SceneSignal& signal) { return signal.id == block; });
+	return block.empty() || signalId || inventory.resolve(block) != section ? std::string() : block;
+}
+
 SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,
 	const SceneSectionDescriptor& left, const SceneSectionDescriptor& right) {
 	SceneSectionTransition transition;

@@ -154,6 +154,7 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneReferences.h"
 #include "scene/SceneValidator.h"
+#include "scene/SectionInventory.h"
 #include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
@@ -1662,6 +1663,41 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
 	m_incidentPanel->setDocument(m_document);
 	connect(m_incidentPanel, &IncidentPanel::changed, this, &MainWindow::refreshValidationPanel);
+	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
+	// of the panel waits for the next item that a click or Edit > Find... selects there.
+	m_incidentPanel->setDefaultTarget([this] {
+		QString reason;
+		const IncidentTarget target = selectedIncidentTarget(reason);
+		// The edit that adds the incident can draw the preview again, which writes the status bar, so the message follows.
+		if (!reason.isEmpty() && !m_incidentPanel->offersTarget(target))
+			QTimer::singleShot(0, this, [this, reason] { statusBar()->showMessage(reason + ", so the new incident has no target.", 8000); });
+		return target;
+	});
+	m_endTargetPickShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
+	m_endTargetPickShortcut->setContext(Qt::WindowShortcut);
+	m_endTargetPickShortcut->setEnabled(false);
+	connect(m_endTargetPickShortcut, &QShortcut::activated, m_incidentPanel, &IncidentPanel::endTargetPick);
+	connect(m_incidentPanel, &IncidentPanel::targetPickToggled, this, &MainWindow::setIncidentTargetPick);
+	// A dock behind another tab of its group stays shown, so the panel does not see it go.
+	connect(m_incidentDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+		if (!visible)
+			m_incidentPanel->endTargetPick();
+	});
+	// The inspector, whose slots were connected first, has taken the new selection when these run.
+	const auto pickTarget = [this] { pickIncidentTarget(); };
+	connect(scene, &NetworkScene::MousePressedOnPreview, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnNode, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnStationNode, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnArc, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnConnection, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnSignal, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnTrain, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnPassenger, this, pickTarget);
+	// The end of a drag gives the view its hand cursor again.
+	connect(networkView, &NetworkView::interactionFinished, this, [this] {
+		if (m_incidentPanel->isPickingTarget())
+			networkView->viewport()->setCursor(Qt::CrossCursor);
+	});
 	m_entranceDelayPanel->setPrompts(m_userPrompts.get());
 	m_entranceDelayPanel->setRunSelection(&m_runSelection);
 	m_entranceDelayPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
@@ -2794,6 +2830,87 @@ void MainWindow::refreshIncidentPanel() {
 	m_scenarioPanel->refresh();
 	m_incidentPanel->refresh();
 	m_entranceDelayPanel->refresh();
+}
+
+namespace {
+
+// The status bar ends with this while the target of an incident is picked on the network view.
+QString targetPickHint() {
+	return QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
+}
+
+} // namespace
+
+IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
+	reason.clear();
+	if (!m_document->isLoaded())
+		return {};
+	const SceneModel& model = m_document->model();
+	const auto signalFailure = [&model](const std::string& section) {
+		const std::string target = sceneSignalFailureTarget(model, buildSceneSectionInventory(model), section);
+		return target.empty() ? IncidentTarget() : IncidentTarget{"signal_failure", QString::fromStdString(target), 0};
+	};
+	IncidentTarget target;
+	QString selected;
+	if (m_showingTrackPreview) {
+		const QString kind = m_inspector->previewSelectionKind();
+		if (kind == "signal") {
+			selected = "signal";
+			target = signalFailure(m_inspector->previewSelectionId().toStdString());
+		} else if (!kind.isEmpty()) {
+			selected = "item";
+		}
+	} else if (const SignalItem* signal = m_presenter->m_inspectedSignal;
+		signal && m_presenter->m_signalDecorations.contains(m_presenter->m_inspectedSignal)) {
+		// The section that the inspector shows as protected: the one ahead, or the one behind at the end of a track.
+		selected = "signal";
+		target = signalFailure(!signal->sectionAheadId.empty() ? signal->sectionAheadId : signal->sectionBehindId);
+	} else if (const int index = m_inspector->selectedTrainIndex(); index >= 0) {
+		selected = "train";
+		if (m_snapshot) {
+			const auto train = std::find_if(m_snapshot->trains.cbegin(), m_snapshot->trains.cend(),
+				[index](const GuiTrainState& state) { return state.index == index; });
+			if (train != m_snapshot->trains.cend() && !train->serviceId.empty())
+				target = {"train_breakdown", QString::fromStdString(train->serviceId), train->occurrence};
+		}
+	} else if (m_presenter->effect) {
+		selected = "item";
+	}
+	if (selected == "item")
+		reason = "The selected item is not a signal or a train";
+	else if (!selected.isEmpty())
+		reason = QString("The selected %1 cannot be the target of an incident").arg(selected);
+	return target;
+}
+
+void MainWindow::setIncidentTargetPick(bool picking) {
+	m_endTargetPickShortcut->setEnabled(picking);
+	networkView->viewport()->setCursor(picking ? Qt::CrossCursor : Qt::OpenHandCursor);
+	if (picking)
+		statusBar()->showMessage(targetPickHint());
+	else if (statusBar()->currentMessage().endsWith(targetPickHint()))
+		statusBar()->clearMessage();
+}
+
+void MainWindow::pickIncidentTarget() {
+	if (!m_incidentPanel->isPickingTarget())
+		return;
+	QString reason;
+	const IncidentTarget target = selectedIncidentTarget(reason);
+	// The edit can end a replay and draw the preview again, which deletes the item of the click, so it waits until the click
+	// has been handled.
+	QTimer::singleShot(0, this, [this, target, reason] {
+		if (!m_incidentPanel->isPickingTarget())
+			return;
+		if (!m_incidentPanel->applyTarget(target)) {
+			statusBar()->showMessage((reason.isEmpty() ? QString("The selected item is not a signal or a train") : reason) + ". "
+				+ targetPickHint());
+			return;
+		}
+		m_incidentPanel->endTargetPick();
+		statusBar()->showMessage(
+			QString("The target of incident %1 is now %2.").arg(m_incidentIdEdit->text(), m_incidentTargetCombo->currentText()), 8000);
+	});
 }
 
 void MainWindow::updateCaseLayersPanel() {
