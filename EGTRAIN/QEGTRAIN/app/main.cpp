@@ -20,6 +20,7 @@
 #include "util/Log.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/LightPalette.h"
+#include "widgets/WidgetStyle.h"
 #include <algorithm>
 #include <climits>
 #include <exception>
@@ -456,7 +457,10 @@ static int runMain(int argc, char* argv[]) {
 		std::cout << "Graphical user interface (GUI): 0\n";
 
 	if (gui) {
+		const bool styleChosen = widgetStyleChosen(argc, argv);
 		GuardedApplication application(argc, argv);
+		// Before the palettes, because a new style brings its own.
+		preferWindowsVistaStyle(styleChosen);
 #if EGTRAIN_BUILD_TESTS
 		e2e::configureApplication();
 #endif
