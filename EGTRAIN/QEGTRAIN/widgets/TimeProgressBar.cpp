@@ -1,9 +1,11 @@
 #include "widgets/TimeProgressBar.h"
 #include "util/TimeFormat.h"
 
+#include <QCursor>
 #include <QFontDatabase>
 #include <QStyleOptionProgressBar>
 #include <QStylePainter>
+#include <QToolTip>
 
 TimeProgressBar::TimeProgressBar(QWidget* parent)
 	: QProgressBar(parent) {
@@ -39,21 +41,32 @@ void TimeProgressBar::setProgress(int timestep, int totalSteps, long long startO
 	setFormat(QStringLiteral("%1 of %2")
 			.arg(QString::fromStdString(formatSimTime(clampedTimestep, startOffsetSeconds)),
 				QString::fromStdString(formatSimTime(safeTotalSteps, startOffsetSeconds))));
-	setToolTip(QStringLiteral("Step %1 of %2").arg(formatCount(displayedStep), formatCount(safeTotalSteps)));
+	const QString tip = QStringLiteral("Step %1 of %2").arg(formatCount(displayedStep), formatCount(safeTotalSteps));
+	// Qt keeps a shown tooltip as it is, so the bar gives its own shown tooltip the new text.
+	if (QToolTip::isVisible() && QToolTip::text() == toolTip())
+		QToolTip::showText(QCursor::pos(), tip, this);
+	setToolTip(tip);
 }
 
-// Draws the bar, then draws it again over the filled part with the text in the highlighted text colour,
-// so the text reads on the fill and on the empty part of the bar.
-void TimeProgressBar::paintEvent(QPaintEvent* event) {
-	QProgressBar::paintEvent(event);
+// The style puts the text against the border, so the bar draws its text itself, 6 pixels inside the edges: in the text
+// colour on the empty part and in the highlighted text colour on the fill.
+void TimeProgressBar::paintEvent(QPaintEvent*) {
 	QStyleOptionProgressBar option;
 	initStyleOption(&option);
+	QStyleOptionProgressBar label = option;
+	label.rect = option.rect.adjusted(6, 0, -6, 0);
+	label.rect = style()->subElementRect(QStyle::SE_ProgressBarLabel, &label, this);
+	option.textVisible = false;
 	const QRect contents = style()->subElementRect(QStyle::SE_ProgressBarContents, &option, this);
 	const int fillWidth = QStyle::sliderPositionFromValue(minimum(), maximum(), value(), contents.width());
+	const QRect fill(contents.x(), contents.y(), fillWidth, contents.height());
+	QStylePainter painter(this);
+	painter.drawControl(QStyle::CE_ProgressBar, option);
+	painter.setClipRegion(QRegion(rect()).subtracted(fill));
+	painter.drawControl(QStyle::CE_ProgressBarLabel, label);
 	if (fillWidth <= 0)
 		return;
-	option.palette.setColor(QPalette::Text, option.palette.color(QPalette::HighlightedText));
-	QStylePainter painter(this);
-	painter.setClipRect(contents.x(), contents.y(), fillWidth, contents.height());
-	painter.drawControl(QStyle::CE_ProgressBar, option);
+	label.palette.setColor(QPalette::Text, label.palette.color(QPalette::HighlightedText));
+	painter.setClipRect(fill);
+	painter.drawControl(QStyle::CE_ProgressBarLabel, label);
 }

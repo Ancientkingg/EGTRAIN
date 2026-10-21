@@ -14,12 +14,12 @@ public:
 	~TimeProgressBar() override;
 
 	/// Shows step `timestep` (from 0) of a run of `totalSteps` steps, clamped to the run, as "<clock> of <end clock>" with
-	/// the tooltip "Step <n> of <total>". The clock times take one step as one second after `startOffsetSeconds`, the base
-	/// time of the run in seconds since midnight.
+	/// the tooltip "Step <n> of <total>", which a shown tooltip of the bar follows. The clock times take one step as one
+	/// second after `startOffsetSeconds`, the base time of the run in seconds since midnight.
 	void setProgress(int timestep, int totalSteps, long long startOffsetSeconds);
 
 protected:
-	/// Draws the bar, then the filled part again with its text in the highlighted text colour.
+	/// Draws the bar with its text 6 pixels inside the edges, in the highlighted text colour on the filled part.
 	void paintEvent(QPaintEvent* event) override;
 };
 
