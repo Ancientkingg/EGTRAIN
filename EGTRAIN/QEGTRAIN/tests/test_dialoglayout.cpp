@@ -903,6 +903,74 @@ bool exerciseFooterWithoutIcons() {
 	return ok;
 }
 
+// Fusion with the footer layout of one platform.
+class FooterLayoutStyle : public QProxyStyle {
+public:
+	explicit FooterLayoutStyle(QDialogButtonBox::ButtonLayout layout) : QProxyStyle(QStringLiteral("Fusion")), m_layout(layout) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		return hint == SH_DialogButtonLayout ? m_layout : QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+
+private:
+	QDialogButtonBox::ButtonLayout m_layout;
+};
+
+// Under the footer layout of each platform, Tab and Shift+Tab from the field of the body visit each footer button once, in
+// the order the footer shows them, and then the field again. The buttons are added in another order than the footer shows
+// them, as the case chooser and the run review add theirs. No stop is the body scroll area or another widget without a
+// focus look.
+bool exerciseFooterTabOrder() {
+	bool ok = true;
+	for (const auto layout : {QDialogButtonBox::WinLayout, QDialogButtonBox::MacLayout, QDialogButtonBox::KdeLayout, QDialogButtonBox::GnomeLayout}) {
+		FooterLayoutStyle style(layout);
+		QDialog dialog;
+		dialog.setStyle(&style);
+		auto* body = new QWidget;
+		auto* field = new QLineEdit(body);
+		(new QVBoxLayout(body))->addWidget(field);
+		auto* buttons = new QDialogButtonBox(&dialog);
+		QPushButton* cancel = buttons->addButton(QDialogButtonBox::Cancel);
+		buttons->addButton(QDialogButtonBox::RestoreDefaults);
+		QPushButton* accept = buttons->addButton(QDialogButtonBox::Ok);
+		accept->setDefault(true);
+		DialogLayout::install(dialog, QStringLiteral("Tab order"), QString(), body, buttons, QRect(0, 0, 1280, 800));
+		dialog.show();
+		dialog.activateWindow();
+		QApplication::processEvents();
+		QList<QWidget*> footer;
+		for (int i = 0; i < buttons->layout()->count(); ++i)
+			if (QWidget* button = buttons->layout()->itemAt(i)->widget())
+				footer.append(button);
+		const bool acceptFirst = layout == QDialogButtonBox::WinLayout || layout == QDialogButtonBox::KdeLayout;
+		ok &= check(footer.size() == 3 && (footer.indexOf(accept) < footer.indexOf(cancel)) == acceptFirst,
+			"the footer does not have the three buttons in the order of its layout");
+		ok &= check(field->hasFocus(), "the field of the body does not have the first focus");
+		for (const bool forward : {true, false}) {
+			QList<QWidget*> expected = footer;
+			if (!forward)
+				std::reverse(expected.begin(), expected.end());
+			expected.append(field);
+			field->setFocus();
+			QList<QWidget*> stops;
+			while (stops.size() < expected.size() && dialog.focusWidget()) {
+				QKeyEvent key(QEvent::KeyPress, forward ? Qt::Key_Tab : Qt::Key_Backtab, forward ? Qt::NoModifier : Qt::ShiftModifier);
+				QApplication::sendEvent(dialog.focusWidget(), &key);
+				stops.append(dialog.focusWidget());
+			}
+			if (stops != expected) {
+				std::cerr << "footer layout " << static_cast<int>(layout) << (forward ? ": Tab" : ": Shift+Tab") << " from the field stops at";
+				for (const QWidget* stop : stops) {
+					const auto* button = qobject_cast<const QAbstractButton*>(stop);
+					std::cerr << ' ' << (button ? button->text().toStdString() : std::string(stop ? stop->metaObject()->className() : "nothing"));
+				}
+				std::cerr << '\n';
+				ok = false;
+			}
+		}
+	}
+	return ok;
+}
+
 // The size that a Fusion spin box asks for without the style sheet.
 QSize fusionSpinBoxSize() {
 	QProxyStyle fusion(QStringLiteral("Fusion"));
@@ -935,7 +1003,8 @@ bool exerciseCellSpinBoxSize(const QSize& fusionSize) {
 #endif
 }
 
-// A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow.
+// A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow. Open result
+// view... is as tall as the push buttons beside it in Run Results.
 bool exerciseMenuButtonRoom() {
 	QToolButton plain;
 	plain.setText(QStringLiteral("Trains (2/2)"));
@@ -948,6 +1017,13 @@ bool exerciseMenuButtonRoom() {
 		menuButton.setMenu(new QMenu(&menuButton));
 		ok &= check(menuButton.sizeHint().width() >= plain.sizeHint().width() + 12, "a menu button has no room for its arrow");
 	}
+	QToolButton views;
+	views.setObjectName(QStringLiteral("runResultsViewsButton"));
+	views.setText(QStringLiteral("Open result view..."));
+	views.setPopupMode(QToolButton::InstantPopup);
+	views.setMenu(new QMenu(&views));
+	ok &= check(views.sizeHint().height() == QPushButton(QStringLiteral("Export CSV...")).sizeHint().height(),
+		"Open result view... is not as tall as the push buttons beside it");
 	return ok;
 }
 
@@ -1031,6 +1107,7 @@ int main(int argc, char** argv) {
 	const bool scaledSmall = exercise(QRect(0, 0, 1280, 800), 1.5);
 	const bool large = exercise(QRect(0, 0, 1920, 1080), 1.5);
 	const bool footerKeys = exerciseFooterKeys();
+	const bool footerTabOrder = exerciseFooterTabOrder();
 	const bool contentHeight = exerciseContentHeight(1.0) && exerciseContentHeight(1.5);
 	const bool contextHeight = exerciseContextHeight(1.0) && exerciseContextHeight(1.5);
 	const bool statusAfterOpen = exerciseStatusAfterOpen(1.0) && exerciseStatusAfterOpen(1.5);
@@ -1048,7 +1125,7 @@ int main(int argc, char** argv) {
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
 	const bool footerIcons = exerciseFooterWithoutIcons();
 	const bool cellSpinBox = exerciseCellSpinBoxSize(fusionSpinBox);
-	return small && scaledSmall && large && footerKeys && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
+	return small && scaledSmall && large && footerKeys && footerTabOrder && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
 			&& scaledDefaultWidth && footerIcons && cellSpinBox
 		? 0
 		: 1;

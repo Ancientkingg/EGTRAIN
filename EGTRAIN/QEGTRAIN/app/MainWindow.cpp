@@ -193,6 +193,7 @@
 #include <QMimeData>
 #include <QTemporaryDir>
 #include <QToolButton>
+#include <QStyleOptionMenuItem>
 #include <QStyleOptionSlider>
 #include <QStylePainter>
 #include <QUrl>
@@ -252,10 +253,34 @@ class ElidedComboBox : public QComboBox {
 public:
 	explicit ElidedComboBox(QWidget* parent) : QComboBox(parent) {}
 	// As in ChoiceComboBox: the list was made before the field had focus, so it is brought up to date with the padding of
-	// the focused field first; else it opens too short and scrolls.
+	// the focused field first; else it opens too short and scrolls. The field is as narrow as the toolbar needs, so the
+	// list is then made as wide as its longest entry, which shows the state and the scheduled time after a long name. A
+	// style that draws the list as a menu, as macOS and Fusion do, puts each entry after room for a check mark and an
+	// icon, so there an entry needs the width of a menu item with its text, measured as the delegate of the list does.
 	void showPopup() override {
+		QAbstractItemView* list = view();
 		QEvent styleChange(QEvent::StyleChange);
-		QCoreApplication::sendEvent(view()->window(), &styleChange);
+		QCoreApplication::sendEvent(list->window(), &styleChange);
+		QStyleOptionComboBox field;
+		initStyleOption(&field);
+		const bool menu = style()->styleHint(QStyle::SH_ComboBox_Popup, &field, this);
+		const QFontMetrics metrics = list->fontMetrics();
+		int widest = list->sizeHintForColumn(0);
+		for (int row = 0; row < count(); ++row) {
+			QSize entry(metrics.horizontalAdvance(itemText(row)), metrics.height());
+			if (menu) {
+				QStyleOptionMenuItem item;
+				item.initFrom(list);
+				item.font = list->font();
+				item.menuItemType = QStyleOptionMenuItem::Normal;
+				item.checkType = QStyleOptionMenuItem::NonExclusive;
+				item.maxIconWidth = iconSize().width() + 4;
+				item.text = itemText(row);
+				entry = style()->sizeFromContents(QStyle::CT_MenuItem, &item, entry, this);
+			}
+			widest = qMax(widest, entry.width());
+		}
+		list->setMinimumWidth(qMax(width(), widest + 2 * list->frameWidth() + list->verticalScrollBar()->sizeHint().width()));
 		QComboBox::showPopup();
 	}
 protected:
@@ -2888,7 +2913,6 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 	if (m_followRowShown.size() != rows)
 		m_followRowShown = QVector<std::optional<std::pair<FollowPhase, bool>>>(rows);
 	const int current = m_followTrainCombo->currentIndex();
-	bool written = false;
 	for (int row = 0; row < rows; ++row) {
 		const FollowAvailabilityInput in = followInput(row);
 		const std::pair<FollowPhase, bool> shown(followPhase(in), in.train != nullptr);
@@ -2901,19 +2925,8 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 		if (changed) {
 			m_followTrainCombo->setItemText(row, QString::fromStdString(availability.entryText));
 			m_followRowShown[row] = shown;
-			written = true;
 		}
 	}
-	if (written) {
-		// The list is as narrow as the toolbar needs, so its popup is as wide as the longest entry,
-		// which shows the state and the scheduled time after a long name.
-		QAbstractItemView* popup = m_followTrainCombo->view();
-		int widest = popup->sizeHintForColumn(0);
-		for (int row = 0; row < rows; ++row)
-			widest = qMax(widest, popup->fontMetrics().horizontalAdvance(m_followTrainCombo->itemText(row)));
-		popup->setMinimumWidth(widest + 2 * popup->frameWidth() + popup->verticalScrollBar()->sizeHint().width());
-	}
-
 	const QString status = QString::fromStdString(selected.statusText);
 	const QString clause = QString::fromStdString(selected.statusClause);
 	if (m_followStatusLabel && (m_followStatusLabel->text() != clause || m_followStatusLabel->toolTip() != status)) {
