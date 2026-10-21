@@ -32,5 +32,6 @@ var dir_bbeb46f115ff865f6db21b043311d5ef =
     [ "SettingsDialog.h", "_settings_dialog_8h.html", "_settings_dialog_8h" ],
     [ "TimeProgressBar.cpp", "_time_progress_bar_8cpp.html", null ],
     [ "TimeProgressBar.h", "_time_progress_bar_8h.html", "_time_progress_bar_8h" ],
-    [ "UserPrompts.h", "_user_prompts_8h.html", "_user_prompts_8h" ]
+    [ "UserPrompts.h", "_user_prompts_8h.html", "_user_prompts_8h" ],
+    [ "WidgetStyle.h", "_widget_style_8h.html", "_widget_style_8h" ]
 ];

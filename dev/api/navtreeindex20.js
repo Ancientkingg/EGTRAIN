@@ -1,5 +1,9 @@
 var NAVTREEINDEX20 =
 {
+"struct_gui_simulation_snapshot.html#a1f762f2e92b76e4e309674e99748ecd4":[2,0,84,4],
+"struct_gui_simulation_snapshot.html#a712f9b19dc62f48a30f05f5f38118864":[2,0,84,7],
+"struct_gui_simulation_snapshot.html#a72b57fbb118f5b479088e8543565fe82":[2,0,84,6],
+"struct_gui_simulation_snapshot.html#aa7f2b21aa3cc09fff44e394133303d34":[2,0,84,3],
 "struct_gui_simulation_snapshot.html#ad52a590088cd49d39bd7d68b5f203743":[2,0,84,0],
 "struct_gui_simulation_snapshot.html#ad6ad88ed89d37e2cd4db2f3dfd599a0a":[2,0,84,5],
 "struct_gui_train_state.html":[2,0,86],
@@ -245,9 +249,5 @@ var NAVTREEINDEX20 =
 "struct_route_diagram_projection.html#ad0d33e9a1a9d898d65f6c1a2ae4d0f33":[2,0,159,1],
 "struct_route_diagram_series.html":[2,0,160],
 "struct_route_diagram_series.html#a1c41f2104a0fa493256ba47acaa5009b":[2,0,160,5],
-"struct_route_diagram_series.html#a74cdea5039364e043e6c301e24233bc6":[2,0,160,7],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7":[2,0,160,0],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc":[2,0,160,0,0],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12":[2,0,160,0,2],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7aa4ecfc70574394990cf17bd83df499f7":[2,0,160,0,1]
+"struct_route_diagram_series.html#a74cdea5039364e043e6c301e24233bc6":[2,0,160,7]
 };

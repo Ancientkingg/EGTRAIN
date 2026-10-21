@@ -1,5 +1,9 @@
 var NAVTREEINDEX19 =
 {
+"struct_capacity_analysis_result.html#a958b3aedd20b9a9fab709c0dc8b744c1":[2,0,30,7],
+"struct_capacity_analysis_result.html#aaa9a70fd80f30a652936b2852c069aee":[2,0,30,10],
+"struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca":[2,0,30,6],
+"struct_capacity_analysis_result.html#ab6cb46394965ca36ccedf424dea4931c":[2,0,30,5],
 "struct_capacity_analysis_result.html#ad28b9d1f48c61b5487a333a8c6807801":[2,0,30,3],
 "struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a":[2,0,30,8],
 "struct_capacity_analysis_scope.html":[2,0,31],
@@ -245,9 +249,5 @@ var NAVTREEINDEX19 =
 "struct_gui_signal_state.html#ae5eb6c8d9d1488352138159d4f6d92ec":[2,0,82,0],
 "struct_gui_simulation_snapshot.html":[2,0,84],
 "struct_gui_simulation_snapshot.html#a00c152ab6525ebf6defc35a61588056b":[2,0,84,1],
-"struct_gui_simulation_snapshot.html#a0fde0120f11f7ac6f708640a3b1a362d":[2,0,84,2],
-"struct_gui_simulation_snapshot.html#a1f762f2e92b76e4e309674e99748ecd4":[2,0,84,4],
-"struct_gui_simulation_snapshot.html#a712f9b19dc62f48a30f05f5f38118864":[2,0,84,7],
-"struct_gui_simulation_snapshot.html#a72b57fbb118f5b479088e8543565fe82":[2,0,84,6],
-"struct_gui_simulation_snapshot.html#aa7f2b21aa3cc09fff44e394133303d34":[2,0,84,3]
+"struct_gui_simulation_snapshot.html#a0fde0120f11f7ac6f708640a3b1a362d":[2,0,84,2]
 };
