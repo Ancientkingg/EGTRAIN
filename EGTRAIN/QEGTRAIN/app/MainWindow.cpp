@@ -2667,7 +2667,14 @@ void MainWindow::stepSceneHistory(bool redo) {
 	if (!(redo ? m_history->canRedo() : m_history->canUndo()))
 		return;
 	const QString label = QString::fromStdString(redo ? m_history->redoLabel() : m_history->undoLabel());
+	// The preview of the restored scene is drawn again at Fit, and the view returns to the zoom and the centre that it had,
+	// as after an edit. The centre is the middle of the pixel at the centre, which centerOn puts back on that pixel.
+	const qreal zoom = networkView->zoomRatio();
+	const QPointF centre = networkView->viewportTransform().inverted().map(
+		QPointF(networkView->viewport()->width() + 1, networkView->viewport()->height() + 1) / 2.0);
 	restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo()));
+	networkView->zoomBy(zoom / networkView->zoomRatio());
+	networkView->centerOn(centre);
 	statusBar()->showMessage(QString("%1 %2").arg(redo ? "Redid" : "Undid", label), 8000);
 }
 

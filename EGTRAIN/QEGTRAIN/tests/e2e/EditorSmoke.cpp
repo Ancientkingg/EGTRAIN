@@ -80,6 +80,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QLineF>
 #include <QList>
 #include <QListWidget>
 #include <QMessageBox>
@@ -5682,6 +5683,29 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	if (!step("an added incident", "Add incident", [&] { w.m_addIncidentButton->click(); }))
 		return finish();
+	// Undo and Redo keep the zoom and the centre of the network view, as an edit does.
+	{
+		w.networkView->zoomBy(4.0 / w.networkView->zoomRatio());
+		const QPoint viewportCentre = w.networkView->viewport()->rect().center();
+		w.networkView->centerOn(w.networkView->mapToScene(viewportCentre + QPoint(viewportCentre.x() / 2, 0)));
+		const QPointF centre = w.networkView->mapToScene(viewportCentre);
+		const auto viewKept = [&](const char* how) {
+			const qreal moved = QLineF(w.networkView->mapFromScene(centre), viewportCentre).length();
+			expect(qAbs(w.networkView->zoomRatio() - 4.0) < 0.01 && moved <= 2.0,
+				QStringLiteral("%1 changed the view: zoom %2, centre moved %3 px").arg(how).arg(w.networkView->zoomRatio()).arg(moved));
+		};
+		if (!step("an incident start", "Edit", [&] {
+				w.m_incidentStartSecondsEdit->setText("120");
+				w.m_incidentPanel->commitStartSeconds();
+			}))
+			return finish();
+		viewKept("an edit");
+		undo();
+		viewKept("Undo");
+		redo();
+		viewKept("Redo");
+		w.fitView();
+	}
 	if (!step("an added entrance delay", "Add entrance delay", [&] { w.m_addEntranceDelayButton->click(); }))
 		return finish();
 	if (!step("an added passenger", "Add passenger", [&] { w.m_addPassengerButton->click(); }))

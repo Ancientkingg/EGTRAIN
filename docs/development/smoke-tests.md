@@ -239,7 +239,7 @@ validates, saves and reloads cases through the editors. It then edits a copy of
 the first scene in each editor and checks that every edit is one step of the
 history, that Undo and Redo return the scene to the state before and after each
 step (the bytes that Save writes, the editors, the validation, the unsaved mark
-and the run results), that a stop dialog that is accepted is one step and one
+and the run results) and keep the zoom and the centre of the network view, that a stop dialog that is accepted is one step and one
 that is cancelled is none, that Save keeps the history, and that a new edit after
 Undo, a failed open, an open and a new scene change the history as
 [Window flow](../architecture/scene-editor-flow.md#window-flow) describes. It
