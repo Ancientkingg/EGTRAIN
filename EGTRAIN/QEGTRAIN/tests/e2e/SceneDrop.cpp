@@ -32,8 +32,9 @@
 
 // Sends drag and drop events to the window over the network view. Only a single local scene bundle may
 // open, a drop that is refused must leave the open scene as it was, and a drop on an unsaved scene must
-// ask first. The Recent Scenes menu must mark a scene that has been deleted as unavailable when it opens.
-// It prints E2E_SCENE_DROP_OK and exits with 0, or prints the failures and exits with 1.
+// ask first. The Recent Scenes menu must mark a scene that has been deleted as unavailable when it opens, and the recent
+// scenes must not keep an installed scene. It prints E2E_SCENE_DROP_OK and exits with 0, or prints the failures and exits
+// with 1.
 void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 	bool ok = true;
 	QStringList failures;
@@ -269,6 +270,14 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		} else {
 			fail(QStringLiteral("the shared-label recent fixtures could not be created"));
 		}
+
+		// A scene among the installed scenes is not kept: the case chooser lists it under Bundled cases, and the folder of
+		// the installed scenes can change at every start, as the mount folder of an AppImage does.
+		const QDir applicationDir(QCoreApplication::applicationDirPath());
+		const QString installedPath = applicationDir.absoluteFilePath(QStringLiteral("Scenes/") + recentName + QStringLiteral(".egscene"));
+		w.m_session->addRecentScene(installedPath);
+		if (SceneSession::recentScenes().contains(installedPath))
+			fail(QStringLiteral("an installed scene is kept in the recent scenes"));
 	}
 
 	if (ok)

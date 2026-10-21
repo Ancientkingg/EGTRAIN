@@ -62,6 +62,9 @@ public:
 	telemetry::OperationObservation captureOperation() const noexcept;
 	/// Stops the sender, if there is one.
 	void stopTelemetry();
+	/// Ends the application for an installed update: runs beforeQuit and leaves the event loop with exit code 0. No window
+	/// gets a close event, so none can ask about unsaved changes again or keep the application open.
+	void quitForUpdate();
 
 private:
 	// The scripted runs in tests/e2e replace the telemetry.

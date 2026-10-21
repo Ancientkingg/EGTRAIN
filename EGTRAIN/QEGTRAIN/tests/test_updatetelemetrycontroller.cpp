@@ -9,6 +9,7 @@
 #include <QAbstractButton>
 #include <QAction>
 #include <QApplication>
+#include <QCloseEvent>
 #include <QCoreApplication>
 #include <QEventLoop>
 #include <QMenu>
@@ -237,6 +238,33 @@ int main(int argc, char** argv) {
 				"the prompt with an update package makes Update and Restart the default");
 			SelfUpdater::setTestHook(SelfUpdateCapability(), QString());
 		}
+	}
+
+	{
+		// A window that asks about unsaved changes and stays open gets no close event when an update ends the application.
+		class StayOpenWindow : public QWidget {
+		public:
+			int closeEvents = 0;
+
+		protected:
+			void closeEvent(QCloseEvent* event) override {
+				++closeEvents;
+				event->ignore();
+			}
+		};
+		StayOpenWindow window;
+		window.show();
+		int beforeQuit = 0;
+		UpdateTelemetryController controller(&window, [] { return true; }, [&beforeQuit] { ++beforeQuit; });
+		QTimer::singleShot(0, &controller, &UpdateTelemetryController::quitForUpdate);
+		// Ends the event loop with another code when the update does not end it.
+		QTimer fallback;
+		fallback.setSingleShot(true);
+		QObject::connect(&fallback, &QTimer::timeout, [] { QCoreApplication::exit(1); });
+		fallback.start(2000);
+		const int exitCode = app.exec();
+		ok &= expect(exitCode == 0 && window.closeEvents == 0 && beforeQuit == 1,
+			"an update runs beforeQuit and ends the event loop without closing the windows");
 	}
 
 	return ok ? 0 : 1;

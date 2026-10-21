@@ -117,7 +117,7 @@ public:
 	QMenu* recentScenesMenu() const;
 	/// The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear once.
 	static QStringList recentScenes();
-	/// Puts the absolute form of `path` first in the recent scenes, which keep at most 8.
+	/// Puts the absolute form of `path` first in the recent scenes, which keep at most 8. An installed scene is not added.
 	void addRecentScene(const QString& path);
 	/// Fills the Recent Scenes menu again from the settings.
 	void rebuildRecentScenesMenu();
