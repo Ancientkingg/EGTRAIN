@@ -4752,12 +4752,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!caseSettingsAction->isChecked() || w.m_caseSettingsDock->visibleRegion().isEmpty())
 				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
 
-			// In a window of 1024 by 768 pixels, beside Case and Layers and with Run Results as high as it opens after a run, Rolling
-			// stock units shows its list, its buttons in one row, the ID field and its tabs without a vertical scroll, and Services
-			// shows its list, its buttons in one row, its tabs and room for three rows of fields. In a window of 819 by 614 pixels
-			// (1024 by 768 at 125 percent) the taller controls of this test leave room for the list, the buttons and the ID field of
-			// Rolling stock units and for one row of Services fields. The Timetable tab leaves the height of the Services list as it
-			// is. How many fields fill that room, and whether the narrower dock scrolls sideways, depends on the width of the font.
+			// In a window of 1280 by 800 or 1024 by 768 pixels, beside Case and Layers and with Run Results as high as it opens after
+			// a run, Rolling stock units shows its list, its buttons in one row, the ID field, its tabs and three rows of fields on
+			// each tab without a vertical scroll, and Services shows its list, its buttons in one row, its tabs, room for three rows
+			// of fields and on the Timetable tab the table header and two stops. Run Results keeps its buttons and the header and a
+			// row of its table in view. In a window of 819 by 614 pixels (1024 by 768 at 125 percent) the taller controls of this
+			// test leave room for the list, the buttons and the ID field of Rolling stock units and for one row of Services fields.
+			// At each size Run Results is at most as high as the network view, and the Timetable tab leaves the height of the
+			// Services list as it is. How many fields fill that room, and whether the narrower dock scrolls sideways, depends on the
+			// width of the font.
 			w.m_loadedDataDock->hide();
 			w.m_caseLayersDock->show();
 			const auto inView = [](const QWidget* part, const QWidget* view) {
@@ -4772,8 +4775,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			};
 			TrainUnitPanel* units = w.m_trainUnitPanel;
 			ServicePanel* services = w.m_servicePanel;
-			for (const QSize size : {QSize(1024, 768), QSize(819, 614)}) {
-				const bool fullSize = size.width() == 1024;
+			for (const QSize size : {QSize(1280, 800), QSize(1024, 768), QSize(819, 614)}) {
+				const bool fullSize = size.width() >= 1024;
 				const QString where = QString(" at %1 by %2 pixels after a run").arg(size.width()).arg(size.height());
 				for (QDockWidget* dock : editorDocks)
 					dock->hide();
@@ -4789,16 +4792,39 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QApplication::processEvents();
 				w.resizeDocks({w.m_serviceDock}, {w.m_serviceDock->sizeHint().width()}, Qt::Horizontal);
 				QApplication::processEvents();
+				auto* resultsScroll = qobject_cast<QScrollArea*>(w.m_runResultsDock->widget());
+				resultsScroll->verticalScrollBar()->setValue(0);
+				const QTableWidget* resultsTable = w.m_runResultsTable;
+				bool resultsShown = resultsTable->rowHeight(0) <= resultsTable->viewport()->height()
+					&& resultsTable->viewport()->mapTo(resultsScroll->viewport(), QPoint(0, resultsTable->rowHeight(0))).y() <= resultsScroll->viewport()->height();
+				for (const char* name : {"runResultsViewsButton", "resultView_ExportCSV", "resultView_ExportPNG"})
+					resultsShown = resultsShown && inView(w.m_runResultsDock->findChild<QWidget*>(name), resultsScroll->viewport());
+				if (w.m_runResultsDock->height() > w.networkView->height() + 2 || (fullSize && !resultsShown))
+					facetFailure(ok, "presentation",
+						QString("Run Results is %1 pixels high below a network view of %2 pixels, or its buttons or first row are not in view%3")
+							.arg(w.m_runResultsDock->height())
+							.arg(w.networkView->height())
+							.arg(where));
 				w.m_trainUnitDock->raise();
 				units->tabs()->setCurrentIndex(0);
 				QApplication::processEvents();
 				const QWidget* unitsView = dockView(w.m_trainUnitDock);
 				QList<const QWidget*> unitParts{units->listWidget(), units->addButton(), units->duplicateButton(), units->deleteButton(), units->idEdit()};
 				if (fullSize)
-					unitParts.append(units->tabs()->tabBar());
+					unitParts << units->tabs()->tabBar() << units->sourceTractionEdit() << units->linkButton(true) << units->unlinkButton(true);
 				for (const QWidget* part : unitParts)
 					if (!inView(part, unitsView))
 						facetFailure(ok, "presentation", QString("%1 of Rolling stock units is not in view%2").arg(partName(part), where));
+				if (fullSize) {
+					units->tabs()->setCurrentIndex(1);
+					QApplication::processEvents();
+					dockView(w.m_trainUnitDock);
+					const auto& physical = units->physicalEdits();
+					for (const QDoubleSpinBox* edit : {physical[0], physical[1], physical[2]})
+						if (!inView(edit, unitsView))
+							facetFailure(ok, "presentation", QString("%1 of Rolling stock units is not in view%2").arg(partName(edit), where));
+					units->tabs()->setCurrentIndex(0);
+				}
 				if (units->addButton()->y() != units->deleteButton()->y() || units->duplicateButton()->y() != units->deleteButton()->y())
 					facetFailure(ok, "presentation", "the buttons under the list of Rolling stock units are not in one row");
 
@@ -4828,6 +4854,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							.arg(listHeight)
 							.arg(services->listWidget()->height())
 							.arg(where));
+				if (fullSize) {
+					dockView(w.m_serviceDock);
+					const QTableWidget* stops = w.m_stopTableWidget;
+					const int secondStopBottom = stops->rowCount() > 1 ? stops->rowViewportPosition(1) + stops->rowHeight(1) : stops->viewport()->height() + 1;
+					if (!inView(stops->horizontalHeader(), servicesView) || secondStopBottom > stops->viewport()->height()
+						|| stops->viewport()->mapTo(servicesView, QPoint(0, secondStopBottom)).y() > servicesView->height())
+						facetFailure(ok, "presentation", QString("the Timetable tab does not show the table header and two stops%1").arg(where));
+				}
 				services->pages()->setCurrentIndex(0);
 			}
 			// With Incidents as a fifth editor the tabs of the group keep their whole names and scroll.
