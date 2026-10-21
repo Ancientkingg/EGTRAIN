@@ -1,5 +1,6 @@
 var NAVTREEINDEX13 =
 {
+"class_service_panel.html#a99c6859f6b61b07c5681b5e45ddfd25b":[1,0,258,58],
 "class_service_panel.html#aa6d1c548a7085e8438dd3e02db14fdab":[1,0,258,43],
 "class_service_panel.html#aad7d978828e26debcf27751110e9b619":[1,0,258,3],
 "class_service_panel.html#aaf5de4ccfa7af1694719ae9a556e80b9":[1,0,258,14],
@@ -248,6 +249,5 @@ var NAVTREEINDEX13 =
 "class_timetable_stops_panel.html":[1,0,286],
 "class_timetable_stops_panel.html#a087f4ee0041f5473077cffdf25f25403":[1,0,286,10],
 "class_timetable_stops_panel.html#a19193f5fcb40b0a2b41a90be95f93744":[1,0,286,7],
-"class_timetable_stops_panel.html#a35f1db92b1086f255af7ebb8a811854d":[1,0,286,17],
-"class_timetable_stops_panel.html#a3630bb0390a301edcf926b5626349f98":[1,0,286,0]
+"class_timetable_stops_panel.html#a35f1db92b1086f255af7ebb8a811854d":[1,0,286,17]
 };
