@@ -1,18 +1,22 @@
 #include "editors/TrainUnitPanel.h"
 
 #include "scene/SceneFields.h"
+#include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DisplayPath.h"
 
 #include <QApplication>
 #include <QDoubleSpinBox>
 #include <QFile>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QLocale>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QString>
 #include <QStringList>
+#include <QStyledItemDelegate>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -23,6 +27,11 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+// QtGui exports this function for Qt Test. It delivers a mouse event as the window system does, so that a click gives the
+// focus as a click of the user does.
+Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
+	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -126,8 +135,17 @@ static QStringList items(const QListWidget* list) {
 	return result;
 }
 
-static QDoubleSpinBox* cell(TrainUnitPanel& panel, int row, int column) {
-	return qobject_cast<QDoubleSpinBox*>(panel.tractionTable()->cellWidget(row, column));
+// The number in a cell of the traction table.
+static double cellValue(TrainUnitPanel& panel, int row, int column) {
+	return panel.tractionTable()->item(row, column)->data(Qt::EditRole).toDouble();
+}
+
+// Opens the editor of a cell of the traction table, as a double click on it does, and returns the editor.
+static QDoubleSpinBox* openCell(TrainUnitPanel& panel, int row, int column) {
+	QTableWidget* table = panel.tractionTable();
+	table->setCurrentCell(row, column);
+	table->editItem(table->currentItem());
+	return qobject_cast<QDoubleSpinBox*>(table->indexWidget(table->currentIndex()));
 }
 
 // The text field of a number field.
@@ -219,6 +237,49 @@ int main(int argc, char** argv) {
 	}
 
 	{
+		// the keys of the traction table: without an open editor the arrow keys move between the cells and change no number,
+		// a number typed into a cell is taken with Return and dropped with Esc, and Tab leaves the table
+		SceneDocument document;
+		TrainUnitPanel panel;
+		panel.setDocument(&document);
+		document.replace(unitScene(), false);
+		panel.show();
+		panel.activateWindow();
+		QApplication::processEvents();
+		QTableWidget* table = panel.tractionTable();
+		const auto curve = [&document] { return document.model().trainUnits[0].tractionCurve; };
+		const auto before = curve();
+		const auto press = [](Qt::Key key, const QString& text) {
+			QKeyEvent event(QEvent::KeyPress, key, Qt::NoModifier, text);
+			QApplication::sendEvent(QApplication::focusWidget(), &event);
+			QApplication::processEvents();
+		};
+		const QModelIndex firstC0 = table->model()->index(0, 2);
+		table->scrollTo(firstC0);
+		const QPoint c0 = table->viewport()->mapTo(&panel, table->visualRect(firstC0).center());
+		int clickTime = 1000000;
+		for (const QEvent::Type type : {QEvent::MouseButtonPress, QEvent::MouseButtonRelease})
+			qt_handleMouseEvent(panel.windowHandle(), c0, panel.mapToGlobal(c0), type == QEvent::MouseButtonPress ? Qt::LeftButton : Qt::NoButton,
+				Qt::LeftButton, type, Qt::NoModifier, ++clickTime);
+		QApplication::processEvents();
+		press(Qt::Key_Down, QString());
+		ok &= expect(table->currentRow() == 1 && table->currentColumn() == 2 && curve() == before && !document.isDirty()
+				&& document.revision() == 1,
+			"Down on a clicked cell moves to the cell below and changes no number");
+		press(Qt::Key_5, "5");
+		press(Qt::Key_Return, "\r");
+		ok &= expect(curve()[1][2] == 5.0 && document.revision() == 2, "a number typed into a cell replaces its number with Return");
+		press(Qt::Key_7, "7");
+		press(Qt::Key_Escape, QString());
+		const QTableWidgetItem* shown = table->item(1, 2);
+		ok &= expect(curve()[1][2] == 5.0 && document.revision() == 2 && shown && shown->data(Qt::EditRole).toDouble() == 5.0,
+			"Esc drops a number typed into a cell");
+		press(Qt::Key_Tab, "\t");
+		const QWidget* focus = QApplication::focusWidget();
+		ok &= expect(focus && focus != table && !table->isAncestorOf(focus), "Tab leaves the traction table");
+	}
+
+	{
 		SceneDocument document;
 		TrainUnitPanel panel;
 		FakePrompts prompts;
@@ -241,8 +302,14 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.sourceDataEdit()->text() == "u.data" && panel.sourceTractionEdit()->text() == "u.traction",
 			"the selected unit shows its source references");
 		ok &= expect(panel.tractionTable()->rowCount() == 2 && panel.tractionTable()->isEnabled()
-				&& cell(panel, 1, 0)->value() == 10.0 && cell(panel, 1, 2)->value() == 900.0 && cell(panel, 1, 3)->value() == 1.0,
+				&& cellValue(panel, 1, 0) == 10.0 && cellValue(panel, 1, 2) == 900.0 && cellValue(panel, 1, 3) == 1.0,
 			"the traction curve is shown in the table");
+		const auto* cellDelegate = qobject_cast<const QStyledItemDelegate*>(panel.tractionTable()->itemDelegate());
+		const CompactDoubleSpinBox field;
+		bool fieldText = cellDelegate != nullptr;
+		for (const double value : {900.0, -0.000123456789, 1234567.25, 1e20})
+			fieldText = fieldText && cellDelegate->displayText(value, QLocale()) == field.textFromValue(value);
+		ok &= expect(fieldText, "a cell shows its number as a number field without the focus shows it");
 		ok &= expect(panel.duplicateButton()->isEnabled() && panel.deleteButton()->isEnabled()
 				&& panel.addTractionRowButton()->isEnabled() && panel.removeTractionRowButton()->isEnabled()
 				&& panel.plotButton()->isEnabled(),
@@ -303,11 +370,12 @@ int main(int argc, char** argv) {
 				&& document.model().trainUnits[0].tractionCurve[2] == std::array<double, 5>{{20.0, 21.0, 0.0, 0.0, 0.0}}
 				&& panel.tractionTable()->rowCount() == 3 && panel.tractionTable()->currentRow() == 2 && events.log == edit,
 			"a new traction row continues the curve and is selected");
-		cell(panel, 2, 2)->setValue(500.0);
+		panel.tractionTable()->item(2, 2)->setData(Qt::EditRole, 500.0);
 		ok &= expect(document.model().trainUnits[0].tractionCurve[2][2] == 500.0 && events.log == Log({"documentChanged", "panelChanged", "documentChanged", "panelChanged"}),
 			"a number in the table is written to the curve");
 		events.log.clear();
-		typeNumber(cell(panel, 2, 2), "abc");
+		typeNumber(openCell(panel, 2, 2), "abc");
+		panel.commitPendingEditors();
 		ok &= expect(document.model().trainUnits[0].tractionCurve[2][2] == 500.0 && events.log.empty(),
 			"text that is not a number stays out of the curve");
 		panel.commitTractionCell(0, 5, 1.0);
@@ -582,13 +650,11 @@ int main(int argc, char** argv) {
 			ok &= expect(document.model().trainUnits[0].physical.length_m == 77.0 && document.revision() == revision + 1,
 				"committing the pending editors does not take text that is not a number");
 			panel.tabs()->setCurrentIndex(0);
-			QDoubleSpinBox* curveCell = cell(panel, 0, 2);
-			curveCell->setFocus();
-			QApplication::processEvents();
+			QDoubleSpinBox* curveCell = openCell(panel, 0, 2);
 			spinText(curveCell)->setText("1234");
 			panel.commitPendingEditors();
-			ok &= expect(document.model().trainUnits[0].tractionCurve[0][2] == 1234.0,
-				"committing the pending editors takes the number of a table cell that has focus");
+			ok &= expect(document.model().trainUnits[0].tractionCurve[0][2] == 1234.0 && cellValue(panel, 0, 2) == 1234.0,
+				"committing the pending editors takes the number of the open editor of the table");
 			panel.tabs()->setCurrentIndex(1);
 			length->setFocus();
 			QApplication::processEvents();
@@ -620,27 +686,28 @@ int main(int argc, char** argv) {
 		panel.activateWindow();
 		QApplication::processEvents();
 		QDoubleSpinBox* length = panel.physicalEdits()[8];
-		QDoubleSpinBox* c0 = cell(panel, 0, 2);
-		ok &= expect(length->minimum() == lengthRange.min && length->maximum() == lengthRange.max && length->value() == lengthRange.max
-				&& c0->minimum() == c0Range.min && c0->maximum() == c0Range.max && c0->value() == c0Range.min,
-			"the number fields have the shared ranges and show a number beyond them at the nearest limit");
 		panel.tabs()->setCurrentIndex(1);
 		length->setFocus();
 		QApplication::processEvents();
 		const bool lengthFocused = length->hasFocus();
 		panel.commitPendingEditors();
 		panel.tabs()->setCurrentIndex(0);
-		c0->setFocus();
+		QDoubleSpinBox* c0 = openCell(panel, 0, 2);
 		QApplication::processEvents();
-		const bool c0Focused = c0->hasFocus();
+		ok &= expect(length->minimum() == lengthRange.min && length->maximum() == lengthRange.max && length->value() == lengthRange.max
+				&& cellValue(panel, 0, 2) == c0Range.min && c0 && c0->minimum() == c0Range.min && c0->maximum() == c0Range.max
+				&& c0->value() == c0Range.min,
+			"the number fields have the shared ranges and show a number beyond them at the nearest limit");
+		const bool c0Focused = c0 && c0->hasFocus();
 		panel.commitPendingEditors();
 		ok &= expect(lengthFocused && c0Focused && document.model().trainUnits[0].physical.length_m == 1e300
 				&& document.model().trainUnits[0].tractionCurve[0][2] == -1e300 && document.revision() == 1,
-			"focusing a number field that shows a limit does not replace the stored number");
+			"focusing a number field or opening a cell that shows a limit does not replace the stored number");
 		length->setValue(100.0);
 		length->setValue(1e300);
 		c0->setValue(0.0);
 		c0->setValue(1e300);
+		panel.commitPendingEditors();
 		ok &= expect(document.model().trainUnits[0].physical.length_m == lengthRange.max
 				&& document.model().trainUnits[0].tractionCurve[0][2] == c0Range.max,
 			"a number that is entered beyond the range stops at the limit");

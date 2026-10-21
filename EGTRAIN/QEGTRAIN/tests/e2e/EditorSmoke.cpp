@@ -2194,32 +2194,33 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const std::array<double, 5> tractionValues = {{0.123456789012345, 10.1234567890123, 100.1234567890123,
 					2.1234567890123, 0.5000000012345}};
 				for (int column = 0; column < 5; ++column) {
-					auto* edit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->cellWidget(row, column));
-					if (!edit) {
-						facetFailure(facetOk, "train unit", "traction numeric editor unavailable");
+					QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(row, column);
+					if (!tractionCell) {
+						facetFailure(facetOk, "train unit", "traction cell unavailable");
 						continue;
 					}
-					edit->setValue(tractionValues[column]);
+					tractionCell->setData(Qt::EditRole, tractionValues[column]);
 				}
 				w.m_trainUnitPanel->addTractionRow();
 				if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
 					facetFailure(facetOk, "train unit", "second traction row add did not apply");
 				else {
+					// The editor of a cell opens at the current cell, so Delete Traction Row removes the row that is being edited.
 					const int secondRow = w.m_trainUnitTractionTable->rowCount() - 1;
-					auto* secondRowEdit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->cellWidget(secondRow, 0));
+					w.m_trainUnitTractionTable->setCurrentCell(secondRow, 0);
+					w.m_trainUnitTractionTable->editItem(w.m_trainUnitTractionTable->currentItem());
+					auto* secondRowEdit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->indexWidget(w.m_trainUnitTractionTable->currentIndex()));
 					if (!secondRowEdit) {
 						facetFailure(facetOk, "train unit", "second traction numeric editor unavailable");
 					} else {
 						secondRowEdit->setValue(10.9876543210987);
-						w.m_trainUnitTractionTable->setCurrentCell(row, 0);
-						secondRowEdit->setFocus();
-						QMetaObject::invokeMethod(secondRowEdit, "editingFinished", Qt::DirectConnection);
+						w.m_trainUnitPanel->commitPendingEditors();
 					}
 					w.m_trainUnitPanel->removeTractionRow();
 					if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1)
 						facetFailure(facetOk, "train unit", "traction row delete did not apply");
 					else if (w.m_document->mutableModel().trainUnits[originalCount].tractionCurve[initialCurveRows] != tractionValues)
-						facetFailure(facetOk, "train unit", "editing a non-current traction row deleted the wrong row");
+						facetFailure(facetOk, "train unit", "deleting the traction row that is being edited deleted another row");
 				}
 			}
 

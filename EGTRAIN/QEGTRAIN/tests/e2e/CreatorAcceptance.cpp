@@ -855,8 +855,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				return false;
 			const std::array<double, 5> traction = {0.0, 30.0, 220000.0, -3500.0, 0.0};
 			for (int column = 0; column < 5; ++column)
-				if (auto* edit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->cellWidget(0, column)))
-					edit->setValue(traction[static_cast<std::size_t>(column)]);
+				if (QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(0, column))
+					tractionCell->setData(Qt::EditRole, traction[static_cast<std::size_t>(column)]);
 				else
 					return false;
 			process();

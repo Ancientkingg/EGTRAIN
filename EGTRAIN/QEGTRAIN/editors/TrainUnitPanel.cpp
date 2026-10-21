@@ -19,11 +19,13 @@
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QStringList>
+#include <QStyledItemDelegate>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <string>
 #include <vector>
@@ -37,6 +39,34 @@ bool hasEditorFocus(const QWidget* editor) {
 	const QWidget* focus = QApplication::focusWidget();
 	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
 }
+
+// Edits a number of the traction table in a CompactDoubleSpinBox with the range of its column. A cell shows its number as
+// such a field shows it without the focus.
+class TractionCellDelegate : public QStyledItemDelegate {
+public:
+	using QStyledItemDelegate::QStyledItemDelegate;
+
+	QString displayText(const QVariant& value, const QLocale&) const override {
+		const double number = value.toDouble();
+		const double magnitude = std::fabs(number);
+		return magnitude >= 999999.5 && magnitude < 1e15 ? QString::number(number, 'f', 0) : QString::number(number, 'g', 6);
+	}
+
+	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const override {
+		auto* edit = new CompactDoubleSpinBox(parent);
+		const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(index.column())].range;
+		edit->setRange(range.min, range.max);
+		edit->setDecimals(std::numeric_limits<double>::max_digits10);
+		edit->setSingleStep(0.1);
+		// The field shows its full text once it has the focus. Selected then, the number gives way to what is typed.
+		const auto selectWhenFocused = [edit](QWidget*, QWidget* now) {
+			if (now == edit)
+				edit->selectAll();
+		};
+		connect(qApp, &QApplication::focusChanged, edit, selectWhenFocused, Qt::SingleShotConnection);
+		return edit;
+	}
+};
 
 // The path as the person reads it on this system, with a zero-width space after each separator and underscore so
 // that a label can wrap it. The characters are not drawn.
@@ -129,9 +159,13 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->setObjectName("trainUnitTractionTable");
 	m_tractionTable->setHorizontalHeaderLabels(QStringList()
 		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
-	m_tractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_tractionTable->setItemDelegate(new TractionCellDelegate(m_tractionTable));
+	// A number changes in an editor that a double click, the edit key or typing opens. Without one the arrow keys move the
+	// current cell, which is the selected one, and Tab leaves the table.
+	m_tractionTable->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed | QAbstractItemView::AnyKeyPressed);
 	m_tractionTable->setTabKeyNavigation(false);
-	m_tractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_tractionTable->setSelectionBehavior(QAbstractItemView::SelectItems);
+	m_tractionTable->setSelectionMode(QAbstractItemView::SingleSelection);
 	// size columns to their headers so "Lower speed (m/s)" is never clipped
 	m_tractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	m_tractionTable->horizontalHeader()->setStretchLastSection(true);
@@ -209,6 +243,9 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	});
 	connect(m_tractionTable, &QTableWidget::currentCellChanged, this, [this](int, int, int, int) {
 		m_removeTractionRowButton->setEnabled(m_tractionTable->currentRow() >= 0);
+	});
+	connect(m_tractionTable, &QTableWidget::cellChanged, this, [this](int row, int column) {
+		commitTractionCell(row, column, m_tractionTable->item(row, column)->data(Qt::EditRole).toDouble());
 	});
 	refresh();
 }
@@ -323,22 +360,11 @@ void TrainUnitPanel::refreshTractionTable() {
 	for (int row = 0; row < static_cast<int>(curve.size()); ++row) {
 		m_tractionTable->insertRow(row);
 		for (int column = 0; column < 5; ++column) {
-			auto* edit = new CompactDoubleSpinBox(m_tractionTable);
+			// A stored value outside the range is shown at the nearest limit, as its editor shows it.
 			const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
-			edit->setRange(range.min, range.max);
-			edit->setDecimals(std::numeric_limits<double>::max_digits10);
-			edit->setSingleStep(0.1);
-			edit->setKeyboardTracking(false);
-			edit->setValue(curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]);
-			connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-				[this, row, column](double value) { commitTractionCell(row, column, value); });
-			connect(edit, &QDoubleSpinBox::editingFinished, this, [this, row, column, edit]() {
-				if (m_tractionTable->currentRow() != row || m_tractionTable->currentColumn() != column) {
-					const QSignalBlocker blocker(edit);
-					m_tractionTable->setCurrentCell(row, column);
-				}
-			});
-			m_tractionTable->setCellWidget(row, column, edit);
+			auto* item = new QTableWidgetItem();
+			item->setData(Qt::EditRole, std::clamp(curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)], range.min, range.max));
+			m_tractionTable->setItem(row, column, item);
 		}
 	}
 	m_tractionTable->setEnabled(true);
@@ -387,15 +413,10 @@ void TrainUnitPanel::commitPendingEditors() {
 			commitPhysical(static_cast<int>(index));
 		}
 	}
-	for (int row = 0; row < m_tractionTable->rowCount(); ++row) {
-		for (int column = 0; column < m_tractionTable->columnCount(); ++column) {
-			auto* edit = qobject_cast<QDoubleSpinBox*>(m_tractionTable->cellWidget(row, column));
-			if (hasEditorFocus(edit)) {
-				edit->interpretText();
-				commitTractionCell(row, column, edit->value());
-			}
-		}
-	}
+	// The open editor of the traction table, which is at the current cell, commits as Return commits it.
+	const QModelIndex current = m_tractionTable->currentIndex();
+	if (QWidget* editor = m_tractionTable->indexWidget(current))
+		m_tractionTable->itemDelegate()->setModelData(editor, m_tractionTable->model(), current);
 	commitSources();
 }
 
