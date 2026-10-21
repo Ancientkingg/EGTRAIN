@@ -5611,15 +5611,26 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			}))
 			return finish();
 		expect(!w.m_replayActive && !w.m_inspector->dock()->isVisible(), "an edit in a replay left the Train Info dock open");
-		// An edit after a run replaces the message that the run is complete. A save refuses an incident without a target, so
-		// Undo takes the new incident away again.
+		// An edit after a run replaces the message that the run is complete. It hides the Run Results dock, and the network
+		// view takes the focus that was in the dock, which the next widget in the tab chain, the first layer check box, would
+		// take otherwise. A save refuses an incident without a target, so Undo takes the new incident away again.
 		if (!completeRun("discard_run_output"))
 			return finish();
 		expect(w.statusBar()->currentMessage().startsWith("Simulation complete"), "the run did not say that it is complete");
+		const bool layersShown = w.m_caseLayersDock->isVisible();
+		w.m_caseLayersDock->show();
+		w.activateWindow();
+		w.m_runResultsPanel->table()->setFocus();
+		process();
+		expect(w.m_runResultsPanel->table()->hasFocus(), "the Run Results table did not take the focus");
 		if (!step("an incident after a run", "Add incident", [&] { w.m_addIncidentButton->click(); }))
 			return finish();
 		expect(w.statusBar()->currentMessage() == "Run results discarded: the case changed.",
 			"an edit after a run left the message " + w.statusBar()->currentMessage());
+		expect(w.networkView->hasFocus(),
+			QStringLiteral("an edit after a run gave the focus to %1")
+				.arg(QApplication::focusWidget() ? QApplication::focusWidget()->objectName() : QStringLiteral("nothing")));
+		w.m_caseLayersDock->setVisible(layersShown);
 		undo();
 	}
 

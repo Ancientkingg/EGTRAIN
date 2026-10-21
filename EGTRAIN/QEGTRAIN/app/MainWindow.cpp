@@ -2728,6 +2728,11 @@ void MainWindow::refreshAllEditorPanels() {
 }
 
 void MainWindow::invalidateRunResults() {
+	// The replay row and the Run Results dock hide, and Qt would hand their focus to the next widget of the tab chain, such
+	// as a layer check box. The network view, which showed the results, takes it.
+	if (QWidget* focus = QApplication::focusWidget();
+		focus && ((m_replayBar && m_replayBar->isAncestorOf(focus)) || (m_runResultsDock && m_runResultsDock->isAncestorOf(focus))))
+		networkView->setFocus(Qt::OtherFocusReason);
 	if (!m_runController->running()) {
 		if (m_replayActive && m_document->isLoaded() && scene) {
 			setFollowTrain(-1);
