@@ -18,7 +18,7 @@
 <area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="124,792,141,743,173,671,195,632,220,595,251,560,285,530,310,517,312,522,288,535,254,564,225,598,199,635,178,673,146,744,129,794"/>
 <area shape="rect" id="Node000012" href="$class_network_presenter.html#a940cc4f74ea079443f06f3f593793372" title=" " alt="" coords="297,545,524,585"/>
 <area shape="poly" id="edge19_Node000001_Node000012" title=" " alt="" coords="127,792,148,753,182,700,229,643,256,617,285,594,296,588,298,593,288,599,259,621,233,646,187,703,153,756,132,795"/>
-<area shape="rect" id="Node000020" href="$class_platform_item.html#a28917b41785f07e37a932dc44b327cf0" title="A bar in rect, in scene coordinates, without a platform." alt="" coords="309,609,512,635"/>
+<area shape="rect" id="Node000020" href="$class_platform_item.html#a28917b41785f07e37a932dc44b327cf0" title="A bar in rect, in item coordinates, without a platform." alt="" coords="309,609,512,635"/>
 <area shape="poly" id="edge28_Node000001_Node000020" title=" " alt="" coords="130,791,154,761,189,720,234,678,285,644,300,637,303,642,288,648,237,683,193,724,158,764,134,795"/>
 <area shape="rect" id="Node000021" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="583,1321,812,1361"/>
 <area shape="poly" id="edge29_Node000001_Node000021" title=" " alt="" coords="128,819,146,921,180,1078,203,1159,229,1233,257,1292,273,1314,288,1329,326,1352,366,1367,409,1376,453,1380,540,1375,616,1361,617,1367,541,1380,453,1385,409,1381,365,1372,323,1357,285,1333,268,1317,253,1295,224,1235,198,1161,175,1079,141,922,123,820"/>
