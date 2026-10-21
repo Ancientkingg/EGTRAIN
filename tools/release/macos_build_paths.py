@@ -3,9 +3,9 @@
 
 usage: macos_build_paths.py {fix,check} APP
 
-A library that Homebrew built can carry a run path into /opt/homebrew/Cellar, and a plugin keeps the install name that
-it had in /opt/homebrew/opt/qt@5/plugins. Nothing loads through such a path, but a run path would let the app load a
-library from a machine that has Homebrew, and the path shows where the package was built.
+A library that Homebrew built can carry a run path into /opt/homebrew/Cellar, and a Qt plugin of Homebrew keeps the
+install name that it had in /opt/homebrew/opt/qtbase/share/qt/plugins. Nothing loads through such a path, but a run path
+would let the app load a library from a machine that has Homebrew, and the path shows where the package was built.
 
 fix deletes every run path under /opt/homebrew or /usr/local and gives each Mach-O file whose install name is under
 one of them the install name @loader_path/NAME. It changes the files, so it runs before the signature.

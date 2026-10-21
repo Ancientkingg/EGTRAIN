@@ -89,22 +89,8 @@ def workflow_text(name: str) -> str:
     return (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
 
 
-# The package workflow builds with Qt 5 or Qt 6. The steps of one version run under one of these conditions, and a Qt 6
-# build adds the suffix to each artifact name.
-QT5_STEP = "        if: inputs.qt != '6'\n"
-QT6_STEP = "        if: inputs.qt == '6'\n"
-ARTIFACT_SUFFIX = "${{ env.ARTIFACT_SUFFIX }}"
-
-
-def qt5_package_text() -> str:
-    """The package workflow as a Qt 5 build runs it: without the Qt 6 steps, the conditions of the Qt 5 steps and the
-    artifact name suffix."""
-    steps = workflow_text("package.yml").replace(ARTIFACT_SUFFIX, "").replace("${{ inputs.qt }}", "5").split("\n      - ")
-    return "\n      - ".join(step.replace(QT5_STEP, "") for step in steps if QT6_STEP not in step)
-
-
 def release_pipeline_text() -> str:
-    return workflow_text("release.yml") + "\n" + qt5_package_text()
+    return workflow_text("release.yml") + "\n" + workflow_text("package.yml")
 
 
 def trigger_block(text: str) -> str:
@@ -172,10 +158,6 @@ def selects(branches: list[tuple[str, str]], files: list[str], action: str) -> b
     return False
 
 
-# Jobs that no result job waits for, because they are not required yet.
-NOT_REQUIRED_JOBS = ("package-qt6",)
-
-
 def result_job_problems(text: str, name: str) -> list[str]:
     """The last job of a pull request workflow reports the result of all other required jobs under a fixed name."""
     ids = job_ids(text)
@@ -188,7 +170,7 @@ def result_job_problems(text: str, name: str) -> list[str]:
         problems.append(f"{name} as the last job")
     if f"    name: {name}\n" not in job or "    if: always()\n" not in job:
         problems.append(f"{name} that always runs")
-    if len(needs) != 1 or needs[0].split(", ") != [job for job in ids[:-1] if job not in NOT_REQUIRED_JOBS]:
+    if len(needs) != 1 or needs[0].split(", ") != ids[:-1]:
         problems.append(f"{name} that needs every other required job")
     if (
         steps != ["Fail when a job failed or was cancelled"]
@@ -302,8 +284,7 @@ def main() -> None:
     gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
     release_workflow = release_pipeline_text()
     release_only = workflow_text("release.yml")
-    package_only = qt5_package_text()
-    package_text = workflow_text("package.yml")
+    package_only = workflow_text("package.yml")
     package_check = workflow_text("package-check.yml")
     format_workflow = (ROOT / ".github/workflows/format.yml").read_text(encoding="utf-8")
     format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
@@ -634,9 +615,9 @@ def main() -> None:
         missing.append("documentation check on every pull request")
     if '"$APP/Contents/Frameworks/QtNetwork.framework"' not in release_workflow:
         missing.append("macOS Qt Network package verification")
-    if '"Qt5Network.dll"' not in release_workflow:
+    if '"Qt6Network.dll"' not in release_workflow:
         missing.append("Windows Qt Network package verification")
-    if "libqt5network5" not in release_workflow or "libQt5Network.so*" not in release_workflow:
+    if "libQt6Network.so*" not in release_workflow:
         missing.append("Linux Qt Network package verification")
     if release_workflow.count("-DEGTRAIN_PACKAGED_BUILD=ON") != 3:
         missing.append("packaged-build updater gate on all platform packages")
@@ -669,9 +650,6 @@ def main() -> None:
     ):
         missing.append("independent macOS, Windows and Linux validation legs")
     windows_toolchain = (
-        "version: '5.15.2'",
-        "arch: win64_msvc2019_64",
-        "modules: qtcharts",
         "ilammy/msvc-dev-cmd@v1",
         "vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows",
         "-DVCPKG_TARGET_TRIPLET=x64-windows",
@@ -683,14 +661,13 @@ def main() -> None:
     # random when the new file is still in use. The job puts the DLL directories on PATH instead.
     if "-DVCPKG_APPLOCAL_DEPS=OFF" not in workflow or "installed/x64-windows/bin\" | Out-File -Append" not in workflow:
         missing.append("Windows build without the per-executable DLL copy, with the DLL directories on PATH")
-    # Each platform configures with the option, with Qt 5 and with Qt 6, so a warning in a strict target fails its leg.
-    if workflow.count("cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON") != 5:
+    # Each platform configures with the option, so a warning in a strict target fails its leg.
+    if workflow.count("cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON") != 3:
         missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
     apt_installs = re.findall(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
     apt_packages = [package for install in apt_installs for package in install.replace("\\", " ").split()]
-    # The second install is the one of the Linux Qt 6 leg, which gets Qt from the action. The first and the last are the
-    # Qt 5 leg and the leak check.
-    if len(apt_installs) != 3 or apt_installs[0] != apt_installs[-1]:
+    # The Linux leg and the leak check get Qt from the action and the other libraries from these packages.
+    if len(apt_installs) != 2 or apt_installs[0] != apt_installs[-1]:
         missing.append("the same Linux packages in the build and leak check jobs")
     if not apt_packages or any(
         not re.search(rf"(?<![\w.+-]){re.escape(package)}(?![\w.+-])", release_workflow)
@@ -732,8 +709,8 @@ def main() -> None:
         cache_legs != {"macOS": "ccache", "Windows": "sccache", "Linux": "ccache"}
         or "        uses: hendrikmuhs/ccache-action@v1.2\n" not in compiler_cache
         or "          variant: ${{ matrix.cache }}\n" not in compiler_cache
-        or f"          key: ${{{{ matrix.cache-key || matrix.name }}}}{image_key}\n" not in compiler_cache
-        or "          restore-keys: |\n            ${{ matrix.cache-key || matrix.name }}\n" not in compiler_cache
+        or f"          key: ${{{{ matrix.name }}}}{image_key}\n" not in compiler_cache
+        or "          restore-keys: |\n            ${{ matrix.name }}\n" not in compiler_cache
         or re.findall(r"^        if: (.+)$", compiler_cache, re.MULTILINE) != ["needs.changes.outputs.build == 'true'"]
         or any(launcher_flags not in step_block(build_job, name) for name in configure_names)
         or "Set up compiler cache" not in build_step_names
@@ -778,22 +755,29 @@ def main() -> None:
         re.DOTALL,
     ):
         missing.append("Windows image size CTest")
-    # The Qt 6 legs install Qt 6.8.3 with the action on every runner, keep Homebrew's qt@5 out of the macOS prefix and run
-    # the same tests as the Qt 5 legs. The result job counts them like the Qt 5 legs.
-    qt6_legs = re.findall(r"^ +- name: (\w+), Qt 6\n(?: +[\w-]+: \S+\n)* +qt: 6$", build_job, re.MULTILINE)
+    # One leg per platform, each with Qt 6.8.3 from the action, as the leak check has. No step names a Qt 5 package, option or
+    # file, and the legs count in the result job.
+    legs = re.findall(r"^          - name: (.+)$", build_job, re.MULTILINE)
+    qt_install = "        uses: jurplel/install-qt-action@v4\n        with:\n          version: '6.8.3'\n          modules: qtcharts\n"
     if (
-        sorted(qt6_legs) != ["Linux", "Windows", "macOS"]
+        sorted(legs) != ["Linux", "Windows", "macOS"]
         or "continue-on-error" in build_job
-        or "          version: '6.8.3'\n          modules: qtcharts\n" not in step_block(build_job, "Install Qt 6")
-        or "qt@5" in step_block(build_job, "Configure (macOS, Qt 6)")
-        or "matrix.qt" in test_step
+        or "matrix.qt" in workflow
+        or step_block(build_job, "Install Qt 6") != "name: Install Qt 6\n        if: needs.changes.outputs.build == 'true'\n" + qt_install + "          cache: true\n"
+        or qt_install not in step_block(leak_job, "Install Qt 6")
+        or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(leak_job, "Configure with sanitizers")
     ):
-        missing.append("Qt 6 legs on macOS, Windows and Linux that run the same tests and count in the result job")
+        missing.append("one leg per platform and the leak check, each on Qt 6.8.3 from the action, all counted in the result job")
+    qt5_names = re.compile(r"qt@5|qt5|Qt5|qtbase5|5\.15|--no-angle|--no-virtualkeyboard|qwindowsvistastyle|inputs\.qt|ARTIFACT_SUFFIX")
+    for name in ("cmake.yml", "package.yml", "package-check.yml", "release.yml", "tidy.yml"):
+        found = qt5_names.search(workflow_text(name))
+        if found:
+            missing.append(f"{name} without Qt 5 or a choice of Qt version, but it has {found.group(0)}")
     package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
     package_assembly = (
         'installed/x64-windows/bin/*.dll" $dist/',
-        'windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-angle'
-        ' --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"',
+        'windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw'
+        ' --no-system-d3d-compiler --no-system-dxc-compiler --no-quick-import "$dist/QEGTRAIN.exe"',
         'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"',
     )
     if (
@@ -801,7 +785,7 @@ def main() -> None:
         or any(entry not in package_step or entry not in release_workflow for entry in package_assembly)
     ):
         missing.append("Windows package start check with the exports and the assembly commands of the release workflow")
-    # Qt 5.15 has no TLS library on Windows, so the update requests go through WinHTTP there. The Windows leg sends one real request
+    # The update requests go through WinHTTP on Windows. The Windows leg sends one real request
     # to the GitHub release list through that transport and fails when no HTTPS response arrives. The test is registered only when
     # the configuration asks for it, so no other test run needs internet access. The program returns one code for a rate limit or
     # an outage of GitHub, which CTest shows as skipped.
@@ -856,6 +840,12 @@ def main() -> None:
     # a minute that is not on the hour and does not start with the CMake run.
     tidy_version = re.search(r'^CLANG_TIDY_VERSION = "(\d+)\.\d+"$', tidy_script, re.MULTILINE)
     tidy_step = step_block(job_block(tidy_workflow, "check"), "Run clang-tidy")
+    # The compile database is made with the Qt of the CMake workflow, which CMake finds through CMAKE_PREFIX_PATH.
+    if (
+        qt_install not in step_block(job_block(tidy_workflow, "check"), "Install Qt 6")
+        or "        env:\n          CMAKE_PREFIX_PATH: ${{ env.QT_ROOT_DIR }}\n" not in tidy_step
+    ):
+        missing.append("tidy check with Qt 6.8.3 from the action, passed to CMake in CMAKE_PREFIX_PATH")
     tidy_install = step_block(job_block(tidy_workflow, "check"), "Install clang-tidy")
     tidy_trigger = tidy_workflow.split("\njobs:", 1)[0]
     tidy_nightly = re.search(r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", tidy_trigger, re.MULTILINE)
@@ -914,7 +904,6 @@ def main() -> None:
         "      contents: read\n"
         "    with:\n"
         "      version: ${{ needs.version.outputs.version }}\n"
-        "      qt: '5'\n"
     )
     signing_token_call = "    secrets:\n      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}\n"
     if (
@@ -942,10 +931,9 @@ def main() -> None:
         missing.append("release workflow whose only credential is the signing token that it passes by name to the package workflow")
     if trigger_block(package_only) != (
         "  workflow_call:\n    inputs:\n      version:\n        required: true\n        type: string\n"
-        "      qt:\n        required: false\n        type: string\n        default: '5'\n"
         "    secrets:\n      SIGNPATH_API_TOKEN:\n        required: false\n"
     ):
-        missing.append("package workflow starts only by call, with the version and the Qt version, 5 by default, and an optional signing token")
+        missing.append("package workflow starts only by call, with the version and an optional signing token")
     if (
         "\npermissions:\n  contents: read\n\njobs:\n" not in package_only
         or package_only.count("permissions:") != 3
@@ -984,26 +972,26 @@ def main() -> None:
     for directory in (build_release_assets.WINDOWS_PAYLOAD, build_release_assets.SCENES_ARTIFACT):
         if f"          name: {directory}\n          path: " not in package_only:
             missing.append(f"package artifact {directory} uploaded under the name that the release script reads")
-    # The application draws with the raster engine, so the Windows package job leaves out the software OpenGL, ANGLE,
-    # Direct3D compiler, Qt Quick, QML and virtual keyboard files, fails when one is present and starts a copy of the package.
+    # The application draws with the raster engine, so the Windows package job leaves out the software OpenGL, Direct3D and
+    # DXC compiler, Qt Quick, QML and virtual keyboard files, fails when one is present and starts a copy of the package.
     windows_job = job_block(package_only, "package-windows")
     verify_step = step_block(windows_job, "Verify the package is complete")
     forbidden_files = (
-        '          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","libEGL.dll","libGLESv2.dll","Qt5Quick*","Qt5Qml*","*VirtualKeyboard*","vc_redist*")) {\n'
+        '          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")) {\n'
         '            $found = @(Get-ChildItem "$dist" -Recurse -File -Filter $name)\n'
         '            if ($found.Count -gt 0) { throw "unexpected $name in the package: $($found[0].FullName)" }\n'
         "          }\n"
     )
     if forbidden_files not in verify_step or verify_step.find(forbidden_files) > verify_step.find("Write-Host"):
-        missing.append("Windows package check that forbids the OpenGL, ANGLE, Direct3D compiler, Qt Quick, QML, virtual keyboard and vc_redist files")
-    for required_file in ("iconengines/qsvgicon.dll", "styles/qwindowsvistastyle.dll"):
+        missing.append("Windows package check that forbids the OpenGL, Direct3D and DXC compiler, Qt Quick, QML, virtual keyboard and vc_redist files")
+    for required_file in ("iconengines/qsvgicon.dll", "styles/qmodernwindowsstyle.dll"):
         if f'          if (-not (Test-Path "$dist/{required_file}")) {{ throw "missing {required_file}" }}\n' not in verify_step:
             missing.append(f"Windows package check that requires {required_file}")
-    deploy_options = ("--no-compiler-runtime", "--no-opengl-sw", "--no-angle", "--no-system-d3d-compiler", "--no-virtualkeyboard", "--no-quick-import")
+    deploy_options = ("--no-compiler-runtime", "--no-opengl-sw", "--no-system-d3d-compiler", "--no-system-dxc-compiler", "--no-quick-import")
     package_deploy = [line.strip() for line in windows_job.splitlines() if "windeployqt.exe" in line]
     start_deploy = [line.strip() for line in package_step.splitlines() if "windeployqt.exe" in line]
     if len(package_deploy) != 1 or any(option not in package_deploy[0] for option in deploy_options):
-        missing.append("windeployqt options of the Windows package job that leave out the OpenGL, ANGLE, Direct3D compiler, Qt Quick and virtual keyboard files")
+        missing.append("windeployqt options of the Windows package job that leave out the OpenGL, Direct3D and DXC compiler and Qt Quick files")
     if package_deploy != start_deploy:
         missing.append("the same windeployqt line in the Windows package job and in the Windows package start check")
     windows_steps = ("Assemble package", "Copy the Visual C++ runtime", "Verify the package is complete",
@@ -1501,10 +1489,10 @@ def main() -> None:
     for removed in removed_paths:
         if trimming and not any(line.startswith("rm -") and removed in line for line in trimming):
             missing.append(f"macOS package step that removes {removed} between the two size lines")
-    # The cocoa platform plugin loads QtDBus and QtPrintSupport, so they stay, as do the print support and bearer plugins.
+    # QtGui loads QtDBus, so it stays.
     removal_commands = [line for line in removal_step.splitlines() if not line.lstrip().startswith("#")]
-    if any(kept in line for line in removal_commands for kept in ("QtDBus", "QtPrintSupport", "printsupport", "bearer")):
-        missing.append("macOS package step that keeps QtDBus, QtPrintSupport and the print support and bearer plugins")
+    if any("QtDBus" in line for line in removal_commands):
+        missing.append("macOS package step that keeps QtDBus")
     macos_verify = step_block(macos_job, "Verify the app is self-contained")
     required_plugins = (
         "          for plugin in platforms/libqcocoa.dylib iconengines/libqsvgicon.dylib styles/libqmacstyle.dylib; do\n"
@@ -1775,18 +1763,18 @@ def main() -> None:
         missing.append("package check with one nightly run off the hour and a manual start without inputs")
     if (
         "\npermissions:\n  contents: read\n" not in package_check
-        or package_check.count("permissions:") != 3
+        or package_check.count("permissions:") != 2
         or re.search(r":\s*write", package_check)
     ):
-        missing.append("package check with read permission only, and the blocks of its two package jobs")
+        missing.append("package check with read permission only, and the block of its package job")
     if (
         "\nconcurrency:\n"
         "  group: package-check-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}\n"
         "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n" not in package_check
     ):
         missing.append("package check replaces only the older run of the same pull request")
-    if job_ids(package_check) != ["changes", "version", "package", "package-qt6", "release-assets", "result"]:
-        missing.append("package check jobs: changes, version, package, package-qt6, release-assets, result")
+    if job_ids(package_check) != ["changes", "version", "package", "release-assets", "result"]:
+        missing.append("package check jobs: changes, version, package, release-assets, result")
     # The version job is the one of the release workflow. It waits for the changes job and skips with it, and the package and
     # release assets jobs skip with the version job.
     version_gate = "    needs: changes\n    if: needs.changes.outputs.package == 'true'\n"
@@ -1798,23 +1786,9 @@ def main() -> None:
         missing.append("package check selects the version with the script and job of the release workflow")
     if job_block(package_check, "package") != "  package:\n" + package_call:
         missing.append("package check calls the package workflow with the selected version and the two read permissions, and no token")
-    # The package check builds the packages with Qt 6 as well, in a job that the result job does not wait for. The Qt 6 steps
-    # name Qt 6 files and windeployqt options only, and every artifact of a Qt 6 build has a name of its own.
-    qt6_steps = "".join(step for step in package_text.split("\n      - ") if QT6_STEP in step)
-    qt6_names = ('"Qt6Network.dll"', "styles/qmodernwindowsstyle.dll", '"dxcompiler.dll"', "--no-system-dxc-compiler",
-                 '"$dist/LICENSE"', '"$dist/THIRD_PARTY_NOTICES.md"', '"Qt6Help.dll"', '"$dist/EGTRAIN.qch"',
-                 "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR", "version: '6.8.3'")
-    if (
-        job_block(package_check, "package-qt6")
-        != "  package-qt6:\n    name: Qt 6 packages (not required)\n" + package_call.replace("qt: '5'", "qt: '6'")
-        or "package-qt6" in job_block(package_check, "result")
-        or "\nenv:\n  ARTIFACT_SUFFIX: ${{ inputs.qt == '6' && '-qt6' || '' }}\n" not in package_text
-        or any(not line.endswith(ARTIFACT_SUFFIX) for line in re.findall(r"^          name: .*$", package_text, re.MULTILINE))
-        or any(name not in qt6_steps for name in qt6_names)
-        or "libQt${{ inputs.qt }}Network.so*" not in package_text
-        or re.search(r"qt@5|Qt5|libqt5|--no-angle|--no-virtualkeyboard|qwindowsvistastyle", qt6_steps)
-    ):
-        missing.append("Qt 6 packages in the package check, not required, with Qt 6 file names and artifact names of their own")
+    # The packages are built with Qt 6.8.3 from the action and checked for the Qt 6 files.
+    if any(name not in package_only for name in ('"Qt6Help.dll"', "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR", "version: '6.8.3'")):
+        missing.append("packages built with Qt 6.8.3 and checked for Qt6Help.dll")
     # The release assets job runs the script that builds the files of a release on the artifacts of the package
     # jobs. It uploads and publishes nothing, and it has the permissions of the workflow. Its download and script steps
     # are those of the release job, so the package check runs what a release runs.

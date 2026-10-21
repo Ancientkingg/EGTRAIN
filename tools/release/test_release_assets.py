@@ -27,7 +27,7 @@ EXPECTED_NAMES = sorted([MACOS, PORTABLE, INSTALLER, LINUX, MANIFEST] + [scene +
 PAYLOAD = {
     "QEGTRAIN.exe": b"MZ executable",
     "egtrain_update_helper.exe": b"MZ helper",
-    "Qt5Core.dll": b"MZ core",
+    "Qt6Core.dll": b"MZ core",
     "a.b": b"dot",
     "a/b": b"slash",
     "platforms/qwindows.dll": b"MZ platform",
@@ -136,10 +136,10 @@ class ReleaseAssetsTests(unittest.TestCase):
         self.assertEqual(tree(self.artifacts), before)
 
     def test_file_older_than_1980_is_archived(self):
-        os.utime(self.payload / "Qt5Core.dll", (0, 0))
+        os.utime(self.payload / "Qt6Core.dll", (0, 0))
         archive = build_release_assets.build_portable_archive(self.payload, self.root / "portable", "1.2.3")
         with zipfile.ZipFile(archive) as zip_file:
-            self.assertIn("Qt5Core.dll", zip_file.namelist())
+            self.assertIn("Qt6Core.dll", zip_file.namelist())
 
     def test_payload_without_exe_at_top_level_is_rejected(self):
         (self.payload / "QEGTRAIN.exe").rename(self.payload / "platforms" / "QEGTRAIN.exe")
@@ -243,7 +243,7 @@ class ReleaseAssetsTests(unittest.TestCase):
         changes = (
             ("missing member", lambda members: members.pop("a.b")),
             ("extra member", lambda members: members.update({"zz.txt": b"extra"})),
-            ("other bytes", lambda members: members.update({"Qt5Core.dll": b"MZ other"})),
+            ("other bytes", lambda members: members.update({"Qt6Core.dll": b"MZ other"})),
             ("other order", reverse),
         )
         for label, mutate in changes:

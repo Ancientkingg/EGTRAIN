@@ -67,9 +67,6 @@ def run(command: list, **options) -> subprocess.CompletedProcess:
 
 def configure(build_dir: Path) -> None:
     arguments = ["-DCMAKE_BUILD_TYPE=Debug", "-DEGTRAIN_BUILD_TESTS=ON", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]
-    homebrew_qt = Path("/opt/homebrew/opt/qt@5")
-    if sys.platform == "darwin" and homebrew_qt.is_dir():
-        arguments.append(f"-DCMAKE_PREFIX_PATH={homebrew_qt}")
     run(["cmake", "-S", str(ROOT), "-B", str(build_dir), "-G", "Ninja", *arguments])
 
 

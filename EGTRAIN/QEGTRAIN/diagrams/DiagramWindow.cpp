@@ -1434,11 +1434,7 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 	} else if (ev->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(ev);
 		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			navigate(1 + gesture->value(), chartPosition(gesture->position().toPoint()));
-#else
-			navigate(1 + gesture->value(), chartPosition(gesture->localPos().toPoint()));
-#endif
 			gesture->accept();
 			return true;
 		}

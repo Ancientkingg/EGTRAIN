@@ -45,8 +45,6 @@ if(MSVC)
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX NOGDI)
     # MainWindow.cpp exceeds the section limit of a standard object file in RelWithDebInfo builds.
     add_compile_options(/bigobj)
-    # Qt 5.15 headers need a macro override to compile with Visual Studio 2026.
-    add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:/FI${CMAKE_CURRENT_SOURCE_DIR}/EGTRAIN/QEGTRAIN/util/QtMsvcCompat.h>")
 endif()
 
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
@@ -111,15 +109,11 @@ set_target_properties(egtrain_miniz PROPERTIES
 include_directories(${SRC_DIR})
 
 # --- Dependencies ---
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network Help)
-# Qt 6 defines the qhelpgenerator target in its tools package, Qt 5 in its Help package.
-if(QT_VERSION_MAJOR EQUAL 6)
-    find_package(Qt6 REQUIRED COMPONENTS ToolsTools)
-endif()
-# With Qt 5, _HAS_STD_BYTE=0 resolves the std::byte vs SDK byte ambiguity (std::byte unused). Qt 6 needs std::byte.
-if(MSVC AND QT_VERSION_MAJOR EQUAL 5)
-    add_compile_definitions(_HAS_STD_BYTE=0)
+# ToolsTools defines the qhelpgenerator target that builds the manual.
+find_package(Qt6 COMPONENTS Core Gui Widgets Charts Svg Network Help ToolsTools)
+if(NOT Qt6_FOUND)
+    message(FATAL_ERROR "EGTRAIN needs Qt 6 with the Charts, Svg and Help modules; CI builds with Qt 6.8.3. "
+        "Add the folder of the Qt 6 installation to CMAKE_PREFIX_PATH.")
 endif()
 
 # --- ZeroMQ / nlohmann_json ---
@@ -290,8 +284,8 @@ add_library(egtrain_editors STATIC
 target_link_libraries(egtrain_editors
     PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_scene egtrain_diagrams egtrain_widgets egtrain_runselection egtrain_util)
 
-# The HTTP requests of the update check and the telemetry sender. Qt 5.15 has no TLS library on
-# Windows, so the requests go through WinHTTP there.
+# The HTTP requests of the update check and the telemetry sender. On Windows they go through WinHTTP, so the
+# package needs no TLS plugin of Qt.
 add_library(egtrain_http STATIC ${SRC_DIR}/update/HttpTransport.cpp)
 target_link_libraries(egtrain_http PUBLIC Qt::Core Qt::Network)
 if(WIN32)
@@ -628,9 +622,6 @@ endif()
 
 if(WIN32)
     set_target_properties(QEGTRAIN PROPERTIES WIN32_EXECUTABLE TRUE)
-    if(TARGET Qt::WinMain)
-        target_link_libraries(QEGTRAIN PRIVATE Qt::WinMain)
-    endif()
     # The main thread gets the 8 MiB it has on macOS and Linux. The reserve of an executable is
     # also the stack size of each thread that is started without one, so only the application
     # has it and the other executables keep the linker default.
@@ -745,7 +736,7 @@ if(EGTRAIN_BUILD_TESTS)
             ${mode})
         set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
     endforeach()
-    # Qt 5 Secure Transport on macOS does not trust the root certificate of a request, and the program then returns 77.
+    # Secure Transport on macOS does not trust the root certificate of a request, and the program then returns 77.
     set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
 
     # The controller is compiled here with the dialogs and the self updater that the application alone uses.
@@ -757,7 +748,8 @@ if(EGTRAIN_BUILD_TESTS)
     target_compile_definitions(test_updatetelemetrycontroller PRIVATE EGTRAIN_UPDATE_TEST_HOOK=1)
     target_link_libraries(test_updatetelemetrycontroller PRIVATE egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt::Widgets Qt::Network)
     add_test(NAME test_updatetelemetrycontroller COMMAND test_updatetelemetrycontroller)
-    # The test answers real message boxes, which crash Qt 5.15 on the offscreen platform on Windows.
+    # The test answers real message boxes. The offscreen platform on Windows is not known to show a QMessageBox safely,
+    # so the test uses the native platform there.
     if(WIN32)
         set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
     else()
@@ -1034,7 +1026,7 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_executable(test_manualwindow ${SRC_DIR}/tests/test_manualwindow.cpp)
     target_link_libraries(test_manualwindow PRIVATE egtrain_widgets Qt::Core Qt::Gui Qt::Widgets Qt::Help)
-    target_compile_definitions(test_manualwindow PRIVATE EGTRAIN_QHELPGENERATOR="$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::qhelpgenerator>")
+    target_compile_definitions(test_manualwindow PRIVATE EGTRAIN_QHELPGENERATOR="$<TARGET_FILE:Qt6::qhelpgenerator>")
     add_test(NAME test_manualwindow COMMAND test_manualwindow)
     set_tests_properties(test_manualwindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
@@ -1064,8 +1056,8 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_userprompts ${SRC_DIR}/tests/test_userprompts.cpp)
     target_link_libraries(test_userprompts PRIVATE egtrain_util Qt::Core Qt::Gui Qt::Widgets)
     add_test(NAME test_userprompts COMMAND test_userprompts)
-    # The test answers real message boxes. Qt 5.15 crashes when a QMessageBox is shown on the offscreen platform
-    # on Windows, so the test uses the native platform there.
+    # The test answers real message boxes. The offscreen platform on Windows is not known to show a QMessageBox safely,
+    # so the test uses the native platform there.
     if(WIN32)
         set_tests_properties(test_userprompts PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
     else()
@@ -1095,8 +1087,8 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_trainunitsourcelinker ${SRC_DIR}/tests/test_trainunitsourcelinker.cpp)
     target_link_libraries(test_trainunitsourcelinker PRIVATE egtrain_editors Qt::Core Qt::Gui Qt::Widgets)
     add_test(NAME test_trainunitsourcelinker COMMAND test_trainunitsourcelinker)
-    # The test answers the real question of the linker. Qt 5.15 crashes when a QMessageBox is shown on the offscreen
-    # platform on Windows, so the test uses the native platform there.
+    # The test answers the real question of the linker. The offscreen platform on Windows is not known to show a
+    # QMessageBox safely, so the test uses the native platform there.
     if(WIN32)
         set_tests_properties(test_trainunitsourcelinker PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
     else()
@@ -1342,8 +1334,8 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
 	add_test(NAME test_completedrun
 		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
-	# The capacity dialog test closes a message box if a refusal opens one. Qt 5.15 crashes when a QMessageBox is
-	# shown on the offscreen platform on Windows, so the test uses the native platform there.
+	# The capacity dialog test closes a message box if a refusal opens one. The offscreen platform on Windows is not
+	# known to show a QMessageBox safely, so the test uses the native platform there.
 	if(WIN32)
 		set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows" TIMEOUT 120)
 	else()
@@ -1382,8 +1374,8 @@ if(EGTRAIN_BUILD_TESTS)
 	else()
 		message(STATUS "Windows: skipping test_case_chooser_contract (path forms, INI escapes, directory symlink)")
 	endif()
-	# This test needs the unsaved-changes prompt. Qt 5.15 crashes when a QMessageBox is shown on
-	# the offscreen platform on Windows, so the test uses the native platform there.
+	# This test needs the unsaved-changes prompt. The offscreen platform on Windows is not known to show a
+	# QMessageBox safely, so the test uses the native platform there.
 	if(WIN32)
 		set(egtrain_scene_drop_platform windows)
 	else()
@@ -1525,10 +1517,9 @@ if(EGTRAIN_BUILD_TESTS)
 			egtrain_add_visual_polish_smoke(live 35 300 dpr1 color dpr2)
 			egtrain_add_visual_polish_smoke(stations 30 240 stations)
 			# Takes the pictures of docs/images into a temporary folder and checks that each has the size that
-			# docs/images/captures.json gives. Pixels are not compared, because fonts differ between systems. It is
-			# disabled until the pictures, which predate the current dialog style, are taken again in one go. The
-			# pictures are taken with Qt 5, so a Qt 6 build should not run it then either: the offscreen font of Qt 6
-			# has another height, and dialogs take their size from it.
+			# docs/images/captures.json gives. Pixels are not compared, because fonts differ between systems. The
+			# pictures predate the current dialog style and were taken with Qt 5, whose offscreen font has another height,
+			# and dialogs take their size from it, so the test stays disabled until the pictures are taken again.
 			add_test(NAME test_capture_screenshots
 				COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/docs/capture_screenshots.sh --sizes)
 			set_tests_properties(test_capture_screenshots PROPERTIES
@@ -1865,7 +1856,7 @@ if(EXISTS "${egtrain_docs_bin}/sphinx-build${CMAKE_EXECUTABLE_SUFFIX}")
 	add_custom_command(OUTPUT "${egtrain_manual}"
 		COMMAND "${egtrain_docs_bin}/sphinx-build" -q -b qthelp -t manual -D "version=${PROJECT_VERSION}"
 			-D "html_title=EGTRAIN ${PROJECT_VERSION} manual" "${CMAKE_SOURCE_DIR}/docs" "${CMAKE_BINARY_DIR}/manual/qthelp"
-		COMMAND Qt${QT_VERSION_MAJOR}::qhelpgenerator "${CMAKE_BINARY_DIR}/manual/qthelp/EGTRAIN.qhp" -o "${egtrain_manual}"
+		COMMAND Qt6::qhelpgenerator "${CMAKE_BINARY_DIR}/manual/qthelp/EGTRAIN.qhp" -o "${egtrain_manual}"
 		DEPENDS ${egtrain_manual_sources} "${CMAKE_SOURCE_DIR}/docs/conf.py" "${CMAKE_SOURCE_DIR}/docs/index.md"
 		COMMENT "Building the manual ${egtrain_manual}"
 		VERBATIM)

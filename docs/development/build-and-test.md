@@ -7,51 +7,92 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 
 - CMake 3.16 or newer
 - C++17 compiler
-- Qt 5.15 Core, Gui, Widgets, Charts, and Svg
+- Qt 6 Core, Gui, Widgets, Charts, Svg, Network and Help, and the Qt tools
+  (`qhelpgenerator` builds the manual). CI and the release packages use Qt 6.8.3.
 - ZeroMQ, cppzmq, and nlohmann-json
 - Python 3.9 or newer, found by `find_package(Python3)` at configure time;
   CTest runs its Python tests with that interpreter. On Windows, set
   `PYTHONUTF8=1` for local runs so scripts read program output as UTF-8.
 
 Qt Svg is required by the application and must be available with the
-other Qt modules.
+other Qt modules. A configure that finds no Qt 6 with these modules stops with a message
+that names Qt 6.
 
 Supported toolchains, as used by CI:
 
-- macOS: Homebrew Qt 5 and the packages in the configure example below.
-- Windows 10 or 11, x64 only: MSVC (Visual Studio 2019 or newer), Qt 5.15
-  `msvc2019_64` with QtCharts, and vcpkg `zeromq cppzmq nlohmann-json` for the
+- macOS: Qt 6.8.3 and the Homebrew packages in the configure example below.
+- Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
+  `msvc2022_64` with Qt Charts, and vcpkg `zeromq cppzmq nlohmann-json` for the
   `x64-windows` triplet. 32-bit Windows is not supported.
-- Linux: Ubuntu (the `ubuntu-latest` runner image) with the apt packages in
-  the configure example below.
+- Linux: Ubuntu (the `ubuntu-latest` runner image) with Qt 6.8.3 and the apt
+  packages in the configure example below.
+
+CI installs Qt 6.8.3 with the Qt Charts module through `jurplel/install-qt-action`, which runs
+[aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). The same
+installer works on a developer machine; the [Qt online installer](https://www.qt.io/download-qt-installer-oss)
+is the other way (choose Qt 6.8.3 with the Qt Charts module). Homebrew's `qt` formula follows the
+newest Qt release, not the 6.8.3 of CI.
+
+aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
+take packages from `pip` directly. On Windows the commands are in `~\aqt-venv\Scripts` instead of
+`~/aqt-venv/bin`.
+
+```bash
+python3 -m venv ~/aqt-venv
+~/aqt-venv/bin/pip install aqtinstall
+~/aqt-venv/bin/aqt install-qt mac desktop 6.8.3 clang_64 -m qtcharts -O "$HOME/Qt"          # macOS: ~/Qt/6.8.3/macos
+~/aqt-venv/bin/aqt install-qt linux desktop 6.8.3 linux_gcc_64 -m qtcharts -O "$HOME/Qt"    # Linux: ~/Qt/6.8.3/gcc_64
+~/aqt-venv/bin/aqt install-qt linux_arm64 desktop 6.8.3 linux_gcc_arm64 -m qtcharts -O "$HOME/Qt"  # arm64 Linux: ~/Qt/6.8.3/gcc_arm64
+~/aqt-venv/bin/aqt install-qt windows desktop 6.8.3 win64_msvc2022_64 -m qtcharts -O C:\Qt  # Windows: C:\Qt\6.8.3\msvc2022_64
+```
 
 ## Configure
 
 ```bash
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=<Qt 6 folder>
 ```
 
-On macOS with Homebrew Qt 5:
+On macOS, with Qt in `~/Qt/6.8.3/macos`:
 
 ```bash
-brew install qt@5 zeromq cppzmq nlohmann-json
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
+brew install zeromq cppzmq nlohmann-json
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
+  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 ```
 
-On Ubuntu:
+The prefix path names the keg folders of the other libraries, not `/opt/homebrew`, whose include folder
+can hold the headers of another Qt. Qt 6.8.3 links the AGL framework, which the macOS 26 SDK no longer
+has; `WrapOpenGL_AGL` links the OpenGL framework in its place.
+
+On Ubuntu, with Qt in `~/Qt/6.8.3/gcc_64`:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y build-essential cmake git python3 \
-  qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+sudo apt-get install -y build-essential cmake git python3 python3-venv libgl-dev \
   libzmq3-dev cppzmq-dev nlohmann-json3-dev
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/gcc_64"
 ```
+
+To open the window, the X11 platform plugin of that Qt also needs `libxcb-cursor0`.
 
 In a root shell, such as a plain `ubuntu:24.04` container, `sudo` is not installed: leave it out.
 
+Ubuntu 24.04 also ships Qt 6.4.2. It is enough: the application and all tests build with it, also with
+warnings as errors, and the tests pass. Add its packages to the install line and leave out the prefix path:
+
+```bash
+sudo apt-get install -y build-essential cmake git python3 python3-venv libgl-dev \
+  libzmq3-dev cppzmq-dev nlohmann-json3-dev \
+  qt6-base-dev qt6-charts-dev qt6-svg-dev qt6-tools-dev qt6-qpa-plugins libqt6sql6-sqlite
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+```
+
+The configure step then prints `Could NOT find XKB` and `Could NOT find PkgConfig`, which do no harm. CI and
+the packages use 6.8.3, so a difference between the two shows only there.
+
 On Windows, from a Visual Studio developer PowerShell, with the vcpkg
-packages installed and the Qt 5.15 `msvc2019_64` directory as
+packages installed and the Qt 6.8.3 `msvc2022_64` directory as
 `CMAKE_PREFIX_PATH`:
 
 ```powershell
@@ -59,22 +100,10 @@ vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
   -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
   -DVCPKG_TARGET_TRIPLET=x64-windows `
-  -DCMAKE_PREFIX_PATH="C:/Qt/5.15.2/msvc2019_64"
+  -DCMAKE_PREFIX_PATH="C:/Qt/6.8.3/msvc2022_64"
 ```
 
-CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
-one the release packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request
-must pass those jobs too. The package check builds the packages with Qt 6.8.3 as well.
-CMake searches a folder in `CMAKE_PREFIX_PATH` before the system folders, so the examples above use Qt 5
-even when Qt 6 is installed elsewhere. To try Qt 6, configure a separate build
-folder with `CMAKE_PREFIX_PATH` set to the Qt 6 folder, for example `~/Qt/6.8.3/macos`. With Homebrew, add
-the keg folders of the other libraries, such as `/opt/homebrew/opt/zeromq`, not `/opt/homebrew`: the
-headers of a linked `qt@5` there would hide those of Qt 6. Qt 6.8.3 links the AGL framework, which the
-macOS 26 SDK no longer has; add
-`-DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"` to link the
-OpenGL framework in its place. When one prefix holds both versions, such as
-`/usr` on Ubuntu, add `-DQT_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5` to choose Qt 5. `QT_DIR` in
-`build/CMakeCache.txt` shows which Qt a build folder uses.
+`Qt6_DIR` in `build/CMakeCache.txt` shows which Qt a build folder uses.
 
 The Visual Studio generator is multi-config: choose the configuration when
 building and testing, as in the next two sections.
@@ -246,8 +275,8 @@ run on Windows.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `Could not find a package configuration file provided by "QT"`, or on macOS `The imported target "Qt5::Core" references the file ... but this file does not exist` | CMake does not look in the folder of Qt 5. Homebrew `qt@5` is not on the default search path | Add `-DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5` (the Qt 5.15 `msvc2019_64` folder on Windows). CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
-| `Could not find a package configuration file provided by "Qt5Charts"` (or `Qt5Svg`) | The module is not installed | `libqt5charts5-dev libqt5svg5-dev` on Ubuntu; the `qtcharts` module of the Qt installer on Windows |
+| `EGTRAIN needs Qt 6 with the Charts, Svg and Help modules` | CMake does not look in the folder of Qt 6, or found only Qt 5 | Add the Qt 6 folder to `CMAKE_PREFIX_PATH`, for example `~/Qt/6.8.3/macos` or `C:/Qt/6.8.3/msvc2022_64`. CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
+| `Could not find a package configuration file provided by "Qt6Charts"` (or `Qt6Svg`), followed by the message above | The module is not installed | `-m qtcharts` for aqtinstall or the Qt Charts module in the Qt online installer; `qt6-charts-dev qt6-svg-dev` with the Qt of Ubuntu |
 | `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
 | `Could NOT find Python3` | No Python 3.9 or newer was found: it is missing from `PATH`, or the one found is older (CMake then names the version it found). Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |
 | `The source ".../CMakeLists.txt" does not match the source ".../CMakeLists.txt" used to generate cache` | The `build` folder was configured for another checkout, for example a copied folder or another Git worktree | Use one build folder per checkout, for example `-B build-feature`, or delete the old one |
@@ -255,7 +284,7 @@ run on Windows.
 | `No tests were found!!!` from `ctest`, or `No rule to make target 'test_timeformat'` | The build folder was configured without `-DEGTRAIN_BUILD_TESTS=ON`, which is off by default | Run the configure command again with the option, in the same folder |
 | `Test not available without configuration.  (Missing "-C <config>"?)` from `ctest` | A multi-config generator such as Visual Studio | Add `-C Release` to `ctest`, and `--config Release` to `cmake --build` |
 | The build takes very long | `cmake --build build` runs one job with the Makefile generator, and a Release link uses link-time optimization | Add `--parallel 4` (or set `CMAKE_BUILD_PARALLEL_LEVEL`), and configure with `-DEGTRAIN_IPO=OFF` for faster links |
-| `clang-format ... is not installed`, or `... is clang-format X, but the sources are formatted with 23.1.3` from `tools/format.py` | The script accepts one release only | `python3 -m pip install clang-format==23.1.3`, or name the executable in `CLANG_FORMAT` |
+| `clang-format ... is not installed`, or `... is clang-format X, but the sources are formatted with 23.1.3` from `tools/format.py` | The script accepts one release only | `python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format==23.1.3`, then put `~/fmt-venv/bin` on `PATH` or name the executable in `CLANG_FORMAT` |
 | Python scripts fail on Windows with a decoding error | The console code page is not UTF-8 | Set `PYTHONUTF8=1` |
 | The application starts but a relative `--scene` path or `Scenes/...` is not found | The working directory is not `EGTRAIN/QEGTRAIN` | Start it from that folder, or give an absolute path |
 
@@ -490,8 +519,8 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_recovery_smoke` | yes | yes | no | A Python script that ends the application with `_Exit` and starts it again. The lock files of the recovery copies are not checked after a crash on Windows, so the test is registered under `if(UNIX)` until they are. Two of its scenarios crash the application on purpose to check the crash note. |
 | `test_crashnote` | yes | yes | partly | Starts copies of itself that crash on purpose and reads their crash notes. On Windows it runs the signal and exception cases on the main thread only, and the notes have no stack. Every child leaves a system crash report. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
-| `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. |
-| `test_capture_screenshots` | yes | no | no | Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only. It is registered disabled until the pictures are taken again in the current dialog style. |
+| `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. The script also runs on Linux with `QEGTRAIN_APP=$PWD/build/QEGTRAIN`. |
+| `test_capture_screenshots` | yes | no | no | Runs the capture phase of the macOS app bundle. Disabled until the pictures of `docs/images` are taken again with Qt 6 in the current dialog style. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the parser, the commands and the process handling of the macOS `/usr/bin/time -l` collector. It does not need that tool. |
@@ -514,8 +543,8 @@ The telemetry sender posts through the same transport, so `test_telemetrynetwork
 WinHTTP checks that certificate against the system store and refuses it, which is what the reject
 test expects. The trusted test gives the transport the test root certificate, and the transport checks
 the certificate of the server against that root alone, so nothing is added to the certificate store.
-Qt 5 Secure Transport on macOS does not trust that root certificate, so `test_telemetrynetwork_trusted`
-reports itself as skipped there.
+Secure Transport, the TLS backend of Qt on macOS, does not trust that root certificate, so
+`test_telemetrynetwork_trusted` reports itself as skipped there.
 
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
 application path from `QEGTRAIN_APP`; `visual_polish_smoke.sh` passes it on to
@@ -602,14 +631,14 @@ The offscreen Qt platform has no fonts of its own on Windows. CTest sets
 label. Set it yourself when you start a GUI test or QEGTRAIN with
 `QT_QPA_PLATFORM=offscreen` by hand.
 
-Qt 5.15 crashes when a `QMessageBox` is shown on the offscreen platform on
-Windows: `QMessageBox::showEvent` asks for a native window handle through an
-interface that this platform does not have. `test_scene_drop` needs the
-unsaved-changes prompt and `test_completedrun` closes a message box if a
-refusal of the capacity dialog opens one, so CTest runs both with
+With Qt 5.15, a `QMessageBox` shown on the offscreen platform on Windows
+crashed: `QMessageBox::showEvent` asked for a native window handle through an
+interface that this platform did not have. This was not tried again with Qt 6,
+so the tests still keep message boxes off that platform on Windows.
+`test_scene_drop` needs the unsaved-changes prompt and `test_completedrun`
+closes a message box if a refusal of the capacity dialog opens one, so CTest
+runs both, and the other tests that answer real message boxes, with
 `QT_QPA_PLATFORM=windows` there.
-A scripted run that reaches any other message box on the offscreen platform
-fails the same way on Windows.
 
 ### Windows headless runs
 
@@ -677,11 +706,10 @@ runtime library or names one (`vcomp140.dll` on Windows): the package ships
 none.
 
 The assembly uses the same `windeployqt` options as the Windows package job
-(`--no-opengl-sw`, `--no-angle`, `--no-system-d3d-compiler`,
-`--no-virtualkeyboard` and `--no-quick-import` besides `--release`,
-`--no-translations` and `--no-compiler-runtime`), and `test_ci_workflow` keeps
-the two command lines equal. The Windows package keeps the `bearer` plugin and
-the image format plugins. It holds no `vc_redist.x64.exe`: see
+(`--no-opengl-sw`, `--no-system-d3d-compiler`, `--no-system-dxc-compiler` and
+`--no-quick-import` besides `--release`, `--no-translations` and
+`--no-compiler-runtime`), and `test_ci_workflow` keeps the two command lines
+equal. The Windows package keeps the image format plugins. It holds no `vc_redist.x64.exe`: see
 [Windows package runtime](#windows-package-runtime).
 
 ### Windows package runtime
@@ -732,8 +760,7 @@ the system starts a program, and Qt finds a plugin by its directory. The script
 then starts the app as for Windows: the headless run and the window start. Only
 the launch with a window loads the cocoa platform plugin of the bundle.
 
-The macOS package keeps `QtDBus` and `QtPrintSupport`, which the cocoa platform
-plugin loads, the print support and bearer plugins, and the image format
+The macOS package keeps `QtDBus`, which `QtGui` loads, and the image format
 plugins other than WebP and TIFF.
 
 ### Linux package start
@@ -748,11 +775,11 @@ its `AppRun`, as the AppImage runtime does after it has mounted the image, and
 makes the same launches as for Windows: the headless run and the window start.
 
 Before the launches the script runs `ldd` on every ELF file below `usr/bin` and
-`usr/plugins`. It fails unless each Qt 5 and ZeroMQ library that such a file
+`usr/plugins`. It fails unless each Qt and ZeroMQ library that such a file
 loads is a file of the extracted image, and it fails when `ldd` lists no such
-library at all. The runner has the Qt 5 packages that the build needs, so an
-image that lacks a Qt library would otherwise still start there with the
-library of the runner. The plugins are read as well as the programs, because
+library at all. The runner has the Qt that the build used, so an image that
+lacks a Qt library could otherwise still start there with the library of the
+runner. The plugins are read as well as the programs, because
 the platform plugin loads Qt libraries that the program does not. The job sets
 no platform plugin variable, and the script removes every Qt variable and
 `LD_LIBRARY_PATH` from the environment of the launches, so the image starts with
@@ -1683,8 +1710,8 @@ application; CTest and the smoke scripts set it themselves.
 ## CI and release branches
 
 - `main` is the validation branch. Pull requests build the project and run
-  the CTest suite without the tests labelled `network` (those run on Windows only), in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
-  x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
+  the CTest suite without the tests labelled `network` (those run on Windows only), in parallel, on macOS, Windows (MSVC, vcpkg
+  x64) and Linux (Ubuntu), each with Qt 6.8.3, unless every changed file matches the
   documentation rule below. The suite holds the end-to-end smokes of the
   committed scenes (see [Simulation Smoke Test](#simulation-smoke-test) and
   [Scene Roundtrip Smoke Test](#scene-roundtrip-smoke-test)). The `docs` job runs
@@ -1724,12 +1751,10 @@ application; CTest and the smoke scripts set it themselves.
   and can be started by hand, which covers changes that reach the packages
   through other files, such as the root `CMakeLists.txt`. The check selects the version as a release run that does not publish does (the CMake
   baseline, through `tools/release/version.py`) and calls the reusable workflow
-  `package.yml` twice: with `qt: '5'`, as the release workflow does, and with `qt: '6'` in the job
-  `Qt 6 packages (not required)`, whose artifact names end in `-qt6` and which
-  `Package check result` does not wait for. A green check proves that the macOS, Windows and Linux packages
+  `package.yml`, as the release workflow does. A green check proves that the macOS, Windows and Linux packages
   build, pass the completeness checks of their jobs and are uploaded as
   artifacts of the run. The Windows package job also fails when the software
-  OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
+  OpenGL, Direct3D or DXC compiler libraries, Qt Quick, QML or virtual
   keyboard files or `vc_redist.x64.exe` are in the package or when a program
   file imports a DLL that is neither in the package nor part of Windows, starts
   a copy of the package with
@@ -1793,7 +1818,7 @@ application; CTest and the smoke scripts set it themselves.
   The image is the only file of the artifact `QEGTRAIN-macos-arm64`; no zip is
   made. The Linux package job extracts its AppImage and starts the extracted
   image with the same script on a virtual display, after the script has checked
-  that every Qt 5 and ZeroMQ library of the programs and plugins comes from the
+  that every Qt and ZeroMQ library of the programs and plugins comes from the
   image. The start in each of the three package jobs is the headless run and the
   window start, with no CSV or PNG export, because a release build has no test
   hooks to ask for one. The check does not show how the SVG icons look, typing
@@ -1889,10 +1914,8 @@ application; CTest and the smoke scripts set it themselves.
   `update-manifest.json` also lists the files of the Windows package. Before
   the updater replaces an installation, it requires every listed file and a
   fixed set of runtime files (`requiredRuntimeFiles()` in
-  `update/WindowsStaging.h`) in the extracted package. The Qt libraries in that
-  set are the Qt 6 ones when the package holds `Qt6Core.dll` and the Qt 5 ones
-  otherwise, so a release built with Qt 5 can update to one built with Qt 6.
-  Keep that set in step with the package verification in the Windows package job.
+  `update/WindowsStaging.h`) in the extracted package. Keep that set in step
+  with the package verification in the Windows package job.
 - Production and tag releases run serially. A stale production run cannot
   publish after the branch advances, and an existing production release tag
   cannot be overwritten. If a failed-job retry encounters a used version,
@@ -2349,9 +2372,9 @@ removes it with its key. Run it by hand with
 
 ### Dependency caches
 
-The Windows leg caches the Qt install (through `jurplel/install-qt-action`,
-with the same cache entries as the Windows package job) and the vcpkg binary
-archives in `runner.temp/vcpkg-binary-cache`. vcpkg names an archive by a hash
+Every leg caches the Qt install (through `jurplel/install-qt-action`, with the
+same cache entries as the package jobs), and the Windows leg also caches the vcpkg
+binary archives in `runner.temp/vcpkg-binary-cache`. vcpkg names an archive by a hash
 that covers its own checkout, its CMake and the compiler, and the runner image fixes all three.
 The key of the vcpkg cache is therefore
 `vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-<image>-v1`, where `<image>` is

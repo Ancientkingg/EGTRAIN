@@ -208,7 +208,7 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 	}
 
 	std::optional<StableRelease> latest;
-	for (const QJsonValue& value : releases) {
+	for (const auto& value : releases) {
 		if (!value.isObject())
 			continue;
 		const QJsonObject object = value.toObject();

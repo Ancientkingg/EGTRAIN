@@ -12,8 +12,8 @@
 #include <string>
 
 #ifdef Q_OS_MACOS
-// With Qt 5 on macOS an exception does not pass the frames of QtWidgets, QApplication::notify among them: the program
-// ends in std::terminate before the guard sees it.
+// On macOS (seen with Qt 6.8.3) an exception does not pass the frames of QtWidgets, QApplication::notify among them: the
+// program ends in std::terminate before the guard sees it.
 int main() {
 	std::cout << "skipped: an exception cannot pass the frames of QtWidgets on macOS\n";
 	return 77;

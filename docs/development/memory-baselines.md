@@ -8,12 +8,11 @@ memory ceiling.
 ## Protocol
 
 Configure and build one Release executable, then run the collector while no
-other heavy workload is active:
+other heavy workload is active. Add the macOS prefix path and `WrapOpenGL_AGL`
+of [Configure](build-and-test.md#configure) to the first line:
 
 ```bash
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 python3 tools/memory/measure_peak_rss.py \
   --app build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \
@@ -51,7 +50,7 @@ exited with zero before citing a baseline.
 ## Baseline recorded 2026-08-29
 
 The protocol above was run alone on macOS 26.6.2 (Darwin 25.6.0, arm64) using
-a locally built Release executable. The collector invocation was:
+a locally built Release executable, built with Qt 5. The collector invocation was:
 
 ```bash
 python3 tools/memory/measure_peak_rss.py \

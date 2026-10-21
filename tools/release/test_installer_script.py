@@ -24,6 +24,17 @@ APP_ID = "{{16796959-230D-4A37-879B-D3963171F664}"
 PROGRAM = "{app}\\QEGTRAIN.exe"
 PAYLOAD_SOURCE = "{#Payload}\\*"
 SCENES = "{app}\\Scenes"
+# The files of a Qt 5 installation (1.0.4 and older) that no file of a Qt 6 package replaces.
+QT5_FILES = (
+    "{app}\\Qt5*.dll",
+    "{app}\\bearer",
+    "{app}\\styles\\qwindowsvistastyle.dll",
+    "{app}\\imageformats\\qicns.dll",
+    "{app}\\imageformats\\qtga.dll",
+    "{app}\\imageformats\\qtiff.dll",
+    "{app}\\imageformats\\qwbmp.dll",
+    "{app}\\imageformats\\qwebp.dll",
+)
 CLASSES = "Software\\Classes\\"
 PROG_ID = "EGTRAIN.Scene"
 # The entries of the file type by Subkey: the ValueData (None for free text) and the Flags, which are compared as a set.
@@ -293,10 +304,13 @@ def check_files(entries, read, problems):
 
 def check_install_delete(entries, problems):
     for number, params in entries:
-        if params.get("name") != SCENES:
-            problems.append(f"install-delete: line {number}: only {SCENES} may be deleted, not {params.get('name')}")
-    if SCENES not in [params.get("name") for _, params in entries]:
+        if params.get("name") not in (SCENES, *QT5_FILES):
+            problems.append(f"install-delete: line {number}: only {SCENES} and the Qt 5 files may be deleted, not {params.get('name')}")
+    names = [params.get("name") for _, params in entries]
+    if SCENES not in names:
         problems.append(f"install-delete: {SCENES} must be deleted before an install")
+    for name in sorted(set(QT5_FILES) - set(names)):
+        problems.append(f"install-delete: {name} of a Qt 5 installation must be deleted")
 
 
 def check_icons(entries, problems):
@@ -606,7 +620,6 @@ class MutationTests(unittest.TestCase):
         workflow = read_repository_file(PACKAGE_WORKFLOW).decode("utf-8")
         copy = LICENSE_COPY.search(workflow).group(0).strip()
         check = LICENSE_CHECK.search(workflow).group(0).strip()
-        # The Qt 5 and the Qt 6 steps of the job each copy and check the file, so a case changes both.
         cases = (
             ("copy", workflow.replace(copy, ""), "copy"),
             ("copy", workflow.replace(copy, copy.replace("LICENSE", "README.md")), "copy"),
@@ -651,6 +664,14 @@ class MutationTests(unittest.TestCase):
             ("files", "DestDir", MARKER_LINE, MARKER_LINE.replace('"{app}"', '"{appx}"')),
             ("files", "Source", MARKER_LINE, MARKER_LINE.replace('"installed', '"..\\installed')),
             ("files", "Source", MARKER_LINE, MARKER_LINE.replace('"installed', '"{tmp}\\installed')),
+        ])
+
+    def test_the_qt5_files_of_an_older_installation_are_deleted(self):
+        library_line = 'Type: files; Name: "{app}\\Qt5*.dll"\n'
+        self.check_cases([
+            ("install-delete", "Qt5*.dll", library_line, ""),
+            ("install-delete", "not {app}\\imageformats\\qgif.dll", library_line,
+             library_line + 'Type: files; Name: "{app}\\imageformats\\qgif.dll"\n'),
         ])
 
     def test_only_the_scenes_folder_is_deleted_before_an_install(self):

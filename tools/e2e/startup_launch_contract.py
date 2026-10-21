@@ -555,7 +555,7 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
             start_new_session=True,
         )
         try:
-            if wanted and not wait_until(lambda: all(ini_form(path) in read_ini(ini) for path in wanted), scaled(60), proc):
+            if wanted and not wait_until(lambda: all(str(path) in read_ini(ini) for path in wanted), scaled(60), proc):
                 problem = f"{label} did not add every file to the recent cases within {scaled(60)} s"
             elif request is not None and not wait_until(lambda: STATUS_PREFIX in log_text(), scaled(60), proc):
                 problem = f"{label} did not report the status line after the open event within {scaled(60)} s"
@@ -563,7 +563,7 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
                 time.sleep(2)
             if not problem and proc.poll() is not None:
                 problem = f"{label} ended with {proc.poll()} instead of staying open"
-            if not problem and any(ini_form(path) in read_ini(ini) for path in refused):
+            if not problem and any(str(path) in read_ini(ini) for path in refused):
                 problem = f"{label} added a file that does not open to the recent cases"
         finally:
             terminate_process_group(proc)
@@ -587,11 +587,6 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
         raise SystemExit(f"{problem}\n{tail(text)}")
 
 
-# How Qt 5 spells a path in the settings file: a character outside ASCII as \x and its code.
-def ini_form(path) -> str:
-    return "".join(c if ord(c) < 128 else "\\x%x" % ord(c) for c in str(path))
-
-
 def wait_until(condition, timeout: float, proc: subprocess.Popen) -> bool:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline and proc.poll() is None:
@@ -601,9 +596,9 @@ def wait_until(condition, timeout: float, proc: subprocess.Popen) -> bool:
     return condition()
 
 
-# The settings file in the form that Qt 5 writes. Qt 6 writes the characters outside ASCII in UTF-8.
+# The settings file, which Qt writes in UTF-8.
 def read_ini(ini: Path) -> str:
-    return ini_form(ini.read_text(encoding="utf-8", errors="replace")) if ini.is_file() else ""
+    return ini.read_text(encoding="utf-8", errors="replace") if ini.is_file() else ""
 
 
 # A launch that only names a file hands it to the window that runs and ends with 0, and the window
@@ -644,7 +639,7 @@ def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], 
         with window_log.open("wb") as log:
             window = subprocess.Popen([str(app)] + ([str(first)] if first else []), cwd=RUN_DIR, env=window_env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         procs.append(window)
-        if first and not wait_until(lambda: ini_form(first) in read_ini(ini), scaled(60), window):
+        if first and not wait_until(lambda: str(first) in read_ini(ini), scaled(60), window):
             problem = f"{label}: the window did not open the first file within {scaled(60)} s"
         elif not wait_until(lambda: any(sockets.glob("egtrain-open-*")), scaled(60), window):
             problem = f"{label}: the window did not start to listen within {scaled(60)} s"
@@ -662,11 +657,11 @@ def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], 
                 break
             if second.returncode != 0:
                 problem = f"{label}: the second launch with {ascii(bundle.name)} ended with {second.returncode}, expected 0\n{tail(second.stdout)}"
-            elif opens and not wait_until(lambda: ini_form(bundle) in read_ini(ini), scaled(30), window):
+            elif opens and not wait_until(lambda: str(bundle) in read_ini(ini), scaled(30), window):
                 problem = f"{label}: the window did not open {ascii(bundle.name)} within {scaled(30)} s"
             elif not opens:
                 time.sleep(2)
-                if ini_form(bundle) in read_ini(ini):
+                if str(bundle) in read_ini(ini):
                     problem = f"{label}: the window added {ascii(bundle.name)}, which does not load, to the recent cases"
         if not problem and window.poll() is not None:
             problem = f"{label}: the window ended with {window.poll()} instead of staying open"
@@ -674,9 +669,9 @@ def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], 
             with scripted_log.open("wb") as log:
                 other = subprocess.Popen([str(app), str(scripted)], cwd=RUN_DIR, env=scripted_env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             procs.append(other)
-            if not wait_until(lambda: ini_form(scripted) in read_ini(scripted_ini), scaled(60), other):
+            if not wait_until(lambda: str(scripted) in read_ini(scripted_ini), scaled(60), other):
                 problem = f"{label}: a scripted launch did not open its file in a window of its own within {scaled(60)} s"
-            elif ini_form(scripted) in read_ini(ini):
+            elif str(scripted) in read_ini(ini):
                 problem = f"{label}: a scripted launch handed its file to the running window"
     finally:
         for proc in procs:

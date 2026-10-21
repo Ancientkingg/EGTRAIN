@@ -14,7 +14,7 @@ import macos_build_paths
 MACHO_MAGIC = b"\xcf\xfa\xed\xfe"
 
 CLEAN_DEPENDENCIES = """\t@loader_path/libqjpeg.dylib (compatibility version 0.0.0, current version 0.0.0)
-\t@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore (compatibility version 5.15.0, current version 5.15.0)
+\t@executable_path/../Frameworks/QtCore.framework/Versions/A/QtCore (compatibility version 6.0.0, current version 6.8.3)
 \t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)"""
 CLEAN_LOAD_COMMANDS = """Load command 5
           cmd LC_ID_DYLIB
@@ -24,7 +24,7 @@ Load command 6
           cmd LC_RPATH
       cmdsize 48
          path @loader_path/../../Frameworks (offset 12)"""
-HOMEBREW_INSTALL_NAME = "/opt/homebrew/opt/qt@5/plugins/imageformats/libqjpeg.dylib"
+HOMEBREW_INSTALL_NAME = "/opt/homebrew/opt/qtbase/share/qt/plugins/imageformats/libqjpeg.dylib"
 HOMEBREW_DEPENDENCIES = f"""\t{HOMEBREW_INSTALL_NAME} (compatibility version 0.0.0, current version 0.0.0)
 \t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)"""
 HOMEBREW_LOAD_COMMANDS = """Load command 6

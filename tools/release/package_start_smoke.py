@@ -31,7 +31,7 @@ everywhere. For a package with QEGTRAIN.app it also checks the dependencies of t
 Mach-O file loads is a system library or a file of the app, and every Mach-O file of the app is loaded by some
 other file, or is the program or a plugin, which Qt loads by name. As dyld does, an @rpath name is looked up in the
 run paths of the file and then in those of the program. For the extracted directory of an AppImage it reads the
-libraries of every ELF file below usr/bin and usr/plugins with ldd and fails unless each Qt 5 or Qt 6 and ZeroMQ
+libraries of every ELF file below usr/bin and usr/plugins with ldd and fails unless each Qt and ZeroMQ
 library that such a file loads is a file of the directory, and unless ldd lists at least one: a machine that has
 its own Qt would otherwise start an image that lacks one of its libraries.
 
@@ -56,7 +56,7 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 CSV_EXPORTS = ("trajectory.csv", "timetable.csv", "run_summary.csv")
 PNG_EXPORTS = ("timetable_graph.png", "train_path_graph.png", "route_reference_chooser.png")
 # Variables that point a process at a developer installation of Qt or vcpkg, or at other libraries.
-DEVELOPER_PREFIXES = ("QT_", "QML", "QT5", "VCPKG", "CMAKE_", "LD_LIBRARY_PATH", "DYLD_")
+DEVELOPER_PREFIXES = ("QT_", "QML", "QT6", "VCPKG", "CMAKE_", "LD_LIBRARY_PATH", "DYLD_")
 # File names of the OpenMP runtime of MSVC, LLVM, Intel and GCC.
 OPENMP_RUNTIME = re.compile(rb"vcomp\d+d?\.dll|lib(?:i?omp|gomp)[\w.]*?\.(?:dll|dylib|so)", re.IGNORECASE)
 # The first four bytes of a 64-bit Mach-O file and of a universal one.
@@ -68,7 +68,7 @@ LOAD_COMMAND = re.compile(r"^\s*cmd (\w+)\s*$")
 LOAD_COMMAND_PATH = re.compile(r"^\s*(?:name|path) (.+) \(offset \d+\)\s*$")
 ELF_MAGIC = b"\x7fELF"
 # The libraries that an AppImage has to bring even when the machine has its own copy.
-BUNDLED_LIBRARY_PREFIXES = ("libQt5", "libQt6", "libzmq")
+BUNDLED_LIBRARY_PREFIXES = ("libQt6", "libzmq")
 LDD_ADDRESS = re.compile(r"\s*\(0x[0-9a-fA-F]+\)\s*$")
 LDD_NOT_DYNAMIC = "not a dynamic executable"
 

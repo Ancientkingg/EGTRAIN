@@ -89,7 +89,7 @@ The site keeps its table of contents in `docs/index.md`, the only Sphinx directi
 | sphinx-autobuild | 2025.08.25 | `docs/requirements.txt` |
 | Python | 3.12 or newer, which Sphinx 9.1.0 needs | `docs/requirements.txt` comment |
 | Doxygen | 1.18.0 | version check in the `docs` target |
-| `qhelpgenerator` | the Qt 5 of the build | already a build requirement |
+| `qhelpgenerator` | the Qt 6 of the build | already a build requirement |
 
 ## Screenshots
 

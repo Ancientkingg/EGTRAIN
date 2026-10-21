@@ -457,10 +457,6 @@ static int runMain(int argc, char* argv[]) {
 		std::cout << "Graphical user interface (GUI): 0\n";
 
 	if (gui) {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		// Icons are drawn at the device pixel ratio of the screen, which Qt 6 always does.
-		QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
 		GuardedApplication application(argc, argv);
 #if EGTRAIN_BUILD_TESTS
 		e2e::configureApplication();

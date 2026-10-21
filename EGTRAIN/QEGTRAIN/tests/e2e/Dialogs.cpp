@@ -263,7 +263,7 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 		review.resize(review.maximumSize());
 	}
 	QTimer::singleShot(0, &review, [&review, body, buttons, runButton, details, detailsToggle, status, factLabels, factValues]() {
-		// Modal show and disclosure changes post LayoutRequest events in Qt 5.
+		// Modal show and disclosure changes post LayoutRequest events.
 		const auto settle = []() {
 			for (int i = 0; i < 3; ++i) {
 				QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);

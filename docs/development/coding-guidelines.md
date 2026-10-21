@@ -10,8 +10,9 @@ Formatting follows `.clang-format` and `.editorconfig` in the repository root.
 `python3 tools/format.py --fix` formats every C++ source under `EGTRAIN/QEGTRAIN`, and
 `python3 tools/format.py` checks them and lists the files that differ. The pull request
 checks run the same check. The script needs clang-format 23.1.3, because other releases
-format some constructs differently: `python3 -m pip install clang-format==23.1.3`
-installs it, and the environment variable `CLANG_FORMAT` names the executable when it is
+format some constructs differently: `python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format==23.1.3`
+installs it in a virtual environment (the Python of Ubuntu 24.04 and of Homebrew takes no packages from `pip`
+directly), and the environment variable `CLANG_FORMAT` names the executable when it is
 not the `clang-format` on `PATH`. The vendored code in `io/third_party/` is listed in
 `.clang-format-ignore` and is not reformatted.
 
@@ -30,11 +31,11 @@ the blame view of GitHub skips them without a setting.
 and lists the findings; it exits with 1 on any finding. The pull request checks run the
 same script. It configures a Ninja build in `build_tidy/` (`--build-dir` changes it), builds
 the files that Qt generates (moc, uic and resources), and analyses the sources of the build
-in parallel. It needs CMake, Ninja, Qt 5 and clang-tidy 23.1, the release that the findings
+in parallel. It needs CMake, Ninja, Qt 6 and clang-tidy 23.1, the release that the findings
 are agreed for: `brew install llvm` on macOS, or the `llvm.sh` script of apt.llvm.org on
 Ubuntu (PyPI has no clang-tidy 23). The environment variable `CLANG_TIDY` names the
-executable when it is not the `clang-tidy` on PATH. The script adds the macOS SDK path
-itself.
+executable when it is not the `clang-tidy` on PATH. Set `CMAKE_PREFIX_PATH` to the Qt 6 folder. The
+script adds the macOS SDK path itself.
 
 - `python3 tools/tidy.py` analyses every source.
 - `python3 tools/tidy.py FILE...` analyses the named sources.

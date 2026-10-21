@@ -160,7 +160,7 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		defaultButton->setDefault(false);
 		defaultButton->setDefault(true);
 	}
-	// The first field of the body takes the focus, else the default button. Otherwise Qt 5 gives the focus to the button
+	// The first field of the body takes the focus, else the default button. Otherwise Qt gives the focus to the button
 	// box, which comes first in the focus chain and passes it to the first button of its layout, Cancel on macOS, and
 	// that button takes the default while it has the focus. An item view is not taken, because one without a current
 	// row makes its first row current when it gets the focus.
