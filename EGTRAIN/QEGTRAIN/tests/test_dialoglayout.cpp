@@ -1100,15 +1100,16 @@ std::pair<int, QRgb> leftBorder(QWidget* widget) {
 	return {qRound(width / image.devicePixelRatio()), color};
 }
 
-// The Run details toggle of the run review, built as the review builds it, shows keyboard focus with a border as wide and
-// in the same colour as a push button of the dialog, such as Loaded Data beside it.
-bool exerciseDetailsToggleFocus() {
+// The Run details toggle of the run review and the Calculation details toggle of the capacity analysis, built as their
+// dialogs build them, show keyboard focus with a border as wide and in the same colour as a push button of the dialog,
+// such as Loaded Data beside the first.
+bool exerciseDetailsToggleFocus(const QString& name, const QString& text) {
 	QDialog review;
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* toggle = new QToolButton(body);
-	toggle->setText(QStringLiteral("Run details"));
-	toggle->setObjectName(QStringLiteral("runReviewDetailsToggle"));
+	toggle->setText(text);
+	toggle->setObjectName(name);
 	toggle->setCheckable(true);
 	toggle->setArrowType(Qt::RightArrow);
 	toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -1129,7 +1130,7 @@ bool exerciseDetailsToggleFocus() {
 	const std::pair<int, QRgb> buttonBorder = leftBorder(button);
 	const bool ok = toggleFocused && button->hasFocus() && toggleBorder == buttonBorder && buttonBorder.first == 2;
 	if (!ok)
-		std::cerr << "the focused Run details toggle has a " << toggleBorder.first << " px border of " << std::hex << toggleBorder.second
+		std::cerr << "the focused " << text.toStdString() << " toggle has a " << toggleBorder.first << " px border of " << std::hex << toggleBorder.second
 				  << ", a focused dialog button a " << std::dec << buttonBorder.first << " px border of " << std::hex << buttonBorder.second
 				  << std::dec << '\n';
 	return ok;
@@ -1166,7 +1167,8 @@ int main(int argc, char** argv) {
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
 	const bool runReview = exerciseRunReviewDefault();
-	const bool detailsToggle = exerciseDetailsToggleFocus();
+	const bool detailsToggle = exerciseDetailsToggleFocus(QStringLiteral("runReviewDetailsToggle"), QStringLiteral("Run details"))
+		&& exerciseDetailsToggleFocus(QStringLiteral("capacityDetailsToggle"), QStringLiteral("Calculation details"));
 	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
