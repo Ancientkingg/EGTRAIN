@@ -64,12 +64,23 @@ requests that made the change, or the issue where none did.
   "K B Hallen" and `Pontrieaux_Halte` has no space after the underscore. In the
   committed scenes this changes 4 of the 10 names in Paimpol and 5 of the 94 in
   Copenhagen.
+- Train speed. From a zoom of 3x, and for a selected or followed train at any
+  zoom, the speed of a train is white 8 pt text with a dark (16,26,34) outline
+  of 1 logical pixel, 8 logical pixels right of and above the centre of the
+  train, at the same size at every zoom. **Train speed labels** hides it. The
+  reference drew a black `addSimpleText` label at scene scale beside every
+  running train, at its centre plus (6,-18) scene units.
 - Track states (issue #387). Occupied, blocked and prepared sections are kept in
-  the scene data and shown in the arc inspector, but `TrackLineItem::paint`
-  ignores the state. The reference painted a block occupied by a train red.
+  the scene data and shown in the arc inspector. In a run and a replay
+  `TrackLineItem::paint` draws an occupied line plain red (255,0,0) at the width
+  of its speed class, and prepared and blocked lines in their speed colour. The
+  reference tinted a block occupied by a train with a red colour effect and had
+  no prepared or blocked state. An occupied line in a section that a signal
+  failure blocks is red as well; the arc inspector shows it as blocked.
 - Running state (issue #387). The reference gave every track a white colour
   effect at the start of each step, in `releaseBlockOccupationStatus`. The
-  current renderer keeps the speed-class colours during a run.
+  current renderer keeps the speed-class colours during a run, apart from the
+  red of the occupied lines.
 
 ## Geometry and data differences
 
@@ -280,8 +291,8 @@ a signal on each track at regular intervals.
   offsets. Node dots are light gray (192,192,192) and sit at the ends of the track
   segments. Both builds draw the track with a cosmetic pen of 2 px.
 - No capture shows a running state, so the trains, which keep at least 8 px on
-  screen, the red and yellow aspects, the unpainted track states and the white
-  repaint of the reference are not shown.
+  screen, their speed, the red and yellow aspects, the red occupied lines and
+  the white repaint of the reference are not shown.
 - Interaction (hit testing, signal inspection, layer toggles, Follow, zoom and
   pan) and the run, pause, stop and replay states are not shown by these
   captures.

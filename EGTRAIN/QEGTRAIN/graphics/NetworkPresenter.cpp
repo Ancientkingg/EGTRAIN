@@ -2481,11 +2481,13 @@ void NetworkPresenter::removePaxInfoIcon() {
 	}
 }
 
-// Shows the prepared and blocked sections and the occupied arcs on the track lines. A track line that shows what it is to
-// show is not touched, so a step that changes nothing repaints none.
+// Shows the prepared and blocked sections and the occupied arcs on the track lines. An occupied line is red also when its
+// section is blocked. A track line that shows what it is to show is not touched, so a step that changes nothing
+// repaints none.
 void NetworkPresenter::showTrackStates(const GuiSimulationSnapshot& snapshot, int t, bool replay) {
 	// The state that each track line is to show, apart from free. The state with the highest priority wins.
 	std::map<TrackLineItem*, TrackOperationalState> states;
+	std::set<TrackLineItem*> occupied;
 	const auto requireState = [&states](TrackLineItem* track, TrackOperationalState state) {
 		if (!track)
 			return;
@@ -2511,8 +2513,10 @@ void NetworkPresenter::showTrackStates(const GuiSimulationSnapshot& snapshot, in
 			continue;
 		for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
 			const auto track = m_tracksByOccupiedArc.find({occupiedArc.trackId, occupiedArc.startX});
-			if (track != m_tracksByOccupiedArc.end())
+			if (track != m_tracksByOccupiedArc.end()) {
 				requireState(track->second, TrackOperationalState::Occupied);
+				occupied.insert(track->second);
+			}
 		}
 	}
 
@@ -2526,7 +2530,7 @@ void NetworkPresenter::showTrackStates(const GuiSimulationSnapshot& snapshot, in
 		active = m_activeTrackItems.erase(active);
 	}
 	for (const auto& [track, state] : states) {
-		track->setOperationalState(state);
+		track->setOperationalState(state, occupied.count(track) > 0);
 		m_activeTrackItems.insert(track);
 	}
 }

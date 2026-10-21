@@ -38,12 +38,16 @@ TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond) {
 	return {QColor(120, 120, 120), 2};
 }
 
+QColor occupiedTrackColor() {
+	return QColor(Qt::red);
+}
+
 TrackStateVisual classifyTrackState(TrackOperationalState state) {
 	switch (state) {
 		case TrackOperationalState::Prepared:
 			return {QColor("#4C8DAE"), 5, Qt::DashDotLine};
 		case TrackOperationalState::Occupied:
-			return {QColor("#D05A47"), 6, Qt::SolidLine};
+			return {occupiedTrackColor(), 6, Qt::SolidLine};
 		case TrackOperationalState::Blocked:
 			return {QColor("#D6A13A"), 5, Qt::DashLine};
 		case TrackOperationalState::Free:

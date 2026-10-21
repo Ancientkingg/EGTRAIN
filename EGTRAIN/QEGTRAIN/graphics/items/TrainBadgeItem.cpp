@@ -7,10 +7,10 @@
 namespace {
 constexpr qreal kAnchorOffsetX = 8.0;
 constexpr qreal kAnchorGapY = 8.0;
-constexpr qreal kNoseWidth = 3.0;
-constexpr qreal kTextGap = 4.0;
-constexpr qreal kSpeedGap = 6.0;
-constexpr qreal kSidePadding = 3.0;
+// The outline of the speed reaches this far beyond its glyphs, in logical pixels.
+constexpr qreal kOutlineWidth = 1.0;
+// The colour of the canvas.
+const QColor kSpeedOutline(16, 26, 34);
 }
 
 TrainBadgeItem::TrainBadgeItem(QGraphicsItem* parent)
@@ -23,10 +23,8 @@ TrainBadgeItem::TrainBadgeItem(QGraphicsItem* parent)
 
 void TrainBadgeItem::setIdentifier(const QString& value) {
 	if (m_identifier == value) return;
-	prepareGeometryChange();
 	m_identifier = value;
 	updateToolTip();
-	update();
 }
 void TrainBadgeItem::setTooltipDetails(const QString& description, const QString& operatingCode,
 	const QString& trainType) {
@@ -56,10 +54,7 @@ void TrainBadgeItem::setTrainVisual(const TrainVisual& visual) {
 	update();
 }
 void TrainBadgeItem::setReversed(bool reversed) {
-	if (m_reversed == reversed) return;
-	prepareGeometryChange();
 	m_reversed = reversed;
-	update();
 }
 void TrainBadgeItem::setPresentation(Presentation presentation) {
 	if (m_presentation == presentation) return;
@@ -80,82 +75,38 @@ TrainBadgeItem::Presentation TrainBadgeItem::presentationForZoom(qreal zoom, boo
 	return zoom >= identityZoomThreshold() ? Presentation::Identity : Presentation::Overview;
 }
 
-QFont TrainBadgeItem::identifierFont() const {
-	QFont font;
-	font.setPointSize(m_presentation == Presentation::Identity ? 8 : 9);
-	font.setBold(true);
-	return font;
-}
 QFont TrainBadgeItem::speedFont() const {
-	QFont font = identifierFont();
+	QFont font;
 	font.setPointSize(8);
-	font.setBold(false);
 	return font;
 }
 
-qreal TrainBadgeItem::badgeWidth() const {
-	if (m_presentation == Presentation::Overview) return markerSize().width();
-	qreal width = kSidePadding + (m_reversed ? kNoseWidth : 0.0) + 14.0 + kTextGap
-		+ QFontMetricsF(identifierFont()).horizontalAdvance(m_identifier) + kSidePadding
-		+ (!m_reversed ? kNoseWidth : 0.0);
-	if (showsSpeed()) width += kSpeedGap + QFontMetricsF(speedFont()).horizontalAdvance(m_speedText);
-	return qMin(maximumWidth(m_presentation), qMax<qreal>(44.0, width));
-}
-
-QRectF TrainBadgeItem::badgeRect() const {
-	const qreal height = m_presentation == Presentation::Overview ? 16.0
-		: m_presentation == Presentation::Identity				  ? 22.0
-																  : 26.0;
-	return QRectF(kAnchorOffsetX, -kAnchorGapY - height, badgeWidth(), height);
-}
-QRectF TrainBadgeItem::boundingRect() const { return badgeRect().adjusted(-1.0, -1.0, 1.0, 1.0); }
-QPainterPath TrainBadgeItem::shape() const { return QPainterPath(); }
-QRectF TrainBadgeItem::iconRect() const {
-	const QRectF body = badgeRect();
-	const qreal size = m_presentation == Presentation::Overview ? 12.0 : 14.0;
-	return QRectF(body.left() + kSidePadding + (m_reversed ? kNoseWidth : 0.0),
-		body.center().y() - size / 2.0, size, size);
+// The text starts kAnchorOffsetX to the right of the position, on a line that ends kAnchorGapY above it.
+QPointF TrainBadgeItem::speedBaseline() const {
+	return QPointF(kAnchorOffsetX, -kAnchorGapY - QFontMetricsF(speedFont()).descent());
 }
 QRectF TrainBadgeItem::speedTextRect() const {
 	if (!showsSpeed()) return QRectF();
-	const QRectF body = badgeRect();
-	const qreal right = body.right() - kSidePadding - (!m_reversed ? kNoseWidth : 0.0);
-	const qreal width = qMin(QFontMetricsF(speedFont()).horizontalAdvance(m_speedText), body.width() / 2.0);
-	return QRectF(right - width, body.top(), width, body.height());
+	return QFontMetricsF(speedFont()).boundingRect(m_speedText).translated(speedBaseline());
 }
-QRectF TrainBadgeItem::identifierTextRect() const {
-	if (!showsIdentifier()) return QRectF();
-	const QRectF body = badgeRect();
-	const qreal left = iconRect().right() + kTextGap;
-	const QRectF speed = speedTextRect();
-	const qreal right = speed.isEmpty() ? body.right() - kSidePadding - (!m_reversed ? kNoseWidth : 0.0)
-										: speed.left() - kSpeedGap;
-	return QRectF(left, body.top(), qMax<qreal>(0.0, right - left), body.height());
+QRectF TrainBadgeItem::boundingRect() const {
+	if (!showsSpeed()) return QRectF();
+	const qreal margin = kOutlineWidth + 1.0;
+	return speedTextRect().adjusted(-margin, -margin, margin, margin);
 }
-QString TrainBadgeItem::displayedIdentifier() const {
-	return QFontMetricsF(identifierFont()).elidedText(m_identifier, Qt::ElideMiddle, qMax<qreal>(0.0, identifierTextRect().width()));
-}
-QPolygonF TrainBadgeItem::directionNose() const {
-	const QRectF body = badgeRect().adjusted(0.75, 0.75, -0.75, -0.75);
-	const qreal halfHeight = qMin<qreal>(4.0, body.height() / 3.0);
-	QPolygonF nose;
-	if (m_reversed)
-		nose << QPointF(body.left(), body.center().y())
-			 << QPointF(body.left() + kNoseWidth + 0.5, body.center().y() - halfHeight)
-			 << QPointF(body.left() + kNoseWidth + 0.5, body.center().y() + halfHeight);
-	else
-		nose << QPointF(body.right(), body.center().y())
-			 << QPointF(body.right() - kNoseWidth - 0.5, body.center().y() - halfHeight)
-			 << QPointF(body.right() - kNoseWidth - 0.5, body.center().y() + halfHeight);
-	return nose;
-}
+QPainterPath TrainBadgeItem::shape() const { return QPainterPath(); }
 
 void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
-	// The historical renderer paints the locomotive and wagons themselves,
-	// without an additional screen-sized category badge or label.
-	Q_UNUSED(painter);
+	if (!showsSpeed()) return;
+	// The bodies of the train show the train itself, so the badge adds only the speed. The outline keeps the
+	// white text readable over the light grey tracks and over the trains.
+	QPainterPath text;
+	text.addText(speedBaseline(), speedFont(), m_speedText);
+	painter->setRenderHint(QPainter::Antialiasing);
+	painter->strokePath(text, QPen(kSpeedOutline, 2.0 * kOutlineWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+	painter->fillPath(text, QColor(Qt::white));
 }
 
 void TrainBadgeItem::updateToolTip() {
