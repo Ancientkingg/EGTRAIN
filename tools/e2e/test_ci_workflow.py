@@ -877,7 +877,7 @@ def main() -> None:
         or tidy.select_changed([prefix + "scene/CMakeLists.txt"], sources) != sorted(sources)
         or tidy.select_changed([prefix + "app/MainWindow.ui"], sources) != sorted(sources)
         or tidy.select_changed([prefix + "simulation/RuntimeLimits.h"], sources) != [prefix + "scene/SceneValidator.cpp"]
-        or tidy.select_changed(["docs/development/build-and-test.md"], sources)
+        or tidy.select_changed(["docs/development/build.md"], sources)
     ):
         missing.append("tidy run that selects the changed sources, the sources that include a changed header, and all sources for a configuration change")
     sample = "/work/EGTRAIN/QEGTRAIN/util/Log.cpp:12:5: warning: message text [bugprone-foo]"

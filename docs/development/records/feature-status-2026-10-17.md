@@ -23,7 +23,7 @@ The test names in the tables are the tests that `ctest -N` lists at this commit 
 | placeholder | The control exists and does nothing useful. |
 | unreachable | The code exists and a user of the shipped application cannot get to it. |
 
-A cell that starts with a test name is a CTest test. Some tests are registered on some platforms only: the Bash smokes are not registered on Windows, and the visual polish smokes run on macOS only. The [platform coverage table](../build-and-test.md#platform-coverage) lists them.
+A cell that starts with a test name is a CTest test. Some tests are registered on some platforms only: the Bash smokes are not registered on Windows, and the visual polish smokes run on macOS only. The [platform coverage table](../testing.md#platform-coverage) lists them.
 
 ### Manual sessions
 

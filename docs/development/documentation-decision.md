@@ -1,6 +1,6 @@
 # Documentation decision
 
-How the documentation is structured, written, built, checked and shipped, and the options that were compared. The place of every existing page is in the [page map](documentation-page-map.md). Decided in #915 on 2026-10-19.
+How the documentation is structured, written, built, checked and shipped, and the options that were compared. Decided in #915 on 2026-10-19.
 
 ## Decision
 

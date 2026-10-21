@@ -10,7 +10,7 @@ Qt 6.8.3 on 2026-10-20. On Linux the page was followed from a clean clone in a n
 1 s, the build with four jobs 4 min 7 s, CTest 3 min 8 s (325 of 325 passed), the headless run of all six cases
 1 min 49 s, the round-trip smoke 7 s, the visual polish smoke 4 min 13 s and the test walkthrough below under a
 minute. The build with warnings as errors passed as well. The Windows commands on this page were not run. CI installs the same packages as
-[Build and test](build-and-test.md#configure) lists, but it configures with more options; see
+[Configure](build.md#configure) lists, but it configures with more options; see
 [Which checks to run](#which-checks-to-run). The Visual Studio generator path in the build guide
 is not what CI uses and was not checked for this page.
 
@@ -27,7 +27,7 @@ is not what CI uses and was not checked for this page.
 | clang-format | 23.1.3 exactly | Only to format C++ sources: `python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format==23.1.3`, then `~/fmt-venv/bin` on `PATH` |
 | clang-tidy | 23.1 | Only for [`tools/tidy.py`](coding-guidelines.md#static-checks) |
 
-[Requirements](build-and-test.md#requirements) lists the supported toolchains and the exact install
+[Requirements](build.md#requirements) lists the supported toolchains and the exact install
 commands for each system.
 
 ## Clone, configure and build
@@ -53,14 +53,14 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
 cmake --build build --parallel 4
 ```
 
-[Configure](build-and-test.md#configure) explains the prefix path and the AGL option.
+[Configure](build.md#configure) explains the prefix path and the AGL option.
 
-On Ubuntu and Windows, install Qt as [Requirements](build-and-test.md#requirements) says and take the
-install and configure lines from [Configure](build-and-test.md#configure); the Ubuntu line installs `git`
+On Ubuntu and Windows, install Qt as [Requirements](build.md#requirements) says and take the
+install and configure lines from [Configure](build.md#configure); the Ubuntu line installs `git`
 and `python3` too. The build, test and run commands below use the macOS and
 Linux form. With a multi-config generator such as Visual Studio, add `--config Release` to
 `cmake --build` and `-C Release` to `ctest`, and run the executable from
-[Run a local build](build-and-test.md#run-a-local-build).
+[Run a local build](build.md#run-a-local-build).
 
 Without `--parallel`, `cmake --build` uses one job with the Makefile generator, which takes a long
 time; `CMAKE_BUILD_PARALLEL_LEVEL` sets the number of jobs as well. A first full build with tests
@@ -74,11 +74,11 @@ The build makes three programs and, with `EGTRAIN_BUILD_TESTS=ON`, one executabl
 
 | Program | What it is | macOS path | Other systems |
 | --- | --- | --- | --- |
-| `QEGTRAIN` | The application | `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` | [Run a local build](build-and-test.md#run-a-local-build) |
+| `QEGTRAIN` | The application | `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` | [Run a local build](build.md#run-a-local-build) |
 | `scene_tool` | Validates, packs, unpacks, imports and exports scenes without the window | `build/scene_tool` | `build/scene_tool` or `build/Release/scene_tool.exe` |
 | `egtrain_update_helper` | Helper of the self-updater of release packages | `build/egtrain_update_helper` | |
 
-If configure or the build stops, see [Common setup failures](build-and-test.md#common-setup-failures).
+If configure or the build stops, see [Common setup failures](build.md#common-setup-failures).
 
 ## Run the application
 
@@ -96,7 +96,7 @@ start with `-n 2` (Paimpol) or `--scene Scenes/Paimpol` to skip the chooser; the
 
 These paths are for macOS. On Linux the executable is `../../build/QEGTRAIN`. On Windows it is
 `..\..\build\Release\QEGTRAIN.exe` with a multi-config generator and `..\..\build\QEGTRAIN.exe` with
-a single-config one; see [Run a local build](build-and-test.md#run-a-local-build).
+a single-config one; see [Run a local build](build.md#run-a-local-build).
 
 A run without a window needs no display and exits when the run ends. It writes to the folder that
 `QEGTRAIN_OUTPUT_DIR` names. On Linux, with the executable path of that system:
@@ -111,7 +111,7 @@ On macOS use `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` in the second li
 progress as one long line.
 
 The files are listed in [Run output](../guides/run-output.md). On Windows a run without a window prints
-nothing to a terminal; see [Windows headless runs](build-and-test.md#windows-headless-runs).
+nothing to a terminal; see [Windows headless runs](testing.md#windows-headless-runs).
 The bundled cases and their `-n` numbers are in [Case study numbers](../guides/command-line.md#case-study-numbers).
 
 ## Source map
@@ -171,7 +171,7 @@ read them in the **Console Log** dock (`View > Console Log`); see
 
 ## Which checks to run
 
-Run the smallest set that covers the change. [Verification gates](build-and-test.md#verification-gates)
+Run the smallest set that covers the change. [Verification gates](testing.md#verification-gates)
 is the full rule.
 
 | Your change | Run |
@@ -194,7 +194,7 @@ they tried when none exists. `visual_polish_smoke.sh` reads the macOS path, so o
 `QEGTRAIN_APP=$PWD/build/QEGTRAIN tools/e2e/visual_polish_smoke.sh`. `headless_smoke.py` runs the six committed cases one after the other; name case
 numbers to run fewer, for example `python3 tools/e2e/headless_smoke.py 2`, because Copenhagen alone
 takes minutes. On Linux and Windows CTest registers the tests that run there
-([Platform coverage](build-and-test.md#platform-coverage)).
+([Platform coverage](testing.md#platform-coverage)).
 
 Formatting and static checks run in CI too: `python3 tools/format.py` (`--fix` to apply) for the C++
 sources, and `python3 tools/tidy.py` for the sources outside `simulation/`.
@@ -240,7 +240,7 @@ root `CMakeLists.txt` and a label; [Tests](coding-guidelines.md#tests) shows how
 
 ## Where output goes
 
-[Where test and run output goes](build-and-test.md#where-test-and-run-output-goes) lists where a
+[Where test and run output goes](smoke-tests.md#where-test-and-run-output-goes) lists where a
 run, CTest and each smoke write their files.
 
 ## Contributing
@@ -249,8 +249,8 @@ What the repository itself shows:
 
 - Pull requests go to `main`. CI builds and runs the CTest suite on macOS, Windows and Linux without
   the tests labelled `network`, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.
-  [CI and release branches](build-and-test.md#ci-and-release-branches) lists the workflows, and
-  [Required checks on `main`](build-and-test.md#required-checks-on-main) the checks that must pass.
+  [CI and release branches](ci-and-release.md#ci-and-release-branches) lists the workflows, and
+  [Required checks on `main`](ci-and-release.md#required-checks-on-main) the checks that must pass.
 - Code follows [Coding guidelines](coding-guidelines.md). `.clang-format` and `.editorconfig` set the
   format: tabs, braces attached, no column limit.
 - Documentation changes pass `python3 tools/docs/check_docs.py`, and every page is in the table of contents,
@@ -258,7 +258,7 @@ What the repository itself shows:
 
 ## Related documents
 
-- [Build and test](build-and-test.md): configure recipes, test labels, smokes, CI.
+- [Build from source](build.md), [Testing](testing.md), [Smoke tests](smoke-tests.md), [Simulation characterization tests](characterization-tests.md) and [CI and release](ci-and-release.md).
 - [Source layout](../architecture/source-layout.md) and [Coding guidelines](coding-guidelines.md).
 - [Release testing checklist](release-testing-checklist.md) and [Code signing](code-signing.md).
 - [Playback profiling](playback-profiling.md) and [Peak-memory baselines](memory-baselines.md).
