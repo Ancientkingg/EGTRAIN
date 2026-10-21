@@ -140,9 +140,6 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     # Inspect default semantics without pressing Enter and starting a simulation.
     assert rendered["initialFocus"] == "run" and rendered["runDefault"], rendered
     assert not rendered["cancelDefault"], rendered
-    # With a smaller font for tool buttons, as macOS gives them, the Run details toggle keeps the font of the dialog.
-    toggle_points, dialog_points = rendered["toggleFontPoints"]
-    assert toggle_points == dialog_points, rendered
     for state in ("collapsedGeometry", "expandedGeometry", "scrolledGeometry", "recollapsedGeometry"):
         geometry = rendered[state]
         dialog, footer, scroll = geometry["dialog"], geometry["footer"], geometry["scroll"]

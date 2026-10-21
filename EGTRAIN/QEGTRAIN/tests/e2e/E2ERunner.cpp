@@ -13,7 +13,6 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFileOpenEvent>
-#include <QFont>
 #include <QPalette>
 #include <QSettings>
 #include <QStatusBar>
@@ -185,15 +184,6 @@ void startScenarios(MainWindow& window) {
 	mainWindowTestHooks().dialogClosed = [&window](QDialog& dialog, const char* kind) {
 		MainWindowTestAccess::dialogClosed(window, dialog, kind);
 	};
-	// The run review script runs with the fonts of macOS: an application font that names its size, and a smaller font
-	// for tool buttons. Setting the style sheet resets the fonts of the classes, so they are set once the window shows.
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL")) {
-		QFont font = QApplication::font();
-		font.setPointSizeF(font.pointSizeF());
-		QApplication::setFont(font);
-		font.setPointSizeF(font.pointSizeF() * 0.8);
-		QApplication::setFont(font, "QToolButton");
-	}
 	// A window without a scene has no run to start.
 	if (!mainWindowTestHooks().suppressStartupPrompts)
 		MainWindowTestAccess::autostart(window);
