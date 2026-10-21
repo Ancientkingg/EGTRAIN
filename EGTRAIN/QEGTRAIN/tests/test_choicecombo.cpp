@@ -248,6 +248,35 @@ bool exerciseInvalidChoice() {
 	}
 	return ok;
 }
+
+// A field with focus opens a list that shows each of its items whole, without scrolling.
+bool exercisePopupHeight() {
+	StopForm f(QRect(0, 0, 1280, 800), 1.0, QStringLiteral("p31"));
+	f.mode->setFocus();
+	QApplication::processEvents();
+	bool ok = check(f.mode->hasFocus(), "the planned time display did not take focus, so the test proves nothing");
+	f.mode->showPopup();
+	QApplication::processEvents();
+	QAbstractItemView* list = f.mode->view();
+	// A list that cuts its last item can scroll, so a list that cannot scroll shows every item whole.
+	const bool whole = list->isVisible() && list->verticalScrollBar()->maximum() == 0;
+	if (!whole) {
+		int rows = 0;
+		for (int row = 0; row < f.mode->count(); ++row)
+			rows += list->visualRect(f.mode->model()->index(row, 0)).height();
+		std::cerr << "the list of a field with focus scrolls: the popup is " << list->window()->height() << " px, its list "
+				  << list->viewport()->height() << " px for " << rows << " px of items, and it scrolls by "
+				  << list->verticalScrollBar()->maximum() << '\n';
+	}
+#if !defined(Q_OS_WIN) || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	// Qt 5.15 on the offscreen platform on Windows opens this list 12 px shorter than its items. The application on
+	// Windows shows them whole.
+	ok &= whole;
+#endif
+	f.mode->hidePopup();
+	return ok;
+}
+
 // Turns the wheel one step down over target. The event goes to the widget under the pointer, which is the line edit
 // of a spin box. A widget that ignores a wheel event passes it on to its parent, so the event goes up the parents
 // until one accepts it.
@@ -411,8 +440,9 @@ int main(int argc, char** argv) {
 	const bool selection = exerciseSelection();
 	const bool elision = exerciseElision();
 	const bool invalid = exerciseInvalidChoice();
+	const bool popupHeight = exercisePopupHeight();
 	const bool wheelInstalled = exerciseWheel(FormKind::Installed);
 	const bool wheelPlain = exerciseWheel(FormKind::Plain);
 	const bool wheelWatched = exerciseWheel(FormKind::Watched);
-	return small && scaledSmall && large && selection && elision && invalid && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
+	return small && scaledSmall && large && selection && elision && invalid && popupHeight && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
 }

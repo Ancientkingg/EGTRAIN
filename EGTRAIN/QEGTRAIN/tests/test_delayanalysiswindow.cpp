@@ -223,9 +223,8 @@ bool exerciseCalls() {
 			&& tabWidget->tabText(2) == "Against baseline" && tabWidget->currentIndex() == 0,
 		"the tabs are Calls, Summary and Against baseline, and Calls is open");
 	ok &= expect(window.windowTitle() == "Delay analysis" && !window.isModal(), "the window is not modal");
-	ok &= expect(labelText(window, "dialogHeading") == "Delay analysis: follow-level-0"
-			&& labelText(window, "dialogContext") == "Run: Case A / follow-level-0\nBaseline: none set",
-		"the heading names the scenario and the context names the run");
+	ok &= expect(!window.findChild<QLabel*>("dialogHeading") && labelText(window, "dialogContext") == "Run: Case A / follow-level-0\nBaseline: none set",
+		"the window title is the only heading and the context names the run and its scenario");
 	const QTableWidget* calls = table(window, "delayCalls");
 	ok &= expect(headerTexts(calls)
 			== QStringList({"Service", "Occurrence", "Train", "Operating code", "Station", "Journey order", "Call", "Event", "Planned [s]",

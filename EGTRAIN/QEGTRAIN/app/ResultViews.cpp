@@ -834,11 +834,11 @@ void ResultViews::showCapacityAnalysis() {
 	layout->addLayout(secondaryActions);
 	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
 	connect(closeButtons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
-	DialogLayout::install(*dialog,
-		QString("Selected train chain: cycle %1 s, %2% of period; not network capacity")
-			.arg(QString::number(result.cycleTime, 'f', 1),
-				QString::number(result.cyclePercentage, 'f', 1)),
-		QString("Section: %1\nRun: %2").arg(sectionLabel, completedRunContext(provenance)),
+	// The window title names the view; the result leads the context.
+	DialogLayout::install(*dialog, ResultViewName::kCapacity,
+		QString("Selected train chain: cycle %1 s, %2% of period; not network capacity\nSection: %3\nRun: %4")
+			.arg(QString::number(result.cycleTime, 'f', 1), QString::number(result.cyclePercentage, 'f', 1), sectionLabel,
+				completedRunContext(provenance)),
 		body, closeButtons);
 	// No button of the window is a default button, so Return presses none.
 	for (QPushButton* button : dialog->findChildren<QPushButton*>())

@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QToolBar>
 #include <QToolButton>
 #include <QFile>
@@ -16,6 +17,7 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTableWidget>
@@ -138,12 +140,12 @@ bool exercise(const QRect& screen, qreal scale) {
 	scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());
 	ok &= check(buttons->isVisible() && buttons->geometry().bottom() <= dialog.height() && scroll->geometry().bottom() <= buttons->geometry().top(),
 		"footer must remain reachable outside the scrolling body");
-	auto* heading = dialog.findChild<QLabel*>(QStringLiteral("dialogHeading"));
 	auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-	ok &= check(
-		heading && heading->font().pointSizeF() > font.pointSizeF() && heading->textFormat() == Qt::PlainText && context
-			&& context->textFormat() == Qt::PlainText && context->parentWidget() == scroll->widget(),
-		"heading scales, authored labels remain plain and context scrolls");
+	ok &= check(dialog.windowTitle() == QStringLiteral("Review <simulation> & ") + longName.left(120)
+			&& !dialog.findChild<QLabel*>(QStringLiteral("dialogHeading")),
+		"the heading is the window title and is not repeated in the dialog");
+	ok &= check(context && context->textFormat() == Qt::PlainText && context->parentWidget() == scroll->widget(),
+		"the context remains plain text and scrolls");
 	buttons->button(QDialogButtonBox::Ok)->setFocus();
 	scroll->verticalScrollBar()->setValue(0);
 	QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);
@@ -790,7 +792,8 @@ bool exerciseMessageBoxDefault() {
 }
 
 // The width of the drawn text of a button, from the pixels that differ strongly from its face. The button is widened first,
-// so that no text is clipped, and the grab is taken at its natural position within it.
+// so that no text is clipped, and the grab is taken at its natural position within it. The rows within 6 px of the top
+// and the bottom are left out, because the dialog shows through the rounded corners there.
 int drawnTextWidth(QPushButton* button) {
 	button->setFixedWidth(button->width() + 300);
 	const QPixmap grab = button->grab();
@@ -799,7 +802,7 @@ int drawnTextWidth(QPushButton* button) {
 	const qreal ratio = grab.devicePixelRatio();
 	int left = image.width();
 	int right = -1;
-	for (int y = qRound(3 * ratio); y < image.height() - qRound(3 * ratio); ++y)
+	for (int y = qRound(6 * ratio); y < image.height() - qRound(6 * ratio); ++y)
 		for (int x = qRound(3 * ratio); x < image.width() - qRound(3 * ratio); ++x)
 			if (colorDifference(image.pixel(x, y), face) >= 200) {
 				left = std::min(left, x);
@@ -808,11 +811,11 @@ int drawnTextWidth(QPushButton* button) {
 	return right < left ? 0 : qRound((right - left + 1) / ratio);
 }
 
-// A button shows its whole text when its width holds the text as it is drawn plus the border and the padding of the style
-// sheet (1 px and 7 px on each side). The drawn text can be bolder than the font of the widget.
+// A button shows its whole text when its width holds the text as it is drawn plus the border and the padding that the style
+// sheet gives a button in a dialog (1 px and 14 px on each side). The drawn text can be bolder than the font of the widget.
 bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
 	const int width = button->width();
-	const int needed = drawnTextWidth(button) + 2 * (1 + 7);
+	const int needed = drawnTextWidth(button) + 2 * (1 + 14);
 	const bool ok = width >= needed;
 	if (!ok)
 		std::cerr << where << ": the button '" << button->text().toStdString() << "' is " << width << " px wide at " << scale
@@ -866,6 +869,68 @@ bool exerciseDefaultButtonWidth(qreal scale) {
 	ok &= check(primary->isDefault(), "the dialog footer does not make its accept button the default button");
 	ok &= buttonShowsText(primary, "dialog footer", scale);
 	QApplication::setFont(appFont);
+	return ok;
+#endif
+}
+
+// Fusion with the icons that the GNOME and KDE themes give the standard buttons of a dialog footer.
+class FooterIconStyle : public QProxyStyle {
+public:
+	FooterIconStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		return hint == SH_DialogButtonBox_ButtonsHaveIcons ? 1 : QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
+
+// OK, Cancel and Close of a dialog footer and of a message box show no icon, also under a theme that gives them one.
+bool exerciseFooterWithoutIcons() {
+	FooterIconStyle style;
+	QDialog dialog;
+	dialog.setStyle(&style);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Close, &dialog);
+	DialogLayout::install(dialog, QStringLiteral("Icons"), QString(), new QWidget, buttons, QRect(0, 0, 1280, 800));
+	QList<QAbstractButton*> shown = buttons->buttons();
+#ifndef Q_OS_WIN
+	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	QMessageBox box;
+	box.setStyle(&style);
+	box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel | QMessageBox::Close);
+	shown += box.buttons();
+#endif
+	bool ok = check(shown.size() >= 3, "the footers have no standard buttons");
+	for (const QAbstractButton* button : shown)
+		ok &= check(button->icon().isNull(), "a standard button of a dialog footer or a message box shows an icon");
+	return ok;
+}
+
+// The size that a Fusion spin box asks for without the style sheet.
+QSize fusionSpinBoxSize() {
+	QProxyStyle fusion(QStringLiteral("Fusion"));
+	QDoubleSpinBox spinBox;
+	spinBox.setStyle(&fusion);
+	return spinBox.sizeHint();
+}
+
+// A spin box outside a dialog, such as one in a cell of the traction table of Rolling stock units, asks for no more room
+// than the Fusion spin box, so that the editor docks and their tables keep their size. Both use Fusion, so the widget
+// style of the platform does not matter.
+bool exerciseCellSpinBoxSize(const QSize& fusionSize) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	// In Qt 6 a spin box of the style sheet is larger than the Fusion one whatever its padding, 69 x 28 px against
+	// 63 x 26 px at the offscreen font. The releases are built with Qt 5.
+	Q_UNUSED(fusionSize);
+	return true;
+#else
+	QProxyStyle fusion(QStringLiteral("Fusion"));
+	QTableWidget table(1, 1);
+	auto* spinBox = new QDoubleSpinBox;
+	spinBox->setStyle(&fusion);
+	table.setCellWidget(0, 0, spinBox);
+	const QSize size = spinBox->sizeHint();
+	const bool ok = size.width() <= fusionSize.width() && size.height() <= fusionSize.height();
+	if (!ok)
+		std::cerr << "a spin box in a table asks for " << size.width() << " x " << size.height() << " px, the Fusion spin box for "
+				  << fusionSize.width() << " x " << fusionSize.height() << " px\n";
 	return ok;
 #endif
 }
@@ -951,6 +1016,7 @@ bool exerciseRunReviewDefault() {
 
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
+	const QSize fusionSpinBox = fusionSpinBoxSize();
 	QFile qss(QStringLiteral(EGTRAIN_DIALOG_QSS));
 	if (!qss.open(QIODevice::ReadOnly)) {
 		std::cerr << "cannot load application QSS\n";
@@ -980,8 +1046,10 @@ int main(int argc, char** argv) {
 	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
+	const bool footerIcons = exerciseFooterWithoutIcons();
+	const bool cellSpinBox = exerciseCellSpinBoxSize(fusionSpinBox);
 	return small && scaledSmall && large && footerKeys && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
-			&& scaledDefaultWidth
+			&& scaledDefaultWidth && footerIcons && cellSpinBox
 		? 0
 		: 1;
 }

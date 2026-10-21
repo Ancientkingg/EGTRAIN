@@ -164,7 +164,6 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QDir>
-#include <QFile>
 #include <QFileInfo>
 #include <QSaveFile>
 #include <cfloat>
@@ -252,6 +251,13 @@ void showReplayPlaying(QPushButton* button, bool playing) {
 class ElidedComboBox : public QComboBox {
 public:
 	explicit ElidedComboBox(QWidget* parent) : QComboBox(parent) {}
+	// As in ChoiceComboBox: the list was made before the field had focus, so it is brought up to date with the padding of
+	// the focused field first; else it opens too short and scrolls.
+	void showPopup() override {
+		QEvent styleChange(QEvent::StyleChange);
+		QCoreApplication::sendEvent(view()->window(), &styleChange);
+		QComboBox::showPopup();
+	}
 protected:
 	void paintEvent(QPaintEvent*) override {
 		QStylePainter painter(this);
@@ -550,13 +556,6 @@ void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult&
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 										  ui(std::make_unique<Ui::MainWindow>()) {
-	// Qt sizes header sections with the header font but paints them with the body font of the header viewport,
-	// so a smaller platform header font, as on macOS, cuts the titles. Headers use the body font.
-	QApplication::setFont(QApplication::font(), "QHeaderView");
-	QFile themeFile(":/styles/egtrain.qss");
-	if (themeFile.open(QIODevice::ReadOnly | QIODevice::Text))
-		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
-
 	ui->setupUi(this);
 	setStatusBar(new ElidingStatusBar(this));
 	setProperty("manualSection", QStringLiteral("main-window"));

@@ -1,6 +1,7 @@
 #include "diagrams/TrainFilterButton.h"
 
 #include <QAbstractItemView>
+#include <QApplication>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLineEdit>
@@ -23,6 +24,8 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 	: QToolButton(parent) {
 	setPopupMode(QToolButton::InstantPopup);
 	setToolButtonStyle(Qt::ToolButtonTextOnly);
+	// The text size of the push buttons and fields beside it; macOS gives a tool button a smaller font.
+	setFont(QApplication::font());
 	setToolTip("Choose which trains are visible");
 
 	auto* menu = new QMenu(this);

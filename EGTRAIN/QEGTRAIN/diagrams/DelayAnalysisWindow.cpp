@@ -589,8 +589,8 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	});
 
 	const QString baselineContext = m_baseline ? runText(m_baseline->provenance) : QStringLiteral("none set");
-	const QString heading = m_scenario.scenarioId.empty() ? QStringLiteral("Delay analysis") : "Delay analysis: " + fromStd(m_scenario.scenarioId);
-	DialogLayout::install(*this, heading,
+	// The run line names the scenario, so the window title is the name of the view.
+	DialogLayout::install(*this, QStringLiteral("Delay analysis"),
 		QString("Run: %1\nBaseline: %2").arg(runText(m_scenario.provenance), baselineContext), body, closeButtons);
 	resize(qMin(maximumWidth(), 1100), qMin(maximumHeight(), 640));
 	refresh();

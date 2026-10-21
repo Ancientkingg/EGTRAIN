@@ -553,8 +553,6 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 
 	// Top bar: train visibility dropdown, pin state, zoom reset, exports.
 	m_trainsButton = new TrainFilterButton(this);
-	// The text size of the push buttons beside it; macOS gives a tool button a smaller font.
-	m_trainsButton->setFont(QApplication::font());
 	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
 		this, &DiagramWindow::applyTrainVisibility);
 

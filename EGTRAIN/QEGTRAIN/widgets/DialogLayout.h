@@ -21,14 +21,14 @@
 
 #include "widgets/FocusWheel.h"
 
-/// The common layout of the dialogs: a heading, an optional context line, a body that scrolls and a footer of
+/// The common layout of the dialogs: the window title, an optional context line, a body that scrolls and a footer of
 /// buttons, and the inline status and help labels inside them.
 namespace DialogLayout {
 
 namespace detail {
 /// The dialog height at which the body of an installed dialog needs no vertical scroll bar when the dialog is
-/// width wide: the whole content and every other visible item of the layout (the heading, the footer and any
-/// widget a caller added), with the margins and spacing between them.
+/// width wide: the whole content and every other visible item of the layout (the footer and any widget a caller
+/// added), with the margins and spacing between them.
 inline int heightForContent(QDialog& dialog, int width) {
 	// The style sheet adds padding and borders to labels when they are polished, which changes their size hints.
 	dialog.ensurePolished();
@@ -60,9 +60,10 @@ inline int heightForContent(QDialog& dialog, int width) {
 }
 } // namespace detail
 
-/// Lays out dialog as a heading, the context line when it is not empty, body in a scroll area and actions as the
-/// footer, and returns the scroll area. Transfers body and actions to dialog. The caller owns button roles, connections,
-/// validation, default action and any changes to application state. The combo boxes and spin
+/// Lays out dialog as the context line when it is not empty, body in a scroll area and actions as the footer, and
+/// returns the scroll area. The heading becomes the window title, so the name of the dialog shows once, in the title
+/// bar, and the body starts with the context line. Transfers body and actions to dialog. The caller owns button roles,
+/// connections, validation, default action and any changes to application state. The combo boxes and spin
 /// boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls
 /// the body. The footer buttons are styled again, because the caller named them and made one
 /// the default after they were built, and a style cached by then misses the rules that name it.
@@ -88,20 +89,7 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	layout->setContentsMargins(margin, margin, margin, margin);
 	layout->setSpacing(spacing);
 
-	auto* title = new QLabel(heading, &dialog);
-	title->setObjectName(QStringLiteral("dialogHeading"));
-	title->setWordWrap(true);
-	title->setMinimumWidth(0);
-	title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	title->setTextFormat(Qt::PlainText);
-	QFont titleFont = dialog.font();
-	titleFont.setBold(true);
-	if (titleFont.pointSizeF() > 0)
-		titleFont.setPointSizeF(titleFont.pointSizeF() * 1.25);
-	else if (titleFont.pixelSize() > 0)
-		titleFont.setPixelSize(qRound(titleFont.pixelSize() * 1.25));
-	title->setFont(titleFont);
-	layout->addWidget(title);
+	dialog.setWindowTitle(heading);
 
 	auto* content = new QWidget;
 	auto* contentLayout = new QVBoxLayout(content);

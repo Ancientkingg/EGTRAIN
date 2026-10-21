@@ -2,6 +2,8 @@
 
 #include <QAbstractItemView>
 #include <QComboBox>
+#include <QCoreApplication>
+#include <QEvent>
 #include <QFontMetrics>
 #include <QGuiApplication>
 #include <QHelpEvent>
@@ -64,6 +66,11 @@ public:
 		const QRect available = target ? target->availableGeometry() : QRect();
 		const int budget = available.isValid() ? available.width() * 9 / 10 : QWIDGETSIZE_MAX;
 		QAbstractItemView* list = view();
+		// Qt sizes the popup from its items and the top padding that the field has now, but keeps above and below the list the
+		// room that it took from the padding when the list was made. The style sheet gives a field with focus 1 px less
+		// padding, so the list is brought up to date first; else a field with focus opens a list that scrolls.
+		QEvent styleChange(QEvent::StyleChange);
+		QCoreApplication::sendEvent(list->window(), &styleChange);
 		list->setMinimumWidth(qMin(budget, qMax(width(), list->sizeHintForColumn(0) + 2 * list->frameWidth() + list->verticalScrollBar()->sizeHint().width())));
 		QComboBox::showPopup();
 

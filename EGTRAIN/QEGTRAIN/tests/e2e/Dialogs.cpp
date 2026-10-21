@@ -255,7 +255,7 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 		// Styled widgets have already resolved their fonts before this test seam.
 		for (QWidget* widget : review.findChildren<QWidget*>()) {
 			font = widget->font();
-			font.setPointSizeF(widget->objectName() == "dialogHeading" ? 22.5 : 18);
+			font.setPointSizeF(18);
 			widget->setFont(font);
 		}
 		// A small screen: the dialog keeps this size even when the details grow it.

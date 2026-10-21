@@ -10,6 +10,11 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
+namespace {
+// The text of a link starts 1 px inside its 2 px focus border (egtrain.qss); the text of a label starts as far in.
+constexpr int kTextIndent = 3;
+} // namespace
+
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 	setObjectName(QStringLiteral("aboutDialog"));
 	setWindowTitle(tr("About EGTRAIN"));
@@ -40,6 +45,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 		label->setTextFormat(Qt::PlainText);
 		label->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
 		label->setWordWrap(true);
+		label->setIndent(kTextIndent);
 		if (bold) {
 			QFont nameFont = label->font();
 			nameFont.setBold(true);
@@ -97,12 +103,14 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	QPushButton* close = buttons->button(QDialogButtonBox::Close);
 	close->setDefault(true);
-	DialogLayout::install(*this, tr("EGTRAIN"),
+	DialogLayout::install(*this, tr("About EGTRAIN"),
 		tr("Version %1\nMicroscopic railway simulation for students and researchers.")
 			.arg(QCoreApplication::applicationVersion()),
 		body, buttons);
-	if (auto* context = findChild<QLabel*>(QStringLiteral("dialogContext")))
+	if (auto* context = findChild<QLabel*>(QStringLiteral("dialogContext"))) {
 		context->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+		context->setIndent(kTextIndent);
+	}
 	// Enter closes the dialog until Tab moves the focus to a link.
 	close->setFocus();
 }

@@ -749,21 +749,23 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	connect(closeButtons, &QDialogButtonBox::rejected, this, &QDialog::close);
 
 	const CapacityAnalysisResult& chain = m_result.chain;
-	QString heading = QStringLiteral("Selected chain: not available");
+	QString summary = QStringLiteral("Selected chain: not available");
 	if (chainHasCycle(chain)) {
 		const QString cycle = QString::number(chain.cycleTime, 'f', 1);
-		heading = chain.cyclePercentage >= 0.0
+		summary = chain.cyclePercentage >= 0.0
 			? QString("Selected chain: cycle %1 s, %2% of period").arg(cycle, percentText(chain.cyclePercentage))
 			: QString("Selected chain: cycle %1 s, no valid period").arg(cycle);
 	} else if (chain.analyzable) {
-		heading = QStringLiteral("Selected chain: no cycle-closing train");
+		summary = QStringLiteral("Selected chain: no cycle-closing train");
 	}
-	heading += " | " + trafficName(m_result);
+	summary += " | " + trafficName(m_result);
 	const QString traffic = m_result.complete
 		? QStringLiteral("every train of the run that uses the area is selected and none of its occupations is unusable")
 		: QStringLiteral("rates count only the selected traffic and are lower bounds");
-	DialogLayout::install(*this, heading,
-		QString("Area: %1\nGoverning resource: %2\nTraffic: %3\nRun: %4").arg(m_areaLabel, governingText(m_result), traffic, runText(m_provenance)),
+	// The window title names the view; the result leads the context.
+	DialogLayout::install(*this, QStringLiteral("Capacity by area"),
+		QString("%1\nArea: %2\nGoverning resource: %3\nTraffic: %4\nRun: %5")
+			.arg(summary, m_areaLabel, governingText(m_result), traffic, runText(m_provenance)),
 		body, closeButtons);
 	resize(qMin(maximumWidth(), 960), qMin(maximumHeight(), 640));
 }

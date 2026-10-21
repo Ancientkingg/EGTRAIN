@@ -28,6 +28,7 @@
 #include <optional>
 #include "util/portability.h"
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QPalette>
@@ -465,6 +466,10 @@ static int runMain(int argc, char* argv[]) {
 		e2e::configureApplication();
 #endif
 		keepLightLook();
+		// Before the first message box, so that a scene that cannot be opened is reported in the look of the window.
+		QFile theme(QStringLiteral(":/styles/egtrain.qss"));
+		if (theme.open(QIODevice::ReadOnly | QIODevice::Text))
+			application.setStyleSheet(QString::fromUtf8(theme.readAll()));
 		installCrashHandler(crashNoteFolder());
 		if (!onlyKnownOptions(argc, argv))
 			return 1;
