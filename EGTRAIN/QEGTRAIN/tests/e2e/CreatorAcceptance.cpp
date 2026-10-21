@@ -2187,6 +2187,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		auto* criticalTable = capacityTabs && capacityTabs->count() > 2
 			? qobject_cast<QTableWidget*>(capacityTabs->widget(2))
 			: nullptr;
+		// The window opens with room for its tables, as Capacity by area does.
+		if (capacity && capacity->width() < qMin(960, capacity->maximumWidth())) {
+			fail(QStringLiteral("the capacity window opens narrower than 960 px within the screen"));
+			return;
+		}
 		if (!capacity || !capacityTabs || capacityTabs->count() != 3 || !pairTable
 			|| pairTable->columnCount() != 9 || pairTable->rowCount() == 0
 			|| !compressionTable || compressionTable->columnCount() != 7
@@ -2360,7 +2365,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the delay analysis did not open on its Calls tab and export through public controls"));
 			return;
 		}
-		// Compare delays opens its window a step below and to the right of the delay analysis that is still open.
+		// Compare delays opens its window a step below and to the right of the delay analysis that is still open. At the top
+		// left of the screen that step fits, whatever windows opened before.
+		callsWindow->move(callsWindow->screen()->availableGeometry().topLeft());
 		compareButton->click();
 		process();
 		DelayAnalysisWindow* comparisonWindow = nullptr;

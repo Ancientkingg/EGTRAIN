@@ -853,6 +853,8 @@ void ResultViews::showCapacityAnalysis() {
 			.arg(QString::number(result.cycleTime, 'f', 1), QString::number(result.cyclePercentage, 'f', 1), sectionLabel,
 				completedRunContext(provenance)),
 		body, closeButtons);
+	// Room for the tables, as Capacity by area has.
+	dialog->resize(qMin(dialog->maximumWidth(), 960), qMin(dialog->maximumHeight(), 640));
 	// No button of the window is a default button, so Return presses none.
 	for (QPushButton* button : dialog->findChildren<QPushButton*>())
 		button->setAutoDefault(false);
