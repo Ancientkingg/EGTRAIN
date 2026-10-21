@@ -208,8 +208,43 @@ int main(int argc, char* argv[]) {
 	badge.setIdentifier("1725");
 	badge.setTooltipDetails("Intercity 1725 northbound", "1725", "Intercity");
 	badge.setSpeedText("102 km/h");
-	ok &= expect(badge.shape().isEmpty() && badge.toolTip().isEmpty(),
-		"unpainted tracking badge has no ghost shape or tooltip");
+	ok &= expect(badge.shape().isEmpty() && badge.toolTip().isEmpty(), "the badge has no shape and no tooltip");
+	// The badge four times as large on a mainline track, with its position in the middle of the image.
+	const QColor mainline = classifyTrackSpeed(120.0 / 3.6).color;
+	const QTransform badgeScale = QTransform::fromTranslate(240.0, 120.0).scale(4.0, 4.0);
+	const auto renderBadge = [&badge, &mainline, &badgeScale]() {
+		QImage image(480, 240, QImage::Format_ARGB32_Premultiplied);
+		image.fill(mainline);
+		{
+			QPainter painter(&image);
+			painter.setTransform(badgeScale);
+			badge.paint(&painter, nullptr, nullptr);
+		}
+		return image;
+	};
+	const auto drawsNothing = [&]() {
+		return badge.boundingRect().isEmpty() && pixelsOfColor(renderBadge(), mainline) == 480 * 240;
+	};
+	ok &= expect(drawsNothing(), "an Overview badge draws nothing");
+	badge.setPresentation(TrainBadgeItem::Presentation::Identity);
+	ok &= expect(drawsNothing(), "an Identity badge draws nothing");
+	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
+	const QImage speedImage = renderBadge();
+	ok &= expect(pixelsOfColor(speedImage, Qt::white) > 100 && pixelsOfColor(speedImage, QColor(16, 26, 34)) > 100,
+		"a Detailed badge draws the speed in white with a dark outline");
+	const QRectF speedBounds = badge.boundingRect();
+	const QRect drawnBounds = badgeScale.mapRect(speedBounds).toAlignedRect();
+	int outside = 0;
+	for (int y = 0; y < speedImage.height(); ++y)
+		for (int x = 0; x < speedImage.width(); ++x)
+			outside += !drawnBounds.contains(x, y) && speedImage.pixelColor(x, y) != mainline;
+	ok &= expect(outside == 0, "the speed stays inside the bounds of the badge");
+	ok &= expect(speedBounds.left() > 0.0 && speedBounds.bottom() < 0.0, "the speed is drawn above and right of the train");
+	badge.setSpeedVisible(false);
+	ok &= expect(drawsNothing(), "a badge with the speed hidden draws nothing");
+	badge.setSpeedVisible(true);
+	badge.setSpeedText(QString());
+	ok &= expect(drawsNothing(), "a badge without a speed draws nothing");
 
 	const SignalGeometry horizontal = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150);

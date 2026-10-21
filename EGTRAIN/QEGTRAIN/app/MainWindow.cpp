@@ -945,7 +945,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainSpeedLabelsCheck->setObjectName("layerTrainSpeedLabels");
 	m_trainSpeedLabelsCheck->setProperty("secondaryLayerToggle", true);
 	m_trainSpeedLabelsCheck->setChecked(true);
-	m_trainSpeedLabelsCheck->setToolTip("Show live speed in detailed train labels; overview markers stay compact.");
+	m_trainSpeedLabelsCheck->setToolTip("Show the speed beside each train when zoomed in, and beside a selected or followed train");
 	m_signalLayerCheck = new QCheckBox("Signals", caseLayersWidget);
 	m_signalLayerCheck->setObjectName("layerSignals");
 	m_signalLayerCheck->setChecked(true);
