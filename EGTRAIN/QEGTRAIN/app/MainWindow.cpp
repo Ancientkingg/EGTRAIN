@@ -1840,8 +1840,9 @@ void MainWindow::childEvent(QChildEvent* event) {
 	QMainWindow::childEvent(event);
 	if (auto* tabBar = qobject_cast<QTabBar*>(event->child()); tabBar && event->polished()) {
 		tabBar->setFocusPolicy(Qt::NoFocus);
-		// Qt elides the names of tabbed docks. They stay whole, and the bar scrolls when they do not fit.
-		tabBar->setElideMode(Qt::ElideNone);
+		// The names of tabbed docks end in an ellipsis when the bar is narrow, down to the minimum width that egtrain.qss gives
+		// a tab, and the bar scrolls when the tabs still do not fit. The tooltip of a tab, set by Qt, gives the whole name.
+		tabBar->setElideMode(Qt::ElideRight);
 		tabBar->setUsesScrollButtons(true);
 		for (QToolButton* scrollButton : tabBar->findChildren<QToolButton*>())
 			scrollButton->setFocusPolicy(Qt::NoFocus);

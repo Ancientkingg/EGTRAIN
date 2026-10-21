@@ -418,6 +418,20 @@ QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
     image: url(:/icons/drop-down-arrow-disabled.svg);
 }
 
+/* Lists and tables in the editors, and a list, table or tree that fills a dock, have a 1 px #c9d3db border that becomes a
+   2 px border in the action colour while the view has the keyboard focus: 3.4:1 with #c9d3db and 4.6:1 with the surface.
+   Qt sizes the frame when it polishes the view, before the view has the focus, so the frame stays 1 px, as the editors
+   that size their lists from it expect, and the rows do not move. The inner pixel of the focus border shows where no
+   header, scroll bar or selected row lies over it. The dialog rules below take precedence, and the Run Results table has a
+   border of its own. */
+SceneEditorPanel QListWidget, SceneEditorPanel QTableView, QDockWidget > QAbstractItemView {
+    border: 1px solid #c9d3db;
+}
+
+SceneEditorPanel QListWidget:focus, SceneEditorPanel QTableView:focus, QDockWidget > QAbstractItemView:focus {
+    border: 2px solid #2e7491;
+}
+
 /* Lists and tables in a dialog are fields: a white face inside the same border and radius. The padding keeps the rows and
    the header inside the rounded corners. */
 QDialog QListWidget, QDialog QTableView {
@@ -589,6 +603,28 @@ QTableView {
     gridline-color: #e3eaee;
 }
 
+/* A selected row is #315a70 with white text, 7.4:1, while its list, table or tree has the keyboard focus, and #d8e1e5 with
+   #24313a text, 10:1, while the focus is elsewhere. A selected row of a disabled view keeps the disabled text colour. A
+   checked box in a focused selected row has a white border, so that it stands out from the row. */
+QListWidget::item:selected:active, QTableView::item:selected:active, QTreeView::item:selected:active {
+    background: #315a70;
+    color: #ffffff;
+}
+
+QListWidget::item:selected:!active, QTableView::item:selected:!active, QTreeView::item:selected:!active {
+    background: #d8e1e5;
+    color: #24313a;
+}
+
+QListWidget::item:selected:disabled, QTableView::item:selected:disabled, QTreeView::item:selected:disabled {
+    color: #64717a;
+}
+
+QListWidget::indicator:checked:selected:active, QTableView::indicator:checked:selected:active,
+QTreeView::indicator:checked:selected:active {
+    border-color: #ffffff;
+}
+
 /* The current cell of a table that Tab reaches has no selection and can be scrolled out of view, so the frame of the table
    shows the focus. */
 QTableWidget#runResultsTable {
@@ -609,6 +645,21 @@ QTabBar::tab {
 QTabBar::tab:selected {
     background: #315a70;
     color: #ffffff;
+}
+
+/* The selected tab of a tab bar with the keyboard focus has the action colour inside a 2 px #0b2430 border, which has a
+   contrast of 3.1:1 with that face and more than 10:1 with the tabs and the pane around it; the white text has 5.2:1. The
+   padding gives up the extra pixel, so the text does not move. */
+QTabBar::tab:selected:focus {
+    background: #2e7491;
+    border: 2px solid #0b2430;
+    padding: 3px 11px;
+}
+
+/* A tab of a group of docked tabs shortens its name with an ellipsis when the group is narrow, down to 3 em of name; the
+   bar scrolls when the tabs still do not fit. The tooltip of a tab gives its whole name. */
+QMainWindow > QTabBar::tab {
+    min-width: 3em;
 }
 
 /* The scroll buttons of a group of docked tabs have the face of a tab and the arrows of a drop-down list turned to the side.
@@ -739,13 +790,15 @@ QLabel#resultContextText {
     color: #5b6871;
 }
 
+/* The 2 px border of the network view turns from #3a4a54 to #8fbcd4 while the view has the keyboard focus; the two have a
+   contrast of 4.5:1, and #8fbcd4 has 8.6:1 with the canvas. */
 QGraphicsView#networkView {
     background: #12191f;
     border: 2px solid #3a4a54;
 }
 
 QGraphicsView#networkView:focus {
-    border-color: #5f8fa8;
+    border-color: #8fbcd4;
 }
 
 QScrollBar:vertical, QScrollBar:horizontal {

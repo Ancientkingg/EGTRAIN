@@ -72,6 +72,7 @@
 #include <QHeaderView>
 #include <QHelpEvent>
 #include <QIODevice>
+#include <QImage>
 #include <QInputDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -4864,7 +4865,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 				services->pages()->setCurrentIndex(0);
 			}
-			// With Incidents as a fifth editor the tabs of the group keep their whole names and scroll.
+			// With Incidents as a fifth editor the tabs of the group are all in view, and the tooltip of each, which Qt sets, gives
+			// its whole name. A group too narrow for the tabs with 3 em of name each scrolls.
 			w.m_editorActions.value(w.m_incidentDock)->trigger();
 			QApplication::processEvents();
 			const QTabBar* editorTabs = nullptr;
@@ -4872,8 +4874,102 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				for (int index = 0; index < bar->count(); ++index)
 					if (bar->isVisible() && bar->tabText(index) == w.m_caseSettingsDock->windowTitle())
 						editorTabs = bar;
-			if (!editorTabs || editorTabs->count() != 5 || editorTabs->elideMode() != Qt::ElideNone || !editorTabs->usesScrollButtons())
-				facetFailure(ok, "presentation", "the tabs of five editors are cut instead of scrolling");
+			const auto allInView = [](const QTabBar* groupBar) {
+				const QList<QToolButton*> scrollButtons = groupBar->findChildren<QToolButton*>();
+				bool allShown = std::none_of(scrollButtons.cbegin(), scrollButtons.cend(), [](const QToolButton* scrollButton) { return scrollButton->isVisible(); });
+				for (int tabIndex = 0; allShown && tabIndex < groupBar->count(); ++tabIndex)
+					allShown = groupBar->tabRect(tabIndex).left() >= 0 && groupBar->tabRect(tabIndex).right() < groupBar->width();
+				return allShown;
+			};
+			bool tabsShown = editorTabs && editorTabs->count() == 5 && editorTabs->elideMode() == Qt::ElideRight && editorTabs->usesScrollButtons()
+				&& allInView(editorTabs);
+			for (int tabIndex = 0; tabsShown && tabIndex < editorTabs->count(); ++tabIndex)
+				tabsShown = !editorTabs->tabText(tabIndex).isEmpty() && editorTabs->tabToolTip(tabIndex) == editorTabs->tabText(tabIndex);
+			if (!tabsShown)
+				facetFailure(ok, "presentation", "the tabs of five editors are not all in view with their names as tooltips");
+			else {
+				const int groupWidth = w.m_incidentDock->width();
+				const int wholeWidth = editorTabs->sizeHint().width();
+				const auto groupTo = [&w](int targetWidth) {
+					w.resizeDocks({w.m_incidentDock}, {targetWidth}, Qt::Horizontal);
+					QApplication::processEvents();
+				};
+				groupTo(wholeWidth);
+				// The room that a tab takes beside its name, which is whole at this width.
+				const int beside = editorTabs->tabRect(0).width() - editorTabs->fontMetrics().horizontalAdvance(editorTabs->tabText(0));
+				groupTo(wholeWidth / 2);
+				bool tabsScroll = !allInView(editorTabs);
+				for (int tabIndex = 0; tabsScroll && tabIndex < editorTabs->count(); ++tabIndex)
+					tabsScroll = editorTabs->tabRect(tabIndex).width() - beside >= 3 * editorTabs->fontMetrics().height() - 1;
+				groupTo(groupWidth);
+				if (!tabsScroll)
+					facetFailure(ok, "presentation", "the tabs of five editors in a narrow group do not scroll with 3 em of name each");
+			}
+			// Keyboard focus shows on a tab bar inside an editor, on the lists and tables of the editors and on the network view:
+			// the edge of each changes by at least 3:1. The name of the selected service has at least 4.5:1 with its row, with the
+			// focus on the list and elsewhere.
+			const auto contrastOf = [](const QColor& oneColour, const QColor& otherColour) {
+				const auto luminanceOf = [](const QColor& tint) {
+					const auto channelOf = [](qreal channelValue) {
+						return channelValue <= 0.03928 ? channelValue / 12.92 : std::pow((channelValue + 0.055) / 1.055, 2.4);
+					};
+					return 0.2126 * channelOf(tint.redF()) + 0.7152 * channelOf(tint.greenF()) + 0.0722 * channelOf(tint.blueF());
+				};
+				const double lumaOne = luminanceOf(oneColour);
+				const double lumaOther = luminanceOf(otherColour);
+				return (std::max(lumaOne, lumaOther) + 0.05) / (std::min(lumaOne, lumaOther) + 0.05);
+			};
+			QListWidget* serviceList = services->listWidget();
+			const auto focusChange = [&w, serviceList, &contrastOf](QWidget* shotView, int edgeX) {
+				(shotView == w.networkView ? static_cast<QWidget*>(serviceList) : w.networkView)->setFocus(Qt::TabFocusReason);
+				QApplication::processEvents();
+				const QImage unfocusedShot = shotView->grab().toImage();
+				shotView->setFocus(Qt::TabFocusReason);
+				QApplication::processEvents();
+				const QImage focusedShot = shotView->grab().toImage();
+				const auto edgeOf = [edgeX](const QImage& shot) { return shot.pixelColor(qRound(edgeX * shot.devicePixelRatio()), shot.height() / 2); };
+				return contrastOf(edgeOf(unfocusedShot), edgeOf(focusedShot));
+			};
+			w.activateWindow();
+			w.m_trainUnitDock->raise();
+			units->tabs()->setCurrentIndex(0);
+			QApplication::processEvents();
+			QTabBar* unitTabBar = units->tabs()->tabBar();
+			const double tabChange = focusChange(unitTabBar, unitTabBar->tabRect(0).left());
+			const double tableChange = focusChange(w.m_trainUnitTractionTable, 0);
+			w.m_serviceDock->raise();
+			QApplication::processEvents();
+			const double listChange = focusChange(serviceList, 0);
+			const double canvasChange = focusChange(w.networkView, 0);
+			if (std::min({tabChange, tableChange, listChange, canvasChange}) < 3.0)
+				facetFailure(ok, "presentation",
+					QString("the focus changes the edge of a tab bar by %1:1, of a table by %2:1, of a list by %3:1 and of the network view by %4:1")
+						.arg(tabChange, 0, 'f', 2)
+						.arg(tableChange, 0, 'f', 2)
+						.arg(listChange, 0, 'f', 2)
+						.arg(canvasChange, 0, 'f', 2));
+			if (serviceList->count() > 0) {
+				const int selectedService = std::max(serviceList->currentRow(), 0);
+				serviceList->setCurrentRow(selectedService);
+				QStringList unreadable;
+				for (QWidget* focusTarget : {static_cast<QWidget*>(serviceList), static_cast<QWidget*>(w.networkView)}) {
+					focusTarget->setFocus(Qt::TabFocusReason);
+					QApplication::processEvents();
+					const QImage serviceRow =
+						serviceList->viewport()->grab(serviceList->visualItemRect(serviceList->item(selectedService)) & serviceList->viewport()->rect()).toImage();
+					const QColor faceColour = serviceRow.pixelColor(serviceRow.width() - 3, 2);
+					double textContrast = 1.0;
+					for (int pixelY = 0; pixelY < serviceRow.height(); ++pixelY)
+						for (int pixelX = 0; pixelX < serviceRow.width(); ++pixelX)
+							textContrast = std::max(textContrast, contrastOf(faceColour, serviceRow.pixelColor(pixelX, pixelY)));
+					if (textContrast < 4.5)
+						unreadable << QString("%1:1 on %2 with the focus %3")
+										  .arg(textContrast, 0, 'f', 2)
+										  .arg(faceColour.name(), focusTarget == serviceList ? QString("on the list") : QString("elsewhere"));
+				}
+				if (!unreadable.isEmpty())
+					facetFailure(ok, "presentation", QString("the name of the selected service has %1").arg(unreadable.join(", ")));
+			}
 			// Tab and Shift+Tab go from the network view round the window and back. They reach the editor in front, also just after
 			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, the scroll buttons of all tab bars
 			// and the scroll areas. They also leave the tables of the editors, whose cells take the arrow keys.
