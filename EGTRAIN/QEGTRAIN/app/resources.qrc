@@ -21,6 +21,10 @@
         <file alias="icons/drop-down-arrow-disabled.svg">../resources/icons/drop-down-arrow-disabled.svg</file>
         <file alias="icons/spin-up-arrow.svg">../resources/icons/spin-up-arrow.svg</file>
         <file alias="icons/spin-up-arrow-disabled.svg">../resources/icons/spin-up-arrow-disabled.svg</file>
+        <file alias="icons/scroll-left-arrow.svg">../resources/icons/scroll-left-arrow.svg</file>
+        <file alias="icons/scroll-left-arrow-disabled.svg">../resources/icons/scroll-left-arrow-disabled.svg</file>
+        <file alias="icons/scroll-right-arrow.svg">../resources/icons/scroll-right-arrow.svg</file>
+        <file alias="icons/scroll-right-arrow-disabled.svg">../resources/icons/scroll-right-arrow-disabled.svg</file>
         <file alias="icons/zoom-in.svg">../resources/icons/zoom-in.svg</file>
         <file alias="icons/zoom-out.svg">../resources/icons/zoom-out.svg</file>
         <file alias="icons/follow.svg">../resources/icons/follow.svg</file>
