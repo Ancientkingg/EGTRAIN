@@ -25,7 +25,6 @@
 #include <QVBoxLayout>
 
 #include <algorithm>
-#include <cmath>
 #include <limits>
 #include <string>
 #include <vector>
@@ -55,9 +54,7 @@ public:
 	}
 
 	QString displayText(const QVariant& value, const QLocale&) const override {
-		const double number = value.toDouble();
-		const double magnitude = std::fabs(number);
-		return magnitude >= 999999.5 && magnitude < 1e15 ? QString::number(number, 'f', 0) : QString::number(number, 'g', 6);
+		return CompactDoubleSpinBox::compactText(value.toDouble());
 	}
 
 	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const override {
