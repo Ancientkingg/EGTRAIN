@@ -306,16 +306,21 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				if (!dialog || !dialog->isVisible() || !dialog->isModal()
 					|| dialog->windowTitle() != QStringLiteral("Capacity"))
 					continue;
+				const QList<QComboBox*> combos = dialog->findChildren<QComboBox*>();
 				QComboBox* cycleEnd = nullptr;
-				for (QComboBox* combo : dialog->findChildren<QComboBox*>())
+				for (QComboBox* combo : combos)
 					if (combo->count() >= 3
 						&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
 						cycleEnd = combo;
 				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
-				if (!cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
+				if (combos.size() != 4 || !cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
 					fail(QStringLiteral("capacity scope controls are incomplete"));
 					return;
 				}
+				// The whole first route: the smoke script compares its sections with those of the blocking-time export.
+				combos[0]->setCurrentIndex(0);
+				combos[1]->setCurrentIndex(0);
+				combos[2]->setCurrentIndex(combos[2]->count() - 1);
 				// A long occurrence row is cut with an ellipsis at the edge of its list.
 				const auto* occurrences = dialog->findChild<QListWidget*>();
 				if (!occurrences || occurrences->count() == 0
@@ -2185,6 +2190,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
 			return;
 		}
+		// Tab leaves a table for the buttons of the window; the arrow keys move between the cells.
+		if (pairTable->tabKeyNavigation() || compressionTable->tabKeyNavigation() || criticalTable->tabKeyNavigation()) {
+			fail(QStringLiteral("Tab moves between the cells of a capacity table and does not leave it"));
+			return;
+		}
 		const auto capacityLabels = capacity->findChildren<QLabel*>("resultContextText");
 		const bool validCapacityPercentage = std::any_of(capacityLabels.cbegin(), capacityLabels.cend(),
 			[](const QLabel* label) {
@@ -2245,6 +2255,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity by area did not open and export through public controls"));
 			return;
 		}
+		for (const QTableWidget* table : area->findChildren<QTableWidget*>())
+			if (table->tabKeyNavigation()) {
+				fail(QStringLiteral("Tab moves between the cells of a capacity by area table and does not leave it"));
+				return;
+			}
 		// A second window of capacity by area does not open on top of the first.
 		acceptAreaCapacityScope();
 		areaButton->trigger();

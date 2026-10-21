@@ -104,6 +104,7 @@ static bool exerciseButtonDefaults() {
 	if (!ok) return false;
 	ok &= buttonFlags(window, "timetable window button");
 	ok &= expect(csv->isVisible() && csv->isEnabled(), "timetable window shows Export CSV with a provider");
+	ok &= expect(!table->tabKeyNavigation(), "Tab leaves the timetable table");
 	table->setCurrentCell(0, 0);
 	table->setFocus();
 	pressKey(table, Qt::Key_Return);

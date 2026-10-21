@@ -36,7 +36,8 @@ CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& dat
 QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
 
 /// Asks for a route, a range of its blocks, a period, the occurrences to analyse in order and the occurrence that closes
-/// the cycle. On accept the scope holds the choice. False when the dialog is cancelled or the run has no route.
+/// the cycle. It opens on the route and section of the scope when the run has them, else on the whole first route. On
+/// accept the scope holds the choice. False when the dialog is cancelled or the run has no route.
 bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope);
 
 #endif

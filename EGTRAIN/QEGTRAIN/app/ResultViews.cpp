@@ -738,6 +738,8 @@ void ResultViews::showCapacityAnalysis() {
 		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		table->setSelectionBehavior(QAbstractItemView::SelectRows);
 		table->setAlternatingRowColors(true);
+		// Tab leaves the table for the buttons below it; the arrow keys move between the cells.
+		table->setTabKeyNavigation(false);
 		table->horizontalHeader()->setStretchLastSection(true);
 		tabs->addTab(table, QString());
 		return table;
@@ -804,10 +806,11 @@ void ResultViews::showCapacityAnalysis() {
 
 	auto* secondaryActions = new QHBoxLayout();
 	QPushButton* exportButton = new QPushButton("Export capacity CSV...", body);
-	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
+	// The file dialog and its messages belong to the Capacity window, so the focus returns to it.
+	connect(exportButton, &QPushButton::clicked, dialog, [this, dialog, result, sectionLabel, provenance]() {
 		const auto operation = m_host.captureTelemetryOperation();
 		saveCsvInteractive(
-			m_window, "capacity_analysis.csv", operation,
+			dialog, "capacity_analysis.csv", operation,
 			[result, sectionLabel] { return capacityAnalysisCsv(result, sectionLabel); },
 			[provenance](const QString& path, const std::string& bytes) {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);

@@ -152,6 +152,8 @@ QTableWidget* makeTable(QWidget* parent, const char* name, const QStringList& he
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	table->setAlternatingRowColors(true);
+	// Tab leaves the table for the next control; the arrow keys move between the cells.
+	table->setTabKeyNavigation(false);
 	table->horizontalHeader()->setStretchLastSection(true);
 	table->verticalHeader()->setVisible(false);
 	return table;
