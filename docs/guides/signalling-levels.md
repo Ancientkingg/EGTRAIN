@@ -600,15 +600,15 @@ independent. Changing one does not change the others.
 
 | | Signalling area | Physical block section | Scope of a capacity analysis |
 | --- | --- | --- | --- |
-| What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and a block range that the user chooses for one analysis |
+| What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and the blocks of it that the trains the user checks all occupy, for one analysis |
 | Where it is stored | `signalling.json`, `signalling_areas[]` | `infrastructure.json`, `blocks[]`: `id`, `track` and `length_km`; blocks follow each other along the track. Connections derive switch sections | Not stored in the scene. There is no such object |
-| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, first and last block, trains and period, from the blocking times of the run (`diagrams/CapacityAnalysis`) |
+| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, trains and period; the blocks follow from the trains and the blocking times of the run (`diagrams/CapacityScope`, `diagrams/CapacityAnalysis`) |
 | What it decides | The level of every section that it contains | What a train occupies, and where an aspect is written | Which blocking times enter the analysis |
 | Depends on | The sections | The tracks and blocks | The blocking times, which are computed only at levels 0, 2, 3 and 4 |
 
 Areas are measured against block sections, never the other way round. A
 block section has the level of the area that contains it, or none. The capacity
-analysis uses blocks that the user selects. Its scope does not follow the
+analysis uses the blocks that the selected trains share. Its scope does not follow the
 signalling areas, and a signalling area does not follow the scope. A section
 without a level or with level 1 or 5 has no blocking times, so the capacity
 analysis has no data for it.
@@ -652,8 +652,8 @@ import still reports the historical TXT file and converts none of its rows.
 This preserves canonical assignments exported by EGTRAIN without interpreting
 ambiguous historical signalling/capacity rows or creating capacity areas.
 
-The Capacity window uses a route and a block range as its scope, not
-signalling areas; [How capacity is analysed](capacity-analysis.md)
+The Capacity window uses a route and the blocks that the chosen trains share as
+its scope, not signalling areas; [How capacity is analysed](capacity-analysis.md)
 describes the scope and the area calculation that older versions had.
 
 Signals and track detection sections are a fourth thing. `signals[]` bind to a

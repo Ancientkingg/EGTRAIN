@@ -1838,7 +1838,7 @@ int main(int argc, char* argv[]) {
 	for (const QString& warning : {scientificWarning,
 			 QStringLiteral("Stop arrivals/departures and dwell, not continuous movement. Ambiguous/unmapped portions omitted; no extrapolation."),
 			 QStringLiteral("Calculated envelopes, not observed occupation; movement only within scope. Unmapped endpoints/events omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation."),
-			 QStringLiteral("Shifted calculated envelopes, not recorded movement. Unmapped/incomplete blocks omitted; no extrapolation.")}) {
+			 QStringLiteral("Calculated envelopes and recorded movement, each train moved by the shift of its occupations; movement only within its envelopes. Unmapped endpoints omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation.")}) {
 		input.setPresentation("Scientific interpretation", longContext, warning);
 		app.processEvents();
 		const auto* label = input.findChild<QLabel*>("diagramWarning");

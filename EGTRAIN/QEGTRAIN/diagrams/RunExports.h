@@ -96,7 +96,8 @@ struct BlockingTimeDiagramData {
 	std::vector<std::vector<BlockingTimePlannedReference>> plannedLines;
 	std::vector<BlockingTimeTrajectory> trajectories;	  ///< Recorded samples that lie inside an envelope of their train
 	std::vector<std::vector<std::string>> trajectoryRows; ///< The export rows of the trajectories
-	/// Elapsed seconds that the chart spans: the interval of the scope, at least 1 s.
+	/// Elapsed seconds that the chart spans: the interval of the scope, at least 1 s. For a compressed diagram, the
+	/// envelopes with a margin (see compressedBlockingTimeDiagramData).
 	std::pair<double, double> timeRange;
 	int omitted = 0; ///< Endpoints and events that could not be projected
 };
@@ -104,6 +105,13 @@ struct BlockingTimeDiagramData {
 /// Empty when the scope has no reference route.
 std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRunData& data,
 	const BlockingTimeScope& scope);
+/// The compressed blocking-time diagram of a capacity result, on the route and the blocks of its scope: the compressed
+/// occupations of `result` as envelopes, and the recorded samples of each train of the result that lie inside them,
+/// moved in time as its occupations are (compressed minus profile reference). It has no planned references. The time
+/// range spans the envelopes with a margin of 5 % of their span, at least 1 s, and starts below 0 s only when an envelope
+/// does; it is 0 s to 1 s without an envelope. Empty when the scope has no route.
+std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const CompletedRunData& data,
+	const CapacityAnalysisScope& scope, const CapacityAnalysisResult& result);
 
 /// The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ".
 std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence);
@@ -112,10 +120,6 @@ std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evi
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel);
 /// Empty when the scope has an issue or the occurrences do not form a chain.
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
-
-/// The projection of the route of each train onto a reference route, by train id.
-std::map<std::string, RouteDiagramProjection> routeProjectionsByTrain(const CompletedRunData& data,
-	const RouteDiagramPath& reference);
 
 /// The routes that trains run on, as (route index, route id) in order of first use.
 std::vector<std::pair<int, std::string>> usedRouteReferencesFrom(const CompletedRunData& data);
