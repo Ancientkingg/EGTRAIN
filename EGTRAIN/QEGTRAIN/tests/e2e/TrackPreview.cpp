@@ -289,6 +289,14 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			if (!zoomApplied || qAbs(w.networkView->zoomRatio() - 1.15) > 1e-5
 				|| qAbs(qAbs(w.networkView->transform().m11()) - previewBaseline * 1.15) > 1e-5)
 				fail("viewport", "preview zoom is not relative to the fitted baseline");
+			// After a pan, Zoom In keeps the place in the middle of the view.
+			w.networkView->zoomBy(4.0 / w.networkView->zoomRatio());
+			w.networkView->centerOn(QPointF(previewFitBounds.left() + previewFitBounds.width() * 0.2, previewFitBounds.center().y()));
+			const QPoint viewMiddle = w.networkView->viewport()->rect().center();
+			const QPointF pannedTo = w.networkView->mapToScene(viewMiddle);
+			w.zoomIn();
+			if (QLineF(w.networkView->mapFromScene(pannedTo), viewMiddle).length() > 2.0)
+				fail("viewport", "Zoom In moved the view away from the place it was panned to");
 			w.fitView();
 			if (w.networkView->zoomLabel() != QStringLiteral("Fit")
 				|| w.networkView->topologyBounds() != previewFitBounds)
