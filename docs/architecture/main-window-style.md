@@ -46,6 +46,10 @@ The lists of Rolling stock units, Services, Incidents and Entrance delays show a
 
 EGTRAIN has one light look, also when the system uses a dark appearance. On macOS the application keeps the light Aqua appearance, so native controls, menus, dialogs and title bars stay light. On other systems a dark system palette is replaced by the light standard palette of the widget style, or by the light palette of Fusion when the style follows the dark desktop as Fusion does from Qt 6.5, at startup and whenever the desktop hands over a dark palette later, as a dark XDG desktop portal does, so selected rows, tooltips and charts stay light; Qt 6.8 and later is also asked for the light colour scheme. The title bar belongs to the window manager outside macOS and can still follow a dark system setting.
 
+## Widget style on Windows
+
+Qt 6.7 and later give Windows 11 the `windows11` widget style. EGTRAIN takes `windowsvista`, the style of Qt 5 that its windows were laid out in: with `windows11` the menu bar is 33 px tall instead of 22 px at 100 %, spin boxes are 2 px taller, and with Paimpol open on a 1024 x 768 screen Case and Layers needs a scroll bar. The `-style` option and `QT_STYLE_OVERRIDE` still choose another style.
+
 ## Focus and buttons
 
 A focused push button shows a 2 px `#2e7491` border and no rectangle around its text. The filled default button of a dialog shows focus as a 2 px `#0b2430` border. In **Run simulation** only **Run simulation** is filled: **Cancel** keeps the plain face when it has the focus, although Enter then presses it.
