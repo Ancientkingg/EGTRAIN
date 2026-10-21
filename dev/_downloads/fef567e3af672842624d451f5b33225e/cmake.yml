@@ -316,7 +316,7 @@ jobs:
 
       - name: Build with sanitizers
         id: build
-        run: cmake --build build --target QEGTRAIN test_characterization test_networkpresenter test_runtimecanvas
+        run: cmake --build build --target QEGTRAIN test_characterization test_networkpresenter test_runtimecanvas test_guisimulationsnapshot
 
       # Every scene runs once and the script reports all failing scenes together. The log of each run is kept.
       - name: Run the committed scenes headless
@@ -340,6 +340,15 @@ jobs:
           ctest --test-dir build --no-tests=error --output-on-failure \
             --output-log "$RUNNER_TEMP/leak-check/ctest-canvas.log" \
             -R '^(test_networkpresenter|test_runtimecanvas)$'
+
+      # The replay history records, evicts and clears frames, and the bytes it counts are compared with the heap.
+      - name: Record and clear the replay history
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/leak-check"
+          ctest --test-dir build --no-tests=error --output-on-failure \
+            --output-log "$RUNNER_TEMP/leak-check/ctest-replay.log" \
+            -R '^test_guisimulationsnapshot$'
 
       - name: Upload leak check logs
         if: ${{ !cancelled() }}

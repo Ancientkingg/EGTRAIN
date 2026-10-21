@@ -349,9 +349,9 @@ Milano-Brescia Release runs. The protocol and generated record contract are in
 <h2>Leak check<a class="headerlink" href="#leak-check" title="Link to this heading">¶</a></h2>
 <p>LeakSanitizer does not run on macOS with Apple silicon, so the leak check is a Linux job
 of the CMake workflow, <code class="docutils literal notranslate"><span class="pre">leak</span> <span class="pre">check</span> <span class="pre">(Linux)</span></code>. It builds the application,
-<code class="docutils literal notranslate"><span class="pre">test_characterization</span></code>, <code class="docutils literal notranslate"><span class="pre">test_networkpresenter</span></code> and <code class="docutils literal notranslate"><span class="pre">test_runtimecanvas</span></code> in a Debug configuration with
-<code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_ENABLE_SANITIZERS=ON</span></code>, starts them with <code class="docutils literal notranslate"><span class="pre">ASAN_OPTIONS=detect_leaks=1</span></code>, and fails on any leak
-or double free. It has three parts:</p>
+<code class="docutils literal notranslate"><span class="pre">test_characterization</span></code>, <code class="docutils literal notranslate"><span class="pre">test_networkpresenter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_runtimecanvas</span></code> and <code class="docutils literal notranslate"><span class="pre">test_guisimulationsnapshot</span></code> in a
+Debug configuration with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_ENABLE_SANITIZERS=ON</span></code>, starts them with <code class="docutils literal notranslate"><span class="pre">ASAN_OPTIONS=detect_leaks=1</span></code>,
+and fails on any leak or double free. It has four parts:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">tools/e2e/leak_check_smoke.py</span></code> runs every scene directory below <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/Scenes</span></code>
 headless, once, with <code class="docutils literal notranslate"><span class="pre">-h</span> <span class="pre">600</span> <span class="pre">--detailed-trajectories</span></code>. A scene fails when its log holds a
@@ -369,12 +369,15 @@ track preview and the items of a run on a canvas, apply the steps of a run and o
 selection on it, and clear the canvas again, twenty times or more in one process. After each clear
 every registry, every pointer and the scene must be empty, and an item or container that the clear
 does not release is a leak.</p></li>
+<li><p>CTest runs <code class="docutils literal notranslate"><span class="pre">test_guisimulationsnapshot</span></code>. It records, evicts and clears the frames of the replay
+history and compares the bytes the history counts with the bytes it holds on the heap. Under the
+sanitizer the heap count comes from AddressSanitizer.</p></li>
 </ul>
 <p>The job runs only in the nightly and the manual run, because the sanitizer build and the
 instrumented runs take longer than the pull request checks. To check a branch before a merge,
 start the workflow by hand from the Actions tab, or with <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">workflow</span> <span class="pre">run</span> <span class="pre">cmake.yml</span> <span class="pre">--ref</span> <span class="pre">BRANCH</span></code>;
 the other legs start with it. The artifact <code class="docutils literal notranslate"><span class="pre">leak-check-logs</span></code> holds one <code class="docutils literal notranslate"><span class="pre">SCENE.log</span></code> per scene and
-<code class="docutils literal notranslate"><span class="pre">ctest-reload.log</span></code> and <code class="docutils literal notranslate"><span class="pre">ctest-canvas.log</span></code>, also when the job fails.</p>
+<code class="docutils literal notranslate"><span class="pre">ctest-reload.log</span></code>, <code class="docutils literal notranslate"><span class="pre">ctest-canvas.log</span></code> and <code class="docutils literal notranslate"><span class="pre">ctest-replay.log</span></code>, also when the job fails.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tools/e2e/lsan_suppressions.txt</span></code> lists the known leaks. Add one rule for each, with a comment that
 names the cause and the change that removes the leak, or the library that owns it. A leak of the
 simulation is fixed, not listed.</p>
