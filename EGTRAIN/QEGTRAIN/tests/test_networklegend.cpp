@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QRegularExpression>
 #include <QScrollArea>
+#include <QTextLayout>
 #include <QToolButton>
 
 #include <algorithm>
@@ -309,6 +310,26 @@ int main(int argc, char* argv[]) {
 					"wrapped map key text stays within its own row");
 			}
 		}
+	}
+
+	// The label wraps its text as a QTextLayout with word wrap does. No width up to its maximum starts a line inside km/h.
+	auto* highSpeed = constrainedLegend->findChild<QLabel*>("mapKeyEntry0");
+	ok &= expect(highSpeed && highSpeed->text().startsWith("High speed track"), "the first row is the high speed track");
+	if (highSpeed) {
+		const QString text = highSpeed->text();
+		const int unitStart = text.indexOf("km");
+		const int unitEnd = text.indexOf('h', unitStart);
+		bool unitWhole = unitStart > 0 && unitEnd > unitStart;
+		for (int width = 1; width <= highSpeed->maximumWidth(); ++width) {
+			QTextLayout layout(text, highSpeed->font());
+			layout.beginLayout();
+			for (QTextLine line = layout.createLine(); line.isValid(); line = layout.createLine()) {
+				line.setLineWidth(width);
+				unitWhole = unitWhole && (line.textStart() <= unitStart || line.textStart() > unitEnd);
+			}
+			layout.endLayout();
+		}
+		ok &= expect(unitWhole, "the high speed row never breaks a line inside km/h");
 	}
 
 	return ok ? 0 : 1;

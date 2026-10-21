@@ -4,6 +4,8 @@
 #include <QChildEvent>
 #include <QComboBox>
 #include <QEvent>
+#include <QFocusEvent>
+#include <QLineEdit>
 #include <QObject>
 #include <QSlider>
 #include <QWidget>
@@ -53,7 +55,8 @@ inline void guardAll(QWidget* root) {
 }
 
 /// Keeps every field of root guarded, also the fields that a table, a tab or a later refresh adds after the call. A new
-/// widget is guarded when it is polished, before it can be shown and meet the wheel.
+/// widget is guarded when it is polished, before it can be shown and meet the wheel. A line edit that the focus leaves
+/// shows the start of its text again.
 class Watcher : public QObject {
 public:
 	/// Guards the fields of root and watches it and its descendants. root owns the watcher.
@@ -62,11 +65,18 @@ public:
 	}
 
 protected:
-	/// Guards and watches a child widget when it is polished.
+	/// Guards and watches a child widget when it is polished, and moves the cursor of a line edit that loses the focus
+	/// to the start.
 	bool eventFilter(QObject* watched, QEvent* event) override {
 		if (event->type() == QEvent::ChildPolished) {
 			if (auto* child = qobject_cast<QWidget*>(static_cast<QChildEvent*>(event)->child()))
 				add(child);
+		} else if (event->type() == QEvent::FocusOut) {
+			// The cursor stays while a popup, the menu bar or another window has the focus, which then comes back to the field.
+			const Qt::FocusReason reason = static_cast<QFocusEvent*>(event)->reason();
+			auto* edit = qobject_cast<QLineEdit*>(watched);
+			if (edit && reason != Qt::PopupFocusReason && reason != Qt::MenuBarFocusReason && reason != Qt::ActiveWindowFocusReason)
+				edit->setCursorPosition(0);
 		}
 		return QObject::eventFilter(watched, event);
 	}
