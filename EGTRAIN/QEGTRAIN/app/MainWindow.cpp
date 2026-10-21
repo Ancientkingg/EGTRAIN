@@ -193,6 +193,7 @@
 #include <QMimeData>
 #include <QTemporaryDir>
 #include <QToolButton>
+#include <QStyleOptionMenuItem>
 #include <QStyleOptionSlider>
 #include <QStylePainter>
 #include <QUrl>
@@ -253,14 +254,31 @@ public:
 	explicit ElidedComboBox(QWidget* parent) : QComboBox(parent) {}
 	// As in ChoiceComboBox: the list was made before the field had focus, so it is brought up to date with the padding of
 	// the focused field first; else it opens too short and scrolls. The field is as narrow as the toolbar needs, so the
-	// list is then made as wide as its longest entry, which shows the state and the scheduled time after a long name.
+	// list is then made as wide as its longest entry, which shows the state and the scheduled time after a long name. A
+	// style that draws the list as a menu, as on macOS, puts each entry after room for a check mark, so there an entry
+	// needs the width of a menu item with its text.
 	void showPopup() override {
 		QAbstractItemView* list = view();
 		QEvent styleChange(QEvent::StyleChange);
 		QCoreApplication::sendEvent(list->window(), &styleChange);
+		QStyleOptionComboBox field;
+		initStyleOption(&field);
+		const bool menu = style()->styleHint(QStyle::SH_ComboBox_Popup, &field, this);
+		const QFontMetrics metrics = list->fontMetrics();
 		int widest = list->sizeHintForColumn(0);
-		for (int row = 0; row < count(); ++row)
-			widest = qMax(widest, list->fontMetrics().horizontalAdvance(itemText(row)));
+		for (int row = 0; row < count(); ++row) {
+			QSize entry(metrics.horizontalAdvance(itemText(row)), metrics.height());
+			if (menu) {
+				QStyleOptionMenuItem item;
+				item.initFrom(list);
+				item.font = list->font();
+				item.menuItemType = QStyleOptionMenuItem::Normal;
+				item.checkType = QStyleOptionMenuItem::NonExclusive;
+				item.text = itemText(row);
+				entry = style()->sizeFromContents(QStyle::CT_MenuItem, &item, entry, this);
+			}
+			widest = qMax(widest, entry.width());
+		}
 		list->setMinimumWidth(qMax(width(), widest + 2 * list->frameWidth() + list->verticalScrollBar()->sizeHint().width()));
 		QComboBox::showPopup();
 	}
