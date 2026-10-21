@@ -98,7 +98,7 @@ What exists. The offscreen smokes already save the main window and some dialogs 
 Process:
 
 1. A test program in `EGTRAIN/QEGTRAIN/tests/e2e/` opens a named case, puts the window in a named state and saves each picture with `grab()`.
-2. `tools/docs/capture_screenshots.sh` runs it with `QT_QPA_PLATFORM=offscreen` in a Qt 5 build on macOS arm64 and writes `docs/images/` and `docs/images/captures.json`. Running it again regenerates every capture.
+2. `tools/docs/capture_screenshots.sh` runs it with `QT_QPA_PLATFORM=offscreen` in a Qt 6 build on macOS arm64 and writes `docs/images/` and `docs/images/captures.json`. Running it again regenerates every capture.
 3. `captures.json` lists, for each file, its case, state, size and the application version. A picture that cannot be scripted is marked manual there, with the steps to take it.
 4. Names are `<page>-<subject>.png`, lower case with hyphens, for example `getting-started-open-a-case.png`.
 5. Window captures are 1200 by 750 pixels at a device pixel ratio of 1. Dialogs keep their natural size. Nothing is wider than 1200 pixels.
