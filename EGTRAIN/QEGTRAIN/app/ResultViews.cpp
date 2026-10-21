@@ -22,6 +22,7 @@
 #include "util/TimeFormat.h"
 #include "util/TrajectoryUtil.h"
 #include "widgets/DialogLayout.h"
+#include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -696,10 +697,13 @@ void ResultViews::showCapacityAnalysis() {
 		return QString();
 	};
 	auto* detailsToggle = new QToolButton(body);
+	detailsToggle->setObjectName("capacityDetailsToggle");
 	detailsToggle->setText("Calculation details");
 	detailsToggle->setCheckable(true);
 	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	detailsToggle->setArrowType(Qt::RightArrow);
+	// The text size of the dialog; macOS gives a tool button a smaller font.
+	detailsToggle->setFont(QApplication::font());
 	auto* details = new QLabel(QString("Cycle / occupation time: %1 s; period: %2 s; cycle / period × 100: %3%.\n"
 									   "Cycle start: %4 (%5); cycle end: %6 (%7). Conflict-free compressed occupations. "
 									   "Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")

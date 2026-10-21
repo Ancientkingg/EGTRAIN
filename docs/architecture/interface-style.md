@@ -42,7 +42,7 @@ Contrast ratios follow the WCAG formula for the pair named in the last column.
 | Disabled text | `#64717a` | disabled controls and menu items | 4.3:1 on disabled fill, 4.5:1 on window |
 | Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, progress fill, slider, links of About | white on accent 7.4:1 |
 | Accent dark | `#26495c` | hover of the slider handle | white on it 9.6:1 |
-| Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, the Run details toggle, fields, and the lists and tables of a dialog | white on it 5.2:1, 5.2:1 on field |
+| Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog | white on it 5.2:1, 5.2:1 on field |
 | Action hover | `#296882` | default button under the pointer | white on it 6.2:1 |
 | Action pressed | `#23566c` | default button while pressed | white on it 8.0:1 |
 | Action focus | `#0b2430` | focus border of the default button | 3.1:1 on action, 15:1 on surface |
@@ -71,7 +71,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 | Enabled | Field fill with the control border, also for toolbar buttons |
 | Hover | Push buttons, toolbar buttons and fields: control hover border. Other tool buttons: accent border and band fill. Default button: action hover fill |
 | Pressed | Push buttons and toolbar buttons: band fill. Default button: action pressed fill |
-| Focused | Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Default button: a 2 px action focus border. Run details in the run review: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border |
+| Focused | Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Default button: a 2 px action focus border. Run details in the run review and Calculation details in the capacity analysis: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border |
 | Disabled | Disabled fill, border colour and disabled text |
 | Selected | Item views use the platform selection colour; menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text |
 | Invalid | Fields are not recoloured. The message goes in a status label beside them (`DialogLayout::setStatus`, error or warning tokens), and the Scene Validation dock lists every issue |

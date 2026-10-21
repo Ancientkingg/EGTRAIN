@@ -518,13 +518,16 @@ QDialog#caseChooserDialog QListWidget::item:selected {
     color: #24313a;
 }
 
-/* The Run details toggle has the corners of a dialog button and shows keyboard focus with its 2 px action border. The
-   padding gives up the extra pixel, so the arrow and the text do not move. */
-QToolButton#runReviewDetailsToggle {
+/* The Run details toggle and the Calculation details toggle of the capacity analysis have the corners of a dialog button
+   and show keyboard focus with its 2 px action border. The padding gives up the extra pixel, so the arrow and the text do
+   not move. */
+QToolButton#runReviewDetailsToggle,
+QToolButton#capacityDetailsToggle {
     border-radius: 6px;
 }
 
-QToolButton#runReviewDetailsToggle:focus {
+QToolButton#runReviewDetailsToggle:focus,
+QToolButton#capacityDetailsToggle:focus {
     border: 2px solid #2e7491;
     padding: 2px 5px;
 }
