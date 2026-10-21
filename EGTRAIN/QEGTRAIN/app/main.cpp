@@ -19,12 +19,12 @@
 #include "update/UpdateSettings.h"
 #include "util/Log.h"
 #include "widgets/ConsoleWidget.h"
+#include "widgets/LightPalette.h"
 #include <algorithm>
 #include <climits>
 #include <exception>
 #include <iomanip>
 #include <iterator>
-#include <memory>
 #include <optional>
 #include "util/portability.h"
 #include <QDir>
@@ -34,7 +34,6 @@
 #include <QPalette>
 #include <QStringList>
 #include <QStyle>
-#include <QStyleFactory>
 #include <QStyleHints>
 #include <QTimer>
 #include <QToolTip>
@@ -68,9 +67,9 @@ static void keepLightPalette() {
 	if (palette.color(QPalette::Window).lightness() >= palette.color(QPalette::WindowText).lightness())
 		return;
 	QPalette light = QApplication::style()->standardPalette();
-	// A style can take its standard palette from the desktop as well; Fusion's is always light.
+	// A style can take its standard palette from the desktop as well, Fusion's too from Qt 6.5.
 	if (light.color(QPalette::Window).lightness() < light.color(QPalette::WindowText).lightness())
-		light = std::unique_ptr<QStyle>(QStyleFactory::create(QStringLiteral("Fusion")))->standardPalette();
+		light = lightFusionPalette();
 	QApplication::setPalette(light);
 	QToolTip::setPalette(light);
 }

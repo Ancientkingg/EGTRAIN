@@ -44,7 +44,7 @@ The lists of Rolling stock units, Services, Incidents and Entrance delays show a
 
 ## Light look
 
-EGTRAIN has one light look, also when the system uses a dark appearance. On macOS the application keeps the light Aqua appearance, so native controls, menus, dialogs and title bars stay light. On other systems a dark system palette is replaced by the light standard palette of the widget style, at startup and whenever the desktop hands over a dark palette later, as a dark XDG desktop portal does, so selected rows, tooltips and charts stay light; Qt 6.8 and later is also asked for the light colour scheme. The title bar belongs to the window manager outside macOS and can still follow a dark system setting.
+EGTRAIN has one light look, also when the system uses a dark appearance. On macOS the application keeps the light Aqua appearance, so native controls, menus, dialogs and title bars stay light. On other systems a dark system palette is replaced by the light standard palette of the widget style, or by the light palette of Fusion when the style follows the dark desktop as Fusion does from Qt 6.5, at startup and whenever the desktop hands over a dark palette later, as a dark XDG desktop portal does, so selected rows, tooltips and charts stay light; Qt 6.8 and later is also asked for the light colour scheme. The title bar belongs to the window manager outside macOS and can still follow a dark system setting.
 
 ## Focus and buttons
 
