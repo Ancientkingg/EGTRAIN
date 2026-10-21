@@ -1,15 +1,19 @@
 <map id="widgets/TimeProgressBar.cpp" name="widgets/TimeProgressBar.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="345,5,560,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="444,5,659,31"/>
 <area shape="rect" id="Node000002" href="$_time_progress_bar_8h.html" title=" " alt="" coords="5,79,204,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="397,33,175,78,174,73,396,28"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="480,33,191,79,190,74,479,28"/>
 <area shape="rect" id="Node000004" href="$_time_format_8h.html" title=" " alt="" coords="229,79,367,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="429,33,337,75,335,70,427,28"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="391,79,514,104"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="455,31,455,65,450,65,450,31"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="538,79,725,104"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="482,28,591,71,589,76,480,33"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="749,79,860,104"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="510,28,736,74,735,79,509,33"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="511,33,353,77,352,72,510,28"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="391,79,466,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="533,33,462,74,459,69,530,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="490,79,613,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="554,31,554,65,549,65,549,31"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="637,79,823,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="581,28,689,71,687,76,579,33"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="848,79,959,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="608,28,835,74,834,79,607,33"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="983,79,1061,104"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="648,28,796,48,969,76,969,81,795,53,647,33"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="49,152,160,177"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,104,107,138,102,138,102,104"/>
 <area shape="rect" id="Node000005" title=" " alt="" coords="226,152,285,177"/>

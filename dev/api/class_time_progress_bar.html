@@ -135,7 +135,7 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a232f0e0910a4203d374fe25d0c722ecb" id="r_a232f0e0910a4203d374fe25d0c722ecb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a232f0e0910a4203d374fe25d0c722ecb">paintEvent</a> (QPaintEvent *event) override</td></tr>
-<tr class="memdesc:a232f0e0910a4203d374fe25d0c722ecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the bar, then the filled part again with its text in the highlighted text colour.  <br /></td></tr>
+<tr class="memdesc:a232f0e0910a4203d374fe25d0c722ecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the bar with its text 6 pixels inside the edges, in the highlighted text colour on the filled part.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The progress bar of a run under the network: how far the run is, as the clock time and the end time, with the step in its tooltip. It ignores mouse and wheel input, so it shows the run and does not scrub it. </p>
@@ -208,7 +208,7 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Draws the bar, then the filled part again with its text in the highlighted text colour. </p>
+<p>Draws the bar with its text 6 pixels inside the edges, in the highlighted text colour on the filled part. </p>
 
 </div>
 </div>
@@ -235,7 +235,7 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows step <span class="tt"><a class="el" href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa" title="The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...">timestep</a></span> (from 0) of a run of <span class="tt">totalSteps</span> steps, clamped to the run, as "&lt;clock&gt; of &lt;end clock&gt;" with the tooltip "Step &lt;n&gt; of &lt;total&gt;". The clock times take one step as one second after <span class="tt">startOffsetSeconds</span>, the base time of the run in seconds since midnight. </p>
+<p>Shows step <span class="tt"><a class="el" href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa" title="The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...">timestep</a></span> (from 0) of a run of <span class="tt">totalSteps</span> steps, clamped to the run, as "&lt;clock&gt; of &lt;end clock&gt;" with the tooltip "Step &lt;n&gt; of &lt;total&gt;", which a shown tooltip of the bar follows. The clock times take one step as one second after <span class="tt">startOffsetSeconds</span>, the base time of the run in seconds since midnight. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
