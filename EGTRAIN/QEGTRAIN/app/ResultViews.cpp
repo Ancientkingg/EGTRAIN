@@ -628,8 +628,10 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 					"movement only within its envelopes. Unmapped endpoints omitted: %1; incomplete/missing-clearance "
 					"blocks omitted. No extrapolation. Envelope colours: blue blocks/stations, yellow switches, red "
 					"conflicts, amber capacity-critical touching blocks.";
-	const QString note = envelopes.arg(diagram.omitted)
-		+ (nothingPlotted ? QString(" No complete envelope could be projected in this scope.") : QString())
+	// Without an envelope that failed to project, no train has a complete envelope in the scope.
+	const QString nothing = unmapped.empty() ? QString(" No train has a complete envelope in this scope.")
+											 : QString(" No complete envelope could be projected in this scope.");
+	const QString note = envelopes.arg(diagram.omitted) + (nothingPlotted ? nothing : QString())
 		+ QString::fromStdString(blockSectionGeometryNote(extents));
 	win->setPresentation(title, context, note);
 	const std::function<std::string(const QStringList&)> scopedCsv =

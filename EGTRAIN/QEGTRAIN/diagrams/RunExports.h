@@ -68,7 +68,7 @@ std::string blockingTimeCsvFrom(const CompletedRunData& data, const QStringList&
 std::vector<BlockingTimeDiagramSegment> blockTimesFrom(const CompletedRunData& data);
 /// The scope of the whole run.
 BlockingTimeScope defaultBlockingTimeScopeFrom(const CompletedRunData& data);
-/// What the scope dialog offers for the run: its routes, its trains and its length.
+/// What the scope dialog offers for the run: its routes and its length.
 BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& data);
 /// The planned arrivals and departures of the trains of the scope at the stops on the scope's blocks, at their position
 /// on the reference route. A reference with a NaN time breaks the line where a stop cannot be projected or lies outside
