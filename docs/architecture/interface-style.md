@@ -16,7 +16,8 @@ Sizes are relative to the font of the widget, so they follow a larger platform f
 | Chart title | 1.25 times | bold | `DiagramWindow::applyChartStyle` |
 | Section heading, table caption | 1.1 times | bold | `EditorLayout::sectionHeading` |
 | Case name | 14 px | 600 | `QLabel#caseNameLabel` |
-| Dock title, table header, Open Case, run review values, group title in a dialog | body | 600 | style sheet |
+| Dock title, Open Case, run review values, group title in a dialog | body | 600 | style sheet |
+| Table header | the platform header font, smaller than the body on macOS | 600 | style sheet |
 | Body text, table cells, controls | body | normal | platform |
 | Small text: case readiness, panel titles, map key | 11 px | normal, or 600 for the titles and the key toggle | style sheet |
 
@@ -78,7 +79,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 
 ## Tables
 
-- The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on `QHeaderView`. Qt sizes header sections with the header font but paints them with the body font, so `MainWindow` gives `QHeaderView` the body font in place of the smaller platform header font of macOS, which would cut the titles.
+- The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on `QHeaderView`; the size is the platform header font.
 - Cells are on the field colour with alternate rows and band-coloured grid lines.
 - In a dialog a table has the control border, a 6 px radius and 2 px of padding, so that the header stays inside the rounded corners.
 - Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that `DelayAnalysisWindow` and `AreaCapacityWindow` name as numeric, and the headways, references, shifts and gaps of the capacity analysis dialog. Names, ids, codes and statuses are aligned to the left. Qt 5 cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.
