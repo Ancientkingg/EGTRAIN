@@ -443,7 +443,8 @@ registers no file type. The job then writes the portable archive from that
 directory, extracts it and starts the extracted program with the same start
 script.</p></li>
 <li><p>The Package Linux job extracts the AppImage and checks the executable,
-the update helper, <code class="docutils literal notranslate"><span class="pre">Scenes/Paimpol</span></code>, the icon, <code class="docutils literal notranslate"><span class="pre">AppRun</span></code> and the Qt libraries.
+the update helper, <code class="docutils literal notranslate"><span class="pre">Scenes/Paimpol</span></code>, the icon, <code class="docutils literal notranslate"><span class="pre">AppRun</span></code>, the Qt libraries and
+the SVG icon engine <code class="docutils literal notranslate"><span class="pre">iconengines/libqsvgicon.so</span></code>.
 It then starts the extracted image through its <code class="docutils literal notranslate"><span class="pre">AppRun</span></code> on a virtual display,
 after it has checked that every Qt and ZeroMQ library of the programs and
 plugins comes from the image and not from the runner.</p></li>
