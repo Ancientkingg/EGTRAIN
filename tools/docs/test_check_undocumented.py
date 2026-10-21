@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from check_undocumented import new_warnings, parse_warnings
+from check_undocumented import inputs_at, new_warnings, parse_warnings
 
 BASE_LOG = """\
 /base/EGTRAIN/QEGTRAIN/scene/A.h:10: warning: Member size() (function) of class A is not documented.
@@ -35,6 +35,12 @@ class NewWarningsTest(unittest.TestCase):
             new_warnings(base, head, changed),
             ["EGTRAIN/QEGTRAIN/scene/A.h: Member clear (function) of class A is not documented."],
         )
+
+
+class InputsAtTest(unittest.TestCase):
+    def test_leaves_out_inputs_that_the_revision_does_not_have(self):
+        # A page that a change adds to INPUT is not in the base yet.
+        self.assertEqual(inputs_at("HEAD", ["EGTRAIN/QEGTRAIN", "docs/no-such-page.dox"]), ["EGTRAIN/QEGTRAIN"])
 
 
 if __name__ == "__main__":

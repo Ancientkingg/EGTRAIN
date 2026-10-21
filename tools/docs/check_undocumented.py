@@ -54,6 +54,16 @@ def git(*arguments, **options):
     return subprocess.run(["git", "-C", str(ROOT), *arguments], check=True, capture_output=True, **options).stdout
 
 
+def inputs_at(revision: str, inputs: list) -> list:
+    """The paths of inputs that revision has, so that a file the change adds to INPUT does not stop git archive."""
+    present = []
+    for path in inputs:
+        check = subprocess.run(["git", "-C", str(ROOT), "cat-file", "-e", f"{revision}:{path}"], capture_output=True)
+        if check.returncode == 0:
+            present.append(path)
+    return present
+
+
 def changed_files(base: str) -> dict:
     changed = {}
     for line in git("diff", "--name-status", "-M", base, text=True).splitlines():
@@ -82,7 +92,7 @@ def main() -> int:
         with tempfile.TemporaryDirectory() as directory:
             scratch = Path(directory).resolve()
             base_tree = scratch / "base"
-            with tarfile.open(fileobj=io.BytesIO(git("archive", base, "--", *inputs))) as archive:
+            with tarfile.open(fileobj=io.BytesIO(git("archive", base, "--", *inputs_at(base, inputs)))) as archive:
                 archive.extractall(base_tree, filter="data")
             base_warnings = doxygen_warnings(base_tree, config, scratch / "base-output")
             head_warnings = doxygen_warnings(ROOT, config, scratch / "head-output")

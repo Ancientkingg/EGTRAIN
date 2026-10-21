@@ -1,0 +1,18 @@
+/**
+\mainpage EGTRAIN C++ reference
+
+EGTRAIN is a railway micro-simulation desktop application in C++17 and Qt 6. This reference covers the application
+source in `EGTRAIN/QEGTRAIN`, without its tests and third-party code. The menus above list its namespaces, classes and
+files, with call and include graphs.
+
+The developer pages explain the code around it:
+
+- <a href="../development/getting-started.html">Getting started as a developer</a>
+- <a href="../development/build.html">Build from source</a> and <a href="../development/testing.html">Testing</a>
+- <a href="../architecture/source-layout.html">QEGTRAIN source layout</a>, which says what each folder holds
+- <a href="../architecture/scene-model.html">V1 Scene Model</a>, the data of a case study
+- <a href="../development/code-documentation-investigation.html">Code documentation investigation</a>, which records how
+  well each folder is documented
+
+The user guides are on the <a href="../index.html">documentation home page</a>.
+*/
