@@ -79,6 +79,12 @@ public:
 
 	/// The index of the train whose details are shown, or -1.
 	int selectedTrainIndex() const { return m_selectedTrainIndex; }
+	/// The kind of the selected item of the track preview, as its PreviewGraphics::Kind role holds it; empty while none is
+	/// selected.
+	QString previewSelectionKind() const { return m_previewSelectionKind; }
+	/// The id of the selected item of the track preview, as its PreviewGraphics::Id role holds it: for a signal head the
+	/// runtime id of its section. Empty while none is selected.
+	QString previewSelectionId() const { return m_previewSelectionId; }
 	/// True when the overlay belongs to the selected station.
 	bool selectsStationOverlay(const StationOverlayItem* overlay) const;
 	/// Forgets the selected station; the window calls this and clearSelectedTrain when it clears the canvas.
@@ -181,6 +187,8 @@ private:
 	// station of the preview is known by its id.
 	QString m_selectedStationName;
 	QString m_previewSelectedStationId;
+	QString m_previewSelectionKind;
+	QString m_previewSelectionId;
 	bool m_hasSelectedStationIdentity = false;
 	double m_selectedStationNodeId = 0.0;
 	int m_selectedStationTrack = -1;

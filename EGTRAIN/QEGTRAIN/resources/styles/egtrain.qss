@@ -66,7 +66,7 @@ QToolButton {
     max-height: 32px;
 }
 
-QToolButton#actionZoomInButton, QToolButton#actionZoomOutButton {
+QToolButton#actionZoomInButton, QToolButton#actionZoomOutButton, QToolButton#incidentPickTargetButton {
     padding: 3px;
 }
 
@@ -83,36 +83,40 @@ QToolButton:disabled {
     color: #64717a;
 }
 
-/* Toolbar buttons, the map key toggle and the train, occurrence and station buttons of a result window have the corners,
-   border and states of a push button: a white face, the control border, a darker border under the pointer, the band face
-   while pressed and a 2 px action border with keyboard focus. The padding gives up the extra pixel of the focus border, so
-   the text and the icon do not move. */
-QToolBar QToolButton, QToolButton#mapKeyToggle, QDialog TrainFilterButton {
+/* Toolbar buttons, the map key toggle, the button that picks the target of an incident and the train, occurrence and
+   station buttons of a result window have the corners, border and states of a push button: a white face, the control
+   border, a darker border under the pointer, the band face while pressed and a 2 px action border with keyboard focus. The
+   padding gives up the extra pixel of the focus border, so the text and the icon do not move. */
+QToolBar QToolButton, QToolButton#mapKeyToggle, QDialog TrainFilterButton, QToolButton#incidentPickTargetButton {
     background: #ffffff;
     border-color: #7b8b96;
     border-radius: 6px;
 }
 
-QToolBar QToolButton:hover, QToolButton#mapKeyToggle:hover, QDialog TrainFilterButton:hover {
+QToolBar QToolButton:hover, QToolButton#mapKeyToggle:hover, QDialog TrainFilterButton:hover,
+QToolButton#incidentPickTargetButton:hover {
     background: #ffffff;
     border-color: #5b6871;
 }
 
-QToolBar QToolButton:focus, QToolButton#mapKeyToggle:focus, QDialog TrainFilterButton:focus {
+QToolBar QToolButton:focus, QToolButton#mapKeyToggle:focus, QDialog TrainFilterButton:focus,
+QToolButton#incidentPickTargetButton:focus {
     background: #ffffff;
     border: 2px solid #2e7491;
     padding: 2px 5px;
 }
 
-QToolButton#actionZoomInButton:focus, QToolButton#actionZoomOutButton:focus {
+QToolButton#actionZoomInButton:focus, QToolButton#actionZoomOutButton:focus,
+QToolButton#incidentPickTargetButton:focus {
     padding: 2px;
 }
 
-QToolBar QToolButton:pressed, QToolButton#mapKeyToggle:pressed, QDialog TrainFilterButton:pressed {
+QToolBar QToolButton:pressed, QToolButton#mapKeyToggle:pressed, QDialog TrainFilterButton:pressed,
+QToolButton#incidentPickTargetButton:pressed {
     background: #e3eaee;
 }
 
-QToolBar QToolButton:disabled, QDialog TrainFilterButton:disabled {
+QToolBar QToolButton:disabled, QDialog TrainFilterButton:disabled, QToolButton#incidentPickTargetButton:disabled {
     background: #eceeec;
     border-color: #c9d3db;
 }
@@ -142,19 +146,26 @@ QToolButton:checked, QToolBar QToolButton:checked {
     color: #ffffff;
 }
 
-QToolButton#actionFollowButton:checked {
+/* Follow and the button that picks the target of an incident keep a light face while checked, so that their dark icons
+   stay readable. */
+QToolButton#actionFollowButton:checked, QToolButton#incidentPickTargetButton:checked {
     background: #d3e3ec;
     border-color: #315a70;
     color: #24313a;
 }
 
-QToolButton#actionFollowButton:checked:hover {
+QToolButton#actionFollowButton:checked:hover, QToolButton#incidentPickTargetButton:checked:hover {
     background: #bcd2df;
     border-color: #24313a;
 }
 
-QToolButton#actionFollowButton:checked:focus {
+QToolButton#actionFollowButton:checked:focus, QToolButton#incidentPickTargetButton:checked:focus {
     border-color: #2e7491;
+}
+
+/* The button that picks the target of an incident has no minimum height, so it is as tall as the combo box beside it. */
+QToolButton#incidentPickTargetButton {
+    min-height: 0;
 }
 
 QDockWidget {
