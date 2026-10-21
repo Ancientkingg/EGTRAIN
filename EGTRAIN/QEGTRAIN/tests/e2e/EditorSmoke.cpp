@@ -4874,6 +4874,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						editorTabs = bar;
 			if (!editorTabs || editorTabs->count() != 5 || editorTabs->elideMode() != Qt::ElideNone || !editorTabs->usesScrollButtons())
 				facetFailure(ok, "presentation", "the tabs of five editors are cut instead of scrolling");
+			// No part of the Run Results table comes before its buttons in the focus chain. Qt 5.15.2 moves only the table when
+			// QWidget::setTabOrder() puts it after the buttons, and the viewport left in front of them hands Shift+Tab from Open
+			// result view... back to the table.
+			QStringList tablePartsFirst;
+			const QWidget* resultViewsButton = w.m_runResultsDock->findChild<QWidget*>("runResultsViewsButton");
+			for (const QWidget* part = w.m_runResultsDock; part != resultViewsButton && part != &w; part = part->nextInFocusChain())
+				if (w.m_runResultsTable->isAncestorOf(part))
+					tablePartsFirst << QString("%1(%2)").arg(part->metaObject()->className(), part->objectName());
+			if (!tablePartsFirst.isEmpty())
+				facetFailure(ok, "presentation",
+					QString("parts of the Run Results table come before its buttons in the focus chain: %1").arg(tablePartsFirst.mid(0, 5).join(", ")));
 			// Tab and Shift+Tab go from the network view round the window and back. They reach the editor in front, also just after
 			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, the scroll buttons of all tab bars
 			// and the scroll areas. They also leave the tables of the editors, whose cells take the arrow keys.

@@ -48,24 +48,6 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_dock = new QDockWidget("Run Results", m_window);
 	m_dock->setObjectName("runResultsDock");
 	m_dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-	m_table = new QTableWidget(m_dock);
-	m_table->setObjectName("runResultsTable");
-	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_table->setColumnCount(11);
-	m_table->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)",
-		"Energy (kWh)", "Energy with regen (kWh)",
-		"Substation (kWh)", "Substation with regen (kWh)"});
-	// The energy headers are short; the tooltip of each gives the full name.
-	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
-		"Substation request with regenerative braking (kWh)"};
-	for (int index = 0; index < energyNames.size(); ++index)
-		m_table->horizontalHeaderItem(7 + index)->setToolTip(energyNames[index]);
-	m_table->setAlternatingRowColors(true);
-	m_table->horizontalHeader()->setStretchLastSection(true);
-	// Tab leaves the table for the buttons after it; the arrow keys move between the cells.
-	m_table->setTabKeyNavigation(false);
-
 	QWidget* container = new QWidget(m_dock);
 	QVBoxLayout* containerLayout = new QVBoxLayout(container);
 	containerLayout->setContentsMargins(0, 0, 0, 0);
@@ -146,6 +128,25 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	resultViews->addWidget(exportPngBtn);
 	resultViews->addStretch();
 	containerLayout->addLayout(resultViews);
+	// The table is made after the buttons above it, so Tab reaches them first. QWidget::setTabOrder() would move only the
+	// table in Qt 5.15.2 and leave its viewport in front of the buttons, where it takes Shift+Tab back to the table.
+	m_table = new QTableWidget(container);
+	m_table->setObjectName("runResultsTable");
+	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_table->setColumnCount(11);
+	m_table->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)",
+		"Energy (kWh)", "Energy with regen (kWh)",
+		"Substation (kWh)", "Substation with regen (kWh)"});
+	// The energy headers are short; the tooltip of each gives the full name.
+	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
+		"Substation request with regenerative braking (kWh)"};
+	for (int index = 0; index < energyNames.size(); ++index)
+		m_table->horizontalHeaderItem(7 + index)->setToolTip(energyNames[index]);
+	m_table->setAlternatingRowColors(true);
+	m_table->horizontalHeader()->setStretchLastSection(true);
+	// Tab leaves the table for the buttons after it; the arrow keys move between the cells.
+	m_table->setTabKeyNavigation(false);
 	// The table takes the height that the other lines and buttons leave, at least its header and one row. A lower dock scrolls
 	// its whole content, so the dock leaves the canvas its room; the delay comparison below the table keeps the table in view.
 	// As a height-for-width item without a layout the table asks for its minimum height next to the wrapped labels, so the
@@ -155,8 +156,6 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_table->setSizePolicy(tablePolicy);
 	m_table->setMinimumHeight(tableHeight(*m_table, 1));
 	containerLayout->addWidget(m_table, 1);
-	// Tab reaches the buttons above the table before the table.
-	QWidget::setTabOrder(exportPngBtn, m_table);
 	QHBoxLayout* delayRow = new QHBoxLayout();
 	auto* delayCaption = new QLabel(container);
 	delayCaption->setObjectName("delayComparisonCaption");
