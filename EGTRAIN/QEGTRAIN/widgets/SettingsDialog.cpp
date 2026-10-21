@@ -4,6 +4,8 @@
 #include "update/UpdateSettings.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/DisplayPath.h"
+#include "widgets/NarrowRowDelegate.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -52,8 +54,14 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 	m_recentCases->setObjectName(QStringLiteral("settingsRecentCases"));
 	m_recentCases->setSelectionMode(QAbstractItemView::NoSelection);
 	m_recentCases->setMaximumHeight(5 * fontMetrics().height());
-	for (const QString& path : settings.value(kRecentScenesKey).toStringList())
-		m_recentCases->addItem(display_path::format(path));
+	// A path wider than the list has its middle elided, so the list never needs a horizontal scroll bar.
+	m_recentCases->setTextElideMode(Qt::ElideMiddle);
+	m_recentCases->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	m_recentCases->setItemDelegate(new NarrowRowDelegate(m_recentCases));
+	for (const QString& path : settings.value(kRecentScenesKey).toStringList()) {
+		auto* item = new QListWidgetItem(display_path::format(path), m_recentCases);
+		item->setToolTip(plainToolTip(item->text()));
+	}
 	general->addWidget(m_recentCases);
 	auto* clearRecent = new QPushButton(QStringLiteral("Clear Recent Cases"));
 	clearRecent->setObjectName(QStringLiteral("settingsClearRecentCases"));
