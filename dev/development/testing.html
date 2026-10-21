@@ -730,14 +730,8 @@ it loads the Qt files of the package, as a machine without a developer setup wou
 <code class="docutils literal notranslate"><span class="pre">QT_QPA_FONTDIR</span></code> to the system font directory for every test with the <code class="docutils literal notranslate"><span class="pre">gui</span></code>
 label. Set it yourself when you start a GUI test or QEGTRAIN with
 <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code> by hand.</p>
-<p>With Qt 5.15, a <code class="docutils literal notranslate"><span class="pre">QMessageBox</span></code> shown on the offscreen platform on Windows
-crashed: <code class="docutils literal notranslate"><span class="pre">QMessageBox::showEvent</span></code> asked for a native window handle through an
-interface that this platform did not have. This was not tried again with Qt 6,
-so the tests still keep message boxes off that platform on Windows.
-<code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code> needs the unsaved-changes prompt and <code class="docutils literal notranslate"><span class="pre">test_completedrun</span></code>
-closes a message box if a refusal of the capacity dialog opens one, so CTest
-runs both, and the other tests that answer real message boxes, with
-<code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=windows</span></code> there.</p>
+<p>The tests that answer real message boxes, such as <code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code> with the
+unsaved-changes prompt, run on the offscreen platform on Windows as well.</p>
 </section>
 <section id="windows-headless-runs">
 <h3>Windows headless runs<a class="headerlink" href="#windows-headless-runs" title="Link to this heading">¶</a></h3>

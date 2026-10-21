@@ -140,7 +140,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a119f7fa1e00fbf7d62b8c03fe452bf99"><td class="mdescLeft">&#160;</td><td class="mdescRight">The row that Recover and Discard act on, as an index into scan.candidates; -1 without rows.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Offers the recovery copies that an earlier run left behind, one row for each, and reports what the user chose. It is a dialog of its own and not a QMessageBox, which the offscreen platform on Windows is not known to show safely. The dialog changes nothing on disk: the caller recovers or discards the copy that selectedIndex names.</p>
+<div class="textblock"><p>Offers the recovery copies that an earlier run left behind, one row for each, and reports what the user chose. The dialog changes nothing on disk: the caller recovers or discards the copy that selectedIndex names.</p>
 <p>Recover and Discard act on the selected row, and Decide Later keeps every copy. Recover is the default button unless the original of the copy may hold newer work, and it is disabled for a copy that this version cannot open. Discard asks for a second click, naming the case, before it finishes. Escape and closing the window give Later.</p>
 <p>After the dialog closes, result() holds an <a class="el" href="#a669c765d197b7c8584246832f371b18b" title="The choice of the user, as the result code of the dialog.">Outcome</a>. A caller that discards one copy can remove that row and show the dialog again for the rest. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
