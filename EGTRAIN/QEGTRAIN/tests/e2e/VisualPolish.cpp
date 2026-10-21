@@ -2092,7 +2092,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				w.resize(1024, 720);
 				QApplication::processEvents();
 				const QString shownNarrow = w.m_followStatusLabel->displayText();
-				const int popupWidth = w.m_followTrainCombo->view()->minimumWidth();
+				w.m_followTrainCombo->showPopup();
+				QApplication::processEvents();
+				const int popupWidth = w.m_followTrainCombo->view()->width();
+				w.m_followTrainCombo->hidePopup();
 				const int entryWidth = w.m_followTrainCombo->view()->fontMetrics().horizontalAdvance(w.m_followTrainCombo->itemText(futureComboIndex));
 				const int listWidth = w.m_followTrainCombo->width();
 				// A message wider than the room left of the Follow label looks the same as its text elided to that room.
