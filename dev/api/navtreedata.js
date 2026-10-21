@@ -25,6 +25,7 @@
 var NAVTREE =
 [
   [ "EGTRAIN", "index.html", [
+    [ "EGTRAIN C++ reference", "index.html", null ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
@@ -83,14 +84,14 @@ var NAVTREEINDEX =
 "class_timetable_stops_panel.html#a3630bb0390a301edcf926b5626349f98",
 "class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f",
 "classtelemetry_1_1_operation_observation.html#a1fbcf102d04809e8db0b28d075bf6010",
-"functions_k.html",
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a4d98250a14f0cda0742971d6a4c8e3b7",
-"struct_capacity_analysis_train.html#ab6a761e15b566bb6efd43b06f8387bd3",
-"struct_gui_train_state.html#a8836f6c87043f0a40cabd35ae26a14e4",
-"struct_run_infrastructure.html",
-"struct_scene_passenger_import_result.html#abfeb773c88cf36042103a557c405c475",
-"struct_scene_value_range.html#aa3db1319f196a15151b777c6826ff580",
-"struct_update_check_result.html#a3ba2443f7b7573c18a973dc6280e984c"
+"functions_j.html",
+"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657",
+"struct_capacity_analysis_train.html#a30c177b4278d41aaa6b89b36bb7936d2",
+"struct_gui_train_state.html#a5ee1afb9e0d5bd0bc90f1c0e5caa240a",
+"struct_run_controller_1_1_delay_baseline_state.html#ab674967bba64abeda1ff995fed29ddf0",
+"struct_scene_passenger_import_result.html#a57d14e59ce8a8855be15fb813b31184a",
+"struct_scene_value_range.html",
+"struct_trajectory_segment.html#a7afb02d712f8ec6692c0ddb8e44bb053"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

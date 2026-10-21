@@ -572,7 +572,8 @@ Markdown.
 
 The site is built from the pages of `docs/` with Sphinx, and the C++ reference from the
 sources in `EGTRAIN/QEGTRAIN` with Doxygen. Its [table of contents](../index.md) is
-`docs/index.md`, and its settings are `docs/conf.py` and `docs/Doxyfile`. Install Doxygen 1.18
+`docs/index.md`, the start page of the reference is `docs/mainpage.dox`, and the settings are
+`docs/conf.py` and `docs/Doxyfile`. Install Doxygen 1.18
 or newer and Graphviz (on macOS `brew install doxygen graphviz`), then the Python packages in a
 virtual environment in the build folder with Python 3.12 or newer, and configure again:
 
