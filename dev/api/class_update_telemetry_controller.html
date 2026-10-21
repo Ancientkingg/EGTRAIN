@@ -149,6 +149,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a0424ffd6617ee1882729128bf7cf847f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The observation of an operation that starts now. Its events are dropped while telemetry is off.  <br /></td></tr>
 <tr class="memitem:a886d76f8d7a3f2f72318b07910aa5ba3" id="r_a886d76f8d7a3f2f72318b07910aa5ba3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a886d76f8d7a3f2f72318b07910aa5ba3">stopTelemetry</a> ()</td></tr>
 <tr class="memdesc:a886d76f8d7a3f2f72318b07910aa5ba3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops the sender, if there is one.  <br /></td></tr>
+<tr class="memitem:adbcbf4a1c5da96fbfdd8424980761bd0" id="r_adbcbf4a1c5da96fbfdd8424980761bd0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adbcbf4a1c5da96fbfdd8424980761bd0">quitForUpdate</a> ()</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -292,6 +293,24 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_update_telemetry_controller_aba5ef84cb99929c97188f6418535a421_cgraph.svg" width="791" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="adbcbf4a1c5da96fbfdd8424980761bd0" name="adbcbf4a1c5da96fbfdd8424980761bd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbcbf4a1c5da96fbfdd8424980761bd0">&#9670;&#160;</a></span>quitForUpdate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void UpdateTelemetryController::quitForUpdate </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Ends the application for an installed update: runs beforeQuit and leaves the event loop with exit code 0. No window gets a close event, so none can ask about unsaved changes again or keep the application open. </p>
 
 </div>
 </div>

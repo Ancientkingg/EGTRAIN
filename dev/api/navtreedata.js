@@ -83,15 +83,15 @@ var NAVTREEINDEX =
 "class_service_panel.html#a8bdbff0bbf3dd4d8c17349885263b254",
 "class_timetable_stops_panel.html",
 "class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f",
-"classtelemetry_1_1_operation_observation.html#acb600b76dd87c9c99936face6da65424",
-"functions_q.html",
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aba9952319eb8b6de5151ef934f8e13b8",
-"struct_capacity_compression_evidence.html#a23cc8c57a4e30f494c99387d44f38ad1",
-"struct_gui_train_state.html#ada804b44ecff9bd7f3741c44d240c737",
-"struct_run_infrastructure.html#a1f10e19f97a6364caea2a91f8c04459b",
-"struct_scene_passenger_import_row.html#a41f26b8f192d59760f49897b9bda705a",
-"struct_self_update_capability.html#a58edf952c89abf3601cdc0c682a016b1",
-"struct_update_manifest.html"
+"classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036",
+"functions_o.html",
+"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a8a81a64e1e3728409b8c377eef362796",
+"struct_capacity_analysis_train.html#adc8c5e3b16104d36b64341570815fb67",
+"struct_gui_train_state.html#ab60a6fca27bdec3cad19a9c32d15f377",
+"struct_run_infrastructure.html#a10fc2f3d7d97a1ac78ec329c5c6e1214",
+"struct_scene_passenger_import_row.html#a109d1693d622293580147b2951dc6e87",
+"struct_scene_value_range.html#ac4435d641fc6c08aec291f301786d730",
+"struct_update_check_result.html#add1eb78ee9916255bda91d73124a943e"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';
