@@ -655,7 +655,7 @@ void ResultViews::showCapacityAnalysis() {
 	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
 	if (scope.routeIndex < 0) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"No retained native blocking-time section has two occurrences with a common entry block. "
+			"No block of any route has complete blocking times of two or more occurrences. "
 			"Run a scene with explicit signalling data; EGTRAIN does not infer a signalling system or blocking-time parameters.");
 		return;
 	}

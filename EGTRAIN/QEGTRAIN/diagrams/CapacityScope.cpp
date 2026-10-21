@@ -2,7 +2,6 @@
 
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
-#include "widgets/ElidedLabel.h"
 
 #include <QComboBox>
 #include <QDialog>
@@ -156,34 +155,55 @@ std::vector<std::string> firstPairOn(const CompletedRunData& data, const Complet
 	return {};
 }
 
+// The first of the scopes with the most blocks, the end when there is none.
+std::vector<CapacityAnalysisScope>::const_iterator longestOf(const std::vector<CapacityAnalysisScope>& scopes) {
+	return std::max_element(scopes.cbegin(), scopes.cend(), [](const CapacityAnalysisScope& first, const CapacityAnalysisScope& second) {
+		return first.blockIds.size() < second.blockIds.size();
+	});
+}
+
 } // namespace
 
-CapacityAnalysisScope capacityStretchFrom(const CompletedRunData& data, int routeIndex,
+std::vector<CapacityAnalysisScope> capacityStretchesFrom(const CompletedRunData& data, int routeIndex,
 	const std::vector<std::string>& occurrenceIds) {
-	CapacityAnalysisScope scope;
-	scope.routeIndex = routeIndex;
-	scope.occurrenceIds = occurrenceIds;
+	std::vector<CapacityAnalysisScope> stretches;
 	if (!data.hasRoute(routeIndex) || occurrenceIds.empty())
-		return scope;
+		return stretches;
 	std::vector<const CompletedTrain*> trains;
 	for (const std::string& id : occurrenceIds) {
 		const auto train = std::find_if(data.trains.begin(), data.trains.end(),
 			[&id](const CompletedTrain& candidate) { return candidate.trainId == id; });
 		if (train == data.trains.end())
-			return scope;
+			return stretches;
 		trains.push_back(&*train);
 	}
 	const CompletedRoute& route = data.routes[static_cast<std::size_t>(routeIndex)];
 	for (std::size_t blockIndex = 0; blockIndex < route.blocks.size(); ++blockIndex) {
 		const std::string& blockId = route.blocks[blockIndex].id;
-		if (std::all_of(trains.begin(), trains.end(),
-				[&blockId](const CompletedTrain* train) { return occupiesWithReference(*train, blockId); })) {
-			scope.blockIds.push_back(blockId);
-			scope.sectionIndices.push_back(static_cast<int>(blockIndex));
-		} else if (!scope.blockIds.empty()) {
-			break;
+		if (!std::all_of(trains.begin(), trains.end(),
+				[&blockId](const CompletedTrain* train) { return occupiesWithReference(*train, blockId); }))
+			continue;
+		// A shared block right after the last one of a section extends it; any other starts a section.
+		if (stretches.empty() || stretches.back().sectionIndices.back() + 1 != static_cast<int>(blockIndex)) {
+			stretches.emplace_back();
+			stretches.back().routeIndex = routeIndex;
+			stretches.back().occurrenceIds = occurrenceIds;
 		}
+		stretches.back().blockIds.push_back(blockId);
+		stretches.back().sectionIndices.push_back(static_cast<int>(blockIndex));
 	}
+	return stretches;
+}
+
+CapacityAnalysisScope capacityStretchFrom(const CompletedRunData& data, int routeIndex,
+	const std::vector<std::string>& occurrenceIds) {
+	const std::vector<CapacityAnalysisScope> stretches = capacityStretchesFrom(data, routeIndex, occurrenceIds);
+	const auto longest = longestOf(stretches);
+	if (longest != stretches.end())
+		return *longest;
+	CapacityAnalysisScope scope;
+	scope.routeIndex = routeIndex;
+	scope.occurrenceIds = occurrenceIds;
 	return scope;
 }
 
@@ -226,8 +246,9 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.id), corridor),
 			static_cast<int>(routeIndex));
 	}
-	// The blocks follow from the checked occurrences. Long block ids are cut with an ellipsis; the tooltip has all of it.
-	auto* blocks = new ElidedLabel(&dialog);
+	// One entry for each section that the checked occurrences share. A long entry is cut in the middle; the tooltip has
+	// all of it.
+	auto* blocks = new ChoiceComboBox(&dialog);
 	blocks->setObjectName("capacityBlocks");
 	auto* period = new QDoubleSpinBox(&dialog);
 	period->setRange(0.001, std::numeric_limits<double>::max());
@@ -250,9 +271,10 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	auto* note = new QLabel(body);
 	DialogLayout::setHelp(note,
 		"Checked occurrences are analyzed in the displayed order (A → B) on every analyzed block; selecting exactly two enables "
-		"the pair workflow. The analyzed blocks are the blocks of the route that all checked occurrences occupy, from the first "
-		"one they share to the last one before a gap. Select the occurrence of the first service in the next period that "
-		"closes the capacity cycle; EGTRAIN does not infer it from the last row.");
+		"the pair workflow. The analyzed blocks are one section of the route: consecutive blocks that all checked occurrences "
+		"occupy, up to a block that one of them does not occupy. Analyzed blocks lists each such section in route order and "
+		"selects the longest. Select the occurrence of the first service in the next period that closes the capacity cycle; "
+		"EGTRAIN does not infer it from the last row.");
 	layout->addWidget(note);
 	auto* occurrencesCaption = new QLabel("Occurrences with complete occupations on the route:", body);
 	occurrencesCaption->setWordWrap(true);
@@ -278,38 +300,68 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	};
 	showError(QString());
 
-	const auto currentScope = [&run, routeCombo, period, occurrences]() {
+	const auto checkedIds = [occurrences]() {
 		std::vector<std::string> checked;
 		for (int row = 0; row < occurrences->count(); ++row) {
 			const QListWidgetItem* item = occurrences->item(row);
 			if (item->checkState() == Qt::Checked)
 				checked.push_back(item->data(Qt::UserRole).toString().toStdString());
 		}
-		CapacityAnalysisScope candidate = capacityStretchFrom(run, routeCombo->currentData().toInt(), checked);
+		return checked;
+	};
+	// The sections that the checked occurrences share, in the order of the entries of `blocks`.
+	std::vector<CapacityAnalysisScope> sections;
+	const auto currentScope = [&sections, routeCombo, blocks, period, checkedIds]() {
+		CapacityAnalysisScope candidate;
+		const int index = blocks->currentIndex();
+		if (index >= 0 && index < static_cast<int>(sections.size()))
+			candidate = sections[static_cast<std::size_t>(index)];
+		candidate.routeIndex = routeCombo->currentData().toInt();
+		candidate.occurrenceIds = checkedIds();
 		candidate.periodSeconds = period->value();
 		return candidate;
 	};
 	// Any change takes a refusal of OK away. Two or more checked occurrences that share no block of the route cannot be
 	// analyzed, so OK is then disabled and the status says why.
-	const auto refresh = [blocks, ok, currentScope, showError, clearError]() {
-		const CapacityAnalysisScope current = currentScope();
-		const std::size_t count = current.blockIds.size();
-		const auto block = [&current](std::size_t index) {
-			return QString("%1:%2").arg(current.sectionIndices[index] + 1).arg(QString::fromStdString(current.blockIds[index]));
-		};
-		QString text = "none";
-		if (count == 1)
-			text = QString("%1 (1 block)").arg(block(0));
-		else if (count > 1)
-			text = QString("%1 to %2 (%3 blocks)").arg(block(0), block(count - 1)).arg(count);
-		blocks->setText(text);
-		blocks->setToolTip(text);
-		const bool unshared = count == 0 && current.occurrenceIds.size() >= 2;
+	const auto showScopeStatus = [&sections, ok, checkedIds, showError, clearError]() {
+		const bool unshared = sections.empty() && checkedIds().size() >= 2;
 		ok->setEnabled(!unshared);
 		if (unshared)
 			showError("No block of the route is shared by all checked occurrences.");
 		else
 			clearError();
+	};
+	// Lists the sections of the checked occurrences, each as "1:B to 2:C (2 blocks)", or "none". The section that starts
+	// at the block where the selected one started stays selected, else the longest is. With fewer than two sections there
+	// is nothing to choose, so the field is disabled.
+	const auto refillSections = [&run, &sections, routeCombo, blocks, checkedIds, showScopeStatus]() {
+		const int previous = blocks->currentIndex();
+		const int start = previous >= 0 && previous < static_cast<int>(sections.size())
+			? sections[static_cast<std::size_t>(previous)].sectionIndices.front()
+			: -1;
+		sections = capacityStretchesFrom(run, routeCombo->currentData().toInt(), checkedIds());
+		const QSignalBlocker blocker(blocks);
+		blocks->clear();
+		for (const CapacityAnalysisScope& section : sections) {
+			const std::size_t count = section.blockIds.size();
+			const auto block = [&section](std::size_t index) {
+				return QString("%1:%2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(section.blockIds[index]));
+			};
+			const QString text = count == 1 ? QString("%1 (1 block)").arg(block(0))
+											: QString("%1 to %2 (%3 blocks)").arg(block(0), block(count - 1)).arg(count);
+			blocks->addItem(text);
+			blocks->setItemData(blocks->count() - 1, text, Qt::ToolTipRole);
+		}
+		if (sections.empty())
+			blocks->addItem("none");
+		auto selected = std::find_if(sections.cbegin(), sections.cend(),
+			[start](const CapacityAnalysisScope& section) { return section.sectionIndices.front() == start; });
+		if (selected == sections.cend())
+			selected = longestOf(sections);
+		if (selected != sections.cend())
+			blocks->setCurrentIndex(static_cast<int>(selected - sections.cbegin()));
+		blocks->setEnabled(sections.size() > 1);
+		showScopeStatus();
 	};
 	// With exactly two checked occurrences only the second one can close the cycle, so it is chosen.
 	const auto chooseOnlyCycleEnd = [occurrences, cycleEnd]() {
@@ -328,7 +380,10 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	};
 	// The trains that occupy a block of the route, the ones of `checked` first and checked, in that order, and the others
 	// in run order.
-	const auto refillOccurrences = [&run, routeCombo, occurrences, cycleEnd, refresh, chooseOnlyCycleEnd](const std::vector<std::string>& checked) {
+	const auto refillOccurrences = [&run, &sections, routeCombo, occurrences, cycleEnd, refillSections, chooseOnlyCycleEnd](
+									   const std::vector<std::string>& checked) {
+		// The sections of another route start at other blocks, so the longest one is selected.
+		sections.clear();
 		occurrences->clear();
 		cycleEnd->clear();
 		cycleEnd->addItem("Select the first train in the next period...");
@@ -359,7 +414,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			item->setSizeHint(QSize(1, occurrences->sizeHintForRow(occurrences->row(item))));
 			cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
 		}
-		refresh();
+		refillSections();
 		chooseOnlyCycleEnd();
 	};
 	// The dialog opens on the route and the occurrences of the given scope when the run has that route. Another route
@@ -377,18 +432,20 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			refillOccurrences(routeDefault());
 			DialogLayout::fitWidthToContent(dialog);
 		});
+	QObject::connect(blocks, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
+		[showScopeStatus](int) { showScopeStatus(); });
 	QObject::connect(period, qOverload<double>(&QDoubleSpinBox::valueChanged), &dialog,
-		[refresh](double) { refresh(); });
+		[showScopeStatus](double) { showScopeStatus(); });
 	QObject::connect(cycleEnd, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
-		[refresh](int) { refresh(); });
+		[showScopeStatus](int) { showScopeStatus(); });
 	QObject::connect(occurrences, &QListWidget::itemChanged, &dialog,
-		[refresh, chooseOnlyCycleEnd](QListWidgetItem*) {
-			refresh();
+		[refillSections, chooseOnlyCycleEnd](QListWidgetItem*) {
+			refillSections();
 			chooseOnlyCycleEnd();
 		});
 	QObject::connect(occurrences->model(), &QAbstractItemModel::rowsMoved, &dialog,
-		[refresh, chooseOnlyCycleEnd]() {
-			refresh();
+		[refillSections, chooseOnlyCycleEnd]() {
+			refillSections();
 			chooseOnlyCycleEnd();
 		});
 
@@ -396,7 +453,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
 		CapacityAnalysisScope chosen = currentScope();
 		if (chosen.occurrenceIds.size() < 2) {
-			showError("Select at least two ordered occurrences with a common entry block.");
+			showError("Check at least two occurrences.");
 			return;
 		}
 		chosen.cycleEndOccurrenceId = cycleEnd->currentData().toString().toStdString();

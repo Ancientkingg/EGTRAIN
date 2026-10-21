@@ -97,9 +97,9 @@ public slots:
 	void showDelayComparison();
 	/// Asks for the scope and opens ResultViewName::kBlockingTime.
 	void showBlockingTimeDiagram();
-	/// Asks for the occurrences, starting with the trains of the first block that two or more of them occupy and the
-	/// blocks they share from there, and opens ResultViewName::kCapacity. Shows a message instead when the run has no such
-	/// block or the chosen scope cannot be analysed.
+	/// Asks for the occurrences and the section of the route to analyse, starting with the trains of the first block that
+	/// two or more of them occupy and the longest section that those trains share, and opens ResultViewName::kCapacity.
+	/// Shows a message instead when the run has no such block or the chosen scope cannot be analysed.
 	void showCapacityAnalysis();
 	/// Opens ResultViewName::kCapacityByArea.
 	void showAreaCapacity();

@@ -316,8 +316,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 						&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
 						cycleEnd = combo;
 				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
-				const auto* blocks = dialog->findChild<QLabel*>(QStringLiteral("capacityBlocks"));
-				if (combos.size() != 2 || !cycleEnd || !blocks || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
+				const auto* blocks = dialog->findChild<QComboBox*>(QStringLiteral("capacityBlocks"));
+				if (combos.size() != 3 || !cycleEnd || !blocks || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
 					fail(QStringLiteral("capacity scope controls are incomplete"));
 					return;
 				}
