@@ -133,7 +133,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a7c0f80509740d24f8a6e1bcc1353129e" id="r_a7c0f80509740d24f8a6e1bcc1353129e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7c0f80509740d24f8a6e1bcc1353129e">setHelp</a> (QLabel *label, const QString &amp;text)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The common layout of the dialogs: a heading, an optional context line, a body that scrolls and a footer of buttons, and the inline status and help labels inside them. </p>
+<div class="textblock"><p>The common layout of the dialogs: the window title, an optional context line, a body that scrolls and a footer of buttons, and the inline status and help labels inside them. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a66c5d627c7f907afb94351db6a62f658" name="a66c5d627c7f907afb94351db6a62f658"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a66c5d627c7f907afb94351db6a62f658">&#9670;&#160;</a></span>Severity</h2>
@@ -244,7 +244,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Lays out dialog as a heading, the context line when it is not empty, body in a scroll area and actions as the footer, and returns the scroll area. Transfers body and actions to dialog. The caller owns button roles, connections, validation, default action and any changes to application state. The combo boxes and spin boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls the body. The footer buttons are styled again, because the caller named them and made one the default after they were built, and a style cached by then misses the rules that name it. The first field of body takes the focus, else the default button, so that the dialog opens with the default that the caller chose. In a footer laid out for macOS the buttons are not auto default. </p>
+<p>Lays out dialog as the context line when it is not empty, body in a scroll area and actions as the footer, and returns the scroll area. The heading becomes the window title, so the name of the dialog shows once, in the title bar, and the body starts with the context line. Transfers body and actions to dialog. The caller owns button roles, connections, validation, default action and any changes to application state. The combo boxes and spin boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls the body. The footer buttons are styled again, because the caller named them and made one the default after they were built, and a style cached by then misses the rules that name it. The first field of body takes the focus, else the default button, so that the dialog opens with the default that the caller chose. In a footer laid out for macOS the buttons are not auto default. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

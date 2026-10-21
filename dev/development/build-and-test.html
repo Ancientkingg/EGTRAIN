@@ -835,7 +835,7 @@ platform, and <code class="docutils literal notranslate"><span class="pre">partl
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
-<td><p>Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only.</p></td>
+<td><p>Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only. It is registered disabled until the pictures are taken again in the current dialog style.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code></p></td>
 <td><p>yes</p></td>
@@ -2151,8 +2151,8 @@ version of each. A picture that cannot be scripted is added to <code class="docu
 steps to take it, and the script keeps such entries. <code class="docutils literal notranslate"><span class="pre">--check</span></code> takes the pictures into a temporary folder and lists
 the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel within 32 of
 the reference in each colour channel, at its place or next to it, counts as unchanged. The release checklist
-runs it. <code class="docutils literal notranslate"><span class="pre">--sizes</span></code> checks only the sizes, because fonts differ between systems, and CTest runs it in a Qt 5
-build on macOS as <code class="docutils literal notranslate"><span class="pre">test_capture_screenshots</span></code>. <code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code> fails when a picture in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> and <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> disagree.</p>
+runs it. <code class="docutils literal notranslate"><span class="pre">--sizes</span></code> checks only the sizes, because fonts differ between systems. CTest registers it on macOS as
+<code class="docutils literal notranslate"><span class="pre">test_capture_screenshots</span></code>, disabled until the pictures, which predate the current dialog style, are taken again. <code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code> fails when a picture in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> and <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> disagree.</p>
 </section>
 <section id="smoke-artifacts">
 <h2>Smoke artifacts<a class="headerlink" href="#smoke-artifacts" title="Link to this heading">¶</a></h2>

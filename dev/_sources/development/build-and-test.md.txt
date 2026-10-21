@@ -491,7 +491,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_crashnote` | yes | yes | partly | Starts copies of itself that crash on purpose and reads their crash notes. On Windows it runs the signal and exception cases on the main thread only, and the notes have no stack. Every child leaves a system crash report. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
 | `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. |
-| `test_capture_screenshots` | yes | no | no | Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only. |
+| `test_capture_screenshots` | yes | no | no | Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only. It is registered disabled until the pictures are taken again in the current dialog style. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the parser, the commands and the process handling of the macOS `/usr/bin/time -l` collector. It does not need that tool. |
@@ -1641,8 +1641,8 @@ version of each. A picture that cannot be scripted is added to `captures.json` b
 steps to take it, and the script keeps such entries. `--check` takes the pictures into a temporary folder and lists
 the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel within 32 of
 the reference in each colour channel, at its place or next to it, counts as unchanged. The release checklist
-runs it. `--sizes` checks only the sizes, because fonts differ between systems, and CTest runs it in a Qt 5
-build on macOS as `test_capture_screenshots`. `check_docs.py` fails when a picture in `docs/images` and `captures.json` disagree.
+runs it. `--sizes` checks only the sizes, because fonts differ between systems. CTest registers it on macOS as
+`test_capture_screenshots`, disabled until the pictures, which predate the current dialog style, are taken again. `check_docs.py` fails when a picture in `docs/images` and `captures.json` disagree.
 
 ## Smoke artifacts
 
