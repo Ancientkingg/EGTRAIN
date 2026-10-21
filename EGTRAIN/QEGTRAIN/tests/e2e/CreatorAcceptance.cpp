@@ -2185,6 +2185,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
 			return;
 		}
+		// Tab leaves a table for the buttons of the window; the arrow keys move between the cells.
+		if (pairTable->tabKeyNavigation() || compressionTable->tabKeyNavigation() || criticalTable->tabKeyNavigation()) {
+			fail(QStringLiteral("Tab moves between the cells of a capacity table and does not leave it"));
+			return;
+		}
 		const auto capacityLabels = capacity->findChildren<QLabel*>("resultContextText");
 		const bool validCapacityPercentage = std::any_of(capacityLabels.cbegin(), capacityLabels.cend(),
 			[](const QLabel* label) {
@@ -2245,6 +2250,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity by area did not open and export through public controls"));
 			return;
 		}
+		for (const QTableWidget* table : area->findChildren<QTableWidget*>())
+			if (table->tabKeyNavigation()) {
+				fail(QStringLiteral("Tab moves between the cells of a capacity by area table and does not leave it"));
+				return;
+			}
 		// A second window of capacity by area does not open on top of the first.
 		acceptAreaCapacityScope();
 		areaButton->trigger();
