@@ -76,7 +76,7 @@ requests that made the change, or the issue where none did.
   of its speed class, and prepared and blocked lines in their speed colour. The
   reference tinted a block occupied by a train with a red colour effect and had
   no prepared or blocked state. An occupied line in a section that a signal
-  failure blocks shows the blocked state and keeps its speed colour.
+  failure blocks is red as well; the arc inspector shows it as blocked.
 - Running state (issue #387). The reference gave every track a white colour
   effect at the start of each step, in `releaseBlockOccupationStatus`. The
   current renderer keeps the speed-class colours during a run, apart from the

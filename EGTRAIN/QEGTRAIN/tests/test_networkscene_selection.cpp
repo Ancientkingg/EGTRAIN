@@ -582,6 +582,9 @@ int main(int argc, char* argv[]) {
 		track.setOperationalState(TrackOperationalState::Occupied);
 		ok &= expect(pixelsOf(paintTrack(), occupiedTrackColor()) == speedPixels && pixelsOf(paintTrack(), speed.color()) == 0,
 			"an occupied track is red at the same width");
+		track.setOperationalState(TrackOperationalState::Blocked, true);
+		ok &= expect(pixelsOf(paintTrack(), occupiedTrackColor()) == speedPixels && pixelsOf(paintTrack(), speed.color()) == 0,
+			"a blocked track that a train occupies is red");
 		track.setOperationalState(TrackOperationalState::Free);
 		ok &= expect(pixelsOf(paintTrack(), speed.color()) == speedPixels && pixelsOf(paintTrack(), occupiedTrackColor()) == 0,
 			"a track that is free again has its speed colour");

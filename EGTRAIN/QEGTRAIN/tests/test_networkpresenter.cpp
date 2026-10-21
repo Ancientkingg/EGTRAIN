@@ -367,6 +367,8 @@ int main(int argc, char* argv[]) {
 				&& blocked->operationalState() == TrackOperationalState::Blocked
 				&& bothStates->operationalState() == TrackOperationalState::Occupied,
 			"a track line shows the state of its section or of the arc that a train occupies, whichever ranks highest");
+		ok &= expect(occupied->isOccupied() && bothStates->isOccupied() && !prepared->isOccupied() && !blocked->isOccupied(),
+			"the track lines of the arcs that a train occupies are occupied");
 		ok &= expect(presenter.m_activeTrackItems.size() == 4, "the track lines that show a state are the active ones");
 		waitFor([&]() { return paintedCount([](int paints) { return paints > 0; }) == 4; });
 		ok &= expect(paintedCount([](int paints) { return paints > 0; }) == 4, "the view paints the track lines that changed state");
@@ -386,6 +388,7 @@ int main(int argc, char* argv[]) {
 				&& prepared->operationalState() == TrackOperationalState::Blocked
 				&& blocked->operationalState() == TrackOperationalState::Blocked,
 			"a blocked section outranks the other states");
+		ok &= expect(bothStates->isOccupied() && !occupied->isOccupied(), "a blocked track line that a train occupies stays occupied");
 		ok &= expect(presenter.m_activeTrackItems.size() == 3 && !presenter.m_activeTrackItems.count(occupied),
 			"a track line that is free again is no longer active");
 		waitFor([occupied]() { return occupied->paints > 0; });

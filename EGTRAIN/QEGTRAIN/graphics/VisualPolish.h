@@ -21,8 +21,8 @@ enum class TrainVisualKind { Passenger, ///< None of the substrings below.
 enum class TrainBadgeShape { Rounded, ///< Corners with a radius of 3 pixels.
 	Capsule,						  ///< Corners with a radius of 8 pixels.
 	Square /**< Square corners. */ };
-/// The state of a track line during a run. The inspector shows it; the canvas paints only Occupied, in
-/// occupiedTrackColor().
+/// The state of a track line during a run. The inspector shows it; the canvas paints only the lines that a train
+/// occupies, in occupiedTrackColor().
 enum class TrackOperationalState { Free, ///< None of the states below.
 	Prepared,							 ///< A route through the section has a signal code other than 0.
 	Occupied,							 ///< A train occupies the arc.
@@ -78,8 +78,8 @@ TrackVisual freeTrackVisual();
 /// The look of a track by its speed limit in m/s: blue and 4 pixels wide from 200 km/h, light grey and 3 pixels
 /// wide from 120 km/h, grey and 2 pixels wide below.
 TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond);
-/// The colour of a track line that a train occupies: red, RGB (255, 0, 0), the colour that the original renderer gave
-/// an occupied block. The line keeps the width of its speed class.
+/// The colour of a track line that a train occupies: red, RGB (255, 0, 0). The line keeps the width of its speed
+/// class.
 QColor occupiedTrackColor();
 /// The look of a track state. Free has a transparent colour, a width of 0 and no pen.
 TrackStateVisual classifyTrackState(TrackOperationalState state);
