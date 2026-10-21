@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Asks for the scope and opens ResultViewName::kBlockingTime." alt="" coords="5,989,205,1029"/>
 <area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#a409140b657b52e1822517ded4f3d9678" title="Empty when the scope has no reference route." alt="" coords="271,495,469,521"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,988,353,532,358,534,120,990"/>
-<area shape="rect" id="Node000022" href="$_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" title="What the scope dialog offers for the run: its routes, its trains and its length." alt="" coords="253,882,487,907"/>
+<area shape="rect" id="Node000022" href="$_run_exports_8cpp.html#a01e2b79e71e50a5ec565e39b34393e6c" title="What the scope dialog offers for the run: its routes and its length." alt="" coords="253,882,487,907"/>
 <area shape="poly" id="edge40_Node000001_Node000022" title=" " alt="" coords="134,987,187,953,252,920,288,908,290,913,254,925,190,957,137,991"/>
 <area shape="rect" id="Node000024" href="$_blocking_time_scope_8cpp.html#a0d94ba2961208555a75aa057d7fc08bd" title=" " alt="" coords="272,1033,468,1058"/>
 <area shape="poly" id="edge43_Node000001_Node000024" title=" " alt="" coords="206,1020,263,1028,262,1033,205,1026"/>

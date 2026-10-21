@@ -412,7 +412,6 @@ var hierarchy =
     [ "TrackPreviewStation", "struct_track_preview_station.html", null ],
     [ "TrackStateVisual", "struct_track_state_visual.html", null ],
     [ "TrackVisual", "struct_track_visual.html", null ],
-    [ "BlockingTimeScopeChoices::Train", "struct_blocking_time_scope_choices_1_1_train.html", null ],
     [ "Train", "class_train.html", [
       [ "Regional", "class_regional.html", null ]
     ] ],

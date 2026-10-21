@@ -139,12 +139,12 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a922c40529211b3068bf0a78a254f45a5" id="r_a922c40529211b3068bf0a78a254f45a5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a922c40529211b3068bf0a78a254f45a5">event</a> (QEvent *event) override</td></tr>
-<tr class="memdesc:a922c40529211b3068bf0a78a254f45a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current text as the tooltip.  <br /></td></tr>
+<tr class="memdesc:a922c40529211b3068bf0a78a254f45a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current text as the tooltip, with the tooltip of the field below it when it has one.  <br /></td></tr>
 <tr class="memitem:acd760dade2bc054a7c5251877fb10736" id="r_acd760dade2bc054a7c5251877fb10736"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd760dade2bc054a7c5251877fb10736">paintEvent</a> (QPaintEvent *) override</td></tr>
 <tr class="memdesc:acd760dade2bc054a7c5251877fb10736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the field with <a class="el" href="#a30c6b7dd84eda2085cca64e355210f51" title="The current text as the field draws it.">displayText()</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Combo box for choice fields in dialogs whose entries can be long imported names. The field can shrink below its text so that a form never needs a horizontal scroll bar, while its size hint still lets the dialog grow to show the whole text. A text wider than the field is drawn with its middle elided. The tooltip is the current text, and the popup list is as wide as its widest entry within the screen. The wheel changes the choice only while the field has keyboard focus. </p>
+<div class="textblock"><p>Combo box for choice fields in dialogs whose entries can be long imported names. The field can shrink below its text so that a form never needs a horizontal scroll bar, while its size hint still lets the dialog grow to show the whole text. A text wider than the field is drawn with its middle elided. The tooltip is the current text, followed by the tooltip of the field when it has one, and the popup list is as wide as its widest entry within the screen. The wheel changes the choice only while the field has keyboard focus. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a8280dfc03486d6055079170bcdf8f539" name="a8280dfc03486d6055079170bcdf8f539"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8280dfc03486d6055079170bcdf8f539">&#9670;&#160;</a></span>ChoiceComboBox()</h2>
@@ -229,7 +229,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Shows the current text as the tooltip. </p>
+<p>Shows the current text as the tooltip, with the tooltip of the field below it when it has one. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

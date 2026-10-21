@@ -21,7 +21,7 @@ var searchData=
   ['trackpreviewstation_18',['TrackPreviewStation',['../struct_track_preview_station.html',1,'']]],
   ['trackstatevisual_19',['TrackStateVisual',['../struct_track_state_visual.html',1,'']]],
   ['trackvisual_20',['TrackVisual',['../struct_track_visual.html',1,'']]],
-  ['train_21',['Train',['../struct_blocking_time_scope_choices_1_1_train.html',1,'BlockingTimeScopeChoices::Train'],['../class_train.html',1,'Train']]],
+  ['train_21',['Train',['../class_train.html',1,'']]],
   ['trainbadgeitem_22',['TrainBadgeItem',['../class_train_badge_item.html',1,'']]],
   ['trainbodyitem_23',['TrainBodyItem',['../class_train_body_item.html',1,'']]],
   ['trainevent_24',['TrainEvent',['../class_train_event.html',1,'']]],
