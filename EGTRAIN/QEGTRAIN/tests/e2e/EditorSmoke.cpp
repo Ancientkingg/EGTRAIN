@@ -5611,6 +5611,16 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			}))
 			return finish();
 		expect(!w.m_replayActive && !w.m_inspector->dock()->isVisible(), "an edit in a replay left the Train Info dock open");
+		// An edit after a run replaces the message that the run is complete. A save refuses an incident without a target, so
+		// Undo takes the new incident away again.
+		if (!completeRun("discard_run_output"))
+			return finish();
+		expect(w.statusBar()->currentMessage().startsWith("Simulation complete"), "the run did not say that it is complete");
+		if (!step("an incident after a run", "Add incident", [&] { w.m_addIncidentButton->click(); }))
+			return finish();
+		expect(w.statusBar()->currentMessage() == "Run results discarded: the case changed.",
+			"an edit after a run left the message " + w.statusBar()->currentMessage());
+		undo();
 	}
 
 	// Edits in the rolling stock, composition, service, timetable, scenario, incident, entrance delay and passenger editors.

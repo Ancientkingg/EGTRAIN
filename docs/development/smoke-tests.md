@@ -240,7 +240,8 @@ the first scene in each editor and checks that every edit is one step of the
 history, that Undo and Redo return the scene to the state before and after each
 step (the bytes that Save writes, the editors, the validation, the unsaved mark
 and the run results) and keep the zoom and the centre of the network view, that an
-edit in a replay closes the Train Info dock of a train that is selected in it, that a stop dialog that is accepted is one step and one
+edit in a replay closes the Train Info dock of a train that is selected in it, that an edit
+after a run replaces the message that the run is complete, that a stop dialog that is accepted is one step and one
 that is cancelled is none, that Save keeps the history, and that a new edit after
 Undo, a failed open, an open and a new scene change the history as
 [Window flow](../architecture/scene-editor-flow.md#window-flow) describes. It

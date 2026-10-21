@@ -2560,7 +2560,12 @@ void MainWindow::invalidateAfterSceneChange() {
 		m_validation->refreshLoadedData();
 		updateDiagramActions();
 	} else {
+		// The message that the run is complete would outlast its results. Other messages, such as the hint of a pick, stay.
+		const bool completionShown = m_runController->resultsAvailable()
+			&& statusBar()->currentMessage().startsWith(QLatin1String("Simulation complete"));
 		invalidateRunResults();
+		if (completionShown)
+			statusBar()->showMessage(QStringLiteral("Run results discarded: the case changed."), 8000);
 	}
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
