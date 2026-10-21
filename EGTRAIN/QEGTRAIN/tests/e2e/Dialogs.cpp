@@ -248,6 +248,8 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 	auto* status = review.findChild<QLabel*>("runReviewStatus");
 	const QList<QLabel*> factLabels = review.findChildren<QLabel*>("runReviewFactLabel");
 	const QList<QLabel*> factValues = review.findChildren<QLabel*>("runReviewFactValue");
+	// The run has the smaller tool button font of macOS (startScenarios in E2ERunner.cpp), which the Run details toggle does not take.
+	reviewDiagnostic.insert("toggleFontPoints", QJsonArray{detailsToggle->font().pointSizeF(), review.font().pointSizeF()});
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_ENLARGED")) {
 		QFont font = review.font();
 		font.setPointSizeF(18);

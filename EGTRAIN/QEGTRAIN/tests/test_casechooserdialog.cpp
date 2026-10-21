@@ -613,6 +613,35 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 					|| (buttons[1] == shown.dialog.continueButton() && buttons[2] == shown.dialog.openButton())),
 			scenario, "Tab does not go from the list to the menu button and then to Open and the left button");
 	}
+
+	// With the footer of Windows and Linux, which the offscreen platform gives, a footer button is the default while it has
+	// the focus. At every other stop of Tab, the list and the menu button included, Open is the default, so Return on the
+	// menu button opens the selected case.
+	{
+		const QString scenario = QStringLiteral("default while tabbing");
+		CaseChooserDialog::Options loaded = options;
+		loaded.currentCaseName = QStringLiteral("Loaded case");
+		Shown shown(scenario, loaded, screen);
+		shown.dialog.activateWindow();
+		auto* other = shown.dialog.findChild<QPushButton*>(QStringLiteral("caseChooserOtherButton"));
+		shown.dialog.openButton()->setFocus();
+		bool defaults = true;
+		for (int stop = 0; stop < 4 && shown.dialog.focusWidget(); ++stop) {
+			sendKey(shown.dialog.focusWidget(), Qt::Key_Tab);
+			const bool onContinue = shown.dialog.focusWidget() == shown.dialog.continueButton();
+			defaults = defaults && shown.dialog.openButton()->isDefault() != onContinue && shown.dialog.continueButton()->isDefault() == onContinue
+				&& !other->isDefault();
+		}
+		check(defaults, scenario, "Open is not the default while the list or Other ways to open... has the focus");
+		other->setFocus();
+		// Return on a menu button that took the default would open its menu and wait.
+		if (shown.dialog.openButton()->isDefault() && !other->isDefault()) {
+			sendKey(other, Qt::Key_Return);
+			check(shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected
+					&& shown.dialog.chosenPath() == s.scenes.filePath(QStringLiteral("alpha")),
+				scenario, "Return on Other ways to open... does not open the selected case");
+		}
+	}
 }
 
 // A bundle is named without its extension, in the chooser and in the label that sceneDisplayName gives the Recent Scenes

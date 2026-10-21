@@ -177,6 +177,9 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 
 	QPushButton* moreButton = new QPushButton("Other ways to open...", body);
 	moreButton->setObjectName("caseChooserOtherButton");
+	// The button opens a menu, so it does not take the default while it has the focus: Return still opens the selected case
+	// and Space opens the menu.
+	moreButton->setAutoDefault(false);
 	m_otherMenu = new QMenu(moreButton);
 	QAction* newCase = m_otherMenu->addAction("New Case Study...");
 	QAction* browseScene = m_otherMenu->addAction("Open Scene Folder...");

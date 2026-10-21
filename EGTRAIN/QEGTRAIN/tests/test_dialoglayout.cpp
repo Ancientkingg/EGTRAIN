@@ -1088,6 +1088,52 @@ bool exerciseRunReviewDefault() {
 #endif
 	return ok;
 }
+
+// The width in pixels and the colour of the left border of widget, half way down.
+std::pair<int, QRgb> leftBorder(QWidget* widget) {
+	const QImage image = widget->grab().toImage();
+	const int y = image.height() / 2;
+	const QRgb color = image.pixel(0, y);
+	int width = 0;
+	while (width < image.width() && image.pixel(width, y) == color)
+		++width;
+	return {qRound(width / image.devicePixelRatio()), color};
+}
+
+// The Run details toggle of the run review, built as the review builds it, shows keyboard focus with a border as wide and
+// in the same colour as a push button of the dialog, such as Loaded Data beside it.
+bool exerciseDetailsToggleFocus() {
+	QDialog review;
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	auto* toggle = new QToolButton(body);
+	toggle->setText(QStringLiteral("Run details"));
+	toggle->setObjectName(QStringLiteral("runReviewDetailsToggle"));
+	toggle->setCheckable(true);
+	toggle->setArrowType(Qt::RightArrow);
+	toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	auto* button = new QPushButton(QStringLiteral("Loaded Data"), body);
+	layout->addWidget(toggle);
+	layout->addWidget(button);
+	DialogLayout::install(review, QStringLiteral("Run simulation"), QString(), body, new QDialogButtonBox(QDialogButtonBox::Cancel),
+		QRect(0, 0, 1280, 800));
+	review.show();
+	review.activateWindow();
+	QApplication::processEvents();
+	toggle->setFocus();
+	QApplication::processEvents();
+	const bool toggleFocused = toggle->hasFocus();
+	const std::pair<int, QRgb> toggleBorder = leftBorder(toggle);
+	button->setFocus();
+	QApplication::processEvents();
+	const std::pair<int, QRgb> buttonBorder = leftBorder(button);
+	const bool ok = toggleFocused && button->hasFocus() && toggleBorder == buttonBorder && buttonBorder.first == 2;
+	if (!ok)
+		std::cerr << "the focused Run details toggle has a " << toggleBorder.first << " px border of " << std::hex << toggleBorder.second
+				  << ", a focused dialog button a " << std::dec << buttonBorder.first << " px border of " << std::hex << buttonBorder.second
+				  << std::dec << '\n';
+	return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1120,12 +1166,13 @@ int main(int argc, char** argv) {
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
 	const bool runReview = exerciseRunReviewDefault();
+	const bool detailsToggle = exerciseDetailsToggleFocus();
 	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
 	const bool footerIcons = exerciseFooterWithoutIcons();
 	const bool cellSpinBox = exerciseCellSpinBoxSize(fusionSpinBox);
-	return small && scaledSmall && large && footerKeys && footerTabOrder && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && menuButtons && defaultWidth
+	return small && scaledSmall && large && footerKeys && footerTabOrder && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && detailsToggle && menuButtons && defaultWidth
 			&& scaledDefaultWidth && footerIcons && cellSpinBox
 		? 0
 		: 1;

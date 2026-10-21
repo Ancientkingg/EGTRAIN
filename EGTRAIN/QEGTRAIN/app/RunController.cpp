@@ -14,6 +14,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/UserPrompts.h"
+#include <QApplication>
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -306,6 +307,8 @@ bool RunController::showRunReview() {
 	detailsToggle->setCheckable(true);
 	detailsToggle->setArrowType(Qt::RightArrow);
 	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	// The text size of the dialog; macOS gives a tool button a smaller font.
+	detailsToggle->setFont(QApplication::font());
 	auto* details = new QLabel(body);
 	details->setObjectName("runReviewDetails");
 	details->setTextFormat(Qt::PlainText);

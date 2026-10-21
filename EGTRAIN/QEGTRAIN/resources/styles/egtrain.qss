@@ -518,6 +518,17 @@ QDialog#caseChooserDialog QListWidget::item:selected {
     color: #24313a;
 }
 
+/* The Run details toggle has the corners of a dialog button and shows keyboard focus with its 2 px action border. The
+   padding gives up the extra pixel, so the arrow and the text do not move. */
+QToolButton#runReviewDetailsToggle {
+    border-radius: 6px;
+}
+
+QToolButton#runReviewDetailsToggle:focus {
+    border: 2px solid #2e7491;
+    padding: 2px 5px;
+}
+
 QLabel#runReviewDetails {
     background: #ffffff;
     border: 1px solid #c9d3db;
