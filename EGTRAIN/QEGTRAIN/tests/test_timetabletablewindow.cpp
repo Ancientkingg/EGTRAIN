@@ -1,6 +1,7 @@
 // The scene model has a member named "signals", so its header comes before any Qt header.
 #include "scene/SceneModel.h"
 
+#include "diagrams/RunExports.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainFilterButton.h"
@@ -8,6 +9,7 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QFile>
+#include <QFontMetrics>
 #include <QHeaderView>
 #include <QHelpEvent>
 #include <QScreen>
@@ -154,6 +156,57 @@ static bool exerciseDelayColors() {
 	return ok;
 }
 
+// The picture of a table that the Run Results dock exports shows each header whole under the style sheet, at the default
+// font and at 1.5 times its size, when the headers have a smaller font of their own, as on macOS.
+static bool exerciseTableImageHeaders() {
+	const QFont original = QApplication::font();
+	bool ok = true;
+	for (const double scale : {1.0, 1.5}) {
+		QFont font = original;
+		font.setPointSizeF(original.pointSizeF() * scale);
+		QApplication::setFont(font);
+		QFont headerFont = font;
+		headerFont.setPointSizeF(font.pointSizeF() * 11 / 13);
+		QApplication::setFont(headerFont, "QHeaderView");
+		QTableWidget table(1, 4);
+		table.setHorizontalHeaderLabels({"Train", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "Substation with regen (kWh)"});
+		table.resizeColumnsToContents();
+		table.show();
+		QApplication::processEvents();
+
+		const QImage image = fullTableImage(table);
+		const qreal ratio = image.devicePixelRatio();
+		const auto pixel = [&image, ratio](int x, int y) { return image.pixelColor(qRound(x * ratio), qRound(y * ratio)); };
+		int columnsWidth = 0;
+		for (int column = 0; column < table.columnCount(); ++column)
+			columnsWidth += table.columnWidth(column);
+		const int frame = (qRound(image.width() / ratio) - table.verticalHeader()->width() - columnsWidth) / 2;
+		const QFontMetrics metrics(table.horizontalHeader()->font());
+		// Text drawn whole in the header font is no wider than its advance. Text in a larger font is cut by its section and
+		// fills it inside the padding, which is wider by the header margins. The last pixel of a section is its border.
+		bool whole = true;
+		int left = frame + table.verticalHeader()->width();
+		for (int column = 0; column < table.columnCount(); ++column) {
+			const int right = left + table.columnWidth(column) - 1;
+			const QColor face = pixel(left, frame);
+			int first = right;
+			int last = left;
+			for (int y = frame; y < frame + table.horizontalHeader()->height() - 1; ++y)
+				for (int x = left; x < right; ++x)
+					if (pixel(x, y) != face) {
+						first = std::min(first, x);
+						last = std::max(last, x);
+					}
+			const int advance = metrics.horizontalAdvance(table.horizontalHeaderItem(column)->text());
+			whole = whole && last - first < advance + 2;
+			left = right + 1;
+		}
+		ok &= expect(whole, qPrintable(QString("the table picture shows every header whole at %1 times the font").arg(scale)));
+	}
+	QApplication::setFont(original);
+	return ok;
+}
+
 // The text that the tooltip of `widget` shows once the pointer rests on it.
 static QString shownTip(QWidget* widget) {
 	const QPoint point(4, 4);
@@ -223,5 +276,7 @@ int main(int argc, char** argv) {
 		ok &= expect(context->isVisible() && shownTip(context) == text,
 			"the context tooltip shows the context as typed");
 	}
+	// Last, as it changes the application fonts.
+	ok &= exerciseTableImageHeaders();
 	return ok ? 0 : 1;
 }

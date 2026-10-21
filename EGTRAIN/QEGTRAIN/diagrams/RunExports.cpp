@@ -7,6 +7,7 @@
 
 #include <QAbstractItemModel>
 #include <QHeaderView>
+#include <QStyle>
 #include <QTableView>
 
 #include <algorithm>
@@ -655,6 +656,14 @@ QImage fullTableImage(const QTableView& table) {
 		full.setColumnWidth(column, table.columnWidth(column));
 	for (int row = 0; row < table.model()->rowCount(); ++row)
 		full.setRowHeight(row, table.rowHeight(row));
+	// A header paints its text in the font of its viewport. Under the application style sheet the first polish leaves that
+	// viewport the application font when headers have a font of their own, such as the smaller one of macOS, and the text
+	// then overflows the widths measured with the header font. Polishing the headers again gives their viewports that font.
+	full.ensurePolished();
+	for (QHeaderView* header : {full.horizontalHeader(), full.verticalHeader()}) {
+		full.style()->unpolish(header);
+		full.style()->polish(header);
+	}
 	const int frame = 2 * full.frameWidth();
 	full.resize(full.verticalHeader()->width() + full.horizontalHeader()->length() + frame,
 		full.horizontalHeader()->height() + full.verticalHeader()->length() + frame);
