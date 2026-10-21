@@ -590,6 +590,10 @@ QStringList SceneSession::recentScenes() {
 }
 
 void SceneSession::addRecentScene(const QString& path) {
+	// The case chooser lists the installed scenes under Bundled cases. Their folder can change at every start, as the
+	// mount folder of an AppImage does, so a stored path would soon point nowhere.
+	if (isInstalledScenePath(path, QCoreApplication::applicationDirPath()))
+		return;
 	const QString cleanPath = QFileInfo(path).absoluteFilePath();
 	QSettings settings;
 	QStringList recent = recentScenes();
