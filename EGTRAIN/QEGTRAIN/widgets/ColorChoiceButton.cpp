@@ -1,12 +1,17 @@
 #include "widgets/ColorChoiceButton.h"
 
 #include "graphics/VisualPolish.h"
+#include "widgets/ElidedLabel.h"
 
 #include <QColorDialog>
+#include <QFontMetricsF>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QPushButton>
+
+#include <algorithm>
+#include <cmath>
 
 // The scene model has a member named "signals".
 #ifdef signals
@@ -54,6 +59,21 @@ private:
 	QColor m_color;
 };
 
+// The text beside the swatch. It is as wide as "Default" or a colour text whatever it holds, so that a long invalid text
+// does not widen the form, and it ends a text that does not fit with an ellipsis.
+class ColorValueLabel : public ElidedLabel {
+public:
+	using ElidedLabel::ElidedLabel;
+
+	QSize sizeHint() const override { return minimumSizeHint(); }
+	QSize minimumSizeHint() const override {
+		const QFontMetricsF metrics(font());
+		const qreal widest = std::max(metrics.horizontalAdvance(QStringLiteral("Default")), metrics.horizontalAdvance(QStringLiteral("#000000")));
+		const QMargins margins = contentsMargins();
+		return QSize(static_cast<int>(std::ceil(widest)) + margins.left() + margins.right(), ElidedLabel::minimumSizeHint().height());
+	}
+};
+
 } // namespace
 
 ColorChoiceButton::ColorChoiceButton(QWidget* parent)
@@ -63,10 +83,8 @@ ColorChoiceButton::ColorChoiceButton(QWidget* parent)
 	layout->setContentsMargins(0, 0, 0, 0);
 	m_swatch = new ColorSwatch(this);
 	layout->addWidget(m_swatch);
-	m_valueLabel = new QLabel(this);
+	m_valueLabel = new ColorValueLabel(this);
 	m_valueLabel->setObjectName("serviceColorValue");
-	// A long invalid text must not widen the form.
-	m_valueLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	layout->addWidget(m_valueLabel, 1);
 	m_chooseButton = new QPushButton("Choose...", this);
 	m_chooseButton->setObjectName("serviceColorChooseButton");
