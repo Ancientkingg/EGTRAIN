@@ -306,16 +306,21 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				if (!dialog || !dialog->isVisible() || !dialog->isModal()
 					|| dialog->windowTitle() != QStringLiteral("Capacity"))
 					continue;
+				const QList<QComboBox*> combos = dialog->findChildren<QComboBox*>();
 				QComboBox* cycleEnd = nullptr;
-				for (QComboBox* combo : dialog->findChildren<QComboBox*>())
+				for (QComboBox* combo : combos)
 					if (combo->count() >= 3
 						&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
 						cycleEnd = combo;
 				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
-				if (!cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
+				if (combos.size() != 4 || !cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
 					fail(QStringLiteral("capacity scope controls are incomplete"));
 					return;
 				}
+				// The whole first route: the smoke script compares its sections with those of the blocking-time export.
+				combos[0]->setCurrentIndex(0);
+				combos[1]->setCurrentIndex(0);
+				combos[2]->setCurrentIndex(combos[2]->count() - 1);
 				// A long occurrence row is cut with an ellipsis at the edge of its list.
 				const auto* occurrences = dialog->findChild<QListWidget*>();
 				if (!occurrences || occurrences->count() == 0

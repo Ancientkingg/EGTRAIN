@@ -1420,6 +1420,25 @@ void testCapacityDialog() {
 	});
 	check(accepted && pair.occurrenceIds == std::vector<std::string>({"a", "b"}) && pair.cycleEndOccurrenceId == "b",
 		"two checked occurrences are accepted without choosing the closing one");
+
+	// The dialog opens on the route and section of a given scope. Two occurrences there leave one closing occurrence, so
+	// OK takes the scope at once.
+	for (const char* id : {"x", "y"}) {
+		CompletedTrain train = trainOn(id, 1);
+		train.blockTimes = {occupation("X", 0.0, 10.0, 0.0, 100.0, 0.0)};
+		run.trains.push_back(train);
+	}
+	CapacityAnalysisScope given;
+	given.routeIndex = 1;
+	given.blockIds = {"X"};
+	given.sectionIndices = {0};
+	CapacityAnalysisScope chosen = given;
+	accepted = askCapacityScope(run, chosen, [](QDialog& dialog) {
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
+	});
+	check(accepted && chosen.routeIndex == 1 && chosen.blockIds == given.blockIds && chosen.sectionIndices == given.sectionIndices
+			&& chosen.occurrenceIds == std::vector<std::string>({"x", "y"}),
+		"the dialog opens on the section of the given scope, and OK takes it at once");
 }
 
 // --- Long identifiers ---

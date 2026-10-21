@@ -318,9 +318,16 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			clearError();
 			chooseOnlyCycleEnd();
 		});
+	// The dialog opens on the section of the given scope when the run has it, else on the whole first route.
+	const bool givenSection = run.hasRoute(scope.routeIndex) && !scope.sectionIndices.empty() && scope.sectionIndices.front() >= 0
+		&& scope.sectionIndices.back() < static_cast<int>(run.routes[static_cast<std::size_t>(scope.routeIndex)].blocks.size());
 	if (routeCombo->count() > 0)
-		routeCombo->setCurrentIndex(0);
+		routeCombo->setCurrentIndex(givenSection ? scope.routeIndex : 0);
 	refillBlocks();
+	if (givenSection) {
+		firstBlock->setCurrentIndex(scope.sectionIndices.front());
+		lastBlock->setCurrentIndex(scope.sectionIndices.back());
+	}
 	refillOccurrences();
 
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
