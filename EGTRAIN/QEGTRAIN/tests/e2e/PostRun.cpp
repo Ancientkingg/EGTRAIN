@@ -1440,7 +1440,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		|| order.mid(views, results.size()) != results || !order.contains(w.m_signalLayerCheck)
 		|| std::any_of(order.cbegin(), order.cend(), [](QWidget* widget) { return qobject_cast<QTabBar*>(widget) || qobject_cast<QScrollArea*>(widget); }))
 		return fail(QStringLiteral("the Tab order after a run is %1").arg(names.join(QStringLiteral(", "))));
-	if (!tableEdge.startsWith(QLatin1String("#315a70")) || canvasEdge != QLatin1String("#5f8fa8#5f8fa8"))
+	if (!tableEdge.startsWith(QLatin1String("#315a70")) || canvasEdge != QLatin1String("#8fbcd4#8fbcd4"))
 		return fail(QStringLiteral("the focus frame of the Run Results table is %1 and that of the network view %2").arg(tableEdge, canvasEdge));
 	// A second result window does not open on top of the first, which is still open.
 	w.buildPerTrainDiagram(0);
