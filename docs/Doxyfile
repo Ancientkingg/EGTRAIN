@@ -9,7 +9,7 @@ HTML_OUTPUT            = api
 GENERATE_LATEX         = NO
 QUIET                  = YES
 
-INPUT                  = EGTRAIN/QEGTRAIN
+INPUT                  = EGTRAIN/QEGTRAIN docs/mainpage.dox
 RECURSIVE              = YES
 FILE_PATTERNS          = *.h *.hpp *.cpp
 EXCLUDE                = EGTRAIN/QEGTRAIN/tests EGTRAIN/QEGTRAIN/io/third_party
