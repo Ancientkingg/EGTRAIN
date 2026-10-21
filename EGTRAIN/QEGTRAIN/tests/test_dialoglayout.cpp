@@ -20,12 +20,15 @@
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QStyleFactory>
 #include <QTableWidget>
 
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <set>
 #include <string>
 #include <utility>
 
@@ -1123,6 +1126,38 @@ bool exerciseDetailsToggleFocus(const QString& name, const QString& text) {
 				  << std::dec << '\n';
 	return ok;
 }
+
+// The Windows styles fill the page areas of a scroll bar, above and below the handle, with a dither of two colours unless
+// the style sheet styles them. Under the classic Windows style, which every platform has and which draws that dither, the
+// track of a vertical scroll bar is one plain colour, the band colour, on both sides of the handle. The native Windows
+// styles are left out: on the offscreen platform of Windows the check crashed under the Windows 11 style.
+bool exerciseScrollBarTrack() {
+	std::unique_ptr<QStyle> style(QStyleFactory::create(QStringLiteral("Windows")));
+	QScrollBar bar(Qt::Vertical);
+	bar.setStyle(style.get());
+	bar.setRange(0, 100);
+	bar.setPageStep(20);
+	bar.setValue(50);
+	bar.resize(bar.sizeHint().width(), 200);
+	bar.show();
+	QApplication::processEvents();
+	const QImage image = bar.grab().toImage();
+	std::set<QRgb> track;
+	for (int y = 0; y < image.height(); ++y)
+		if (y < image.height() / 4 || y >= image.height() * 3 / 4)
+			for (int x = 0; x < image.width(); ++x)
+				track.insert(image.pixel(x, y));
+	const QRgb handle = image.pixel(image.width() / 2, image.height() / 2);
+	const bool ok = handle == qRgb(0x9a, 0xa5, 0xab) && track.size() == 1 && *track.begin() == qRgb(0xe3, 0xea, 0xee);
+	if (!ok) {
+		std::cerr << "the scroll bar under " << style->objectName().toStdString() << " has a handle of " << std::hex << handle
+				  << " and a track of";
+		for (const QRgb color : track)
+			std::cerr << ' ' << color;
+		std::cerr << std::dec << '\n';
+	}
+	return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1161,8 +1196,9 @@ int main(int argc, char** argv) {
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
 	const bool footerIcons = exerciseFooterWithoutIcons();
 	const bool cellSpinBox = exerciseCellSpinBoxSize();
+	const bool scrollBarTrack = exerciseScrollBarTrack();
 	return small && scaledSmall && large && footerKeys && footerTabOrder && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && detailsToggle && menuButtons && defaultWidth
-			&& scaledDefaultWidth && footerIcons && cellSpinBox
+			&& scaledDefaultWidth && footerIcons && cellSpinBox && scrollBarTrack
 		? 0
 		: 1;
 }

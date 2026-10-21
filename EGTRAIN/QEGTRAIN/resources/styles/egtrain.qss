@@ -776,6 +776,12 @@ QScrollBar::add-line, QScrollBar::sub-line {
     border: 0;
 }
 
+/* The track shows the background of the scroll bar on both sides of the handle. Without this rule the widget style draws
+   these areas, and the Windows styles fill them with a dither. */
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}
+
 QStatusBar {
     background: #e3eaee;
     border-top: 1px solid #c9d3db;
