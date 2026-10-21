@@ -255,8 +255,8 @@ public:
 	// As in ChoiceComboBox: the list was made before the field had focus, so it is brought up to date with the padding of
 	// the focused field first; else it opens too short and scrolls. The field is as narrow as the toolbar needs, so the
 	// list is then made as wide as its longest entry, which shows the state and the scheduled time after a long name. A
-	// style that draws the list as a menu, as on macOS, puts each entry after room for a check mark, so there an entry
-	// needs the width of a menu item with its text.
+	// style that draws the list as a menu, as macOS and Fusion do, puts each entry after room for a check mark and an
+	// icon, so there an entry needs the width of a menu item with its text, measured as the delegate of the list does.
 	void showPopup() override {
 		QAbstractItemView* list = view();
 		QEvent styleChange(QEvent::StyleChange);
@@ -274,6 +274,7 @@ public:
 				item.font = list->font();
 				item.menuItemType = QStyleOptionMenuItem::Normal;
 				item.checkType = QStyleOptionMenuItem::NonExclusive;
+				item.maxIconWidth = iconSize().width() + 4;
 				item.text = itemText(row);
 				entry = style()->sizeFromContents(QStyle::CT_MenuItem, &item, entry, this);
 			}
