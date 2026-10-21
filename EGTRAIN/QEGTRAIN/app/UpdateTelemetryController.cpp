@@ -449,6 +449,12 @@ void UpdateTelemetryController::handleSelfUpdateFinished(bool success, const QSt
 		return;
 	}
 	// The scene was saved or discarded before the download started, and the progress dialog has kept the window from edits.
+	quitForUpdate();
+}
+
+void UpdateTelemetryController::quitForUpdate() {
 	m_beforeQuit();
-	QCoreApplication::quit();
+	// Not quit(): since Qt 6 it closes every window first, so the main window would ask about unsaved changes again, and a
+	// window that stays open cancels the quit while the update waits for EGTRAIN to end.
+	QCoreApplication::exit(0);
 }
