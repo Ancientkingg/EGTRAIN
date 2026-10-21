@@ -2351,6 +2351,7 @@ void MainWindow::recoverySceneChanged() {
 void MainWindow::recoverySceneSaved() {
 	m_recoverySource = recoverySourceOf(m_session->sceneDir(), m_session->sceneIsBundle());
 	m_recoveredSourceHint.clear();
+	m_heldRecoveryFailure.clear();
 	if (m_recovery)
 		m_recovery->noteSaved();
 }
@@ -2925,9 +2926,10 @@ void MainWindow::pickIncidentTarget() {
 			statusBar()->showMessage(targetPickRetry(selected));
 			return;
 		}
-		m_incidentPanel->endTargetPick();
+		// The end of the pick shows a held autosave failure over this message.
 		statusBar()->showMessage(
 			QString("The target of incident %1 is now %2.").arg(m_incidentIdEdit->text(), m_incidentTargetCombo->currentText()), 8000);
+		m_incidentPanel->endTargetPick();
 	});
 }
 

@@ -5275,7 +5275,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		// passengers.
 		const QString passengerPath = QFileInfo(scenePath).dir().filePath(QStringLiteral("Paimpol"));
 		if (ok && w.m_document->model().passengers.empty() && QFileInfo(passengerPath).isDir()) {
-			const bool choiceBefore = w.m_passengerLayerCheck->isChecked();
+			const bool choiceBefore = QSettings().value(kShowPassengersKey).toBool();
 			const auto platformBars = [&w] {
 				const QList<QGraphicsItem*>& items = w.m_presenter->m_stationDecorations;
 				return std::count_if(items.cbegin(), items.cend(),
@@ -6240,6 +6240,32 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		expect(!w.m_incidentPanel->isPickingTarget()
 				&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
 			"the failed autosave did not show when the pick ended: " + w.statusBar()->currentMessage());
+		// A pick that gives the target also shows the held failure. The first incident gets a target, so a copy is written
+		// and a later failure is reported again; the second keeps the copy failing, and the third is picked.
+		QGraphicsItem* head = nullptr;
+		if (w.scene && w.m_showingTrackPreview)
+			for (QGraphicsItem* item : w.scene->items())
+				if (item->data(PreviewGraphics::Kind).toString() == "signal")
+					head = item;
+		if (expect(head, "the preview has no signal head for a target")) {
+			w.m_incidentPanel->pickTargetButton()->click();
+			w.scene->select(head);
+			process();
+			settle();
+			w.m_inspector->handleDisableHighlight();
+			w.m_addIncidentButton->click();
+			w.m_addIncidentButton->click();
+			w.m_incidentPanel->pickTargetButton()->click();
+			process();
+			settle();
+			const bool held = w.m_recoveryFailureShown && w.statusBar()->currentMessage() == hint;
+			w.scene->select(head);
+			process();
+			settle();
+			expect(held && !w.m_incidentPanel->isPickingTarget()
+					&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+				"the failed autosave did not show after a pick that gave the target: " + w.statusBar()->currentMessage());
+		}
 	}
 	return finish();
 }
