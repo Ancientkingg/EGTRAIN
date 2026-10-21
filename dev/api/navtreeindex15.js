@@ -1,5 +1,6 @@
 var NAVTREEINDEX15 =
 {
+"class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f":[2,0,298,15],
 "class_train_badge_item.html#a32a13cc873d5f361ddb92ae614331b31":[2,0,298,21],
 "class_train_badge_item.html#a4466ac0b58b60545fd76dacca048b484":[2,0,298,5],
 "class_train_badge_item.html#a4806b274f85e3d174ff5035156344054":[2,0,298,7],
@@ -248,6 +249,5 @@ var NAVTREEINDEX15 =
 "classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189":[1,0,13,3,2],
 "classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189":[2,0,3,3,2],
 "classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036":[1,0,13,3,6],
-"classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036":[2,0,3,3,6],
-"classtelemetry_1_1_operation_observation.html#acb600b76dd87c9c99936face6da65424":[1,0,13,3,0]
+"classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036":[2,0,3,3,6]
 };

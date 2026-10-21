@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"struct_scene_passenger_import_row.html#a41f26b8f192d59760f49897b9bda705a":[2,0,211,2],
 "struct_scene_passenger_import_row.html#a7625ce074588f9821e261ec7e5b06d14":[2,0,211,1],
 "struct_scene_passenger_import_row.html#ad460f32d19cf545b60b4a47614927b22":[2,0,211,3],
 "struct_scene_passenger_journey.html":[2,0,212],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "struct_scene_value_range.html#aa3db1319f196a15151b777c6826ff580":[2,0,251,1],
 "struct_scene_value_range.html#aab2bf9b52904f13f99d162856ea6f275":[2,0,251,0],
 "struct_scene_value_range.html#ac4435d641fc6c08aec291f301786d730":[2,0,251,2],
-"struct_self_update_capability.html":[2,0,255],
-"struct_self_update_capability.html#a58edf952c89abf3601cdc0c682a016b1":[2,0,255,4]
+"struct_self_update_capability.html":[2,0,255]
 };

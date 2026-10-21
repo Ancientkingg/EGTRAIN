@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"struct_update_manifest.html":[2,0,312],
+"struct_update_manifest.html#a0e433830a64656e52f29f61f0f7b5864":[2,0,312,0],
 "struct_update_manifest.html#a4d7d3df84238fc3fdd97421fc5c9c7ff":[2,0,312,4],
 "struct_update_manifest.html#aa5e78a03f7a59ef68c9fcef236458abb":[2,0,312,1],
 "struct_update_manifest.html#aab690359a9686135246bd61776a81bb5":[2,0,312,3],

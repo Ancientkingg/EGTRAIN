@@ -34,6 +34,7 @@ var class_network_presenter =
     [ "showPreview", "class_network_presenter.html#a583bd2b439a923f2d17f3e3e16040cc3", null ],
     [ "showPreview", "class_network_presenter.html#a5f67f677150140ed39c81306cc727372", null ],
     [ "showRuntime", "class_network_presenter.html#a2825db26f3e40183fccc23ee6ec1d0ac", null ],
+    [ "stationArtworkOffset", "class_network_presenter.html#a5bc0d727c2c7e6d21a69ad76cd2cf3dc", null ],
     [ "stopTrainAnimation", "class_network_presenter.html#abb62aa1b375da1ac3008be2e591eecb7", null ],
     [ "stopTrainAnimations", "class_network_presenter.html#a1012f4c1a63b39a3897b4c4702fb8d24", null ],
     [ "trackLine", "class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1", null ],
