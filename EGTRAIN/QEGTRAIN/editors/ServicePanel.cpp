@@ -229,6 +229,8 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	QScrollArea* detailScroll = new QScrollArea(this);
 	detailScroll->setWidgetResizable(true);
 	detailScroll->setFrameShape(QFrame::NoFrame);
+	// Tab reaches the fields inside, and the area scrolls to show them.
+	detailScroll->setFocusPolicy(Qt::NoFocus);
 	detailScroll->setWidget(detailPane);
 	m_pages = new QTabWidget(this);
 	m_pages->setObjectName("serviceEditorPages");

@@ -1846,7 +1846,8 @@ void MainWindow::childEvent(QChildEvent* event) {
 }
 
 // Qt moves the docks behind the front tab of a group out of the window but leaves them shown, so Tab would reach their fields
-// out of sight. The search for the next field is that of QWidget::focusNextPrevChild(). A floating dock has a Tab order of its own.
+// out of sight. The scroll buttons of the tab bars in the docks are passed over too: the arrow keys choose a tab of a focused
+// tab bar. The search for the next field is that of QWidget::focusNextPrevChild(). A floating dock has a Tab order of its own.
 bool MainWindow::focusNextPrevChild(bool next) {
 	const int focusFlag = QGuiApplication::styleHints()->tabFocusBehavior() == Qt::TabFocusAllControls ? Qt::TabFocus : Qt::StrongFocus;
 	QWidget* const current = focusWidget() ? focusWidget() : this;
@@ -1861,7 +1862,8 @@ bool MainWindow::focusNextPrevChild(bool next) {
 			dock = qobject_cast<const QDockWidget*>(ancestor);
 		if ((taker->focusPolicy() & focusFlag) == focusFlag && taker->isEnabled() && widget->isEnabled() && widget->isVisibleTo(this)
 			&& proxy != current && !(proxy && (next ? proxy->isAncestorOf(widget) : widget->isAncestorOf(proxy)))
-			&& !(dock && !dock->isFloating() && !rect().intersects(dock->geometry()))) {
+			&& !(dock && !dock->isFloating() && !rect().intersects(dock->geometry()))
+			&& !(qobject_cast<const QToolButton*>(widget) && qobject_cast<const QTabBar*>(widget->parentWidget()))) {
 			widget->setFocus(next ? Qt::TabFocusReason : Qt::BacktabFocusReason);
 			return true;
 		}
