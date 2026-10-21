@@ -65,7 +65,7 @@ To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The tabl
 
 While the run is active:
 
-- The progress bar under the network shows the clock time and the end time, such as `07:51:31 of 09:40:40`; its tooltip gives the step (`Step n of m`). The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one. From a zoom of 3x the speed of each train is written beside it, and that of a selected or followed train at any zoom.
+- The progress bar under the network shows the clock time and the end time, such as `07:51:31 of 09:40:40`; its tooltip gives the step (`Step n of m`). The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one. The track of the section that a train occupies is red. From a zoom of 3x the speed of each train is written beside it, and that of a selected or followed train at any zoom.
 
   ![The main window during a run of Paimpol, zoomed in to 25x with Follow on Guin-Paim-EXPRESS-1-1 between its signals. The progress bar reads 07:51:31, step 2,452 of 9,000, and Run is dimmed while Pause and Stop are enabled.](../images/getting-started-run-in-progress.png)
 - Move the speed slider to the right to play faster or to the left to play slower. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.

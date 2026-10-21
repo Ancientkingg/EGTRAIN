@@ -45,7 +45,7 @@ struct NetworkLegendTrain {
 /// What the canvas of the case shows, which decides the rows of the map key.
 struct NetworkLegendContent {
 	bool hasTracks = false; ///< Adds the rows of the high speed, mainline and local tracks.
-	/// False for the track preview. setCaseContent does not read it.
+	/// Adds the row of the occupied sections, when hasTracks is set. False for the track preview.
 	bool showOperationalTrackStates = true;
 	bool hasSelectedTrack = false;		   ///< Adds a row for the selected track, when hasTracks is set.
 	QVector<NetworkLegendTrain> trains;	   ///< One row for the default colour and one per other colour.

@@ -64,36 +64,42 @@ int main(int argc, char* argv[]) {
 	ok &= expect(body && body->isVisible(), "map key body is visible while expanded");
 
 	const QVector<NetworkLegendEntry> entries = legend.entries();
-	ok &= expect(entries.size() == 11, "case content produces stable deduplicated entries");
+	ok &= expect(entries.size() == 12, "case content produces stable deduplicated entries");
 	ok &= expect(entries.at(0).color == classifyTrackSpeed(200.0 / 3.6).color
 			&& entries.at(1).color == classifyTrackSpeed(120.0 / 3.6).color
 			&& entries.at(2).color == freeTrackVisual().color
 			&& entries.at(2).lineWidth == freeTrackVisual().width
 			&& entries.at(2).penStyle == Qt::SolidLine,
 		"speed-class entries use the renderer base styles");
+	ok &= expect(entries.at(3).label == "Occupied section" && entries.at(3).color == occupiedTrackColor()
+			&& entries.at(3).lineWidth == freeTrackVisual().width && entries.at(3).penStyle == Qt::SolidLine,
+		"the occupied sections have a red row after the speed classes");
 	legend.setFixedWidth(180);
 	QApplication::processEvents();
 	ok &= expect(std::none_of(entries.cbegin(), entries.cend(), [](const NetworkLegendEntry& entry) {
 		return entry.kind == NetworkLegendEntryKind::Track && entry.trackState != TrackOperationalState::Free;
 	}),
 		"nonvisual operational states have no map-key swatches");
-	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch3");
+	auto* occupiedSwatch = legend.findChild<QWidget*>("mapKeySwatch3");
+	ok &= expect(occupiedSwatch && containsColor(occupiedSwatch->grab().toImage(), occupiedTrackColor()),
+		"the occupied section swatch is a red line");
+	auto* trainSwatch = legend.findChild<QWidget*>("mapKeySwatch4");
 	const QImage trainImage = trainSwatch ? trainSwatch->grab().toImage() : QImage();
 	ok &= expect(trainSwatch && containsColor(trainImage, defaultTrainFill()),
 		"train swatch mirrors historical locomotive fill");
-	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch4");
+	auto* stationSwatch = legend.findChild<QWidget*>("mapKeySwatch5");
 	ok &= expect(stationSwatch && stationSwatch->size() == QSize(46, 18),
 		"station swatch keeps its compact map-key footprint");
-	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch5");
+	auto* stopSignalSwatch = legend.findChild<QWidget*>("mapKeySwatch6");
 	const QImage stopSignalImage = stopSignalSwatch ? stopSignalSwatch->grab().toImage() : QImage();
 	ok &= expect(stopSignalSwatch && containsColor(stopSignalImage, QColor(Qt::red)),
 		"signal swatch renders the historical red plate");
-	// Rows 5 to 7 are the aspects, 8 an unavailable and 9 a failed signal, 10 the passenger count.
-	ok &= expect(entries.at(5).label == "Stop signal" && entries.at(6).label == "Caution signal"
-			&& entries.at(7).label == "Proceed signal" && entries.at(8).label == "Unavailable signal"
-			&& entries.at(9).label == "Failed signal" && entries.at(10).label == "Passenger count",
+	// Rows 6 to 8 are the aspects, 9 an unavailable and 10 a failed signal, 11 the passenger count.
+	ok &= expect(entries.at(6).label == "Stop signal" && entries.at(7).label == "Caution signal"
+			&& entries.at(8).label == "Proceed signal" && entries.at(9).label == "Unavailable signal"
+			&& entries.at(10).label == "Failed signal" && entries.at(11).label == "Passenger count",
 		"signal rows follow the station row and precede the passenger row");
-	auto* unavailableSwatch = legend.findChild<QWidget*>("mapKeySwatch8");
+	auto* unavailableSwatch = legend.findChild<QWidget*>("mapKeySwatch9");
 	const QImage unavailableImage = unavailableSwatch ? unavailableSwatch->grab().toImage() : QImage();
 	// The lamp is a 12 pixel disc centred at (23, 9). The ring leaves the area inside it as the plain background.
 	ok &= expect(unavailableSwatch && containsColor(unavailableImage, QColor(150, 150, 150))
@@ -101,7 +107,7 @@ int main(int argc, char* argv[]) {
 			&& swatchPixel(unavailableImage, 23, 6) == swatchPixel(unavailableImage, 0, 0)
 			&& swatchPixel(unavailableImage, 23, 12) == swatchPixel(unavailableImage, 0, 0),
 		"unavailable signal swatch is an empty gray ring");
-	auto* failedSwatch = legend.findChild<QWidget*>("mapKeySwatch9");
+	auto* failedSwatch = legend.findChild<QWidget*>("mapKeySwatch10");
 	const QImage failedImage = failedSwatch ? failedSwatch->grab().toImage() : QImage();
 	// Pixels at the four arm ends of the cross are white and the pixels between the arms are red.
 	ok &= expect(failedSwatch && containsColor(failedImage, QColor(Qt::red))
@@ -182,6 +188,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(previewEntries.at(3).color == kSelectionCueColor
 			&& previewEntries.at(3).lineWidth == 4,
 		"preview selected-track key matches the highlighted path");
+	ok &= expect(!legend.entryLabels().contains("Occupied section"), "the track preview has no row for the occupied sections");
 
 	NetworkLegendWidget stationLegend;
 	NetworkLegendContent stationContent;

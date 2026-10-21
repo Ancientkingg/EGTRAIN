@@ -272,10 +272,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			[&label](const NetworkLegendEntry& entry) { return entry.label == label; });
 	};
 	if (hasOperationalLegendEntry(QStringLiteral("Permissive signalling"))
-		|| hasOperationalLegendEntry(QStringLiteral("Occupied section"))
 		|| hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
 		ok = false;
 		failures << "runtime key shows operational states absent from canvas paint";
+	}
+	if (!hasOperationalLegendEntry(QStringLiteral("Occupied section"))) {
+		ok = false;
+		failures << "runtime key has no row for the occupied sections";
 	}
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && w.scene && !w.m_presenter->allTrains.isEmpty()) {

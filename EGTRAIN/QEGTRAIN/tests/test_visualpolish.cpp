@@ -97,7 +97,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(occupiedTrack.style == Qt::SolidLine && occupiedTrack.width == 6, "occupied track underlay");
 	ok &= expect(blockedTrack.style == Qt::DashLine && blockedTrack.width == 5, "blocked track has non-color cue");
 	ok &= expect(permissiveTrack.color == QColor("#4C8DAE"), "permissive signalling color");
-	ok &= expect(occupiedTrack.color == QColor("#D05A47"), "occupied track color");
+	ok &= expect(occupiedTrackColor() == QColor(255, 0, 0) && occupiedTrack.color == occupiedTrackColor(),
+		"occupied track color");
 	ok &= expect(blockedTrack.color == QColor("#D6A13A"), "blocked track color");
 	const QByteArray permissiveMask = renderStrokeMask(permissiveTrack.width, permissiveTrack.style);
 	const QByteArray occupiedMask = renderStrokeMask(occupiedTrack.width, occupiedTrack.style);

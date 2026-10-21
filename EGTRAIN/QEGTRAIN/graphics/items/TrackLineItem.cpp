@@ -49,6 +49,10 @@ void TrackLineItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 
-	painter->setPen(pen());
+	// While a train occupies the track, red takes the place of the speed colour at the same width.
+	QPen stroke = pen();
+	if (m_operationalState == TrackOperationalState::Occupied)
+		stroke.setColor(occupiedTrackColor());
+	painter->setPen(stroke);
 	painter->drawLine(line());
 }

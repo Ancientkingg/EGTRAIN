@@ -29,7 +29,7 @@ public:
 	TrackLineItem(const QLineF& line, QGraphicsItem* parent = nullptr);
 	~TrackLineItem() override;
 
-	/// Sets the state of the track during a run. The inspector shows it; paint() does not.
+	/// Sets the state of the track during a run. The inspector shows it; paint() draws Occupied and no other state.
 	void setOperationalState(TrackOperationalState state);
 	/// The state of the track during a run.
 	TrackOperationalState operationalState() const;
@@ -38,7 +38,7 @@ public:
 	QPainterPath shape() const override;
 	/// The bounds of the click target.
 	QRectF boundingRect() const override;
-	/// Draws the line with the pen of the item.
+	/// Draws the line with the pen of the item, in occupiedTrackColor() while the track is Occupied.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	/// The index of the track line in the run; -1 in the preview.

@@ -315,6 +315,11 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		main.color = classifyTrackSpeed(120.0 / 3.6).color;
 		main.lineWidth = 3;
 		m_entries << high << main << trackEntry("Local track", TrackOperationalState::Free);
+		if (content.showOperationalTrackStates) {
+			NetworkLegendEntry occupied = trackEntry("Occupied section", TrackOperationalState::Free);
+			occupied.color = occupiedTrackColor();
+			m_entries << occupied;
+		}
 		if (content.hasSelectedTrack) {
 			NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
 			selected.color = kSelectionCueColor;
