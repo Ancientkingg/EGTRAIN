@@ -310,10 +310,9 @@ memory ceiling.</p>
 <section id="protocol">
 <h2>Protocol<a class="headerlink" href="#protocol" title="Link to this heading">¶</a></h2>
 <p>Configure and build one Release executable, then run the collector while no
-other heavy workload is active:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-DCMAKE_PREFIX_PATH<span class="o">=</span>/opt/homebrew/opt/qt@5
+other heavy workload is active. Add the macOS prefix path and <code class="docutils literal notranslate"><span class="pre">WrapOpenGL_AGL</span></code>
+of <a class="reference internal" href="build-and-test.html#configure"><span class="std std-ref">Configure</span></a> to the first line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release
 cmake<span class="w"> </span>--build<span class="w"> </span>build
 python3<span class="w"> </span>tools/memory/measure_peak_rss.py<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--app<span class="w"> </span>build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN<span class="w"> </span><span class="se">\</span>
@@ -347,7 +346,7 @@ exited with zero before citing a baseline.</p>
 <section id="baseline-recorded-2026-08-29">
 <h2>Baseline recorded 2026-08-29<a class="headerlink" href="#baseline-recorded-2026-08-29" title="Link to this heading">¶</a></h2>
 <p>The protocol above was run alone on macOS 26.6.2 (Darwin 25.6.0, arm64) using
-a locally built Release executable. The collector invocation was:</p>
+a locally built Release executable, built with Qt 5. The collector invocation was:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/memory/measure_peak_rss.py<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--app<span class="w"> </span>build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output-dir<span class="w"> </span>build/memory-measurements/issue-62

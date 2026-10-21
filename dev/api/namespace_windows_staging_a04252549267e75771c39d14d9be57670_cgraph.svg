@@ -75,7 +75,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespace_windows_staging.html#a490d90c55bb1004f5136cc195d08b4fd" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespace_windows_staging.html#ad52395e48397c19fdda7b34e1eb00045" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="520,-85.5 376,-85.5 376,-55.5 520,-55.5 520,-85.5"/>
 <text text-anchor="start" x="384" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">WindowsStaging::required</text>
 <text text-anchor="middle" x="448" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">RuntimeFiles</text>

@@ -408,12 +408,12 @@ the image declares <code class="docutils literal notranslate"><span class="pre">
 <code class="docutils literal notranslate"><span class="pre">public.data</span></code> and so claims no archive type, and that the copy runs Paimpol to
 <code class="docutils literal notranslate"><span class="pre">End</span> <span class="pre">of</span> <span class="pre">Simulation</span></code>.</p></li>
 <li><p>The Package Windows job checks that these files exist: <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>,
-<code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt5Core.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt5Gui.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt5Widgets.dll</span></code>,
-<code class="docutils literal notranslate"><span class="pre">Qt5Charts.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt5Svg.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt5Network.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">platforms/qwindows.dll</span></code>,
-<code class="docutils literal notranslate"><span class="pre">imageformats/qsvg.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">iconengines/qsvgicon.dll</span></code>,
-<code class="docutils literal notranslate"><span class="pre">styles/qwindowsvistastyle.dll</span></code>, a <code class="docutils literal notranslate"><span class="pre">libzmq</span></code> DLL, <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and
-<code class="docutils literal notranslate"><span class="pre">Scenes/Paimpol</span></code>. It fails when the software
-OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
+<code class="docutils literal notranslate"><span class="pre">egtrain_update_helper.exe</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt6Core.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt6Gui.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt6Widgets.dll</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Qt6Charts.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt6Svg.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt6Network.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt6Help.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">Qt6Sql.dll</span></code>,
+<code class="docutils literal notranslate"><span class="pre">platforms/qwindows.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">imageformats/qsvg.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">iconengines/qsvgicon.dll</span></code>,
+<code class="docutils literal notranslate"><span class="pre">styles/qmodernwindowsstyle.dll</span></code>, <code class="docutils literal notranslate"><span class="pre">sqldrivers/qsqlite.dll</span></code>, a <code class="docutils literal notranslate"><span class="pre">libzmq</span></code> DLL,
+<code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">Scenes/Paimpol</span></code>. It fails when the software
+OpenGL, Direct3D or DXC compiler libraries, Qt Quick, QML or virtual
 keyboard files or <code class="docutils literal notranslate"><span class="pre">vc_redist.x64.exe</span></code> are in the package. It copies the Visual
 C++ runtime DLLs that the program files import next to <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> and
 fails when a program file imports a DLL that is neither in the package nor part
@@ -433,15 +433,16 @@ it, and the uninstall removes it together with the entry, the shortcut and the
 files, and leaves a file beside the folder in place. An install with the desktop
 task creates the desktop shortcut and the uninstall removes it. A second
 installer of the next patch version installed over the first, in the default
-folder, leaves one entry, one folder and the higher version, and replaces the
-<code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder. A copy of the same directory, started as a portable copy is,
+folder, leaves one entry, one folder and the higher version, replaces the
+<code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder and deletes the Qt 5 files that an installation of version
+1.0.4 or older holds. A copy of the same directory, started as a portable copy is,
 registers no file type. The job then writes the portable archive from that
 directory, extracts it and starts the extracted program with the same start
 script.</p></li>
 <li><p>The Package Linux job extracts the AppImage and checks the executable,
 the update helper, <code class="docutils literal notranslate"><span class="pre">Scenes/Paimpol</span></code>, the icon, <code class="docutils literal notranslate"><span class="pre">AppRun</span></code> and the Qt libraries.
 It then starts the extracted image through its <code class="docutils literal notranslate"><span class="pre">AppRun</span></code> on a virtual display,
-after it has checked that every Qt 5 and ZeroMQ library of the programs and
+after it has checked that every Qt and ZeroMQ library of the programs and
 plugins comes from the image and not from the runner.</p></li>
 <li><p>The Rehearse Linux job runs the steps 1 to 9 of the clean-install rehearsal
 on the AppImage that the Package Linux job uploaded. It runs on every package

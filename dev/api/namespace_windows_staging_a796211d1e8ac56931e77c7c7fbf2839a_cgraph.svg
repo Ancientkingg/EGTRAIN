@@ -30,7 +30,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="namespace_windows_staging.html#a490d90c55bb1004f5136cc195d08b4fd" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="namespace_windows_staging.html#ad52395e48397c19fdda7b34e1eb00045" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="329,-30 185,-30 185,0 329,0 329,-30"/>
 <text text-anchor="start" x="193" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">WindowsStaging::required</text>
 <text text-anchor="middle" x="257" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">RuntimeFiles</text>

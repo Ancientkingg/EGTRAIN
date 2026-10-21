@@ -310,66 +310,87 @@ application itself from <code class="docutils literal notranslate"><span class="
 <ul class="simple">
 <li><p>CMake 3.16 or newer</p></li>
 <li><p>C++17 compiler</p></li>
-<li><p>Qt 5.15 Core, Gui, Widgets, Charts, and Svg</p></li>
+<li><p>Qt 6 Core, Gui, Widgets, Charts, Svg, Network and Help, and the Qt tools
+(<code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> builds the manual). CI and the release packages use Qt 6.8.3.</p></li>
 <li><p>ZeroMQ, cppzmq, and nlohmann-json</p></li>
 <li><p>Python 3.9 or newer, found by <code class="docutils literal notranslate"><span class="pre">find_package(Python3)</span></code> at configure time;
 CTest runs its Python tests with that interpreter. On Windows, set
 <code class="docutils literal notranslate"><span class="pre">PYTHONUTF8=1</span></code> for local runs so scripts read program output as UTF-8.</p></li>
 </ul>
 <p>Qt Svg is required by the application and must be available with the
-other Qt modules.</p>
+other Qt modules. A configure that finds no Qt 6 with these modules stops with a message
+that names Qt 6.</p>
 <p>Supported toolchains, as used by CI:</p>
 <ul class="simple">
-<li><p>macOS: Homebrew Qt 5 and the packages in the configure example below.</p></li>
-<li><p>Windows 10 or 11, x64 only: MSVC (Visual Studio 2019 or newer), Qt 5.15
-<code class="docutils literal notranslate"><span class="pre">msvc2019_64</span></code> with QtCharts, and vcpkg <code class="docutils literal notranslate"><span class="pre">zeromq</span> <span class="pre">cppzmq</span> <span class="pre">nlohmann-json</span></code> for the
+<li><p>macOS: Qt 6.8.3 and the Homebrew packages in the configure example below.</p></li>
+<li><p>Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
+<code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts, and vcpkg <code class="docutils literal notranslate"><span class="pre">zeromq</span> <span class="pre">cppzmq</span> <span class="pre">nlohmann-json</span></code> for the
 <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet. 32-bit Windows is not supported.</p></li>
-<li><p>Linux: Ubuntu (the <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code> runner image) with the apt packages in
-the configure example below.</p></li>
+<li><p>Linux: Ubuntu (the <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code> runner image) with Qt 6.8.3 and the apt
+packages in the configure example below.</p></li>
 </ul>
+<p>CI installs Qt 6.8.3 with the Qt Charts module through <code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>, which runs
+<a class="reference external" href="https://aqtinstall.readthedocs.io/en/latest/getting_started.html">aqtinstall</a>. The same
+installer works on a developer machine; the <a class="reference external" href="https://www.qt.io/download-qt-installer-oss">Qt online installer</a>
+is the other way (choose Qt 6.8.3 with the Qt Charts module). Homebrew’s <code class="docutils literal notranslate"><span class="pre">qt</span></code> formula follows the
+newest Qt release, not the 6.8.3 of CI.</p>
+<p>aqtinstall goes into a virtual environment, because the Python of Ubuntu 24.04 and of Homebrew does not
+take packages from <code class="docutils literal notranslate"><span class="pre">pip</span></code> directly. On Windows the commands are in <code class="docutils literal notranslate"><span class="pre">~\aqt-venv\Scripts</span></code> instead of
+<code class="docutils literal notranslate"><span class="pre">~/aqt-venv/bin</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>~/aqt-venv
+~/aqt-venv/bin/pip<span class="w"> </span>install<span class="w"> </span>aqtinstall
+~/aqt-venv/bin/aqt<span class="w"> </span>install-qt<span class="w"> </span>mac<span class="w"> </span>desktop<span class="w"> </span><span class="m">6</span>.8.3<span class="w"> </span>clang_64<span class="w"> </span>-m<span class="w"> </span>qtcharts<span class="w"> </span>-O<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt"</span><span class="w">          </span><span class="c1"># macOS: ~/Qt/6.8.3/macos</span>
+~/aqt-venv/bin/aqt<span class="w"> </span>install-qt<span class="w"> </span>linux<span class="w"> </span>desktop<span class="w"> </span><span class="m">6</span>.8.3<span class="w"> </span>linux_gcc_64<span class="w"> </span>-m<span class="w"> </span>qtcharts<span class="w"> </span>-O<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt"</span><span class="w">    </span><span class="c1"># Linux: ~/Qt/6.8.3/gcc_64</span>
+~/aqt-venv/bin/aqt<span class="w"> </span>install-qt<span class="w"> </span>linux_arm64<span class="w"> </span>desktop<span class="w"> </span><span class="m">6</span>.8.3<span class="w"> </span>linux_gcc_arm64<span class="w"> </span>-m<span class="w"> </span>qtcharts<span class="w"> </span>-O<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt"</span><span class="w">  </span><span class="c1"># arm64 Linux: ~/Qt/6.8.3/gcc_arm64</span>
+~/aqt-venv/bin/aqt<span class="w"> </span>install-qt<span class="w"> </span>windows<span class="w"> </span>desktop<span class="w"> </span><span class="m">6</span>.8.3<span class="w"> </span>win64_msvc2022_64<span class="w"> </span>-m<span class="w"> </span>qtcharts<span class="w"> </span>-O<span class="w"> </span>C:<span class="se">\Q</span>t<span class="w">  </span><span class="c1"># Windows: C:\Qt\6.8.3\msvc2022_64</span>
+</pre></div>
+</div>
 </section>
 <section id="configure">
 <h2>Configure<a class="headerlink" href="#configure" title="Link to this heading">¶</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span>&lt;Qt<span class="w"> </span><span class="m">6</span><span class="w"> </span>folder&gt;
 </pre></div>
 </div>
-<p>On macOS with Homebrew Qt 5:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>qt@5<span class="w"> </span>zeromq<span class="w"> </span>cppzmq<span class="w"> </span>nlohmann-json
-cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span>/opt/homebrew/opt/qt@5
+<p>On macOS, with Qt in <code class="docutils literal notranslate"><span class="pre">~/Qt/6.8.3/macos</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>zeromq<span class="w"> </span>cppzmq<span class="w"> </span>nlohmann-json
+cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt/6.8.3/macos;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>zeromq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>cppzmq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>nlohmann-json<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DWrapOpenGL_AGL<span class="o">=</span><span class="s2">"</span><span class="k">$(</span>xcrun<span class="w"> </span>--show-sdk-path<span class="k">)</span><span class="s2">/System/Library/Frameworks/OpenGL.framework"</span>
 </pre></div>
 </div>
-<p>On Ubuntu:</p>
+<p>The prefix path names the keg folders of the other libraries, not <code class="docutils literal notranslate"><span class="pre">/opt/homebrew</span></code>, whose include folder
+can hold the headers of another Qt. Qt 6.8.3 links the AGL framework, which the macOS 26 SDK no longer
+has; <code class="docutils literal notranslate"><span class="pre">WrapOpenGL_AGL</span></code> links the OpenGL framework in its place.</p>
+<p>On Ubuntu, with Qt in <code class="docutils literal notranslate"><span class="pre">~/Qt/6.8.3/gcc_64</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>update
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>build-essential<span class="w"> </span>cmake<span class="w"> </span>git<span class="w"> </span>python3<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>qtbase5-dev<span class="w"> </span>qttools5-dev<span class="w"> </span>qttools5-dev-tools<span class="w"> </span>libqt5charts5-dev<span class="w"> </span>libqt5svg5-dev<span class="w"> </span>libqt5network5<span class="w"> </span><span class="se">\</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>build-essential<span class="w"> </span>cmake<span class="w"> </span>git<span class="w"> </span>python3<span class="w"> </span>python3-venv<span class="w"> </span>libgl-dev<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>libzmq3-dev<span class="w"> </span>cppzmq-dev<span class="w"> </span>nlohmann-json3-dev
+cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt/6.8.3/gcc_64"</span>
+</pre></div>
+</div>
+<p>To open the window, the X11 platform plugin of that Qt also needs <code class="docutils literal notranslate"><span class="pre">libxcb-cursor0</span></code>.</p>
+<p>In a root shell, such as a plain <code class="docutils literal notranslate"><span class="pre">ubuntu:24.04</span></code> container, <code class="docutils literal notranslate"><span class="pre">sudo</span></code> is not installed: leave it out.</p>
+<p>Ubuntu 24.04 also ships Qt 6.4.2. It is enough: the application and all tests build with it, also with
+warnings as errors, and the tests pass. Add its packages to the install line and leave out the prefix path:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>build-essential<span class="w"> </span>cmake<span class="w"> </span>git<span class="w"> </span>python3<span class="w"> </span>python3-venv<span class="w"> </span>libgl-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>libzmq3-dev<span class="w"> </span>cppzmq-dev<span class="w"> </span>nlohmann-json3-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>qt6-base-dev<span class="w"> </span>qt6-charts-dev<span class="w"> </span>qt6-svg-dev<span class="w"> </span>qt6-tools-dev<span class="w"> </span>qt6-qpa-plugins<span class="w"> </span>libqt6sql6-sqlite
 cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release
 </pre></div>
 </div>
-<p>In a root shell, such as a plain <code class="docutils literal notranslate"><span class="pre">ubuntu:24.04</span></code> container, <code class="docutils literal notranslate"><span class="pre">sudo</span></code> is not installed: leave it out.</p>
+<p>The configure step then prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">XKB</span></code> and <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">PkgConfig</span></code>, which do no harm. CI and
+the packages use 6.8.3, so a difference between the two shows only there.</p>
 <p>On Windows, from a Visual Studio developer PowerShell, with the vcpkg
-packages installed and the Qt 5.15 <code class="docutils literal notranslate"><span class="pre">msvc2019_64</span></code> directory as
+packages installed and the Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> directory as
 <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code>:</p>
 <div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">vcpkg</span> <span class="n">install</span> <span class="n">zeromq</span> <span class="n">cppzmq</span> <span class="n">nlohmann-json</span> <span class="p">-</span><span class="n">-triplet</span> <span class="n">x64-windows</span>
 <span class="n">cmake</span> <span class="n">-S</span> <span class="p">.</span> <span class="n">-B</span> <span class="n">build</span> <span class="n">-DEGTRAIN_BUILD_TESTS</span><span class="p">=</span><span class="n">ON</span> <span class="p">`</span>
   <span class="n">-DCMAKE_TOOLCHAIN_FILE</span><span class="p">=</span><span class="s2">"$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"</span> <span class="p">`</span>
   <span class="n">-DVCPKG_TARGET_TRIPLET</span><span class="p">=</span><span class="n">x64-windows</span> <span class="p">`</span>
-  <span class="n">-DCMAKE_PREFIX_PATH</span><span class="p">=</span><span class="s2">"C:/Qt/5.15.2/msvc2019_64"</span>
+  <span class="n">-DCMAKE_PREFIX_PATH</span><span class="p">=</span><span class="s2">"C:/Qt/6.8.3/msvc2022_64"</span>
 </pre></div>
 </div>
-<p>CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
-one the release packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request
-must pass those jobs too. The package check builds the packages with Qt 6.8.3 as well.
-CMake searches a folder in <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> before the system folders, so the examples above use Qt 5
-even when Qt 6 is installed elsewhere. To try Qt 6, configure a separate build
-folder with <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> set to the Qt 6 folder, for example <code class="docutils literal notranslate"><span class="pre">~/Qt/6.8.3/macos</span></code>. With Homebrew, add
-the keg folders of the other libraries, such as <code class="docutils literal notranslate"><span class="pre">/opt/homebrew/opt/zeromq</span></code>, not <code class="docutils literal notranslate"><span class="pre">/opt/homebrew</span></code>: the
-headers of a linked <code class="docutils literal notranslate"><span class="pre">qt&#64;5</span></code> there would hide those of Qt 6. Qt 6.8.3 links the AGL framework, which the
-macOS 26 SDK no longer has; add
-<code class="docutils literal notranslate"><span class="pre">-DWrapOpenGL_AGL=&quot;$(xcrun</span> <span class="pre">--show-sdk-path)/System/Library/Frameworks/OpenGL.framework&quot;</span></code> to link the
-OpenGL framework in its place. When one prefix holds both versions, such as
-<code class="docutils literal notranslate"><span class="pre">/usr</span></code> on Ubuntu, add <code class="docutils literal notranslate"><span class="pre">-DQT_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5</span></code> to choose Qt 5. <code class="docutils literal notranslate"><span class="pre">QT_DIR</span></code> in
-<code class="docutils literal notranslate"><span class="pre">build/CMakeCache.txt</span></code> shows which Qt a build folder uses.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Qt6_DIR</span></code> in <code class="docutils literal notranslate"><span class="pre">build/CMakeCache.txt</span></code> shows which Qt a build folder uses.</p>
 <p>The Visual Studio generator is multi-config: choose the configuration when
 building and testing, as in the next two sections.</p>
 <p>The repository has no Visual Studio solution or project file. To work in Visual
@@ -532,13 +553,13 @@ run on Windows.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;QT&quot;</span></code>, or on macOS <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">imported</span> <span class="pre">target</span> <span class="pre">&quot;Qt5::Core&quot;</span> <span class="pre">references</span> <span class="pre">the</span> <span class="pre">file</span> <span class="pre">...</span> <span class="pre">but</span> <span class="pre">this</span> <span class="pre">file</span> <span class="pre">does</span> <span class="pre">not</span> <span class="pre">exist</span></code></p></td>
-<td><p>CMake does not look in the folder of Qt 5. Homebrew <code class="docutils literal notranslate"><span class="pre">qt&#64;5</span></code> is not on the default search path</p></td>
-<td><p>Add <code class="docutils literal notranslate"><span class="pre">-DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt&#64;5</span></code> (the Qt 5.15 <code class="docutils literal notranslate"><span class="pre">msvc2019_64</span></code> folder on Windows). CMake keeps the Qt it found first, so after a wrong first configure delete the <code class="docutils literal notranslate"><span class="pre">build</span></code> folder and configure again</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">needs</span> <span class="pre">Qt</span> <span class="pre">6</span> <span class="pre">with</span> <span class="pre">the</span> <span class="pre">Charts,</span> <span class="pre">Svg</span> <span class="pre">and</span> <span class="pre">Help</span> <span class="pre">modules</span></code></p></td>
+<td><p>CMake does not look in the folder of Qt 6, or found only Qt 5</p></td>
+<td><p>Add the Qt 6 folder to <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code>, for example <code class="docutils literal notranslate"><span class="pre">~/Qt/6.8.3/macos</span></code> or <code class="docutils literal notranslate"><span class="pre">C:/Qt/6.8.3/msvc2022_64</span></code>. CMake keeps the Qt it found first, so after a wrong first configure delete the <code class="docutils literal notranslate"><span class="pre">build</span></code> folder and configure again</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;Qt5Charts&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">Qt5Svg</span></code>)</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;Qt6Charts&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">Qt6Svg</span></code>), followed by the message above</p></td>
 <td><p>The module is not installed</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">libqt5charts5-dev</span> <span class="pre">libqt5svg5-dev</span></code> on Ubuntu; the <code class="docutils literal notranslate"><span class="pre">qtcharts</span></code> module of the Qt installer on Windows</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">qtcharts</span></code> for aqtinstall or the Qt Charts module in the Qt online installer; <code class="docutils literal notranslate"><span class="pre">qt6-charts-dev</span> <span class="pre">qt6-svg-dev</span></code> with the Qt of Ubuntu</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;cppzmq&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;nlohmann_json&quot;</span></code></p></td>
 <td><p>The package is not installed, or on Windows vcpkg is not given to CMake</p></td>
@@ -570,7 +591,7 @@ run on Windows.</p>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">clang-format</span> <span class="pre">...</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">installed</span></code>, or <code class="docutils literal notranslate"><span class="pre">...</span> <span class="pre">is</span> <span class="pre">clang-format</span> <span class="pre">X,</span> <span class="pre">but</span> <span class="pre">the</span> <span class="pre">sources</span> <span class="pre">are</span> <span class="pre">formatted</span> <span class="pre">with</span> <span class="pre">23.1.3</span></code> from <code class="docutils literal notranslate"><span class="pre">tools/format.py</span></code></p></td>
 <td><p>The script accepts one release only</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">clang-format==23.1.3</span></code>, or name the executable in <code class="docutils literal notranslate"><span class="pre">CLANG_FORMAT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">~/fmt-venv</span> <span class="pre">&amp;&amp;</span> <span class="pre">~/fmt-venv/bin/pip</span> <span class="pre">install</span> <span class="pre">clang-format==23.1.3</span></code>, then put <code class="docutils literal notranslate"><span class="pre">~/fmt-venv/bin</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> or name the executable in <code class="docutils literal notranslate"><span class="pre">CLANG_FORMAT</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Python scripts fail on Windows with a decoding error</p></td>
 <td><p>The console code page is not UTF-8</p></td>
@@ -829,13 +850,13 @@ platform, and <code class="docutils literal notranslate"><span class="pre">partl
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
-<td><p>Phases of a Bash script, registered on macOS only.</p></td>
+<td><p>Phases of a Bash script, registered on macOS only. The script also runs on Linux with <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP=$PWD/build/QEGTRAIN</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_capture_screenshots</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
-<td><p>Runs the capture phase of the macOS app bundle; the pictures are taken on macOS with Qt 5 only. It is registered disabled until the pictures are taken again in the current dialog style.</p></td>
+<td><p>Runs the capture phase of the macOS app bundle. Disabled until the pictures of <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> are taken again with Qt 6 in the current dialog style.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code></p></td>
 <td><p>yes</p></td>
@@ -915,8 +936,8 @@ the transport of the application fetches https addresses only.</p>
 WinHTTP checks that certificate against the system store and refuses it, which is what the reject
 test expects. The trusted test gives the transport the test root certificate, and the transport checks
 the certificate of the server against that root alone, so nothing is added to the certificate store.
-Qt 5 Secure Transport on macOS does not trust that root certificate, so <code class="docutils literal notranslate"><span class="pre">test_telemetrynetwork_trusted</span></code>
-reports itself as skipped there.</p>
+Secure Transport, the TLS backend of Qt on macOS, does not trust that root certificate, so
+<code class="docutils literal notranslate"><span class="pre">test_telemetrynetwork_trusted</span></code> reports itself as skipped there.</p>
 <p>Every Bash smoke in the table except <code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code> reads the
 application path from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code>; <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> passes it on to
 the two scripts that its <code class="docutils literal notranslate"><span class="pre">scripts</span></code> phase runs. <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>
@@ -1006,14 +1027,14 @@ it loads the Qt files of the package, as a machine without a developer setup wou
 <code class="docutils literal notranslate"><span class="pre">QT_QPA_FONTDIR</span></code> to the system font directory for every test with the <code class="docutils literal notranslate"><span class="pre">gui</span></code>
 label. Set it yourself when you start a GUI test or QEGTRAIN with
 <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code> by hand.</p>
-<p>Qt 5.15 crashes when a <code class="docutils literal notranslate"><span class="pre">QMessageBox</span></code> is shown on the offscreen platform on
-Windows: <code class="docutils literal notranslate"><span class="pre">QMessageBox::showEvent</span></code> asks for a native window handle through an
-interface that this platform does not have. <code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code> needs the
-unsaved-changes prompt and <code class="docutils literal notranslate"><span class="pre">test_completedrun</span></code> closes a message box if a
-refusal of the capacity dialog opens one, so CTest runs both with
-<code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=windows</span></code> there.
-A scripted run that reaches any other message box on the offscreen platform
-fails the same way on Windows.</p>
+<p>With Qt 5.15, a <code class="docutils literal notranslate"><span class="pre">QMessageBox</span></code> shown on the offscreen platform on Windows
+crashed: <code class="docutils literal notranslate"><span class="pre">QMessageBox::showEvent</span></code> asked for a native window handle through an
+interface that this platform did not have. This was not tried again with Qt 6,
+so the tests still keep message boxes off that platform on Windows.
+<code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code> needs the unsaved-changes prompt and <code class="docutils literal notranslate"><span class="pre">test_completedrun</span></code>
+closes a message box if a refusal of the capacity dialog opens one, so CTest
+runs both, and the other tests that answer real message boxes, with
+<code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=windows</span></code> there.</p>
 </section>
 <section id="windows-headless-runs">
 <h3>Windows headless runs<a class="headerlink" href="#windows-headless-runs" title="Link to this heading">¶</a></h3>
@@ -1076,11 +1097,10 @@ signature. It does not check the values in the files or how the images look.</p>
 runtime library or names one (<code class="docutils literal notranslate"><span class="pre">vcomp140.dll</span></code> on Windows): the package ships
 none.</p>
 <p>The assembly uses the same <code class="docutils literal notranslate"><span class="pre">windeployqt</span></code> options as the Windows package job
-(<code class="docutils literal notranslate"><span class="pre">--no-opengl-sw</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-angle</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-system-d3d-compiler</span></code>,
-<code class="docutils literal notranslate"><span class="pre">--no-virtualkeyboard</span></code> and <code class="docutils literal notranslate"><span class="pre">--no-quick-import</span></code> besides <code class="docutils literal notranslate"><span class="pre">--release</span></code>,
-<code class="docutils literal notranslate"><span class="pre">--no-translations</span></code> and <code class="docutils literal notranslate"><span class="pre">--no-compiler-runtime</span></code>), and <code class="docutils literal notranslate"><span class="pre">test_ci_workflow</span></code> keeps
-the two command lines equal. The Windows package keeps the <code class="docutils literal notranslate"><span class="pre">bearer</span></code> plugin and
-the image format plugins. It holds no <code class="docutils literal notranslate"><span class="pre">vc_redist.x64.exe</span></code>: see
+(<code class="docutils literal notranslate"><span class="pre">--no-opengl-sw</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-system-d3d-compiler</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-system-dxc-compiler</span></code> and
+<code class="docutils literal notranslate"><span class="pre">--no-quick-import</span></code> besides <code class="docutils literal notranslate"><span class="pre">--release</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-translations</span></code> and
+<code class="docutils literal notranslate"><span class="pre">--no-compiler-runtime</span></code>), and <code class="docutils literal notranslate"><span class="pre">test_ci_workflow</span></code> keeps the two command lines
+equal. The Windows package keeps the image format plugins. It holds no <code class="docutils literal notranslate"><span class="pre">vc_redist.x64.exe</span></code>: see
 <a class="reference internal" href="#windows-package-runtime">Windows package runtime</a>.</p>
 </section>
 <section id="windows-package-runtime">
@@ -1128,8 +1148,7 @@ files in <code class="docutils literal notranslate"><span class="pre">Contents/M
 the system starts a program, and Qt finds a plugin by its directory. The script
 then starts the app as for Windows: the headless run and the window start. Only
 the launch with a window loads the cocoa platform plugin of the bundle.</p>
-<p>The macOS package keeps <code class="docutils literal notranslate"><span class="pre">QtDBus</span></code> and <code class="docutils literal notranslate"><span class="pre">QtPrintSupport</span></code>, which the cocoa platform
-plugin loads, the print support and bearer plugins, and the image format
+<p>The macOS package keeps <code class="docutils literal notranslate"><span class="pre">QtDBus</span></code>, which <code class="docutils literal notranslate"><span class="pre">QtGui</span></code> loads, and the image format
 plugins other than WebP and TIFF.</p>
 </section>
 <section id="linux-package-start">
@@ -1143,11 +1162,11 @@ gives the program a virtual X display. The script starts the directory through
 its <code class="docutils literal notranslate"><span class="pre">AppRun</span></code>, as the AppImage runtime does after it has mounted the image, and
 makes the same launches as for Windows: the headless run and the window start.</p>
 <p>Before the launches the script runs <code class="docutils literal notranslate"><span class="pre">ldd</span></code> on every ELF file below <code class="docutils literal notranslate"><span class="pre">usr/bin</span></code> and
-<code class="docutils literal notranslate"><span class="pre">usr/plugins</span></code>. It fails unless each Qt 5 and ZeroMQ library that such a file
+<code class="docutils literal notranslate"><span class="pre">usr/plugins</span></code>. It fails unless each Qt and ZeroMQ library that such a file
 loads is a file of the extracted image, and it fails when <code class="docutils literal notranslate"><span class="pre">ldd</span></code> lists no such
-library at all. The runner has the Qt 5 packages that the build needs, so an
-image that lacks a Qt library would otherwise still start there with the
-library of the runner. The plugins are read as well as the programs, because
+library at all. The runner has the Qt that the build used, so an image that
+lacks a Qt library could otherwise still start there with the library of the
+runner. The plugins are read as well as the programs, because
 the platform plugin loads Qt libraries that the program does not. The job sets
 no platform plugin variable, and the script removes every Qt variable and
 <code class="docutils literal notranslate"><span class="pre">LD_LIBRARY_PATH</span></code> from the environment of the launches, so the image starts with
@@ -2230,8 +2249,8 @@ application; CTest and the smoke scripts set it themselves.</p>
 <h2>CI and release branches<a class="headerlink" href="#ci-and-release-branches" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">main</span></code> is the validation branch. Pull requests build the project and run
-the CTest suite without the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code> (those run on Windows only), in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
-x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
+the CTest suite without the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code> (those run on Windows only), in parallel, on macOS, Windows (MSVC, vcpkg
+x64) and Linux (Ubuntu), each with Qt 6.8.3, unless every changed file matches the
 documentation rule below. The suite holds the end-to-end smokes of the
 committed scenes (see <a class="reference internal" href="#simulation-smoke-test">Simulation Smoke Test</a> and
 <a class="reference internal" href="#scene-roundtrip-smoke-test">Scene Roundtrip Smoke Test</a>). The <code class="docutils literal notranslate"><span class="pre">docs</span></code> job runs
@@ -2271,12 +2290,10 @@ package check (<code class="docutils literal notranslate"><span class="pre">pack
 and can be started by hand, which covers changes that reach the packages
 through other files, such as the root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>. The check selects the version as a release run that does not publish does (the CMake
 baseline, through <code class="docutils literal notranslate"><span class="pre">tools/release/version.py</span></code>) and calls the reusable workflow
-<code class="docutils literal notranslate"><span class="pre">package.yml</span></code> twice: with <code class="docutils literal notranslate"><span class="pre">qt:</span> <span class="pre">'5'</span></code>, as the release workflow does, and with <code class="docutils literal notranslate"><span class="pre">qt:</span> <span class="pre">'6'</span></code> in the job
-<code class="docutils literal notranslate"><span class="pre">Qt</span> <span class="pre">6</span> <span class="pre">packages</span> <span class="pre">(not</span> <span class="pre">required)</span></code>, whose artifact names end in <code class="docutils literal notranslate"><span class="pre">-qt6</span></code> and which
-<code class="docutils literal notranslate"><span class="pre">Package</span> <span class="pre">check</span> <span class="pre">result</span></code> does not wait for. A green check proves that the macOS, Windows and Linux packages
+<code class="docutils literal notranslate"><span class="pre">package.yml</span></code>, as the release workflow does. A green check proves that the macOS, Windows and Linux packages
 build, pass the completeness checks of their jobs and are uploaded as
 artifacts of the run. The Windows package job also fails when the software
-OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
+OpenGL, Direct3D or DXC compiler libraries, Qt Quick, QML or virtual
 keyboard files or <code class="docutils literal notranslate"><span class="pre">vc_redist.x64.exe</span></code> are in the package or when a program
 file imports a DLL that is neither in the package nor part of Windows, starts
 a copy of the package with
@@ -2340,7 +2357,7 @@ guide, and that the copy runs Paimpol without the GUI to <code class="docutils l
 The image is the only file of the artifact <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-macos-arm64</span></code>; no zip is
 made. The Linux package job extracts its AppImage and starts the extracted
 image with the same script on a virtual display, after the script has checked
-that every Qt 5 and ZeroMQ library of the programs and plugins comes from the
+that every Qt and ZeroMQ library of the programs and plugins comes from the
 image. The start in each of the three package jobs is the headless run and the
 window start, with no CSV or PNG export, because a release build has no test
 hooks to ask for one. The check does not show how the SVG icons look, typing
@@ -2451,10 +2468,8 @@ holds <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-Leba
 <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code> also lists the files of the Windows package. Before
 the updater replaces an installation, it requires every listed file and a
 fixed set of runtime files (<code class="docutils literal notranslate"><span class="pre">requiredRuntimeFiles()</span></code> in
-<code class="docutils literal notranslate"><span class="pre">update/WindowsStaging.h</span></code>) in the extracted package. The Qt libraries in that
-set are the Qt 6 ones when the package holds <code class="docutils literal notranslate"><span class="pre">Qt6Core.dll</span></code> and the Qt 5 ones
-otherwise, so a release built with Qt 5 can update to one built with Qt 6.
-Keep that set in step with the package verification in the Windows package job.</p>
+<code class="docutils literal notranslate"><span class="pre">update/WindowsStaging.h</span></code>) in the extracted package. Keep that set in step
+with the package verification in the Windows package job.</p>
 </li>
 <li><p>Production and tag releases run serially. A stale production run cannot
 publish after the branch advances, and an existing production release tag
@@ -2882,9 +2897,9 @@ removes it with its key. Run it by hand with
 </section>
 <section id="dependency-caches">
 <h3>Dependency caches<a class="headerlink" href="#dependency-caches" title="Link to this heading">¶</a></h3>
-<p>The Windows leg caches the Qt install (through <code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>,
-with the same cache entries as the Windows package job) and the vcpkg binary
-archives in <code class="docutils literal notranslate"><span class="pre">runner.temp/vcpkg-binary-cache</span></code>. vcpkg names an archive by a hash
+<p>Every leg caches the Qt install (through <code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>, with the
+same cache entries as the package jobs), and the Windows leg also caches the vcpkg
+binary archives in <code class="docutils literal notranslate"><span class="pre">runner.temp/vcpkg-binary-cache</span></code>. vcpkg names an archive by a hash
 that covers its own checkout, its CMake and the compiler, and the runner image fixes all three.
 The key of the vcpkg cache is therefore
 <code class="docutils literal notranslate"><span class="pre">vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-&lt;image&gt;-v1</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;image&gt;</span></code> is

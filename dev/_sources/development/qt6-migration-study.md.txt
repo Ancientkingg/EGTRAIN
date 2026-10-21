@@ -186,14 +186,18 @@ included.
 7. **Decide on Qt Charts.** Weigh Qt Graphs against keeping Qt Charts while Qt ships it. Include the size of the Qt
    Quick runtime in the decision.
 
-Status on 2026-10-20: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that a pull request must pass, like the Qt 5 jobs. With Qt 6.8.3 the
-application and all tests build with warnings as errors on macOS, Windows and Linux, and the Qt 6 jobs run the same
-tests as the Qt 5 jobs.
+Status on 2026-10-20: steps 1 and 2 are done. For step 3, CI had Qt 6 jobs that a pull request had to pass, like the
+Qt 5 jobs. With Qt 6.8.3 the application and all tests built with warnings as errors on macOS, Windows and Linux, and
+the Qt 6 jobs ran the same tests as the Qt 5 jobs.
 
-For step 4, `package.yml` takes the input `qt`, `'5'` by default. The release workflow passes `'5'`; the package
-check also calls it with `'6'` in a job that is not required yet, and those artifacts have names that end in `-qt6`.
-The Qt 6 packages use Qt 6.8.3 from `install-qt-action` on all three runners. The `windeployqt` of Qt 6.8.3 has no
-`--no-angle` option, and `--no-virtualkeyboard` exists only when the virtual keyboard module is installed, so the
-Qt 6 line drops both and adds `--no-system-dxc-compiler`, without which it copies `dxcompiler.dll` and `dxil.dll`.
-The updater still lists the Qt 5 DLLs as the files that a Windows package must hold
-(`update/WindowsStaging.h`), so an update to a Qt 6 package needs that list changed first.
+For step 4 the package check built the Qt 6 packages in a job that was not required; the Qt 6 `windeployqt` line drops
+`--no-angle` and `--no-virtualkeyboard` and adds `--no-system-dxc-compiler`.
+
+Step 6, done on 2026-10-20: v1.0.4 is the last release built with Qt 5. CI, the package check and the release
+workflow build with Qt 6.8.3 only, and Setup deletes the Qt 5 files of an older installation. The AppImage needs
+glibc 2.38 because it is built on Ubuntu 24.04. The release rehearsal on all three platforms has not been run with
+Qt 6 yet.
+
+Step 7, decided on 2026-10-20: keep Qt Charts while Qt ships it. It is deprecated since Qt 6.10 and still part of
+Qt 6.12. Qt Graphs is a QML module and would bring Qt Quick and QML into every package. Revisit the choice when a Qt
+release drops Qt Charts.

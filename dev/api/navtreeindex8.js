@@ -1,7 +1,5 @@
 var NAVTREEINDEX8 =
 {
-"class_entrance_delay_panel.html#ad69251e58aecb776bccfb14fd4cd7a92":[1,0,70,0],
-"class_entrance_delay_panel.html#ae0b84da365cd871666ea6850514c86be":[1,0,70,13],
 "class_entrance_delay_panel.html#afd5ac27382e7e98fc7fcaf27358120fb":[1,0,70,18],
 "class_find_dialog.html":[1,0,71],
 "class_find_dialog.html#a0292e354306d41db3cee14c9b78b008f":[1,0,71,1],
@@ -249,5 +247,7 @@ var NAVTREEINDEX8 =
 "class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f":[1,0,100,0],
 "class_initial_parameters.html#a304ca7c24b4f8fae8334690181fbfbd7":[1,0,100,10],
 "class_initial_parameters.html#a407f5e9c6466c651e5b7faf60e1824b8":[1,0,100,9],
-"class_initial_parameters.html#a47045e760f1069b70e42d2b0a0a7ff81":[1,0,100,14]
+"class_initial_parameters.html#a47045e760f1069b70e42d2b0a0a7ff81":[1,0,100,14],
+"class_initial_parameters.html#a554464065ffaaa6b31c52c6d3fa834d5":[1,0,100,13],
+"class_initial_parameters.html#a57ddfa48245441990329e8663fe1a569":[1,0,100,8]
 };

@@ -623,16 +623,18 @@ jobs, <code class="docutils literal notranslate"><span class="pre">util/QtMsvcCo
 <li><p><strong>Decide on Qt Charts.</strong> Weigh Qt Graphs against keeping Qt Charts while Qt ships it. Include the size of the Qt
 Quick runtime in the decision.</p></li>
 </ol>
-<p>Status on 2026-10-20: steps 1 and 2 are done. For step 3 CI has Qt 6 jobs that a pull request must pass, like the Qt 5 jobs. With Qt 6.8.3 the
-application and all tests build with warnings as errors on macOS, Windows and Linux, and the Qt 6 jobs run the same
-tests as the Qt 5 jobs.</p>
-<p>For step 4, <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> takes the input <code class="docutils literal notranslate"><span class="pre">qt</span></code>, <code class="docutils literal notranslate"><span class="pre">'5'</span></code> by default. The release workflow passes <code class="docutils literal notranslate"><span class="pre">'5'</span></code>; the package
-check also calls it with <code class="docutils literal notranslate"><span class="pre">'6'</span></code> in a job that is not required yet, and those artifacts have names that end in <code class="docutils literal notranslate"><span class="pre">-qt6</span></code>.
-The Qt 6 packages use Qt 6.8.3 from <code class="docutils literal notranslate"><span class="pre">install-qt-action</span></code> on all three runners. The <code class="docutils literal notranslate"><span class="pre">windeployqt</span></code> of Qt 6.8.3 has no
-<code class="docutils literal notranslate"><span class="pre">--no-angle</span></code> option, and <code class="docutils literal notranslate"><span class="pre">--no-virtualkeyboard</span></code> exists only when the virtual keyboard module is installed, so the
-Qt 6 line drops both and adds <code class="docutils literal notranslate"><span class="pre">--no-system-dxc-compiler</span></code>, without which it copies <code class="docutils literal notranslate"><span class="pre">dxcompiler.dll</span></code> and <code class="docutils literal notranslate"><span class="pre">dxil.dll</span></code>.
-The updater still lists the Qt 5 DLLs as the files that a Windows package must hold
-(<code class="docutils literal notranslate"><span class="pre">update/WindowsStaging.h</span></code>), so an update to a Qt 6 package needs that list changed first.</p>
+<p>Status on 2026-10-20: steps 1 and 2 are done. For step 3, CI had Qt 6 jobs that a pull request had to pass, like the
+Qt 5 jobs. With Qt 6.8.3 the application and all tests built with warnings as errors on macOS, Windows and Linux, and
+the Qt 6 jobs ran the same tests as the Qt 5 jobs.</p>
+<p>For step 4 the package check built the Qt 6 packages in a job that was not required; the Qt 6 <code class="docutils literal notranslate"><span class="pre">windeployqt</span></code> line drops
+<code class="docutils literal notranslate"><span class="pre">--no-angle</span></code> and <code class="docutils literal notranslate"><span class="pre">--no-virtualkeyboard</span></code> and adds <code class="docutils literal notranslate"><span class="pre">--no-system-dxc-compiler</span></code>.</p>
+<p>Step 6, done on 2026-10-20: v1.0.4 is the last release built with Qt 5. CI, the package check and the release
+workflow build with Qt 6.8.3 only, and Setup deletes the Qt 5 files of an older installation. The AppImage needs
+glibc 2.38 because it is built on Ubuntu 24.04. The release rehearsal on all three platforms has not been run with
+Qt 6 yet.</p>
+<p>Step 7, decided on 2026-10-20: keep Qt Charts while Qt ships it. It is deprecated since Qt 6.10 and still part of
+Qt 6.12. Qt Graphs is a QML module and would bring Qt Quick and QML into every package. Revisit the choice when a Qt
+release drops Qt Charts.</p>
 </section>
 </section>
 

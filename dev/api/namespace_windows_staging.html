@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespace_wind
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:af8fe5bc4930c40af47e2754779c28e07" id="r_af8fe5bc4930c40af47e2754779c28e07"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af8fe5bc4930c40af47e2754779c28e07">copyTree</a> (const QString &amp;sourcePath, const QString &amp;destinationPath)</td></tr>
-<tr class="memitem:a490d90c55bb1004f5136cc195d08b4fd" id="r_a490d90c55bb1004f5136cc195d08b4fd"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a490d90c55bb1004f5136cc195d08b4fd">requiredRuntimeFiles</a> (int qtMajor)</td></tr>
+<tr class="memitem:ad52395e48397c19fdda7b34e1eb00045" id="r_ad52395e48397c19fdda7b34e1eb00045"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#ad52395e48397c19fdda7b34e1eb00045">requiredRuntimeFiles</a> ()</td></tr>
 <tr class="memitem:a796211d1e8ac56931e77c7c7fbf2839a" id="r_a796211d1e8ac56931e77c7c7fbf2839a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a796211d1e8ac56931e77c7c7fbf2839a">completeWindowsRuntime</a> (const QString &amp;directory, const QStringList &amp;manifestFiles, QString *missing=nullptr)</td></tr>
 <tr class="memitem:a04252549267e75771c39d14d9be57670" id="r_a04252549267e75771c39d14d9be57670"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a04252549267e75771c39d14d9be57670">buildStage</a> (const QString &amp;extractPath, const QString &amp;stagePath, const QStringList &amp;manifestFiles, QString *error=nullptr)</td></tr>
 </table>
@@ -199,7 +199,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>True when the directory holds the required runtime files, the Scenes directory and every file named in manifestFiles. When it does not, missing receives the first absent entry. A package with Qt6Core.dll needs the Qt 6 libraries and any other the Qt 5 ones, so that a release built with Qt 5 can update to one built with Qt 6. </p>
+<p>True when the directory holds the required runtime files, the Scenes directory and every file named in manifestFiles. When it does not, missing receives the first absent entry. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -243,8 +243,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a490d90c55bb1004f5136cc195d08b4fd" name="a490d90c55bb1004f5136cc195d08b4fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a490d90c55bb1004f5136cc195d08b4fd">&#9670;&#160;</a></span>requiredRuntimeFiles()</h2>
+<a id="ad52395e48397c19fdda7b34e1eb00045" name="ad52395e48397c19fdda7b34e1eb00045"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad52395e48397c19fdda7b34e1eb00045">&#9670;&#160;</a></span>requiredRuntimeFiles()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -255,7 +255,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">QStringList WindowsStaging::requiredRuntimeFiles </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>qtMajor</em></span></td><td>)</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -265,11 +265,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Files every Windows release package must contain, kept in step with the package verification of the Windows job in the release workflow. The libzmq DLL carries its version in the name and is matched separately. The Qt libraries carry the major version of the Qt that built the package. </p>
+<p>Files every Windows release package must contain, kept in step with the package verification of the Windows job in the release workflow. The libzmq DLL carries its version in the name and is matched separately. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespace_windows_staging_a490d90c55bb1004f5136cc195d08b4fd_cgraph.svg" width="203" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="namespace_windows_staging_ad52395e48397c19fdda7b34e1eb00045_cgraph.svg" width="203" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

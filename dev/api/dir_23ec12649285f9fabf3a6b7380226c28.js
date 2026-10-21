@@ -7,7 +7,6 @@ var dir_23ec12649285f9fabf3a6b7380226c28 =
     [ "PlaybackProfiler.cpp", "_playback_profiler_8cpp.html", null ],
     [ "PlaybackProfiler.h", "_playback_profiler_8h.html", "_playback_profiler_8h" ],
     [ "portability.h", "portability_8h.html", "portability_8h" ],
-    [ "QtMsvcCompat.h", "_qt_msvc_compat_8h.html", null ],
     [ "SpeedFormat.cpp", "_speed_format_8cpp.html", "_speed_format_8cpp" ],
     [ "SpeedFormat.h", "_speed_format_8h.html", "_speed_format_8h" ],
     [ "TimeFormat.cpp", "_time_format_8cpp.html", "_time_format_8cpp" ],

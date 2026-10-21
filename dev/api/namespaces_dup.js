@@ -88,6 +88,6 @@ var namespaces_dup =
       [ "buildStage", "namespace_windows_staging.html#a04252549267e75771c39d14d9be57670", null ],
       [ "completeWindowsRuntime", "namespace_windows_staging.html#a796211d1e8ac56931e77c7c7fbf2839a", null ],
       [ "copyTree", "namespace_windows_staging.html#af8fe5bc4930c40af47e2754779c28e07", null ],
-      [ "requiredRuntimeFiles", "namespace_windows_staging.html#a490d90c55bb1004f5136cc195d08b4fd", null ]
+      [ "requiredRuntimeFiles", "namespace_windows_staging.html#ad52395e48397c19fdda7b34e1eb00045", null ]
     ] ]
 ];
