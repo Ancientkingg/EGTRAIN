@@ -320,7 +320,10 @@ application itself from <code class="docutils literal notranslate"><span class="
 <li><p>ZeroMQ, cppzmq, and nlohmann-json</p></li>
 <li><p>Python 3.9 or newer, found by <code class="docutils literal notranslate"><span class="pre">find_package(Python3)</span></code> at configure time;
 CTest runs its Python tests with that interpreter. On Windows, set
-<code class="docutils literal notranslate"><span class="pre">PYTHONUTF8=1</span></code> for local runs so scripts read program output as UTF-8.</p></li>
+<code class="docutils literal notranslate"><span class="pre">PYTHONUTF8=1</span></code> for local runs so scripts read program output as UTF-8;
+the Windows presets set it.</p></li>
+<li><p>Git, to clone the repository. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
+uses it to fetch its registry at the <code class="docutils literal notranslate"><span class="pre">builtin-baseline</span></code> of <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>.</p></li>
 </ul>
 <p>Qt Svg is required by the application and must be available with the
 other Qt modules. A configure that finds no Qt 6 with these modules stops with a message
@@ -385,25 +388,58 @@ cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>
 </div>
 <p>The configure step then prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">XKB</span></code> and <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">PkgConfig</span></code>, which do no harm. CI and
 the packages use 6.8.3, so a difference between the two shows only there.</p>
-<p>On Windows, from a Visual Studio developer PowerShell, with the vcpkg
-packages installed and the Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> directory as
-<code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code>:</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">vcpkg</span> <span class="n">install</span> <span class="n">zeromq</span> <span class="n">cppzmq</span> <span class="n">nlohmann-json</span> <span class="p">-</span><span class="n">-triplet</span> <span class="n">x64-windows</span>
-<span class="n">cmake</span> <span class="n">-S</span> <span class="p">.</span> <span class="n">-B</span> <span class="n">build</span> <span class="n">-DEGTRAIN_BUILD_TESTS</span><span class="p">=</span><span class="n">ON</span> <span class="p">`</span>
-  <span class="n">-DCMAKE_TOOLCHAIN_FILE</span><span class="p">=</span><span class="s2">"$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"</span> <span class="p">`</span>
-  <span class="n">-DVCPKG_TARGET_TRIPLET</span><span class="p">=</span><span class="n">x64-windows</span> <span class="p">`</span>
-  <span class="n">-DCMAKE_PREFIX_PATH</span><span class="p">=</span><span class="s2">"C:/Qt/6.8.3/msvc2022_64"</span>
+<p>On Windows, <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code> holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
+<code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet and the manifest <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>, Qt from <code class="docutils literal notranslate"><span class="pre">C:/Qt/6.8.3/msvc2022_64</span></code>, and the tests.
+From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
+<span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
+<span class="n">ctest</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> presets make a Debug build. Each preset builds in <code class="docutils literal notranslate"><span class="pre">out\build\&lt;preset&gt;</span></code>. The first configure also
+builds ZeroMQ, cppzmq and nlohmann-json with vcpkg. CI does not use the presets: it installs the same packages with
+vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>.</p>
+<p>The Start-menu entry <strong>Developer PowerShell for VS</strong> opens a shell that targets 32-bit Windows, and the configure then
+stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.
+<code class="docutils literal notranslate"><span class="pre">-VsInstallPath</span></code> is the folder of Visual Studio, here Visual Studio Community 2026; on an Arm64 PC use <code class="docutils literal notranslate"><span class="pre">-host_arch=arm64</span></code>:</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="nb">Enter-VsDevShell</span> <span class="n">-VsInstallPath</span> <span class="s1">'C:\Program Files\Microsoft Visual Studio\18\Community'</span> <span class="n">-SkipAutomaticLocation</span> <span class="p">`</span>
+  <span class="n">-DevCmdArguments</span> <span class="s1">'-arch=x64 -host_arch=x64'</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Qt6_DIR</span></code> in <code class="docutils literal notranslate"><span class="pre">build/CMakeCache.txt</span></code> shows which Qt a build folder uses.</p>
-<p>The Visual Studio generator is multi-config: choose the configuration when
-building and testing, as in the next two sections.</p>
-<p>The repository has no Visual Studio solution or project file. To work in Visual
-Studio, open the repository folder as a CMake project (File &gt; Open &gt; Folder)
-and give its CMake settings the toolchain file, the triplet and the prefix path
-of the command above. Choose an x64 configuration and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> as the
-startup item. A configure for 32-bit Windows stops with a message that names
-x64 as the only supported platform.</p>
+<p>Without a preset, CMake on Windows uses the Visual Studio generator, which is multi-config: choose the configuration
+when building and testing, as in the next two sections.</p>
+<section id="visual-studio">
+<h3>Visual Studio<a class="headerlink" href="#visual-studio" title="Link to this heading">¶</a></h3>
+<p>The repository has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
+uses the presets:</p>
+<ol class="arabic simple">
+<li><p>Install Visual Studio 2022 or newer with the <strong>Desktop development with C++</strong> workload. Its default components
+include the C++ CMake tools and the vcpkg package manager.</p></li>
+<li><p>Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts into <code class="docutils literal notranslate"><span class="pre">C:\Qt</span></code>, with
+aqtinstall or the Qt online installer as in <a class="reference internal" href="#requirements">Requirements</a>.</p></li>
+<li><p>Open the repository folder with <strong>File &gt; Open &gt; Folder</strong>. Visual Studio then configures the <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> preset. The
+first configure also builds the vcpkg libraries and takes longer.</p></li>
+<li><p>For a Release build, pick <code class="docutils literal notranslate"><span class="pre">x64-release</span></code> in the configuration list of the toolbar.</p></li>
+<li><p>Pick <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> as the startup item and press F5. The default startup item is another program of the build.</p></li>
+<li><p>Run the tests from <strong>Test &gt; Test Explorer</strong>.</p></li>
+</ol>
+<p>Visual Studio and <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--preset</span></code> run the programs and tests with the environment of the preset, whose <code class="docutils literal notranslate"><span class="pre">PATH</span></code> has the
+Qt <code class="docutils literal notranslate"><span class="pre">bin</span></code> folder. For Qt in another folder, add a <code class="docutils literal notranslate"><span class="pre">CMakeUserPresets.json</span></code> next to <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code> (Git ignores it)
+and pick its preset in step 4:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"configurePresets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my-debug"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"inherits"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x64-debug"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"environment"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"QT_ROOT_DIR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"D:/Qt/6.8.3/msvc2022_64"</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="build">
 <h2>Build<a class="headerlink" href="#build" title="Link to this heading">¶</a></h2>
@@ -535,8 +571,10 @@ listed in <a class="reference internal" href="coding-guidelines.html#warnings"><
 </pre></div>
 </div>
 <p>A single-config Windows build may place the executable at
-<code class="docutils literal notranslate"><span class="pre">..\..\build\QEGTRAIN.exe</span></code>. These are local build paths; downloaded release
-packages are documented in <a class="reference internal" href="../guides/install.html"><span class="std std-doc">Installing EGTRAIN</span></a>.</p>
+<code class="docutils literal notranslate"><span class="pre">..\..\build\QEGTRAIN.exe</span></code>, and a preset build at <code class="docutils literal notranslate"><span class="pre">..\..\out\build\x64-release\QEGTRAIN.exe</span></code>.
+Started outside Visual Studio, it needs the Qt <code class="docutils literal notranslate"><span class="pre">bin</span></code> folder on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, for example
+<code class="docutils literal notranslate"><span class="pre">$env:PATH</span> <span class="pre">=</span> <span class="pre">&quot;C:\Qt\6.8.3\msvc2022_64\bin;$env:PATH&quot;</span></code>. Without it the program exits with no window or message.
+These are local build paths; downloaded release packages are documented in <a class="reference internal" href="../guides/install.html"><span class="std std-doc">Installing EGTRAIN</span></a>.</p>
 <p>Runtime output defaults to
 <code class="docutils literal notranslate"><span class="pre">&lt;QStandardPaths::AppDataLocation&gt;/Output/&lt;scene&gt;</span></code>. It does not always use a
 repository <code class="docutils literal notranslate"><span class="pre">Output/</span></code> directory. Set <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> to override the base
@@ -544,11 +582,11 @@ directory; EGTRAIN then writes <code class="docutils literal notranslate"><span 
 </section>
 <section id="common-setup-failures">
 <h2>Common setup failures<a class="headerlink" href="#common-setup-failures" title="Link to this heading">¶</a></h2>
-<p>Configure and build problems that have come up, with the text CMake or the tool prints. The wording
+<p>Configure, build and test problems that have come up, with the text CMake or the tool prints. The wording
 of CMake and CTest messages varies with the CMake version. The Qt message, the wrong-source-directory
-message, <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">tests</span> <span class="pre">were</span> <span class="pre">found!!!</span></code> and the missing-target error were reproduced on macOS. The other
-rows were checked against <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> and the scripts but not run, and the Windows rows were not
-run on Windows.</p>
+message, <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">tests</span> <span class="pre">were</span> <span class="pre">found!!!</span></code> and the missing-target error were reproduced on macOS, and the x64-only
+message, the symbolic link failures and the quarantined test on Windows. The other rows were checked
+against <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> and the scripts but not run.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -568,41 +606,53 @@ run on Windows.</p>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">a</span> <span class="pre">package</span> <span class="pre">configuration</span> <span class="pre">file</span> <span class="pre">provided</span> <span class="pre">by</span> <span class="pre">&quot;cppzmq&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;nlohmann_json&quot;</span></code></p></td>
 <td><p>The package is not installed, or on Windows vcpkg is not given to CMake</p></td>
-<td><p>Install it as in <a class="reference internal" href="#configure">Configure</a>. On Windows pass <code class="docutils literal notranslate"><span class="pre">CMAKE_TOOLCHAIN_FILE</span></code> and <code class="docutils literal notranslate"><span class="pre">VCPKG_TARGET_TRIPLET=x64-windows</span></code></p></td>
+<td><p>Install it as in <a class="reference internal" href="#configure">Configure</a>. On Windows use a preset, or pass <code class="docutils literal notranslate"><span class="pre">CMAKE_TOOLCHAIN_FILE</span></code> and <code class="docutils literal notranslate"><span class="pre">VCPKG_TARGET_TRIPLET=x64-windows</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">Python3</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">toolchain</span> <span class="pre">file:</span> <span class="pre">&quot;/scripts/buildsystems/vcpkg.cmake&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VCPKG_ROOT</span></code> is not set: the shell is not a Developer PowerShell, or Visual Studio lacks the vcpkg package manager</p></td>
+<td><p>Use an x64 Developer PowerShell, and add the vcpkg package manager in the Visual Studio Installer</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">Python3</span></code></p></td>
 <td><p>No Python 3.9 or newer was found: it is missing from <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, or the one found is older (CMake then names the version it found). Only a configure with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_BUILD_TESTS=ON</span></code> looks for it</p></td>
 <td><p>Install Python 3.9 or newer, or pass <code class="docutils literal notranslate"><span class="pre">-DPython3_EXECUTABLE=&lt;path&gt;</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">source</span> <span class="pre">&quot;.../CMakeLists.txt&quot;</span> <span class="pre">does</span> <span class="pre">not</span> <span class="pre">match</span> <span class="pre">the</span> <span class="pre">source</span> <span class="pre">&quot;.../CMakeLists.txt&quot;</span> <span class="pre">used</span> <span class="pre">to</span> <span class="pre">generate</span> <span class="pre">cache</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">source</span> <span class="pre">&quot;.../CMakeLists.txt&quot;</span> <span class="pre">does</span> <span class="pre">not</span> <span class="pre">match</span> <span class="pre">the</span> <span class="pre">source</span> <span class="pre">&quot;.../CMakeLists.txt&quot;</span> <span class="pre">used</span> <span class="pre">to</span> <span class="pre">generate</span> <span class="pre">cache</span></code></p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">build</span></code> folder was configured for another checkout, for example a copied folder or another Git worktree</p></td>
 <td><p>Use one build folder per checkout, for example <code class="docutils literal notranslate"><span class="pre">-B</span> <span class="pre">build-feature</span></code>, or delete the old one</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">supports</span> <span class="pre">64-bit</span> <span class="pre">Windows</span> <span class="pre">(x64)</span> <span class="pre">only</span></code></p></td>
-<td><p>A 32-bit generator or toolset</p></td>
-<td><p>Configure for x64: <code class="docutils literal notranslate"><span class="pre">-A</span> <span class="pre">x64</span></code> with a Visual Studio generator, or an x64 configuration in Visual Studio</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">supports</span> <span class="pre">64-bit</span> <span class="pre">Windows</span> <span class="pre">(x64)</span> <span class="pre">only</span></code></p></td>
+<td><p>A 32-bit generator, toolset or Developer PowerShell, such as the one of the Start menu</p></td>
+<td><p>Configure for x64: <code class="docutils literal notranslate"><span class="pre">-A</span> <span class="pre">x64</span></code> with a Visual Studio generator, an x64 configuration in Visual Studio, or a preset in a Developer PowerShell switched to x64 with <code class="docutils literal notranslate"><span class="pre">Enter-VsDevShell</span></code> as in <a class="reference internal" href="#configure">Configure</a></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">tests</span> <span class="pre">were</span> <span class="pre">found!!!</span></code> from <code class="docutils literal notranslate"><span class="pre">ctest</span></code>, or <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">rule</span> <span class="pre">to</span> <span class="pre">make</span> <span class="pre">target</span> <span class="pre">'test_timeformat'</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">tests</span> <span class="pre">were</span> <span class="pre">found!!!</span></code> from <code class="docutils literal notranslate"><span class="pre">ctest</span></code>, or <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">rule</span> <span class="pre">to</span> <span class="pre">make</span> <span class="pre">target</span> <span class="pre">'test_timeformat'</span></code></p></td>
 <td><p>The build folder was configured without <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_BUILD_TESTS=ON</span></code>, which is off by default</p></td>
 <td><p>Run the configure command again with the option, in the same folder</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Test</span> <span class="pre">not</span> <span class="pre">available</span> <span class="pre">without</span> <span class="pre">configuration.</span>&#160; <span class="pre">(Missing</span> <span class="pre">&quot;-C</span> <span class="pre">&lt;config&gt;&quot;?)</span></code> from <code class="docutils literal notranslate"><span class="pre">ctest</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Test</span> <span class="pre">not</span> <span class="pre">available</span> <span class="pre">without</span> <span class="pre">configuration.</span>&#160; <span class="pre">(Missing</span> <span class="pre">&quot;-C</span> <span class="pre">&lt;config&gt;&quot;?)</span></code> from <code class="docutils literal notranslate"><span class="pre">ctest</span></code></p></td>
 <td><p>A multi-config generator such as Visual Studio</p></td>
 <td><p>Add <code class="docutils literal notranslate"><span class="pre">-C</span> <span class="pre">Release</span></code> to <code class="docutils literal notranslate"><span class="pre">ctest</span></code>, and <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">Release</span></code> to <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>The build takes very long</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_playback_profile</span></code> and <code class="docutils literal notranslate"><span class="pre">test_scenesavepolicy</span></code> fail on Windows with <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">required</span> <span class="pre">privilege</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">held</span> <span class="pre">by</span> <span class="pre">the</span> <span class="pre">client</span></code></p></td>
+<td><p>The tests create symbolic links, which a standard user can create only with Developer Mode on</p></td>
+<td><p>Turn on Developer Mode in <strong>Settings &gt; System &gt; For developers</strong>, which needs an administrator</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">not</span> <span class="pre">find</span> <span class="pre">executable</span></code> or <code class="docutils literal notranslate"><span class="pre">Process</span> <span class="pre">not</span> <span class="pre">started</span></code> from <code class="docutils literal notranslate"><span class="pre">ctest</span></code> for a test that was just built</p></td>
+<td><p>Microsoft Defender quarantined the test program as a false positive</p></td>
+<td><p>Build that test again with <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span> <span class="pre">--preset</span> <span class="pre">&lt;preset&gt;</span> <span class="pre">--target</span> <span class="pre">&lt;test&gt;</span></code>, with the preset that <code class="docutils literal notranslate"><span class="pre">ctest</span></code> ran. <strong>Windows Security &gt; Protection history</strong> lists the detection</p></td>
+</tr>
+<tr class="row-odd"><td><p>The build takes very long</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span> <span class="pre">build</span></code> runs one job with the Makefile generator, and a Release link uses link-time optimization</p></td>
 <td><p>Add <code class="docutils literal notranslate"><span class="pre">--parallel</span> <span class="pre">4</span></code> (or set <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL</span></code>), and configure with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_IPO=OFF</span></code> for faster links</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">clang-format</span> <span class="pre">...</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">installed</span></code>, or <code class="docutils literal notranslate"><span class="pre">...</span> <span class="pre">is</span> <span class="pre">clang-format</span> <span class="pre">X,</span> <span class="pre">but</span> <span class="pre">the</span> <span class="pre">sources</span> <span class="pre">are</span> <span class="pre">formatted</span> <span class="pre">with</span> <span class="pre">23.1.3</span></code> from <code class="docutils literal notranslate"><span class="pre">tools/format.py</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">clang-format</span> <span class="pre">...</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">installed</span></code>, or <code class="docutils literal notranslate"><span class="pre">...</span> <span class="pre">is</span> <span class="pre">clang-format</span> <span class="pre">X,</span> <span class="pre">but</span> <span class="pre">the</span> <span class="pre">sources</span> <span class="pre">are</span> <span class="pre">formatted</span> <span class="pre">with</span> <span class="pre">23.1.3</span></code> from <code class="docutils literal notranslate"><span class="pre">tools/format.py</span></code></p></td>
 <td><p>The script accepts one release only</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">~/fmt-venv</span> <span class="pre">&amp;&amp;</span> <span class="pre">~/fmt-venv/bin/pip</span> <span class="pre">install</span> <span class="pre">clang-format==23.1.3</span></code>, then put <code class="docutils literal notranslate"><span class="pre">~/fmt-venv/bin</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> or name the executable in <code class="docutils literal notranslate"><span class="pre">CLANG_FORMAT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Python scripts fail on Windows with a decoding error</p></td>
+<tr class="row-odd"><td><p>Python scripts fail on Windows with a decoding error</p></td>
 <td><p>The console code page is not UTF-8</p></td>
 <td><p>Set <code class="docutils literal notranslate"><span class="pre">PYTHONUTF8=1</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>The application starts but a relative <code class="docutils literal notranslate"><span class="pre">--scene</span></code> path or <code class="docutils literal notranslate"><span class="pre">Scenes/...</span></code> is not found</p></td>
+<tr class="row-even"><td><p>The application starts but a relative <code class="docutils literal notranslate"><span class="pre">--scene</span></code> path or <code class="docutils literal notranslate"><span class="pre">Scenes/...</span></code> is not found</p></td>
 <td><p>The working directory is not <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code></p></td>
 <td><p>Start it from that folder, or give an absolute path</p></td>
 </tr>
@@ -669,7 +719,10 @@ run on Windows.</p>
             <ul>
 <li><a class="reference internal" href="#">Build from source</a><ul>
 <li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#configure">Configure</a></li>
+<li><a class="reference internal" href="#configure">Configure</a><ul>
+<li><a class="reference internal" href="#visual-studio">Visual Studio</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#build">Build</a><ul>
 <li><a class="reference internal" href="#build-structure">Build structure</a></li>
 <li><a class="reference internal" href="#warnings">Warnings</a></li>

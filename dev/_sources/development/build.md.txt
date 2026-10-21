@@ -15,7 +15,10 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 - ZeroMQ, cppzmq, and nlohmann-json
 - Python 3.9 or newer, found by `find_package(Python3)` at configure time;
   CTest runs its Python tests with that interpreter. On Windows, set
-  `PYTHONUTF8=1` for local runs so scripts read program output as UTF-8.
+  `PYTHONUTF8=1` for local runs so scripts read program output as UTF-8;
+  the Windows presets set it.
+- Git, to clone the repository. On Windows, Git for Windows is a separate install from Visual Studio, and vcpkg
+  uses it to fetch its registry at the `builtin-baseline` of `tools/vcpkg/vcpkg.json`.
 
 Qt Svg is required by the application and must be available with the
 other Qt modules. A configure that finds no Qt 6 with these modules stops with a message
@@ -94,29 +97,65 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 The configure step then prints `Could NOT find XKB` and `Could NOT find PkgConfig`, which do no harm. CI and
 the packages use 6.8.3, so a difference between the two shows only there.
 
-On Windows, from a Visual Studio developer PowerShell, with the vcpkg
-packages installed and the Qt 6.8.3 `msvc2022_64` directory as
-`CMAKE_PREFIX_PATH`:
+On Windows, `CMakePresets.json` holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
+`x64-windows` triplet and the manifest `tools/vcpkg/vcpkg.json`, Qt from `C:/Qt/6.8.3/msvc2022_64`, and the tests.
+From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:
 
 ```powershell
-vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
-  -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
-  -DVCPKG_TARGET_TRIPLET=x64-windows `
-  -DCMAKE_PREFIX_PATH="C:/Qt/6.8.3/msvc2022_64"
+cmake --preset x64-release
+cmake --build --preset x64-release
+ctest --preset x64-release
+```
+
+The `x64-debug` presets make a Debug build. Each preset builds in `out\build\<preset>`. The first configure also
+builds ZeroMQ, cppzmq and nlohmann-json with vcpkg. CI does not use the presets: it installs the same packages with
+vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in `.github/workflows/cmake.yml`.
+
+The Start-menu entry **Developer PowerShell for VS** opens a shell that targets 32-bit Windows, and the configure then
+stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.
+`-VsInstallPath` is the folder of Visual Studio, here Visual Studio Community 2026; on an Arm64 PC use `-host_arch=arm64`:
+
+```powershell
+Enter-VsDevShell -VsInstallPath 'C:\Program Files\Microsoft Visual Studio\18\Community' -SkipAutomaticLocation `
+  -DevCmdArguments '-arch=x64 -host_arch=x64'
 ```
 
 `Qt6_DIR` in `build/CMakeCache.txt` shows which Qt a build folder uses.
 
-The Visual Studio generator is multi-config: choose the configuration when
-building and testing, as in the next two sections.
+Without a preset, CMake on Windows uses the Visual Studio generator, which is multi-config: choose the configuration
+when building and testing, as in the next two sections.
 
-The repository has no Visual Studio solution or project file. To work in Visual
-Studio, open the repository folder as a CMake project (File > Open > Folder)
-and give its CMake settings the toolchain file, the triplet and the prefix path
-of the command above. Choose an x64 configuration and `QEGTRAIN.exe` as the
-startup item. A configure for 32-bit Windows stops with a message that names
-x64 as the only supported platform.
+### Visual Studio
+
+The repository has no Visual Studio solution or project file. Visual Studio opens the folder as a CMake project and
+uses the presets:
+
+1. Install Visual Studio 2022 or newer with the **Desktop development with C++** workload. Its default components
+   include the C++ CMake tools and the vcpkg package manager.
+2. Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 `msvc2022_64` with Qt Charts into `C:\Qt`, with
+   aqtinstall or the Qt online installer as in [Requirements](#requirements).
+3. Open the repository folder with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
+   first configure also builds the vcpkg libraries and takes longer.
+4. For a Release build, pick `x64-release` in the configuration list of the toolbar.
+5. Pick `QEGTRAIN.exe` as the startup item and press F5. The default startup item is another program of the build.
+6. Run the tests from **Test > Test Explorer**.
+
+Visual Studio and `ctest --preset` run the programs and tests with the environment of the preset, whose `PATH` has the
+Qt `bin` folder. For Qt in another folder, add a `CMakeUserPresets.json` next to `CMakePresets.json` (Git ignores it)
+and pick its preset in step 4:
+
+```json
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "my-debug",
+      "inherits": "x64-debug",
+      "environment": { "QT_ROOT_DIR": "D:/Qt/6.8.3/msvc2022_64" }
+    }
+  ]
+}
+```
 
 ## Build
 
@@ -260,8 +299,10 @@ From `EGTRAIN/QEGTRAIN`, use the executable produced by the selected generator:
 ```
 
 A single-config Windows build may place the executable at
-`..\..\build\QEGTRAIN.exe`. These are local build paths; downloaded release
-packages are documented in [Installing EGTRAIN](../guides/install.md).
+`..\..\build\QEGTRAIN.exe`, and a preset build at `..\..\out\build\x64-release\QEGTRAIN.exe`.
+Started outside Visual Studio, it needs the Qt `bin` folder on `PATH`, for example
+`$env:PATH = "C:\Qt\6.8.3\msvc2022_64\bin;$env:PATH"`. Without it the program exits with no window or message.
+These are local build paths; downloaded release packages are documented in [Installing EGTRAIN](../guides/install.md).
 
 Runtime output defaults to
 `<QStandardPaths::AppDataLocation>/Output/<scene>`. It does not always use a
@@ -270,22 +311,25 @@ directory; EGTRAIN then writes `<override>/Output/<scene>`.
 
 ## Common setup failures
 
-Configure and build problems that have come up, with the text CMake or the tool prints. The wording
+Configure, build and test problems that have come up, with the text CMake or the tool prints. The wording
 of CMake and CTest messages varies with the CMake version. The Qt message, the wrong-source-directory
-message, `No tests were found!!!` and the missing-target error were reproduced on macOS. The other
-rows were checked against `CMakeLists.txt` and the scripts but not run, and the Windows rows were not
-run on Windows.
+message, `No tests were found!!!` and the missing-target error were reproduced on macOS, and the x64-only
+message, the symbolic link failures and the quarantined test on Windows. The other rows were checked
+against `CMakeLists.txt` and the scripts but not run.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `EGTRAIN needs Qt 6 with the Charts, Svg and Help modules` | CMake does not look in the folder of Qt 6, or found only Qt 5 | Add the Qt 6 folder to `CMAKE_PREFIX_PATH`, for example `~/Qt/6.8.3/macos` or `C:/Qt/6.8.3/msvc2022_64`. CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
 | `Could not find a package configuration file provided by "Qt6Charts"` (or `Qt6Svg`), followed by the message above | The module is not installed | `-m qtcharts` for aqtinstall or the Qt Charts module in the Qt online installer; `qt6-charts-dev qt6-svg-dev` with the Qt of Ubuntu |
-| `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
+| `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows use a preset, or pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
+| `Could not find toolchain file: "/scripts/buildsystems/vcpkg.cmake"` | `VCPKG_ROOT` is not set: the shell is not a Developer PowerShell, or Visual Studio lacks the vcpkg package manager | Use an x64 Developer PowerShell, and add the vcpkg package manager in the Visual Studio Installer |
 | `Could NOT find Python3` | No Python 3.9 or newer was found: it is missing from `PATH`, or the one found is older (CMake then names the version it found). Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |
 | `The source ".../CMakeLists.txt" does not match the source ".../CMakeLists.txt" used to generate cache` | The `build` folder was configured for another checkout, for example a copied folder or another Git worktree | Use one build folder per checkout, for example `-B build-feature`, or delete the old one |
-| `EGTRAIN supports 64-bit Windows (x64) only` | A 32-bit generator or toolset | Configure for x64: `-A x64` with a Visual Studio generator, or an x64 configuration in Visual Studio |
+| `EGTRAIN supports 64-bit Windows (x64) only` | A 32-bit generator, toolset or Developer PowerShell, such as the one of the Start menu | Configure for x64: `-A x64` with a Visual Studio generator, an x64 configuration in Visual Studio, or a preset in a Developer PowerShell switched to x64 with `Enter-VsDevShell` as in [Configure](#configure) |
 | `No tests were found!!!` from `ctest`, or `No rule to make target 'test_timeformat'` | The build folder was configured without `-DEGTRAIN_BUILD_TESTS=ON`, which is off by default | Run the configure command again with the option, in the same folder |
 | `Test not available without configuration.  (Missing "-C <config>"?)` from `ctest` | A multi-config generator such as Visual Studio | Add `-C Release` to `ctest`, and `--config Release` to `cmake --build` |
+| `test_playback_profile` and `test_scenesavepolicy` fail on Windows with `A required privilege is not held by the client` | The tests create symbolic links, which a standard user can create only with Developer Mode on | Turn on Developer Mode in **Settings > System > For developers**, which needs an administrator |
+| `Could not find executable` or `Process not started` from `ctest` for a test that was just built | Microsoft Defender quarantined the test program as a false positive | Build that test again with `cmake --build --preset <preset> --target <test>`, with the preset that `ctest` ran. **Windows Security > Protection history** lists the detection |
 | The build takes very long | `cmake --build build` runs one job with the Makefile generator, and a Release link uses link-time optimization | Add `--parallel 4` (or set `CMAKE_BUILD_PARALLEL_LEVEL`), and configure with `-DEGTRAIN_IPO=OFF` for faster links |
 | `clang-format ... is not installed`, or `... is clang-format X, but the sources are formatted with 23.1.3` from `tools/format.py` | The script accepts one release only | `python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format==23.1.3`, then put `~/fmt-venv/bin` on `PATH` or name the executable in `CLANG_FORMAT` |
 | Python scripts fail on Windows with a decoding error | The console code page is not UTF-8 | Set `PYTHONUTF8=1` |
