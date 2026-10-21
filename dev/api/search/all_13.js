@@ -603,7 +603,7 @@ var searchData=
   ['sink_600',['Sink',['../namespaceeglog.html#a364a6eebe42676b735ab49f0c4e2949a',1,'eglog']]],
   ['size_601',['size',['../class_gui_replay_history.html#a2da7e2bd56ebc9a7b2425d99dc0105f0',1,'GuiReplayHistory']]],
   ['sizebytes_602',['sizeBytes',['../struct_recovery_source.html#a2bc9fb7698b219ca86ea51a3b219710e',1,'RecoverySource']]],
-  ['sizehint_603',['sizeHint',['../class_editor_layout_1_1_dock_scroll_area.html#a5446c7758f47c8cf2b6c37c802397ecd',1,'EditorLayout::DockScrollArea']]],
+  ['sizehint_603',['sizeHint',['../class_editor_layout_1_1_dock_scroll_area.html#a5446c7758f47c8cf2b6c37c802397ecd',1,'EditorLayout::DockScrollArea::sizeHint()'],['../class_narrow_row_delegate.html#a77dd74d430d20c3c68618b0580307707',1,'NarrowRowDelegate::sizeHint()']]],
   ['skipped_604',['skipped',['../struct_report_builder.html#a76e4d41646f8e36b251fd32128639f29',1,'ReportBuilder']]],
   ['skippedcount_605',['skippedCount',['../struct_scene_import_report_row.html#afcca67479761060b43d19b4559312883',1,'SceneImportReportRow']]],
   ['snapshotavailable_606',['snapshotAvailable',['../class_dispatch_controller.html#aebe79f141b28e94e15e1d5ce7aa1617a',1,'DispatchController']]],

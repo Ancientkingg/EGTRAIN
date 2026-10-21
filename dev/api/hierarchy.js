@@ -240,6 +240,9 @@ var hierarchy =
       [ "EditorLayout::DockScrollArea", "class_editor_layout_1_1_dock_scroll_area.html", null ],
       [ "EditorLayout::VerticalScrollArea", "class_editor_layout_1_1_vertical_scroll_area.html", null ]
     ] ],
+    [ "QStyledItemDelegate", null, [
+      [ "NarrowRowDelegate", "class_narrow_row_delegate.html", null ]
+    ] ],
     [ "QThread", null, [
       [ "telemetry::SenderThread", "classtelemetry_1_1_sender_thread.html", null ]
     ] ],

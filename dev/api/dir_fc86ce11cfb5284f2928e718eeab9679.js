@@ -23,6 +23,7 @@ var dir_fc86ce11cfb5284f2928e718eeab9679 =
     [ "InspectorPanel.h", "_inspector_panel_8h.html", "_inspector_panel_8h" ],
     [ "ManualWindow.cpp", "_manual_window_8cpp.html", null ],
     [ "ManualWindow.h", "_manual_window_8h.html", "_manual_window_8h" ],
+    [ "NarrowRowDelegate.h", "_narrow_row_delegate_8h.html", "_narrow_row_delegate_8h" ],
     [ "NetworkLegendWidget.cpp", "_network_legend_widget_8cpp.html", null ],
     [ "NetworkLegendWidget.h", "_network_legend_widget_8h.html", "_network_legend_widget_8h" ],
     [ "PlainToolTip.h", "_plain_tool_tip_8h.html", "_plain_tool_tip_8h" ],

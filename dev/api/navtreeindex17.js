@@ -1,5 +1,9 @@
 var NAVTREEINDEX17 =
 {
+"functions_o.html":[1,3,0,14],
+"functions_p.html":[1,3,0,15],
+"functions_q.html":[1,3,0,16],
+"functions_r.html":[1,3,0,17],
 "functions_rela.html":[1,3,6],
 "functions_s.html":[1,3,0,18],
 "functions_t.html":[1,3,0,19],
@@ -245,9 +249,5 @@ var NAVTREEINDEX17 =
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a4d98250a14f0cda0742971d6a4c8e3b7":[0,0,13,19,2],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a7482cd4ebe2505e5275de25d89abae23":[0,0,13,19,4],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a823bc4d728e12359abc63b7004103dc1":[0,0,13,19,5],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a8a81a64e1e3728409b8c377eef362796":[0,0,13,19,7],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aa244ddc17d9605fe956fca75701b5ac2":[0,0,13,19,8],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aba9952319eb8b6de5151ef934f8e13b8":[0,0,13,19,6],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657abf6f622872734159c1ad15920e24b5ab":[0,0,13,19,3],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657ae35c9498bfa51f9e0a3b615b97a2cead":[0,0,13,19,0]
+"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a8a81a64e1e3728409b8c377eef362796":[0,0,13,19,7]
 };
