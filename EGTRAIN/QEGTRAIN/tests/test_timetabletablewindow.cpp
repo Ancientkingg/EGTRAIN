@@ -17,6 +17,8 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
+#include <QStyle>
+#include <QStyleOptionHeader>
 #include <QTableWidget>
 #include <QTextDocument>
 #include <QToolTip>
@@ -157,6 +159,85 @@ static bool exerciseDelayColors() {
 	return ok;
 }
 
+// The width of the title of `column` as the header paints it: the ink inside the label of the section and left of its
+// sort arrow, which some Qt versions draw inside the label, with the section scrolled to the left edge of the header. The
+// last pixel row of a section is its border.
+static int paintedTitleWidth(QHeaderView& header, int column) {
+	header.setOffset(header.sectionPosition(column));
+	QApplication::processEvents();
+	QStyleOptionHeader option;
+	option.initFrom(&header);
+	option.state |= QStyle::State_Horizontal;
+	option.orientation = Qt::Horizontal;
+	option.sortIndicator = header.isSortIndicatorShown() && header.sortIndicatorSection() == column ? QStyleOptionHeader::SortDown
+																									: QStyleOptionHeader::None;
+	option.rect = QRect(0, 0, header.sectionSize(column), header.height());
+	const QRect label = header.style()->subElementRect(QStyle::SE_HeaderLabel, &option, &header);
+	int right = label.right();
+	if (option.sortIndicator != QStyleOptionHeader::None)
+		right = std::min(right, header.style()->subElementRect(QStyle::SE_HeaderArrow, &option, &header).left() - 1);
+	const QImage image = header.viewport()->grab(option.rect).toImage();
+	const qreal ratio = image.devicePixelRatio();
+	const auto pixel = [&image, ratio](int x, int y) { return image.pixelColor(qRound(x * ratio), qRound(y * ratio)); };
+	const QColor face = pixel(1, 1);
+	int first = right + 1;
+	int last = label.left() - 1;
+	for (int y = 0; y < header.height() - 1; ++y)
+		for (int x = label.left(); x <= right; ++x)
+			if (pixel(x, y) != face) {
+				first = std::min(first, x);
+				last = std::max(last, x);
+			}
+	return std::max(0, last - first + 1);
+}
+
+// Under the style sheet, with a header font smaller than the application font as on macOS, every title of the timetable
+// shows whole, also in the column that the table is sorted by.
+static bool exerciseHeaderTitles() {
+	QFont headerFont = QApplication::font();
+	headerFont.setPointSizeF(headerFont.pointSizeF() * 11 / 13);
+	QApplication::setFont(headerFont, "QHeaderView");
+	std::vector<TimetableResultRow> rows(3);
+	for (std::size_t index = 0; index < rows.size(); ++index) {
+		TimetableResultRow& row = rows[index];
+		const double arrival = 600.0 * static_cast<double>(index);
+		row.trainId = "train-a";
+		row.stationId = "station-b";
+		row.journeyIndex = static_cast<int>(index) + 1;
+		row.plannedArrivalSeconds = {true, arrival};
+		row.plannedDepartureSeconds = {true, arrival + 30.0};
+		row.simulatedArrivalSeconds = {true, arrival + 42.0};
+		row.simulatedDepartureSeconds = {true, arrival + 72.0};
+		row.arrivalDelaySeconds = {true, 42.0};
+		row.departureDelaySeconds = {true, 42.0};
+	}
+	TimetableTableWindow window(std::move(rows), 0, {});
+	window.show();
+	QApplication::processEvents();
+	auto* table = window.findChild<QTableWidget*>();
+	QHeaderView* header = table->horizontalHeader();
+	// A title is cut when a section that is wider by 100 pixels shows more of it.
+	const auto cut = [header](int column) {
+		const int size = header->sectionSize(column);
+		const int painted = paintedTitleWidth(*header, column);
+		header->resizeSection(column, size + 100);
+		const int whole = paintedTitleWidth(*header, column);
+		header->resizeSection(column, size);
+		return painted + 1 < whole;
+	};
+	QStringList cutTitles;
+	for (int column = 0; column < table->columnCount(); ++column) {
+		if (cut(column))
+			cutTitles << table->horizontalHeaderItem(column)->text();
+	}
+	for (int column = 0; column < table->columnCount(); ++column) {
+		table->sortByColumn(column, Qt::AscendingOrder);
+		if (cut(column))
+			cutTitles << table->horizontalHeaderItem(column)->text() + " (sorted)";
+	}
+	return expect(cutTitles.isEmpty(), qPrintable("every header title shows whole, but not " + cutTitles.join(", ")));
+}
+
 // The picture of a table that the Run Results dock exports shows each header whole under the style sheet, at the default
 // font and at 1.5 times its size, when the headers have a smaller font of their own, as on macOS.
 static bool exerciseTableImageHeaders() {
@@ -277,7 +358,8 @@ int main(int argc, char** argv) {
 		ok &= expect(context->isVisible() && shownTip(context) == text,
 			"the context tooltip shows the context as typed");
 	}
-	// Last, as it changes the application fonts.
+	// Last, as they change the application fonts.
+	ok &= exerciseHeaderTitles();
 	ok &= exerciseTableImageHeaders();
 	return ok ? 0 : 1;
 }
