@@ -43,6 +43,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/FocusWheel.h"
+#include "widgets/InfoDockWidget.h"
 #include <QAbstractButton>
 #include <QAbstractItemDelegate>
 #include <QAbstractSpinBox>
@@ -96,6 +97,7 @@
 #include <QRectF>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QScopedValueRollback>
 #include <QScreen>
 #include <QScrollArea>
 #include <QSlider>
@@ -5579,6 +5581,36 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			"a run changed the history");
 		undo();
 		redo();
+	}
+	// Runs of 600 s, in which the first trains run, and an edit after each.
+	{
+		const QScopedValueRollback<double> horizon(initial_variables.times, 600.0);
+		const auto completeRun = [&](const char* folder) {
+			simulation.setNextRunOutputFolder(QDir(outFolder).filePath(folder).toStdString());
+			w.m_runSceneAction->trigger();
+			QElapsedTimer waited;
+			waited.start();
+			while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
+				QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+			return expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable,
+				QStringLiteral("the run in %1 did not complete").arg(folder));
+		};
+		// An edit ends a replay, and the Train Info dock of a train that is selected in it closes.
+		if (!completeRun("replay_run_output"))
+			return finish();
+		w.seekReplay(500);
+		TrainBodyItem* train = nullptr;
+		for (int index = 0; index < simulation.run().numTrains && !train; ++index)
+			train = w.resolveTrainBodyItem(index);
+		w.m_inspector->displayTrainDetails(train, false);
+		if (!expect(w.m_replayActive && train && w.m_inspector->dock()->isVisible(), "no train of the replay was selected"))
+			return finish();
+		if (!step("a case description in a replay", "Edit", [&] {
+				w.m_caseDescriptionEdit->setText("edited in a replay");
+				w.commitPendingCaseSettings();
+			}))
+			return finish();
+		expect(!w.m_replayActive && !w.m_inspector->dock()->isVisible(), "an edit in a replay left the Train Info dock open");
 	}
 
 	// Edits in the rolling stock, composition, service, timetable, scenario, incident, entrance delay and passenger editors.

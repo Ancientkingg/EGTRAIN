@@ -2726,7 +2726,7 @@ void MainWindow::invalidateRunResults() {
 	if (!m_runController->running()) {
 		if (m_replayActive && m_document->isLoaded() && scene) {
 			setFollowTrain(-1);
-			m_inspector->handleCloseInfoDockWidget();
+			m_inspector->handleDisableHighlight();
 			renderTrackPreview(m_document->model()); // Teardown clears history and graphics together.
 		}
 		clearReplay();
