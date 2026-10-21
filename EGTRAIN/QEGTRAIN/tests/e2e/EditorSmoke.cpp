@@ -4841,7 +4841,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!editorTabs || editorTabs->count() != 5 || editorTabs->elideMode() != Qt::ElideNone || !editorTabs->usesScrollButtons())
 				facetFailure(ok, "presentation", "the tabs of five editors are cut instead of scrolling");
 			// Tab and Shift+Tab go from the network view round the window and back. They reach the editor in front, also just after
-			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, and the scroll buttons of tab bars.
+			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, and the scroll buttons of their tab bars.
 			const QList<QDockWidget*> fiveEditors = editorDocks + QList<QDockWidget*>{w.m_incidentDock};
 			w.activateWindow();
 			for (QDockWidget* front : {w.m_incidentDock, w.m_caseSettingsDock}) {
@@ -4859,7 +4859,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						if (!focused || focused == w.networkView)
 							break;
 						reachedFront = reachedFront || front->isAncestorOf(focused);
-						if (qobject_cast<QTabBar*>(focused->parentWidget())
+						if ((qobject_cast<QTabBar*>(focused->parentWidget()) && focused->parentWidget()->parentWidget() == &w)
 							|| std::any_of(fiveEditors.cbegin(), fiveEditors.cend(),
 								[front, focused](const QDockWidget* dock) { return dock != front && dock->isAncestorOf(focused); }))
 							hiddenStops << QString("%1(%2)").arg(focused->metaObject()->className(), focused->objectName());
