@@ -628,8 +628,10 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 					"movement only within its envelopes. Unmapped endpoints omitted: %1; incomplete/missing-clearance "
 					"blocks omitted. No extrapolation. Envelope colours: blue blocks/stations, yellow switches, red "
 					"conflicts, amber capacity-critical touching blocks.";
-	const QString note = envelopes.arg(diagram.omitted)
-		+ (nothingPlotted ? QString(" No complete envelope could be projected in this scope.") : QString())
+	// Without an envelope that failed to project, no complete envelope of a train lies in the scope.
+	const QString nothing = unmapped.empty() ? QString(" No complete envelope of a train lies in this scope.")
+											 : QString(" No complete envelope could be projected in this scope.");
+	const QString note = envelopes.arg(diagram.omitted) + (nothingPlotted ? nothing : QString())
 		+ QString::fromStdString(blockSectionGeometryNote(extents));
 	win->setPresentation(title, context, note);
 	const std::function<std::string(const QStringList&)> scopedCsv =
@@ -851,6 +853,8 @@ void ResultViews::showCapacityAnalysis() {
 			.arg(QString::number(result.cycleTime, 'f', 1), QString::number(result.cyclePercentage, 'f', 1), sectionLabel,
 				completedRunContext(provenance)),
 		body, closeButtons);
+	// Room for the tables, as Capacity by area has.
+	dialog->resize(qMin(dialog->maximumWidth(), 960), qMin(dialog->maximumHeight(), 640));
 	// No button of the window is a default button, so Return presses none.
 	for (QPushButton* button : dialog->findChildren<QPushButton*>())
 		button->setAutoDefault(false);

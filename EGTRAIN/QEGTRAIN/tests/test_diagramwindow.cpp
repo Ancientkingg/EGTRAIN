@@ -1179,12 +1179,14 @@ static bool exerciseStationAxis() {
 // A chart with more than one kind of line names the kinds in a legend below the plot: the layer of a series, else planned
 // or simulated by its name. The help line does not explain them, and the rolling-stock subject has its own help.
 static bool exerciseLegend() {
-	const QString general = QStringLiteral(
-		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
-		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
-	const QString inputTraction = QStringLiteral(
-		"Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; "
-		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+#ifdef Q_OS_MACOS
+	const QString zoom = QStringLiteral("pinch or Command-scroll to zoom");
+#else
+	const QString zoom = QStringLiteral("pinch or Ctrl+wheel to zoom");
+#endif
+	const QString navigation = "Drag to zoom; two-finger scroll to pan; " + zoom + ". +/- zoom, arrows pan, Home resets.";
+	const QString general = "Hover to inspect; click to select. " + navigation;
+	const QString inputTraction = "Input tractive effort by speed. " + navigation;
 	bool ok = true;
 
 	DiagramWindow window("Legend");

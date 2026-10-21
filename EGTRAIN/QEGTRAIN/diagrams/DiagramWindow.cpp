@@ -642,8 +642,13 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 
 void DiagramWindow::refreshNavigationHelp() {
 	if (!m_readout) return;
-	const QString navigation = QStringLiteral(
-		"Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	// The wheel zooms with Control or Command held; the help names the key that the platform uses.
+#ifdef Q_OS_MACOS
+	const QString zoom = QStringLiteral("pinch or Command-scroll to zoom");
+#else
+	const QString zoom = QStringLiteral("pinch or Ctrl+wheel to zoom");
+#endif
+	const QString navigation = "Drag to zoom; two-finger scroll to pan; " + zoom + ". +/- zoom, arrows pan, Home resets.";
 	m_readout->setText((m_rollingStockSubject ? QStringLiteral("Input tractive effort by speed. ")
 											  : QStringLiteral("Hover to inspect; click to select. "))
 		+ navigation);

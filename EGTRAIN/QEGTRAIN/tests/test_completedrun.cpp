@@ -450,12 +450,6 @@ void compareScopeChoices(const CapturedRun& run) {
 		check(choices.routes[r].id == route.ID && choices.routes[r].corridor == route.corridor && choices.routes[r].blockIds == blockIds,
 			scene + ": scope choice route " + std::to_string(r));
 	}
-	check(static_cast<int>(choices.trains.size()) == simulation.run().numTrains, scene + ": scope choice trains");
-	for (int i = 0; i < simulation.run().numTrains && i < static_cast<int>(choices.trains.size()); ++i)
-		check(choices.trains[i].id == simulation.run().trains[i].trainDescription
-				&& choices.trains[i].routeIndex == simulation.run().trains[i].indexOfRoute
-				&& choices.trains[i].routeId == simulation.run().trains[i].TrainRouteID,
-			scene + ": scope choice train " + std::to_string(i));
 }
 
 std::vector<BlockingTimeScope> blockingScopes(const CompletedRunData& data) {
@@ -1226,9 +1220,36 @@ void testRepeatedResource() {
 	check(diagram && diagram->segments.size() == 2, "a scope without sections keeps both envelopes");
 	scope.trainIds.clear();
 	diagram = blockingTimeDiagramData(data, scope);
-	check(diagram && diagram->segments.empty() && diagram->plannedReferences.empty(), "a route scope without trains shows nothing");
+	check(diagram && diagram->segments.size() == 2, "a route scope without a train list keeps the envelopes of every train");
 	scope.routeIndex = 4;
 	check(!blockingTimeDiagramData(data, scope), "a route that does not exist has no diagram");
+}
+
+void testRouteScopeOfSharedBlocks() {
+	// r0 and r1 share X and Y, and T runs on r1. A scope of r0 over X to Y shows the envelopes of T.
+	CompletedRunData data;
+	data.settings.timestepSeconds = 1.0;
+	const std::vector<std::pair<std::string, double>> nodes = {{"n0", 0.0}, {"n1", 1.0}, {"n2", 2.0}};
+	data.routes = {routeOf("r0", nodes, {{"X", 0.0, 1.0}, {"Y", 1.0, 2.0}}), routeOf("r1", nodes, {{"X", 0.0, 1.0}, {"Y", 1.0, 2.0}})};
+	CompletedTrain train = trainOn("T", 1);
+	train.blockTimes = {occupation("X", 10.0, 20.0, 0.0, 1000.0), occupation("Y", 20.0, 30.0, 1000.0, 2000.0)};
+	train.stops = {stopAt("S", "n1", 1.0, 15.0, 18.0, {"X"})};
+	data.trains = {train};
+	BlockingTimeScope scope;
+	scope.endTime = 100.0;
+	scope.routeIndex = 0;
+	scope.blockIds = {"X", "Y"};
+	scope.sectionIndices = {0, 1};
+	const auto diagram = blockingTimeDiagramData(data, scope);
+	check(diagram && diagram->referencePath.id == "r0" && diagram->segments.size() == 2 && diagram->segments[0].trainName == "T"
+			&& diagram->segments[1].trainName == "T",
+		"a route scope shows a train of another route that occupies its blocks");
+	check(diagram && !diagram->plannedReferences.empty(), "and the planned stops of that train on its blocks");
+	// A route without blocks has nothing in its scope.
+	scope.blockIds.clear();
+	scope.sectionIndices.clear();
+	const auto empty = blockingTimeDiagramData(data, scope);
+	check(empty && empty->segments.empty() && empty->plannedReferences.empty(), "a route without blocks shows no train");
 }
 
 void testSharedResources() {
@@ -1334,7 +1355,6 @@ void testScopeDialog() {
 	choices.caseEndSeconds = 600.0;
 	choices.stepSeconds = 5.0;
 	choices.routes = {{"r0", "north", {"a", "b", "c"}}, {"r1", "", {"x", "y"}}};
-	choices.trains = {{"T0", 0, "r0"}, {"T1", 1, "r1"}, {"T2", 9, "r0"}, {"T3", -1, ""}};
 
 	BlockingTimeScope scope = defaultBlockingTimeScope(choices.caseEndSeconds);
 	check(scope.startTime == 0.0 && scope.endTime == 600.0 && scope.routeIndex == -1, "the default scope is the whole run");
@@ -1352,7 +1372,7 @@ void testScopeDialog() {
 			&& scope.startTime == 100.0 && scope.endTime == 250.0,
 		"the dialog accepts all routes with an interval");
 
-	// A route with a range of its blocks takes the trains that run on it, by index or by route id.
+	// A route with a range of its blocks gives no train list, so the diagram takes every train on those blocks.
 	accepted = askScope(choices, scope, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
 		check(combos.size() == 3 && combos[0]->count() == 3, "the dialog lists the routes and all routes");
@@ -1367,8 +1387,8 @@ void testScopeDialog() {
 		press(dialog, QDialogButtonBox::Ok);
 	});
 	check(accepted && scope.routeIndex == 0 && scope.sectionIndices == std::vector<int>({1, 2}) && scope.blockIds == std::vector<std::string>({"b", "c"})
-			&& scope.trainIds == std::vector<std::string>({"T0", "T2"}),
-		"the dialog accepts a route, a range of its blocks and takes its trains");
+			&& scope.trainIds.empty(),
+		"the dialog accepts a route and a range of its blocks, with no train list");
 
 	// The last block may come before the first.
 	accepted = askScope(choices, scope, [](QDialog& dialog) {
@@ -1380,7 +1400,7 @@ void testScopeDialog() {
 		combos[1]->setCurrentIndex(1);
 		press(dialog, QDialogButtonBox::Ok);
 	});
-	check(accepted && scope.routeIndex == 1 && scope.sectionIndices == std::vector<int>({0, 1}) && scope.trainIds == std::vector<std::string>({"T1"}),
+	check(accepted && scope.routeIndex == 1 && scope.sectionIndices == std::vector<int>({0, 1}) && scope.trainIds.empty(),
 		"the blocks are taken in route order");
 
 	// An empty interval is widened by one step, or moved back at the end of the run.
@@ -1477,9 +1497,9 @@ void testCapacityDialog() {
 			&& scope.occurrenceIds == std::vector<std::string>({"a", "b"}) && scope.cycleEndOccurrenceId == "b" && scope.periodSeconds == 7200.0,
 		"the dialog accepts the checked occurrences, their blocks and the closing one");
 
-	// Fewer than two occurrences, or a closing occurrence that is not after the first one, keeps the dialog open and
-	// says why in the dialog. An edit takes the message away, and the caller's scope stays as it was. Occurrences that
-	// share no block disable OK for as long as they are checked.
+	// Fewer than two checked occurrences, or occurrences that share no block, disable OK and say why in the dialog for as
+	// long as they are checked. OK with a closing occurrence that is not after the first one keeps the dialog open and
+	// says why; an edit takes that message away. The caller's scope stays as it was.
 	CapacityAnalysisScope kept;
 	accepted = askCapacityScope(run, kept, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
@@ -1497,13 +1517,11 @@ void testCapacityDialog() {
 		check(noteIsHelp, "the note of the dialog is a help note");
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		forbidMessageBox();
-		ok->click();
-		check(dialog.isVisible() && status->isVisible() && status->property("dialogStatus").toString() == "error"
+		check(!ok->isEnabled() && status->isVisible() && status->property("dialogStatus").toString() == "error"
 				&& status->text() == "Check at least two occurrences.",
-			"fewer than two occurrences are refused in the dialog");
+			"one checked occurrence disables OK and says why before OK is pressed");
 		list->item(1)->setCheckState(Qt::Checked);
-		check(status->isHidden(), "an edit takes the message away");
+		check(ok->isEnabled() && status->isHidden(), "a second checked occurrence enables OK and takes the message away");
 		combos[2]->setCurrentIndex(1);
 		forbidMessageBox();
 		ok->click();
@@ -1514,11 +1532,9 @@ void testCapacityDialog() {
 		check(status->isHidden(), "choosing another closing occurrence takes the message away");
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		forbidMessageBox();
-		ok->click();
-		check(status->isVisible(), "fewer than two occurrences are refused again");
+		check(!ok->isEnabled() && status->text() == "Check at least two occurrences.", "one checked occurrence disables OK again");
 		dialog.findChild<QDoubleSpinBox*>()->setValue(1800.0);
-		check(status->isHidden(), "changing the period takes the message away");
+		check(!ok->isEnabled() && status->isVisible(), "the message stays while fewer than two are checked");
 		list->item(2)->setCheckState(Qt::Checked);
 		list->item(3)->setCheckState(Qt::Checked);
 		check(blocks->currentText() == "none" && !blocks->isEnabled() && !ok->isEnabled() && status->isVisible()
@@ -1720,7 +1736,6 @@ void testScopeDialogsWithLongIds() {
 	BlockingTimeScopeChoices choices;
 	choices.caseEndSeconds = 600.0;
 	choices.routes.push_back({routeId, std::string(300, 'C'), blockIds});
-	choices.trains = {{"T0", 0, routeId}};
 
 	CompletedRunData run;
 	std::vector<BlockSectionInput> blocks;
@@ -1873,6 +1888,7 @@ int main(int argc, char** argv) {
 	testMissingValues();
 	testRepeatedStops();
 	testRepeatedResource();
+	testRouteScopeOfSharedBlocks();
 	testReversedRoutes();
 	testCapacityOrder();
 	testCapacityStretch();

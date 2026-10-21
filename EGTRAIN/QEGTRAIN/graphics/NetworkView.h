@@ -43,8 +43,9 @@ public:
 	void mouseReleaseEvent(QMouseEvent* mouseEvent) override;
 	/// Fits the view, as fitToBounds() does, to the ends of the track lines and connections in the scene.
 	void fitToTopology();
-	/// Fits the view to bounds in scene coordinates, with 24 logical pixels of padding on each side, and
-	/// makes it the scene rectangle. Empty bounds reset the view to scale 1 around the origin.
+	/// Fits the view to bounds in scene coordinates, with padding on each side of 24 logical pixels, or of an
+	/// eighth of the width or height of the viewport when that is less, and makes it the scene rectangle. Empty
+	/// bounds reset the view to scale 1 around the origin.
 	void fitToBounds(const QRectF& bounds);
 	/// Multiplies the zoom ratio by factor, kept between 1 and maximumZoomRatio(). viewportAnchor, in logical
 	/// pixels of the viewport, stays over the same scene point; a negative coordinate means the centre of the

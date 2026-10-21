@@ -3,6 +3,7 @@
 #include "editors/ServicePanel.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneIds.h"
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/EditorLayout.h"
 
@@ -114,6 +115,8 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	detailOuter->addWidget(m_emptyStateLabel);
 	QFormLayout* detailLayout = new QFormLayout();
 	detailLayout->setRowWrapPolicy(QFormLayout::WrapAllRows);
+	// The fields take the width of the form also on macOS, where they stay at their size hint by default.
+	detailLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("incidentIdEdit");
 	detailLayout->addRow("Incident Id", m_idEdit);
@@ -122,7 +125,8 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_typeCombo->addItem("signal_failure");
 	m_typeCombo->addItem("train_breakdown");
 	detailLayout->addRow("Type", m_typeCombo);
-	m_targetCombo = new QComboBox(detailPane);
+	// A long train label is cut in the middle.
+	m_targetCombo = new ChoiceComboBox(detailPane);
 	m_targetCombo->setObjectName("incidentTargetCombo");
 	m_pickTargetButton = new QToolButton(detailPane);
 	m_pickTargetButton->setObjectName("incidentPickTargetButton");
@@ -503,7 +507,14 @@ void IncidentPanel::refreshTargets() {
 		endTargetPick();
 	m_targetCombo->setEnabled(editable);
 	m_pickTargetButton->setEnabled(editable);
-	m_targetCombo->setToolTip(QStringLiteral("Service code with route, elapsed scheduled entry and stable identity."));
+	// The field shows this tip below the current target.
+	if (!incident)
+		m_targetCombo->setToolTip(QString());
+	else if (incident->type == "signal_failure")
+		m_targetCombo->setToolTip(QStringLiteral("The signal or block that fails."));
+	else
+		m_targetCombo->setToolTip(
+			QStringLiteral("The train that breaks down: service code with route, elapsed scheduled entry and stable identity."));
 }
 
 void IncidentPanel::addIncident() {

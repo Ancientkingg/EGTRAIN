@@ -321,12 +321,15 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		candidate.periodSeconds = period->value();
 		return candidate;
 	};
-	// Any change takes a refusal of OK away. Two or more checked occurrences that share no block of the route cannot be
-	// analyzed, so OK is then disabled and the status says why.
+	// Any change takes a refusal of OK away. Fewer than two checked occurrences, or checked occurrences that share no block
+	// of the route, cannot be analyzed, so OK is then disabled and the status says why.
 	const auto showScopeStatus = [&sections, ok, checkedIds, showError, clearError]() {
-		const bool unshared = sections.empty() && checkedIds().size() >= 2;
-		ok->setEnabled(!unshared);
-		if (unshared)
+		const bool tooFew = checkedIds().size() < 2;
+		const bool unshared = !tooFew && sections.empty();
+		ok->setEnabled(!tooFew && !unshared);
+		if (tooFew)
+			showError("Check at least two occurrences.");
+		else if (unshared)
 			showError("No block of the route is shared by all checked occurrences.");
 		else
 			clearError();
@@ -452,10 +455,6 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	// The caller's scope changes only when the dialog is accepted.
 	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
 		CapacityAnalysisScope chosen = currentScope();
-		if (chosen.occurrenceIds.size() < 2) {
-			showError("Check at least two occurrences.");
-			return;
-		}
 		chosen.cycleEndOccurrenceId = cycleEnd->currentData().toString().toStdString();
 		const auto selectedCycleEnd = std::find(chosen.occurrenceIds.begin(), chosen.occurrenceIds.end(),
 			chosen.cycleEndOccurrenceId);

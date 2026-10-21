@@ -1,23 +1,38 @@
 #include "editors/IncidentPanel.h"
 #include "scene/RuntimeLimits.h"
+#include "widgets/ChoiceComboBox.h"
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QHelpEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QLoggingCategory>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QString>
 #include <QStringList>
 #include <QToolButton>
+#include <QToolTip>
 
 #include <iostream>
 #include <string>
 #include <vector>
+
+// The macOS style, where a form keeps each field at its size hint.
+class MacFormStyle : public QProxyStyle {
+public:
+	MacFormStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		if (hint == SH_FormLayoutFieldGrowthPolicy)
+			return QFormLayout::FieldsStayAtSizeHint;
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -142,6 +157,15 @@ static QStringList choices(const QComboBox* combo) {
 	for (int index = 0; index < combo->count(); ++index)
 		result << combo->itemText(index);
 	return result;
+}
+
+// The text of the tip that the combo shows when the pointer rests on it.
+static QString shownTip(QComboBox* combo) {
+	QHelpEvent help(QEvent::ToolTip, QPoint(4, 4), combo->mapToGlobal(QPoint(4, 4)));
+	QApplication::sendEvent(combo, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	return text;
 }
 
 // The position of the choice of the target `id` and `occurrence`, or -1.
@@ -745,6 +769,38 @@ int main(int argc, char** argv) {
 				&& document.model().scenarios[0].incidents[1].occurrence == last
 				&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "many", last),
 			"an occurrence that the combo does not list is taken and becomes its current choice");
+	}
+
+	{
+		// In the form of macOS the fields grow to the width of the panel, and a long target is cut in the middle.
+		QApplication::setStyle(new MacFormStyle);
+		SceneDocument document;
+		IncidentPanel panel;
+		RunSelection selection;
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		SceneModel scene = incidentScene();
+		scene.services[0].route = std::string(200, 'r');
+		document.replace(scene, false);
+		selection.selectScenario("base");
+		panel.refresh();
+		panel.listWidget()->setCurrentRow(1);
+		panel.resize(320, 700);
+		panel.show();
+		QApplication::processEvents();
+		const QFormLayout* form = panel.idEdit()->parentWidget()->findChild<QFormLayout*>();
+		ok &= expect(form && form->fieldGrowthPolicy() == QFormLayout::AllNonFixedFieldsGrow, "the fields of the incident grow to the width of the form");
+		const auto* target = dynamic_cast<const ChoiceComboBox*>(panel.targetCombo());
+		ok &= expect(target && target->currentText().startsWith("s1-2 | route rrr") && target->displayText().contains(QChar(0x2026)),
+			"a long target is cut with an ellipsis in a narrow panel");
+		// The tip of the target says what the type takes as its target, below the current target.
+		const QString trainTip = panel.targetCombo()->toolTip();
+		ok &= expect(trainTip.contains("train") && shownTip(panel.targetCombo()) == panel.targetCombo()->currentText() + "\n" + trainTip,
+			"the tip of the target of a breakdown names a train, below the current target");
+		panel.listWidget()->setCurrentRow(0);
+		const QString signalTip = panel.targetCombo()->toolTip();
+		ok &= expect(!signalTip.isEmpty() && !signalTip.contains("service", Qt::CaseInsensitive) && !signalTip.contains("train", Qt::CaseInsensitive),
+			"the tip of the target of a signal failure names no service or train");
 	}
 
 	if (!ok)

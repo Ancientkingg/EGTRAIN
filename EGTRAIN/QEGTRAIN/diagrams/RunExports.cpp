@@ -304,8 +304,6 @@ BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& da
 			choice.blockIds.push_back(block.id);
 		choices.routes.push_back(std::move(choice));
 	}
-	for (const CompletedTrain& train : data.trains)
-		choices.trains.push_back({train.trainId, train.routeIndex, train.routeId});
 	return choices;
 }
 
@@ -313,11 +311,11 @@ std::vector<BlockingTimePlannedReference> plannedReferencesFrom(const CompletedR
 	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
 	const std::map<int, RouteDiagramProjection>& projections, int& omitted) {
 	std::vector<BlockingTimePlannedReference> references;
+	if (scope.routeIndex >= 0 && scope.blockIds.empty() && scope.trainIds.empty())
+		return references; // A route without blocks and no train list has no stop in its scope.
 	const auto selectedSections = data.hasRoute(scope.routeIndex) && !scope.sectionIndices.empty()
 		? scopedBlockSectionExtents(buildBlockSectionExtents(data.routes[static_cast<std::size_t>(scope.routeIndex)].blocks), scope.sectionIndices)
 		: std::vector<BlockSectionExtent>();
-	if (scope.routeIndex >= 0 && scope.trainIds.empty())
-		return references;
 	for (const CompletedTrain& train : data.trains) {
 		if (!scope.trainIds.empty() && std::find(scope.trainIds.begin(), scope.trainIds.end(), train.trainId) == scope.trainIds.end())
 			continue;
@@ -372,10 +370,11 @@ std::string blockingTimeCsvFrom(const CompletedRunData& data, const QStringList&
 
 std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRunData& data,
 	const BlockingTimeScope& scope) {
-	const std::vector<BlockingTimeDiagramSegment> scoped = scope.routeIndex >= 0 && scope.trainIds.empty()
+	// Empty filters keep every envelope, so a route without blocks and no train list keeps none itself.
+	const std::vector<BlockingTimeDiagramSegment> scoped = scope.routeIndex >= 0 && scope.blockIds.empty() && scope.trainIds.empty()
 		? std::vector<BlockingTimeDiagramSegment>()
-		: filterBlockingTimeDiagramSegments(blockTimesFrom(data), scope.trainIds, scope.blockIds,
-			  scope.startTime, scope.endTime);
+		: filterBlockingTimeDiagramSegments(blockTimesFrom(data), scope.trainIds, scope.blockIds, scope.startTime,
+			  scope.endTime);
 	const int referenceIndex = scope.routeIndex >= 0 ? scope.routeIndex : firstRouteOfTrains(data, scope.trainIds);
 	if (!data.hasRoute(referenceIndex))
 		return std::nullopt;

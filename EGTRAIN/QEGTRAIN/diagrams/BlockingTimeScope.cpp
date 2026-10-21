@@ -143,9 +143,6 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 	scope.sectionIndices = blockSectionRangeIndices(firstBlock->currentIndex(), lastBlock->currentIndex(), static_cast<int>(route.blockIds.size()));
 	for (int blockIndex : scope.sectionIndices)
 		scope.blockIds.push_back(route.blockIds[static_cast<std::size_t>(blockIndex)]);
-	for (const BlockingTimeScopeChoices::Train& train : choices.trains)
-		if (train.routeIndex == scope.routeIndex || train.routeId == route.id)
-			scope.trainIds.push_back(train.id);
 	return true;
 }
 
