@@ -75,6 +75,17 @@ public:
 		return edit;
 	}
 
+	// An open editor is at least as wide as it asks to be, so that a narrow column does not hide its number, and stays in
+	// the table. It covers the cells beside it.
+	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex&) const override {
+		QRect rect = option.rect;
+		rect.setWidth(std::max(rect.width(), editor->sizeHint().width()));
+		const int overflow = rect.right() - (editor->parentWidget()->width() - 1);
+		if (overflow > 0)
+			rect.translate(-std::min(overflow, std::max(rect.left(), 0)), 0);
+		editor->setGeometry(rect);
+	}
+
 private:
 	static constexpr int kDecimals = std::numeric_limits<double>::max_digits10;
 };

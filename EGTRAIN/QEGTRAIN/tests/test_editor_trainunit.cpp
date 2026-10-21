@@ -699,6 +699,8 @@ int main(int argc, char** argv) {
 				&& cellValue(panel, 0, 2) == c0Range.min && c0 && c0->minimum() == c0Range.min && c0->maximum() == c0Range.max
 				&& c0->value() == c0Range.min,
 			"the number fields have the shared ranges and show a number beyond them at the nearest limit");
+		ok &= expect(c0 && c0->width() >= std::min(c0->sizeHint().width(), panel.tractionTable()->viewport()->width()),
+			"the editor of a narrow column is as wide as it asks to be");
 		const bool c0Focused = c0 && c0->hasFocus();
 		panel.commitPendingEditors();
 		ok &= expect(lengthFocused && c0Focused && document.model().trainUnits[0].physical.length_m == 1e300
