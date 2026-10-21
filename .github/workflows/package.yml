@@ -1051,6 +1051,9 @@ jobs:
       - name: Build AppImage
         env:
           APPIMAGE_EXTRACT_AND_RUN: "1"
+          # The linker drops Qt Svg from the program, which uses none of its symbols, so linuxdeploy-plugin-qt does not see
+          # the module and leaves out the SVG icon engine, without which the icons are scaled up from one size and blurred.
+          EXTRA_QT_MODULES: svg
         run: |
           set -euxo pipefail
           VERSION="$(tr -d '\r\n' < build/EGTRAIN_VERSION)"
@@ -1090,6 +1093,7 @@ jobs:
           find squashfs-root -name 'libQt6Svg.so*' -print -quit | grep -q .
           find squashfs-root -name 'libQt6Network.so*' -print -quit | grep -q .
           find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
+          find squashfs-root -path '*/iconengines/libqsvgicon.so' -print -quit | grep -q .
           find squashfs-root -name 'libQt6Help.so*' -print -quit | grep -q .
           find squashfs-root -path '*/sqldrivers/libqsqlite.so' -print -quit | grep -q .
           echo "OK: AppImage contains executable, Qt runtime, canonical Scenes and the manual"
