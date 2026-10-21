@@ -68,7 +68,9 @@ inline int heightForContent(QDialog& dialog, int width) {
 /// the body. The footer buttons are styled again, because the caller named them and made one
 /// the default after they were built, and a style cached by then misses the rules that name it.
 /// The first field of body takes the focus, else the default button, so that the dialog opens with
-/// the default that the caller chose. In a footer laid out for macOS the buttons are not auto default. The scroll
+/// the default that the caller chose. The dialog gives the default back to that button when a button
+/// that took it loses the focus, also when the caller chose it before the button box was in the dialog.
+/// In a footer laid out for macOS the buttons are not auto default. The scroll
 /// area takes no focus, and Tab visits the footer buttons in the order the footer shows them.
 inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	const QString& context, QWidget* body,
@@ -149,6 +151,14 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 			defaultButton = push;
 		button->style()->unpolish(button);
 		button->style()->polish(button);
+	}
+	// A button made the default before its button box was in the dialog is not the default of the dialog yet. The dialog
+	// would then make the first auto default push button its own default when it opens, and give the default to that
+	// button whenever a button that took it loses the focus. Made the default again here, the chosen button is the one
+	// the dialog keeps.
+	if (defaultButton && defaultButton->isDefault()) {
+		defaultButton->setDefault(false);
+		defaultButton->setDefault(true);
 	}
 	// The first field of the body takes the focus, else the default button. Otherwise Qt 5 gives the focus to the button
 	// box, which comes first in the focus chain and passes it to the first button of its layout, Cancel on macOS, and
