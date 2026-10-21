@@ -445,6 +445,14 @@ static std::string normaliseServiceSeparators(std::string value) {
 	return value;
 }
 
+// The Copenhagen case, which the original also read as Input/Input_EGTRAIN_Banedanmark.
+static bool copenhagenCase(const std::string& sceneName, const fs::path& legacyPath) {
+	const std::string name = lowerCopy(sceneName);
+	const std::string folder = lowerCopy(legacyPath.filename().u8string());
+	return name == "copenhagen" || name == "banedanmark" || folder == "input_egtrain_copenhagen"
+		|| folder == "input_egtrain_banedanmark";
+}
+
 static std::string baseTimeForCase(const std::string& sceneName, const fs::path& legacyPath,
 	double& duration, bool& known) {
 	const std::string name = lowerCopy(sceneName);
@@ -459,8 +467,7 @@ static std::string baseTimeForCase(const std::string& sceneName, const fs::path&
 		duration = 9000.0;
 		return "07:10:40";
 	}
-	if (name == "copenhagen" || name == "banedanmark"
-		|| folder == "input_egtrain_copenhagen" || folder == "input_egtrain_banedanmark") {
+	if (copenhagenCase(sceneName, legacyPath)) {
 		duration = 8000.0;
 		return "06:28:20";
 	}
@@ -1459,6 +1466,14 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		scene.trackViews.push_back(SceneTrackView{trackId, 0, 0, false});
 		report.source("views.tracks", hiddenTracksPath.u8string());
 		report.converted("views.tracks", hiddenTracksPath.u8string());
+	}
+	// The original drew every track of four nodes of this case as a double switch.
+	if (copenhagenCase(sceneName, legacyPath)) {
+		std::unordered_map<std::string, int> nodeCounts;
+		for (const auto& node : scene.nodes)
+			++nodeCounts[node.trackId];
+		for (auto& view : scene.trackViews)
+			view.doubleSwitch = nodeCounts[view.trackId] == 4;
 	}
 
 	const fs::path stationViewPath = guiDir.empty() ? fs::path()

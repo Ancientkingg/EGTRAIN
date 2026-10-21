@@ -100,6 +100,13 @@ StationVisual stationMarkVisual(const SceneModel& sceneModel, const std::string&
 	return classifyStation(platformCount > 0, connections);
 }
 
+// True when the view of the track draws it as a double switch: without its first and last arc and without ordinary node dots.
+bool drawnAsDoubleSwitch(const SceneModel& sceneModel, const std::string& trackId) {
+	const auto view = std::find_if(sceneModel.trackViews.begin(), sceneModel.trackViews.end(),
+		[&trackId](const SceneTrackView& candidate) { return candidate.trackId == trackId; });
+	return view != sceneModel.trackViews.end() && view->doubleSwitch;
+}
+
 // The host of a presenter that has none: nothing is selected or followed.
 class NoFrameHost final : public NetworkPresenter::FrameHost {
 public:
@@ -400,7 +407,10 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	for (const TrackPreviewLine* drawn : drawnLines) {
 		const auto& line = *drawn;
 		const qreal offset = static_cast<qreal>(line.displayOffset);
+		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, line.id);
 		for (std::size_t point = 1; point < line.points.size(); ++point) {
+			if (doubleSwitch && (point == 1 || point + 1 == line.points.size()))
+				continue;
 			const auto arc = std::find_if(sceneModel.arcs.begin(), sceneModel.arcs.end(), [&](const SceneArc& candidate) {
 				return candidate.trackId == line.id
 					&& ((candidate.fromNodeId == line.points[point - 1].nodeId
@@ -431,15 +441,15 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	for (const auto& line : preview.lines) {
 		if (!tracks.count(line.id))
 			continue;
+		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, line.id);
 		for (std::size_t index = 0; index < line.points.size(); ++index) {
 			const auto& point = line.points[index];
 			const auto membership = memberships.find(point.nodeId);
 			// Current runnable-chain presentation: first point is ordinary;
-			// four-node ordinary starts paint zero size, but the terminal dot remains.
+			// four-node ordinary starts paint zero size, but the terminal dot remains. A double switch paints none.
 			const bool station = index > 0 && membership != memberships.end();
-			const qreal size = (station ? station_node_size
-										: (line.points.size() == 4 && index + 1 < line.points.size() ? 0 : node_size))
-				* presentationScale();
+			const bool noDot = doubleSwitch || (line.points.size() == 4 && index + 1 < line.points.size());
+			const qreal size = (station ? station_node_size : (noDot ? 0 : node_size)) * presentationScale();
 			QRectF rect(0, 0, size, size);
 			rect.moveCenter(QPointF(point.x, point.y + line.displayOffset));
 			QAbstractGraphicsShapeItem* item;
@@ -897,6 +907,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		if (hasSharedPreview && !cachedTrackLine(track))
 			continue;
 		BlockSet& trackSet = m_source->track(track);
+		// a double switch is drawn without its first and last arc and without ordinary node dots
+		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, trackSet.sceneTrackId);
 		// run over all arcs
 		for (int i = 0; i < trackSet.len; i++) {
 			// get shifted nodes
@@ -915,21 +927,22 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 				}
 			}
 			// if it is a double switch then do not paint nodes Copenhagen case
-			else if (trackSet.numNodes == 4) {
+			else if (doubleSwitch || trackSet.numNodes == 4) {
 				paintNode(pt, static_cast<int>(0.1), track, &trackSet.member[i].startNode);
 			} else {
 				paintNode(pt, node_size, track, &trackSet.member[i].startNode);
 			}
 
 			// draw arcs
-			if (i > 0) {
+			if (i > 0 && !(doubleSwitch && i == 1)) {
 				paintArc(pt_prev, pt, line_width, track, &trackSet.member[i - 1]);
 			}
 
 			// draw last Arc and last Node - end_node Node needed
 			if (i == (trackSet.len - 1)) {
 				// draw last Arc
-				paintArc(pt, pte, line_width, track, &trackSet.member[i]);
+				if (!doubleSwitch)
+					paintArc(pt, pte, line_width, track, &trackSet.member[i]);
 
 				// draw last end_node Node
 				if (!trackSet.member[i].endNode.stationName.empty()) { // station Node
@@ -938,7 +951,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 						paintStationPlatform(pte, station_node_size, &trackSet.member[i].endNode);
 					}
 				} else {
-					paintNode(pte, node_size, track, &trackSet.member[i].endNode);
+					paintNode(pte, doubleSwitch ? 0 : node_size, track, &trackSet.member[i].endNode);
 				}
 			}
 

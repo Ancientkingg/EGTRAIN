@@ -33,7 +33,7 @@ every build.
 | `services.json` | services, explicit route/composition links, stops, planned times, dwell, and repetition | required |
 | `scenarios.json` | default scenario, named scenarios, incidents, and entrance delays | optional on load; always written by `SceneWriter` |
 | `passengers.json` | passenger journeys and legs | optional |
-| `views.json` | optional track levels and station display geometry; consumed only by preview/runtime layout | optional |
+| `views.json` | optional track levels, double switch drawing and station display geometry; consumed only by preview/runtime layout | optional |
 
 The six required files are the files needed for structural loading. A scene
 may therefore load without scenarios or passengers; the writer creates a
@@ -300,8 +300,9 @@ bundle. The loader has accepted no other value since it was introduced
 older version number exists. The older scenes that exist differ from today's in
 layout, not in number. The format has grown only by optional keys and optional
 files, such as `views.json`, `saved_with_app_version`, `signalling_areas` in
-`signalling.json`, and the service keys `category` and `visualization_color`.
-None of them changed a number.
+`signalling.json`, the service keys `category` and `visualization_color`, and
+`double_switch` in the track views of `views.json`. None of them changed a
+number.
 
 The probe reads `scene.json` (directory) or the bundle manifest, and, only
 when `scene.json` has a `legacy_source` key, `infrastructure.json`. A scene

@@ -244,7 +244,7 @@ static SceneModel populatedScene() {
 	scene.importReport[0] = {"stations", "legacy/stations.txt", 11, 7, 3, 2};
 
 	scene.tracks.push_back({"track-2"});
-	scene.trackViews.push_back({"track-2", 3, 4, true});
+	scene.trackViews.push_back({"track-2", 3, 4, true, true});
 	scene.nodes[0] = {"node-1", "track-1", 0.5, -0.25};
 	scene.nodes[1] = {"node-2", "track-2", 1.75, 0.625};
 	scene.arcs[0].curvatureRadiusM = 1250.5;
@@ -729,6 +729,7 @@ static bool checkPopulatedScene(const TempDir& temp) {
 		{"views.json", "/tracks/1/track", "track-2"},
 		{"views.json", "/tracks/1/level", 3},
 		{"views.json", "/tracks/1/region", 4},
+		{"views.json", "/tracks/1/double_switch", true},
 		{"views.json", "/stations/0/station", "station-1"},
 		{"views.json", "/stations/0/latitude", 55.6761},
 		{"views.json", "/stations/0/longitude", 12.5683},
@@ -761,6 +762,8 @@ static bool checkPopulatedScene(const TempDir& temp) {
 		std::cerr << "scene codec " << label << ": the written key " << leaf << " has no row in the table\n";
 	ok &= expect(wrong == 0, "scene codec populated scene: every key of the written files has the value of the model");
 	ok &= expect(leaves.empty(), "scene codec populated scene: the table has a row for every key of the written files");
+	ok &= expect(!written["views.json"].contains(json::json_pointer("/tracks/0/double_switch")),
+		"scene codec populated scene: a track view that is not a double switch is written without double_switch");
 
 	SceneModel reloaded;
 	if (!expect(loadHasNoErrors(first, reloaded), "scene codec populated scene: the save loads without errors"))
@@ -768,6 +771,8 @@ static bool checkPopulatedScene(const TempDir& temp) {
 	ok &= expect(reloaded.trackViews.size() == model.trackViews.size()
 			&& reloaded.stationViews.size() == model.stationViews.size(),
 		"scene codec populated scene: the load keeps every track view and station view");
+	ok &= expect(reloaded.trackViews.size() == 2 && !reloaded.trackViews[0].doubleSwitch && reloaded.trackViews[1].doubleSwitch,
+		"scene codec populated scene: the load keeps the double switch of a track view");
 	const fs::path second = temp.path / "second";
 	const SceneSaveResult secondSave = saveScene(reloaded, second.string());
 	printErrors(secondSave.diagnostics, "populated second save");

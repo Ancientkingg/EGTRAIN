@@ -524,6 +524,8 @@ json encodeViews(const SceneModel& scene) {
 		json value = {{"track", view.trackId}, {"level", view.level}, {"region", view.region}};
 		if (!view.visible)
 			value["visible"] = false;
+		if (view.doubleSwitch)
+			value["double_switch"] = true;
 		tracks.push_back(std::move(value));
 	}
 

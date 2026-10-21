@@ -464,7 +464,8 @@ topology, signalling, services, or simulation results:
 ```json
 {
   "tracks": [
-    { "track": "B0", "level": 0, "region": 0, "visible": false }
+    { "track": "B0", "level": 0, "region": 0, "visible": false },
+    { "track": "B31", "level": -7, "region": 0, "double_switch": true }
   ],
   "stations": [
     {
@@ -481,11 +482,22 @@ topology, signalling, services, or simulation results:
 Track rows are visible by default. Set `visible` to `false` to keep infrastructure
 available to the simulation while omitting an authored inactive track from the preview.
 
+`double_switch` is optional and `false` by default. Set it to `true` to draw the
+track as a double switch: the preview and the run canvas leave out its first and
+last arc and paint no ordinary node dots, so a double switch of four nodes shows
+only its middle arc. The simulation still uses every arc. The writer writes the
+key only when it is `true`, so a scene without it is saved unchanged.
+
 Track and station references must identify canonical objects. Levels are
-integers; region IDs are unique non-negative integers; coordinates and region
-positions are finite. Invalid rows are skipped with load warnings. The legacy
-importer creates this file from `GUI/caseStudyTrackData.txt`, `GUI/unusedTracks.txt`,
-and `GUI/StationsCoord.txt`. Directory saves and V2 bundles preserve it when present.
+integers; region IDs are unique non-negative integers; `visible` and
+`double_switch` are booleans; coordinates and region positions are finite.
+Invalid rows are skipped with load warnings. The legacy importer creates this
+file from `GUI/caseStudyTrackData.txt`, `GUI/unusedTracks.txt`, and
+`GUI/StationsCoord.txt`. For the Copenhagen case, which it recognises by the
+scene or folder name, it also sets `double_switch` on the views of the tracks
+with four nodes, which the original drew as double switches. Legacy export omits
+`double_switch`, because the legacy files have no field for it, and warns.
+Directory saves and V2 bundles preserve the file when present.
 
 `loaded_data` and `sourceFiles` are derived in-memory metadata; they are
 recomputed when a scene is loaded and are not the source of canonical values.
@@ -556,7 +568,7 @@ scenario, and passengers are built directly from `SceneModel` in memory.
 | `services.json` | required | route/composition links and planned timetable stops |
 | `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
 | `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
-| `views.json` | optional display metadata | authored track levels/regions and station display geometry; preserved in folders and bundles |
+| `views.json` | optional display metadata | authored track levels/regions, double switch drawing and station display geometry; preserved in folders and bundles |
 
 Signalling areas in `signalling.json` give runtime sections their signalling
 level; see [Signalling levels](signalling-levels.md).
