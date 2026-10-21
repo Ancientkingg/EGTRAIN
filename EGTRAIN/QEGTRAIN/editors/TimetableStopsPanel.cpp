@@ -418,6 +418,9 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
+	// The messages of the form ask for no width. A form that keeps its fields at their size hint, as on macOS, would give
+	// them none and leave an empty band in place of their text.
+	form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	ChoiceComboBox* positionCombo = nullptr;
 	if (append) {
 		positionCombo = new ChoiceComboBox(&dialog);

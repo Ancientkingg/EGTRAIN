@@ -12,10 +12,12 @@
 #include <QEventLoop>
 #include <QFont>
 #include <QFontMetrics>
+#include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPoint>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QRect>
 #include <QScreen>
@@ -29,6 +31,7 @@
 #include <QTableWidget>
 #include <QTimer>
 
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -40,6 +43,17 @@
 // focus as a click of the user does.
 Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
 	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
+
+// The macOS style, where a form keeps each field at its size hint.
+class MacFormStyle : public QProxyStyle {
+public:
+	MacFormStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		if (hint == SH_FormLayoutFieldGrowthPolicy)
+			return QFormLayout::FieldsStayAtSizeHint;
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -839,6 +853,41 @@ int main(int argc, char** argv) {
 			},
 			[&] { panel.addStop(); });
 		ok &= expect(run.opened, "the dialog opens to add a stop after long names");
+	}
+
+	{
+		// With the form of macOS the messages of the stop dialog still take the width of their column, so that no row of
+		// the form is an empty band. The application style stays changed for the checks after this one.
+		QApplication::setStyle(new MacFormStyle);
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		document.replace(lineScene(), false);
+		panel.setServiceId("service-1");
+		const DialogRun run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				const auto* form = dialog.findChild<QFormLayout*>();
+				int previousBottom = -1;
+				int widestGap = 0;
+				for (int row = 0; form && row < form->rowCount(); ++row) {
+					QRect drawn;
+					for (const auto role : {QFormLayout::LabelRole, QFormLayout::FieldRole}) {
+						const QLayoutItem* item = form->itemAt(row, role);
+						if (item && !item->isEmpty() && !item->geometry().isEmpty())
+							drawn |= item->geometry();
+					}
+					if (drawn.isEmpty())
+						continue;
+					if (previousBottom >= 0)
+						widestGap = std::max(widestGap, drawn.top() - previousBottom - 1);
+					previousBottom = drawn.bottom();
+				}
+				ok &= expect(form && previousBottom >= 0 && widestGap <= dialog.layout()->spacing(),
+					"no empty band taller than the spacing sits between the rows of the stop dialog");
+			},
+			[&] { panel.editStop(1); });
+		ok &= expect(run.opened, "the stop dialog opens with the form of macOS");
 	}
 
 	if (!ok)
