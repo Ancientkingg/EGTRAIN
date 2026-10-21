@@ -208,9 +208,11 @@ protected:
 	void dragEnterEvent(QDragEnterEvent* event) override;
 	/// Opens the scene file that was dropped (SceneSession::drop()).
 	void dropEvent(QDropEvent* event) override;
-	/// Takes the tab bars of tabbed docks out of the Tab order. The menus raise each dock, and Qt keeps the bar of a single
-	/// dock outside the window, where its focus cannot be seen. The bars show whole names and scroll.
+	/// Takes the tab bars of tabbed docks and their scroll buttons out of the Tab order. The menus raise each dock, and Qt
+	/// keeps the bar of a single dock outside the window, where its focus cannot be seen. The bars show whole names and scroll.
 	void childEvent(QChildEvent* event) override;
+	/// Moves the focus as QWidget::focusNextPrevChild() does, but passes over the docks behind the front tab of a group.
+	bool focusNextPrevChild(bool next) override;
 
 public slots:
 	/// Shows the About dialog.

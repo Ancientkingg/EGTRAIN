@@ -196,6 +196,7 @@
 #include <QStyleOptionMenuItem>
 #include <QStyleOptionSlider>
 #include <QStylePainter>
+#include <QStyleHints>
 #include <QUrl>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
@@ -1839,7 +1840,33 @@ void MainWindow::childEvent(QChildEvent* event) {
 		// Qt elides the names of tabbed docks. They stay whole, and the bar scrolls when they do not fit.
 		tabBar->setElideMode(Qt::ElideNone);
 		tabBar->setUsesScrollButtons(true);
+		for (QToolButton* scrollButton : tabBar->findChildren<QToolButton*>())
+			scrollButton->setFocusPolicy(Qt::NoFocus);
 	}
+}
+
+// Qt moves the docks behind the front tab of a group out of the window but leaves them shown, so Tab would reach their fields
+// out of sight. The search for the next field is that of QWidget::focusNextPrevChild(). A floating dock has a Tab order of its own.
+bool MainWindow::focusNextPrevChild(bool next) {
+	const int focusFlag = QGuiApplication::styleHints()->tabFocusBehavior() == Qt::TabFocusAllControls ? Qt::TabFocus : Qt::StrongFocus;
+	QWidget* const current = focusWidget() ? focusWidget() : this;
+	for (QWidget* widget = next ? current->nextInFocusChain() : current->previousInFocusChain(); widget && widget != current;
+		widget = next ? widget->nextInFocusChain() : widget->previousInFocusChain()) {
+		QWidget* proxy = widget->focusProxy();
+		while (proxy && proxy->focusProxy())
+			proxy = proxy->focusProxy();
+		const QWidget* taker = proxy ? proxy : widget;
+		const QDockWidget* dock = nullptr;
+		for (const QWidget* ancestor = widget; ancestor && !dock; ancestor = ancestor->parentWidget())
+			dock = qobject_cast<const QDockWidget*>(ancestor);
+		if ((taker->focusPolicy() & focusFlag) == focusFlag && taker->isEnabled() && widget->isEnabled() && widget->isVisibleTo(this)
+			&& proxy != current && !(proxy && (next ? proxy->isAncestorOf(widget) : widget->isAncestorOf(proxy)))
+			&& !(dock && !dock->isFloating() && !rect().intersects(dock->geometry()))) {
+			widget->setFocus(next ? Qt::TabFocusReason : Qt::BacktabFocusReason);
+			return true;
+		}
+	}
+	return false;
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
