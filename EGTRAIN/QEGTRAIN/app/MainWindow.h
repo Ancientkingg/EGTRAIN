@@ -325,6 +325,8 @@ private:
 	// The file that a recovered scene is a copy of. Save As starts there.
 	QString m_recoveredSourceHint;
 	bool m_recoveryFailureShown = false;
+	// The message about a failed autosave while the target of an incident is picked. It is shown when the pick ends.
+	QString m_heldRecoveryFailure;
 	QAction* m_undoAction = nullptr;
 	QAction* m_redoAction = nullptr;
 	QAction* m_findAction = nullptr;

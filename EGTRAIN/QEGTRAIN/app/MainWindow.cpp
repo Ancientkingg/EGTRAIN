@@ -2333,13 +2333,19 @@ void MainWindow::startRecovery() {
 		if (m_recoveryFailureShown)
 			return;
 		m_recoveryFailureShown = true;
-		statusBar()->showMessage(QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message));
+		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message);
+		// The hint of a target pick stays until the pick ends, and the message follows it.
+		if (m_incidentPanel->isPickingTarget())
+			m_heldRecoveryFailure = text;
+		else
+			statusBar()->showMessage(text);
 	});
 	// A copy that is written again ends the failure, and a later failure is reported again.
 	connect(m_recovery.get(), &RecoveryController::written, this, [this] {
 		if (!m_recoveryFailureShown)
 			return;
 		m_recoveryFailureShown = false;
+		m_heldRecoveryFailure.clear();
 		if (statusBar()->currentMessage().startsWith(QLatin1String("Autosave unavailable")))
 			statusBar()->clearMessage();
 	});
@@ -2368,6 +2374,7 @@ void MainWindow::recoverySceneReplaced(const RecoverySource& source) {
 	m_recoverySource = source;
 	m_recoveredSourceHint.clear();
 	m_recoveryFailureShown = false;
+	m_heldRecoveryFailure.clear();
 	if (!m_recovery)
 		return;
 	m_recovery->noteReplaced();
@@ -2886,10 +2893,14 @@ IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
 void MainWindow::setIncidentTargetPick(bool picking) {
 	m_endTargetPickShortcut->setEnabled(picking);
 	networkView->viewport()->setCursor(picking ? Qt::CrossCursor : Qt::OpenHandCursor);
-	if (picking)
+	if (picking) {
 		statusBar()->showMessage(targetPickHint());
-	else if (statusBar()->currentMessage().endsWith(targetPickHint()))
+	} else if (!m_heldRecoveryFailure.isEmpty()) {
+		statusBar()->showMessage(m_heldRecoveryFailure);
+		m_heldRecoveryFailure.clear();
+	} else if (statusBar()->currentMessage().endsWith(targetPickHint())) {
 		statusBar()->clearMessage();
+	}
 }
 
 void MainWindow::pickIncidentTarget() {

@@ -251,8 +251,9 @@ to the saved state, Save, an open of the same scene and a new scene each remove 
 replace the copy; that Discard followed by an open that fails and Cancel keep it; that
 closing the window leaves no copy; that Decide Later keeps a copy that an ended
 window left and Discard removes it; that Recover opens the copy as an unsaved scene
-without a file, with Save As starting at the original; and that a folder that cannot
-be made is reported once while the editing goes on. Next
+without a file, with Save As starting at the original; that a folder that cannot
+be made is reported once while the editing goes on; and that a copy that fails during
+a pick of an incident target is reported when the pick ends, not over its hint. Next
 it checks the layout of the editors: the main window does not grow beyond 1280
 by 800 pixels when an editor dock is shown at the normal and at 1.5 times the
 font size, a floated dock stays within 750 by 600 and keeps its scroll area,

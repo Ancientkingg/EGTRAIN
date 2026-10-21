@@ -100,7 +100,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Manual update check fails | Warning box with the network error | No |
 | Automatic update check fails | Nothing visible (`qWarning`, `app/UpdateTelemetryController.cpp`) | Dock, category `app.ui` |
 | Telemetry send or consent fails | Nothing, by design; a consent save error shows in the dialog | No |
-| Autosave fails | Status bar "Autosave unavailable: ..." once per scene, overwritten by the next status message (`app/MainWindow.cpp`) | No |
+| Autosave fails | Status bar "Autosave unavailable: ..." once per scene, overwritten by the next status message; during a pick of an incident target it waits until the pick ends (`app/MainWindow.cpp`) | No |
 | A recovery copy cannot be removed | Status bar for 8 s (`MainWindow.cpp`) | No |
 
 `UserPrompts::showError` (`widgets/UserPrompts.h`) logs `<title>: <message>` at error level in `app.ui`, then shows the box. In a run with dialogs suppressed it prints `QEGTRAIN_DIALOG_SUPPRESSED: <title>: <message>` to standard error instead of the box.

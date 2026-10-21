@@ -6101,5 +6101,29 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	settle();
 	expect(!w.m_recoveryFailureShown && !w.statusBar()->currentMessage().startsWith("Autosave unavailable"),
 		"the message about the failed autosave stayed after a copy was written");
+
+	// A failed autosave waits while the target of an incident is picked, so the hint of the pick stays, and shows when the
+	// pick ends. A new incident has no target, so its copy cannot be written.
+	{
+		const QString hint = QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
+		w.m_inspector->handleDisableHighlight();
+		w.revealEditorDock(w.m_incidentDock);
+		if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
+			tabs->setCurrentWidget(w.m_incidentPanel);
+		w.m_addIncidentButton->click();
+		w.m_incidentPanel->pickTargetButton()->click();
+		process();
+		const bool picking = w.m_incidentPanel->isPickingTarget() && w.statusBar()->currentMessage() == hint;
+		settle();
+		expect(picking && w.m_recoveryFailureShown && w.statusBar()->currentMessage() == hint,
+			"the failed autosave replaced the hint of the target pick: " + w.statusBar()->currentMessage());
+		w.activateWindow();
+		process();
+		qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
+		process();
+		expect(!w.m_incidentPanel->isPickingTarget()
+				&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+			"the failed autosave did not show when the pick ended: " + w.statusBar()->currentMessage());
+	}
 	return finish();
 }
