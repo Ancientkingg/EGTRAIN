@@ -748,13 +748,7 @@ if(EGTRAIN_BUILD_TESTS)
     target_compile_definitions(test_updatetelemetrycontroller PRIVATE EGTRAIN_UPDATE_TEST_HOOK=1)
     target_link_libraries(test_updatetelemetrycontroller PRIVATE egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt::Widgets Qt::Network)
     add_test(NAME test_updatetelemetrycontroller COMMAND test_updatetelemetrycontroller)
-    # The test answers real message boxes. The offscreen platform on Windows is not known to show a QMessageBox safely,
-    # so the test uses the native platform there.
-    if(WIN32)
-        set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
-    else()
-        set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-    endif()
+    set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_updatechecker ${SRC_DIR}/tests/test_updatechecker.cpp)
     target_link_libraries(test_updatechecker PRIVATE egtrain_update egtrain_util Qt::Core Qt::Network)
@@ -1061,13 +1055,7 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_userprompts ${SRC_DIR}/tests/test_userprompts.cpp)
     target_link_libraries(test_userprompts PRIVATE egtrain_util Qt::Core Qt::Gui Qt::Widgets)
     add_test(NAME test_userprompts COMMAND test_userprompts)
-    # The test answers real message boxes. The offscreen platform on Windows is not known to show a QMessageBox safely,
-    # so the test uses the native platform there.
-    if(WIN32)
-        set_tests_properties(test_userprompts PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
-    else()
-        set_tests_properties(test_userprompts PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-    endif()
+    set_tests_properties(test_userprompts PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_guardedapplication ${SRC_DIR}/tests/test_guardedapplication.cpp ${SRC_DIR}/app/GuardedApplication.cpp)
     target_link_libraries(test_guardedapplication PRIVATE egtrain_util Qt::Core Qt::Gui Qt::Widgets)
@@ -1092,13 +1080,7 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_trainunitsourcelinker ${SRC_DIR}/tests/test_trainunitsourcelinker.cpp)
     target_link_libraries(test_trainunitsourcelinker PRIVATE egtrain_editors Qt::Core Qt::Gui Qt::Widgets)
     add_test(NAME test_trainunitsourcelinker COMMAND test_trainunitsourcelinker)
-    # The test answers the real question of the linker. The offscreen platform on Windows is not known to show a
-    # QMessageBox safely, so the test uses the native platform there.
-    if(WIN32)
-        set_tests_properties(test_trainunitsourcelinker PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
-    else()
-        set_tests_properties(test_trainunitsourcelinker PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-    endif()
+    set_tests_properties(test_trainunitsourcelinker PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_editor_passenger ${SRC_DIR}/tests/test_editor_passenger.cpp)
     target_link_libraries(test_editor_passenger PRIVATE egtrain_editors Qt::Core Qt::Gui Qt::Widgets)
@@ -1339,13 +1321,7 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
 	add_test(NAME test_completedrun
 		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
-	# The capacity dialog test closes a message box if a refusal opens one. The offscreen platform on Windows is not
-	# known to show a QMessageBox safely, so the test uses the native platform there.
-	if(WIN32)
-		set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows" TIMEOUT 120)
-	else()
-		set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
-	endif()
+	set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
 
 	# Runs a line fixture and Paimpol in this process, in the order that the test explains.
 	add_executable(test_simulationrun ${SRC_DIR}/tests/test_simulationrun.cpp)
@@ -1379,17 +1355,10 @@ if(EGTRAIN_BUILD_TESTS)
 	else()
 		message(STATUS "Windows: skipping test_case_chooser_contract (path forms, INI escapes, directory symlink)")
 	endif()
-	# This test needs the unsaved-changes prompt. The offscreen platform on Windows is not known to show a
-	# QMessageBox safely, so the test uses the native platform there.
-	if(WIN32)
-		set(egtrain_scene_drop_platform windows)
-	else()
-		set(egtrain_scene_drop_platform offscreen)
-	endif()
 	add_test(NAME test_scene_drop
 		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_scene_drop PROPERTIES
-		ENVIRONMENT "QT_QPA_PLATFORM=${egtrain_scene_drop_platform};QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
 		PASS_REGULAR_EXPRESSION "E2E_SCENE_DROP_OK"
 		TIMEOUT 60)
 	add_test(NAME test_output_folder
@@ -1732,7 +1701,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetryconsent test_telemetryoperations test_updatetelemetrycontroller test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas
 		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_lightpalette test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_guardedapplication test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_manualwindow
-		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
+		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_completedrun test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
