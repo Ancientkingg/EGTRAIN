@@ -4875,10 +4875,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!editorTabs || editorTabs->count() != 5 || editorTabs->elideMode() != Qt::ElideNone || !editorTabs->usesScrollButtons())
 				facetFailure(ok, "presentation", "the tabs of five editors are cut instead of scrolling");
 			// Tab and Shift+Tab go from the network view round the window and back. They reach the editor in front, also just after
-			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, and the scroll buttons of their tab bars.
+			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, the scroll buttons of all tab bars
+			// and the scroll areas. They also leave the tables of the editors, whose cells take the arrow keys.
 			const QList<QDockWidget*> fiveEditors = editorDocks + QList<QDockWidget*>{w.m_incidentDock};
 			w.activateWindow();
-			for (QDockWidget* front : {w.m_incidentDock, w.m_caseSettingsDock}) {
+			for (QDockWidget* front : fiveEditors) {
 				front->raise();
 				for (const bool forward : {true, false}) {
 					w.networkView->setFocus(Qt::TabFocusReason);
@@ -4893,14 +4894,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						if (!focused || focused == w.networkView)
 							break;
 						reachedFront = reachedFront || front->isAncestorOf(focused);
-						if ((qobject_cast<QTabBar*>(focused->parentWidget()) && focused->parentWidget()->parentWidget() == &w)
+						if (qobject_cast<QTabBar*>(focused->parentWidget()) || qobject_cast<QScrollArea*>(focused)
 							|| std::any_of(fiveEditors.cbegin(), fiveEditors.cend(),
 								[front, focused](const QDockWidget* dock) { return dock != front && dock->isAncestorOf(focused); }))
 							hiddenStops << QString("%1(%2)").arg(focused->metaObject()->className(), focused->objectName());
 					}
 					if (QApplication::focusWidget() != w.networkView || !reachedFront || !hiddenStops.isEmpty())
 						facetFailure(ok, "presentation",
-							QString("%1 with %2 in front does not go round the visible controls; hidden stops: %3")
+							QString("%1 with %2 in front does not go round the visible controls; hidden or empty stops: %3")
 								.arg(forward ? "Tab" : "Shift+Tab", front->objectName(), hiddenStops.mid(0, 5).join(", ")));
 				}
 			}

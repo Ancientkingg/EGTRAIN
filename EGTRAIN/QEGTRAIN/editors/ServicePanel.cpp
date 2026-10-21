@@ -229,6 +229,8 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	QScrollArea* detailScroll = new QScrollArea(this);
 	detailScroll->setWidgetResizable(true);
 	detailScroll->setFrameShape(QFrame::NoFrame);
+	// Tab reaches the fields inside, and the area scrolls to show them.
+	detailScroll->setFocusPolicy(Qt::NoFocus);
 	detailScroll->setWidget(detailPane);
 	m_pages = new QTabWidget(this);
 	m_pages->setObjectName("serviceEditorPages");
@@ -254,6 +256,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_occurrenceTable->setHorizontalHeaderLabels({"Include", "Service code (number)", "Generated service", "Scheduled entry",
 		"Running performance (parameter) %", "Maximum speed restriction (km/h)"});
 	m_occurrenceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_occurrenceTable->setTabKeyNavigation(false);
 	m_occurrenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_occurrenceTable->setAlternatingRowColors(true);
 	m_occurrenceTable->horizontalHeader()->setStretchLastSection(true);
