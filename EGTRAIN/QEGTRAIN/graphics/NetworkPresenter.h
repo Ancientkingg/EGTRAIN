@@ -238,6 +238,13 @@ public:
 	/// the overlay stays at the position of the station. More platforms rank a name higher when names collide.
 	void paintStationOverlay(QPointF coord, const StationVisual& visual, const std::string& sname,
 		qreal scale = 1.0, QPointF decorationOffset = QPointF(), int platformCount = 0);
+	/// The move in scene units of the picture and the name of a station from its anchor on line: the
+	/// stationDecorationOffset() times the presentation scale. On a schematic line, whose points come from the
+	/// station views and whose display offset holds its level, the move counts from level 0, as in the original, and
+	/// a station with a named offset has its offset in units of track_separation, the spacing of the original levels,
+	/// so its picture and name stay between the levels that offset was made for.
+	QPointF stationArtworkOffset(const TrackPreviewLine& line, const std::vector<SceneStationView>& views,
+		const std::string& stationId, const std::string& name) const;
 
 	/// The train groups of the run, in the order in which they were added.
 	QList<TrainItemGroup*> allTrains;
@@ -418,11 +425,11 @@ struct PreviewStationMembership {
 /// replaces the station id and name of an earlier one.
 std::map<std::string, PreviewStationMembership> previewStationMemberships(const SceneModel& model);
 
-/// The point of a preview line at a node, moved down by offset scene units (the display offset of the line).
+/// The point of a preview line at a node, with offset scene units (the display offset of the line) added to its y.
 /// Returns false when the line has no such node.
 bool previewPointAtNode(const TrackPreviewLine& line, const std::string& nodeId, qreal offset, QPointF& point);
-/// The point of a preview line at the position x in kilometres, interpolated between its points and moved down by
-/// offset scene units. Outside the line it is the nearest point. Returns false when there is no finite point.
+/// The point of a preview line at the position x in kilometres, interpolated between its points, with offset scene
+/// units added to its y. Outside the line it is the nearest point. Returns false when there is no finite point.
 bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPointF& point);
 
 /// The unit normal of a preview line at the position rawX in kilometres, which tells the side of a signal head.

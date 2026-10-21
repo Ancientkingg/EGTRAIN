@@ -26,9 +26,11 @@
 #include <QGraphicsTextItem>
 #include <QGraphicsView>
 #include <QLoggingCategory>
+#include <QMap>
 #include <QPixmap>
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -307,6 +309,66 @@ int main(int argc, char* argv[]) {
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
 		ok &= expect(!empty.available && !empty.fitted && scene.items().isEmpty() && registriesEmpty(presenter),
 			"a model without track lines draws nothing");
+	}
+
+	// On a schematic line the picture and the name of a station count from level 0, whatever level its platform is
+	// on. A named offset counts in the original levels of track_separation units.
+	{
+		SceneModel model;
+		model.tracks = {{"low"}, {"high"}};
+		model.nodes = {{"low.a", "low", 0.0, 0.0}, {"low.b", "low", 10.0, 0.0}, {"high.a", "high", 0.0, 0.0},
+			{"high.b", "high", 10.0, 0.0}};
+		model.arcs = {{"low.arc", "low", "low.a", "low.b", 0.0, 0.0, 12.0},
+			{"high.arc", "high", "high.a", "high.b", 0.0, 0.0, 12.0}};
+		model.blocks = {{"low.block", "low", 10.0}, {"high.block", "high", 10.0}};
+		model.trackViews = {{"low", 0, 0}, {"high", 2, 0}};
+		model.stationViews = {{"A", 1.0, 0.0, {{0, 0.0}}, {}}, {"Koge", 1.0, 0.1, {{0, 10.0}}, {}}};
+		for (const auto& stationData : {
+				 std::pair<const char*, const char*>{"A", "high.a"}, std::pair<const char*, const char*>{"Koge", "high.b"}}) {
+			SceneStation station;
+			station.id = station.name = stationData.first;
+			station.platforms.push_back({std::string(stationData.first) + ".platform", {stationData.second}});
+			model.stations.push_back(std::move(station));
+		}
+		QGraphicsScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		// The bottom centre of the picture of each station, by name.
+		const auto pictureAnchors = [&presenter]() {
+			QMap<QString, QPointF> anchors;
+			for (StationOverlayItem* overlay : presenter.m_stationOverlays)
+				if (const QGraphicsPixmapItem* picture = presenter.m_stationPictures.value(overlay, nullptr))
+					anchors.insert(overlay->stationName(),
+						picture->mapToScene(QPointF(presenter.station_size / 2.0, presenter.station_size)));
+			return anchors;
+		};
+		presenter.showPreview(model);
+		const TrackPreviewLine* low = presenter.trackLine("low");
+		const TrackPreviewLine* high = presenter.trackLine("high");
+		const QMap<QString, QPointF> anchors = pictureAnchors();
+		bool placed = low && high && low->levelSpacing > 0.0 && anchors.size() == 2;
+		if (placed) {
+			const qreal levelZero = low->points.front().y + low->displayOffset;
+			const QPointF plain = anchors.value("A");
+			const QPointF named = anchors.value("Koge");
+			placed = std::fabs(plain.x() - high->points.front().x) < 1e-6
+				&& std::fabs(plain.y() - (levelZero + 1200.0 * presenter.presentationScale())) < 1e-6
+				&& std::fabs(named.x() - high->points.back().x) < 1e-6
+				&& std::fabs(named.y() - (levelZero + (1200.0 + 900.0) / presenter.track_separation * low->levelSpacing))
+					< 1e-6;
+		}
+		ok &= expect(placed, "station pictures on a higher schematic level count from level 0");
+
+		// Without the station views the lines are not schematic, and a picture stays at its station.
+		model.stationViews.clear();
+		presenter.clear();
+		presenter.showPreview(model);
+		const TrackPreviewLine* unmapped = presenter.trackLine("high");
+		const QMap<QString, QPointF> unmappedAnchors = pictureAnchors();
+		QPointF station;
+		ok &= expect(unmapped && unmapped->displayOffset != 0.0 && unmappedAnchors.contains("A")
+				&& previewPointAtNode(*unmapped, "high.a", unmapped->displayOffset, station)
+				&& QLineF(unmappedAnchors.value("A"), station).length() < 1e-6,
+			"a station picture on a higher level of a line that is not schematic stays at its station");
 	}
 
 	// A preview leaves no work queued on the scene, so previews that follow each other without the event loop in

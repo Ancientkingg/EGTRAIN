@@ -570,7 +570,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				[&station](const SceneStation& candidate) { return candidate.id == station.id; });
 			const int platformCount = sceneStation == sceneModel.stations.cend() ? 0 : static_cast<int>(sceneStation->platforms.size());
 			paintStationOverlay(anchor, stationMarkVisual(sceneModel, station.nodeId, platformCount), station.name,
-				presentationScale(), stationDecorationOffset(sceneModel.stationViews, station.id, station.name) * presentationScale(),
+				presentationScale(), stationArtworkOffset(line, sceneModel.stationViews, station.id, station.name),
 				platformCount);
 			auto* overlay = m_stationOverlays.back();
 			tagPreviewItem(overlay, "station", station.id);
@@ -747,6 +747,15 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 	overlay->attachArtwork(picture, label, platformCount);
 }
 
+QPointF NetworkPresenter::stationArtworkOffset(const TrackPreviewLine& line,
+	const std::vector<SceneStationView>& views, const std::string& stationId, const std::string& name) const {
+	const QPointF offset = stationDecorationOffset(views, stationId, name);
+	if (!line.authoredStationProjection || !(line.levelSpacing > 0.0))
+		return offset * presentationScale();
+	const qreal scale = stationNamedYOffset(name) != 0.0 ? line.levelSpacing / track_separation : presentationScale();
+	return offset * scale - QPointF(0.0, line.displayOffset);
+}
+
 void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	if (!m_source)
 		return;
@@ -805,7 +814,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	calculateStationCoordAndShift();
 	const bool hasSharedPreview = !m_cachedTrackPreview.lines.empty();
 	const auto sharedStationPoint = [this, &sceneModel, hasSharedPreview](int stationIndex, QPointF& point,
-										std::string& nodeId) {
+										std::string& nodeId, const TrackPreviewLine*& stationLine) {
 		if (!hasSharedPreview || stationIndex < 0
 			|| stationIndex >= static_cast<int>(sceneModel.stations.size()))
 			return false;
@@ -819,6 +828,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			return false;
 		nodeId = station->nodeId;
 		for (const auto& line : m_cachedTrackPreview.lines) {
+			stationLine = &line;
 			if (!station->nodeId.empty()) {
 				if (previewPointAtNode(line, station->nodeId,
 						static_cast<qreal>(line.displayOffset), point))
@@ -835,6 +845,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 					static_cast<qreal>(line.displayOffset), point))
 				return true;
 		}
+		stationLine = nullptr;
 		return false;
 	};
 
@@ -848,15 +859,14 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		}
 		QPointF sharedPoint;
 		std::string sharedNodeId;
-		if (sharedStationPoint(i, sharedPoint, sharedNodeId)) {
+		const TrackPreviewLine* sharedLine = nullptr;
+		if (sharedStationPoint(i, sharedPoint, sharedNodeId, sharedLine)) {
 			const int platformCount = static_cast<int>(sceneModel.stations[static_cast<std::size_t>(i)].platforms.size());
 			paintStationOverlay(sharedPoint,
 				stationMarkVisual(sceneModel, sharedNodeId, platformCount),
 				legacyStation.stationName, presentationScale(),
-				stationDecorationOffset(sceneModel.stationViews,
-					sceneModel.stations[static_cast<std::size_t>(i)].id,
-					legacyStation.stationName)
-					* presentationScale(),
+				stationArtworkOffset(*sharedLine, sceneModel.stationViews,
+					sceneModel.stations[static_cast<std::size_t>(i)].id, legacyStation.stationName),
 				platformCount);
 			continue;
 		}
@@ -1699,7 +1709,7 @@ void NetworkPresenter::egtrainPoint2Screen(double X, int track, double separatio
 	}
 	if (!hasTrackGeometry(track)) {
 		graphX = X * 1000.0;
-		graphY = static_cast<double>(m_source->track(track).graphID) * separation;
+		graphY = -static_cast<double>(m_source->track(track).graphID) * separation;
 		return;
 	}
 	double graphID = (double)m_source->track(track).graphID;
@@ -1726,7 +1736,7 @@ void NetworkPresenter::egtrainPoint2Screen(Node* node, int track, double separat
 	}
 	if (!hasTrackGeometry(track)) {
 		node->graphX = node->X * 1000.0;
-		node->graphY = node->Y * 1000.0 + static_cast<double>(m_source->track(track).graphID) * separation;
+		node->graphY = node->Y * 1000.0 - static_cast<double>(m_source->track(track).graphID) * separation;
 		return;
 	}
 	int stationIdx[2];
@@ -1760,9 +1770,9 @@ void NetworkPresenter::egtrainPoint2Screen(Connections* connection, int track1, 
 	}
 	if (!hasTrackGeometry(track1) || !hasTrackGeometry(track2)) {
 		connection->graphXFirstNode = connection->xFirstNode * 1000.0;
-		connection->graphYFirstNode = static_cast<double>(m_source->track(track1).graphID) * separation;
+		connection->graphYFirstNode = -static_cast<double>(m_source->track(track1).graphID) * separation;
 		connection->graphXSecondNode = connection->xSecondNode * 1000.0;
-		connection->graphYSecondNode = static_cast<double>(m_source->track(track2).graphID) * separation;
+		connection->graphYSecondNode = -static_cast<double>(m_source->track(track2).graphID) * separation;
 		return;
 	}
 	int graphID1 = m_source->track(track1).graphID;

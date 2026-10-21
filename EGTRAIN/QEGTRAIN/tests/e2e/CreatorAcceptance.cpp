@@ -2596,8 +2596,17 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			const auto source = std::find_if(w.m_document->mutableModel().stations.begin(), w.m_document->mutableModel().stations.end(),
 				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
 			if (source == w.m_document->mutableModel().stations.end() || !picture || !label) return false;
+			// The artwork moves by the rule of the cached line that holds the node of the station.
+			const auto& cached = w.m_presenter->m_cachedTrackPreview;
+			const auto anchor = std::find_if(cached.stations.begin(), cached.stations.end(),
+				[&](const TrackPreviewStation& station) { return station.id == source->id; });
+			const auto line = std::find_if(cached.lines.begin(), cached.lines.end(), [&](const TrackPreviewLine& candidate) {
+				QPointF point;
+				return anchor != cached.stations.end() && previewPointAtNode(candidate, anchor->nodeId, candidate.displayOffset, point);
+			});
+			if (line == cached.lines.end()) return false;
 			const QPointF textCenter = overlay->stableAnchor()
-				+ stationDecorationOffset(w.m_document->mutableModel().stationViews, source->id, source->name) * expectedScale;
+				+ w.m_presenter->stationArtworkOffset(*line, w.m_document->mutableModel().stationViews, source->id, source->name);
 			// The scene size, without the enlargement that keeps the artwork readable at Fit.
 			const auto sceneSizeRect = [](const QGraphicsItem* item) {
 				// The item transform acts after the item scale, so remove it in scaled coordinates.

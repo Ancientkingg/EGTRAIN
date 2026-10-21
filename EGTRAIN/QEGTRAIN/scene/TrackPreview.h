@@ -20,6 +20,9 @@ struct TrackPreviewLine {
 	double displayOffset = 0.0;			   ///< Vertical offset added to every point, in the units of the points.
 	/// True when the points come from the station views. Set only after the entire line maps successfully.
 	bool authoredStationProjection = false;
+	/// The distance between two levels when displayOffset holds the level of the track, in the units of the
+	/// points; 0 when it does not.
+	double levelSpacing = 0.0;
 };
 
 /// A connection between two visible tracks.
