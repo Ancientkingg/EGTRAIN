@@ -40,20 +40,20 @@ Contrast ratios follow the WCAG formula for the pair named in the last column.
 | Secondary text | `#5b6871` | help, context lines, small titles | 5.1:1 on window, 4.7:1 on band |
 | Status text | `#3f4d56` | neutral status label | 7.2:1 on band |
 | Disabled text | `#64717a` | disabled controls and menu items | 4.3:1 on disabled fill, 4.5:1 on window |
-| Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, progress fill, slider, links of About | white on accent 7.4:1 |
+| Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About | white on accent 7.4:1 |
 | Accent dark | `#26495c` | hover of the slider handle | white on it 9.6:1 |
-| Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog | white on it 5.2:1, 5.2:1 on field |
+| Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus | white on it 5.2:1, 5.2:1 on field, 3.4:1 on border |
 | Action hover | `#296882` | default button under the pointer | white on it 6.2:1 |
 | Action pressed | `#23566c` | default button while pressed | white on it 8.0:1 |
-| Action focus | `#0b2430` | focus border of the default button | 3.1:1 on action, 15:1 on surface |
+| Action focus | `#0b2430` | focus border of the default button and of the selected tab of a tab bar with the focus | 3.1:1 on action, 15:1 on surface |
 | Window | `#eef2f5` | main window and panel background | |
 | Surface | `#f8fafb` | toolbar, docks, menus, and a dialog with everything in it that is not a field | |
 | Band | `#e3eaee` | dock titles, table headers, tabs, status bar, Open Case, hover of the tool buttons outside the toolbar, pressed push and toolbar buttons, scroll track, grid lines | |
 | Field | `#ffffff` | inputs, buttons, tables | |
 | Alternate row | `#f4f7f9` | every second table row | |
 | Disabled fill | `#eceeec` | disabled and read-only fields, progress groove | |
-| Selected | `#d8e1e5` | selected menu item, chosen case | text 10.0:1 |
-| Border | `#c9d3db` | borders and rules of tables outside dialogs, docks, tabs, separators, status labels, disabled fields | |
+| Selected | `#d8e1e5` | selected menu item, chosen case, selected row of a list, table or tree without the focus | text 10.0:1 |
+| Border | `#c9d3db` | borders and rules of lists and tables outside dialogs, docks, tabs, separators, status labels, disabled fields | |
 | Control border | `#7b8b96` | border of push buttons, toolbar buttons and fields, and of the lists and tables of a dialog; slider groove | 3.5:1 on field, 3.4:1 on surface, 3.1:1 on window |
 | Control hover | `#5b6871` | border of a push button, toolbar button or field under the pointer; the secondary text colour | 5.7:1 on field, 5.5:1 on surface |
 | Warning | `#f5eadc`, border `#d8b98e`, text `#74451c` | warning status label | 6.8:1 |
@@ -71,9 +71,9 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 | Enabled | Field fill with the control border, also for toolbar buttons |
 | Hover | Push buttons, toolbar buttons and fields: control hover border. Other tool buttons: accent border and band fill. Default button: action hover fill |
 | Pressed | Push buttons and toolbar buttons: band fill. Default button: action pressed fill |
-| Focused | Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Default button: a 2 px action focus border. Run details in the run review and Calculation details in the capacity analysis: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border |
+| Focused | Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Lists and tables of the editors and the list, table or tree that fills a dock: a 2 px action border over the 1 px frame, so the rows stay in place. Selected tab of a tab bar with the focus, such as the tabs inside an editor: action face and a 2 px action focus border, with 1 px less padding; the tab bars of tabbed docks take no focus. Default button: a 2 px action focus border. Run details in the run review and Calculation details in the capacity analysis: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border |
 | Disabled | Disabled fill, border colour and disabled text |
-| Selected | Item views use the platform selection colour; menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text |
+| Selected | Lists, tables and trees use the accent with white text while they have the focus and the selected token with the text colour while they do not; a checked box in a selected row with the focus has a white border. Menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text |
 | Invalid | Fields are not recoloured. The message goes in a status label beside them (`DialogLayout::setStatus`, error or warning tokens), and the Scene Validation dock lists every issue |
 | Empty | A help label in secondary text says what is missing (`EditorLayout::emptyStateLabel`); a table with no rows shows only its header; a value that does not exist shows as "-" |
 

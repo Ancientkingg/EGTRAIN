@@ -411,7 +411,7 @@
 </tr>
 <tr class="row-even"><td><p>Accent</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#315a70</span></code></p></td>
-<td><p>focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, progress fill, slider, links of About</p></td>
+<td><p>focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About</p></td>
 <td><p>white on accent 7.4:1</p></td>
 </tr>
 <tr class="row-odd"><td><p>Accent dark</p></td>
@@ -421,8 +421,8 @@
 </tr>
 <tr class="row-even"><td><p>Action</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#2e7491</span></code></p></td>
-<td><p>default button fill, focus border of push buttons, toolbar buttons, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog</p></td>
-<td><p>white on it 5.2:1, 5.2:1 on field</p></td>
+<td><p>default button fill, focus border of push buttons, toolbar buttons, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus</p></td>
+<td><p>white on it 5.2:1, 5.2:1 on field, 3.4:1 on border</p></td>
 </tr>
 <tr class="row-odd"><td><p>Action hover</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#296882</span></code></p></td>
@@ -436,7 +436,7 @@
 </tr>
 <tr class="row-odd"><td><p>Action focus</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#0b2430</span></code></p></td>
-<td><p>focus border of the default button</p></td>
+<td><p>focus border of the default button and of the selected tab of a tab bar with the focus</p></td>
 <td><p>3.1:1 on action, 15:1 on surface</p></td>
 </tr>
 <tr class="row-even"><td><p>Window</p></td>
@@ -471,12 +471,12 @@
 </tr>
 <tr class="row-even"><td><p>Selected</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#d8e1e5</span></code></p></td>
-<td><p>selected menu item, chosen case</p></td>
+<td><p>selected menu item, chosen case, selected row of a list, table or tree without the focus</p></td>
 <td><p>text 10.0:1</p></td>
 </tr>
 <tr class="row-odd"><td><p>Border</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#c9d3db</span></code></p></td>
-<td><p>borders and rules of tables outside dialogs, docks, tabs, separators, status labels, disabled fields</p></td>
+<td><p>borders and rules of lists and tables outside dialogs, docks, tabs, separators, status labels, disabled fields</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>Control border</p></td>
@@ -539,13 +539,13 @@
 <td><p>Push buttons and toolbar buttons: band fill. Default button: action pressed fill</p></td>
 </tr>
 <tr class="row-odd"><td><p>Focused</p></td>
-<td><p>Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Default button: a 2 px action focus border. Run details in the run review and Calculation details in the capacity analysis: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border</p></td>
+<td><p>Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Lists and tables of the editors and the list, table or tree that fills a dock: a 2 px action border over the 1 px frame, so the rows stay in place. Selected tab of a tab bar with the focus, such as the tabs inside an editor: action face and a 2 px action focus border, with 1 px less padding; the tab bars of tabbed docks take no focus. Default button: a 2 px action focus border. Run details in the run review and Calculation details in the capacity analysis: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border</p></td>
 </tr>
 <tr class="row-even"><td><p>Disabled</p></td>
 <td><p>Disabled fill, border colour and disabled text</p></td>
 </tr>
 <tr class="row-odd"><td><p>Selected</p></td>
-<td><p>Item views use the platform selection colour; menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text</p></td>
+<td><p>Lists, tables and trees use the accent with white text while they have the focus and the selected token with the text colour while they do not; a checked box in a selected row with the focus has a white border. Menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text</p></td>
 </tr>
 <tr class="row-even"><td><p>Invalid</p></td>
 <td><p>Fields are not recoloured. The message goes in a status label beside them (<code class="docutils literal notranslate"><span class="pre">DialogLayout::setStatus</span></code>, error or warning tokens), and the Scene Validation dock lists every issue</p></td>
