@@ -87,7 +87,7 @@ requests that made the change, or the issue where none did.
 These differences come from the canonical scenes or from the historical input,
 not from the renderer, and are not on the list above.
 
-- Paimpol: the current frames show a siding below the line at Pontrieaux, with
+- Paimpol: the current frames show a siding above the line at Pontrieaux, with
   signals of its own, joined to the main line by a diagonal connection at each
   end. The reference frames of the same line show the main line only. The
   Paimpol historical blank mainline level and Guingamp anchor mismatch remain
@@ -158,7 +158,10 @@ is idempotent, including its unit metadata; edits rebuild from the scene model.
 Station artwork, its vertical gap, text metrics, derived annotation offsets and
 named nudges, structural nodes, signal heads/lateral separation, platforms,
 passenger adornments, train thickness and callout decoration use this shared
-conversion. Original font and pixmap metrics are retained with fractional item
+conversion. On a schematic line the annotation offset of a station with a named
+nudge is the exception: it counts in the reference spacing of the levels, so the
+name stays between the rows of track it was placed between. Original font and
+pixmap metrics are retained with fractional item
 scaling. Authored coordinates, levels, track geometry, physical train head/tail
 and length, and signal center/longitudinal +/-8 metre anchors do not scale again.
 Track, connection and signal strokes stay cosmetic. Picking areas are preserved.
