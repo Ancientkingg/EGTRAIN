@@ -359,103 +359,107 @@ without guessing.</p>
 <td><p>canonical display metadata</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> resolves station rows to canonical station IDs and preserves finite coordinates, region positions, and optional corridors in <code class="docutils literal notranslate"><span class="pre">views.json</span></code>; the native runtime applies them before calculating screen geometry. The exporter writes them from <code class="docutils literal notranslate"><span class="pre">views.json</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RoutesToWrite/RoutesToJoin.txt</span></code></p></td>
+<tr class="row-odd"><td><p>Copenhagen four-node track drawing</p></td>
+<td><p>canonical display metadata</p></td>
+<td><p>The original drew only the middle arc of each four-node track of <code class="docutils literal notranslate"><span class="pre">Input/Input_EGTRAIN_Banedanmark</span></code>, the double switches of the case. <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the four-node tracks of the Copenhagen case, which it recognises by scene or folder name, and the native preview and runtime leave out the first and last arc and the ordinary node dots of such a track. The simulation keeps every arc. The legacy files have no field for it: the exporter omits it with a warning, and an import of the export as the Copenhagen case sets it again.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RoutesToWrite/RoutesToJoin.txt</span></code></p></td>
 <td><p>canonical when populated</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> materializes each non-empty row as an appended route with concatenated blocks and <code class="docutils literal notranslate"><span class="pre">reversed</span></code> metadata. Committed files are empty, so they add no entities today. A row with <code class="docutils literal notranslate"><span class="pre">Reverse</span></code> over sections that run forward produces a route that validation rejects.</p></td>
 </tr>
-<tr class="row-even"><td><p>ordinary block dependencies, signals, virtual signals, TDS</p></td>
+<tr class="row-odd"><td><p>ordinary block dependencies, signals, virtual signals, TDS</p></td>
 <td><p>derived</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Signalling</span></code> derives these from blocks, routes, switches, and connections. They are documented derivations rather than duplicate authored inputs; the historical <code class="docutils literal notranslate"><span class="pre">signals</span></code> array remains load-compatible but is not runnable completeness.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Copenhagen <code class="docutils literal notranslate"><span class="pre">5-B6</span></code> dependency exception</p></td>
+<tr class="row-even"><td><p>Copenhagen <code class="docutils literal notranslate"><span class="pre">5-B6</span></code> dependency exception</p></td>
 <td><p>dead/inert</p></td>
 <td><p>The hard-coded target names track <code class="docutils literal notranslate"><span class="pre">B30</span></code>, but the switch at <code class="docutils literal notranslate"><span class="pre">4.592/4.620</span></code> is generated from <code class="docutils literal notranslate"><span class="pre">B31</span></code> and <code class="docutils literal notranslate"><span class="pre">B7</span></code>. No runtime section has the hard-coded ID, so occupancy and node-connection scans never resolve it. V1 does not turn that stale string into an active dependency or guess a replacement by coordinates.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/singleTrackLimits.txt</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/singleTrackLimits.txt</span></code></p></td>
 <td><p>canonical</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts four distinct block roles to <code class="docutils literal notranslate"><span class="pre">start_block</span></code>, <code class="docutils literal notranslate"><span class="pre">end_block</span></code>, <code class="docutils literal notranslate"><span class="pre">protected_start_block</span></code>, and <code class="docutils literal notranslate"><span class="pre">protected_end_block</span></code>. The native builder consumes those V1 fields directly.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/stationBoundarySections.txt</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/stationBoundarySections.txt</span></code></p></td>
 <td><p>canonical</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts entrance block, optional exit block, and direction; the native builder consumes those V1 fields directly.</p></td>
 </tr>
-<tr class="row-even"><td><p>seven-token <code class="docutils literal notranslate"><span class="pre">Trains</span></code> definitions</p></td>
+<tr class="row-odd"><td><p>seven-token <code class="docutils literal notranslate"><span class="pre">Trains</span></code> definitions</p></td>
 <td><p>canonical</p></td>
 <td><p>The native operations builder consumes canonical service/composition links, entry, repetition, and timetable values without opening provenance files. It gives occurrences stable <code class="docutils literal notranslate"><span class="pre">(service</span> <span class="pre">id,</span> <span class="pre">1-based</span> <span class="pre">occurrence)</span></code> identities and the existing <code class="docutils literal notranslate"><span class="pre">&lt;service</span> <span class="pre">id&gt;-&lt;occurrence&gt;</span></code> runtime key. The seven-token form is now read only by the explicit importer.</p></td>
 </tr>
-<tr class="row-odd"><td><p>train-unit physical files</p></td>
+<tr class="row-even"><td><p>train-unit physical files</p></td>
 <td><p>canonical</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts nine physical/operating values to a generic V1 train unit, independent of <code class="docutils literal notranslate"><span class="pre">LITRA</span></code> terminology. The native operations builder consumes those values in memory.</p></td>
 </tr>
-<tr class="row-even"><td><p>tractive-effort files</p></td>
+<tr class="row-odd"><td><p>tractive-effort files</p></td>
 <td><p>canonical</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts five-number curve rows. The train manifest, not <code class="docutils literal notranslate"><span class="pre">T_</span></code> or another filename convention, associates a curve with its train unit; the native operations builder consumes the canonical curve.</p></td>
 </tr>
-<tr class="row-odd"><td><p>compositions</p></td>
+<tr class="row-even"><td><p>compositions</p></td>
 <td><p>canonical</p></td>
 <td><p>V1 compositions contain ordered train-unit references. Current legacy manifests yield one-unit compositions, without making the source filename a universal train type.</p></td>
 </tr>
-<tr class="row-even"><td><p>planned timetable arrival, departure, dwell, repetition</p></td>
+<tr class="row-odd"><td><p>planned timetable arrival, departure, dwell, repetition</p></td>
 <td><p>canonical</p></td>
 <td><p>Native operations expands repeats as <code class="docutils literal notranslate"><span class="pre">ceil(duration/headway)</span></code> when <code class="docutils literal notranslate"><span class="pre">repeat.count</span></code> is omitted, or as the explicit positive total count (including the base). Entry and stop offsets remain <code class="docutils literal notranslate"><span class="pre">(occurrence-1)*headway</span></code>; absent arrival/departure values remain runtime <code class="docutils literal notranslate"><span class="pre">-1</span></code>, including repeats. Finite negative planned values remain valid for pre-horizon timetable rows; route-external rows remain inert without an invented platform. A nonzero <code class="docutils literal notranslate"><span class="pre">operating_code_step</span></code> requires a decimal base and yields stepped occurrence codes; without one, repeated codes use a readable base-plus-occurrence form. <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> is a derived compatibility value from the existing hourly-retiming algorithm; it is not canonical input.</p></td>
 </tr>
-<tr class="row-odd"><td><p>service performance and speed controls</p></td>
+<tr class="row-even"><td><p>service performance and speed controls</p></td>
 <td><p>canonical</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">performance_percent</span></code> defaults to 100% and is limited to finite <code class="docutils literal notranslate"><span class="pre">1..100</span></code>; <code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code> is an optional positive finite service cap. Native runtime applies <code class="docutils literal notranslate"><span class="pre">min(composition</span> <span class="pre">max,</span> <span class="pre">service</span> <span class="pre">cap)</span></code> first, then performance once; 100% preserves the raw path. Braking, mass, shared compositions, buffer, and recovery remain unchanged. Each <code class="docutils literal notranslate"><span class="pre">Train</span></code> and <code class="docutils literal notranslate"><span class="pre">TrainRunResult</span></code> retains operating code, service/occurrence identity, performance, configured cap, composition maximum, and applied maximum-speed provenance.</p></td>
 </tr>
-<tr class="row-even"><td><p>run occurrence selection</p></td>
+<tr class="row-odd"><td><p>run occurrence selection</p></td>
 <td><p>derived/runtime</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneRunSelection</span></code> is a set of <code class="docutils literal notranslate"><span class="pre">(service</span> <span class="pre">id,</span> <span class="pre">occurrence)</span></code> identities. Empty means all; a non-empty selection is validated, limits capacity to selected trains, and omits delays/passenger legs for excluded occurrences while leaving <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> untouched. <code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code> and the native operations builder share this selection boundary.</p></td>
 </tr>
-<tr class="row-odd"><td><p>flat <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code> / historical <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code></p></td>
+<tr class="row-even"><td><p>flat <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code> / historical <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code></p></td>
 <td><p>canonical compatibility</p></td>
 <td><p>Import places flat incidents in the baseline and copies them into each imported rollout scenario where the source relationship is explicit. Preferred persistence and native execution use <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Rollout_&lt;n&gt;.txt</span></code> entrance delays</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Rollout_&lt;n&gt;.txt</span></code> entrance delays</p></td>
 <td><p>canonical when resolvable</p></td>
 <td><p>Native operations maps canonical service/occurrence/station delays, preserves absent timetable values as errors rather than numbers, and applies only the selected scenario. Positional rollout files are importer input only.</p></td>
 </tr>
-<tr class="row-odd"><td><p>DAS plus RouteChoice passenger CSVs</p></td>
+<tr class="row-even"><td><p>DAS plus RouteChoice passenger CSVs</p></td>
 <td><p>canonical</p></td>
 <td><p>Native operations maps canonical windows and ordered service/occurrence legs directly to existing <code class="docutils literal notranslate"><span class="pre">Passenger</span></code>, <code class="docutils literal notranslate"><span class="pre">Journey</span></code>, and <code class="docutils literal notranslate"><span class="pre">Trip</span></code> objects, including legless journeys; actual planned times are sampled in memory. The CSV pair is read only during explicit import.</p></td>
 </tr>
-<tr class="row-even"><td><p>generated <code class="docutils literal notranslate"><span class="pre">TrackandStations</span></code>, <code class="docutils literal notranslate"><span class="pre">VisualizeConnections</span></code>, <code class="docutils literal notranslate"><span class="pre">ShowElements</span></code>, <code class="docutils literal notranslate"><span class="pre">List_of_Blocks</span></code></p></td>
+<tr class="row-odd"><td><p>generated <code class="docutils literal notranslate"><span class="pre">TrackandStations</span></code>, <code class="docutils literal notranslate"><span class="pre">VisualizeConnections</span></code>, <code class="docutils literal notranslate"><span class="pre">ShowElements</span></code>, <code class="docutils literal notranslate"><span class="pre">List_of_Blocks</span></code></p></td>
 <td><p>derived/output</p></td>
 <td><p>Infrastructure and signalling produce these display and route-authoring aids from topology. They are not additional authoritative scene inputs.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> and historical <code class="docutils literal notranslate"><span class="pre">Areas*.TXT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> and historical <code class="docutils literal notranslate"><span class="pre">Areas*.TXT</span></code></p></td>
 <td><p>dead/inert in the current source</p></td>
 <td><p>No current simulation reader consumes these files. The legacy exporter writes current signalling areas to <code class="docutils literal notranslate"><span class="pre">AreasCaseStudy.txt</span></code>, removes stale/copied TXT when the assignment is empty, and always writes the versioned <code class="docutils literal notranslate"><span class="pre">EGTRAINSignallingAreas.json</span></code> sidecar. Import preserves that authoritative canonical assignment, validating it before publication. Without a sidecar, import reports <code class="docutils literal notranslate"><span class="pre">AreasCaseStudy.txt</span></code> and converts no row; the <code class="docutils literal notranslate"><span class="pre">Areas*.TXT</span></code> variants are not looked at. Historical capacity/signalling rows remain ambiguous. See <a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">Signalling levels</span></a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Draisy-acceleration.txt</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Draisy-acceleration.txt</span></code></p></td>
 <td><p>dead/inert</p></td>
 <td><p>No normal runtime consumer references this related file; only the explicitly selected physical and traction paths are loaded. It therefore does not justify another canonical data type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TimeTable/Scenarios_DW*</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TimeTable/Scenarios_DW*</span></code></p></td>
 <td><p>dead/inert</p></td>
 <td><p>The dwell-disturbance loader call in <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> is commented out. Directory presence alone does not activate it.</p></td>
 </tr>
-<tr class="row-even"><td><p>OL train-order lists</p></td>
+<tr class="row-odd"><td><p>OL train-order lists</p></td>
 <td><p>dead/inert</p></td>
 <td><p>The simulation has no order lists, and no scene field or native step creates one. The code that held and printed them is gone, matching the traced inactive path.</p></td>
 </tr>
-<tr class="row-odd"><td><p>normal <code class="docutils literal notranslate"><span class="pre">Rescheduling</span></code>, ROMA, and legacy TMS/TDS input trees</p></td>
+<tr class="row-even"><td><p>normal <code class="docutils literal notranslate"><span class="pre">Rescheduling</span></code>, ROMA, and legacy TMS/TDS input trees</p></td>
 <td><p>dead/inert or derived</p></td>
 <td><p>ROMA closed-loop loading is not active in normal setup, and TDS is built from topology. Files remain compatibility passthrough where needed, not canonical fields without a live consumer.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAINOutput</span></code>, ROMA/TDS artifacts, <code class="docutils literal notranslate"><span class="pre">FolderEGTRAIN</span></code>, <code class="docutils literal notranslate"><span class="pre">OL_LastEntry</span></code>, <code class="docutils literal notranslate"><span class="pre">ScheduledOrder</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAINOutput</span></code>, ROMA/TDS artifacts, <code class="docutils literal notranslate"><span class="pre">FolderEGTRAIN</span></code>, <code class="docutils literal notranslate"><span class="pre">OL_LastEntry</span></code>, <code class="docutils literal notranslate"><span class="pre">ScheduledOrder</span></code></p></td>
 <td><p>output/interoperability</p></td>
 <td><p>Simulation and integration code write these artifacts. They are not case-scene input.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Other GUI coordinate/display files</p></td>
+<tr class="row-even"><td><p>Other GUI coordinate/display files</p></td>
 <td><p>derived/output</p></td>
 <td><p>The native GUI derives fallback layout from canonical node and station coordinates when the explicit <code class="docutils literal notranslate"><span class="pre">views.json</span></code> sources are absent. Historical virtual-link and HTML-template files are not a second infrastructure model and are no longer normal runtime input.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rand1.seed</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rand1.seed</span></code></p></td>
 <td><p>dead/inert</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">NumberGenerator</span></code> does not read or write a seed file. The seed of the random draws is the run setting <code class="docutils literal notranslate"><span class="pre">--seed</span></code>, which defaults to 789350715 and is recorded as <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> in result provenance. It is not case input and not a scene field.</p></td>
 </tr>
-<tr class="row-odd"><td><p>unknown-case compiled <code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> mapping</p></td>
+<tr class="row-even"><td><p>unknown-case compiled <code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> mapping</p></td>
 <td><p>unresolved</p></td>
 <td><p>The four canonical timing fields are known, but a folder/name outside the explicit case table cannot safely select a <code class="docutils literal notranslate"><span class="pre">set_case</span></code> branch. Without an <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code> import leaves them absent and records the unresolved mapping.</p></td>
 </tr>

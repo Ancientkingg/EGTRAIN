@@ -399,8 +399,8 @@ Paimpol historical blank mainline level and Guingamp anchor mismatch remain
 excluded layout and data differences.</p></li>
 <li><p>Copenhagen: the reference frame draws one line where the current frame draws
 two parallel rows joined by crossovers. Canonical geometry draws every authored
-segment, and the case-specific arc and endpoint omissions of the reference are
-not restored.</p></li>
+segment except the first and last arc of the 137 four-node tracks that
+<code class="docutils literal notranslate"><span class="pre">views.json</span></code> marks as double switches, which the reference also leaves out.</p></li>
 <li><p>Netherlands: the reference frame draws a single line where the current frame
 draws doubled tracks, stations beside them and crossovers. The reference
 build <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> opens this case without trains and draws only part of the
@@ -425,9 +425,12 @@ the first point is ordinary even if a station belongs there; ordinary start
 points on a four-node track have zero painted size, while station overrides at
 later points and the final endpoint remain visible. Invisible ordinary nodes
 retain picking targets. Four nodes alone do not establish a Copenhagen double
-switch. All authored segments remain; historical case-specific arc and endpoint
-omissions are not restored. Malformed fallback chains have safe authoring
-preview coverage, not a prepared-runtime equivalence claim.</p>
+switch; a track view with <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> does. Preview and run draw such a
+track without its first and last arc and paint none of its ordinary nodes, as
+the reference drew every four-node track of <code class="docutils literal notranslate"><span class="pre">Input/Input_EGTRAIN_Banedanmark</span></code>.
+The simulation keeps every arc, and every other track keeps all its authored
+segments. Malformed fallback chains have safe authoring preview coverage, not a
+prepared-runtime equivalence claim.</p>
 <p>Station artwork retains its own canonical identity, including duplicate names
 and position-only stations. Platform membership follows authored-order native
 field assignments; a later position-only membership replaces the station but

@@ -772,7 +772,8 @@ accepted, unresolved, malformed, and ID-collision rows before the scene is saved
 topology, signalling, services, or simulation results:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">"tracks"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"B0"</span><span class="p">,</span><span class="w"> </span><span class="nt">"level"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"region"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"visible"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"B0"</span><span class="p">,</span><span class="w"> </span><span class="nt">"level"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"region"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"visible"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"track"</span><span class="p">:</span><span class="w"> </span><span class="s2">"B31"</span><span class="p">,</span><span class="w"> </span><span class="nt">"level"</span><span class="p">:</span><span class="w"> </span><span class="mi">-7</span><span class="p">,</span><span class="w"> </span><span class="nt">"region"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"double_switch"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
 <span class="w">  </span><span class="p">],</span>
 <span class="w">  </span><span class="nt">"stations"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
@@ -788,11 +789,21 @@ topology, signalling, services, or simulation results:</p>
 </div>
 <p>Track rows are visible by default. Set <code class="docutils literal notranslate"><span class="pre">visible</span></code> to <code class="docutils literal notranslate"><span class="pre">false</span></code> to keep infrastructure
 available to the simulation while omitting an authored inactive track from the preview.</p>
+<p><code class="docutils literal notranslate"><span class="pre">double_switch</span></code> is optional and <code class="docutils literal notranslate"><span class="pre">false</span></code> by default. Set it to <code class="docutils literal notranslate"><span class="pre">true</span></code> to draw the
+track as a double switch: the preview and the run canvas leave out its first and
+last arc and paint no ordinary node dots, so a double switch of four nodes shows
+only its middle arc. The simulation still uses every arc. The writer writes the
+key only when it is <code class="docutils literal notranslate"><span class="pre">true</span></code>, so a scene without it is saved unchanged.</p>
 <p>Track and station references must identify canonical objects. Levels are
-integers; region IDs are unique non-negative integers; coordinates and region
-positions are finite. Invalid rows are skipped with load warnings. The legacy
-importer creates this file from <code class="docutils literal notranslate"><span class="pre">GUI/caseStudyTrackData.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">GUI/unusedTracks.txt</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">GUI/StationsCoord.txt</span></code>. Directory saves and V2 bundles preserve it when present.</p>
+integers; region IDs are unique non-negative integers; <code class="docutils literal notranslate"><span class="pre">visible</span></code> and
+<code class="docutils literal notranslate"><span class="pre">double_switch</span></code> are booleans; coordinates and region positions are finite.
+Invalid rows are skipped with load warnings. The legacy importer creates this
+file from <code class="docutils literal notranslate"><span class="pre">GUI/caseStudyTrackData.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">GUI/unusedTracks.txt</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">GUI/StationsCoord.txt</span></code>. For the Copenhagen case, which it recognises by the
+scene or folder name, it also sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the tracks
+with four nodes, which the original drew as double switches. Legacy export omits
+<code class="docutils literal notranslate"><span class="pre">double_switch</span></code>, because the legacy files have no field for it, and warns.
+Directory saves and V2 bundles preserve the file when present.</p>
 <p><code class="docutils literal notranslate"><span class="pre">loaded_data</span></code> and <code class="docutils literal notranslate"><span class="pre">sourceFiles</span></code> are derived in-memory metadata; they are
 recomputed when a scene is loaded and are not the source of canonical values.</p>
 </section>
@@ -903,7 +914,7 @@ scenario, and passengers are built directly from <code class="docutils literal n
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">views.json</span></code></p></td>
 <td><p>optional display metadata</p></td>
-<td><p>authored track levels/regions and station display geometry; preserved in folders and bundles</p></td>
+<td><p>authored track levels/regions, double switch drawing and station display geometry; preserved in folders and bundles</p></td>
 </tr>
 </tbody>
 </table>

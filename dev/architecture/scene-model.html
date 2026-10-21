@@ -367,7 +367,7 @@ every build.</p>
 <td><p>optional</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">views.json</span></code></p></td>
-<td><p>optional track levels and station display geometry; consumed only by preview/runtime layout</p></td>
+<td><p>optional track levels, double switch drawing and station display geometry; consumed only by preview/runtime layout</p></td>
 <td><p>optional</p></td>
 </tr>
 </tbody>
@@ -611,8 +611,9 @@ bundle. The loader has accepted no other value since it was introduced
 older version number exists. The older scenes that exist differ from today’s in
 layout, not in number. The format has grown only by optional keys and optional
 files, such as <code class="docutils literal notranslate"><span class="pre">views.json</span></code>, <code class="docutils literal notranslate"><span class="pre">saved_with_app_version</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling_areas</span></code> in
-<code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, and the service keys <code class="docutils literal notranslate"><span class="pre">category</span></code> and <code class="docutils literal notranslate"><span class="pre">visualization_color</span></code>.
-None of them changed a number.</p>
+<code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, the service keys <code class="docutils literal notranslate"><span class="pre">category</span></code> and <code class="docutils literal notranslate"><span class="pre">visualization_color</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">double_switch</span></code> in the track views of <code class="docutils literal notranslate"><span class="pre">views.json</span></code>. None of them changed a
+number.</p>
 <p>The probe reads <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> (directory) or the bundle manifest, and, only
 when <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> has a <code class="docutils literal notranslate"><span class="pre">legacy_source</span></code> key, <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>. A scene
 with <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> 1, and <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1 in a bundle, is current unless

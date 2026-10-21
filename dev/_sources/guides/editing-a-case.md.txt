@@ -120,5 +120,6 @@ corridors, single-track restrictions and station boundaries go to
 the simulation settings go to `EGTRAINInitialParameters.json`. A scene without
 legacy files prints the information `scene.export.info` that the files were
 generated from canonical data. The export warns (`scene.export.compatibility`)
-about a station name with a tab or line break, and about an empty corridor name
-or one with a comma, tab or line break, because the text files cannot hold them.
+about a station name with a tab or line break, about an empty corridor name or
+one with a comma, tab or line break, and about the tracks that `views.json` draws
+as double switches, because the text files cannot hold them.

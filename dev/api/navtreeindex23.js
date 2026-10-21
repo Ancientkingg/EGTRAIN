@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"struct_self_update_capability.html#a67dc139f320fa0a970de555febd00535":[2,0,255,2],
+"struct_self_update_capability.html#ab369045325e2f2f4a93e5b87e5bb916d":[2,0,255,5],
 "struct_self_update_capability.html#abbfe9ad52a1e7a6114606649717ccbbf":[2,0,255,0],
 "struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b":[2,0,255,1],
 "struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b":[2,0,255,6],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "struct_update_check_result.html#add1eb78ee9916255bda91d73124a943e":[2,0,311,0],
 "struct_update_check_result.html#aede7d6ff18fe3b48368e5ff2ff823480":[2,0,311,2],
 "struct_update_manifest.html":[2,0,312],
-"struct_update_manifest.html#a0e433830a64656e52f29f61f0f7b5864":[2,0,312,0],
-"struct_update_manifest.html#a4d7d3df84238fc3fdd97421fc5c9c7ff":[2,0,312,4],
-"struct_update_manifest.html#aa5e78a03f7a59ef68c9fcef236458abb":[2,0,312,1]
+"struct_update_manifest.html#a0e433830a64656e52f29f61f0f7b5864":[2,0,312,0]
 };

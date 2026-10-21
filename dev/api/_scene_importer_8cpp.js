@@ -7,6 +7,7 @@ var _scene_importer_8cpp =
     [ "baseTimeForCase", "_scene_importer_8cpp.html#a43e685f5959241ac53cd7084a393b657", null ],
     [ "comparablePath", "_scene_importer_8cpp.html#a75925cf258bf89c8557962077084a052", null ],
     [ "containsPath", "_scene_importer_8cpp.html#a0d22c674dfdd3b9eb040c615c492fa74", null ],
+    [ "copenhagenCase", "_scene_importer_8cpp.html#ad9a5e2a40bf0f42228052b18fb45e939", null ],
     [ "findChild", "_scene_importer_8cpp.html#a2368828ed01ecf60634935e6a32c40d2", null ],
     [ "importLegacyPassengers", "_scene_importer_8cpp.html#af073cc46a3a51cb4473f73f12825f8ce", null ],
     [ "importLegacyScene", "_scene_importer_8cpp.html#a18f5a3a9059fe1b30f1dbcf15e252c09", null ],

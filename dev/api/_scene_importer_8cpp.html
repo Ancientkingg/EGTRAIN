@@ -172,6 +172,7 @@ Functions</h2></td></tr>
 <tr class="memitem:aed3b5e18fd7ceb03109350d047ef6fe9" id="r_aed3b5e18fd7ceb03109350d047ef6fe9"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#aed3b5e18fd7ceb03109350d047ef6fe9">stripOuterAt</a> (const std::string &amp;token)</td></tr>
 <tr class="memitem:a6c4e2944121827f257d788a0bd51c3f3" id="r_a6c4e2944121827f257d788a0bd51c3f3"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6c4e2944121827f257d788a0bd51c3f3">normaliseStationName</a> (std::string value)</td></tr>
 <tr class="memitem:af672a56414c094d5bff2dc0031146dca" id="r_af672a56414c094d5bff2dc0031146dca"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#af672a56414c094d5bff2dc0031146dca">normaliseServiceSeparators</a> (std::string value)</td></tr>
+<tr class="memitem:ad9a5e2a40bf0f42228052b18fb45e939" id="r_ad9a5e2a40bf0f42228052b18fb45e939"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad9a5e2a40bf0f42228052b18fb45e939">copenhagenCase</a> (const std::string &amp;sceneName, const fs::path &amp;legacyPath)</td></tr>
 <tr class="memitem:a43e685f5959241ac53cd7084a393b657" id="r_a43e685f5959241ac53cd7084a393b657"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a43e685f5959241ac53cd7084a393b657">baseTimeForCase</a> (const std::string &amp;sceneName, const fs::path &amp;legacyPath, double &amp;duration, bool &amp;known)</td></tr>
 <tr class="memitem:a0b699de8c56e704131c67da2d591c690" id="r_a0b699de8c56e704131c67da2d591c690"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a0b699de8c56e704131c67da2d591c690">passengerTimeWindow</a> (const std::string &amp;token, std::pair&lt; double, double &gt; &amp;result)</td></tr>
 <tr class="memitem:a9e2783e78476e6525d0d2be4a6135b45" id="r_a9e2783e78476e6525d0d2be4a6135b45"><td class="memItemLeft">static <a class="el" href="struct_legacy_passenger_sources.html">LegacyPassengerSources</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9e2783e78476e6525d0d2be4a6135b45">locateLegacyPassengerSources</a> (const fs::path &amp;root)</td></tr>
@@ -220,7 +221,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a43e685f5959241ac53cd7084a393b657_cgraph.svg" width="288" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a43e685f5959241ac53cd7084a393b657_cgraph.svg" width="470" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -285,6 +286,40 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a0d22c674dfdd3b9eb040c615c492fa74_cgraph.svg" width="270" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad9a5e2a40bf0f42228052b18fb45e939" name="ad9a5e2a40bf0f42228052b18fb45e939"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9a5e2a40bf0f42228052b18fb45e939">&#9670;&#160;</a></span>copenhagenCase()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool copenhagenCase </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneName</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>legacyPath</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ad9a5e2a40bf0f42228052b18fb45e939_cgraph.svg" width="283" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -377,7 +412,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1436" height="2839"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1436" height="2899"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -49,13 +49,14 @@ var searchData=
   ['displineid_46',['dispLineID',['../class_train.html#ab33effe4ea0276e764d194be2b3597f5',1,'Train']]],
   ['distribution_47',['distribution',['../struct_update_manifest.html#af427a332aa614284dc2ed91065495a11',1,'UpdateManifest']]],
   ['disturbanceinput_48',['disturbanceInput',['../struct_simulation_run.html#a40ae39279ee55aed776a982e790f16a2',1,'SimulationRun']]],
-  ['downloadurl_49',['downloadUrl',['../struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874',1,'ReleaseAsset']]],
-  ['drawable_50',['drawable',['../struct_follow_availability_input.html#a8033b4b1c54de4169a6e9f3b0629ec45',1,'FollowAvailabilityInput']]],
-  ['droppedstates_51',['droppedStates',['../struct_live_server_state.html#a9ed222affbfcc2c372af35e8732d3ce3',1,'LiveServerState']]],
-  ['duration_52',['duration',['../structtelemetry_1_1_telemetry_event_input.html#a7d2a781c5f522aa50d3b9acc42ded89f',1,'telemetry::TelemetryEventInput']]],
-  ['durationms_53',['durationMs',['../struct_playback_profiler_1_1_run_config.html#aac651decb85dd6860d6a5ac1e125e676',1,'PlaybackProfiler::RunConfig']]],
-  ['durationoverride_54',['durationOverride',['../class_initial_parameters.html#a1fcab8acd974d3fc21a9e50c251b7363',1,'InitialParameters']]],
-  ['durationseconds_55',['durationSeconds',['../struct_run_provenance.html#a824756f1b194612d9515accbf3d4b9f8',1,'RunProvenance::durationSeconds'],['../struct_delay_run_snapshot.html#a8a484e412f344d6b6dcae7adab280bb3',1,'DelayRunSnapshot::durationSeconds'],['../struct_scene_simulation_settings.html#a10c320e6d9fba22071e14ec06956c9ea',1,'SceneSimulationSettings::durationSeconds']]],
-  ['dwellseconds_56',['dwellSeconds',['../struct_scene_stop.html#af39e6e6149b89044db24e6d97a8d833c',1,'SceneStop']]],
-  ['dwelltime_57',['dwellTime',['../class_node.html#adfac506c25da76917b30fb9783c86b1d',1,'Node']]]
+  ['doubleswitch_49',['doubleSwitch',['../struct_scene_track_view.html#a9086c8102baabc8f01e671ef2f522b4a',1,'SceneTrackView']]],
+  ['downloadurl_50',['downloadUrl',['../struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874',1,'ReleaseAsset']]],
+  ['drawable_51',['drawable',['../struct_follow_availability_input.html#a8033b4b1c54de4169a6e9f3b0629ec45',1,'FollowAvailabilityInput']]],
+  ['droppedstates_52',['droppedStates',['../struct_live_server_state.html#a9ed222affbfcc2c372af35e8732d3ce3',1,'LiveServerState']]],
+  ['duration_53',['duration',['../structtelemetry_1_1_telemetry_event_input.html#a7d2a781c5f522aa50d3b9acc42ded89f',1,'telemetry::TelemetryEventInput']]],
+  ['durationms_54',['durationMs',['../struct_playback_profiler_1_1_run_config.html#aac651decb85dd6860d6a5ac1e125e676',1,'PlaybackProfiler::RunConfig']]],
+  ['durationoverride_55',['durationOverride',['../class_initial_parameters.html#a1fcab8acd974d3fc21a9e50c251b7363',1,'InitialParameters']]],
+  ['durationseconds_56',['durationSeconds',['../struct_run_provenance.html#a824756f1b194612d9515accbf3d4b9f8',1,'RunProvenance::durationSeconds'],['../struct_delay_run_snapshot.html#a8a484e412f344d6b6dcae7adab280bb3',1,'DelayRunSnapshot::durationSeconds'],['../struct_scene_simulation_settings.html#a10c320e6d9fba22071e14ec06956c9ea',1,'SceneSimulationSettings::durationSeconds']]],
+  ['dwellseconds_57',['dwellSeconds',['../struct_scene_stop.html#af39e6e6149b89044db24e6d97a8d833c',1,'SceneStop']]],
+  ['dwelltime_58',['dwellTime',['../class_node.html#adfac506c25da76917b30fb9783c86b1d',1,'Node']]]
 ];

@@ -1,5 +1,6 @@
 var NAVTREEINDEX11 =
 {
+"class_recovery_controller.html#ada7609bfca83a77b9ba9e488d136d044":[2,0,141,1],
 "class_recovery_controller.html#add7e9c8e974ca43a271fb1a66d77e950":[2,0,141,0],
 "class_recovery_prompt.html":[2,0,142],
 "class_recovery_prompt.html#a119f7fa1e00fbf7d62b8c03fe452bf99":[2,0,142,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX11 =
 "class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b":[2,0,175,34],
 "class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6":[2,0,175,22],
 "class_scenario_panel.html#a8dada1f02dc66076041fb85604e31874":[2,0,175,10],
-"class_scenario_panel.html#a8de99906e3991249e99cbf0835618efe":[2,0,175,9],
-"class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3":[2,0,175,35]
+"class_scenario_panel.html#a8de99906e3991249e99cbf0835618efe":[2,0,175,9]
 };

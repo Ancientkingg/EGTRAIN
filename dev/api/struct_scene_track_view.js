@@ -1,5 +1,6 @@
 var struct_scene_track_view =
 [
+    [ "doubleSwitch", "struct_scene_track_view.html#a9086c8102baabc8f01e671ef2f522b4a", null ],
     [ "level", "struct_scene_track_view.html#a4c260d0acc43d11faf4fb126b887b52f", null ],
     [ "region", "struct_scene_track_view.html#ae3c8f3e940f322a088314ba5124c1f10", null ],
     [ "trackId", "struct_scene_track_view.html#a560dbc79dc66263a869c1418493b905d", null ],
