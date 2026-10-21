@@ -1,6 +1,6 @@
 # Keyboard shortcuts
 
-This page lists the keys that EGTRAIN sets, grouped as the menus are. On macOS, Ctrl in a shortcut is the Command key (⌘), and the menus show the shortcut with the macOS symbols of the third column: ⇧ is Shift and ⎋ is Esc. A key that the table shows once works the same on every system.
+This page lists the keys that EGTRAIN sets, grouped as the menus are. The other pages write a shortcut as Windows and Linux show it, such as Ctrl+0 for **Fit**. On macOS, Ctrl in a shortcut is the Command key (⌘), and the menus show the shortcut with the macOS symbols of the third column: ⇧ is Shift and ⎋ is Esc. **Preferences...** has a shortcut only on macOS, and the other pages write it with the Command key (Command+,). A key that the table shows once works the same on every system.
 
 ## File
 

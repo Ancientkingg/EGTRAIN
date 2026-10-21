@@ -18,7 +18,7 @@ The [glossary](glossary.md) defines the other words of the program.
 
 Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). [Installing EGTRAIN](install.md) has the steps for each system, including what to do when macOS or Windows warns before the first start.
 
-- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case Study...**: in column view the file dialog then lists your home folder.
+- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case Study...**: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export, because an export dialog starts in your Documents folder. The export dialog does not respond until you answer.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
 - Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64` on Ubuntu 24.04 or `libfuse2` on Ubuntu 22.04, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
 

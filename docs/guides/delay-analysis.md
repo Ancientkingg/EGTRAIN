@@ -82,7 +82,7 @@ An unavailable value in a CSV is an empty field.
 
 ## The Delay analysis window
 
-**Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Under its heading it names the run and the baseline.
+**Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Its title is Delay analysis, and the two context lines under it name the run and the baseline ("Baseline: none set" when there is none).
 
 Three choices sit above the tabs. **Occurrences** and **Stations** list what the run has; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls and Summary between arrivals and departures. The choice of occurrences applies to all three tabs, the choice of stations to Calls, Summary and the call rows of Against baseline, and the choice of events to Calls and Summary only.
 

@@ -6,13 +6,13 @@ This guide states what the two capacity windows compute: the Capacity window, wh
 
 | Place | Where to find it |
 | --- | --- |
-| The Capacity window | Diagrams > Capacity... and Run Results > Open result view > Capacity. Both need a completed run. A chooser titled "Capacity" asks for Route / corridor, Analyzed blocks, Analysis period, Cycle-closing occurrence and the checked occurrences. Analyzed blocks offers each section of the route that the checked occurrences share, with the longest selected ([Scope](#terms-and-units)). It opens on the first route with a block on which two or more occurrences have complete occupations, with the occurrences of the first such block checked. The result window then opens with the header "Selected train chain: cycle X s, Y% of period; not network capacity" (one decimal) and the tabs Pairs, Compression and Critical blocks. Each tab title ends with its row count. The context line "Section:" and the title of the compressed diagram name the route, its corridor and the first and last analysed block by their [labels](glossary.md#ids-and-labels), joined by "through", as in "Section: route0 / A / B0 10.210 to 10.510 km through B0 21.010 to 21.235, B1 21.252 to 21.450 km". The tables name blocks by their ids, and a cell that holds ids has the labels as its tooltip |
+| The Capacity window | Diagrams > Capacity... and Run Results > Open result view > Capacity. Both need a completed run. A chooser titled "Capacity" asks for Route / corridor, Analyzed blocks, Analysis period, Cycle-closing occurrence and the checked occurrences. Analyzed blocks offers each section of the route that the checked occurrences share, with the longest selected ([Scope](#terms-and-units)). It opens on the first route with a block on which two or more occurrences have complete occupations, with the occurrences of the first such block checked. The result window has the same title. Its first context line reads "Selected train chain: cycle X s, Y% of period; not network capacity" (one decimal), and the next two name the section and the run. The toggle **Calculation details** below them shows the cycle time, the period, the percentage and the occurrences that start and end the cycle. The tabs Pairs, Compression and Critical blocks follow. Each tab title ends with its row count. The context line "Section:" and the title of the compressed diagram name the route, its corridor and the first and last analysed block by their [labels](glossary.md#ids-and-labels), joined by "through", as in "Section: route0 / A / B0 10.210 to 10.510 km through B0 21.010 to 21.235, B1 21.252 to 21.450 km". The tables name blocks by their ids, and a cell that holds ids has the labels as its tooltip |
 | The Capacity by area window | Diagrams > Capacity by area... and Run Results > Open result view > Capacity by area. [Capacity by area](#capacity-by-area) describes it, its CSV `area_capacity.csv` and its options |
 | The CSV | The button **Export capacity CSV...** asks for a path and suggests the name `capacity_analysis.csv`. It writes a provenance file beside the CSV, named like the CSV with `.provenance.json` added. Its column `Section` names the blocks by their ids, as in "route0 / A / @35-B0@ to @71-B0@-21.235000/@0-B1@-21.252000" |
 | The compressed diagram | The button **Open compressed blocking-time diagram**. The window is built like the blocking-time diagram, with the same axes, block-section strip, legend, train filter, zoom and exports: **Export CSV...** (suggested name `capacity_compressed_blocking_time.csv`) and **Export PNG...**. It draws the capacity-critical envelopes amber and the recorded movement of each train moved as its occupations are ([step 5](#the-calculation)), and no planned references. Its time axis spans the compressed envelopes with a margin of 5 % of their span |
 | The input | The occupations: Diagrams > Blocking time... and Run Results > Open result view > Blocking time, and `BlockingTimes.txt` in the `TrainTrajectories` folder of the run output |
 
-The program computes no capacity of a line or a network. The percentage in the header of the Capacity window belongs to the chain of occurrences that the user selected. The Capacity by area window reports the occupation of the resources of an area by the trains that the user selected, and the figures are lower bounds when it says "partial traffic". It states no trains per hour, and parity with the legacy tool is not established ([Limits](#limits)). The area calculation of older versions is not in the program ([The area calculation the program no longer contains](#the-area-calculation-the-program-no-longer-contains)).
+The program computes no capacity of a line or a network. The percentage in the first context line of the Capacity window belongs to the chain of occurrences that the user selected. The Capacity by area window reports the occupation of the resources of an area by the trains that the user selected, and the figures are lower bounds when it says "partial traffic". It states no trains per hour, and parity with the legacy tool is not established ([Limits](#limits)). The area calculation of older versions is not in the program ([The area calculation the program no longer contains](#the-area-calculation-the-program-no-longer-contains)).
 
 The [Assignment workflow](assignment-workflow.md) uses the Capacity window in steps 14 to 18. The [signalling levels page](signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) has a section that separates signalling areas, block sections and the scope of this window.
 
@@ -85,7 +85,7 @@ The first stop of each train is at the start of the first block (the station pos
 - Compressed references: train 1 keeps 120 s. Train 2 gets the larger of 120 and 120 + 471.5, which is 591.5 s. The Shift column reads 0 and 411.5 s.
 - Occupation shifts: train 1 by 120 - 59 = 61 s, train 2 by 591.5 - 199 = 392.5 s.
 - Gap at `@3-B0@` after compression: train 1 ends at 674 + 61 = 735 s and train 2 starts at 342.5 + 392.5 = 735 s. The gap is 0, so this is the one critical touch. The gaps on the other seven blocks are 384.5, 324, 350, 250, 400, 427 and 404 s, so nothing overlaps.
-- Cycle time: 591.5 - 120 = 471.5 s. Cycle percentage: 471.5 / 3600 x 100 = 13.097 %. The header would show 13.1.
+- Cycle time: 591.5 - 120 = 471.5 s. Cycle percentage: 471.5 / 3600 x 100 = 13.097 %. The first context line would show 13.1.
 
 The unit test `tests/test_capacityanalysis.cpp` has a second example with four trains A to D. By hand, the minimum headways of the four pairs that share a block (A with B, A with C, B with C, C with D) are 20, 100, 5 and 10 s. The test asserts the compressed references 20, 100 and 110 s of B, C and D, and that A, not B, governs C. With C as the closing occurrence it asserts a cycle of 100 s, which is 50 % of a period of 200 s.
 
@@ -116,7 +116,7 @@ The Capacity by area window reports, for an area that the user chooses and a per
 | Place | Where to find it |
 | --- | --- |
 | The window | Diagrams > Capacity by area... and Run Results > Open result view... > Capacity by area. Both need a completed run and are disabled without one. If the function is reached anyway, the status bar shows "Run a simulation to open capacity by area". An options dialog titled "Capacity by area" opens first, and **Cancel** opens no window. The result window has the same title, is not modal and is deleted when it is closed |
-| The header | "Selected chain: cycle X s, Y% of period \| complete traffic" or "\| partial traffic" (one decimal). Without a cycle it reads "Selected chain: no cycle-closing train", and when the chain cannot be analysed "Selected chain: not available". The context lines name the area, the governing resource, the kind of traffic and the run. The area and the governing resource are named by the [labels](glossary.md#ids-and-labels) of their blocks. The tables and the CSV name resources by their ids, and a cell that holds ids has the labels as its tooltip |
+| The context lines | The first line reads "Selected chain: cycle X s, Y% of period" (one decimal), "Selected chain: cycle X s, no valid period" without a valid period, "Selected chain: no cycle-closing train" without a cycle, or "Selected chain: not available" when the chain cannot be analysed. It ends with "\| complete traffic" or "\| partial traffic". The next lines name the area, the governing resource, the kind of traffic and the run. The area and the governing resource are named by the [labels](glossary.md#ids-and-labels) of their blocks. The tables and the CSV name resources by their ids, and a cell that holds ids has the labels as its tooltip |
 | The tabs | Resources, Chain, Excluded traffic and Notes. The last two titles end with their row count. A line above the tabs lists every status that occurs, with its count ("Statuses: Unselected traffic (1)") |
 | The CSV | The button **Export area capacity CSV...** asks for a path and suggests the name `area_capacity.csv`. It writes a provenance file beside the CSV, named like the CSV with `.provenance.json` added. The button is disabled when the area has no resource |
 | The input | The occupations of the run, as for the Capacity window ([Inputs](#inputs)) |
@@ -163,19 +163,19 @@ The direction of a train is the direction of the route it runs on (`reversed_dir
 
 The window uses the word in two places that must not be confused.
 
-- The governing resource of the area is the resource with the largest Occupation [s] of the selected trains. Resources within 1e-7 s of the largest are all governing, and a resource with an occupation of 0 is never governing. It is bold in the Resources tab, named in the context line with its rate, and marked "yes" in the CSV column Governing. With no occupation the context line reads "none". It says which resource the selected traffic uses most. It does not say that the resource limits the capacity of the line.
+- The governing resource of the area is the resource with the largest Occupation [s] of the selected trains. Resources within 1e-7 s of the largest are all governing, and a resource with an occupation of 0 is never governing. It is bold in the Resources tab, named in the context line Governing resource with its rate, and marked "yes" in the CSV column Governing. With no occupation that line reads "none". It says which resource the selected traffic uses most. It does not say that the resource limits the capacity of the line.
 - The governing resource evidence of a pair is the resource that sets the minimum headway of two ordered trains in the chain (step 3 of [The calculation](#the-calculation)). It belongs to the pair.
 
 ### Complete and partial traffic
 
-The header and the CSV column Traffic say "complete traffic" or "partial traffic". The traffic is complete when all of this holds:
+The first context line and the CSV column Traffic say "complete traffic" or "partial traffic". The traffic is complete when all of this holds:
 
 1. At least one selected train has an occupation on a resource of the area.
 2. Every other train of the run that has an occupation on a resource of the area is checked. A train that is not checked gets the status "Unselected traffic".
 3. No occupation on a resource of the area, of a selected or an unselected train, is unusable (incomplete, without finite times and positions, ending before it starts). Such an occupation gets the status "Incomplete occupation" and is used nowhere.
 4. No train appears twice in the lists. A repeat gets the status "Duplicate train" and is ignored.
 
-Otherwise the traffic is partial. The context line then says that the rates count only the selected traffic and are lower bounds. Complete traffic says that the run holds no train or occupation in the area that the figures leave out. It does not say that the run holds all the traffic of the period. A train in the opposite direction that is checked counts in the resource rows and keeps the traffic complete, though the chain leaves it out.
+Otherwise the traffic is partial. The context line Traffic then says that the rates count only the selected traffic and are lower bounds. Complete traffic says that the run holds no train or occupation in the area that the figures leave out. It does not say that the run holds all the traffic of the period. A train in the opposite direction that is checked counts in the resource rows and keeps the traffic complete, though the chain leaves it out.
 
 ### Statuses
 
@@ -200,8 +200,8 @@ Every status has a row in the Notes tab and in the CSV (record type `note`). The
 
 A value that the program cannot compute is not shown as 0.
 
-- A percentage without a valid period reads "-" in the window and is an empty field in the CSV.
-- The cycle time and its percentage are empty without a cycle-closing occurrence or when the chain cannot be analysed. The header then says so.
+- A percentage without a valid period reads "-" in the Resources tab, and "no valid period" in the context lines and the Chain tab. It is an empty field in the CSV.
+- The cycle time and its percentage are empty without a cycle-closing occurrence or when the chain cannot be analysed. The first context line then says so.
 - The legacy envelope is "not available" without a usable occupation.
 - The headway columns of a pair that shares no resource are empty in the CSV.
 - The governing resource reads "none" when no selected train occupies the area.
@@ -228,7 +228,7 @@ The CSV is empty, and not written, when the area has no resource. `capacity_anal
 | No completed run | See [Where to find it](#capacity-by-area). The entries are disabled |
 | The run has no route | The dialog disables **OK** and says "The run has no route." |
 | A route without blocks, so no resource | The window opens with the status "Empty scope", an empty Resources tab and no CSV |
-| No occurrence checked | A warning in the dialog. The window opens with "No selected traffic", every resource at 0 with "no traffic", and the header "Selected chain: not available" |
+| No occurrence checked | A warning in the dialog. The window opens with "No selected traffic", every resource at 0 with "no traffic", and the first context line "Selected chain: not available \| partial traffic" |
 | One selected train | The rates are computed. The chain has no pair and the status is "Fewer than two trains" |
 | Opposing routes | The direction of the route of each train is compared with the first selected train. An opposing train counts in the resource rows and the envelope, is left out of the chain and gets the status "Opposing train". A cycle-closing occurrence in the other direction is not in the chain, so the chain has no cycle, and the dialog warns |
 | Incomplete data | The unusable occupation is left out of every figure and gets a status. The traffic is partial |
