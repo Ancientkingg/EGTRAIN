@@ -101,6 +101,8 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
 	m_table->setAlternatingRowColors(true);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	// Tab leaves the table for the next control; the arrow keys move between the cells.
+	m_table->setTabKeyNavigation(false);
 	m_table->verticalHeader()->setVisible(false);
 
 	m_contextLabel = new QLabel(this);
