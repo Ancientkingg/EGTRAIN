@@ -182,6 +182,49 @@ std::optional<double> stopPosition(const CompletedTrain& train, int index, const
 	return routeDiagramStopPosition(train.stops[static_cast<std::size_t>(index)], source, projection);
 }
 
+// Adds to the diagram the recorded samples of each train that lie inside one of its envelopes there, each moved in time
+// by the shift of its train in `shifts` (0 s for a train without one).
+void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRunData& data,
+	const std::map<std::string, RouteDiagramProjection>& projections, const std::map<std::string, double>& shifts) {
+	const double timestepSeconds = data.settings.timestepSeconds;
+	for (const CompletedTrain& train : data.trains) {
+		const CompletedTrajectory& trajectory = train.trajectory;
+		const auto projection = projections.find(train.trainId);
+		if (trajectory.segments.empty() || projection == projections.end())
+			continue;
+		const auto shift = shifts.find(train.trainId);
+		const double shiftSeconds = shift == shifts.end() ? 0.0 : shift->second;
+		std::vector<const BlockingTimeDiagramSegment*> own;
+		for (const auto& block : diagram.segments)
+			if (block.trainName == train.trainId)
+				own.push_back(&block);
+		for (const TrajectorySegment& valid : trajectory.segments) {
+			bool open = false;
+			for (int t = valid.first; t <= valid.last; ++t) {
+				const double seconds = t * timestepSeconds + shiftSeconds;
+				const double sourceKm = routeDiagramTrajectoryKm(trajectory.at(trajectory.position, t).value_or(0.0));
+				const auto x = projection->second.map(sourceKm);
+				const bool inside = x && std::any_of(own.begin(), own.end(), [&](const BlockingTimeDiagramSegment* block) {
+					return seconds >= block->startTime && seconds <= block->endTime
+						&& *x >= std::min(block->startPositionKm, block->endPositionKm)
+						&& *x <= std::max(block->startPositionKm, block->endPositionKm);
+				});
+				if (!inside) {
+					open = false;
+					continue;
+				}
+				if (!open) {
+					diagram.trajectories.push_back({train.trainId, {}});
+					open = true;
+				}
+				diagram.trajectories.back().points.emplace_back(*x, seconds);
+				diagram.trajectoryRows.push_back({train.trainId, "", "", "", csv::formatDouble(*x),
+					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
+			}
+		}
+	}
+}
+
 } // namespace
 
 QStringList trainIdsFrom(const CompletedRunData& data) {
@@ -353,44 +396,42 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	const auto allPlanned = plannedReferencesFrom(data, scope, maps.paths, maps.projections, result.omitted);
 	result.plannedReferences = filterBlockingTimePlannedReferences(allPlanned, scope.startTime, scope.endTime);
 	result.plannedLines = clipBlockingTimePlannedReferences(allPlanned, scope.startTime, scope.endTime);
-
-	const double timestepSeconds = data.settings.timestepSeconds;
-	for (const CompletedTrain& train : data.trains) {
-		const CompletedTrajectory& trajectory = train.trajectory;
-		const auto projection = maps.byTrain.find(train.trainId);
-		if (trajectory.segments.empty() || projection == maps.byTrain.end())
-			continue;
-		std::vector<const BlockingTimeDiagramSegment*> own;
-		for (const auto& block : result.segments)
-			if (block.trainName == train.trainId)
-				own.push_back(&block);
-		for (const TrajectorySegment& valid : trajectory.segments) {
-			bool open = false;
-			for (int t = valid.first; t <= valid.last; ++t) {
-				const double seconds = t * timestepSeconds;
-				const double sourceKm = routeDiagramTrajectoryKm(trajectory.at(trajectory.position, t).value_or(0.0));
-				const auto x = projection->second.map(sourceKm);
-				const bool inScope = x && seconds >= scope.startTime && seconds <= scope.endTime
-					&& std::any_of(own.begin(), own.end(), [&](const BlockingTimeDiagramSegment* block) {
-						   return seconds >= block->startTime && seconds <= block->endTime
-							   && *x >= std::min(block->startPositionKm, block->endPositionKm)
-							   && *x <= std::max(block->startPositionKm, block->endPositionKm);
-					   });
-				if (!inScope) {
-					open = false;
-					continue;
-				}
-				if (!open) {
-					result.trajectories.push_back({train.trainId, {}});
-					open = true;
-				}
-				result.trajectories.back().points.emplace_back(*x, seconds);
-				result.trajectoryRows.push_back({train.trainId, "", "", "", csv::formatDouble(*x),
-					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
-			}
-		}
-	}
+	// The envelopes are clipped to the interval of the scope, so the samples inside them are too.
+	addRecordedTrajectories(result, data, maps.byTrain, {});
 	return result;
+}
+
+std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const CompletedRunData& data,
+	const CapacityAnalysisScope& scope, const CapacityAnalysisResult& result) {
+	if (!data.hasRoute(scope.routeIndex))
+		return std::nullopt;
+	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
+	BlockingTimeDiagramData diagram;
+	diagram.referencePath = route.path;
+	const RouteProjections maps = projectRoutes(data, diagram.referencePath, true);
+	auto shifted = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
+	restoreCompressedOriginalTimes(shifted, result.compression);
+	diagram.segments = projectBlockingSegments(shifted, maps.byTrain, diagram.omitted, &diagram.unmapped);
+	const auto allExtents = buildBlockSectionExtents(route.blocks);
+	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
+	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id);
+	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back.
+	std::map<std::string, double> shifts;
+	for (const CapacityCompressionRow& row : result.compression)
+		shifts.emplace(row.identity, row.compressedReference - row.originalReference);
+	addRecordedTrajectories(diagram, data, maps.byTrain, shifts);
+	diagram.timeRange = {0.0, 1.0};
+	if (!diagram.segments.empty()) {
+		double first = diagram.segments.front().startTime;
+		double last = diagram.segments.front().endTime;
+		for (const auto& segment : diagram.segments) {
+			first = std::min(first, segment.startTime);
+			last = std::max(last, segment.endTime);
+		}
+		const double margin = std::max(1.0, 0.05 * (last - first));
+		diagram.timeRange = {first >= 0.0 ? std::max(0.0, first - margin) : first - margin, last + margin};
+	}
+	return diagram;
 }
 
 std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence) {
@@ -514,11 +555,6 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 		rows.push_back(std::move(record));
 	}
 	return csv::makeDocument(header, rows);
-}
-
-std::map<std::string, RouteDiagramProjection> routeProjectionsByTrain(const CompletedRunData& data,
-	const RouteDiagramPath& reference) {
-	return projectRoutes(data, reference, true).byTrain;
 }
 
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {

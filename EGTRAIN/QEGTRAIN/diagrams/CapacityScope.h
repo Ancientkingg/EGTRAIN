@@ -29,15 +29,23 @@ CapacityAnalysisTrain capacityInputFrom(const CompletedTrain& train, const Capac
 std::vector<CapacityAnalysisTrain> capacityInputsFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
 /// Why the scope cannot be analysed, empty when it can or has no route or block.
 std::string capacityScopeIssueFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
-/// The first block, in route and block order, that at least two trains occupy, with those trains selected. A scope
-/// without a route when there is none.
+/// The scope of the trains `occurrenceIds` on a route: the blocks of the route, in route order, that every one of the
+/// trains occupies as capacityInputFrom needs, from the first such block to the last one before a block that one of
+/// them does not occupy. The occurrence ids are kept as given. No blocks when the route does not exist, when there is
+/// no id, when an id names no train of the run or when no block is shared by all of them.
+CapacityAnalysisScope capacityStretchFrom(const CompletedRunData& data, int routeIndex,
+	const std::vector<std::string>& occurrenceIds);
+/// The first block, in route and block order, that at least two trains occupy, with those trains selected in run
+/// order, and the blocks that follow it as capacityStretchFrom gives them. A scope without a route when there is none.
 CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& data);
 /// "route / corridor / first block to last block" without the parts the scope lacks, or "no selected route".
 QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
 
-/// Asks for a route, a range of its blocks, a period, the occurrences to analyse in order and the occurrence that closes
-/// the cycle. It opens on the route and section of the scope when the run has them, else on the whole first route. On
-/// accept the scope holds the choice. False when the dialog is cancelled or the run has no route.
+/// Asks for a route, a period, the occurrences to analyse in order and the occurrence that closes the cycle, and shows
+/// the blocks that capacityStretchFrom gives for the checked occurrences. It opens on the route of the scope when the
+/// run has it, with the occurrences of the scope checked when it names some, else on the first route. Otherwise, and on
+/// a route chosen in the dialog, the trains of the first block of the route that two or more trains occupy are checked.
+/// On accept the scope holds the choice. False when the dialog is cancelled or the run has no route.
 bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope);
 
 #endif

@@ -723,6 +723,17 @@ CompletedTrain trainOn(const std::string& id, int routeIndex) {
 	return train;
 }
 
+// A train of the first route that occupies the blocks one after the other from `entry` on, each for 60 s from 30 s after
+// the one before, with its entry as the run start.
+CompletedTrain trainOver(const std::string& id, double entry, const std::vector<std::string>& blocks) {
+	CompletedTrain train = trainOn(id, 0);
+	for (const std::string& block : blocks) {
+		train.blockTimes.push_back(occupation(block, entry, entry + 60.0, 0.0, 1000.0, entry));
+		entry += 30.0;
+	}
+	return train;
+}
+
 CompletedRoute routeOf(const std::string& id, const std::vector<std::pair<std::string, double>>& nodes,
 	const std::vector<BlockSectionInput>& blocks = {}) {
 	CompletedRoute route;
@@ -1074,6 +1085,71 @@ void testCapacityOrder() {
 	check(firstCapacityScopeWithPairFrom(data).routeIndex == -1, "no scope with two trains");
 }
 
+// The analysed blocks are the blocks of the route that every chosen train occupies, from the first block they share to the
+// last one before a gap.
+void testCapacityStretch() {
+	CompletedRunData data;
+	data.routes = {routeOf("r", {{"n", 0.0}}, {{"A", 0.0, 1.0}, {"B", 1.0, 2.0}, {"C", 2.0, 3.0}, {"D", 3.0, 4.0}, {"E", 4.0, 5.0}})};
+	// a and b share B and C. Only b occupies D, so the stretch ends before E, which both occupy again.
+	data.trains = {trainOver("a", 0.0, {"A", "B", "C", "E"}), trainOver("b", 100.0, {"B", "C", "D", "E"})};
+	const CapacityAnalysisScope pair = firstCapacityScopeWithPairFrom(data);
+	check(pair.routeIndex == 0 && pair.blockIds == std::vector<std::string>({"B", "C"}) && pair.sectionIndices == std::vector<int>({1, 2})
+			&& pair.occurrenceIds == std::vector<std::string>({"a", "b"}),
+		"the first scope with two trains is the stretch that both run over");
+	const CapacityAnalysisScope alone = capacityStretchFrom(data, 0, {"a"});
+	check(alone.blockIds == std::vector<std::string>({"A", "B", "C"}) && alone.sectionIndices == std::vector<int>({0, 1, 2}), "one train runs over A to C");
+	const CapacityAnalysisScope reversed = capacityStretchFrom(data, 0, {"b", "a"});
+	check(reversed.blockIds == pair.blockIds && reversed.occurrenceIds == std::vector<std::string>({"b", "a"}), "the order of the trains is kept and does not change the blocks");
+	for (const auto& ids : std::vector<std::vector<std::string>>{{}, {"a", "missing"}})
+		check(capacityStretchFrom(data, 0, ids).blockIds.empty(), "no blocks without trains or with an unknown train");
+	check(capacityStretchFrom(data, 5, {"a", "b"}).blockIds.empty() && capacityStretchFrom(data, 5, {"a", "b"}).routeIndex == 5, "no blocks on a route that does not exist");
+	// c occupies only A, and on C the record of d has no usable StartRunTime.
+	data.trains.push_back(trainOver("c", 300.0, {"A"}));
+	data.trains.push_back(trainOver("d", 400.0, {"B", "C"}));
+	data.trains.back().blockTimes.back().startRunTime = -1.0;
+	check(capacityStretchFrom(data, 0, {"b", "c"}).blockIds.empty(), "trains that share no block have no blocks");
+	check(capacityStretchFrom(data, 0, {"a", "d"}).blockIds == std::vector<std::string>({"B"}), "a block counts only with a record that capacityInputFrom can take");
+}
+
+// b follows a at the minimum headway, which C governs, so the compressed diagram moves its envelopes and its recorded
+// samples 100 s later.
+void testCompressedDiagram() {
+	CompletedRunData data;
+	data.settings.timestepSeconds = 1.0;
+	data.routes = {routeOf("r", {{"n0", 0.0}, {"n1", 1.0}, {"n2", 2.0}}, {{"B", 0.0, 1.0}, {"C", 1.0, 2.0}})};
+	CompletedTrain a = trainOn("a", 0);
+	a.blockTimes = {occupation("B", 500.0, 600.0, 0.0, 1000.0, 505.0), occupation("C", 550.0, 700.0, 1000.0, 2000.0, 555.0)};
+	CompletedTrain b = trainOn("b", 0);
+	b.blockTimes = {occupation("B", 520.0, 650.0, 0.0, 1000.0, 525.0), occupation("C", 600.0, 800.0, 1000.0, 2000.0, 605.0)};
+	b.trajectory.firstSample = 600;
+	b.trajectory.position = {500.0, 1500.0, 2500.0};
+	b.trajectory.segments = {{600, 602}};
+	data.trains = {a, b};
+	const CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(data);
+	check(scope.blockIds == std::vector<std::string>({"B", "C"}), "the two trains share B and C");
+	const CapacityAnalysisResult result = analyzeCapacity(capacityInputsFrom(data, scope));
+	const auto diagram = compressedBlockingTimeDiagramData(data, scope, result);
+	check(diagram && diagram->referencePath.id == "r" && diagram->extents.size() == 2 && diagram->segments.size() == 4
+			&& diagram->plannedReferences.empty() && diagram->plannedLines.empty(),
+		"the compressed envelopes on the sections of the scope, without planned references");
+	if (!diagram)
+		return;
+	const auto followerOnC = std::find_if(diagram->segments.begin(), diagram->segments.end(),
+		[](const BlockingTimeDiagramSegment& segment) { return segment.trainName == "b" && segment.blockId == "C"; });
+	check(followerOnC != diagram->segments.end() && followerOnC->startTime == 700.0 && followerOnC->originalStartTime == 600.0
+			&& followerOnC->capacityCritical,
+		"b moves by 100 s and touches a on C");
+	check(diagram->trajectories.size() == 1 && diagram->trajectories[0].trainId == "b"
+			&& diagram->trajectories[0].points == std::vector<std::pair<double, double>>({{0.5, 700.0}, {1.5, 701.0}}),
+		"the samples of b move with its envelopes, and the one beyond them is left out");
+	check(diagram->trajectoryRows.size() == 2 && diagram->trajectoryRows[1][8] == f(701.0), "the export rows of the samples have the moved times");
+	check(std::abs(diagram->timeRange.first - 480.0) < 1e-9 && std::abs(diagram->timeRange.second - 920.0) < 1e-9,
+		"the time axis spans the compressed envelopes, 500 s to 900 s, with a margin of 5 %");
+	check(!compressedBlockingTimeDiagramData(data, CapacityAnalysisScope(), result), "no diagram without a route");
+	const auto empty = compressedBlockingTimeDiagramData(data, scope, CapacityAnalysisResult());
+	check(empty && empty->segments.empty() && empty->timeRange == std::make_pair(0.0, 1.0), "without envelopes the time axis spans 0 s to 1 s");
+}
+
 void testRepeatedResource() {
 	// The block X lies twice on the route. A scope of one section keeps the envelope on that section only.
 	CompletedRunData data;
@@ -1313,12 +1389,9 @@ void forbidMessageBox() {
 
 void testCapacityDialog() {
 	CompletedRunData run;
-	const auto trainWithEntry = [](const std::string& id, double entry) {
-		CompletedTrain train = trainOn(id, 0);
-		train.blockTimes = {occupation("B", entry, entry + 10.0, 0.0, 100.0, entry)};
-		return train;
-	};
-	run.trains = {trainWithEntry("a", 0.0), trainWithEntry("b", 100.0), trainWithEntry("c", 200.0), trainOn("d", 0)};
+	// a and b run over B and C, c over B only and e over C only; d has no occupation.
+	run.trains = {trainOver("a", 0.0, {"B", "C"}), trainOver("b", 100.0, {"B", "C"}), trainOver("c", 200.0, {"B"}), trainOn("d", 0),
+		trainOver("e", 300.0, {"C"})};
 	run.routes = {routeOf("r", {{"n", 0.0}}, {{"B", 0.0, 1.0}, {"C", 1.0, 2.0}}), routeOf("s", {{"n", 0.0}}, {{"X", 0.0, 1.0}})};
 	run.routes[0].corridor = "north";
 
@@ -1328,46 +1401,49 @@ void testCapacityDialog() {
 	CapacityAnalysisScope scope;
 	bool accepted = askCapacityScope(run, scope, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
-		check(combos.size() == 4, "the dialog has the route, the two blocks and the closing occurrence");
-		if (combos.size() != 4)
+		const auto* blocks = dialog.findChild<QLabel*>("capacityBlocks");
+		const auto list = dialog.findChild<QListWidget*>();
+		check(combos.size() == 2 && blocks && list, "the dialog has the route, the analysed blocks, the closing occurrence and the occurrences");
+		if (combos.size() != 2 || !blocks || !list)
 			return;
 		check(combos[0]->count() == 2 && combos[0]->itemText(0) == "r  (north)" && combos[0]->itemText(1) == "s  (no corridor)", "the routes are listed");
-		check(combos[1]->count() == 2 && combos[1]->itemText(0) == "1:B" && combos[2]->currentIndex() == 1, "the blocks of the first route are listed");
 		for (const QLabel* label : dialog.findChildren<QLabel*>())
 			check(!label->text().contains("Gdg"), "the capacity dialog names no station of one case");
-		const auto list = dialog.findChild<QListWidget*>();
-		combos[2]->setCurrentIndex(0);
-		check(list && list->count() == 3, "three trains have an occupation on the first block");
-		check(list && list->item(0)->text() == "a | OC-a | canonical scheduled entry + elapsed from RunStartTime" && list->item(0)->checkState() == Qt::Checked, "an occurrence is listed with its code and reference");
-		check(combos[3]->count() == 4 && combos[3]->itemText(3) == "c | OC-c", "the closing occurrence can be any listed train");
+		check(list->count() == 4 && list->item(0)->text() == "a | OC-a" && list->item(3)->text() == "e | OC-e",
+			"the trains with an occupation on the route are listed with their codes");
+		check(list->item(0)->checkState() == Qt::Checked && list->item(2)->checkState() == Qt::Checked && list->item(3)->checkState() == Qt::Unchecked,
+			"the trains of the first block that two trains occupy are checked");
+		check(blocks->text() == "1:B (1 block)", "c runs over B only, so B is the analysed block");
+		check(combos[1]->count() == 5 && combos[1]->itemText(3) == "c | OC-c", "the closing occurrence can be any listed train");
+		list->item(2)->setCheckState(Qt::Unchecked);
+		check(blocks->text() == "1:B to 2:C (2 blocks)", "without c the analysed blocks run on over C");
 		const auto spin = dialog.findChild<QDoubleSpinBox*>();
 		if (spin)
 			spin->setValue(7200.0);
-		list->item(1)->setCheckState(Qt::Unchecked);
-		combos[3]->setCurrentIndex(3);
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
 	});
-	check(accepted && scope.routeIndex == 0 && scope.blockIds == std::vector<std::string>({"B"}) && scope.sectionIndices == std::vector<int>({0})
-			&& scope.occurrenceIds == std::vector<std::string>({"a", "c"}) && scope.cycleEndOccurrenceId == "c" && scope.periodSeconds == 7200.0,
-		"the dialog accepts the checked occurrences and the closing one");
+	check(accepted && scope.routeIndex == 0 && scope.blockIds == std::vector<std::string>({"B", "C"}) && scope.sectionIndices == std::vector<int>({0, 1})
+			&& scope.occurrenceIds == std::vector<std::string>({"a", "b"}) && scope.cycleEndOccurrenceId == "b" && scope.periodSeconds == 7200.0,
+		"the dialog accepts the checked occurrences, their blocks and the closing one");
 
 	// Fewer than two occurrences, or a closing occurrence that is not after the first one, keeps the dialog open and
-	// says why in the dialog. An edit takes the message away, and the caller's scope stays as it was.
+	// says why in the dialog. An edit takes the message away, and the caller's scope stays as it was. Occurrences that
+	// share no block disable OK for as long as they are checked.
 	CapacityAnalysisScope kept;
 	accepted = askCapacityScope(run, kept, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
 		const auto list = dialog.findChild<QListWidget*>();
+		const auto* blocks = dialog.findChild<QLabel*>("capacityBlocks");
 		const auto* status = dialog.findChild<QLabel*>("capacityScopeStatus");
 		auto* ok = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok);
 		check(status, "the dialog has a label for its refusals");
-		if (combos.size() != 4 || !list || !status)
+		if (combos.size() != 2 || !list || !blocks || !status)
 			return;
 		check(status->isHidden(), "the dialog opens without a message");
 		bool noteIsHelp = false;
 		for (const QLabel* label : dialog.findChildren<QLabel*>())
 			noteIsHelp |= label->text().startsWith("Checked occurrences are analyzed") && label->property("dialogHelp").toBool();
 		check(noteIsHelp, "the note of the dialog is a help note");
-		combos[2]->setCurrentIndex(0);
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
 		forbidMessageBox();
@@ -1377,13 +1453,13 @@ void testCapacityDialog() {
 			"fewer than two occurrences are refused in the dialog");
 		list->item(1)->setCheckState(Qt::Checked);
 		check(status->isHidden(), "an edit takes the message away");
-		combos[3]->setCurrentIndex(1);
+		combos[1]->setCurrentIndex(1);
 		forbidMessageBox();
 		ok->click();
 		check(dialog.isVisible() && status->isVisible() && status->property("dialogStatus").toString() == "error"
 				&& status->text().startsWith("Choose a checked cycle-closing occurrence"),
 			"a closing occurrence that is the first row is refused in the dialog");
-		combos[3]->setCurrentIndex(2);
+		combos[1]->setCurrentIndex(2);
 		check(status->isHidden(), "choosing another closing occurrence takes the message away");
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
@@ -1392,6 +1468,15 @@ void testCapacityDialog() {
 		check(status->isVisible(), "fewer than two occurrences are refused again");
 		dialog.findChild<QDoubleSpinBox*>()->setValue(1800.0);
 		check(status->isHidden(), "changing the period takes the message away");
+		list->item(2)->setCheckState(Qt::Checked);
+		list->item(3)->setCheckState(Qt::Checked);
+		check(blocks->text() == "none" && !ok->isEnabled() && status->isVisible() && status->property("dialogStatus").toString() == "error"
+				&& status->text() == "No block of the route is shared by all checked occurrences.",
+			"occurrences that share no block disable OK and say why");
+		dialog.findChild<QDoubleSpinBox*>()->setValue(900.0);
+		check(!ok->isEnabled() && status->isVisible(), "the message stays while the checked occurrences share no block");
+		list->item(2)->setCheckState(Qt::Unchecked);
+		check(blocks->text() == "2:C (1 block)" && ok->isEnabled() && status->isHidden(), "occurrences that share a block enable OK again");
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
 	});
 	check(!accepted && kept.routeIndex == -1 && kept.blockIds.empty() && kept.occurrenceIds.empty() && kept.cycleEndOccurrenceId.empty(),
@@ -1402,18 +1487,16 @@ void testCapacityDialog() {
 	accepted = askCapacityScope(run, pair, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
 		const auto list = dialog.findChild<QListWidget*>();
-		const auto* status = dialog.findChild<QLabel*>("capacityScopeStatus");
-		if (combos.size() != 4 || !list || !status)
+		if (combos.size() != 2 || !list)
 			return;
-		combos[2]->setCurrentIndex(0);
-		check(combos[3]->currentIndex() == 0, "three checked occurrences leave the closing occurrence to the user");
+		check(combos[1]->currentIndex() == 0, "three checked occurrences leave the closing occurrence to the user");
 		list->item(1)->setCheckState(Qt::Unchecked);
-		check(combos[3]->currentData().toString() == "c", "the second of two checked occurrences closes the cycle");
+		check(combos[1]->currentData().toString() == "c", "the second of two checked occurrences closes the cycle");
 		list->item(1)->setCheckState(Qt::Checked);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		check(combos[3]->currentData().toString() == "b", "the choice follows the checked occurrences");
+		check(combos[1]->currentData().toString() == "b", "the choice follows the checked occurrences");
 		list->item(2)->setCheckState(Qt::Checked);
-		check(combos[3]->currentData().toString() == "b", "a third checked occurrence keeps the choice");
+		check(combos[1]->currentData().toString() == "b", "a third checked occurrence keeps the choice");
 		list->item(2)->setCheckState(Qt::Unchecked);
 		forbidMessageBox();
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
@@ -1421,24 +1504,46 @@ void testCapacityDialog() {
 	check(accepted && pair.occurrenceIds == std::vector<std::string>({"a", "b"}) && pair.cycleEndOccurrenceId == "b",
 		"two checked occurrences are accepted without choosing the closing one");
 
-	// The dialog opens on the route and section of a given scope. Two occurrences there leave one closing occurrence, so
-	// OK takes the scope at once.
+	// The dialog opens with the occurrences of a given scope checked, first and in their order, so OK takes it at once.
+	CapacityAnalysisScope given;
+	given.routeIndex = 0;
+	given.occurrenceIds = {"b", "a"};
+	accepted = askCapacityScope(run, given, [](QDialog& dialog) {
+		const auto list = dialog.findChild<QListWidget*>();
+		check(list && list->count() == 4 && list->item(0)->text() == "b | OC-b" && list->item(1)->text() == "a | OC-a"
+				&& list->item(2)->checkState() == Qt::Unchecked,
+			"the occurrences of the given scope come first, in their order");
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
+	});
+	check(accepted && given.blockIds == std::vector<std::string>({"B", "C"}) && given.occurrenceIds == std::vector<std::string>({"b", "a"})
+			&& given.cycleEndOccurrenceId == "a",
+		"OK takes the given occurrences at once");
+
+	// The dialog opens on the route of a given scope. A route chosen in the dialog checks the trains of its first block
+	// that two trains occupy.
 	for (const char* id : {"x", "y"}) {
 		CompletedTrain train = trainOn(id, 1);
 		train.blockTimes = {occupation("X", 0.0, 10.0, 0.0, 100.0, 0.0)};
 		run.trains.push_back(train);
 	}
-	CapacityAnalysisScope given;
-	given.routeIndex = 1;
-	given.blockIds = {"X"};
-	given.sectionIndices = {0};
-	CapacityAnalysisScope chosen = given;
+	CapacityAnalysisScope chosen;
+	chosen.routeIndex = 1;
 	accepted = askCapacityScope(run, chosen, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		const auto list = dialog.findChild<QListWidget*>();
+		const auto* blocks = dialog.findChild<QLabel*>("capacityBlocks");
+		if (combos.size() != 2 || !list || !blocks)
+			return;
+		check(combos[0]->currentIndex() == 1 && list->count() == 2 && blocks->text() == "1:X (1 block)", "the dialog opens on the given route");
+		combos[0]->setCurrentIndex(0);
+		check(list->count() == 4 && list->item(2)->checkState() == Qt::Checked && blocks->text() == "1:B (1 block)",
+			"the first route checks the trains of its first shared block");
+		combos[0]->setCurrentIndex(1);
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
 	});
-	check(accepted && chosen.routeIndex == 1 && chosen.blockIds == given.blockIds && chosen.sectionIndices == given.sectionIndices
+	check(accepted && chosen.routeIndex == 1 && chosen.blockIds == std::vector<std::string>({"X"}) && chosen.sectionIndices == std::vector<int>({0})
 			&& chosen.occurrenceIds == std::vector<std::string>({"x", "y"}),
-		"the dialog opens on the section of the given scope, and OK takes it at once");
+		"the two trains of the given route are taken");
 }
 
 // --- Long identifiers ---
@@ -1519,6 +1624,12 @@ void testScopeDialogsWithLongIds() {
 	shortChoices.routes = {{"R1", "", {"a", "b"}}, {"R2", "", blockIds}};
 	CompletedRunData shortRun;
 	shortRun.routes = {routeOf("R1", {{"n", 0.0}}, {{"a", 0.0, 1.0}, {"b", 1.0, 2.0}}), routeOf("R2", {{"n", 0.0}}, blocks)};
+	// Two trains on the last block of R2, so the capacity dialog shows its 300-character id as the analysed block.
+	for (const char* id : {"p", "q"}) {
+		CompletedTrain train = trainOn(id, 1);
+		train.blockTimes = {occupation(blockIds.back(), 0.0, 10.0, 0.0, 100.0, 0.0)};
+		shortRun.trains.push_back(train);
+	}
 
 	for (const double points : {10.0, 18.0, 22.5}) {
 		QFont font = original;
@@ -1649,6 +1760,8 @@ int main(int argc, char** argv) {
 	testRepeatedResource();
 	testReversedRoutes();
 	testCapacityOrder();
+	testCapacityStretch();
+	testCompressedDiagram();
 	testSharedResources();
 	testUsedRoutes();
 	testScopeDialog();

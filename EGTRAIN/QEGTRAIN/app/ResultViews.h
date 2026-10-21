@@ -13,9 +13,7 @@
 
 class QWidget;
 class RunController;
-struct BlockingTimeDiagramSegment;
-struct BlockSectionExtent;
-struct CapacityAnalysisResult;
+struct BlockingTimeDiagramData;
 struct CompletedRunData;
 struct SceneModel;
 namespace telemetry {
@@ -99,9 +97,9 @@ public slots:
 	void showDelayComparison();
 	/// Asks for the scope and opens ResultViewName::kBlockingTime.
 	void showBlockingTimeDiagram();
-	/// Asks for the scope, starting at the first section with two occurrences that share an entry block, and opens
-	/// ResultViewName::kCapacity. Shows a message instead when the run has no such section or the chosen scope cannot
-	/// be analysed.
+	/// Asks for the occurrences, starting with the trains of the first block that two or more of them occupy and the
+	/// blocks they share from there, and opens ResultViewName::kCapacity. Shows a message instead when the run has no such
+	/// block or the chosen scope cannot be analysed.
 	void showCapacityAnalysis();
 	/// Opens ResultViewName::kCapacityByArea.
 	void showAreaCapacity();
@@ -111,10 +109,11 @@ signals:
 	void trainSelected(const QString& trainId);
 
 private:
-	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
-		const std::shared_ptr<const CompletedRunData>& run, const std::vector<BlockingTimeDiagramSegment>& segments,
-		double axisMinKm, double axisMaxKm, const QString& referenceId, const std::vector<BlockSectionExtent>& extents,
-		const std::vector<BlockingTimeDiagramSegment>& unmapped);
+	// Opens a window on a blocking-time diagram of the run, with `context` as its context line. The compressed diagram of
+	// a capacity result has its own title, CSV name and manual section, draws the capacity-critical envelopes amber and
+	// says in its note that envelopes and samples are moved.
+	void showBlockingTimeWindow(const std::shared_ptr<const CompletedRunData>& run, const BlockingTimeDiagramData& diagram,
+		bool compressed, const QString& context);
 	// The runtime index of the route that the user picks from the routes the run used, -1 when there is none or the user
 	// cancels.
 	int chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const;

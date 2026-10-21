@@ -92,12 +92,15 @@
 #include <QWidget>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QXYSeries>
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -313,14 +316,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 						&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
 						cycleEnd = combo;
 				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
-				if (combos.size() != 4 || !cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
+				const auto* blocks = dialog->findChild<QLabel*>(QStringLiteral("capacityBlocks"));
+				if (combos.size() != 2 || !cycleEnd || !blocks || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
 					fail(QStringLiteral("capacity scope controls are incomplete"));
 					return;
 				}
-				// The whole first route: the smoke script compares its sections with those of the blocking-time export.
-				combos[0]->setCurrentIndex(0);
-				combos[1]->setCurrentIndex(0);
-				combos[2]->setCurrentIndex(combos[2]->count() - 1);
 				// A long occurrence row is cut with an ellipsis at the edge of its list.
 				const auto* occurrences = dialog->findChild<QListWidget*>();
 				if (!occurrences || occurrences->count() == 0
@@ -329,7 +329,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					fail(QStringLiteral("the occurrence rows are wider than their list"));
 					return;
 				}
-				cycleEnd->setCurrentIndex(2);
+				// The chooser is accepted as it opens: the two trains of the run are checked, so the second closes the
+				// cycle, and the analysed blocks are those both run over. The smoke script compares their sections with
+				// those of the blocking-time export.
+				if (cycleEnd->currentIndex() != 2) {
+					dialog->reject();
+					fail(QStringLiteral("the second of the two checked occurrences does not close the cycle"));
+					return;
+				}
 				buttons->button(QDialogButtonBox::Ok)->click();
 				// A refusal keeps the dialog open and says why in its status label.
 				if (dialog->isVisible()) {
@@ -2235,6 +2242,40 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const auto* compressedSections = compressedView ? compressedView->chart()->findChild<QObject*>("blockSectionOverlay") : nullptr;
 		if (!compressedSections || compressedSections->property("sectionCount").toInt() <= 0) {
 			fail(QStringLiteral("compressed capacity diagram has no physical section layer"));
+			return;
+		}
+		// The compressed diagram has the distance axis of the blocking-time diagram. Its time axis spans the compressed
+		// envelopes, which start about a minute after the run start in this run, so it does not start at 0 s.
+		const auto axisOf = [](const QChartView* view, Qt::Orientation orientation) -> const QValueAxis* {
+			const auto axes = view ? view->chart()->axes(orientation) : QList<QAbstractAxis*>();
+			return axes.isEmpty() ? nullptr : qobject_cast<const QValueAxis*>(axes.first());
+		};
+		DiagramWindow* blockingAgain = findDiagram(QStringLiteral("Blocking time"));
+		const QValueAxis* blockingX = axisOf(blockingAgain ? blockingAgain->findChild<QChartView*>() : nullptr, Qt::Horizontal);
+		const QValueAxis* compressedX = axisOf(compressedView, Qt::Horizontal);
+		const QValueAxis* compressedTime = axisOf(compressedView, Qt::Vertical);
+		double earliestEnvelope = std::numeric_limits<double>::infinity();
+		double latestEnvelope = -std::numeric_limits<double>::infinity();
+		for (QAbstractSeries* series : compressedView->chart()->series())
+			if (const auto* envelope = qobject_cast<const QXYSeries*>(series);
+				envelope && envelope->property("layer").toString() == QStringLiteral("calculated blocking envelope"))
+				for (const QPointF& point : envelope->points()) {
+					earliestEnvelope = std::min(earliestEnvelope, point.y());
+					latestEnvelope = std::max(latestEnvelope, point.y());
+				}
+		if (!blockingX || !compressedX || compressedX->titleText() != blockingX->titleText()
+			|| !compressedX->titleText().contains(QStringLiteral("origin")) || !compressedX->titleText().contains(QStringLiteral("travel"))) {
+			fail(QStringLiteral("the compressed diagram does not have the distance axis of the blocking-time diagram: ")
+				+ (compressedX ? compressedX->titleText() : QStringLiteral("no axis")));
+			return;
+		}
+		if (!compressedTime || !(earliestEnvelope <= latestEnvelope) || !(compressedTime->min() > 0.0)
+			|| compressedTime->min() > earliestEnvelope || compressedTime->max() < latestEnvelope) {
+			fail(QString("the compressed time axis %1 s to %2 s does not fit the compressed envelopes, %3 s to %4 s")
+					.arg(compressedTime ? compressedTime->min() : -1.0)
+					.arg(compressedTime ? compressedTime->max() : -1.0)
+					.arg(earliestEnvelope)
+					.arg(latestEnvelope));
 			return;
 		}
 		capacity->close();
