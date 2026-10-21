@@ -8,7 +8,7 @@ This page says which file to download for your system, how to install and start 
 2. Start the application.
    - macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications` in its window, and open EGTRAIN from there. macOS refuses the first start of an ad hoc signed app; the [first start](#macos-disk-image) below says what to do.
    - Windows: run the installer and open **EGTRAIN** from the Start Menu, or unzip the portable archive into a new, empty folder and run `QEGTRAIN.exe` from it. Keep that folder intact. The Windows files are not code signed, so Windows warns before the installer starts; the [first start](#first-start-of-an-unsigned-build) below says what to do, and [Checking a download](#checking-a-download) says how to check a download.
-   - Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libharfbuzz0b` and `libfontconfig1` first.
+   - Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64` on Ubuntu 24.04 or `libfuse2` on Ubuntu 22.04, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
 
 ## macOS disk image
 
