@@ -24,7 +24,7 @@ APP_ID = "{{16796959-230D-4A37-879B-D3963171F664}"
 PROGRAM = "{app}\\QEGTRAIN.exe"
 PAYLOAD_SOURCE = "{#Payload}\\*"
 SCENES = "{app}\\Scenes"
-# The files of a Qt 5 installation (1.0.4 and older) that no file of a Qt 6 package replaces.
+# The files of a Qt 5 installation (1.0.3 and older) that no file of a Qt 6 package replaces.
 QT5_FILES = (
     "{app}\\Qt5*.dll",
     "{app}\\bearer",

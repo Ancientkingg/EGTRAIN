@@ -371,7 +371,7 @@ try {
     Assert-InstalledFiles $defaultDirectory
     $stale = Join-Path $defaultDirectory 'Scenes\RemovedInNewerVersion'
     New-UserFile (Join-Path $stale 'scene.json')
-    # Files that an installation of version 1.0.4 or older holds and that no file of a Qt 6 package replaces.
+    # Files that an installation of version 1.0.3 or older holds and that no file of a Qt 6 package replaces.
     $qt5Files = @('Qt5Core.dll', 'bearer\qgenericbearer.dll', 'styles\qwindowsvistastyle.dll', 'imageformats\qwebp.dll')
     foreach ($name in $qt5Files) { New-UserFile (Join-Path $defaultDirectory $name) }
     Install-Egtrain $UpgradeInstaller 'upgrade-over'

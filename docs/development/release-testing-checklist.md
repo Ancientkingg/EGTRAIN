@@ -136,7 +136,7 @@ What the jobs prove today:
   installer of the next patch version installed over the first, in the default
   folder, leaves one entry, one folder and the higher version, replaces the
   `Scenes` folder and deletes the Qt 5 files that an installation of version
-  1.0.4 or older holds. A copy of the same directory, started as a portable copy is,
+  1.0.3 or older holds. A copy of the same directory, started as a portable copy is,
   registers no file type. The job then writes the portable archive from that
   directory, extracts it and starts the extracted program with the same start
   script.
