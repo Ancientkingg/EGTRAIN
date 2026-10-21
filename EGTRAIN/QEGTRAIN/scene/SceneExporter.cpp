@@ -730,7 +730,8 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 		} }, true);
 }
 
-// The GUI text files hold every field of views.json except a tab, line break or comma inside a name.
+// The GUI text files hold every field of views.json except a tab, line break or comma inside a name and the double
+// switch drawing of a track.
 static void writeViewLayout(const SceneModel& scene, const std::unordered_map<std::string, std::string>& legacyTrackIds,
 	const std::string& outDir, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
@@ -768,12 +769,20 @@ static void writeViewLayout(const SceneModel& scene, const std::unordered_map<st
 			stations << "\t" << corridors;
 		stations << "\n";
 	}
+	int doubleSwitches = 0;
 	for (const auto& view : scene.trackViews) {
 		const std::string number = legacyTrackIds.at(view.trackId).substr(1);
 		tracks << number << "\t" << view.level << "\t" << view.region << "\n";
 		if (!view.visible)
 			hidden << number << "\n";
+		if (view.doubleSwitch)
+			++doubleSwitches;
 	}
+	if (doubleSwitches > 0)
+		addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+			"GUI/caseStudyTrackData.txt cannot hold the double switch drawing of " + std::to_string(doubleSwitches)
+				+ (doubleSwitches == 1 ? " track" : " tracks") + ", so it was not exported",
+			"views.json");
 
 	const fs::path gui = pathFromUtf8(outDir) / "GUI";
 	std::error_code ec;

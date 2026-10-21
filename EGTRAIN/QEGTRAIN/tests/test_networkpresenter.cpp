@@ -4,6 +4,7 @@
 #include "graphics/NetworkPresenter.h"
 
 #include "app/GuiSimulationSnapshot.h"
+#include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
@@ -400,6 +401,41 @@ int main(int argc, char* argv[]) {
 				&& bothStates->operationalState() == TrackOperationalState::Free,
 			"every track line is free after they are cleared");
 		view.hide();
+		presenter.clear();
+	}
+
+	// A track view with double_switch draws a track of four nodes as the original drew a double switch: the middle arc
+	// and no node dot. Without it the track keeps its three arcs and the dot at its end.
+	{
+		QGraphicsScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		SceneModel model;
+		model.tracks = {{"B0"}};
+		model.nodes = {{"B0.1", "B0", 0.0, 0.0}, {"B0.2", "B0", 1.0, 0.0}, {"B0.3", "B0", 2.0, 0.0}, {"B0.4", "B0", 3.0, 0.0}};
+		model.arcs = {{"B0.arc.1", "B0", "B0.1", "B0.2", 0.0, 0.0, 12.0}, {"B0.arc.2", "B0", "B0.2", "B0.3", 0.0, 0.0, 12.0},
+			{"B0.arc.3", "B0", "B0.3", "B0.4", 0.0, 0.0, 12.0}};
+		model.trackViews = {{"B0", 0, 0}};
+		const auto drawn = [&scene]() {
+			std::vector<std::string> arcs;
+			int dots = 0;
+			for (QGraphicsItem* item : scene.items()) {
+				if (item->data(PreviewGraphics::Kind).toString() == QLatin1String("arc"))
+					arcs.push_back(item->data(PreviewGraphics::Id).toString().toStdString());
+				const auto* node = qgraphicsitem_cast<NodeItem*>(item);
+				if (node && node->rect().width() > 0.0)
+					++dots;
+			}
+			std::sort(arcs.begin(), arcs.end());
+			return std::make_pair(arcs, dots);
+		};
+		presenter.showPreview(model);
+		ok &= expect(drawn() == std::make_pair(std::vector<std::string>{"B0.arc.1", "B0.arc.2", "B0.arc.3"}, 1),
+			"a track of four nodes draws its three arcs and the dot at its end");
+		presenter.clear();
+		model.trackViews[0].doubleSwitch = true;
+		presenter.showPreview(model);
+		ok &= expect(drawn() == std::make_pair(std::vector<std::string>{"B0.arc.2"}, 0),
+			"a double switch draws its middle arc and no node dot");
 		presenter.clear();
 	}
 

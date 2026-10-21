@@ -34,6 +34,9 @@ struct SceneTrackView {
 	int level = 0;		 ///< Lateral offset of the track in the preview, in steps of a fixed distance.
 	int region = 0;		 ///< Region id whose station anchors place the track in the preview.
 	bool visible = true; ///< False leaves the track out of the preview; the simulation still uses it.
+	/// True draws the track as a double switch: without its first and last arc and without node dots. The
+	/// simulation still uses every arc.
+	bool doubleSwitch = false;
 };
 
 /// A point of a track.

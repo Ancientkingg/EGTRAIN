@@ -94,8 +94,8 @@ not from the renderer, and are not on the list above.
   excluded layout and data differences.
 - Copenhagen: the reference frame draws one line where the current frame draws
   two parallel rows joined by crossovers. Canonical geometry draws every authored
-  segment, and the case-specific arc and endpoint omissions of the reference are
-  not restored.
+  segment except the first and last arc of the 137 four-node tracks that
+  `views.json` marks as double switches, which the reference also leaves out.
 - Netherlands: the reference frame draws a single line where the current frame
   draws doubled tracks, stations beside them and crossovers. The reference
   build `472d0b5` opens this case without trains and draws only part of the
@@ -120,9 +120,12 @@ the first point is ordinary even if a station belongs there; ordinary start
 points on a four-node track have zero painted size, while station overrides at
 later points and the final endpoint remain visible. Invisible ordinary nodes
 retain picking targets. Four nodes alone do not establish a Copenhagen double
-switch. All authored segments remain; historical case-specific arc and endpoint
-omissions are not restored. Malformed fallback chains have safe authoring
-preview coverage, not a prepared-runtime equivalence claim.
+switch; a track view with `double_switch` does. Preview and run draw such a
+track without its first and last arc and paint none of its ordinary nodes, as
+the reference drew every four-node track of `Input/Input_EGTRAIN_Banedanmark`.
+The simulation keeps every arc, and every other track keeps all its authored
+segments. Malformed fallback chains have safe authoring preview coverage, not a
+prepared-runtime equivalence claim.
 
 Station artwork retains its own canonical identity, including duplicate names
 and position-only stations. Platform membership follows authored-order native

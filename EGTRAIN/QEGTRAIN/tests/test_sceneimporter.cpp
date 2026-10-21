@@ -1,3 +1,4 @@
+#include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
@@ -630,6 +631,12 @@ int main() {
 			ok &= expect(hasDiag(wrappedView.diagnostics, "scene.views.row", SceneSeverity::Warning)
 					&& wrappedView.scene.trackViews.size() == 1,
 				"Out-of-range track display level skips the row");
+			const auto textSwitch = loadMutated("views.json", [](json& value) {
+				value["tracks"][0]["double_switch"] = "yes";
+			});
+			ok &= expect(hasDiag(textSwitch.diagnostics, "scene.views.row", SceneSeverity::Warning)
+					&& textSwitch.scene.trackViews.size() == 1,
+				"A double switch that is not a boolean skips the row");
 			const auto wrappedRegion = loadMutated("views.json", [](json& value) {
 				value["stations"][0]["regions"][0]["id"] = 4294967296LL;
 			});
@@ -1052,6 +1059,33 @@ int main() {
 		writeText(legacy / "EGTRAINSignallingAreas.json", "malformed metadata at an unrecognised root path");
 		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
 		ok &= expect(imported.success() && hasDiag(imported.diagnostics, "scene.import.areas.skipped", SceneSeverity::Warning), "Only the reserved TrackLines sidecar path is recognised");
+	}
+
+	// The original drew every track of four nodes of the Copenhagen case as a double switch, and no track of another case.
+	// The legacy files cannot hold the drawing, so an export of the case keeps it only through an import as that case.
+	{
+		TempDir legacyDir;
+		const fs::path legacy(legacyDir.dir);
+		writeText(legacy / "TrackLines/B0/NodiCumPari.txt", "1 0 0\n2 0.01 0\n3 0.02 0\n4 0.03 0\n");
+		writeText(legacy / "TrackLines/B1/NodiCumPari.txt", "1 0 1\n2 0.03 1\n");
+		writeText(legacy / "TrackLines/Stations.txt", "0\tOrigin\n");
+		writeText(legacy / "GUI/caseStudyTrackData.txt", "0\t0\t0\n1\t1\t0\n");
+		for (const std::string name : {"Copenhagen", "Other"}) {
+			TempDir output, exported, reimported;
+			json views, reimportedViews;
+			const bool imported = importLegacyScene(legacyDir.dir, output.dir, name).success()
+				&& readJson(fs::path(output.dir) / "views.json", views) && views["tracks"].size() == 2;
+			const bool copenhagen = name == "Copenhagen";
+			ok &= expect(imported && views["tracks"][0].contains("double_switch") == copenhagen
+					&& (!copenhagen || views["tracks"][0]["double_switch"] == true)
+					&& !views["tracks"][1].contains("double_switch"),
+				name + " import marks the double switches of the original");
+			ok &= expect(exportLegacyScene(output.dir, exported.dir).success()
+					&& importLegacyScene(exported.dir, reimported.dir, name).success()
+					&& readJson(fs::path(reimported.dir) / "views.json", reimportedViews)
+					&& reimportedViews["tracks"] == views["tracks"],
+				name + " keeps its double switches through an export and an import");
+		}
 	}
 
 	// Legacy data with Unicode names: the case folder, the files that the manifest and the train file name, and the scene

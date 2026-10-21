@@ -1074,6 +1074,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					try {
 						if (value.contains("visible"))
 							view.visible = value["visible"].get<bool>();
+						if (value.contains("double_switch"))
+							view.doubleSwitch = value["double_switch"].get<bool>();
 					} catch (const json::exception&) {
 						viewWarning(path, "Invalid track display row; row skipped");
 						continue;

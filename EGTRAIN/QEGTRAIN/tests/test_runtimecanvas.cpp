@@ -7,6 +7,7 @@
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
 #include "graphics/items/SignalItem.h"
@@ -629,6 +630,44 @@ int main(int argc, char* argv[]) {
 			QApplication::processEvents();
 			ok &= expect(presenterEmpty(presenter) && scene.items().isEmpty(), "clear leaves no item, entry or pointer of the round");
 		}
+	}
+
+	// A run draws a track whose view sets double_switch as the original drew a double switch: the middle arc and no node
+	// dot. Without that view the track of four nodes keeps its three arcs and the dot at its end.
+	{
+		QGraphicsScene switchScene;
+		NetworkPresenter switchPresenter(&switchScene, nullptr);
+		auto geometry = std::make_unique<FakeGeometry>();
+		BlockSet& track = geometry->track(0);
+		track.sceneTrackId = "B0";
+		track.len = 3;
+		track.numNodes = 4;
+		track.member.resize(3);
+		track.member[1].endNode.X = 7.5;
+		track.member[1].endNode.stationName.clear();
+		track.member[1].endNode.stationPlatformId.clear();
+		track.member[2].startNode.X = 7.5;
+		track.member[2].endNode.X = 10.0;
+		switchPresenter.setGeometrySource(std::move(geometry));
+		const auto dots = [&switchScene]() {
+			int count = 0;
+			for (QGraphicsItem* item : switchScene.items()) {
+				const auto* node = qgraphicsitem_cast<NodeItem*>(item);
+				if (node && node->rect().width() > 0.0)
+					++count;
+			}
+			return count;
+		};
+		SceneModel switchModel;
+		switchPresenter.showRuntime(switchModel);
+		ok &= expect(switchPresenter.allArcs.size() == 3 && dots() == 1,
+			"a run draws the three arcs of a track of four nodes and the dot at its end");
+		switchPresenter.clear();
+		switchModel.trackViews = {{"B0", 0, 0, true, true}};
+		switchPresenter.showRuntime(switchModel);
+		ok &= expect(switchPresenter.allArcs.size() == 1 && switchPresenter.allArcs[0]->arc == &track.member[1] && dots() == 0,
+			"a run draws the middle arc of a double switch and no node dot");
+		switchPresenter.clear();
 	}
 
 	if (!ok)
