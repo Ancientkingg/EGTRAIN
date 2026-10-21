@@ -2,5 +2,8 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,22,149,62"/>
 <area shape="rect" id="Node000002" href="$main_8cpp.html#a81a66035dde6f11c8b17238383aa0d39" title=" " alt="" coords="197,29,328,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,39,184,39,184,45,150,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="232,31,226,21,229,11,242,5,263,3,288,6,299,15,295,19,286,11,263,8,243,10,233,15,231,20,236,28"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="233,31,226,21,230,11,242,5,263,3,288,6,298,15,295,19,285,11,263,8,244,10,234,15,231,20,237,28"/>
+<area shape="rect" id="Node000003" href="$_light_palette_8h.html#a3b23914f30073948a929a8a6704cad43" title=" " alt="" coords="376,29,515,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="328,39,362,39,362,45,328,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="415,31,409,21,412,11,425,5,445,3,470,6,481,15,477,19,468,11,445,8,426,10,416,15,414,20,420,28"/>
 </map>

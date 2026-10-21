@@ -21,6 +21,7 @@ var dir_fc86ce11cfb5284f2928e718eeab9679 =
     [ "InfoDockWidget.h", "_info_dock_widget_8h.html", "_info_dock_widget_8h" ],
     [ "InspectorPanel.cpp", "_inspector_panel_8cpp.html", null ],
     [ "InspectorPanel.h", "_inspector_panel_8h.html", "_inspector_panel_8h" ],
+    [ "LightPalette.h", "_light_palette_8h.html", "_light_palette_8h" ],
     [ "ManualWindow.cpp", "_manual_window_8cpp.html", null ],
     [ "ManualWindow.h", "_manual_window_8h.html", "_manual_window_8h" ],
     [ "NarrowRowDelegate.h", "_narrow_row_delegate_8h.html", "_narrow_row_delegate_8h" ],

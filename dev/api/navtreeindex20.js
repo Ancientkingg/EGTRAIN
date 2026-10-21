@@ -1,5 +1,8 @@
 var NAVTREEINDEX20 =
 {
+"struct_gui_train_state.html#a8c60725c4a81ac0108bf4b2998baaa77":[1,0,86,16],
+"struct_gui_train_state.html#ab50b689d7f31ee0513f13345812284dc":[1,0,86,11],
+"struct_gui_train_state.html#ab60a6fca27bdec3cad19a9c32d15f377":[1,0,86,4],
 "struct_gui_train_state.html#ad48e4f14c96c71c8b2015ea6b99eb2f4":[1,0,86,5],
 "struct_gui_train_state.html#ada804b44ecff9bd7f3741c44d240c737":[1,0,86,7],
 "struct_gui_train_state.html#aeae500dd776cdd09d319f20d97ded0f7":[1,0,86,10],
@@ -246,8 +249,5 @@ var NAVTREEINDEX20 =
 "struct_run_controller_1_1_delay_baseline_state.html#a0f71e43c841a92b3b09f09a1da715e18":[1,0,164,0,1],
 "struct_run_controller_1_1_delay_baseline_state.html#ab674967bba64abeda1ff995fed29ddf0":[1,0,164,0,0],
 "struct_run_controller_1_1_delay_baseline_state.html#af3a8c2ac7a1d3c8cb04d50ac94e6d5b0":[1,0,164,0,2],
-"struct_run_infrastructure.html":[1,0,165],
-"struct_run_infrastructure.html#a093c89c6fd9229839a16da0ff6a79219":[1,0,165,18],
-"struct_run_infrastructure.html#a0cb8232a9dcda2b336d6e4d630db2d2a":[1,0,165,11],
-"struct_run_infrastructure.html#a10fc2f3d7d97a1ac78ec329c5c6e1214":[1,0,165,21]
+"struct_run_infrastructure.html":[1,0,165]
 };
