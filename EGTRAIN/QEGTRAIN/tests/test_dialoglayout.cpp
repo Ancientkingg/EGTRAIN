@@ -891,7 +891,7 @@ bool exerciseFooterWithoutIcons() {
 	DialogLayout::install(dialog, QStringLiteral("Icons"), QString(), new QWidget, buttons, QRect(0, 0, 1280, 800));
 	QList<QAbstractButton*> shown = buttons->buttons();
 #ifndef Q_OS_WIN
-	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	// The offscreen platform on Windows is not known to show a QMessageBox safely.
 	QMessageBox box;
 	box.setStyle(&style);
 	box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel | QMessageBox::Close);
@@ -971,36 +971,24 @@ bool exerciseFooterTabOrder() {
 	return ok;
 }
 
-// The size that a Fusion spin box asks for without the style sheet.
-QSize fusionSpinBoxSize() {
-	QProxyStyle fusion(QStringLiteral("Fusion"));
-	QDoubleSpinBox spinBox;
-	spinBox.setStyle(&fusion);
-	return spinBox.sizeHint();
-}
-
-// A spin box outside a dialog, such as one in a cell of the traction table of Rolling stock units, asks for no more room
-// than the Fusion spin box, so that the editor docks and their tables keep their size. Both use Fusion, so the widget
-// style of the platform does not matter.
-bool exerciseCellSpinBoxSize(const QSize& fusionSize) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	// In Qt 6 a spin box of the style sheet is larger than the Fusion one whatever its padding, 69 x 28 px against
-	// 63 x 26 px at the offscreen font. The releases are built with Qt 5.
-	Q_UNUSED(fusionSize);
-	return true;
-#else
+// A spin box outside a dialog, such as one in a cell of the traction table of Rolling stock units, gets the height it
+// asks for in a table cell, so that its text is not cut. It asks for 6 px more width and 2 px more height than a Fusion
+// spin box at the offscreen font whatever its padding, so the columns of the traction table are a little wider than
+// with Fusion; test_editor_smoke checks that the Rolling stock dock still holds its buttons. The spin box uses Fusion,
+// so the widget style of the platform does not matter.
+bool exerciseCellSpinBoxSize() {
 	QProxyStyle fusion(QStringLiteral("Fusion"));
 	QTableWidget table(1, 1);
 	auto* spinBox = new QDoubleSpinBox;
 	spinBox->setStyle(&fusion);
 	table.setCellWidget(0, 0, spinBox);
-	const QSize size = spinBox->sizeHint();
-	const bool ok = size.width() <= fusionSize.width() && size.height() <= fusionSize.height();
+	table.show();
+	QApplication::processEvents();
+	const int height = spinBox->sizeHint().height();
+	const bool ok = height <= spinBox->height();
 	if (!ok)
-		std::cerr << "a spin box in a table asks for " << size.width() << " x " << size.height() << " px, the Fusion spin box for "
-				  << fusionSize.width() << " x " << fusionSize.height() << " px\n";
+		std::cerr << "a spin box in a table asks for " << height << " px, its cell gives it " << spinBox->height() << " px\n";
 	return ok;
-#endif
 }
 
 // A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow. Open result
@@ -1139,7 +1127,6 @@ bool exerciseDetailsToggleFocus(const QString& name, const QString& text) {
 
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
-	const QSize fusionSpinBox = fusionSpinBoxSize();
 	QFile qss(QStringLiteral(EGTRAIN_DIALOG_QSS));
 	if (!qss.open(QIODevice::ReadOnly)) {
 		std::cerr << "cannot load application QSS\n";
@@ -1173,7 +1160,7 @@ int main(int argc, char** argv) {
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
 	const bool footerIcons = exerciseFooterWithoutIcons();
-	const bool cellSpinBox = exerciseCellSpinBoxSize(fusionSpinBox);
+	const bool cellSpinBox = exerciseCellSpinBoxSize();
 	return small && scaledSmall && large && footerKeys && footerTabOrder && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && detailsToggle && menuButtons && defaultWidth
 			&& scaledDefaultWidth && footerIcons && cellSpinBox
 		? 0

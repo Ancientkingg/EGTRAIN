@@ -268,11 +268,7 @@ bool exercisePopupHeight() {
 				  << list->viewport()->height() << " px for " << rows << " px of items, and it scrolls by "
 				  << list->verticalScrollBar()->maximum() << '\n';
 	}
-#if !defined(Q_OS_WIN) || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	// Qt 5.15 on the offscreen platform on Windows opens this list 12 px shorter than its items. The application on
-	// Windows shows them whole.
 	ok &= whole;
-#endif
 	f.mode->hidePopup();
 	return ok;
 }
