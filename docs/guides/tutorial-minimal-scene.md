@@ -65,14 +65,14 @@ On the tab **Physical**, enter these values, pressing Enter after each:
 | Jerk (m/s³) | 0.75 |
 | Length (m) | 70 |
 
-On the tab **Traction**, choose **Add Traction Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**. The force in N at speed v is C0 + C1 v + C2 v².
+On the tab **Traction**, choose **Add Traction Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
 
 | Row | Lower speed | Upper speed | C0 | C1 | C2 |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 0 | 8.611111111111 | 209000 | 0 | 0 |
 | 2 | 8.611111111111 | 36.111111111111 | 324607.2915 | -17671.4923 | 292.9005 |
 
-A field or cell that you are not editing can show a number rounded, for example `36.1111`; the full value is kept, and it shows when you click the field. The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.
+A field or cell that you are not editing can show a number rounded, for example `36.1111`; the full value is kept, and it shows when you click the field or double-click the cell. The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.
 
 ## 4. A composition
 

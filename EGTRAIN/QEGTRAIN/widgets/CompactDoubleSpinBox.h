@@ -39,6 +39,15 @@ public:
 		return QDoubleSpinBox::valueFromText(text);
 	}
 
+	/// The compact text of a value, as the field shows it while it does not have the focus.
+	static QString compactText(double value) {
+		const double magnitude = std::fabs(value);
+		// Six significant digits round 999999.5 and up to 1e+06, so the plain form starts there.
+		if (magnitude >= 999999.5 && magnitude < 1e15)
+			return QString::number(value, 'f', 0);
+		return QString::number(value, 'g', 6);
+	}
+
 protected:
 	/// While the field is not focused and shows a text other than the shortest exact text of the value, shows that text
 	/// after the tooltip of the field.
@@ -77,14 +86,6 @@ private:
 		const double magnitude = std::fabs(value);
 		const bool plain = magnitude >= 1e-4 && magnitude < 1e15;
 		return QString::number(value, plain ? 'f' : 'g', QLocale::FloatingPointShortest);
-	}
-
-	static QString compactText(double value) {
-		const double magnitude = std::fabs(value);
-		// Six significant digits round 999999.5 and up to 1e+06, so the plain form starts there.
-		if (magnitude >= 999999.5 && magnitude < 1e15)
-			return QString::number(value, 'f', 0);
-		return QString::number(value, 'g', 6);
 	}
 
 	bool isCurrentText(const QString& text, const QString& number) const {

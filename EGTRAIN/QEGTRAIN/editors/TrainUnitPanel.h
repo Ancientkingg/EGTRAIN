@@ -43,7 +43,8 @@ public:
 	void setPrompts(UserPrompts* prompts);
 	/// Lists the units again and shows the selected one.
 	void refresh() override;
-	/// Takes the id, the source references and the number fields that have focus into the document.
+	/// Takes the id, the source references, the number field that has focus and the open editor of the traction curve into
+	/// the document.
 	void commitPendingEditors() override;
 
 	/// Appends a unit with a new unique id and selects it.

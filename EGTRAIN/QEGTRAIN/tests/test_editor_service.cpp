@@ -4,11 +4,13 @@
 
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
+#include "widgets/ElidedLabel.h"
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFontMetricsF>
 #include <QFormLayout>
 #include <QHelpEvent>
 #include <QLabel>
@@ -609,16 +611,24 @@ int main(int argc, char** argv) {
 		panel.show();
 		const auto* choose = panel.colorButton()->findChild<QPushButton*>("serviceColorChooseButton");
 		const auto* reset = panel.colorButton()->findChild<QPushButton*>("serviceColorDefaultButton");
+		const auto* colorValue = panel.colorButton()->findChild<QLabel*>("serviceColorValue");
+		const qreal defaultWidth = QFontMetricsF(colorValue->font()).horizontalAdvance(QStringLiteral("Default"));
 		QStringList cut;
 		for (int width = 200; width <= 900; ++width) {
 			panel.resize(width, 300);
 			QApplication::processEvents();
-			if (choose->width() < choose->sizeHint().width() || reset->width() < reset->sizeHint().width())
+			if (choose->width() < choose->sizeHint().width() || reset->width() < reset->sizeHint().width() || colorValue->width() < defaultWidth)
 				cut << QString::number(panel.width());
 		}
 		if (!cut.isEmpty())
 			std::cerr << "cut at panel widths " << cut.join(' ').toStdString() << "\n";
-		ok &= expect(choose && reset && cut.isEmpty(), "the Choose and Default buttons of the colour field are whole at every width");
+		ok &= expect(choose && reset && cut.isEmpty(), "the Choose and Default buttons and the Default text of the colour field are whole at every width");
+		panel.resize(300, 300);
+		panel.colorButton()->setColor("not a colour, and longer than the field");
+		QApplication::processEvents();
+		const auto* shown = dynamic_cast<const ElidedLabel*>(colorValue);
+		ok &= expect(shown && shown->displayText().endsWith(QChar(0x2026)) && colorValue->toolTip() == colorValue->text(),
+			"a colour text that does not fit ends with an ellipsis and is whole in the tooltip");
 	}
 
 	{

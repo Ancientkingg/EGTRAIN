@@ -666,10 +666,10 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 			w.m_addTrainUnitTractionButton->click();
 			settle();
 			for (int column = 0; column < 5; ++column) {
-				auto* edit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->cellWidget(row, column));
-				if (!edit)
+				QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(row, column);
+				if (!tractionCell)
 					return failCaptures(QStringLiteral("the traction table of new_train_unit has no row %1").arg(row + 1));
-				edit->setValue(traction[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]);
+				tractionCell->setData(Qt::EditRole, traction[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]);
 			}
 		}
 		settle();
