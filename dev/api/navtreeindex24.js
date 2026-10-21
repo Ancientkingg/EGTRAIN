@@ -1,14 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"struct_trajectory_segment.html#a7afb02d712f8ec6692c0ddb8e44bb053":[2,0,308,0],
-"struct_update_check_result.html":[2,0,311],
-"struct_update_check_result.html#a3ba2443f7b7573c18a973dc6280e984c":[2,0,311,1],
-"struct_update_check_result.html#add1eb78ee9916255bda91d73124a943e":[2,0,311,0],
-"struct_update_check_result.html#aede7d6ff18fe3b48368e5ff2ff823480":[2,0,311,2],
-"struct_update_manifest.html":[2,0,312],
-"struct_update_manifest.html#a0e433830a64656e52f29f61f0f7b5864":[2,0,312,0],
-"struct_update_manifest.html#a4d7d3df84238fc3fdd97421fc5c9c7ff":[2,0,312,4],
-"struct_update_manifest.html#aa5e78a03f7a59ef68c9fcef236458abb":[2,0,312,1],
 "struct_update_manifest.html#aab690359a9686135246bd61776a81bb5":[2,0,312,3],
 "struct_update_manifest.html#abfa19abce417d85393e1c1a35ae23fcd":[2,0,312,5],
 "struct_update_manifest.html#af427a332aa614284dc2ed91065495a11":[2,0,312,2],

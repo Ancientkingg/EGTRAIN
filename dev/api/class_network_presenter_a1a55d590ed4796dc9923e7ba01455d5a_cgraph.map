@@ -14,15 +14,15 @@
 <area shape="poly" id="edge52_Node000001_Node000014" title=" " alt="" coords="107,923,148,815,182,737,227,649,281,559,345,470,419,388,459,351,502,318,512,313,515,317,506,323,463,355,422,392,349,473,285,562,231,652,187,739,153,817,112,925"/>
 <area shape="rect" id="Node000024" href="$class_train_badge_item.html#ae9f51fc05516364c2ccae0dfa9c5b985" title="Sets the identifier of the train." alt="" coords="516,860,727,885"/>
 <area shape="poly" id="edge53_Node000001_Node000024" title=" " alt="" coords="194,922,245,913,378,894,502,881,503,886,379,900,246,918,195,927"/>
-<area shape="rect" id="Node000025" href="$class_train_badge_item.html#a4de00ebbd35704ab0c8f59ebf2de5aa4" title="Sets how much the badge holds." alt="" coords="504,909,739,935"/>
+<area shape="rect" id="Node000025" href="$class_train_badge_item.html#a4de00ebbd35704ab0c8f59ebf2de5aa4" title="Sets how much the badge shows." alt="" coords="504,909,739,935"/>
 <area shape="poly" id="edge54_Node000001_Node000025" title=" " alt="" coords="197,938,490,925,490,930,198,943"/>
 <area shape="rect" id="Node000027" href="$class_train_badge_item.html#a708b2d9fd8a68704f80ce5dffee2689a" title="The train is selected or followed, which raises its badge over the others." alt="" coords="514,959,729,984"/>
 <area shape="poly" id="edge55_Node000001_Node000027" title=" " alt="" coords="198,947,500,963,500,968,197,952"/>
-<area shape="rect" id="Node000028" href="$class_train_badge_item.html#a75066e73b7c42e631c649d2893628edd" title="The train runs in the reversed direction, so the nose of the badge points left." alt="" coords="515,1008,728,1033"/>
+<area shape="rect" id="Node000028" href="$class_train_badge_item.html#a75066e73b7c42e631c649d2893628edd" title="Keeps whether the train runs in the reversed direction." alt="" coords="515,1008,728,1033"/>
 <area shape="poly" id="edge56_Node000001_Node000028" title=" " alt="" coords="198,958,246,966,510,1004,509,1009,245,971,197,964"/>
 <area shape="rect" id="Node000029" href="$class_train_badge_item.html#a5d15bb6ef28bc67dceaf5d8f9abfe890" title="Sets the speed of the train as text." alt="" coords="512,1057,731,1083"/>
 <area shape="poly" id="edge57_Node000001_Node000029" title=" " alt="" coords="146,962,194,983,246,1001,377,1032,501,1053,500,1058,376,1037,245,1006,192,988,144,967"/>
-<area shape="rect" id="Node000030" href="$class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f" title="Sets whether the Detailed presentation holds the speed." alt="" coords="525,1107,717,1147"/>
+<area shape="rect" id="Node000030" href="$class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f" title="Sets whether the Detailed presentation shows the speed." alt="" coords="525,1107,717,1147"/>
 <area shape="poly" id="edge58_Node000001_Node000030" title=" " alt="" coords="125,963,177,1008,211,1031,246,1050,313,1075,382,1094,450,1107,512,1116,511,1121,449,1113,381,1099,311,1080,244,1055,208,1035,174,1012,121,967"/>
 <area shape="rect" id="Node000031" href="$class_train_badge_item.html#a6e8e9320be6b4464cc99c66d6ee16197" title="Keeps the description, the operating code and the type of the train. The badge shows no tooltip." alt="" coords="524,1171,719,1211"/>
 <area shape="poly" id="edge59_Node000001_Node000031" title=" " alt="" coords="116,964,136,997,165,1039,203,1080,247,1114,311,1145,379,1166,447,1179,511,1186,510,1191,447,1184,378,1171,309,1150,244,1119,199,1084,161,1042,131,1000,111,966"/>
@@ -73,9 +73,9 @@
 <area shape="poly" id="edge50_Node000012_Node000034" title=" " alt="" coords="357,687,377,653,409,608,452,561,503,521,518,513,521,518,505,526,456,564,414,611,382,656,361,689"/>
 <area shape="rect" id="Node000035" href="$class_train_item_group.html#a91be3682065f70ca60cdb815eb8c21c5" title="An empty group with train index &#45;1 and no bodies." alt="" coords="526,535,717,575"/>
 <area shape="poly" id="edge51_Node000012_Node000035" title=" " alt="" coords="364,686,421,637,461,609,503,585,519,578,522,583,505,590,464,614,425,641,367,690"/>
-<area shape="rect" id="Node000015" href="$class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" title="The zoom ratio from which a badge also holds the speed." alt="" coords="809,261,994,301"/>
+<area shape="rect" id="Node000015" href="$class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" title="The zoom ratio from which a badge shows the speed." alt="" coords="809,261,994,301"/>
 <area shape="poly" id="edge22_Node000014_Node000015" title=" " alt="" coords="729,283,795,281,795,286,729,288"/>
-<area shape="rect" id="Node000016" href="$class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" title="The zoom ratio from which a badge holds the identifier." alt="" coords="810,325,993,365"/>
+<area shape="rect" id="Node000016" href="$class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" title="The zoom ratio from which a badge is in the Identity presentation." alt="" coords="810,325,993,365"/>
 <area shape="poly" id="edge23_Node000014_Node000016" title=" " alt="" coords="723,306,797,321,796,326,721,311"/>
 <area shape="poly" id="edge34_Node000017_Node000017" title=" " alt="" coords="578,690,568,680,573,670,591,663,621,661,660,665,670,670,674,676,670,679,667,674,658,671,621,667,592,669,577,674,574,679,582,686"/>
 <area shape="rect" id="Node000018" href="$_visual_polish_8cpp.html#a1cc87232a45c91e955c2e5a7220ae087" title=" " alt="" coords="835,712,967,737"/>
@@ -92,7 +92,7 @@
 <area shape="poly" id="edge33_Node000021_Node000021" title=" " alt="" coords="1125,640,1115,630,1120,620,1138,614,1167,612,1205,616,1216,621,1219,627,1215,630,1212,625,1204,621,1167,617,1139,619,1124,624,1121,630,1129,637"/>
 <area shape="poly" id="edge36_Node000022_Node000022" title=" " alt="" coords="578,812,568,802,573,792,591,786,621,784,660,788,670,793,674,799,670,802,667,797,658,793,621,789,592,791,577,796,574,802,582,809"/>
 <area shape="poly" id="edge38_Node000023_Node000023" title=" " alt="" coords="571,357,568,347,577,338,594,332,621,330,653,333,670,340,667,345,651,338,621,335,595,337,579,342,574,348,577,355"/>
-<area shape="rect" id="Node000026" href="$class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" title="How much the badge holds." alt="" coords="794,909,1009,935"/>
+<area shape="rect" id="Node000026" href="$class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" title="How much the badge shows." alt="" coords="794,909,1009,935"/>
 <area shape="poly" id="edge41_Node000025_Node000026" title=" " alt="" coords="739,919,780,919,780,925,739,925"/>
 <area shape="poly" id="edge49_Node000033_Node000018" title=" " alt="" coords="738,737,821,729,822,734,739,742"/>
 </map>

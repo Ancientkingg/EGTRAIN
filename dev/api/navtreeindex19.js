@@ -1,14 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"struct_capacity_analysis_train.html#a30c177b4278d41aaa6b89b36bb7936d2":[2,0,32,4],
-"struct_capacity_analysis_train.html#a852f7c2950d124f14c597b0441b1d2ef":[2,0,32,3],
-"struct_capacity_analysis_train.html#ab6a761e15b566bb6efd43b06f8387bd3":[2,0,32,0],
-"struct_capacity_analysis_train.html#ab7464cfcf6f80dffad75600ca49e9b06":[2,0,32,2],
-"struct_capacity_analysis_train.html#ac654d1f8fd0431ef608d9905de71e3e0":[2,0,32,1],
-"struct_capacity_analysis_train.html#adc8c5e3b16104d36b64341570815fb67":[2,0,32,6],
-"struct_capacity_compression_evidence.html":[2,0,33],
-"struct_capacity_compression_evidence.html#a23cc8c57a4e30f494c99387d44f38ad1":[2,0,33,0],
-"struct_capacity_compression_evidence.html#a85438ebb53bb53b45e0a91e3f0082e96":[2,0,33,2],
 "struct_capacity_compression_evidence.html#acc2a2a0996bdb945320cd9bda84b465a":[2,0,33,1],
 "struct_capacity_compression_row.html":[2,0,34],
 "struct_capacity_compression_row.html#a2e99f2183287474db05159a35d6eaaac":[2,0,34,1],
@@ -249,5 +240,14 @@ var NAVTREEINDEX19 =
 "struct_gui_train_state.html#a50001db89cfcc69616a24ea28efe2b7c":[2,0,86,15],
 "struct_gui_train_state.html#a524fb5cd1d2e0da3b99e1df2b8a8704c":[2,0,86,6],
 "struct_gui_train_state.html#a55c9942802ef1becb2a8f05e9d96bdf2":[2,0,86,19],
-"struct_gui_train_state.html#a5a13bed0009f4527060cd89f64090830":[2,0,86,14]
+"struct_gui_train_state.html#a5a13bed0009f4527060cd89f64090830":[2,0,86,14],
+"struct_gui_train_state.html#a5ee1afb9e0d5bd0bc90f1c0e5caa240a":[2,0,86,17],
+"struct_gui_train_state.html#a77ac848598e3d1fd14e40e24aa4d8ff9":[2,0,86,12],
+"struct_gui_train_state.html#a8836f6c87043f0a40cabd35ae26a14e4":[2,0,86,1],
+"struct_gui_train_state.html#a8c60725c4a81ac0108bf4b2998baaa77":[2,0,86,16],
+"struct_gui_train_state.html#ab50b689d7f31ee0513f13345812284dc":[2,0,86,11],
+"struct_gui_train_state.html#ab60a6fca27bdec3cad19a9c32d15f377":[2,0,86,4],
+"struct_gui_train_state.html#ad48e4f14c96c71c8b2015ea6b99eb2f4":[2,0,86,5],
+"struct_gui_train_state.html#ada804b44ecff9bd7f3741c44d240c737":[2,0,86,7],
+"struct_gui_train_state.html#aeae500dd776cdd09d319f20d97ded0f7":[2,0,86,10]
 };

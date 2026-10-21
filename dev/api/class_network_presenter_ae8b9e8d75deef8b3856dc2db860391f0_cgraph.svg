@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_track_line_item.html#a67a6e9fc09628eb89953e6782eec6a33" target="_top" xlink:title="Sets the state of the track during a run. The inspector shows it; paint() does not.">
+<g id="a_Node000002"><a xlink:href="class_track_line_item.html#aaacd7649b9cd2d927adc09130f3755b9" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="390,-30 227,-30 227,0 390,0 390,-30"/>
 <text text-anchor="start" x="235" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TrackLineItem::setOperational</text>
 <text text-anchor="middle" x="308.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">State</text>

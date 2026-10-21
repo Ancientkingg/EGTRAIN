@@ -1,14 +1,5 @@
 var NAVTREEINDEX23 =
 {
-"struct_scene_value_range.html":[2,0,251],
-"struct_scene_value_range.html#a1d56bebfe6050c186365c30059086e5e":[2,0,251,3],
-"struct_scene_value_range.html#aa3db1319f196a15151b777c6826ff580":[2,0,251,1],
-"struct_scene_value_range.html#aab2bf9b52904f13f99d162856ea6f275":[2,0,251,0],
-"struct_scene_value_range.html#ac4435d641fc6c08aec291f301786d730":[2,0,251,2],
-"struct_self_update_capability.html":[2,0,255],
-"struct_self_update_capability.html#a58edf952c89abf3601cdc0c682a016b1":[2,0,255,4],
-"struct_self_update_capability.html#a67dc139f320fa0a970de555febd00535":[2,0,255,2],
-"struct_self_update_capability.html#ab369045325e2f2f4a93e5b87e5bb916d":[2,0,255,5],
 "struct_self_update_capability.html#abbfe9ad52a1e7a6114606649717ccbbf":[2,0,255,0],
 "struct_self_update_capability.html#ad04c2f84c38e744a4378d3f4174d622b":[2,0,255,1],
 "struct_self_update_capability.html#add7252647dc3654efa5d7c099066fc9b":[2,0,255,6],
@@ -249,5 +240,14 @@ var NAVTREEINDEX23 =
 "struct_train_visual.html#aa1fb88d11f3592d9d2a8bdf87aa61065":[2,0,306,2],
 "struct_train_visual.html#ad6aededd5305419c40695c564da47c7c":[2,0,306,0],
 "struct_trajectory_segment.html":[2,0,308],
-"struct_trajectory_segment.html#a2aae5fddcb9f14a47e70b38c71b7ae83":[2,0,308,1]
+"struct_trajectory_segment.html#a2aae5fddcb9f14a47e70b38c71b7ae83":[2,0,308,1],
+"struct_trajectory_segment.html#a7afb02d712f8ec6692c0ddb8e44bb053":[2,0,308,0],
+"struct_update_check_result.html":[2,0,311],
+"struct_update_check_result.html#a3ba2443f7b7573c18a973dc6280e984c":[2,0,311,1],
+"struct_update_check_result.html#add1eb78ee9916255bda91d73124a943e":[2,0,311,0],
+"struct_update_check_result.html#aede7d6ff18fe3b48368e5ff2ff823480":[2,0,311,2],
+"struct_update_manifest.html":[2,0,312],
+"struct_update_manifest.html#a0e433830a64656e52f29f61f0f7b5864":[2,0,312,0],
+"struct_update_manifest.html#a4d7d3df84238fc3fdd97421fc5c9c7ff":[2,0,312,4],
+"struct_update_manifest.html#aa5e78a03f7a59ef68c9fcef236458abb":[2,0,312,1]
 };

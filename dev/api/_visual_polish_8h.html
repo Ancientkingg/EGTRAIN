@@ -165,7 +165,6 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#ac911f586567167005b7821cfc3da968dabbd86c81e760279d9731d5cac811ba50">Occupied</a>
 , <a class="el" href="#ac911f586567167005b7821cfc3da968da4ecc0d90eec1cea3e9db96583a1bb9c2">Blocked</a>
  }</td></tr>
-<tr class="memdesc:ac911f586567167005b7821cfc3da968d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of a track line during a run. The track line keeps it for the inspector; the canvas does not paint it.  <a href="#ac911f586567167005b7821cfc3da968d">More...</a><br /></td></tr>
 <tr class="memitem:a26df8324994d4726d94931837161a573" id="r_a26df8324994d4726d94931837161a573"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a26df8324994d4726d94931837161a573">SignalCueKind</a> { <a class="el" href="#a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01">Neutral</a>
 , <a class="el" href="#a26df8324994d4726d94931837161a573a11a755d598c0c417f9a36758c3da7481">Stop</a>
 , <a class="el" href="#a26df8324994d4726d94931837161a573a764a2caff05993fc0d3eff5de7b225e9">Caution</a>
@@ -183,6 +182,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a805626f8aa909690d0870ba92fabc89a" id="r_a805626f8aa909690d0870ba92fabc89a"><td class="memItemLeft"><a class="el" href="struct_track_visual.html">TrackVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a805626f8aa909690d0870ba92fabc89a">freeTrackVisual</a> ()</td></tr>
 <tr class="memdesc:a805626f8aa909690d0870ba92fabc89a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a free track: that of a track below 120 km/h.  <br /></td></tr>
 <tr class="memitem:a9029f888d43bb9214a40cebfe2302111" id="r_a9029f888d43bb9214a40cebfe2302111"><td class="memItemLeft"><a class="el" href="struct_track_visual.html">TrackVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9029f888d43bb9214a40cebfe2302111">classifyTrackSpeed</a> (double speedLimitMetersPerSecond)</td></tr>
+<tr class="memitem:af4d1772532a63c691de494ce9f3f9471" id="r_af4d1772532a63c691de494ce9f3f9471"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#af4d1772532a63c691de494ce9f3f9471">occupiedTrackColor</a> ()</td></tr>
 <tr class="memitem:a9544660681942022e65ce6f609cf583a" id="r_a9544660681942022e65ce6f609cf583a"><td class="memItemLeft"><a class="el" href="struct_track_state_visual.html">TrackStateVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9544660681942022e65ce6f609cf583a">classifyTrackState</a> (<a class="el" href="#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
 <tr class="memdesc:a9544660681942022e65ce6f609cf583a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a track state. Free has a transparent colour, a width of 0 and no pen.  <br /></td></tr>
 <tr class="memitem:a436626af4d350c743238ab619ecd6066" id="r_a436626af4d350c743238ab619ecd6066"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a436626af4d350c743238ab619ecd6066">trackStatePriority</a> (<a class="el" href="#ac911f586567167005b7821cfc3da968d">TrackOperationalState</a> state)</td></tr>
@@ -294,8 +294,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>The state of a track line during a run. The track line keeps it for the inspector; the canvas does not paint it. </p>
+<p>The state of a track line during a run. The inspector shows it; the canvas paints only the lines that a train occupies, in <a class="el" href="#af4d1772532a63c691de494ce9f3f9471">occupiedTrackColor()</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594" name="ac911f586567167005b7821cfc3da968dab24ce0cd392a5b0b8dedc66c25213594"></a>Free&#160;</td><td class="fielddoc"><p>None of the states below. </p>
 </td></tr>
@@ -494,7 +493,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a9544660681942022e65ce6f609cf583a_cgraph.svg" width="150" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a9544660681942022e65ce6f609cf583a_cgraph.svg" width="346" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -618,6 +617,29 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_a805626f8aa909690d0870ba92fabc89a_cgraph.svg" width="327" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af4d1772532a63c691de494ce9f3f9471" name="af4d1772532a63c691de494ce9f3f9471"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4d1772532a63c691de494ce9f3f9471">&#9670;&#160;</a></span>occupiedTrackColor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QColor occupiedTrackColor </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The colour of a track line that a train occupies: red, RGB (255, 0, 0). The line keeps the width of its speed class. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8h_af4d1772532a63c691de494ce9f3f9471_cgraph.svg" width="159" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

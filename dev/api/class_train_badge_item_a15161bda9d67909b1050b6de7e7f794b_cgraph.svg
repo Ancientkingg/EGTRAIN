@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" target="_top" xlink:title="The zoom ratio from which a badge also holds the speed.">
+<g id="a_Node000002"><a xlink:href="class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" target="_top" xlink:title="The zoom ratio from which a badge shows the speed.">
 <polygon fill="white" stroke="#666666" points="336,-78 197,-78 197,-48 336,-48 336,-78"/>
 <text text-anchor="start" x="205" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::detailed</text>
 <text text-anchor="middle" x="266.5" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">ZoomThreshold</text>
@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" target="_top" xlink:title="The zoom ratio from which a badge holds the identifier.">
+<g id="a_Node000003"><a xlink:href="class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" target="_top" xlink:title="The zoom ratio from which a badge is in the Identity presentation.">
 <polygon fill="white" stroke="#666666" points="335,-30 198,-30 198,0 335,0 335,-30"/>
 <text text-anchor="start" x="206" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::identity</text>
 <text text-anchor="middle" x="266.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">ZoomThreshold</text>

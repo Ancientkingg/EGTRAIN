@@ -10,6 +10,7 @@ var _visual_polish_8cpp =
     [ "defaultTrainFill", "_visual_polish_8cpp.html#aff8e3ad42eb21b9d8861e3013901ea7c", null ],
     [ "defaultTrainOutline", "_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104", null ],
     [ "freeTrackVisual", "_visual_polish_8cpp.html#a805626f8aa909690d0870ba92fabc89a", null ],
+    [ "occupiedTrackColor", "_visual_polish_8cpp.html#af4d1772532a63c691de494ce9f3f9471", null ],
     [ "paintStationMark", "_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc", null ],
     [ "resolveTrainVisual", "_visual_polish_8cpp.html#a25b564e13629edc3120f6ca6f58a72db", null ],
     [ "simulationSpeedLabel", "_visual_polish_8cpp.html#a390edc9c1e6f62d5b3ed847698920d13", null ],

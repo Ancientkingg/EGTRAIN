@@ -1,14 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657":[1,0,13,19],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a30ad29ecbf8b92b3cc90327caecec1dd":[1,0,13,19,1],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a4d98250a14f0cda0742971d6a4c8e3b7":[1,0,13,19,2],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a7482cd4ebe2505e5275de25d89abae23":[1,0,13,19,4],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a823bc4d728e12359abc63b7004103dc1":[1,0,13,19,5],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a8a81a64e1e3728409b8c377eef362796":[1,0,13,19,7],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aa244ddc17d9605fe956fca75701b5ac2":[1,0,13,19,8],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aba9952319eb8b6de5151ef934f8e13b8":[1,0,13,19,6],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657abf6f622872734159c1ad15920e24b5ab":[1,0,13,19,3],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657ae35c9498bfa51f9e0a3b615b97a2cead":[1,0,13,19,0],
 "namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb":[1,0,13,17],
 "namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbaa247b21f40c7c83496ed67cc742c2524":[1,0,13,17,3],
@@ -249,5 +240,14 @@ var NAVTREEINDEX18 =
 "struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e":[2,0,31,1],
 "struct_capacity_analysis_scope.html#af48c07ffcfcfddd1faf073a7c2747531":[2,0,31,4],
 "struct_capacity_analysis_train.html":[2,0,32],
-"struct_capacity_analysis_train.html#a30292457028e91e838a2447d20e605f9":[2,0,32,5]
+"struct_capacity_analysis_train.html#a30292457028e91e838a2447d20e605f9":[2,0,32,5],
+"struct_capacity_analysis_train.html#a30c177b4278d41aaa6b89b36bb7936d2":[2,0,32,4],
+"struct_capacity_analysis_train.html#a852f7c2950d124f14c597b0441b1d2ef":[2,0,32,3],
+"struct_capacity_analysis_train.html#ab6a761e15b566bb6efd43b06f8387bd3":[2,0,32,0],
+"struct_capacity_analysis_train.html#ab7464cfcf6f80dffad75600ca49e9b06":[2,0,32,2],
+"struct_capacity_analysis_train.html#ac654d1f8fd0431ef608d9905de71e3e0":[2,0,32,1],
+"struct_capacity_analysis_train.html#adc8c5e3b16104d36b64341570815fb67":[2,0,32,6],
+"struct_capacity_compression_evidence.html":[2,0,33],
+"struct_capacity_compression_evidence.html#a23cc8c57a4e30f494c99387d44f38ad1":[2,0,33,0],
+"struct_capacity_compression_evidence.html#a85438ebb53bb53b45e0a91e3f0082e96":[2,0,33,2]
 };

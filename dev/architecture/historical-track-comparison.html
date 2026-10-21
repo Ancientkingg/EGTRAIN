@@ -368,12 +368,23 @@ capital after the first letter, so <code class="docutils literal notranslate"><s
 “K B Hallen” and <code class="docutils literal notranslate"><span class="pre">Pontrieaux_Halte</span></code> has no space after the underscore. In the
 committed scenes this changes 4 of the 10 names in Paimpol and 5 of the 94 in
 Copenhagen.</p></li>
+<li><p>Train speed. From a zoom of 3x, and for a selected or followed train at any
+zoom, the speed of a train is white 8 pt text with a dark (16,26,34) outline
+of 1 logical pixel, 8 logical pixels right of and above the centre of the
+train, at the same size at every zoom. <strong>Train speed labels</strong> hides it. The
+reference drew a black <code class="docutils literal notranslate"><span class="pre">addSimpleText</span></code> label at scene scale beside every
+running train, at its centre plus (6,-18) scene units.</p></li>
 <li><p>Track states (issue #387). Occupied, blocked and prepared sections are kept in
-the scene data and shown in the arc inspector, but <code class="docutils literal notranslate"><span class="pre">TrackLineItem::paint</span></code>
-ignores the state. The reference painted a block occupied by a train red.</p></li>
+the scene data and shown in the arc inspector. In a run and a replay
+<code class="docutils literal notranslate"><span class="pre">TrackLineItem::paint</span></code> draws an occupied line plain red (255,0,0) at the width
+of its speed class, and prepared and blocked lines in their speed colour. The
+reference tinted a block occupied by a train with a red colour effect and had
+no prepared or blocked state. An occupied line in a section that a signal
+failure blocks is red as well; the arc inspector shows it as blocked.</p></li>
 <li><p>Running state (issue #387). The reference gave every track a white colour
 effect at the start of each step, in <code class="docutils literal notranslate"><span class="pre">releaseBlockOccupationStatus</span></code>. The
-current renderer keeps the speed-class colours during a run.</p></li>
+current renderer keeps the speed-class colours during a run, apart from the
+red of the occupied lines.</p></li>
 </ul>
 </section>
 <section id="geometry-and-data-differences">
@@ -564,8 +575,8 @@ head, and the opposing head sits on the other side of the line at the same
 offsets. Node dots are light gray (192,192,192) and sit at the ends of the track
 segments. Both builds draw the track with a cosmetic pen of 2 px.</p></li>
 <li><p>No capture shows a running state, so the trains, which keep at least 8 px on
-screen, the red and yellow aspects, the unpainted track states and the white
-repaint of the reference are not shown.</p></li>
+screen, their speed, the red and yellow aspects, the red occupied lines and
+the white repaint of the reference are not shown.</p></li>
 <li><p>Interaction (hit testing, signal inspection, layer toggles, Follow, zoom and
 pan) and the run, pause, stop and replay states are not shown by these
 captures.</p></li>

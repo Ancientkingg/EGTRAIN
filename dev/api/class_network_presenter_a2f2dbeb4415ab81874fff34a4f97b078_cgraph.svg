@@ -336,7 +336,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="class_train_badge_item.html#a4de00ebbd35704ab0c8f59ebf2de5aa4" target="_top" xlink:title="Sets how much the badge holds.">
+<g id="a_Node000033"><a xlink:href="class_train_badge_item.html#a4de00ebbd35704ab0c8f59ebf2de5aa4" target="_top" xlink:title="Sets how much the badge shows.">
 <polygon fill="white" stroke="#666666" points="750,-93 574,-93 574,-74 750,-74 750,-93"/>
 <text text-anchor="middle" x="662" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::setPresentation</text>
 </a>
@@ -372,7 +372,7 @@
 <!-- Node36 -->
 <g id="Node000036" class="node">
 <title>Node36</title>
-<g id="a_Node000036"><a xlink:href="class_train_badge_item.html#a75066e73b7c42e631c649d2893628edd" target="_top" xlink:title="The train runs in the reversed direction, so the nose of the badge points left.">
+<g id="a_Node000036"><a xlink:href="class_train_badge_item.html#a75066e73b7c42e631c649d2893628edd" target="_top" xlink:title="Keeps whether the train runs in the reversed direction.">
 <polygon fill="white" stroke="#666666" points="742,-19 582,-19 582,0 742,0 742,-19"/>
 <text text-anchor="middle" x="662" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::setReversed</text>
 </a>
@@ -408,7 +408,7 @@
 <!-- Node38 -->
 <g id="Node000038" class="node">
 <title>Node38</title>
-<g id="a_Node000038"><a xlink:href="class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f" target="_top" xlink:title="Sets whether the Detailed presentation holds the speed.">
+<g id="a_Node000038"><a xlink:href="class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f" target="_top" xlink:title="Sets whether the Detailed presentation shows the speed.">
 <polygon fill="white" stroke="#666666" points="734,-867.5 590,-867.5 590,-837.5 734,-837.5 734,-867.5"/>
 <text text-anchor="start" x="598" y="-855.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::setSpeed</text>
 <text text-anchor="middle" x="662" y="-844.5" font-family="Helvetica,sans-Serif" font-size="10.00">Visible</text>
@@ -867,7 +867,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" target="_top" xlink:title="The zoom ratio from which a badge also holds the speed.">
+<g id="a_Node000023"><a xlink:href="class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" target="_top" xlink:title="The zoom ratio from which a badge shows the speed.">
 <polygon fill="white" stroke="#666666" points="941.5,-160.5 802.5,-160.5 802.5,-130.5 941.5,-130.5 941.5,-160.5"/>
 <text text-anchor="start" x="810.5" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::detailed</text>
 <text text-anchor="middle" x="872" y="-137.5" font-family="Helvetica,sans-Serif" font-size="10.00">ZoomThreshold</text>
@@ -886,7 +886,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" target="_top" xlink:title="The zoom ratio from which a badge holds the identifier.">
+<g id="a_Node000024"><a xlink:href="class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" target="_top" xlink:title="The zoom ratio from which a badge is in the Identity presentation.">
 <polygon fill="white" stroke="#666666" points="940.5,-208.5 803.5,-208.5 803.5,-178.5 940.5,-178.5 940.5,-208.5"/>
 <text text-anchor="start" x="811.5" y="-196.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::identity</text>
 <text text-anchor="middle" x="872" y="-185.5" font-family="Helvetica,sans-Serif" font-size="10.00">ZoomThreshold</text>
@@ -1040,7 +1040,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" target="_top" xlink:title="How much the badge holds.">
+<g id="a_Node000034"><a xlink:href="class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" target="_top" xlink:title="How much the badge shows.">
 <polygon fill="white" stroke="#666666" points="952.5,-93 791.5,-93 791.5,-74 952.5,-74 952.5,-93"/>
 <text text-anchor="middle" x="872" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">TrainBadgeItem::presentation</text>
 </a>
