@@ -678,6 +678,7 @@ int main(int argc, char** argv) {
 		SceneModel scene = unitScene();
 		scene.trainUnits[0].physical.length_m = 1e300;
 		scene.trainUnits[0].tractionCurve[0][2] = -1e300;
+		scene.trainUnits[0].tractionCurve[0][3] = 1e-20;
 		SceneDocument document;
 		TrainUnitPanel panel;
 		panel.setDocument(&document);
@@ -711,6 +712,10 @@ int main(int argc, char** argv) {
 		ok &= expect(document.model().trainUnits[0].physical.length_m == lengthRange.max
 				&& document.model().trainUnits[0].tractionCurve[0][2] == c0Range.max,
 			"a number that is entered beyond the range stops at the limit");
+		openCell(panel, 0, 3);
+		panel.commitPendingEditors();
+		ok &= expect(cellValue(panel, 0, 3) == 0.0 && document.model().trainUnits[0].tractionCurve[0][3] == 1e-20,
+			"a cell shows a number as its editor rounds it, and an editor that closes unchanged keeps the stored number");
 	}
 
 	{

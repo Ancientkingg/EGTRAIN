@@ -46,6 +46,14 @@ class TractionCellDelegate : public QStyledItemDelegate {
 public:
 	using QStyledItemDelegate::QStyledItemDelegate;
 
+	// The number that the editor of a cell in the column holds for a value: the value rounded to the decimals of the editor,
+	// as QDoubleSpinBox rounds it, then put at the nearest limit of the range. A cell that holds this number gets the same
+	// number back from an editor that closes unchanged.
+	static double editorValue(int column, double value) {
+		const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
+		return std::clamp(QString::number(value, 'f', kDecimals).toDouble(), range.min, range.max);
+	}
+
 	QString displayText(const QVariant& value, const QLocale&) const override {
 		const double number = value.toDouble();
 		const double magnitude = std::fabs(number);
@@ -56,7 +64,7 @@ public:
 		auto* edit = new CompactDoubleSpinBox(parent);
 		const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(index.column())].range;
 		edit->setRange(range.min, range.max);
-		edit->setDecimals(std::numeric_limits<double>::max_digits10);
+		edit->setDecimals(kDecimals);
 		edit->setSingleStep(0.1);
 		// The field shows its full text once it has the focus. Selected then, the number gives way to what is typed.
 		const auto selectWhenFocused = [edit](QWidget*, QWidget* now) {
@@ -66,6 +74,9 @@ public:
 		connect(qApp, &QApplication::focusChanged, edit, selectWhenFocused, Qt::SingleShotConnection);
 		return edit;
 	}
+
+private:
+	static constexpr int kDecimals = std::numeric_limits<double>::max_digits10;
 };
 
 // The path as the person reads it on this system, with a zero-width space after each separator and underscore so
@@ -360,10 +371,10 @@ void TrainUnitPanel::refreshTractionTable() {
 	for (int row = 0; row < static_cast<int>(curve.size()); ++row) {
 		m_tractionTable->insertRow(row);
 		for (int column = 0; column < 5; ++column) {
-			// A stored value outside the range is shown at the nearest limit, as its editor shows it.
-			const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
+			// The cell holds the stored value as its editor holds it, so a value outside the range shows at the nearest limit.
 			auto* item = new QTableWidgetItem();
-			item->setData(Qt::EditRole, std::clamp(curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)], range.min, range.max));
+			item->setData(Qt::EditRole,
+				TractionCellDelegate::editorValue(column, curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]));
 			m_tractionTable->setItem(row, column, item);
 		}
 	}
