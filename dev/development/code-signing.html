@@ -228,11 +228,14 @@
 <p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -320,10 +323,10 @@ run.</p></li>
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code>.</p></li>
 <li><p>The macOS app is signed by <code class="docutils literal notranslate"><span class="pre">tools/release/sign_macos.sh</span></code> in the package workflow. The signature is ad hoc unless the
 environment <code class="docutils literal notranslate"><span class="pre">macos-signing</span></code> holds a Developer ID certificate (see the
-<a class="reference internal" href="build-and-test.html#macos-signing-script"><span class="std std-ref">macOS signing script</span></a>). An ad-hoc signature carries no publisher identity.
+<a class="reference internal" href="ci-and-release.html#macos-signing-script"><span class="std std-ref">macOS signing script</span></a>). An ad-hoc signature carries no publisher identity.
 With notarization credentials in the same environment, <code class="docutils literal notranslate"><span class="pre">tools/release/notarize_macos.sh</span></code> also notarizes and staples the
 app and the disk image (see the
-<a class="reference internal" href="build-and-test.html#macos-notarization-script"><span class="std std-ref">macOS notarization script</span></a>); without them nothing is notarized. The two
+<a class="reference internal" href="ci-and-release.html#macos-notarization-script"><span class="std std-ref">macOS notarization script</span></a>); without them nothing is notarized. The two
 modes, the settings that the owner adds and what a user sees at the first start are in
 <a class="reference internal" href="#macos-releases">macOS releases</a>. The Linux AppImage is not signed.</p></li>
 <li><p>The in-app update checks the SHA-256 and the size of the downloaded package against <code class="docutils literal notranslate"><span class="pre">update-manifest.json</span></code>, an asset
@@ -611,7 +614,7 @@ artifact, which GitHub uploads as a ZIP file:</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">tools/release/verify_signatures.ps1</span></code> checks the signatures. Its usage and the rules for a file to pass are in
-<a class="reference internal" href="build-and-test.html#signature-check"><span class="std std-ref">Signature check</span></a>. The installer is checked by naming it with <code class="docutils literal notranslate"><span class="pre">-Name</span></code> in the
+<a class="reference internal" href="ci-and-release.html#signature-check"><span class="std std-ref">Signature check</span></a>. The installer is checked by naming it with <code class="docutils literal notranslate"><span class="pre">-Name</span></code> in the
 directory that holds it. Every run of the package workflow uses <code class="docutils literal notranslate"><span class="pre">-Report</span></code> on the unsigned package. The job
 <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> uses <code class="docutils literal notranslate"><span class="pre">-Require</span></code> on the payload, and the job <code class="docutils literal notranslate"><span class="pre">sign-windows-installer</span></code> uses <code class="docutils literal notranslate"><span class="pre">-Require</span></code> on the signed
 installer and again on the payload.</p>
@@ -788,8 +791,8 @@ certificate into a keychain of its own and deletes that keychain in its last ste
 <p>Notarization needs all three entries of one group, the API key or the Apple ID. The API key is used when both groups are
 complete. A group that is only partly set, with the other group not complete, fails the job and names what is missing.
 A certificate without its password or without the identity name fails it too. The scripts are described in
-<a class="reference internal" href="build-and-test.html#macos-signing-script"><span class="std std-ref">macOS signing script</span></a> and
-<a class="reference internal" href="build-and-test.html#macos-notarization-script"><span class="std std-ref">macOS notarization script</span></a>. The roles in <a class="reference internal" href="#ownership">Ownership</a> and the
+<a class="reference internal" href="ci-and-release.html#macos-signing-script"><span class="std std-ref">macOS signing script</span></a> and
+<a class="reference internal" href="ci-and-release.html#macos-notarization-script"><span class="std std-ref">macOS notarization script</span></a>. The roles in <a class="reference internal" href="#ownership">Ownership</a> and the
 rules in <a class="reference internal" href="#repository-authorization">Repository authorization</a> apply to these values.</p>
 </section>
 <section id="apple-developer-identity-record">

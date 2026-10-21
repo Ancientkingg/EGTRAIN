@@ -228,11 +228,14 @@
 <p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -419,7 +422,7 @@
 </section>
 <section id="test">
 <h2>Test<a class="headerlink" href="#test" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">tools/release/test_installer_script.py</span></code> reads the script and the files it names and checks the rules that keep the installer per user and small, for example the privilege setting, the licence page and the <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> in the Windows package, the constants and sections that may appear, the output name against <code class="docutils literal notranslate"><span class="pre">kAssetPatterns</span></code>, what may be deleted before an install and the registry entries of the file type. It does not compile the script and does not run an installer. See <a class="reference internal" href="build-and-test.html#installer-script"><span class="std std-ref">Installer script</span></a> for the checks and the command.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tools/release/test_installer_script.py</span></code> reads the script and the files it names and checks the rules that keep the installer per user and small, for example the privilege setting, the licence page and the <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> in the Windows package, the constants and sections that may appear, the output name against <code class="docutils literal notranslate"><span class="pre">kAssetPatterns</span></code>, what may be deleted before an install and the registry entries of the file type. It does not compile the script and does not run an installer. See <a class="reference internal" href="ci-and-release.html#installer-script"><span class="std std-ref">Installer script</span></a> for the checks and the command.</p>
 </section>
 </section>
 

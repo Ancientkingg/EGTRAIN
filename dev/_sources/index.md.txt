@@ -53,11 +53,14 @@ The developer pages explain how the application is built, tested and structured,
 :maxdepth: 1
 
 development/getting-started
-development/build-and-test
+development/build
+development/testing
+development/smoke-tests
+development/characterization-tests
+development/ci-and-release
 development/coding-guidelines
 development/error-handling
 development/documentation-decision
-development/documentation-page-map
 development/code-documentation-investigation
 architecture/source-layout
 architecture/scene-model

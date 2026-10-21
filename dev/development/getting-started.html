@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Build And Test" href="build-and-test.html"><link rel="prev" title="TU Delft assignment workflow in EGTRAIN" href="../guides/assignment-workflow.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Build from source" href="build.html"><link rel="prev" title="TU Delft assignment workflow in EGTRAIN" href="../guides/assignment-workflow.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Getting started as a developer - EGTRAIN documentation</title>
@@ -228,11 +228,14 @@
 <p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -312,7 +315,7 @@ Qt 6.8.3 on 2026-10-20. On Linux the page was followed from a clean clone in a n
 1 s, the build with four jobs 4 min 7 s, CTest 3 min 8 s (325 of 325 passed), the headless run of all six cases
 1 min 49 s, the round-trip smoke 7 s, the visual polish smoke 4 min 13 s and the test walkthrough below under a
 minute. The build with warnings as errors passed as well. The Windows commands on this page were not run. CI installs the same packages as
-<a class="reference internal" href="build-and-test.html#configure"><span class="std std-ref">Build and test</span></a> lists, but it configures with more options; see
+<a class="reference internal" href="build.html#configure"><span class="std std-ref">Configure</span></a> lists, but it configures with more options; see
 <a class="reference internal" href="#which-checks-to-run">Which checks to run</a>. The Visual Studio generator path in the build guide
 is not what CI uses and was not checked for this page.</p>
 <section id="what-you-need">
@@ -361,7 +364,7 @@ is not what CI uses and was not checked for this page.</p>
 </tbody>
 </table>
 </div>
-<p><a class="reference internal" href="build-and-test.html#requirements"><span class="std std-ref">Requirements</span></a> lists the supported toolchains and the exact install
+<p><a class="reference internal" href="build.html#requirements"><span class="std std-ref">Requirements</span></a> lists the supported toolchains and the exact install
 commands for each system.</p>
 </section>
 <section id="clone-configure-and-build">
@@ -383,13 +386,13 @@ cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>
 cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--parallel<span class="w"> </span><span class="m">4</span>
 </pre></div>
 </div>
-<p><a class="reference internal" href="build-and-test.html#configure"><span class="std std-ref">Configure</span></a> explains the prefix path and the AGL option.</p>
-<p>On Ubuntu and Windows, install Qt as <a class="reference internal" href="build-and-test.html#requirements"><span class="std std-ref">Requirements</span></a> says and take the
-install and configure lines from <a class="reference internal" href="build-and-test.html#configure"><span class="std std-ref">Configure</span></a>; the Ubuntu line installs <code class="docutils literal notranslate"><span class="pre">git</span></code>
+<p><a class="reference internal" href="build.html#configure"><span class="std std-ref">Configure</span></a> explains the prefix path and the AGL option.</p>
+<p>On Ubuntu and Windows, install Qt as <a class="reference internal" href="build.html#requirements"><span class="std std-ref">Requirements</span></a> says and take the
+install and configure lines from <a class="reference internal" href="build.html#configure"><span class="std std-ref">Configure</span></a>; the Ubuntu line installs <code class="docutils literal notranslate"><span class="pre">git</span></code>
 and <code class="docutils literal notranslate"><span class="pre">python3</span></code> too. The build, test and run commands below use the macOS and
 Linux form. With a multi-config generator such as Visual Studio, add <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">Release</span></code> to
 <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span></code> and <code class="docutils literal notranslate"><span class="pre">-C</span> <span class="pre">Release</span></code> to <code class="docutils literal notranslate"><span class="pre">ctest</span></code>, and run the executable from
-<a class="reference internal" href="build-and-test.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a>.</p>
+<a class="reference internal" href="build.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a>.</p>
 <p>Without <code class="docutils literal notranslate"><span class="pre">--parallel</span></code>, <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span></code> uses one job with the Makefile generator, which takes a long
 time; <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL</span></code> sets the number of jobs as well. A first full build with tests
 and four jobs took about 14 minutes on one Apple silicon laptop and about 4 minutes in one Linux
@@ -410,7 +413,7 @@ time makes the links shorter.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code></p></td>
 <td><p>The application</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code></p></td>
-<td><p><a class="reference internal" href="build-and-test.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a></p></td>
+<td><p><a class="reference internal" href="build.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code></p></td>
 <td><p>Validates, packs, unpacks, imports and exports scenes without the window</p></td>
@@ -425,7 +428,7 @@ time makes the links shorter.</p>
 </tbody>
 </table>
 </div>
-<p>If configure or the build stops, see <a class="reference internal" href="build-and-test.html#common-setup-failures"><span class="std std-ref">Common setup failures</span></a>.</p>
+<p>If configure or the build stops, see <a class="reference internal" href="build.html#common-setup-failures"><span class="std std-ref">Common setup failures</span></a>.</p>
 </section>
 <section id="run-the-application">
 <h2>Run the application<a class="headerlink" href="#run-the-application" title="Link to this heading">¶</a></h2>
@@ -440,7 +443,7 @@ start with <code class="docutils literal notranslate"><span class="pre">-n</span
 <a class="reference internal" href="../guides/command-line.html"><span class="std std-doc">Command-line options</span></a>.</p>
 <p>These paths are for macOS. On Linux the executable is <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN</span></code>. On Windows it is
 <code class="docutils literal notranslate"><span class="pre">..\..\build\Release\QEGTRAIN.exe</span></code> with a multi-config generator and <code class="docutils literal notranslate"><span class="pre">..\..\build\QEGTRAIN.exe</span></code> with
-a single-config one; see <a class="reference internal" href="build-and-test.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a>.</p>
+a single-config one; see <a class="reference internal" href="build.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a>.</p>
 <p>A run without a window needs no display and exits when the run ends. It writes to the folder that
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> names. On Linux, with the executable path of that system:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/egtrain-out
@@ -451,7 +454,7 @@ ls<span class="w"> </span>/tmp/egtrain-out/Output/Paimpol
 <p>On macOS use <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> in the second line. The run prints its
 progress as one long line.</p>
 <p>The files are listed in <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">Run output</span></a>. On Windows a run without a window prints
-nothing to a terminal; see <a class="reference internal" href="build-and-test.html#windows-headless-runs"><span class="std std-ref">Windows headless runs</span></a>.
+nothing to a terminal; see <a class="reference internal" href="testing.html#windows-headless-runs"><span class="std std-ref">Windows headless runs</span></a>.
 The bundled cases and their <code class="docutils literal notranslate"><span class="pre">-n</span></code> numbers are in <a class="reference internal" href="../guides/command-line.html#case-study-numbers"><span class="std std-ref">Case study numbers</span></a>.</p>
 </section>
 <section id="source-map">
@@ -547,7 +550,7 @@ read them in the <strong>Console Log</strong> dock (<code class="docutils litera
 </section>
 <section id="which-checks-to-run">
 <h2>Which checks to run<a class="headerlink" href="#which-checks-to-run" title="Link to this heading">¶</a></h2>
-<p>Run the smallest set that covers the change. <a class="reference internal" href="build-and-test.html#verification-gates"><span class="std std-ref">Verification gates</span></a>
+<p>Run the smallest set that covers the change. <a class="reference internal" href="testing.html#verification-gates"><span class="std std-ref">Verification gates</span></a>
 is the full rule.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
@@ -586,7 +589,7 @@ they tried when none exists. <code class="docutils literal notranslate"><span cl
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP=$PWD/build/QEGTRAIN</span> <span class="pre">tools/e2e/visual_polish_smoke.sh</span></code>. <code class="docutils literal notranslate"><span class="pre">headless_smoke.py</span></code> runs the six committed cases one after the other; name case
 numbers to run fewer, for example <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/e2e/headless_smoke.py</span> <span class="pre">2</span></code>, because Copenhagen alone
 takes minutes. On Linux and Windows CTest registers the tests that run there
-(<a class="reference internal" href="build-and-test.html#platform-coverage"><span class="std std-ref">Platform coverage</span></a>).</p>
+(<a class="reference internal" href="testing.html#platform-coverage"><span class="std std-ref">Platform coverage</span></a>).</p>
 <p>Formatting and static checks run in CI too: <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/format.py</span></code> (<code class="docutils literal notranslate"><span class="pre">--fix</span></code> to apply) for the C++
 sources, and <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/tidy.py</span></code> for the sources outside <code class="docutils literal notranslate"><span class="pre">simulation/</span></code>.</p>
 </section>
@@ -626,7 +629,7 @@ root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt
 </section>
 <section id="where-output-goes">
 <h2>Where output goes<a class="headerlink" href="#where-output-goes" title="Link to this heading">¶</a></h2>
-<p><a class="reference internal" href="build-and-test.html#where-test-and-run-output-goes"><span class="std std-ref">Where test and run output goes</span></a> lists where a
+<p><a class="reference internal" href="smoke-tests.html#where-test-and-run-output-goes"><span class="std std-ref">Where test and run output goes</span></a> lists where a
 run, CTest and each smoke write their files.</p>
 </section>
 <section id="contributing">
@@ -635,8 +638,8 @@ run, CTest and each smoke write their files.</p>
 <ul class="simple">
 <li><p>Pull requests go to <code class="docutils literal notranslate"><span class="pre">main</span></code>. CI builds and runs the CTest suite on macOS, Windows and Linux without
 the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code>, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.
-<a class="reference internal" href="build-and-test.html#ci-and-release-branches"><span class="std std-ref">CI and release branches</span></a> lists the workflows, and
-<a class="reference internal" href="build-and-test.html#required-checks-on-main"><span class="std std-ref">Required checks on <code class="docutils literal notranslate"><span class="pre">main</span></code></span></a> the checks that must pass.</p></li>
+<a class="reference internal" href="ci-and-release.html#ci-and-release-branches"><span class="std std-ref">CI and release branches</span></a> lists the workflows, and
+<a class="reference internal" href="ci-and-release.html#required-checks-on-main"><span class="std std-ref">Required checks on <code class="docutils literal notranslate"><span class="pre">main</span></code></span></a> the checks that must pass.</p></li>
 <li><p>Code follows <a class="reference internal" href="coding-guidelines.html"><span class="std std-doc">Coding guidelines</span></a>. <code class="docutils literal notranslate"><span class="pre">.clang-format</span></code> and <code class="docutils literal notranslate"><span class="pre">.editorconfig</span></code> set the
 format: tabs, braces attached, no column limit.</p></li>
 <li><p>Documentation changes pass <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/docs/check_docs.py</span></code>, and every page is in the table of contents,
@@ -646,7 +649,7 @@ format: tabs, braces attached, no column limit.</p></li>
 <section id="related-documents">
 <h2>Related documents<a class="headerlink" href="#related-documents" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="build-and-test.html"><span class="std std-doc">Build and test</span></a>: configure recipes, test labels, smokes, CI.</p></li>
+<li><p><a class="reference internal" href="build.html"><span class="std std-doc">Build from source</span></a>, <a class="reference internal" href="testing.html"><span class="std std-doc">Testing</span></a>, <a class="reference internal" href="smoke-tests.html"><span class="std std-doc">Smoke tests</span></a>, <a class="reference internal" href="characterization-tests.html"><span class="std std-doc">Simulation characterization tests</span></a> and <a class="reference internal" href="ci-and-release.html"><span class="std std-doc">CI and release</span></a>.</p></li>
 <li><p><a class="reference internal" href="../architecture/source-layout.html"><span class="std std-doc">Source layout</span></a> and <a class="reference internal" href="coding-guidelines.html"><span class="std std-doc">Coding guidelines</span></a>.</p></li>
 <li><p><a class="reference internal" href="release-testing-checklist.html"><span class="std std-doc">Release testing checklist</span></a> and <a class="reference internal" href="code-signing.html"><span class="std std-doc">Code signing</span></a>.</p></li>
 <li><p><a class="reference internal" href="playback-profiling.html"><span class="std std-doc">Playback profiling</span></a> and <a class="reference internal" href="memory-baselines.html"><span class="std std-doc">Peak-memory baselines</span></a>.</p></li>
@@ -660,12 +663,12 @@ format: tabs, braces attached, no column limit.</p></li>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="build-and-test.html">
+          <a class="next-page" href="build.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Build And Test</div>
+                <div class="title">Build from source</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

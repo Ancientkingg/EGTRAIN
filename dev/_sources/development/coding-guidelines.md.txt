@@ -386,7 +386,7 @@ add_test(NAME test_timeformat COMMAND test_timeformat)
 
 Then add the name to `egtrain_label_tests(unit ...)` or `egtrain_label_tests(integration ...)`
 lower in that block, and to the `gui` and `slow` lists where they apply
-([Test labels](build-and-test.md#test-labels)). Configuration fails when a test has neither
+([Test labels](testing.md#test-labels)). Configuration fails when a test has neither
 `unit` nor `integration`, or both. A test that needs a Qt platform plugin also sets
 `ENVIRONMENT "QT_QPA_PLATFORM=offscreen"`.
 
@@ -399,7 +399,7 @@ lower in that block, and to the `gui` and `slow` lists where they apply
   build a model that breaks the rule and assert the diagnostic code, plus severity or path
   where they matter (`hasCodeAndSeverity` in `tests/test_scenevalidator.cpp`).
 - The gate to run depends on the kind of change (UI or rendering, simulation or scene
-  model, scene format); see [Verification Gates](build-and-test.md#verification-gates).
+  model, scene format); see [Verification Gates](testing.md#verification-gates).
 
 `tests/e2e/CMakeLists.txt` adds the sources of the scripted GUI scenarios to `QEGTRAIN` when
 tests are built. `MainWindowTestAccess` is the friend of `MainWindow` for them, a scenario with its

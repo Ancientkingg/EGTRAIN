@@ -228,11 +228,14 @@
 <p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
@@ -511,7 +514,7 @@ transport fetches https addresses only. A test passes <code class="docutils lite
 as well. <code class="docutils literal notranslate"><span class="pre">UpdateChecker</span></code> can take any transport, so <code class="docutils literal notranslate"><span class="pre">test_updatechecker</span></code> gives it a fake one, and
 <code class="docutils literal notranslate"><span class="pre">test_httptransport</span></code> runs the transport of the application, for a GET and a POST, against a server on the loopback address.
 <code class="docutils literal notranslate"><span class="pre">test_updatetransport_https</span></code> sends one real request to the GitHub release list through that transport
-(<a class="reference internal" href="../development/build-and-test.html#https-update-check"><span class="std std-ref">HTTPS update check</span></a>).</p>
+(<a class="reference internal" href="../development/testing.html#https-update-check"><span class="std std-ref">HTTPS update check</span></a>).</p>
 <p>The telemetry sources also build with test hooks, which add members and a constructor
 parameter to <code class="docutils literal notranslate"><span class="pre">TelemetrySender</span></code>, <code class="docutils literal notranslate"><span class="pre">TelemetryConsent</span></code> and <code class="docutils literal notranslate"><span class="pre">TelemetryQueue</span></code>. These flavours
 compile the same sources again: <code class="docutils literal notranslate"><span class="pre">egtrain_telemetry_hooks</span></code> (all hooks) when tests are built,

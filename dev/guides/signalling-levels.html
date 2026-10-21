@@ -228,11 +228,14 @@
 <p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/documentation-page-map.html">Documentation page map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -312,7 +315,7 @@ does. Nothing here is checked against a source about a real system; see
 <p>Function names are given so that a maintainer can find them. Test cases are named
 in code font. They are the characterization cases in
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/characterization</span></code>; see
-Characterization tests in the build and test guide of the developer documentation.</p>
+the Simulation characterization tests page of the developer documentation.</p>
 <section id="what-a-signalling-level-is">
 <h2>What a signalling level is<a class="headerlink" href="#what-a-signalling-level-is" title="Link to this heading">¶</a></h2>
 <ul class="simple">
@@ -615,7 +618,7 @@ single-track next-step braking lookahead, independent of train movement order.
 A train safely stopped outside does not retain this admission protection.
 The crossover chain test runs two double switches in a row and checks late
 origin admission in both directions; see
-Characterization tests in the build and test guide of the developer documentation.</p>
+the Simulation characterization tests page of the developer documentation.</p>
 </section>
 <section id="levels">
 <h2>Levels<a class="headerlink" href="#levels" title="Link to this heading">¶</a></h2>

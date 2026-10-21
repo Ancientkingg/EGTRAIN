@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Error handling" href="error-handling.html"><link rel="prev" title="Build And Test" href="build-and-test.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Error handling" href="error-handling.html"><link rel="prev" title="CI and release" href="ci-and-release.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Coding guidelines - EGTRAIN documentation</title>
@@ -228,11 +228,14 @@
 <p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="build-and-test.html">Build And Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="documentation-page-map.html">Documentation page map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -766,7 +769,7 @@ hook link <code class="docutils literal notranslate"><span class="pre">egtrain_t
 </div>
 <p>Then add the name to <code class="docutils literal notranslate"><span class="pre">egtrain_label_tests(unit</span> <span class="pre">...)</span></code> or <code class="docutils literal notranslate"><span class="pre">egtrain_label_tests(integration</span> <span class="pre">...)</span></code>
 lower in that block, and to the <code class="docutils literal notranslate"><span class="pre">gui</span></code> and <code class="docutils literal notranslate"><span class="pre">slow</span></code> lists where they apply
-(<a class="reference internal" href="build-and-test.html#test-labels"><span class="std std-ref">Test labels</span></a>). Configuration fails when a test has neither
+(<a class="reference internal" href="testing.html#test-labels"><span class="std std-ref">Test labels</span></a>). Configuration fails when a test has neither
 <code class="docutils literal notranslate"><span class="pre">unit</span></code> nor <code class="docutils literal notranslate"><span class="pre">integration</span></code>, or both. A test that needs a Qt platform plugin also sets
 <code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span> <span class="pre">&quot;QT_QPA_PLATFORM=offscreen&quot;</span></code>.</p>
 <ul class="simple">
@@ -779,7 +782,7 @@ lower in that block, and to the <code class="docutils literal notranslate"><span
 build a model that breaks the rule and assert the diagnostic code, plus severity or path
 where they matter (<code class="docutils literal notranslate"><span class="pre">hasCodeAndSeverity</span></code> in <code class="docutils literal notranslate"><span class="pre">tests/test_scenevalidator.cpp</span></code>).</p></li>
 <li><p>The gate to run depends on the kind of change (UI or rendering, simulation or scene
-model, scene format); see <a class="reference internal" href="build-and-test.html#verification-gates"><span class="std std-ref">Verification Gates</span></a>.</p></li>
+model, scene format); see <a class="reference internal" href="testing.html#verification-gates"><span class="std std-ref">Verification Gates</span></a>.</p></li>
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">tests/e2e/CMakeLists.txt</span></code> adds the sources of the scripted GUI scenarios to <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> when
 tests are built. <code class="docutils literal notranslate"><span class="pre">MainWindowTestAccess</span></code> is the friend of <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code> for them, a scenario with its
@@ -830,14 +833,14 @@ function such as <code class="docutils literal notranslate"><span class="pre">st
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="build-and-test.html">
+          <a class="prev-page" href="ci-and-release.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Build And Test</div>
+                <div class="title">CI and release</div>
                 
               </div>
             </a>

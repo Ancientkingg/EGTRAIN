@@ -10,7 +10,7 @@ does. Nothing here is checked against a source about a real system; see
 Function names are given so that a maintainer can find them. Test cases are named
 in code font. They are the characterization cases in
 `EGTRAIN/QEGTRAIN/tests/characterization`; see
-Characterization tests in the build and test guide of the developer documentation.
+the Simulation characterization tests page of the developer documentation.
 
 ## What a signalling level is
 
@@ -262,7 +262,7 @@ single-track next-step braking lookahead, independent of train movement order.
 A train safely stopped outside does not retain this admission protection.
 The crossover chain test runs two double switches in a row and checks late
 origin admission in both directions; see
-Characterization tests in the build and test guide of the developer documentation.
+the Simulation characterization tests page of the developer documentation.
 
 ## Levels
 
