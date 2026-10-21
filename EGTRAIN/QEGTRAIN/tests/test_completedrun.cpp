@@ -1490,9 +1490,9 @@ void testCapacityDialog() {
 			&& scope.occurrenceIds == std::vector<std::string>({"a", "b"}) && scope.cycleEndOccurrenceId == "b" && scope.periodSeconds == 7200.0,
 		"the dialog accepts the checked occurrences, their blocks and the closing one");
 
-	// Fewer than two occurrences, or a closing occurrence that is not after the first one, keeps the dialog open and
-	// says why in the dialog. An edit takes the message away, and the caller's scope stays as it was. Occurrences that
-	// share no block disable OK for as long as they are checked.
+	// Fewer than two checked occurrences, or occurrences that share no block, disable OK and say why in the dialog for as
+	// long as they are checked. OK with a closing occurrence that is not after the first one keeps the dialog open and
+	// says why; an edit takes that message away. The caller's scope stays as it was.
 	CapacityAnalysisScope kept;
 	accepted = askCapacityScope(run, kept, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
@@ -1510,13 +1510,11 @@ void testCapacityDialog() {
 		check(noteIsHelp, "the note of the dialog is a help note");
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		forbidMessageBox();
-		ok->click();
-		check(dialog.isVisible() && status->isVisible() && status->property("dialogStatus").toString() == "error"
+		check(!ok->isEnabled() && status->isVisible() && status->property("dialogStatus").toString() == "error"
 				&& status->text() == "Check at least two occurrences.",
-			"fewer than two occurrences are refused in the dialog");
+			"one checked occurrence disables OK and says why before OK is pressed");
 		list->item(1)->setCheckState(Qt::Checked);
-		check(status->isHidden(), "an edit takes the message away");
+		check(ok->isEnabled() && status->isHidden(), "a second checked occurrence enables OK and takes the message away");
 		combos[2]->setCurrentIndex(1);
 		forbidMessageBox();
 		ok->click();
@@ -1527,11 +1525,9 @@ void testCapacityDialog() {
 		check(status->isHidden(), "choosing another closing occurrence takes the message away");
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		forbidMessageBox();
-		ok->click();
-		check(status->isVisible(), "fewer than two occurrences are refused again");
+		check(!ok->isEnabled() && status->text() == "Check at least two occurrences.", "one checked occurrence disables OK again");
 		dialog.findChild<QDoubleSpinBox*>()->setValue(1800.0);
-		check(status->isHidden(), "changing the period takes the message away");
+		check(!ok->isEnabled() && status->isVisible(), "the message stays while fewer than two are checked");
 		list->item(2)->setCheckState(Qt::Checked);
 		list->item(3)->setCheckState(Qt::Checked);
 		check(blocks->currentText() == "none" && !blocks->isEnabled() && !ok->isEnabled() && status->isVisible()
