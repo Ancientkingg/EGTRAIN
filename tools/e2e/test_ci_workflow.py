@@ -1850,6 +1850,12 @@ def main() -> None:
     linux_positions = [linux_step_names.index(name) if name in linux_step_names else -1 for name in linux_steps]
     if -1 in linux_positions or linux_positions != sorted(linux_positions):
         missing.append("Linux package steps in the order " + ", ".join(linux_steps))
+    # Without the SVG icon engine the AppImage scales its icons up from one size, so they blur above 100 %.
+    if "          EXTRA_QT_MODULES: svg\n" not in step_block(linux_job, "Build AppImage") or (
+        "          find squashfs-root -path '*/iconengines/libqsvgicon.so' -print -quit | grep -q .\n"
+        not in step_block(linux_job, "Verify AppImage contents")
+    ):
+        missing.append("Linux package job that deploys the SVG icon engine and fails without it")
     linux_install = re.search(r"apt-get install -y((?:.*\\\n)*.*\n)", step_block(linux_job, "Install dependencies"))
     linux_apt_packages = linux_install.group(1).replace("\\", " ").split() if linux_install else []
     if "xvfb" not in linux_apt_packages or "xauth" not in linux_apt_packages:

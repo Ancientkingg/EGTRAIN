@@ -141,7 +141,8 @@ What the jobs prove today:
   directory, extracts it and starts the extracted program with the same start
   script.
 - The Package Linux job extracts the AppImage and checks the executable,
-  the update helper, `Scenes/Paimpol`, the icon, `AppRun` and the Qt libraries.
+  the update helper, `Scenes/Paimpol`, the icon, `AppRun`, the Qt libraries and
+  the SVG icon engine `iconengines/libqsvgicon.so`.
   It then starts the extracted image through its `AppRun` on a virtual display,
   after it has checked that every Qt and ZeroMQ library of the programs and
   plugins comes from the image and not from the runner.
