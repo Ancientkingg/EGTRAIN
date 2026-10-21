@@ -1233,6 +1233,7 @@ void testRouteScopeOfSharedBlocks() {
 	data.routes = {routeOf("r0", nodes, {{"X", 0.0, 1.0}, {"Y", 1.0, 2.0}}), routeOf("r1", nodes, {{"X", 0.0, 1.0}, {"Y", 1.0, 2.0}})};
 	CompletedTrain train = trainOn("T", 1);
 	train.blockTimes = {occupation("X", 10.0, 20.0, 0.0, 1000.0), occupation("Y", 20.0, 30.0, 1000.0, 2000.0)};
+	train.stops = {stopAt("S", "n1", 1.0, 15.0, 18.0, {"X"})};
 	data.trains = {train};
 	BlockingTimeScope scope;
 	scope.endTime = 100.0;
@@ -1243,6 +1244,12 @@ void testRouteScopeOfSharedBlocks() {
 	check(diagram && diagram->referencePath.id == "r0" && diagram->segments.size() == 2 && diagram->segments[0].trainName == "T"
 			&& diagram->segments[1].trainName == "T",
 		"a route scope shows a train of another route that occupies its blocks");
+	check(diagram && !diagram->plannedReferences.empty(), "and the planned stops of that train on its blocks");
+	// A route without blocks has nothing in its scope.
+	scope.blockIds.clear();
+	scope.sectionIndices.clear();
+	const auto empty = blockingTimeDiagramData(data, scope);
+	check(empty && empty->segments.empty() && empty->plannedReferences.empty(), "a route without blocks shows no train");
 }
 
 void testSharedResources() {
