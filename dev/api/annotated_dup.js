@@ -119,6 +119,7 @@ var annotated_dup =
     [ "HttpTransport", "class_http_transport.html", "class_http_transport" ],
     [ "IconItem", "class_icon_item.html", "class_icon_item" ],
     [ "IncidentPanel", "class_incident_panel.html", "class_incident_panel" ],
+    [ "IncidentTarget", "struct_incident_target.html", "struct_incident_target" ],
     [ "InfoDockWidget", "class_info_dock_widget.html", "class_info_dock_widget" ],
     [ "InfraElement", "class_infra_element.html", "class_infra_element" ],
     [ "InfraEvent", "class_infra_event.html", "class_infra_event" ],

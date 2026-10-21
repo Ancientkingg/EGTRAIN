@@ -184,13 +184,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a9148389f3aa3e0447e3687e3223e39d2" id="r_a9148389f3aa3e0447e3687e3223e39d2"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9148389f3aa3e0447e3687e3223e39d2">plannedReferencesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;scope, const std::map&lt; int, <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &gt; &amp;paths, const std::map&lt; int, <a class="el" href="struct_route_diagram_projection.html">RouteDiagramProjection</a> &gt; &amp;projections, int &amp;omitted)</td></tr>
 <tr class="memitem:a409140b657b52e1822517ded4f3d9678" id="r_a409140b657b52e1822517ded4f3d9678"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a409140b657b52e1822517ded4f3d9678">blockingTimeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a> &amp;scope)</td></tr>
 <tr class="memdesc:a409140b657b52e1822517ded4f3d9678"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when the scope has no reference route.  <br /></td></tr>
+<tr class="memitem:a1f2742e6fad4e30bbfe970d0e8a2c7c3" id="r_a1f2742e6fad4e30bbfe970d0e8a2c7c3"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1f2742e6fad4e30bbfe970d0e8a2c7c3">compressedBlockingTimeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope, const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result)</td></tr>
 <tr class="memitem:a554f241b4d09d5f8402f9c33981e7b16" id="r_a554f241b4d09d5f8402f9c33981e7b16"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a554f241b4d09d5f8402f9c33981e7b16">capacityEvidenceText</a> (const std::vector&lt; <a class="el" href="struct_capacity_headway_evidence.html">CapacityHeadwayEvidence</a> &gt; &amp;evidence)</td></tr>
 <tr class="memdesc:a554f241b4d09d5f8402f9c33981e7b16"><td class="mdescLeft">&#160;</td><td class="mdescRight">The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ".  <br /></td></tr>
 <tr class="memitem:ab420be6557579b41e9121557671bc2f5" id="r_ab420be6557579b41e9121557671bc2f5"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab420be6557579b41e9121557671bc2f5">capacityAnalysisCsv</a> (const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result, const QString &amp;sectionLabel)</td></tr>
 <tr class="memitem:acfdef5a662b4ac2ea5818632014a313a" id="r_acfdef5a662b4ac2ea5818632014a313a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#acfdef5a662b4ac2ea5818632014a313a">capacityCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 <tr class="memdesc:acfdef5a662b4ac2ea5818632014a313a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when the scope has an issue or the occurrences do not form a chain.  <br /></td></tr>
-<tr class="memitem:acf0d34dc7c2f174ee9b5c532cfd59426" id="r_acf0d34dc7c2f174ee9b5c532cfd59426"><td class="memItemLeft">std::map&lt; std::string, <a class="el" href="struct_route_diagram_projection.html">RouteDiagramProjection</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acf0d34dc7c2f174ee9b5c532cfd59426">routeProjectionsByTrain</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &amp;reference)</td></tr>
-<tr class="memdesc:acf0d34dc7c2f174ee9b5c532cfd59426"><td class="mdescLeft">&#160;</td><td class="mdescRight">The projection of the route of each train onto a reference route, by train id.  <br /></td></tr>
 <tr class="memitem:a23cc6d8743ea6132e2b4601ffaeb5449" id="r_a23cc6d8743ea6132e2b4601ffaeb5449"><td class="memItemLeft">std::vector&lt; std::pair&lt; int, std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a23cc6d8743ea6132e2b4601ffaeb5449">usedRouteReferencesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memdesc:a23cc6d8743ea6132e2b4601ffaeb5449"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes that trains run on, as (route index, route id) in order of first use.  <br /></td></tr>
 <tr class="memitem:a9e66592dd211190d72140e97499e0152" id="r_a9e66592dd211190d72140e97499e0152"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9e66592dd211190d72140e97499e0152">routeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, bool timetable, int referenceIndex)</td></tr>
@@ -263,7 +262,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a409140b657b52e1822517ded4f3d9678_cgraph.svg" width="1048" height="1091"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a409140b657b52e1822517ded4f3d9678_cgraph.svg" width="1048" height="852"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -442,6 +441,38 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a1f2742e6fad4e30bbfe970d0e8a2c7c3" name="a1f2742e6fad4e30bbfe970d0e8a2c7c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f2742e6fad4e30bbfe970d0e8a2c7c3">&#9670;&#160;</a></span>compressedBlockingTimeDiagramData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a> &gt; compressedBlockingTimeDiagramData </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>result</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The compressed blocking-time diagram of a capacity result, on the route and the blocks of its scope: the compressed occupations of <span class="tt">result</span> as envelopes, and the recorded samples of each train of the result that lie inside them, moved in time as its occupations are (compressed minus profile reference). It has no planned references. The time range spans the envelopes with a margin of 5 % of their span, at least 1 s, and starts below 0 s only when an envelope does; it is 0 s to 1 s without an envelope. Empty when the scope has no route. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a1f2742e6fad4e30bbfe970d0e8a2c7c3_cgraph.svg" width="844" height="508"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a0fe35063db3c59420e10e14614f7889e" name="a0fe35063db3c59420e10e14614f7889e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0fe35063db3c59420e10e14614f7889e">&#9670;&#160;</a></span>csvProviderFrom()</h2>
 
@@ -612,34 +643,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a9e66592dd211190d72140e97499e0152_cgraph.svg" width="420" height="282"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="acf0d34dc7c2f174ee9b5c532cfd59426" name="acf0d34dc7c2f174ee9b5c532cfd59426"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf0d34dc7c2f174ee9b5c532cfd59426">&#9670;&#160;</a></span>routeProjectionsByTrain()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::map&lt; std::string, <a class="el" href="struct_route_diagram_projection.html">RouteDiagramProjection</a> &gt; routeProjectionsByTrain </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="struct_route_diagram_path.html">RouteDiagramPath</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reference</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The projection of the route of each train onto a reference route, by train id. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_acf0d34dc7c2f174ee9b5c532cfd59426_cgraph.svg" width="187" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

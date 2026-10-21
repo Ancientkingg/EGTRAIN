@@ -143,6 +143,8 @@ Functions</h2></td></tr>
 <tr class="memdesc:a9221478d65742500cad2597b5f521d2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given.  <br /></td></tr>
 <tr class="memitem:ae772795361eed14e636e3f0f7ad92b6b" id="r_ae772795361eed14e636e3f0f7ad92b6b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae772795361eed14e636e3f0f7ad92b6b">capacityScopeIssueFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 <tr class="memdesc:ae772795361eed14e636e3f0f7ad92b6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the scope cannot be analysed, empty when it can or has no route or block.  <br /></td></tr>
+<tr class="memitem:a5f36dbfbc59442aa926da8be421b1a73" id="r_a5f36dbfbc59442aa926da8be421b1a73"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5f36dbfbc59442aa926da8be421b1a73">capacityStretchesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, int routeIndex, const std::vector&lt; std::string &gt; &amp;occurrenceIds)</td></tr>
+<tr class="memitem:a95d027ab2799eda140c3250d6e83ea45" id="r_a95d027ab2799eda140c3250d6e83ea45"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#a95d027ab2799eda140c3250d6e83ea45">capacityStretchFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, int routeIndex, const std::vector&lt; std::string &gt; &amp;occurrenceIds)</td></tr>
 <tr class="memitem:aef5487a731116924537c202f04406798" id="r_aef5487a731116924537c202f04406798"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#aef5487a731116924537c202f04406798">firstCapacityScopeWithPairFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memitem:aa88001510e05548edcb57449cb5cfa18" id="r_aa88001510e05548edcb57449cb5cfa18"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa88001510e05548edcb57449cb5cfa18">capacityScopeLabelFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 <tr class="memdesc:aa88001510e05548edcb57449cb5cfa18"><td class="mdescLeft">&#160;</td><td class="mdescRight">"route / corridor / first block to last block" without the parts the scope lacks, or "no selected route".  <br /></td></tr>
@@ -261,6 +263,70 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a5f36dbfbc59442aa926da8be421b1a73" name="a5f36dbfbc59442aa926da8be421b1a73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f36dbfbc59442aa926da8be421b1a73">&#9670;&#160;</a></span>capacityStretchesFrom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &gt; capacityStretchesFrom </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>routeIndex</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>occurrenceIds</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The sections of a route that the trains <span class="tt">occurrenceIds</span> share, in route order: each run of consecutive blocks of the route that every one of the trains occupies as capacityInputFrom needs, ended by a block that one of them does not occupy or by the end of the route. Each is a scope with the blocks of its run and the occurrence ids as given. None when the route does not exist, when there is no id, when an id names no train of the run or when no block is shared by all of them. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8h_a5f36dbfbc59442aa926da8be421b1a73_cgraph.svg" width="448" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a95d027ab2799eda140c3250d6e83ea45" name="a95d027ab2799eda140c3250d6e83ea45"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95d027ab2799eda140c3250d6e83ea45">&#9670;&#160;</a></span>capacityStretchFrom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> capacityStretchFrom </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>routeIndex</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>occurrenceIds</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The section of capacityStretchesFrom with the most blocks, the first of them on a tie. A scope of the route and the occurrence ids without blocks when there is none. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8h_a95d027ab2799eda140c3250d6e83ea45_cgraph.svg" width="652" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a4f64e5cefd15be361bdc4d1bb39727cf" name="a4f64e5cefd15be361bdc4d1bb39727cf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4f64e5cefd15be361bdc4d1bb39727cf">&#9670;&#160;</a></span>chooseCapacityAnalysisScope()</h2>
 
@@ -284,11 +350,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Asks for a route, a range of its blocks, a period, the occurrences to analyse in order and the occurrence that closes the cycle. It opens on the route and section of the scope when the run has them, else on the whole first route. On accept the scope holds the choice. False when the dialog is cancelled or the run has no route. </p>
+<p>Asks for a route, a period, the occurrences to analyse in order, the occurrence that closes the cycle and one of the sections that capacityStretchesFrom gives for the checked occurrences. The longest section is selected; after a change of the checked occurrences or of their order, the section that starts at the block where the selected one started stays selected when there is one. It opens on the route of the scope when the run has it, with the occurrences of the scope checked when it names some, else on the first route. Otherwise, and on a route chosen in the dialog, the trains of the first block of the route that two or more trains occupy are checked. On accept the scope holds the choice. False when the dialog is cancelled or the run has no route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8h_a4f64e5cefd15be361bdc4d1bb39727cf_cgraph.svg" width="1260" height="546"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8h_a4f64e5cefd15be361bdc4d1bb39727cf_cgraph.svg" width="1199" height="431"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -307,11 +373,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The first block, in route and block order, that at least two trains occupy, with those trains selected. A scope without a route when there is none. </p>
+<p>The trains, in run order, that occupy the first block, in route and block order, that at least two trains occupy, and the section of its route that capacityStretchFrom gives for them. A scope without a route when there is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8h_aef5487a731116924537c202f04406798_cgraph.svg" width="886" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8h_aef5487a731116924537c202f04406798_cgraph.svg" width="931" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

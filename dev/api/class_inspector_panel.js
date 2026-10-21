@@ -17,6 +17,8 @@ var class_inspector_panel =
     [ "dock", "class_inspector_panel.html#aabe6e0307ce74101ed993b16c0d454e8", null ],
     [ "handleCloseInfoDockWidget", "class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df", null ],
     [ "handleDisableHighlight", "class_inspector_panel.html#adaa566081ff6821ac1fb51c12e265d3a", null ],
+    [ "previewSelectionId", "class_inspector_panel.html#a6971d4b3836c29633e0238df4fe481f5", null ],
+    [ "previewSelectionKind", "class_inspector_panel.html#a79032debffa74de514c2523e5ca0b295", null ],
     [ "refreshInspectedSignal", "class_inspector_panel.html#a1c228f1b0177d21df567b8a2e07bf0e1", null ],
     [ "resolvePreviewItem", "class_inspector_panel.html#a67a007ec5ee5574d0fed91f11e9f71f5", null ],
     [ "selectedTrainIndex", "class_inspector_panel.html#a02bd5bbe9b096cf801424032ea1219fc", null ],

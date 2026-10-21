@@ -318,7 +318,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>The Capacity window</p></td>
-<td><p>Diagrams &gt; Capacity… and Run Results &gt; Open result view &gt; Capacity. Both need a completed run. A chooser titled “Capacity” asks for Route / corridor, First block, Last block, Analysis period, Cycle-closing occurrence and the checked occurrences. It opens on the first block, in route and block order, on which two or more occurrences have complete occupations, with those occurrences checked. The result window then opens with the header “Selected train chain: cycle X s, Y% of period; not network capacity” (one decimal) and the tabs Pairs, Compression and Critical blocks. Each tab title ends with its row count</p></td>
+<td><p>Diagrams &gt; Capacity… and Run Results &gt; Open result view &gt; Capacity. Both need a completed run. A chooser titled “Capacity” asks for Route / corridor, Analyzed blocks, Analysis period, Cycle-closing occurrence and the checked occurrences. Analyzed blocks offers each section of the route that the checked occurrences share, with the longest selected (<a class="reference internal" href="#terms-and-units">Scope</a>). It opens on the first route with a block on which two or more occurrences have complete occupations, with the occurrences of the first such block checked. The result window then opens with the header “Selected train chain: cycle X s, Y% of period; not network capacity” (one decimal) and the tabs Pairs, Compression and Critical blocks. Each tab title ends with its row count</p></td>
 </tr>
 <tr class="row-odd"><td><p>The Capacity by area window</p></td>
 <td><p>Diagrams &gt; Capacity by area… and Run Results &gt; Open result view &gt; Capacity by area. <a class="reference internal" href="#capacity-by-area">Capacity by area</a> describes it, its CSV <code class="docutils literal notranslate"><span class="pre">area_capacity.csv</span></code> and its options</p></td>
@@ -327,7 +327,7 @@
 <td><p>The button <strong>Export capacity CSV…</strong> asks for a path and suggests the name <code class="docutils literal notranslate"><span class="pre">capacity_analysis.csv</span></code>. It writes a provenance file beside the CSV, named like the CSV with <code class="docutils literal notranslate"><span class="pre">.provenance.json</span></code> added</p></td>
 </tr>
 <tr class="row-odd"><td><p>The compressed diagram</p></td>
-<td><p>The button <strong>Open compressed blocking-time diagram</strong>. The diagram window has its own <strong>Export CSV…</strong> (suggested name <code class="docutils literal notranslate"><span class="pre">capacity_compressed_blocking_time.csv</span></code>) and <strong>Export PNG…</strong></p></td>
+<td><p>The button <strong>Open compressed blocking-time diagram</strong>. The window is built like the blocking-time diagram, with the same axes, block-section strip, legend, train filter, zoom and exports: <strong>Export CSV…</strong> (suggested name <code class="docutils literal notranslate"><span class="pre">capacity_compressed_blocking_time.csv</span></code>) and <strong>Export PNG…</strong>. It draws the capacity-critical envelopes amber and the recorded movement of each train moved as its occupations are (<a class="reference internal" href="#the-calculation">step 5</a>), and no planned references. Its time axis spans the compressed envelopes with a margin of 5 % of their span</p></td>
 </tr>
 <tr class="row-even"><td><p>The input</p></td>
 <td><p>The occupations: Diagrams &gt; Blocking time… and Run Results &gt; Open result view &gt; Blocking time, and <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> in the <code class="docutils literal notranslate"><span class="pre">TrainTrajectories</span></code> folder of the run output</p></td>
@@ -356,22 +356,22 @@
 <td><p>A block. Two occupations share a resource when a component of their block ids is equal. An id is split at “&#64;” and its first and third non-empty parts are compared. An id without “&#64;” is compared whole. An id has no direction of travel (<code class="docutils literal notranslate"><span class="pre">shareBlockingTimeResource</span></code>)</p></td>
 </tr>
 <tr class="row-even"><td><p>Scope</p></td>
-<td><p>In the Capacity window, one route of the run, a first and a last block chosen from the blocks of that route, in either order, and every block between them. The first selected block is the one that comes first in the route, whichever of the two lists it was chosen in. The corridor name of a route is a label only. There is no corridor or network scope. The Capacity by area window has an area instead</p></td>
+<td><p>In the Capacity window, one route of the run and its analysed blocks: one section of the route, a run of consecutive blocks on which every checked occurrence has a valid occupation with a usable <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code>. A block where a checked occurrence has none ends a section (<code class="docutils literal notranslate"><span class="pre">capacityStretchesFrom</span></code>). Analyzed blocks lists each section in route order, for example “1:B to 2:C (2 blocks)”, where the number before a block id is its position on the route, and selects the one with the most blocks, the first of them on a tie. When a check box or the order of the list changes, the section that starts at the same block stays selected if there still is one, else the longest is selected. A new route selects its longest section. A section does not end where the order of the trains changes. The corridor name of a route is a label only. There is no corridor or network scope. The Capacity by area window has an area instead</p></td>
 </tr>
 <tr class="row-odd"><td><p>Area</p></td>
 <td><p>In the Capacity by area window, the blocks of a range of one route and, optionally, of a range of a second route. It is a list of resources of one analysis, not a signalling area, and it is not stored (<a class="reference internal" href="#choosing-the-scope-and-the-period">Choosing the scope and the period</a>)</p></td>
 </tr>
 <tr class="row-even"><td><p>Occurrence</p></td>
-<td><p>A train of the run, named by its runtime id. It is listed when it has a valid occupation on the first selected block with a usable <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code>, on any route (<a class="reference internal" href="#the-calculation">step 1</a>). An entry of the list reads “runtime id | operating code | reference source”</p></td>
+<td><p>A train of the run, named by its runtime id. It is listed when it has a valid occupation with a usable <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code> on a block of the chosen route, whatever route it runs on (<a class="reference internal" href="#the-calculation">step 1</a>). An entry of the list reads “runtime id | operating code”</p></td>
 </tr>
 <tr class="row-odd"><td><p>Order</p></td>
 <td><p>The order of the checked rows of the list. The user can drag rows. The first order is the order in which the run holds its trains, not the order of time. The program never sorts</p></td>
 </tr>
 <tr class="row-even"><td><p>Period</p></td>
-<td><p>A number of seconds entered in the chooser: default 3600, minimum 0.001, step 60. It is not read from the scene or the run, and it is not checked against the length of the run. There is no selection of a timetable window: every valid occupation of a selected train on the selected blocks is used</p></td>
+<td><p>A number of seconds entered in the chooser: default 3600, minimum 0.001, step 60. It is not read from the scene or the run, and it is not checked against the length of the run. There is no selection of a timetable window: every valid occupation of a selected train on the analysed blocks is used</p></td>
 </tr>
 <tr class="row-odd"><td><p>Profile reference</p></td>
-<td><p>The <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code> of the train on the first selected block, in seconds. The result window calls it “Original reference”</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code> of the train on the first analysed block, in seconds. The result window calls it “Original reference”</p></td>
 </tr>
 <tr class="row-even"><td><p>Scheduled reference</p></td>
 <td><p>A time that stands for the timetable, in seconds. <a class="reference internal" href="#the-calculation">Step 2</a> gives the three ways to get it</p></td>
@@ -401,7 +401,7 @@
 <h2>The calculation<a class="headerlink" href="#the-calculation" title="Link to this heading">¶</a></h2>
 <p>The steps follow <code class="docutils literal notranslate"><span class="pre">analyzeCapacity</span></code> and the helpers of <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope.cpp</span></code>. Times are in seconds.</p>
 <ol class="arabic">
-<li><p><strong>Candidates.</strong> <code class="docutils literal notranslate"><span class="pre">capacityInputsFrom</span></code> offers every train of the run whose first valid occupation that shares a resource with the first selected block has a finite <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code> of 0 or more. That record gives the profile reference of step 2. A train without such a record is not offered. The occupations of an offered train are all its valid occupations that share a resource with a selected block. The direction of the train is not examined.</p></li>
+<li><p><strong>Candidates and blocks.</strong> A train has a usable record on a block when its first valid occupation that shares a resource with the block has a finite <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code> of 0 or more. The chooser lists every train of the run with a usable record on a block of the route. When it opens, it checks the trains of the first block of the route on which two or more trains have a usable record. The analysed blocks are the section selected under Analyzed blocks: a run of consecutive blocks on which every checked train has a usable record, ended by a block where one of them has none (<a class="reference internal" href="#terms-and-units">Scope</a>). <code class="docutils literal notranslate"><span class="pre">capacityInputsFrom</span></code> takes the record of each train on the first analysed block, which gives the profile reference of step 2. The occupations of a train are all its valid occupations that share a resource with an analysed block. The direction of the train is not examined.</p></li>
 <li><p><strong>References.</strong> The profile reference is the <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code> of that record. The scheduled reference is, in this order:</p>
 <ol class="arabic simple">
 <li><p>the authored time of the first stop, in stop order, that has one and whose route position is within 5 m of the start of that record: its departure, or its arrival when it has no departure (reference source “authored ScheduledDeparture at boundary station” or “authored ScheduledArrival at boundary station (departure absent)”);</p></li>
@@ -412,7 +412,7 @@
 </li>
 <li><p><strong>Minimum headway of an ordered pair.</strong> The leader is earlier in the order than the follower. Every pair of valid occupations, one of each train, that share a resource gives a candidate: (leader <code class="docutils literal notranslate"><span class="pre">EndOccTime</span></code> - leader profile reference) - (follower <code class="docutils literal notranslate"><span class="pre">StartOccTime</span></code> - follower profile reference). The minimum headway is the largest candidate, but not below 0. The resources whose candidate is within 1e-7 s of the largest are the governing resources. A pair with no shared resource has no minimum headway.</p></li>
 <li><p><strong>Scheduled headway and buffer.</strong> Scheduled headway = follower scheduled reference - leader scheduled reference. Buffer = scheduled headway - minimum headway. It is not clamped: a negative value means that the scheduled references are closer together than the minimum headway. The Pairs tab lists the adjacent pairs of the order. The CSV lists every earlier/later pair.</p></li>
-<li><p><strong>Compression.</strong> The first train keeps its scheduled reference as its compressed reference. Each later train gets the largest of two values: the compressed reference of the train just before it in the order, and, for each earlier train that shares a resource with it, that train’s compressed reference plus the minimum headway of the pair. The scheduled reference of a later train does not enter. It only gives the Shift column (compressed reference minus scheduled reference). The occupations of a train are moved by (compressed reference - profile reference). Only the occupations move, not the trajectories. The earlier trains whose compressed reference plus minimum headway equals the compressed reference of the follower (within 1e-7 s) are its governing predecessors.</p></li>
+<li><p><strong>Compression.</strong> The first train keeps its scheduled reference as its compressed reference. Each later train gets the largest of two values: the compressed reference of the train just before it in the order, and, for each earlier train that shares a resource with it, that train’s compressed reference plus the minimum headway of the pair. The scheduled reference of a later train does not enter. It only gives the Shift column (compressed reference minus scheduled reference). The occupations of a train are moved by (compressed reference - profile reference). The compressed blocking-time diagram moves the recorded samples of the train by the same time and shows those that lie inside its moved envelopes. The earlier trains whose compressed reference plus minimum headway equals the compressed reference of the follower (within 1e-7 s) are its governing predecessors.</p></li>
 <li><p><strong>Critical blocks.</strong> After compression, an occupation of a follower and an occupation of one of its governing predecessors that share a resource and touch are marked as critical (amber in the compressed blocking-time chart, as the note under the chart says). They touch when the start of the follower minus the end of the predecessor is within 1e-7 s of 0. A touch is not an overlap. An overlap is an intersection of occupations of two trains on a shared resource longer than 1e-7 s. It is the conflict that the blocking-time chart draws in red (<code class="docutils literal notranslate"><span class="pre">buildBlockingTimeDiagramSegments</span></code>; the note under the chart names the colour).</p></li>
 <li><p><strong>Cycle.</strong> Cycle time = compressed reference of the cycle-closing occurrence - compressed reference of the first train. Cycle percentage = cycle time / period x 100. There is no upper bound. The user picks the closing occurrence in the chooser; it must be a checked row after the first. The program does not infer it.</p></li>
 <li><p><strong>When a result exists.</strong> A result is shown only when it is analyzable: at least two trains, a valid profile reference for each (finite and 0 or more), a shared resource for every adjacent pair of the order, and no overlap among the compressed occupations of any two trains on a shared resource.</p></li>
@@ -517,22 +517,28 @@
 <td><p>The Diagrams entry is disabled, and so is the button Open result view. If the function is reached anyway, the status bar shows “Run a simulation to open capacity analysis”</p></td>
 </tr>
 <tr class="row-odd"><td><p>No block of any route with two trains that have a usable occupation on it</p></td>
-<td><p>An information box: “No retained native blocking-time section has two occurrences with a common entry block. Run a scene with explicit signalling data; EGTRAIN does not infer a signalling system or blocking-time parameters.”</p></td>
+<td><p>An information box: “No block of any route has complete blocking times of two or more occurrences. Run a scene with explicit signalling data; EGTRAIN does not infer a signalling system or blocking-time parameters.”</p></td>
 </tr>
-<tr class="row-even"><td><p>Fewer than two occurrences for the chosen section, an empty list or fewer than two checked rows</p></td>
-<td><p>The list is empty when no train occupies the block range or the route has no blocks. <strong>OK</strong> of the chooser shows “Select at least two ordered occurrences with a common entry block.” and the chooser stays open. The code after the chooser repeats the check with two boxes, “No route section has two occurrences with a common entry block. …” and “Fewer than two occurrences share the selected section entry. …”. The chooser accepts only two or more checked rows that it listed for the same scope, so neither box follows an accepted chooser</p></td>
+<tr class="row-even"><td><p>An empty list or fewer than two checked rows</p></td>
+<td><p>The list is empty when no train has a usable record on a block of the route or the route has no blocks. <strong>OK</strong> of the chooser shows “Check at least two occurrences.” and the chooser stays open. The code after the chooser repeats the check with two boxes, “No block of the route is shared by the selected occurrences. …” and “Fewer than two occurrences share the analyzed blocks. …”. The chooser accepts only two or more checked rows that share a block, so neither box follows an accepted chooser</p></td>
+</tr>
+<tr class="row-odd"><td><p>Checked occurrences that share no block</p></td>
+<td><p>The chooser shows “none” under Analyzed blocks and “No block of the route is shared by all checked occurrences.” under the list, and <strong>OK</strong> is disabled until the checked occurrences share a block</p></td>
+</tr>
+<tr class="row-even"><td><p>A change of train order along the route</p></td>
+<td><p>The analysed blocks do not end there. The order of the list holds on every analysed block, and the program does not split them (<a class="reference internal" href="#limits">Limits</a>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>A closing occurrence that is not a checked row after the first</p></td>
 <td><p><strong>OK</strong> of the chooser shows “Choose a checked cycle-closing occurrence after the first row, normally the first train in the next period.” and the chooser stays open. The first entry of the combo box, “Select the first train in the next period…”, is not an occurrence. The code after the chooser repeats the check with the box “The cycle-closing occurrence must be a selected row after the first occurrence.”</p></td>
 </tr>
 <tr class="row-even"><td><p>Incomplete occupations</p></td>
-<td><p>Left out without a message. A train without a valid occupation on the first selected block is not listed. A train that lacks occupations on other selected blocks is listed. Its pairs use the resources it has, and nothing reports the missing ones</p></td>
+<td><p>Left out without a message. A train without a usable record on any block of the route is not listed. A section ends before a block on which a checked train has no usable record, so every checked train has one on every analysed block. Nothing says why a section ends where it does</p></td>
 </tr>
 <tr class="row-odd"><td><p>A repeated block</p></td>
 <td><p>A train with two occupations that share a resource, other than the entry resource of the scope (next row): both are used, every pair of occupations is a candidate, the largest governs, and both move by the same shift</p></td>
 </tr>
 <tr class="row-even"><td><p>A scope that names an occurrence the analysis cannot tell apart</p></td>
-<td><p>The box “Capacity scope unavailable” gives the reason, and there is no result window and no CSV. The calculation matches occupations by resource id, so the window refuses a scope when a resource of the selected range also occurs in a route section outside the range, when the entry resource occurs in a second section of the range, or when a selected train has several valid records for the entry resource. It never picks one occurrence. Repeated sections that the scope does not touch do not block it</p></td>
+<td><p>The box “Capacity scope unavailable” gives the reason, and there is no result window and no CSV. The calculation matches occupations by resource id, so the window refuses a scope when a resource of the analysed blocks also occurs in a route section outside them, when the entry resource occurs in a second section among them, or when a selected train has several valid records for the entry resource. It never picks one occurrence. Repeated sections that the scope does not touch do not block it</p></td>
 </tr>
 <tr class="row-odd"><td><p>Opposing trains</p></td>
 <td><p>The Capacity window has no check of direction (<a class="reference internal" href="#cases-the-area-window-handles">the Capacity by area window has one</a>). A train in the opposite direction whose records carry the same block ids is listed and, when checked, enters the pair and compression calculation like a following train. In <code class="docutils literal notranslate"><span class="pre">tests/characterization/expected/sf-reverse-level-0.txt</span></code> the trains run the line in the opposite direction and their records carry the ids <code class="docutils literal notranslate"><span class="pre">&#64;7-B0&#64;</span></code> to <code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code>. These are the ids that the trains of <code class="docutils literal notranslate"><span class="pre">follow-level-0.txt</span></code> carry, in reverse order</p></td>
@@ -541,7 +547,7 @@
 <td><p>The chooser accepts 0.001 s and more, so the window cannot start with such a period. <code class="docutils literal notranslate"><span class="pre">analyzeCapacity</span></code> reports a period that is negative or not finite as unavailable (-1) and keeps a period of 0. In both cases it gives no percentage</p></td>
 </tr>
 <tr class="row-odd"><td><p>No shared resource for an adjacent pair, or an overlap after compression</p></td>
-<td><p>The box “The selected occurrences do not form a valid shared-resource chain. …” appears, followed by a hint to choose a common entry or to analyze the route in separate sections. There is no result window and no CSV</p></td>
+<td><p>The box “The selected occurrences do not form a valid shared-resource chain. …” appears, followed by a hint to choose other occurrences or another order. There is no result window and no CSV</p></td>
 </tr>
 <tr class="row-even"><td><p>A percentage above 100</p></td>
 <td><p>Shown as computed</p></td>
@@ -846,7 +852,7 @@
 <tbody>
 <tr class="row-even"><td><p>What it is</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">id</span></code>, start km, end km, level 0 to 5 and an optional track</p></td>
-<td><p>One route and a block range, chosen for one analysis</p></td>
+<td><p>One route and the blocks that the checked occurrences share, for one analysis</p></td>
 <td><p>One route and a block range and, optionally, a block range of a second route, chosen for one analysis</p></td>
 <td><p>One row of <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code>: name, start, end, signalling level and an optional track line number</p></td>
 </tr>
@@ -858,8 +864,8 @@
 </tr>
 <tr class="row-even"><td><p>When a block belongs to it</p></td>
 <td><p>The section lies wholly inside the range, with a coordinate tolerance of 1e-8 km (<code class="docutils literal notranslate"><span class="pre">sectionSpanInsideArea</span></code>)</p></td>
-<td><p>An occupation belongs when its block id shares a resource with a block of the range</p></td>
-<td><p>The same</p></td>
+<td><p>An occupation belongs when its block id shares a resource with an analysed block</p></td>
+<td><p>An occupation belongs when its block id shares a resource with a block of a range</p></td>
 <td><p>A block or blocking time belongs when at least one end lies inside the closed range from start x 1000 to end x 1000 metres. A block that contains the whole range is not in. A block that touches an edge is in, so two areas that meet at a block edge both hold that block</p></td>
 </tr>
 <tr class="row-odd"><td><p>Whether it gives a level</p></td>
@@ -1060,15 +1066,15 @@
 <section id="limits">
 <h2>Limits<a class="headerlink" href="#limits" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>The percentage of the Capacity window covers the chain only. Trains that are not checked, or that have no valid occupation on the first selected block, are not part of the figure, and the window does not say whether they use the same blocks. The Capacity by area window lists the trains of the run that use the area and are not checked.</p></li>
+<li><p>The percentage of the Capacity window covers the chain only. Trains that are not checked are not part of the figure, and the window does not say whether they use the same blocks. The Capacity by area window lists the trains of the run that use the area and are not checked.</p></li>
 <li><p>The compression depends on the order the user gives. The first order is the order of the run, not the order of time, and the program never sorts.</p></li>
 <li><p>No buffer or supplement is added after the compression. The Buffer column is the scheduled headway minus the minimum headway, and the scheduled reference of a later train does not enter the compression.</p></li>
 <li><p>The program compares the percentage with no threshold and makes no recommendation. It can exceed 100.</p></li>
 <li><p>Occupations exist only at levels 0, 2, 3 and 4 (<a class="reference internal" href="#inputs">Inputs</a>).</p></li>
 <li><p>The setup, sight reaction and release times and the margin are fixed by the run, not by the window. The figures depend on them.</p></li>
 <li><p>The Capacity window does not examine the direction of a train (<a class="reference internal" href="#special-cases">Special cases</a>). The Capacity by area window leaves a train of the other direction out of the chain only.</p></li>
-<li><p>The Capacity window does not report a missing occupation on a selected block (<a class="reference internal" href="#special-cases">Special cases</a>). The Capacity by area window reports an unusable occupation but not a missing one.</p></li>
-<li><p>One analysis covers one route section. The <a class="reference internal" href="assignment-workflow.html#calculation-boundaries"><span class="std std-ref">Assignment workflow</span></a> handles a change of train order by separate sections.</p></li>
+<li><p>The Capacity window does not say why a section ends: the next block lacks a usable record of a checked train (<a class="reference internal" href="#special-cases">Special cases</a>). The Capacity by area window reports an unusable occupation but not a missing one.</p></li>
+<li><p>One analysis covers one section of one route. A block that a checked occurrence does not occupy ends a section, and the chooser offers each section that the checked occurrences share, with the longest selected first, so the parts of the route on either side of such a block are analysed one at a time. The program does not split a section where the order of the trains changes. The Capacity by area window takes a block range that the user chooses (<a class="reference internal" href="assignment-workflow.html#calculation-boundaries"><span class="std std-ref">Assignment workflow</span></a>).</p></li>
 <li><p>The period is independent of the length of the run and of the timetable.</p></li>
 <li><p>Parity with the legacy tool is not established. No output of the removed calculation exists in the repository, and the two answer different questions (<a class="reference internal" href="#a-hand-check-of-the-envelope">hand check</a>). The legacy envelope of the Capacity by area window differs from the removed formula in what belongs to the area and in the denominator, and the program computes no trains per hour. Network-wide validity is not claimed: the program has no rule for which traffic a result must include.</p></li>
 <li><p>The program cites no norm or recommendation for the percentage or for a rate. Step 18 of the Assignment workflow refers to a course recommendation that comes from the course material and is not stated in this repository.</p></li>

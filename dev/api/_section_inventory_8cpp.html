@@ -130,6 +130,7 @@ Include dependency graph for SectionInventory.cpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:a38867ed655babc4f9d2a81b27deff310" id="r_a38867ed655babc4f9d2a81b27deff310"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a38867ed655babc4f9d2a81b27deff310">formatSceneSectionCoordinate</a> (double coordinate)</td></tr>
 <tr class="memdesc:a38867ed655babc4f9d2a81b27deff310"><td class="mdescLeft">&#160;</td><td class="mdescRight">A chainage in kilometres as printf "%f" writes it, the form used in switch section ids.  <br /></td></tr>
+<tr class="memitem:aada86a733299e516b7fc5ad92a65eee4" id="r_aada86a733299e516b7fc5ad92a65eee4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aada86a733299e516b7fc5ad92a65eee4">sceneSignalFailureTarget</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;sectionReference)</td></tr>
 <tr class="memitem:a9cb3de6815c38bfd0cf14a022a187786" id="r_a9cb3de6815c38bfd0cf14a022a187786"><td class="memItemLeft"><a class="el" href="struct_scene_section_transition.html">SceneSectionTransition</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9cb3de6815c38bfd0cf14a022a187786">classifySceneSectionTransition</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;left, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;right)</td></tr>
 <tr class="memitem:a0a493a67878c96b3c90d791a1fa68552" id="r_a0a493a67878c96b3c90d791a1fa68552"><td class="memItemLeft"><a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0a493a67878c96b3c90d791a1fa68552">buildSceneSectionInventory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a70ff699bacfd05e1892bd3e5d5378c50" id="r_a70ff699bacfd05e1892bd3e5d5378c50"><td class="memItemLeft"><a class="el" href="struct_scene_block_extent.html">SceneBlockExtent</a>&#160;</td><td class="memItemRight"><a class="el" href="#a70ff699bacfd05e1892bd3e5d5378c50">sceneBlockExtent</a> (const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;trackId)</td></tr>
@@ -476,6 +477,38 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a27f18250734df7f228d6cc0fdb9b6ad6_cgraph.svg" width="178" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aada86a733299e516b7fc5ad92a65eee4" name="aada86a733299e516b7fc5ad92a65eee4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aada86a733299e516b7fc5ad92a65eee4">&#9670;&#160;</a></span>sceneSignalFailureTarget()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string sceneSignalFailureTarget </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>inventory</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sectionReference</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The target that a signal failure of the section has, as the incident editor offers it: the signal that protects the section when exactly one does and its id names no section, otherwise the block of the section unless a signal has the same id. Empty for a switch section that no signal protects and for a reference that names no section. The reference is a runtime id or a block id. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_aada86a733299e516b7fc5ad92a65eee4_cgraph.svg" width="631" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

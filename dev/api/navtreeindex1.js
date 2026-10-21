@@ -1,5 +1,9 @@
 var NAVTREEINDEX1 =
 {
+"_diagram_window_8cpp.html":[3,0,1,18],
+"_diagram_window_8h.html":[3,0,1,19],
+"_diagram_window_8h_source.html":[3,0,1,19],
+"_dialog_folders_8h.html":[3,0,0,3],
 "_dialog_folders_8h_source.html":[3,0,0,3],
 "_dialog_layout_8h.html":[3,0,12,10],
 "_dialog_layout_8h_source.html":[3,0,12,10],
@@ -245,9 +249,5 @@ var NAVTREEINDEX1 =
 "_network_presenter_8h.html#a1b57662dc5e3aac38290b652a37de442":[3,0,4,5,7],
 "_network_presenter_8h.html#a1fe09b7029738c6037d8b9a15423a158":[3,0,4,5,13],
 "_network_presenter_8h.html#a2c806caf42aab9fe3cd7c2e65f79fdef":[3,0,4,5,9],
-"_network_presenter_8h.html#a4ee8a0b69325a28edae851515c7bb021":[3,0,4,5,10],
-"_network_presenter_8h.html#a5ad7e0d37140be7daecd2de8ac3410c4":[3,0,4,5,11],
-"_network_presenter_8h.html#a90871b99822ad821aef490a21ffd9272":[3,0,4,5,8],
-"_network_presenter_8h.html#ab86c30f8ddd372850bdc390b9e58d813":[3,0,4,5,6],
-"_network_presenter_8h_source.html":[3,0,4,5]
+"_network_presenter_8h.html#a4ee8a0b69325a28edae851515c7bb021":[3,0,4,5,10]
 };

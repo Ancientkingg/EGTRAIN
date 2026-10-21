@@ -98,6 +98,6 @@ var searchData=
   ['trip_5factivity_5ftype_95',['Trip_Activity_Type',['../class_trip.html#a7aa5c8890109996d63f10a75ce3ac1c9',1,'Trip']]],
   ['tripid_96',['TripID',['../class_trip.html#a0b1e852f3c3f0314d2aeb0d9a8f777d0',1,'Trip']]],
   ['trips_97',['Trips',['../class_journey.html#a38c69470d0668c36a33e98159eb474bf',1,'Journey']]],
-  ['type_98',['type',['../struct_gui_train_state.html#a8c60725c4a81ac0108bf4b2998baaa77',1,'GuiTrainState::type'],['../struct_scene_incident.html#ae80276f3ea8302ec9be5986f9d699134',1,'SceneIncident::type'],['../class_train.html#a9f00194d24ad07e86839738bc1e6c811',1,'Train::type'],['../struct_simulation_incident.html#a6530b25f224ab3103deea1ef53cec3a7',1,'SimulationIncident::type'],['../class_movement_authority.html#a52d07f93973347ac68f02a0879234b13',1,'MovementAuthority::type']]],
+  ['type_98',['type',['../struct_gui_train_state.html#a8c60725c4a81ac0108bf4b2998baaa77',1,'GuiTrainState::type'],['../struct_incident_target.html#ac76d3f7c9e5be5e5b219273095ff872d',1,'IncidentTarget::type'],['../struct_scene_incident.html#ae80276f3ea8302ec9be5986f9d699134',1,'SceneIncident::type'],['../class_train.html#a9f00194d24ad07e86839738bc1e6c811',1,'Train::type'],['../struct_simulation_incident.html#a6530b25f224ab3103deea1ef53cec3a7',1,'SimulationIncident::type'],['../class_movement_authority.html#a52d07f93973347ac68f02a0879234b13',1,'MovementAuthority::type']]],
   ['typepart_99',['typePart',['../class_movement_authority.html#ae11f6bcf4d742033d24522bc7555c3cc',1,'MovementAuthority']]]
 ];

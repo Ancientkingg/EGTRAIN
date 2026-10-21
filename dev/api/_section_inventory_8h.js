@@ -31,5 +31,6 @@ var _section_inventory_8h =
     [ "sceneBlockExtent", "_section_inventory_8h.html#a70ff699bacfd05e1892bd3e5d5378c50", null ],
     [ "sceneRouteDirection", "_section_inventory_8h.html#ae4f9207213b44d11e550fd70a54d3fde", null ],
     [ "sceneRouteStations", "_section_inventory_8h.html#a976f8f27d55432ea7c8062522a7ebb4a", null ],
-    [ "sceneSectionsOverlap", "_section_inventory_8h.html#a27f18250734df7f228d6cc0fdb9b6ad6", null ]
+    [ "sceneSectionsOverlap", "_section_inventory_8h.html#a27f18250734df7f228d6cc0fdb9b6ad6", null ],
+    [ "sceneSignalFailureTarget", "_section_inventory_8h.html#aada86a733299e516b7fc5ad92a65eee4", null ]
 ];

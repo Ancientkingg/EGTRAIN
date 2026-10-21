@@ -157,6 +157,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aabe6e0307ce74101ed993b16c0d454e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The dock that holds the forms; owned by the window.  <br /></td></tr>
 <tr class="memitem:a02bd5bbe9b096cf801424032ea1219fc" id="r_a02bd5bbe9b096cf801424032ea1219fc"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a02bd5bbe9b096cf801424032ea1219fc">selectedTrainIndex</a> () const</td></tr>
 <tr class="memdesc:a02bd5bbe9b096cf801424032ea1219fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the train whose details are shown, or -1.  <br /></td></tr>
+<tr class="memitem:a79032debffa74de514c2523e5ca0b295" id="r_a79032debffa74de514c2523e5ca0b295"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a79032debffa74de514c2523e5ca0b295">previewSelectionKind</a> () const</td></tr>
+<tr class="memitem:a6971d4b3836c29633e0238df4fe481f5" id="r_a6971d4b3836c29633e0238df4fe481f5"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a6971d4b3836c29633e0238df4fe481f5">previewSelectionId</a> () const</td></tr>
 <tr class="memitem:aa7ee083994ac6f6cd244f6cfd9789bd4" id="r_aa7ee083994ac6f6cd244f6cfd9789bd4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa7ee083994ac6f6cd244f6cfd9789bd4">selectsStationOverlay</a> (const <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> *overlay) const</td></tr>
 <tr class="memdesc:aa7ee083994ac6f6cd244f6cfd9789bd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the overlay belongs to the selected station.  <br /></td></tr>
 <tr class="memitem:a9a109a422f4f9f2912e891693c5e6ad4" id="r_a9a109a422f4f9f2912e891693c5e6ad4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9a109a422f4f9f2912e891693c5e6ad4">clearSelectedStation</a> ()</td></tr>
@@ -645,6 +647,58 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_adaa566081ff6821ac1fb51c12e265d3a_cgraph.svg" width="483" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a6971d4b3836c29633e0238df4fe481f5" name="a6971d4b3836c29633e0238df4fe481f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6971d4b3836c29633e0238df4fe481f5">&#9670;&#160;</a></span>previewSelectionId()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString InspectorPanel::previewSelectionId </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The id of the selected item of the track preview, as its <a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1fabd811525e5bf34465e2b25b8c626aad8" title="The id of the element of the scene model: track, arc, connection, node, station or section.">PreviewGraphics::Id</a> role holds it: for a signal head the runtime id of its section. Empty while none is selected. </p>
+
+</div>
+</div>
+<a id="a79032debffa74de514c2523e5ca0b295" name="a79032debffa74de514c2523e5ca0b295"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79032debffa74de514c2523e5ca0b295">&#9670;&#160;</a></span>previewSelectionKind()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString InspectorPanel::previewSelectionKind </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The kind of the selected item of the track preview, as its <a class="el" href="namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1faa815b6293885dc7adc9fd0a989eca7cf" title="The kind of item: &quot;track&quot;, &quot;arc&quot;, &quot;connection&quot;, &quot;node&quot;, &quot;station-node&quot;, &quot;station&quot; or &quot;signal&quot;.">PreviewGraphics::Kind</a> role holds it; empty while none is selected. </p>
 
 </div>
 </div>

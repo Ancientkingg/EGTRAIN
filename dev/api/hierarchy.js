@@ -89,6 +89,7 @@ var hierarchy =
       [ "MainWindow", "class_main_window.html", null ]
     ] ],
     [ "HttpRequest", "struct_http_request.html", null ],
+    [ "IncidentTarget", "struct_incident_target.html", null ],
     [ "InfraElement", "class_infra_element.html", null ],
     [ "InfraEvent", "class_infra_event.html", null ],
     [ "InfrastructureFacet", "class_infrastructure_facet.html", [
