@@ -11,6 +11,7 @@
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
 #include "graphics/items/SignalItem.h"
+#include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/TrainBodyItem.h"
@@ -18,8 +19,10 @@
 #include "simulation/Signalling.h"
 
 #include <QApplication>
+#include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QLoggingCategory>
+#include <QMap>
 #include <QObject>
 #include <QPixmap>
 
@@ -668,6 +671,63 @@ int main(int argc, char* argv[]) {
 		ok &= expect(switchPresenter.allArcs.size() == 1 && switchPresenter.allArcs[0]->arc == &track.member[1] && dots() == 0,
 			"a run draws the middle arc of a double switch and no node dot");
 		switchPresenter.clear();
+	}
+
+	// Without the geometry of its stations a track line is drawn one track separation higher for each level.
+	{
+		BlockSet& track = source->track(0);
+		track.hasGraphLayout = true;
+		track.graphID = 1;
+		track.region = 1; // no station is in this region
+		presenter.showRuntime(model);
+		bool above = presenter.allArcs.size() == 2;
+		for (const TrackLineItem* arc : presenter.allArcs)
+			above = above && near(arc->line().y1(), -presenter.track_separation) && near(arc->line().y2(), -presenter.track_separation);
+		ok &= expect(above, "a track line on level 1 without station geometry is drawn above level 0");
+		presenter.clear();
+	}
+
+	// With the preview of the scene a run puts the pictures of the stations on a higher schematic level where the
+	// preview put them.
+	{
+		SceneModel levels;
+		levels.tracks = {{"low"}, {"high"}};
+		levels.nodes = {{"low.a", "low", 0.0, 0.0}, {"low.b", "low", 10.0, 0.0}, {"high.a", "high", 0.0, 0.0},
+			{"high.b", "high", 10.0, 0.0}};
+		levels.arcs = {{"low.arc", "low", "low.a", "low.b", 0.0, 0.0, 12.0},
+			{"high.arc", "high", "high.a", "high.b", 0.0, 0.0, 12.0}};
+		levels.trackViews = {{"low", 0, 0}, {"high", 2, 0}};
+		levels.stationViews = {{"A", 1.0, 0.0, {{0, 0.0}}, {}}, {"Koge", 1.0, 0.1, {{0, 10.0}}, {}}};
+		for (const auto& stationData : {
+				 std::pair<const char*, const char*>{"A", "high.a"}, std::pair<const char*, const char*>{"Koge", "high.b"}}) {
+			SceneStation station;
+			station.id = station.name = stationData.first;
+			station.platforms.push_back({std::string(stationData.first) + ".platform", {stationData.second}});
+			levels.stations.push_back(std::move(station));
+		}
+		QGraphicsScene levelScene;
+		NetworkPresenter levelPresenter(&levelScene, nullptr);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->station(1).stationName = "Koge";
+		levelPresenter.setGeometrySource(std::move(geometry));
+		// The bottom centre of the picture of each station, by name.
+		const auto pictureAnchors = [&levelPresenter]() {
+			QMap<QString, QPointF> anchors;
+			for (StationOverlayItem* overlay : levelPresenter.m_stationOverlays)
+				if (const QGraphicsPixmapItem* picture = levelPresenter.m_stationPictures.value(overlay, nullptr))
+					anchors.insert(overlay->stationName(),
+						picture->mapToScene(QPointF(levelPresenter.station_size / 2.0, levelPresenter.station_size)));
+			return anchors;
+		};
+		levelPresenter.showPreview(levels);
+		const QMap<QString, QPointF> preview = pictureAnchors();
+		levelPresenter.clear();
+		levelPresenter.showRuntime(levels);
+		const QMap<QString, QPointF> run = pictureAnchors();
+		bool same = preview.size() == 2 && run.size() == 2;
+		for (auto anchor = preview.cbegin(); anchor != preview.cend(); ++anchor)
+			same = same && run.contains(anchor.key()) && QLineF(run.value(anchor.key()), anchor.value()).length() < 1e-6;
+		ok &= expect(same, "a run with the preview puts the station pictures of a higher schematic level where the preview put them");
 	}
 
 	if (!ok)

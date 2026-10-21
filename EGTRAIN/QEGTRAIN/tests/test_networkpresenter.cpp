@@ -332,14 +332,19 @@ int main(int argc, char* argv[]) {
 		}
 		QGraphicsScene scene;
 		NetworkPresenter presenter(&scene, nullptr);
+		// The bottom centre of the picture of each station, by name.
+		const auto pictureAnchors = [&presenter]() {
+			QMap<QString, QPointF> anchors;
+			for (StationOverlayItem* overlay : presenter.m_stationOverlays)
+				if (const QGraphicsPixmapItem* picture = presenter.m_stationPictures.value(overlay, nullptr))
+					anchors.insert(overlay->stationName(),
+						picture->mapToScene(QPointF(presenter.station_size / 2.0, presenter.station_size)));
+			return anchors;
+		};
 		presenter.showPreview(model);
 		const TrackPreviewLine* low = presenter.trackLine("low");
 		const TrackPreviewLine* high = presenter.trackLine("high");
-		QMap<QString, QPointF> anchors;
-		for (StationOverlayItem* overlay : presenter.m_stationOverlays)
-			if (const QGraphicsPixmapItem* picture = presenter.m_stationPictures.value(overlay, nullptr))
-				anchors.insert(overlay->stationName(),
-					picture->mapToScene(QPointF(presenter.station_size / 2.0, presenter.station_size)));
+		const QMap<QString, QPointF> anchors = pictureAnchors();
 		bool placed = low && high && low->levelSpacing > 0.0 && anchors.size() == 2;
 		if (placed) {
 			const qreal levelZero = low->points.front().y + low->displayOffset;
@@ -352,6 +357,18 @@ int main(int argc, char* argv[]) {
 					< 1e-6;
 		}
 		ok &= expect(placed, "station pictures on a higher schematic level count from level 0");
+
+		// Without the station views the lines are not schematic, and a picture stays at its station.
+		model.stationViews.clear();
+		presenter.clear();
+		presenter.showPreview(model);
+		const TrackPreviewLine* unmapped = presenter.trackLine("high");
+		const QMap<QString, QPointF> unmappedAnchors = pictureAnchors();
+		QPointF station;
+		ok &= expect(unmapped && unmapped->displayOffset != 0.0 && unmappedAnchors.contains("A")
+				&& previewPointAtNode(*unmapped, "high.a", unmapped->displayOffset, station)
+				&& QLineF(unmappedAnchors.value("A"), station).length() < 1e-6,
+			"a station picture on a higher level of a line that is not schematic stays at its station");
 	}
 
 	// A preview leaves no work queued on the scene, so previews that follow each other without the event loop in

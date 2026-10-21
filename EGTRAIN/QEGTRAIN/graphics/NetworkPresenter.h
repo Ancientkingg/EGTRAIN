@@ -239,10 +239,10 @@ public:
 	void paintStationOverlay(QPointF coord, const StationVisual& visual, const std::string& sname,
 		qreal scale = 1.0, QPointF decorationOffset = QPointF(), int platformCount = 0);
 	/// The move in scene units of the picture and the name of a station from its anchor on line: the
-	/// stationDecorationOffset() times the presentation scale. On a line whose display offset holds its level the
-	/// move counts from level 0, as in the original, and a station with a named offset has its offset in units of
-	/// track_separation, the spacing of the original levels, so its picture and name stay between the levels that
-	/// offset was made for.
+	/// stationDecorationOffset() times the presentation scale. On a schematic line, whose points come from the
+	/// station views and whose display offset holds its level, the move counts from level 0, as in the original, and
+	/// a station with a named offset has its offset in units of track_separation, the spacing of the original levels,
+	/// so its picture and name stay between the levels that offset was made for.
 	QPointF stationArtworkOffset(const TrackPreviewLine& line, const std::vector<SceneStationView>& views,
 		const std::string& stationId, const std::string& name) const;
 

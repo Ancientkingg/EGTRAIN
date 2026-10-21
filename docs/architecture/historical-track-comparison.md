@@ -158,10 +158,11 @@ is idempotent, including its unit metadata; edits rebuild from the scene model.
 Station artwork, its vertical gap, text metrics, derived annotation offsets and
 named nudges, structural nodes, signal heads/lateral separation, platforms,
 passenger adornments, train thickness and callout decoration use this shared
-conversion. On a schematic line the annotation offset of a station with a named
-nudge is the exception: it counts in the reference spacing of the levels, so the
-name stays between the rows of track it was placed between. Original font and
-pixmap metrics are retained with fractional item
+conversion. On a schematic line, one that the station views of its region place
+at a single latitude, the annotation offset of a station with a named nudge is
+the exception: it counts in the reference spacing of the levels, so the name
+stays between the rows of track it was placed between.
+Original font and pixmap metrics are retained with fractional item
 scaling. Authored coordinates, levels, track geometry, physical train head/tail
 and length, and signal center/longitudinal +/-8 metre anchors do not scale again.
 Track, connection and signal strokes stay cosmetic. Picking areas are preserved.

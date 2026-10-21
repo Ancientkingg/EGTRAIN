@@ -750,7 +750,7 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 QPointF NetworkPresenter::stationArtworkOffset(const TrackPreviewLine& line,
 	const std::vector<SceneStationView>& views, const std::string& stationId, const std::string& name) const {
 	const QPointF offset = stationDecorationOffset(views, stationId, name);
-	if (!(line.levelSpacing > 0.0))
+	if (!line.authoredStationProjection || !(line.levelSpacing > 0.0))
 		return offset * presentationScale();
 	const qreal scale = stationNamedYOffset(name) != 0.0 ? line.levelSpacing / track_separation : presentationScale();
 	return offset * scale - QPointF(0.0, line.displayOffset);
