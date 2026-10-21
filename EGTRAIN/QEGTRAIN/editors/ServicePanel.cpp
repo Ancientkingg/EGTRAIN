@@ -13,13 +13,11 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
-#include <QEvent>
 #include <QFormLayout>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
-#include <QHelpEvent>
 #include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
@@ -31,7 +29,6 @@
 #include <QStyle>
 #include <QTabWidget>
 #include <QTableWidget>
-#include <QToolTip>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -55,21 +52,6 @@ public:
 		if (!lineEdit()->isModified() && text == textFromValue(value()))
 			return value();
 		return CompactDoubleSpinBox::valueFromText(text);
-	}
-};
-
-// The route choice. Over the closed field the tip adds the stations of the selected route to the text of the field.
-class RouteComboBox : public ChoiceComboBox {
-public:
-	using ChoiceComboBox::ChoiceComboBox;
-
-protected:
-	bool event(QEvent* event) override {
-		if (event->type() == QEvent::ToolTip && !toolTip().isEmpty()) {
-			QToolTip::showText(static_cast<QHelpEvent*>(event)->globalPos(), currentText() + QLatin1Char('\n') + toolTip(), this);
-			return true;
-		}
-		return ChoiceComboBox::event(event);
 	}
 };
 
@@ -175,7 +157,8 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_compositionCombo = new ChoiceComboBox(detailPane);
 	m_compositionCombo->setObjectName("serviceCompositionCombo");
 	form->addRow("Composition", m_compositionCombo);
-	m_routeCombo = new RouteComboBox(detailPane);
+	// Over the closed field the tip adds the stations of the selected route to the text of the field.
+	m_routeCombo = new ChoiceComboBox(detailPane);
 	m_routeCombo->setObjectName("serviceRouteCombo");
 	form->addRow("Route", m_routeCombo);
 

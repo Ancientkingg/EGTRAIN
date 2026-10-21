@@ -507,7 +507,14 @@ void IncidentPanel::refreshTargets() {
 		endTargetPick();
 	m_targetCombo->setEnabled(editable);
 	m_pickTargetButton->setEnabled(editable);
-	m_targetCombo->setToolTip(QStringLiteral("Service code with route, elapsed scheduled entry and stable identity."));
+	// The field shows this tip below the current target.
+	if (!incident)
+		m_targetCombo->setToolTip(QString());
+	else if (incident->type == "signal_failure")
+		m_targetCombo->setToolTip(QStringLiteral("The signal or block that fails."));
+	else
+		m_targetCombo->setToolTip(
+			QStringLiteral("The train that breaks down: service code with route, elapsed scheduled entry and stable identity."));
 }
 
 void IncidentPanel::addIncident() {

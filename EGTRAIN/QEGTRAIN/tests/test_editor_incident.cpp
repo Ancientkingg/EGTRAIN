@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QHelpEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -16,6 +17,7 @@
 #include <QString>
 #include <QStringList>
 #include <QToolButton>
+#include <QToolTip>
 
 #include <iostream>
 #include <string>
@@ -155,6 +157,15 @@ static QStringList choices(const QComboBox* combo) {
 	for (int index = 0; index < combo->count(); ++index)
 		result << combo->itemText(index);
 	return result;
+}
+
+// The text of the tip that the combo shows when the pointer rests on it.
+static QString shownTip(QComboBox* combo) {
+	QHelpEvent help(QEvent::ToolTip, QPoint(4, 4), combo->mapToGlobal(QPoint(4, 4)));
+	QApplication::sendEvent(combo, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	return text;
 }
 
 // The position of the choice of the target `id` and `occurrence`, or -1.
@@ -782,6 +793,14 @@ int main(int argc, char** argv) {
 		const auto* target = dynamic_cast<const ChoiceComboBox*>(panel.targetCombo());
 		ok &= expect(target && target->currentText().startsWith("s1-2 | route rrr") && target->displayText().contains(QChar(0x2026)),
 			"a long target is cut with an ellipsis in a narrow panel");
+		// The tip of the target says what the type takes as its target, below the current target.
+		const QString trainTip = panel.targetCombo()->toolTip();
+		ok &= expect(trainTip.contains("train") && shownTip(panel.targetCombo()) == panel.targetCombo()->currentText() + "\n" + trainTip,
+			"the tip of the target of a breakdown names a train, below the current target");
+		panel.listWidget()->setCurrentRow(0);
+		const QString signalTip = panel.targetCombo()->toolTip();
+		ok &= expect(!signalTip.isEmpty() && !signalTip.contains("service", Qt::CaseInsensitive) && !signalTip.contains("train", Qt::CaseInsensitive),
+			"the tip of the target of a signal failure names no service or train");
 	}
 
 	if (!ok)
