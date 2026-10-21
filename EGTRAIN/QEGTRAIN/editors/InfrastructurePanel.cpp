@@ -89,6 +89,8 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setObjectName("infrastructureTable");
 	m_table->setAccessibleName("Infrastructure fields");
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
+	// Tab leaves the table and the arrow keys move between the cells.
+	m_table->setTabKeyNavigation(false);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->horizontalHeader()->setStretchLastSection(true);

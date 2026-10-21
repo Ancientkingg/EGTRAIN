@@ -300,6 +300,7 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_importResultTable->setObjectName("passengerImportResultTable");
 	m_importResultTable->setHorizontalHeaderLabels({"Source", "Row", "Passenger", "Status", "Detail"});
 	m_importResultTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_importResultTable->setTabKeyNavigation(false);
 	m_importResultTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_importResultTable->horizontalHeader()->setStretchLastSection(true);
 	m_importResultTable->setToolTip("Transient results from the most recent passenger import; not persisted.");

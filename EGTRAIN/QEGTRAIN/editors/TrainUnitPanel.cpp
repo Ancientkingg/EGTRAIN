@@ -130,6 +130,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->setHorizontalHeaderLabels(QStringList()
 		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
 	m_tractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_tractionTable->setTabKeyNavigation(false);
 	m_tractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	// size columns to their headers so "Lower speed (m/s)" is never clipped
 	m_tractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);

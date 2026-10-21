@@ -254,6 +254,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_occurrenceTable->setHorizontalHeaderLabels({"Include", "Service code (number)", "Generated service", "Scheduled entry",
 		"Running performance (parameter) %", "Maximum speed restriction (km/h)"});
 	m_occurrenceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_occurrenceTable->setTabKeyNavigation(false);
 	m_occurrenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_occurrenceTable->setAlternatingRowColors(true);
 	m_occurrenceTable->horizontalHeader()->setStretchLastSection(true);

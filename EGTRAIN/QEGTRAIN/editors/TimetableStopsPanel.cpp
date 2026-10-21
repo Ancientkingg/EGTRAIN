@@ -140,7 +140,7 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->setAlternatingRowColors(true);
-	m_table->setTabKeyNavigation(true);
+	m_table->setTabKeyNavigation(false);
 	m_table->setWordWrap(false);
 	m_table->setTextElideMode(Qt::ElideRight);
 	m_table->verticalHeader()->setVisible(false);

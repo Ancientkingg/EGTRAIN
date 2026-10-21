@@ -4842,9 +4842,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(ok, "presentation", "the tabs of five editors are cut instead of scrolling");
 			// Tab and Shift+Tab go from the network view round the window and back. They reach the editor in front, also just after
 			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, and the scroll buttons of their tab bars.
+			// They also leave the tables of the editors, whose cells take the arrow keys.
 			const QList<QDockWidget*> fiveEditors = editorDocks + QList<QDockWidget*>{w.m_incidentDock};
 			w.activateWindow();
-			for (QDockWidget* front : {w.m_incidentDock, w.m_caseSettingsDock}) {
+			for (QDockWidget* front : {w.m_incidentDock, w.m_caseSettingsDock, w.m_infrastructureDock, w.m_trainUnitDock}) {
 				front->raise();
 				for (const bool forward : {true, false}) {
 					w.networkView->setFocus(Qt::TabFocusReason);
