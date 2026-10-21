@@ -640,9 +640,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		const bool passengersBefore = savedShowPassengers();
 		if (dialog.exec() != QDialog::Accepted)
 			return;
-		// The menu entries take the saved values; their own handlers apply them to the window.
-		if (savedShowPassengers() != passengersBefore)
-			m_showPassengersAction->setChecked(savedShowPassengers());
+		// The menu entries take the saved values; their own handlers apply them to the window. A case without passengers
+		// keeps the switch off and the choice for the next case.
+		if (savedShowPassengers() != passengersBefore) {
+			m_passengerChoice = savedShowPassengers();
+			if (m_showPassengersAction->isEnabled())
+				m_showPassengersAction->setChecked(m_passengerChoice);
+		}
 		m_advancedDetailsAction->setChecked(settings.value(kAdvancedDetailsKey, false).toBool());
 		if (auto* updateChecks = findChild<QAction*>(QStringLiteral("actionAutomaticallyCheckForUpdates"))) {
 			const QSignalBlocker blocker(updateChecks);
@@ -957,10 +961,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_showPassengersAction = new QAction("Show Passengers", this);
 	m_showPassengersAction->setObjectName("actionShowPassengers");
 	m_showPassengersAction->setCheckable(true);
-	const bool showPassengers = m_runController->passengerGui();
-	m_passengerLayerCheck->setChecked(showPassengers);
-	m_showPassengersAction->setChecked(showPassengers);
-	m_presenter->m_passengerLayerVisible = showPassengers;
+	m_passengerChoice = m_runController->passengerGui();
+	m_passengerLayerCheck->setChecked(m_passengerChoice);
+	m_showPassengersAction->setChecked(m_passengerChoice);
+	m_presenter->m_passengerLayerVisible = m_passengerChoice;
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, m_showPassengersAction, &QAction::setChecked);
 	connect(m_showPassengersAction, &QAction::toggled, m_passengerLayerCheck, &QCheckBox::setChecked);
 	caseLayersLayout->addWidget(m_stationLayerCheck);
@@ -1053,34 +1057,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateViewportOverlays();
 	});
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
-		m_runController->setPassengerGui(checked);
+		m_passengerChoice = checked;
 		QSettings().setValue(kShowPassengersKey, checked);
-		m_presenter->m_passengerLayerVisible = checked;
-		for (auto* item : m_presenter->m_stationDecorations)
-			if (qgraphicsitem_cast<PlatformItem*>(item))
-				item->setVisible(m_presenter->platformBarsVisible());
-		for (auto* platform : m_presenter->allPlatforms) {
-			if (!platform)
-				continue;
-			if (platform->textIcon)
-				platform->textIcon->setVisible(m_presenter->paxTextVisible());
-			for (auto* icon : platform->passengerIcons)
-				if (icon)
-					icon->setVisible(checked);
-		}
-		if (m_presenter->trainPaxInfoItem)
-			m_presenter->trainPaxInfoItem->setVisible(checked);
-		if (m_presenter->paxIconInfoItem)
-			m_presenter->paxIconInfoItem->setVisible(checked);
-		updateNetworkLegend();
-		if (checked) {
-			m_presenter->updateTrainPaxInfo();
-			m_presenter->updatePaxIconInfo(m_snapshot.get(),
-				m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
-			// A run keeps the passengers of the platforms only when it starts with them on.
-			if (m_showingTrackPreview || !passengerGui())
-				statusBar()->showMessage("Passengers show from the next run", 8000);
-		}
+		applyPassengerLayer(checked);
+		// A run keeps the passengers of the platforms only when it starts with them on.
+		if (checked && (m_showingTrackPreview || !passengerGui()))
+			statusBar()->showMessage("Passengers show from the next run", 8000);
 	});
 	updateCaseLayersPanel();
 
@@ -2567,6 +2549,8 @@ void MainWindow::invalidateAfterSceneChange() {
 		if (completionShown)
 			statusBar()->showMessage(QStringLiteral("Run results discarded: the case changed."), 8000);
 	}
+	// The first passenger added, or the last one deleted, switches the passengers on or off before the preview redraws.
+	updatePassengerSwitch();
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
 }
@@ -2980,6 +2964,11 @@ void MainWindow::updateCaseLayersPanel() {
 		m_caseReadinessLabel->style()->unpolish(m_caseReadinessLabel);
 		m_caseReadinessLabel->style()->polish(m_caseReadinessLabel);
 	}
+	updatePassengerSwitch();
+	updateNetworkLegend();
+}
+
+void MainWindow::updatePassengerSwitch() {
 	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
 	const QString passengerTip = hasPassengers ? QStringLiteral("Show passenger counts, icons and platform bars")
 											   : QStringLiteral("This case has no passengers");
@@ -2987,7 +2976,42 @@ void MainWindow::updateCaseLayersPanel() {
 	m_passengerLayerCheck->setToolTip(passengerTip);
 	m_showPassengersAction->setEnabled(hasPassengers);
 	m_showPassengersAction->setToolTip(passengerTip);
+	// The switch shows what is drawn; the toggle handler would store it as the choice of the user.
+	const bool shown = hasPassengers && m_passengerChoice;
+	if (m_passengerLayerCheck->isChecked() == shown)
+		return;
+	const QSignalBlocker boxBlocker(m_passengerLayerCheck);
+	const QSignalBlocker actionBlocker(m_showPassengersAction);
+	m_passengerLayerCheck->setChecked(shown);
+	m_showPassengersAction->setChecked(shown);
+	applyPassengerLayer(shown);
+}
+
+void MainWindow::applyPassengerLayer(bool shown) {
+	m_runController->setPassengerGui(shown);
+	m_presenter->m_passengerLayerVisible = shown;
+	for (auto* item : m_presenter->m_stationDecorations)
+		if (qgraphicsitem_cast<PlatformItem*>(item))
+			item->setVisible(m_presenter->platformBarsVisible());
+	for (auto* platform : m_presenter->allPlatforms) {
+		if (!platform)
+			continue;
+		if (platform->textIcon)
+			platform->textIcon->setVisible(m_presenter->paxTextVisible());
+		for (auto* icon : platform->passengerIcons)
+			if (icon)
+				icon->setVisible(shown);
+	}
+	if (m_presenter->trainPaxInfoItem)
+		m_presenter->trainPaxInfoItem->setVisible(shown);
+	if (m_presenter->paxIconInfoItem)
+		m_presenter->paxIconInfoItem->setVisible(shown);
 	updateNetworkLegend();
+	if (shown) {
+		m_presenter->updateTrainPaxInfo();
+		m_presenter->updatePaxIconInfo(m_snapshot.get(),
+			m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
+	}
 }
 
 void MainWindow::updateSpeedModeDisplay(int delayMs) {

@@ -19,6 +19,7 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/PlatformItem.h"
 #include "graphics/NetworkScene.h"
 #include "recovery/RecoveryController.h"
 #include "recovery/RecoveryStore.h"
@@ -5206,9 +5207,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			caseChangeOut = caseChangeTempDir.path();
 		const QString changedPath = QDir(caseChangeOut).filePath("editor_smoke_changed_case");
 		QDir(changedPath).removeRecursively();
-		const auto caseChangeFailure = [&](const char* message) {
+		const auto caseChangeFailure = [&](const QString& message) {
 			ok = false;
-			failures << QString("case change: ") + message;
+			failures << QStringLiteral("case change: ") + message;
 		};
 		if (!w.openSceneDirectory(scenePath) || !w.m_document->isLoaded()) {
 			caseChangeFailure("the scene did not open");
@@ -5269,6 +5270,39 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 				}
 			}
+		}
+		// A case without passengers draws no platform bars and shows the switch off, and keeps the choice for a case with
+		// passengers.
+		const QString passengerPath = QFileInfo(scenePath).dir().filePath(QStringLiteral("Paimpol"));
+		if (ok && w.m_document->model().passengers.empty() && QFileInfo(passengerPath).isDir()) {
+			const bool choiceBefore = w.m_passengerLayerCheck->isChecked();
+			const auto platformBars = [&w] {
+				const QList<QGraphicsItem*>& items = w.m_presenter->m_stationDecorations;
+				return std::count_if(items.cbegin(), items.cend(),
+					[](QGraphicsItem* item) { return qgraphicsitem_cast<PlatformItem*>(item) != nullptr; });
+			};
+			if (!w.openSceneDirectory(passengerPath) || !w.m_passengerLayerCheck->isEnabled()) {
+				caseChangeFailure("the case with passengers did not open with the passenger switch enabled");
+			} else {
+				w.m_passengerLayerCheck->setChecked(true);
+				if (!w.openSceneDirectory(scenePath)) {
+					caseChangeFailure("the case without passengers did not open");
+				} else if (w.m_passengerLayerCheck->isChecked() || w.m_showPassengersAction->isChecked() || initial_variables.PAX_GUI
+					|| platformBars() != 0 || !QSettings().value(kShowPassengersKey).toBool()) {
+					caseChangeFailure(QString("a case without passengers showed passengers (check box: %1, menu: %2, platform "
+											  "bars: %3, choice kept: %4)")
+							.arg(w.m_passengerLayerCheck->isChecked() ? "on" : "off")
+							.arg(w.m_showPassengersAction->isChecked() ? "on" : "off")
+							.arg(platformBars())
+							.arg(QSettings().value(kShowPassengersKey).toBool() ? "yes" : "no"));
+				}
+				if (!w.openSceneDirectory(passengerPath) || !w.m_passengerLayerCheck->isChecked() || !w.m_showPassengersAction->isChecked()
+					|| !initial_variables.PAX_GUI || platformBars() == 0)
+					caseChangeFailure("the passengers did not show again in a case with passengers");
+				w.m_passengerLayerCheck->setChecked(choiceBefore);
+			}
+			if (!w.openSceneDirectory(scenePath))
+				caseChangeFailure("the original did not open after the passenger switch");
 		}
 		if (ok)
 			std::fprintf(stdout, "E2E_EDITOR_CASE_CHANGE_OK\n");

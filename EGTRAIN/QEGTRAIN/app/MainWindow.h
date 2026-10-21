@@ -494,6 +494,8 @@ private:
 	QCheckBox* m_passengerLayerCheck = nullptr;
 	QAction* m_showMapKeyAction = nullptr;
 	QAction* m_showPassengersAction = nullptr;
+	// The passengers that the user chose to show. A case without passengers shows none and keeps the choice.
+	bool m_passengerChoice = false;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 	GuiReplayHistory m_completedReplay;
@@ -591,6 +593,10 @@ private:
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	void renderTrackPreview(const SceneModel& sceneModel);
 	void updateCaseLayersPanel();
+	// Shows the passengers of the case when the user chose them and the case has passengers, and enables the switch.
+	void updatePassengerSwitch();
+	// Shows or hides the passenger counts, icons and platform bars, and sets them for the next run.
+	void applyPassengerLayer(bool shown);
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
