@@ -3678,7 +3678,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							w.m_incidentTargetCombo->findData(blockId) > 0 ? "yes" : "no"));
 			if (added) {
 				// The pick button waits for a signal or a train on the network view, and an arc keeps it waiting. The signal
-				// head makes the incident, a breakdown by then, a signal failure of the block again. Esc ends a pick.
+				// head makes the incident, a breakdown by then, a signal failure of the block again. Esc ends a pick and clears its
+				// message.
 				w.m_inspector->handleDisableHighlight();
 				w.m_incidentTypeCombo->setCurrentText("train_breakdown");
 				QGraphicsItem* arc = nullptr;
@@ -3694,8 +3695,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					&& w.networkView->viewport()->cursor().shape() == Qt::CrossCursor && w.statusBar()->currentMessage() == hint;
 				w.scene->select(arc);
 				QApplication::processEvents();
-				const bool kept = arc && w.m_incidentPanel->isPickingTarget()
-					&& w.statusBar()->currentMessage() == "The selected item is not a signal or a train. " + hint;
+				// The message fits where the hint fits.
+				const QString retry = w.statusBar()->currentMessage();
+				const bool kept = arc && w.m_incidentPanel->isPickingTarget() && retry == "Not a signal or a train. Click one, or press Esc."
+					&& w.statusBar()->fontMetrics().horizontalAdvance(retry) <= w.statusBar()->fontMetrics().horizontalAdvance(hint);
 				w.scene->select(head);
 				QApplication::processEvents();
 				const SceneIncident* picked = w.m_incidentPanel->selectedIncident();
@@ -3703,14 +3706,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					&& !pick->isChecked() && !w.m_endTargetPickShortcut->isEnabled()
 					&& w.networkView->viewport()->cursor().shape() == Qt::OpenHandCursor;
 				pick->click();
-				const bool restarted = w.m_incidentPanel->isPickingTarget();
+				w.scene->select(arc);
+				QApplication::processEvents();
+				const bool restarted = w.m_incidentPanel->isPickingTarget() && w.statusBar()->currentMessage() == retry;
 				// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
 				w.activateWindow();
 				QApplication::processEvents();
 				const bool escTaken = qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
 				QApplication::processEvents();
 				const bool ended = restarted && escTaken && !w.m_incidentPanel->isPickingTarget()
-					&& !w.m_endTargetPickShortcut->isEnabled() && w.statusBar()->currentMessage() != hint;
+					&& !w.m_endTargetPickShortcut->isEnabled() && w.statusBar()->currentMessage().isEmpty();
 				// Without a pick no shortcut takes Esc, so it reaches the focused widget, such as an open cell.
 				const bool escLeft = !qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
 				const auto yes = [](bool value) { return value ? "yes" : "no"; };

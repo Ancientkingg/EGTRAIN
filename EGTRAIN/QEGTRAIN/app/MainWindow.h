@@ -656,9 +656,10 @@ private:
 	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
 	// The target that the selection on the network view gives an incident: a signal failure for a signal head, a breakdown
-	// of its occurrence for a train. The type is empty when the selection gives none. `reason` says why the selection is no
-	// target, for when it gives none or the incident panel does not offer it, and is empty when nothing is selected.
-	IncidentTarget selectedIncidentTarget(QString& reason) const;
+	// of its occurrence for a train. The type is empty when the selection gives none. `selected` names what is selected,
+	// "signal", "train" or "item", for when it gives no target or the incident panel does not offer it, and is empty when
+	// nothing is selected.
+	IncidentTarget selectedIncidentTarget(QString& selected) const;
 	// Starts or ends picking the target of the selected incident on the network view: the cursor of the view, the hint in
 	// the status bar and the Esc shortcut.
 	void setIncidentTargetPick(bool picking);

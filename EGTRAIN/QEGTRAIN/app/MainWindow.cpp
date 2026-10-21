@@ -1666,11 +1666,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
 	// of the panel waits for the next item that a click or Edit > Find... selects there.
 	m_incidentPanel->setDefaultTarget([this] {
-		QString reason;
-		const IncidentTarget target = selectedIncidentTarget(reason);
+		QString selected;
+		const IncidentTarget target = selectedIncidentTarget(selected);
 		// The edit that adds the incident can draw the preview again, which writes the status bar, so the message follows.
-		if (!reason.isEmpty() && !m_incidentPanel->offersTarget(target))
+		if (!selected.isEmpty() && !m_incidentPanel->offersTarget(target)) {
+			const QString reason = selected == "item" ? QString("The selected item is not a signal or a train")
+													  : QString("The selected %1 cannot be the target of an incident").arg(selected);
 			QTimer::singleShot(0, this, [this, reason] { statusBar()->showMessage(reason + ", so the new incident has no target.", 8000); });
+		}
 		return target;
 	});
 	m_endTargetPickShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
@@ -2841,15 +2844,23 @@ void MainWindow::refreshIncidentPanel() {
 
 namespace {
 
-// The status bar ends with this while the target of an incident is picked on the network view.
+// The status bar shows this while the target of an incident is picked on the network view.
 QString targetPickHint() {
 	return QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
 }
 
+// The message of a pick after a click on something that gives no target, which selectedIncidentTarget names. It is no
+// wider than the hint.
+QString targetPickRetry(const QString& selected) {
+	if (selected == QLatin1String("signal") || selected == QLatin1String("train"))
+		return QStringLiteral("This %1 gives no target. Click another, or press Esc.").arg(selected);
+	return QStringLiteral("Not a signal or a train. Click one, or press Esc.");
+}
+
 } // namespace
 
-IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
-	reason.clear();
+IncidentTarget MainWindow::selectedIncidentTarget(QString& selected) const {
+	selected.clear();
 	if (!m_document->isLoaded())
 		return {};
 	const SceneModel& model = m_document->model();
@@ -2858,7 +2869,6 @@ IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
 		return target.empty() ? IncidentTarget() : IncidentTarget{"signal_failure", QString::fromStdString(target), 0};
 	};
 	IncidentTarget target;
-	QString selected;
 	if (m_showingTrackPreview) {
 		const QString kind = m_inspector->previewSelectionKind();
 		if (kind == "signal") {
@@ -2883,10 +2893,6 @@ IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
 	} else if (m_presenter->effect) {
 		selected = "item";
 	}
-	if (selected == "item")
-		reason = "The selected item is not a signal or a train";
-	else if (!selected.isEmpty())
-		reason = QString("The selected %1 cannot be the target of an incident").arg(selected);
 	return target;
 }
 
@@ -2898,7 +2904,8 @@ void MainWindow::setIncidentTargetPick(bool picking) {
 	} else if (!m_heldRecoveryFailure.isEmpty()) {
 		statusBar()->showMessage(m_heldRecoveryFailure);
 		m_heldRecoveryFailure.clear();
-	} else if (statusBar()->currentMessage().endsWith(targetPickHint())) {
+	} else if (const QString shown = statusBar()->currentMessage();
+		shown == targetPickHint() || shown.endsWith(QLatin1String(", or press Esc."))) {
 		statusBar()->clearMessage();
 	}
 }
@@ -2906,16 +2913,15 @@ void MainWindow::setIncidentTargetPick(bool picking) {
 void MainWindow::pickIncidentTarget() {
 	if (!m_incidentPanel->isPickingTarget())
 		return;
-	QString reason;
-	const IncidentTarget target = selectedIncidentTarget(reason);
+	QString selected;
+	const IncidentTarget target = selectedIncidentTarget(selected);
 	// The edit can end a replay and draw the preview again, which deletes the item of the click, so it waits until the click
 	// has been handled.
-	QTimer::singleShot(0, this, [this, target, reason] {
+	QTimer::singleShot(0, this, [this, target, selected] {
 		if (!m_incidentPanel->isPickingTarget())
 			return;
 		if (!m_incidentPanel->applyTarget(target)) {
-			statusBar()->showMessage((reason.isEmpty() ? QString("The selected item is not a signal or a train") : reason) + ". "
-				+ targetPickHint());
+			statusBar()->showMessage(targetPickRetry(selected));
 			return;
 		}
 		m_incidentPanel->endTargetPick();
