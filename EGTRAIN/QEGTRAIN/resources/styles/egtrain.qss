@@ -608,6 +608,37 @@ QTabBar::tab:selected {
     color: #ffffff;
 }
 
+/* The scroll buttons of a group of docked tabs have the face of a tab and the arrows of a drop-down list turned to the side.
+   Each is half the 40 px of the scroller, without the minimum height of the other tool buttons, and has 6 px on either
+   side of its arrow, so that the arrow keeps its size. The padding belongs to the button, as Qt 6 takes the padding of
+   an arrow off twice and then draws no arrow. */
+QMainWindow > QTabBar::scroller {
+    width: 40px;
+}
+
+QMainWindow > QTabBar QToolButton {
+    background: #e3eaee;
+    border-color: #c9d3db;
+    padding: 0 6px;
+    min-height: 0;
+}
+
+QMainWindow > QTabBar QToolButton::left-arrow {
+    image: url(:/icons/scroll-left-arrow.svg);
+}
+
+QMainWindow > QTabBar QToolButton::right-arrow {
+    image: url(:/icons/scroll-right-arrow.svg);
+}
+
+QMainWindow > QTabBar QToolButton::left-arrow:disabled {
+    image: url(:/icons/scroll-left-arrow-disabled.svg);
+}
+
+QMainWindow > QTabBar QToolButton::right-arrow:disabled {
+    image: url(:/icons/scroll-right-arrow-disabled.svg);
+}
+
 QLineEdit[readOnly="true"] {
     background: #eceeec;
     color: #5b6871;
