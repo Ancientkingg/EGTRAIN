@@ -3956,8 +3956,10 @@ void MainWindow::trainsApplied(bool anyAdded, bool cameraMoved) {
 void MainWindow::zoomIn() {
 	if (!networkView)
 		return;
+	// From Fit the view moves to the track nearest the middle of the network; after a pan it keeps its centre.
+	const bool fromFit = networkView->zoomRatio() <= 1.0 + 1e-6;
 	if (networkView->zoomBy(1.15)) {
-		if (!m_presenter->m_previewFitBounds.isEmpty())
+		if (fromFit && !m_presenter->m_previewFitBounds.isEmpty())
 			networkView->centerOn(m_presenter->m_previewZoomFocus);
 		m_followCamera->settle();
 	}
