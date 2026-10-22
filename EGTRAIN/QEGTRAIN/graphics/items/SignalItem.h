@@ -38,7 +38,8 @@ public:
 	/// Sets the text that names the head in its tooltip, the inspector and Find.
 	void setInspectionIdentity(const QString& identity) { m_inspectionIdentity = identity; }
 	/// That text, or without one a text of the track line, the position in kilometres and the sections ahead
-	/// and behind.
+	/// and behind: "Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km". The track is
+	/// named by sceneTrackId and a section by its label, or by the number and the id without them.
 	QString inspectionIdentity() const;
 	/// The head with a margin of 2 scene units.
 	QRectF boundingRect() const override;
@@ -49,6 +50,8 @@ public:
 
 	/// The index of the track line of the signal in the run; -1 in the preview.
 	int trackID;
+	/// The id in the scene of that track line; empty without one.
+	std::string sceneTrackId;
 
 	/// The position of the signal along its track line in kilometres; -1 until it is set.
 	double X;
@@ -57,6 +60,10 @@ public:
 	std::string sectionAheadId;
 	/// The id of the block section behind the head; empty without one.
 	std::string sectionBehindId;
+	/// The label of the section ahead, as sceneSectionLabels gives it; empty without one.
+	std::string sectionAheadLabel;
+	/// The label of the section behind; empty without one.
+	std::string sectionBehindLabel;
 	/// The length of the section ahead as the run gives it, a difference of positions in kilometres; 0 without one.
 	double sectionAheadLength;
 	/// The length of the section behind, as for sectionAheadLength; 0 without one.

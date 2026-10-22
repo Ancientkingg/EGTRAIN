@@ -2599,8 +2599,11 @@ void MainWindow::setupEditMenu() {
 
 void MainWindow::showFind() {
 	QStringList labels;
-	for (const NetworkPresenter::FindTarget& target : m_presenter->findTargets())
+	QStringList keys;
+	for (const NetworkPresenter::FindTarget& target : m_presenter->findTargets()) {
 		labels.append(target.label);
+		keys.append(target.keys);
+	}
 	if (labels.isEmpty()) {
 		statusBar()->showMessage("Nothing to find: open a case first", 5000);
 		return;
@@ -2609,7 +2612,7 @@ void MainWindow::showFind() {
 		m_findDialog = new FindDialog(this);
 		connect(m_findDialog, &FindDialog::chosen, this, &MainWindow::goToFound);
 	}
-	m_findDialog->setLabels(labels);
+	m_findDialog->setLabels(labels, keys);
 	m_findDialog->open();
 }
 
@@ -3433,7 +3436,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		QMenu* menu = new QMenu(this);
 		menu->setAttribute(Qt::WA_DeleteOnClose);
 		menu->setToolTipsVisible(true);
-		menu->setTitle("Preview: " + id);
+		// A signal is named by the label of its section, as the inspector names it.
+		const TrackPreviewSignal* head = kind == "signal" ? m_presenter->previewSignal(track.toStdString(), id.toStdString()) : nullptr;
+		menu->setTitle("Preview: " + (head ? QString::fromStdString(head->label) : id));
 		const auto resolve = [this, kind, id, track, reversed, revision]() {
 			return m_inspector->resolvePreviewItem(kind, id, track, reversed, revision);
 		};
@@ -3610,6 +3615,15 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 						.arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
 						.arg(reversed ? "reverse" : "forward"));
 		});
+		// The section of the head, as Protected section in the inspector shows it, by the id that the run uses.
+		const QString section = QString::fromStdString(!signal->sectionAheadId.empty() ? signal->sectionAheadId : signal->sectionBehindId);
+		if (!section.isEmpty()) {
+			QAction* copySection = menu->addAction("Copy section ID");
+			connect(copySection, &QAction::triggered, this, [this, track, position, reversed, section]() {
+				if (resolveSignalItem(track, position, reversed) && QApplication::clipboard())
+					QApplication::clipboard()->setText(section);
+			});
+		}
 		menu->addSeparator();
 		addDeferred("Next train approaching this signal",
 			"Requires the signal route association and an approaching-train query.");

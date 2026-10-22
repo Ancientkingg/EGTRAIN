@@ -27,8 +27,9 @@ FindDialog::FindDialog(QWidget* parent)
 	connect(m_results, &QListWidget::itemActivated, this, &FindDialog::choose);
 }
 
-void FindDialog::setLabels(const QStringList& labels) {
+void FindDialog::setLabels(const QStringList& labels, const QStringList& keys) {
 	m_labels = labels;
+	m_keys = keys;
 	m_field->clear();
 	m_results->clear();
 	m_field->setFocus();
@@ -55,8 +56,12 @@ void FindDialog::filter(const QString& text) {
 	const QStringList terms = text.split(QLatin1Char(' '), Qt::SkipEmptyParts);
 	if (terms.isEmpty())
 		return;
-	for (const QString& label : m_labels) {
-		if (std::all_of(terms.cbegin(), terms.cend(), [&label](const QString& term) { return label.contains(term, Qt::CaseInsensitive); }))
+	for (qsizetype i = 0; i < m_labels.size(); ++i) {
+		const QString& label = m_labels.at(i);
+		const QString keys = m_keys.value(i);
+		if (std::all_of(terms.cbegin(), terms.cend(), [&label, &keys](const QString& term) {
+				return label.contains(term, Qt::CaseInsensitive) || keys.contains(term, Qt::CaseInsensitive);
+			}))
 			m_results->addItem(label);
 	}
 	m_results->setCurrentRow(0);

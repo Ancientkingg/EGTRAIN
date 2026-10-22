@@ -409,6 +409,30 @@ int main(int argc, char* argv[]) {
 			"a model without track lines draws nothing");
 	}
 
+	// A head of the preview names its section by its label, after the authored signals that protect it, and the
+	// presenter finds the signal of the preview by its track and section.
+	{
+		QGraphicsScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		SceneModel model = previewModel();
+		sceneSignals(model).push_back({"sig1", "@B0.block.2@"});
+		presenter.showPreview(model);
+		QStringList heads;
+		for (QGraphicsItem* item : presenter.m_signalDecorations)
+			if (const auto* head = qgraphicsitem_cast<SignalItem*>(item))
+				heads << head->inspectionIdentity() + " | " + QString::fromStdString(head->sectionAheadId + " | " + head->sectionAheadLabel);
+		heads.removeDuplicates();
+		heads.sort();
+		const QStringList expected{
+			"Track B0 at 28 km; section B0 28.000 to 64.000 km; signal ID sig1 | @B0.block.2@ | B0 28.000 to 64.000 km",
+			"Track B1 at 136 km; section B1 136.000 to 164.000 km | @B1.block.2@ | B1 136.000 to 164.000 km"};
+		ok &= expect(heads == expected, "a head of the preview names its section by its label and keeps its id");
+		const TrackPreviewSignal* head = presenter.previewSignal("B0", "@B0.block.2@");
+		ok &= expect(head && head->label == "sig1 (B0 28.000 to 64.000 km)" && !presenter.previewSignal("B1", "@B0.block.2@"),
+			"the signal of the preview is found by its track and its section");
+		presenter.clear();
+	}
+
 	// On a schematic line the picture and the name of a station count from level 0, whatever level its platform is
 	// on. A named offset counts in the original levels of track_separation units.
 	{

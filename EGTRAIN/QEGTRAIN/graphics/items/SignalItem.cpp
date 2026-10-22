@@ -70,11 +70,15 @@ void SignalItem::setGroupedSignals(const QVector<QPair<int, bool>>& aspects) {
 QString SignalItem::inspectionIdentity() const {
 	if (!m_inspectionIdentity.isEmpty())
 		return m_inspectionIdentity;
+	const auto section = [](const std::string& id, const std::string& label) {
+		if (id.empty())
+			return QStringLiteral("none");
+		return QString::fromStdString(label.empty() ? id : label);
+	};
 	return QStringLiteral("Track %1 at %2 km; ahead %3; behind %4")
-		.arg(trackID)
+		.arg(sceneTrackId.empty() ? QString::number(trackID) : QString::fromStdString(sceneTrackId))
 		.arg(X, 0, 'g', 10)
-		.arg(QString::fromStdString(sectionAheadId.empty() ? "none" : sectionAheadId))
-		.arg(QString::fromStdString(sectionBehindId.empty() ? "none" : sectionBehindId));
+		.arg(section(sectionAheadId, sectionAheadLabel), section(sectionBehindId, sectionBehindLabel));
 }
 
 QRectF SignalItem::boundingRect() const {
