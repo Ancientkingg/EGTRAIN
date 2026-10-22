@@ -206,7 +206,7 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_reducedSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &IncidentPanel::commitReducedSpeed);
 	connect(m_hasEndSecondsCheck, &QCheckBox::toggled, this, &IncidentPanel::commitHasEndSeconds);
 	connect(m_terminateAtDestinationCheck, &QCheckBox::toggled, this, &IncidentPanel::commitTerminateAtDestination);
-	connect(m_addButton, &QPushButton::clicked, this, &IncidentPanel::addIncident);
+	connect(m_addButton, &QPushButton::clicked, this, qOverload<>(&IncidentPanel::addIncident));
 	connect(m_duplicateButton, &QPushButton::clicked, this, &IncidentPanel::duplicateIncident);
 	connect(m_deleteButton, &QPushButton::clicked, this, &IncidentPanel::deleteIncident);
 	connect(m_pickTargetButton, &QToolButton::toggled, this, &IncidentPanel::targetPickToggled);
@@ -535,16 +535,27 @@ void IncidentPanel::refreshTargets() {
 }
 
 void IncidentPanel::addIncident() {
-	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
-	if (!incidents)
+	if (!scenarioIncidentsForEdit())
 		return;
 	// Asked before the edit, which can clear what the target comes from.
 	const IncidentTarget target = m_defaultTarget ? m_defaultTarget() : IncidentTarget();
+	appendIncident(offersTarget(target) ? target : IncidentTarget());
+}
+
+bool IncidentPanel::addIncident(const IncidentTarget& target) {
+	if (!offersTarget(target) || !scenarioIncidentsForEdit())
+		return false;
+	appendIncident(target);
+	return true;
+}
+
+void IncidentPanel::appendIncident(const IncidentTarget& target) {
+	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
 	SceneIncident incident;
 	incident.id = sceneUniqueIncidentId(m_document->model(), "new_incident");
 	incident.type = "signal_failure";
 	incident.hasEndSeconds = true;
-	if (offersTarget(target)) {
+	if (!target.type.isEmpty()) {
 		changeType(incident, target.type.toStdString());
 		setTarget(incident, target.id.toStdString(), target.occurrence);
 	}

@@ -177,12 +177,15 @@ static int choice(const QComboBox* combo, const char* id, int occurrence) {
 	return -1;
 }
 
+static bool addsIncidentWithTarget(const Log& edit);
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
 	// The icon of the pick button is a resource of the application, which this test does not have.
 	QLoggingCategory::setFilterRules(QStringLiteral("qt.svg.warning=false"));
 	bool ok = true;
 	const Log edit({"documentChanged", "panelChanged"});
+	ok &= addsIncidentWithTarget(edit);
 
 	{
 		IncidentPanel panel;
@@ -838,4 +841,48 @@ int main(int argc, char** argv) {
 		return 1;
 	std::cout << "all incident panel tests passed\n";
 	return 0;
+}
+
+// The window adds an incident with the target of a signal or a train of the network view: the panel takes that target
+// instead of the default one, in the one edit that adds the incident, and selects the new row.
+static bool addsIncidentWithTarget(const Log& edit) {
+	bool ok = true;
+	SceneDocument document;
+	IncidentPanel panel;
+	RunSelection selection;
+	panel.setRunSelection(&selection);
+	panel.setDocument(&document);
+	document.replace(incidentScene(), false);
+	selection.selectScenario("base");
+	panel.refresh();
+	panel.listWidget()->setCurrentRow(0);
+	int defaultAsked = 0;
+	panel.setDefaultTarget([&defaultAsked] {
+		++defaultAsked;
+		return IncidentTarget{"signal_failure", "sig1", 0};
+	});
+	Events events(panel, document);
+	const std::vector<SceneIncident>& incidents = document.model().scenarios[0].incidents;
+	const std::size_t countBefore = incidents.size();
+	ok &= expect(panel.addIncident(IncidentTarget{"train_breakdown", "s1", 2}) && incidents.size() == countBefore + 1
+			&& incidents.back().id == "new_incident" && incidents.back().type == "train_breakdown" && incidents.back().target == "s1"
+			&& incidents.back().hasOccurrence && incidents.back().occurrence == 2 && incidents.back().hasEndSeconds
+			&& incidents.back().startSeconds == 0.0 && events.log == edit && document.lastChangeLabel() == "Add incident"
+			&& defaultAsked == 0 && panel.listWidget()->currentRow() == static_cast<int>(countBefore)
+			&& panel.selectedIncident() == &document.mutableModel().scenarios[0].incidents.back()
+			&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "s1", 2),
+		"an incident added with a target has that target and its type in one edit, and its row is selected");
+	events.log.clear();
+	ok &= expect(panel.addIncident(IncidentTarget{"signal_failure", "blk1", 0}) && incidents.back().type == "signal_failure"
+			&& incidents.back().target == "blk1" && !incidents.back().hasOccurrence && events.log == edit && defaultAsked == 0
+			&& panel.listWidget()->currentRow() == static_cast<int>(countBefore) + 1,
+		"an incident added with a block is a signal failure of it");
+	events.log.clear();
+	ok &= expect(!panel.addIncident(IncidentTarget{"signal_failure", "missing", 0}) && !panel.addIncident(IncidentTarget{"train_breakdown", "s1", 4})
+			&& !panel.addIncident(IncidentTarget()) && incidents.size() == countBefore + 2 && events.log.empty(),
+		"a target that the combo does not offer adds nothing");
+	document.setEditable(false);
+	ok &= expect(!panel.addIncident(IncidentTarget{"signal_failure", "sig1", 0}) && incidents.size() == countBefore + 2 && events.log.empty(),
+		"nothing is added while a run uses the scene");
+	return ok;
 }
