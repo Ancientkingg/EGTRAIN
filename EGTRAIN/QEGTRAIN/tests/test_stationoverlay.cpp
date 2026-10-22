@@ -6,6 +6,9 @@
 #include "graphics/items/SelectionCueItem.h"
 #include "graphics/items/StationNodeItem.h"
 #include "graphics/items/TrackLineItem.h"
+#include "graphics/items/TrainBodyItem.h"
+#include "graphics/items/TrainItemGroup.h"
+#include "graphics/VisualPolish.h"
 
 #include <QApplication>
 #include <QGraphicsSceneContextMenuEvent>
@@ -20,6 +23,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -1044,6 +1048,91 @@ int main(int argc, char* argv[]) {
 			ok &= expect(outside == 0 && blue == (visual.cls == StationClass::Major),
 				"the screen-space pin stays inside the bounds of its overlay");
 		}
+	}
+
+	// A station name paints over a track and a train that cross it, and its halo in the canvas colour keeps them off the
+	// letters: at the smallest size of a name, 12 pixels, on a screen of two device pixels to the pixel, where Qt draws
+	// the letters from its glyph cache, and at 80 pixels, where it fills their outlines.
+	for (const auto& [pixels, ratio] : {std::pair{12, 2.0}, std::pair{80, 1.0}}) {
+		const bool earlierOk = ok;
+		QGraphicsScene scene;
+		scene.setBackgroundBrush(canvasColor());
+		QFont font;
+		font.setPixelSize(pixels);
+		auto* name = new StationNameItem("HHH", font);
+		scene.addItem(name);
+		const QRectF box = name->boundingRect();
+		const QRect area = box.adjusted(-8.0, -8.0, 8.0, 8.0).toAlignedRect();
+		const auto render = [&scene, &area, deviceRatio = ratio]() {
+			QImage image(area.size() * deviceRatio, QImage::Format_ARGB32_Premultiplied);
+			image.setDevicePixelRatio(deviceRatio);
+			QPainter painter(&image);
+			scene.render(&painter, QRectF(QPointF(), area.size()), area);
+			return image;
+		};
+		const QImage alone = render();
+		auto* track = new TrackLineItem(QLineF(box.center().x(), area.top(), box.center().x(), area.bottom()));
+		track->setPen(QPen(QColor(150, 150, 150), box.width() / 3.0));
+		scene.addItem(track);
+		auto* train = new TrainItemGroup();
+		auto* body = new TrainBodyItem(QPolygonF(QRectF(area.left(), box.center().y() - 6.0, area.width(), 12.0)));
+		body->setBrush(QColor(240, 200, 40));
+		body->setPen(Qt::NoPen);
+		train->addToGroup(body);
+		scene.addItem(train);
+		const QImage crossed = render();
+		const auto distance = [](const QColor& a, const QColor& b) {
+			return std::abs(a.red() - b.red()) + std::abs(a.green() - b.green()) + std::abs(a.blue() - b.blue());
+		};
+		// A letter is white more than half, in each channel. The letters and a ring of a pixel around them look the same
+		// with the track and the train under them as without, but for less than a quarter of the way to the colour of the
+		// track (374 from the canvas): where the halo follows the outlines of the glyphs, the font engine can draw a letter
+		// up to a pixel off them.
+		const auto letter = [&alone](int x, int y) {
+			const QColor colour = alone.pixelColor(x, y);
+			return std::min({colour.red(), colour.green(), colour.blue()}) > 128;
+		};
+		int letters = 0, coveredLetters = 0, ring = 0, crossedRing = 0;
+		for (int y = 1; y + 1 < alone.height(); ++y)
+			for (int x = 1; x + 1 < alone.width(); ++x) {
+				const bool changed = distance(alone.pixelColor(x, y), crossed.pixelColor(x, y)) > 90;
+				if (letter(x, y)) {
+					++letters;
+					coveredLetters += changed;
+					continue;
+				}
+				bool besideLetter = false;
+				for (int dy = -1; dy <= 1; ++dy)
+					for (int dx = -1; dx <= 1; ++dx)
+						besideLetter = besideLetter || letter(x + dx, y + dy);
+				ring += besideLetter;
+				crossedRing += besideLetter && changed;
+			}
+		// Without the track and the train the halo does not show: two pixels out from the letters, where the halo lies
+		// and the letters do not reach, the render has the canvas colour.
+		const QColor canvas = canvasColor();
+		int outerRing = 0, offCanvas = 0;
+		for (int y = 2; y + 2 < alone.height(); ++y)
+			for (int x = 2; x + 2 < alone.width(); ++x) {
+				bool besideLetter = false;
+				for (int dy = -1; dy <= 1; ++dy)
+					for (int dx = -1; dx <= 1; ++dx)
+						besideLetter = besideLetter || letter(x + dx, y + dy);
+				if (besideLetter || !(letter(x - 2, y) || letter(x + 2, y) || letter(x, y - 2) || letter(x, y + 2)))
+					continue;
+				++outerRing;
+				offCanvas += distance(alone.pixelColor(x, y), canvas) > 24;
+			}
+		ok &= expect(name->zValue() > track->zValue() && name->zValue() > train->zValue(),
+			"a station name is stacked over the tracks and the trains");
+		ok &= expect(letters > 100 && coveredLetters == 0, "a track and a train under a station name leave its letters white");
+		ok &= expect(ring > 100 && crossedRing == 0, "the halo of a station name keeps a track and a train off its letters");
+		ok &= expect(outerRing > 50 && offCanvas == 0, "the halo of a station name has the colour of the canvas");
+		ok &= expect(distance(crossed.pixelColor(crossed.width() / 2, 0), canvas) > 90
+				&& distance(crossed.pixelColor(0, static_cast<int>((box.center().y() - area.top()) * ratio)), canvas) > 90,
+			"and the track and the train still show beside the name");
+		if (earlierOk && !ok)
+			std::cerr << "with a station name of " << pixels << " pixels\n";
 	}
 
 	if (!ok)

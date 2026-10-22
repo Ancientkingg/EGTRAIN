@@ -459,6 +459,12 @@ int main(int argc, char* argv[]) {
 			"the platform shows the passengers that are left");
 		ok &= expect(presenter.m_vcMessageItems.contains(0) && presenter.m_vcMessageItems[0]->isVisible(),
 			"the message of a virtual coupling shows above the train");
+		// It shows by itself, so it stays under the station names, and over the train and its speed.
+		ok &= expect(presenter.m_vcMessageItems.contains(0) && presenter.m_trainBadges.value(0)
+				&& presenter.m_vcMessageItems[0]->zValue() < StationNameItem::NameZValue
+				&& presenter.m_vcMessageItems[0]->zValue() > presenter.m_trainBadges.value(0)->zValue()
+				&& presenter.m_trainBadges.value(0)->zValue() > presenter.allTrains[0]->zValue(),
+			"the message of a virtual coupling is stacked over the train and its speed and under the station names");
 		ok &= expect(presenter.m_trainBadges.value(0) && presenter.m_trainBadges.value(0)->isPromoted(),
 			"the host decides whether the badge of a train is promoted");
 		ok &= expect(!presenter.m_trainAnimations.isEmpty(), "a live train glides to its new place");

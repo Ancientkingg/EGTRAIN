@@ -331,6 +331,14 @@ QColor stationAreaColor() {
 	return colour;
 }
 
+QColor canvasColor() {
+	return QColor(16, 26, 34);
+}
+
+QColor stationMarkFill() {
+	return QColor(232, 238, 242);
+}
+
 QIcon stationMarkIcon(StationClass cls) {
 	QIcon icon;
 	for (const int size : {16, 32}) {
@@ -339,8 +347,8 @@ QIcon stationMarkIcon(StationClass cls) {
 		QPainter painter(&pixmap);
 		// The pin reaches past its frame, so it is fitted to the pixmap by what it paints.
 		const qreal halo = size / 16.0;
-		paintStationMark(&painter, stationMarkFrameIn(QRectF(0.0, 0.0, size, size), cls, halo), cls, QColor(16, 26, 34),
-			Qt::white, halo);
+		paintStationMark(&painter, stationMarkFrameIn(QRectF(0.0, 0.0, size, size), cls, halo), cls, stationMarkFill(),
+			canvasColor(), halo);
 		painter.end();
 		icon.addPixmap(pixmap);
 	}

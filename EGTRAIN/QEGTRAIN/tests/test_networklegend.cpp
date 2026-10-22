@@ -1,10 +1,14 @@
 #include "widgets/NetworkLegendWidget.h"
 
+#include "graphics/VisualPolish.h"
 #include "graphics/items/SelectionCueItem.h"
+#include "graphics/items/StationOverlayItem.h"
 
 #include <QApplication>
 #include <QImage>
 #include <QLabel>
+#include <QMap>
+#include <QPainter>
 #include <QRegularExpression>
 #include <QScrollArea>
 #include <QTextLayout>
@@ -27,6 +31,25 @@ static bool containsColor(const QImage& image, const QColor& color) {
 			if (image.pixelColor(x, y).rgb() == color.rgb())
 				return true;
 	return false;
+}
+
+// The colour of most opaque pixels of image, then those of the light, dark and blue colours of the pins and of white
+// that three opaque pixels or more have.
+static QString pinColours(const QImage& image) {
+	QMap<QRgb, int> counts;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			if (const QColor colour = image.pixelColor(x, y); colour.alpha() == 255)
+				++counts[colour.rgb()];
+	QRgb most = 0;
+	for (auto count = counts.cbegin(); count != counts.cend(); ++count)
+		if (count.value() > counts.value(most))
+			most = count.key();
+	QString colours = QColor(most).name();
+	for (const QColor& colour : {stationMarkFill(), canvasColor(), QColor(80, 120, 210), QColor(Qt::white)})
+		if (counts.value(colour.rgb()) >= 3)
+			colours += " " + colour.name();
+	return colours;
 }
 
 // Colour of the swatch pixel at a position in widget coordinates.
@@ -210,7 +233,7 @@ int main(int argc, char* argv[]) {
 		image.fill(Qt::transparent);
 		if (swatch)
 			const_cast<QWidget*>(swatch)->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
-		// The dark variant: some opaque pixel darker than mid grey, which the thin dark edge and dot of a halt give too.
+		// Some opaque pixel darker than mid grey: the dark halo that outlines the pin on the light panel.
 		bool dark = false, blue = false;
 		QRect painted;
 		for (int y = 0; y < image.height(); ++y)
@@ -229,6 +252,21 @@ int main(int argc, char* argv[]) {
 		ok &= expect(inside && centred && dark && blue == major,
 			"a station swatch shows the whole pin of its class, centred");
 		pinHeights.append(painted.height());
+		// The swatch, drawn four times as large, has the colours of the pin of its class on the canvas.
+		QImage large(46 * 4, 18 * 4, QImage::Format_ARGB32_Premultiplied);
+		large.setDevicePixelRatio(4.0);
+		large.fill(Qt::transparent);
+		if (swatch)
+			const_cast<QWidget*>(swatch)->render(&large, QPoint(), QRegion(), QWidget::DrawChildren);
+		StationMarkItem canvasPin(stationLegend.entries().at(row).stationClass, 60);
+		QImage canvas(100, 100, QImage::Format_ARGB32_Premultiplied);
+		canvas.fill(Qt::transparent);
+		{
+			QPainter painter(&canvas);
+			painter.translate(20.0, 20.0);
+			canvasPin.paint(&painter, nullptr, nullptr);
+		}
+		ok &= expect(pinColours(large) == pinColours(canvas), "a station swatch has the colours of the pin of its class on the canvas");
 	}
 	ok &= expect(stationLegend.entries().at(0).stationClass == StationClass::Major && pinHeights.size() == 3
 			&& pinHeights.at(2) < pinHeights.at(0),

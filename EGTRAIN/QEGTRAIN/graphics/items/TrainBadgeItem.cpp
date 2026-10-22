@@ -9,15 +9,18 @@ constexpr qreal kAnchorOffsetX = 8.0;
 constexpr qreal kAnchorGapY = 8.0;
 // The outline of the speed reaches this far beyond its glyphs, in logical pixels.
 constexpr qreal kOutlineWidth = 1.0;
-// The colour of the canvas.
-const QColor kSpeedOutline(16, 26, 34);
+// Over the trains (z 4) and under the notices of a virtual coupling (z 4.4), the station names
+// (StationNameItem::NameZValue, 4.5), which stay readable, and the callouts of the trains and the details of a passenger
+// (z 5). A promoted badge goes over the others.
+constexpr qreal kBadgeZValue = 4.2;
+constexpr qreal kPromotedBadgeZValue = 4.3;
 }
 
 TrainBadgeItem::TrainBadgeItem(QGraphicsItem* parent)
 	: QGraphicsItem(parent), m_visual(classifyTrainType("", "")), m_icon(m_visual.iconResource) {
 	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	setAcceptedMouseButtons(Qt::NoButton);
-	setZValue(5.0);
+	setZValue(kBadgeZValue);
 	updateToolTip();
 }
 
@@ -65,7 +68,7 @@ void TrainBadgeItem::setPresentation(Presentation presentation) {
 void TrainBadgeItem::setPromoted(bool promoted) {
 	if (m_promoted == promoted) return;
 	m_promoted = promoted;
-	setZValue(promoted ? 6.0 : 5.0);
+	setZValue(promoted ? kPromotedBadgeZValue : kBadgeZValue);
 	update();
 }
 
@@ -105,7 +108,7 @@ void TrainBadgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
 	QPainterPath text;
 	text.addText(speedBaseline(), speedFont(), m_speedText);
 	painter->setRenderHint(QPainter::Antialiasing);
-	painter->strokePath(text, QPen(kSpeedOutline, 2.0 * kOutlineWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+	painter->strokePath(text, QPen(canvasColor(), 2.0 * kOutlineWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 	painter->fillPath(text, QColor(Qt::white));
 }
 
