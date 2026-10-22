@@ -795,8 +795,10 @@ int main(int argc, char** argv) {
 			"a long target is cut with an ellipsis in a narrow panel");
 		// The tip of the target says what the type takes as its target, below the current target.
 		const QString trainTip = panel.targetCombo()->toolTip();
-		ok &= expect(trainTip.contains("train") && shownTip(panel.targetCombo()) == panel.targetCombo()->currentText() + "\n" + trainTip,
-			"the tip of the target of a breakdown names a train, below the current target");
+		ok &= expect(trainTip.contains("train")
+				&& shownTip(panel.targetCombo())
+					== panel.targetCombo()->currentText() + "\n" + panel.targetCombo()->currentData(Qt::ToolTipRole).toString() + "\n" + trainTip,
+			"the tip of the target of a breakdown names a train, below the current target and its identity");
 		panel.listWidget()->setCurrentRow(0);
 		const QString signalTip = panel.targetCombo()->toolTip();
 		ok &= expect(!signalTip.isEmpty() && !signalTip.contains("service", Qt::CaseInsensitive) && !signalTip.contains("train", Qt::CaseInsensitive),

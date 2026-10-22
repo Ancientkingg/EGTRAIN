@@ -238,14 +238,37 @@ bool exerciseInvalidChoice() {
 			"invalid platform lost its text or data");
 		ok &= check(f.platform->itemData(index, Qt::ToolTipRole).toString() == kExplanation,
 			"invalid platform item lost its explanation");
-		ok &= check(shownTip(f.platform) == shown,
-			"tooltip of the invalid item is not its full text");
+		ok &= check(shownTip(f.platform) == shown + QLatin1Char('\n') + kExplanation,
+			"tooltip of the invalid item is not its full text followed by its explanation");
 		f.platform->showPopup();
 		QApplication::processEvents();
 		ok &= check(f.platform->currentText() == shown && f.platform->currentData().toString() == invalidId,
 			"opening the popup changed the invalid selection");
 		f.platform->hidePopup();
 	}
+	return ok;
+}
+
+// The tip shows the current text, then the tooltip of the current item (the id behind a label), then the tooltip of the
+// field, and a line that is already shown only once.
+bool exerciseItemTip() {
+	ChoiceComboBox combo;
+	combo.addItem(QStringLiteral("B0 0.000 to 0.230 km"), QStringLiteral("@0-B0@"));
+	combo.setItemData(0, QStringLiteral("@0-B0@"), Qt::ToolTipRole);
+	combo.addItem(QStringLiteral("(none)"));
+	combo.addItem(QStringLiteral("route0"));
+	combo.setItemData(2, QStringLiteral("The route of the scope."), Qt::ToolTipRole);
+	combo.setToolTip(QStringLiteral("The route of the scope."));
+	combo.show();
+	QApplication::processEvents();
+	bool ok = check(shownTip(&combo) == QStringLiteral("B0 0.000 to 0.230 km\n@0-B0@\nThe route of the scope."),
+		"the tip does not show the text, the id of the item and the tip of the field");
+	combo.setCurrentIndex(1);
+	ok &= check(shownTip(&combo) == QStringLiteral("(none)\nThe route of the scope."),
+		"an item without a tooltip does not show the text and the tip of the field");
+	combo.setCurrentIndex(2);
+	ok &= check(shownTip(&combo) == QStringLiteral("route0\nThe route of the scope."),
+		"a tooltip that the item and the field share is not shown once");
 	return ok;
 }
 
@@ -436,9 +459,10 @@ int main(int argc, char** argv) {
 	const bool selection = exerciseSelection();
 	const bool elision = exerciseElision();
 	const bool invalid = exerciseInvalidChoice();
+	const bool itemTip = exerciseItemTip();
 	const bool popupHeight = exercisePopupHeight();
 	const bool wheelInstalled = exerciseWheel(FormKind::Installed);
 	const bool wheelPlain = exerciseWheel(FormKind::Plain);
 	const bool wheelWatched = exerciseWheel(FormKind::Watched);
-	return small && scaledSmall && large && selection && elision && invalid && popupHeight && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
+	return small && scaledSmall && large && selection && elision && invalid && itemTip && popupHeight && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
 }

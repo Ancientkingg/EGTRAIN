@@ -10,6 +10,7 @@
 #include <QScreen>
 #include <QScrollBar>
 #include <QStyle>
+#include <QStringList>
 #include <QStyleOptionComboBox>
 #include <QStylePainter>
 #include <QToolTip>
@@ -21,8 +22,8 @@
 /// The field can shrink below its text so that a form never needs a horizontal scroll
 /// bar, while its size hint still lets the dialog grow to show the whole text. A text
 /// wider than the field is drawn with its middle elided. The tooltip is the current
-/// text, followed by the tooltip of the field when it has one, and the popup list is as wide as its widest entry
-/// within the screen. The wheel changes the choice only while the field has keyboard focus.
+/// text, followed by the tooltip of the current item and the tooltip of the field when they have one, and the popup
+/// list is as wide as its widest entry within the screen. The wheel changes the choice only while the field has keyboard focus.
 class ChoiceComboBox : public QComboBox {
 public:
 	/// A combo box that expands across its row and fits its size hint to its entries.
@@ -88,13 +89,17 @@ public:
 	}
 
 protected:
-	/// Shows the current text as the tooltip, with the tooltip of the field below it when it has one.
+	/// Shows the current text as the tooltip, with the tooltip of the current item, such as the id behind a label, and the
+	/// tooltip of the field below it when they have one. A line that is already shown is not repeated.
 	bool event(QEvent* event) override {
 		// The tip reads the current text when it is shown, so a selection made while
 		// signals are blocked cannot leave an old text behind.
 		if (event->type() == QEvent::ToolTip) {
-			const QString tip = toolTip().isEmpty() ? currentText() : currentText() + QLatin1Char('\n') + toolTip();
-			QToolTip::showText(static_cast<QHelpEvent*>(event)->globalPos(), tip, this);
+			QStringList lines{currentText()};
+			for (const QString& line : {currentData(Qt::ToolTipRole).toString(), toolTip()})
+				if (!line.isEmpty() && !lines.contains(line))
+					lines << line;
+			QToolTip::showText(static_cast<QHelpEvent*>(event)->globalPos(), lines.join(QLatin1Char('\n')), this);
 			return true;
 		}
 		return QComboBox::event(event);
