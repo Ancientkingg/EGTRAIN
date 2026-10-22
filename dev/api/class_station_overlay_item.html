@@ -255,12 +255,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a4b0ebd1dbb43ba00f4f9f6154c6609a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The attached pictogram, or null.  <br /></td></tr>
 <tr class="memitem:afe75874acddd4c7a0cd41e5209777b75" id="r_afe75874acddd4c7a0cd41e5209777b75"><td class="memItemLeft">QGraphicsTextItem *&#160;</td><td class="memItemRight"><a class="el" href="#afe75874acddd4c7a0cd41e5209777b75">nameItem</a> () const</td></tr>
 <tr class="memdesc:afe75874acddd4c7a0cd41e5209777b75"><td class="mdescLeft">&#160;</td><td class="mdescRight">The attached name, or null.  <br /></td></tr>
+<tr class="memitem:a528fa6d6f38d8a92f0544d1fd040c870" id="r_a528fa6d6f38d8a92f0544d1fd040c870"><td class="memItemLeft">QGraphicsPathItem *&#160;</td><td class="memItemRight"><a class="el" href="#a528fa6d6f38d8a92f0544d1fd040c870">areaItem</a> () const</td></tr>
+<tr class="memdesc:a528fa6d6f38d8a92f0544d1fd040c870"><td class="mdescLeft">&#160;</td><td class="mdescRight">The area of the station, or null for a plain picture.  <br /></td></tr>
 <tr class="memitem:afd53a492910276319c68e115c587bc54" id="r_afd53a492910276319c68e115c587bc54"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afd53a492910276319c68e115c587bc54">platformCount</a> () const</td></tr>
 <tr class="memdesc:afd53a492910276319c68e115c587bc54"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of platforms of the station.  <br /></td></tr>
-<tr class="memitem:a3388dd0f9cec87594a54f41837f3c907" id="r_a3388dd0f9cec87594a54f41837f3c907"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3388dd0f9cec87594a54f41837f3c907">applyViewScale</a> (qreal viewScale)</td></tr>
-<tr class="memdesc:a3388dd0f9cec87594a54f41837f3c907"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scales the attached items for the view scale (logical pixels per scene unit).  <br /></td></tr>
+<tr class="memitem:a3b1f250f682ada19ae6e1abfdf36e905" id="r_a3b1f250f682ada19ae6e1abfdf36e905"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3b1f250f682ada19ae6e1abfdf36e905">setNodeCentres</a> (const QList&lt; QPointF &gt; &amp;centres)</td></tr>
+<tr class="memitem:ab81a4d7493651a4531ff135dbc18e4fb" id="r_ab81a4d7493651a4531ff135dbc18e4fb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale</a> (qreal viewScale, bool nearLook=false)</td></tr>
 <tr class="memitem:ada7869b6534961f7195078726d2d9e7a" id="r_ada7869b6534961f7195078726d2d9e7a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ada7869b6534961f7195078726d2d9e7a">isNameHiddenByCollision</a> () const</td></tr>
 <tr class="memdesc:ada7869b6534961f7195078726d2d9e7a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#ac82f85c0f28205fa1a5765ec8faa6e33">resolveNameCollisions()</a> hid the attached name.  <br /></td></tr>
+<tr class="memitem:a8fa420b2b38668b98f78e900488c29dc" id="r_a8fa420b2b38668b98f78e900488c29dc"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a8fa420b2b38668b98f78e900488c29dc">pictogramSceneRect</a> () const</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -278,6 +281,10 @@ Static Public Attributes</h2></td></tr>
 <tr class="memdesc:ad6a6bdb15c3d2388ee415bb810239038"><td class="mdescLeft">&#160;</td><td class="mdescRight">Smallest height on screen, in logical pixels, of the scene-space pictogram.  <br /></td></tr>
 <tr class="memitem:a1fac60e96bca5ea5c016bfe7e00fbd5b" id="r_a1fac60e96bca5ea5c016bfe7e00fbd5b"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a1fac60e96bca5ea5c016bfe7e00fbd5b">MinNamePixels</a> = 12.0</td></tr>
 <tr class="memdesc:a1fac60e96bca5ea5c016bfe7e00fbd5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Smallest font size on screen, in logical pixels, of the scene-space name.  <br /></td></tr>
+<tr class="memitem:aa8bdc9d037ab4786c354ddc4ca806ffe" id="r_aa8bdc9d037ab4786c354ddc4ca806ffe"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#aa8bdc9d037ab4786c354ddc4ca806ffe">NearTrackSpacingPixels</a> = 12.0</td></tr>
+<tr class="memitem:a60802b763231043f1b5bbb836d20e736" id="r_a60802b763231043f1b5bbb836d20e736"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a60802b763231043f1b5bbb836d20e736">AreaMarginPixels</a> = 6.0</td></tr>
+<tr class="memitem:a850b7c2ba1375058273e9322bb0e283a" id="r_a850b7c2ba1375058273e9322bb0e283a"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a850b7c2ba1375058273e9322bb0e283a">AreaZValue</a> = -1.0</td></tr>
+<tr class="memdesc:a850b7c2ba1375058273e9322bb0e283a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The z value of the area of a station: under the tracks and connections (z 0).  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -412,8 +419,8 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
-<a id="a3388dd0f9cec87594a54f41837f3c907" name="a3388dd0f9cec87594a54f41837f3c907"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3388dd0f9cec87594a54f41837f3c907">&#9670;&#160;</a></span>applyViewScale()</h2>
+<a id="ab81a4d7493651a4531ff135dbc18e4fb" name="ab81a4d7493651a4531ff135dbc18e4fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab81a4d7493651a4531ff135dbc18e4fb">&#9670;&#160;</a></span>applyViewScale()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -421,18 +428,48 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void StationOverlayItem::applyViewScale </td>
           <td>(</td>
-          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>viewScale</em></span></td><td>)</td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>viewScale</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>nearLook</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Scales the attached items for the view scale (logical pixels per scene unit). </p>
+<p>Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the bottom centre of its frame on the top edge of the convex hull of its node centres, at the x of the centre of its dots: a station or major station on the top centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station on its own area. It shows as the dots in the near look. Its name sits under the dots in both looks, so that mark and name share their x. In the far look the area of the station is the hull of its node centres widened by AreaMarginPixels on screen; it is shown while the mark is visible and hidden in the near look. A plain picture keeps the far look and, like its name, its artwork point. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_a3388dd0f9cec87594a54f41837f3c907_cgraph.svg" width="360" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_ab81a4d7493651a4531ff135dbc18e4fb_cgraph.svg" width="430" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a528fa6d6f38d8a92f0544d1fd040c870" name="a528fa6d6f38d8a92f0544d1fd040c870"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a528fa6d6f38d8a92f0544d1fd040c870">&#9670;&#160;</a></span>areaItem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QGraphicsPathItem * StationOverlayItem::areaItem </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The area of the station, or null for a plain picture. </p>
 
 </div>
 </div>
@@ -459,11 +496,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Links the scene-space pictogram and name of this station. The items stay owned by the scene; both are enlarged about their anchor (bottom centre of the pictogram, top centre of the name) through their item transform, which stays the identity at their scene size. Attach the items to their parents before the first applyViewScale: the transform moves scenePos() of an enlarged item. More platforms rank a station higher when names collide. </p>
+<p>Links the scene-space pictogram and name of this station. The items stay owned by the scene; both are enlarged about their anchor (bottom centre of the pictogram, top centre of the name) through their item transform, which stays the identity at their scene size. For a station mark the transform also moves these anchors to the station nodes (<a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a>). Attach the items to their parents before the first applyViewScale: the transform moves scenePos() of an enlarged item. More platforms rank a station higher when names collide. For a <a class="el" href="class_station_mark_item.html">StationMarkItem</a> that is in a scene it also adds the area of the station to the scene, a path item at AreaZValue in <a class="el" href="_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8" title="The fill of the area of a station: the blue of the bar of the far mark at an alpha of 56 of 255.">stationAreaColor()</a> that takes no mouse input. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_aa2ff92888b98e93a94532d6504053e0b_cgraph.svg" width="358" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_aa2ff92888b98e93a94532d6504053e0b_cgraph.svg" width="358" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1323,8 +1360,26 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_aa87b17b4f8f7983bc0686a5582da3bbe_cgraph.svg" width="358" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_aa87b17b4f8f7983bc0686a5582da3bbe_cgraph.svg" width="558" height="199"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a8fa420b2b38668b98f78e900488c29dc" name="a8fa420b2b38668b98f78e900488c29dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fa420b2b38668b98f78e900488c29dc">&#9670;&#160;</a></span>pictogramSceneRect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QRectF StationOverlayItem::pictogramSceneRect </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The area in scene coordinates that a station mark takes in either look at the applied view scale, its halo included; the scene bounds of a plain picture. </p>
 
 </div>
 </div>
@@ -1543,7 +1598,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the visible pictogram of any other station. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view. </p>
+<p>Places the names of station marks and hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the visible pictogram of any other station. A name goes under the dots of its station, or, where its text there crosses a visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses neither: above the frame of the far look, right of the dots, left of them, and above a frame on the top of the box of the node centres at the x of the dots; without one it stays under the dots. A name is placed again only after <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> moved it. The spots do not depend on the look and pictograms are tested by <a class="el" href="#a8fa420b2b38668b98f78e900488c29dc">pictogramSceneRect()</a>, so the same names show in both looks. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1776,6 +1831,29 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_a7a7c813886508eb8d1c610cfc4f64dbf_cgraph.svg" width="360" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3b1f250f682ada19ae6e1abfdf36e905" name="a3b1f250f682ada19ae6e1abfdf36e905"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b1f250f682ada19ae6e1abfdf36e905">&#9670;&#160;</a></span>setNodeCentres()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void StationOverlayItem::setNodeCentres </td>
+          <td>(</td>
+          <td class="paramtype">const QList&lt; QPointF &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>centres</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gives the attached station mark the centres in scene coordinates of the station squares that are at the place of the anchor, those at most 32 mark frames at scene size from it, or the anchor alone without one. A station with platform nodes on another line has its mark, dots, area and name at the place of its anchor only. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_a3b1f250f682ada19ae6e1abfdf36e905_cgraph.svg" width="402" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2151,6 +2229,53 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="a60802b763231043f1b5bbb836d20e736" name="a60802b763231043f1b5bbb836d20e736"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60802b763231043f1b5bbb836d20e736">&#9670;&#160;</a></span>AreaMarginPixels</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">qreal StationOverlayItem::AreaMarginPixels = 6.0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Width on screen, in logical pixels, by which the area of a station in the far look reaches past its node centres on every side. </p>
+
+</div>
+</div>
+<a id="a850b7c2ba1375058273e9322bb0e283a" name="a850b7c2ba1375058273e9322bb0e283a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a850b7c2ba1375058273e9322bb0e283a">&#9670;&#160;</a></span>AreaZValue</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">qreal StationOverlayItem::AreaZValue = -1.0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The z value of the area of a station: under the tracks and connections (z 0). </p>
+
+</div>
+</div>
 <a id="a1fac60e96bca5ea5c016bfe7e00fbd5b" name="a1fac60e96bca5ea5c016bfe7e00fbd5b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1fac60e96bca5ea5c016bfe7e00fbd5b">&#9670;&#160;</a></span>MinNamePixels</h2>
 
@@ -2196,6 +2321,29 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Smallest height on screen, in logical pixels, of the scene-space pictogram. </p>
+
+</div>
+</div>
+<a id="aa8bdc9d037ab4786c354ddc4ca806ffe" name="aa8bdc9d037ab4786c354ddc4ca806ffe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8bdc9d037ab4786c354ddc4ca806ffe">&#9670;&#160;</a></span>NearTrackSpacingPixels</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">qreal StationOverlayItem::NearTrackSpacingPixels = 12.0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Smallest spacing on screen, in logical pixels, of the tracks at the stations for the near look, in which the marks are dots on the station nodes. </p>
 
 </div>
 </div>

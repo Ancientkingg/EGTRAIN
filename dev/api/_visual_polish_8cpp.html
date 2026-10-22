@@ -115,14 +115,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_visual_polish
 <div class="textblock"><code>#include &quot;<a class="el" href="_visual_polish_8h_source.html">graphics/VisualPolish.h</a>&quot;</code><br />
 <code>#include &lt;QPainter&gt;</code><br />
 <code>#include &lt;QPainterPath&gt;</code><br />
+<code>#include &lt;QPainterPathStroker&gt;</code><br />
 <code>#include &lt;QPixmap&gt;</code><br />
+<code>#include &lt;QPolygonF&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cctype&gt;</code><br />
 <code>#include &lt;initializer_list&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for VisualPolish.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp__incl.svg" width="1014" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp__incl.svg" width="1386" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -150,6 +153,16 @@ Functions</h2></td></tr>
 <tr class="memitem:a9d91a4372e0f0f446b48ea6c6ea4aace" id="r_a9d91a4372e0f0f446b48ea6c6ea4aace"><td class="memItemLeft"><a class="el" href="struct_station_visual.html">StationVisual</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9d91a4372e0f0f446b48ea6c6ea4aace">classifyStation</a> (bool hasPlatformId, int connectionCount)</td></tr>
 <tr class="memdesc:a9d91a4372e0f0f446b48ea6c6ea4aace"><td class="mdescLeft">&#160;</td><td class="mdescRight">The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise.  <br /></td></tr>
 <tr class="memitem:acd5376d75de6b86816b9fbc03adf30cc" id="r_acd5376d75de6b86816b9fbc03adf30cc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark</a> (QPainter *painter, const QRectF &amp;frame, <a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, const QColor &amp;fill, const QColor &amp;halo, qreal haloWidth)</td></tr>
+<tr class="memitem:ab5821bb5e3b802765eef37c3ccc25547" id="r_ab5821bb5e3b802765eef37c3ccc25547"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#ab5821bb5e3b802765eef37c3ccc25547">stationMarkBounds</a> (const QRectF &amp;frame, <a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal haloWidth)</td></tr>
+<tr class="memdesc:ab5821bb5e3b802765eef37c3ccc25547"><td class="mdescLeft">&#160;</td><td class="mdescRight">The area that <a class="el" href="_visual_polish_8h.html#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints, its halo included. The bar reaches past frame.  <br /></td></tr>
+<tr class="memitem:a2420ddd0ca6f0c9af6acb01c987d2ed4" id="r_a2420ddd0ca6f0c9af6acb01c987d2ed4"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a2420ddd0ca6f0c9af6acb01c987d2ed4">stationMarkFrameIn</a> (const QRectF &amp;area, <a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal haloWidth)</td></tr>
+<tr class="memdesc:a2420ddd0ca6f0c9af6acb01c987d2ed4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The largest square frame centred in area in which <a class="el" href="_visual_polish_8h.html#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints inside area, halo included.  <br /></td></tr>
+<tr class="memitem:a157bdee33c409d7a3ad52deb958bd831" id="r_a157bdee33c409d7a3ad52deb958bd831"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a157bdee33c409d7a3ad52deb958bd831">paintStationNodeMark</a> (QPainter *painter, const QList&lt; QPointF &gt; &amp;centres, <a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal side, const QColor &amp;fill, const QColor &amp;halo, qreal haloWidth)</td></tr>
+<tr class="memitem:ae56b53fb10f33d26c14e38709a0833df" id="r_ae56b53fb10f33d26c14e38709a0833df"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#ae56b53fb10f33d26c14e38709a0833df">stationNodeMarkShape</a> (const QList&lt; QPointF &gt; &amp;centres, <a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls, qreal side, qreal haloWidth)</td></tr>
+<tr class="memdesc:ae56b53fb10f33d26c14e38709a0833df"><td class="mdescLeft">&#160;</td><td class="mdescRight">The area that <a class="el" href="_visual_polish_8h.html#a157bdee33c409d7a3ad52deb958bd831">paintStationNodeMark()</a> paints, its halo of haloWidth included; empty without centres.  <br /></td></tr>
+<tr class="memitem:aad6e3639cb92ebdb855e80911a082344" id="r_aad6e3639cb92ebdb855e80911a082344"><td class="memItemLeft">QPainterPath&#160;</td><td class="memItemRight"><a class="el" href="#aad6e3639cb92ebdb855e80911a082344">stationAreaShape</a> (const QList&lt; QPointF &gt; &amp;centres, qreal width)</td></tr>
+<tr class="memitem:ad15b0a7441e0e9f52022e4a3a89d81d8" id="r_ad15b0a7441e0e9f52022e4a3a89d81d8"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#ad15b0a7441e0e9f52022e4a3a89d81d8">stationAreaColor</a> ()</td></tr>
+<tr class="memdesc:ad15b0a7441e0e9f52022e4a3a89d81d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The fill of the area of a station: the blue of the bar of the far mark at an alpha of 56 of 255.  <br /></td></tr>
 <tr class="memitem:aedc5fcbf783bda97fca3dc74d3a5098b" id="r_aedc5fcbf783bda97fca3dc74d3a5098b"><td class="memItemLeft">QIcon&#160;</td><td class="memItemRight"><a class="el" href="#aedc5fcbf783bda97fca3dc74d3a5098b">stationMarkIcon</a> (<a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a> cls)</td></tr>
 <tr class="memdesc:aedc5fcbf783bda97fca3dc74d3a5098b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mark in its dark variant for light surfaces, at 16 and 32 pixels.  <br /></td></tr>
 <tr class="memitem:a390edc9c1e6f62d5b3ed847698920d13" id="r_a390edc9c1e6f62d5b3ed847698920d13"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a390edc9c1e6f62d5b3ed847698920d13">simulationSpeedLabel</a> (int delayMs)</td></tr>
@@ -463,11 +476,63 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Paints the mark of a station class centred in frame: a bar for a major station, a disc for a station and a ring for a halt. A halo of haloWidth, in the units of the painter, surrounds it. </p>
+<p>Paints the far mark of a station class, a roundel centred in frame: a ring of outer radius 0.36 and width 0.12 of the frame for a halt, the ring with a blue bar 1.02 by 0.21 of the frame across it for a station, and a disc with the bar for a major station. The bar has an edge of 0.75 haloWidth in the halo colour. A halo of haloWidth, in the units of the painter, surrounds the mark. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_acd5376d75de6b86816b9fbc03adf30cc_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a157bdee33c409d7a3ad52deb958bd831" name="a157bdee33c409d7a3ad52deb958bd831"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a157bdee33c409d7a3ad52deb958bd831">&#9670;&#160;</a></span>paintStationNodeMark()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void paintStationNodeMark </td>
+          <td>(</td>
+          <td class="paramtype">QPainter *</td>          <td class="paramname"><span class="paramname"><em>painter</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QList&lt; QPointF &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>centres</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a></td>          <td class="paramname"><span class="paramname"><em>cls</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>side</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QColor &amp;</td>          <td class="paramname"><span class="paramname"><em>fill</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QColor &amp;</td>          <td class="paramname"><span class="paramname"><em>halo</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>haloWidth</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Paints the near mark of a station on its nodes at centres for a mark frame of side units: a dot of radius 0.22 side on each node of a station, in the order of centres, so that dots that overlap read as stacked coins; one dot of 0.15 side on the first node of a halt; and for a major station the convex hull of the nodes widened by 0.23 side. Each dot and the hull have an edge of 0.07 side in the halo colour, except the dot of a halt, and a halo of haloWidth surrounds the whole mark. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_a157bdee33c409d7a3ad52deb958bd831_cgraph.svg" width="179" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -551,6 +616,123 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ad15b0a7441e0e9f52022e4a3a89d81d8" name="ad15b0a7441e0e9f52022e4a3a89d81d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad15b0a7441e0e9f52022e4a3a89d81d8">&#9670;&#160;</a></span>stationAreaColor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QColor stationAreaColor </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The fill of the area of a station: the blue of the bar of the far mark at an alpha of 56 of 255. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_ad15b0a7441e0e9f52022e4a3a89d81d8_cgraph.svg" width="142" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aad6e3639cb92ebdb855e80911a082344" name="aad6e3639cb92ebdb855e80911a082344"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad6e3639cb92ebdb855e80911a082344">&#9670;&#160;</a></span>stationAreaShape()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPainterPath stationAreaShape </td>
+          <td>(</td>
+          <td class="paramtype">const QList&lt; QPointF &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>centres</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>width</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The area of a station on the canvas: the convex hull of its node centres widened by width / 2 on every side, a disc for one centre and a capsule for two; empty without centres. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_aad6e3639cb92ebdb855e80911a082344_cgraph.svg" width="148" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab5821bb5e3b802765eef37c3ccc25547" name="ab5821bb5e3b802765eef37c3ccc25547"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5821bb5e3b802765eef37c3ccc25547">&#9670;&#160;</a></span>stationMarkBounds()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QRectF stationMarkBounds </td>
+          <td>(</td>
+          <td class="paramtype">const QRectF &amp;</td>          <td class="paramname"><span class="paramname"><em>frame</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a></td>          <td class="paramname"><span class="paramname"><em>cls</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>haloWidth</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The area that <a class="el" href="_visual_polish_8h.html#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints, its halo included. The bar reaches past frame. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_ab5821bb5e3b802765eef37c3ccc25547_cgraph.svg" width="159" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2420ddd0ca6f0c9af6acb01c987d2ed4" name="a2420ddd0ca6f0c9af6acb01c987d2ed4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2420ddd0ca6f0c9af6acb01c987d2ed4">&#9670;&#160;</a></span>stationMarkFrameIn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QRectF stationMarkFrameIn </td>
+          <td>(</td>
+          <td class="paramtype">const QRectF &amp;</td>          <td class="paramname"><span class="paramname"><em>area</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a></td>          <td class="paramname"><span class="paramname"><em>cls</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>haloWidth</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The largest square frame centred in area in which <a class="el" href="_visual_polish_8h.html#acd5376d75de6b86816b9fbc03adf30cc">paintStationMark()</a> paints inside area, halo included. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_a2420ddd0ca6f0c9af6acb01c987d2ed4_cgraph.svg" width="360" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="aedc5fcbf783bda97fca3dc74d3a5098b" name="aedc5fcbf783bda97fca3dc74d3a5098b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aedc5fcbf783bda97fca3dc74d3a5098b">&#9670;&#160;</a></span>stationMarkIcon()</h2>
 
@@ -570,7 +752,45 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_aedc5fcbf783bda97fca3dc74d3a5098b_cgraph.svg" width="320" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_aedc5fcbf783bda97fca3dc74d3a5098b_cgraph.svg" width="535" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae56b53fb10f33d26c14e38709a0833df" name="ae56b53fb10f33d26c14e38709a0833df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae56b53fb10f33d26c14e38709a0833df">&#9670;&#160;</a></span>stationNodeMarkShape()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPainterPath stationNodeMarkShape </td>
+          <td>(</td>
+          <td class="paramtype">const QList&lt; QPointF &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>centres</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb">StationClass</a></td>          <td class="paramname"><span class="paramname"><em>cls</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>side</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">qreal</td>          <td class="paramname"><span class="paramname"><em>haloWidth</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The area that <a class="el" href="_visual_polish_8h.html#a157bdee33c409d7a3ad52deb958bd831">paintStationNodeMark()</a> paints, its halo of haloWidth included; empty without centres. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_visual_polish_8cpp_ae56b53fb10f33d26c14e38709a0833df_cgraph.svg" width="186" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

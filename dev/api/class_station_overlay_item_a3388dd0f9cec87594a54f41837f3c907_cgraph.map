@@ -1,5 +1,0 @@
-<map id="StationOverlayItem::applyViewScale" name="StationOverlayItem::applyViewScale">
-<area shape="rect" id="Node000001" title="Scales the attached items for the view scale (logical pixels per scene unit)." alt="" coords="5,5,155,45"/>
-<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a6ddc1ec80c93dabd2bfd39e816b3e155" title=" " alt="" coords="203,5,355,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,23,188,23,188,28,155,28"/>
-</map>

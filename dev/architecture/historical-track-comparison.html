@@ -315,25 +315,37 @@
 primitive next to the way it is drawn now.</p>
 <p>Canonical authored geometry and Fit padding remain in use, so comparisons must
 distinguish geometry from symbol presentation. Station artwork uses a mark per
-station class while retaining the historical scene-space anchor, offset and
-parent. Its size on screen is at least 24 px for the pictogram and 12 px for
-the name, so stations stay locatable at Fit; above that the scene size applies.
-Overlapping names are hidden by priority and pictograms are never hidden. The
-historical passenger PNG is restored as a separate resource. Train polygons keep
-the historical construction; their colour is one default yellow, or the colour
-of the service. The original renderer did not paint a train category badge over
-the locomotive.</p>
+station class with the historical parent. At scene scale it keeps the historical
+anchor and offset; on the canvas it is placed by the station squares at the
+place of the station. Zoomed out the mark is a roundel on a faint area of the
+station, zoomed in a dot on each station square. Its frame on screen is at least
+24 px and the name at least 12 px, so stations stay locatable at Fit; above that
+the scene size applies. The name goes under the squares, or off the tracks above
+the mark or beside the squares. Overlapping names are hidden by priority and
+marks are never hidden. The historical passenger PNG is restored as a separate
+resource. Train polygons keep the historical construction; their colour is one
+default yellow, or the colour of the service. The original renderer did not
+paint a train category badge over the locomotive.</p>
 <section id="intentional-differences">
 <h2>Intentional differences<a class="headerlink" href="#intentional-differences" title="Link to this heading">¶</a></h2>
 <p>These are the only intentional differences from the reference renderer. A
 difference that is not listed here is not intended. The numbers are the pull
 requests that made the change, or the issue where none did.</p>
 <ul class="simple">
-<li><p>Station pictogram and its size on screen (#579, #822). A light mark with a
-dark halo replaces the raster <code class="docutils literal notranslate"><span class="pre">station_pixmap</span></code>: a bar for a station with three
-or more connections, a disc for one with a platform and a ring for one without
-a platform. A run without the shared preview draws no bar. At every zoom the
-pictogram is at least 24 px high and the name at least 12 px, and names that
+<li><p>Station pictogram and its size on screen (#579, #822, #1063). A light mark
+with a dark halo replaces the raster <code class="docutils literal notranslate"><span class="pre">station_pixmap</span></code>. Until the tracks at the
+stations are 12 logical pixels apart on screen it is a roundel: a ring for a
+station without a platform, the ring with a blue bar for one with a platform
+and a disc with the bar for one with three or more connections. It stands on
+the upper edge of the hull of the station squares, above the middle of the
+dots of the closer look, and so on the faint blue area that covers the
+squares, also where the squares run diagonally. Closer in it is a dot on each
+station square, one small dot on the first square of a station without a
+platform and a capsule over the squares for one with three or more
+connections. A run without the shared preview does not count connections and
+draws no major station. The name sits under the station, or above the mark or
+beside the squares where its text would cross a track. At every zoom the frame
+of the mark is at least 24 px and the name at least 12 px, and names that
 overlap are hidden by rank. Where the scene size is larger than that, the
 scene size applies, as in the reference.</p></li>
 <li><p>Canvas (#509). The background <code class="docutils literal notranslate"><span class="pre">#101a22</span></code> with a faint <code class="docutils literal notranslate"><span class="pre">#182832</span></code> grid replaces

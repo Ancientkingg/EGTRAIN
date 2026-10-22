@@ -10,7 +10,8 @@ var class_station_overlay_item =
     ] ],
     [ "StationOverlayItem", "class_station_overlay_item.html#a3fc77e5aa0720ff49d0ea9cb1928379e", null ],
     [ "~StationOverlayItem", "class_station_overlay_item.html#a356c2bd5a3a2c81381b1bacf569dcd23", null ],
-    [ "applyViewScale", "class_station_overlay_item.html#a3388dd0f9cec87594a54f41837f3c907", null ],
+    [ "applyViewScale", "class_station_overlay_item.html#ab81a4d7493651a4531ff135dbc18e4fb", null ],
+    [ "areaItem", "class_station_overlay_item.html#a528fa6d6f38d8a92f0544d1fd040c870", null ],
     [ "attachArtwork", "class_station_overlay_item.html#aa2ff92888b98e93a94532d6504053e0b", null ],
     [ "boundingRect", "class_station_overlay_item.html#a0131162c6b8907fc4dd2593c5327c296", null ],
     [ "clearSourceIdentities", "class_station_overlay_item.html#ae01e2128a89fcd2b0b97416550114af2", null ],
@@ -44,6 +45,7 @@ var class_station_overlay_item =
     [ "mousePressEvent", "class_station_overlay_item.html#a0928bd40b9ed04191aabc88aa6f23d94", null ],
     [ "nameItem", "class_station_overlay_item.html#afe75874acddd4c7a0cd41e5209777b75", null ],
     [ "paint", "class_station_overlay_item.html#aa87b17b4f8f7983bc0686a5582da3bbe", null ],
+    [ "pictogramSceneRect", "class_station_overlay_item.html#a8fa420b2b38668b98f78e900488c29dc", null ],
     [ "pictureItem", "class_station_overlay_item.html#a4b0ebd1dbb43ba00f4f9f6154c6609a4", null ],
     [ "placementForSide", "class_station_overlay_item.html#a6162b1a68aaa43f248fe89352c09bb5d", null ],
     [ "platformCount", "class_station_overlay_item.html#afd53a492910276319c68e115c587bc54", null ],
@@ -62,6 +64,7 @@ var class_station_overlay_item =
     [ "setLayoutVisible", "class_station_overlay_item.html#a90949b987ed8172ce0a137d932b6b06c", null ],
     [ "setNameVisible", "class_station_overlay_item.html#a42be28ad0472e4336cfc82af83497094", null ],
     [ "setNetworkDegree", "class_station_overlay_item.html#a7a7c813886508eb8d1c610cfc4f64dbf", null ],
+    [ "setNodeCentres", "class_station_overlay_item.html#a3b1f250f682ada19ae6e1abfdf36e905", null ],
     [ "setSceneDecoration", "class_station_overlay_item.html#afc6ba38a8407612b23bbec973b02b10a", null ],
     [ "setSourceIdentities", "class_station_overlay_item.html#ad04912289100fc9e6a99252cd148a5f4", null ],
     [ "setViewportOffset", "class_station_overlay_item.html#a95b78cb2957fb91033f800a6651c6d42", null ],
@@ -77,6 +80,9 @@ var class_station_overlay_item =
     [ "viewportOffset", "class_station_overlay_item.html#ae64b22bbcf2905e5f6d1eb6dc0bb5f26", null ],
     [ "visual", "class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb", null ],
     [ "visualScale", "class_station_overlay_item.html#a44a17e0bbf56813795e67b0d0f539dd9", null ],
+    [ "AreaMarginPixels", "class_station_overlay_item.html#a60802b763231043f1b5bbb836d20e736", null ],
+    [ "AreaZValue", "class_station_overlay_item.html#a850b7c2ba1375058273e9322bb0e283a", null ],
     [ "MinNamePixels", "class_station_overlay_item.html#a1fac60e96bca5ea5c016bfe7e00fbd5b", null ],
-    [ "MinPictogramPixels", "class_station_overlay_item.html#ad6a6bdb15c3d2388ee415bb810239038", null ]
+    [ "MinPictogramPixels", "class_station_overlay_item.html#ad6a6bdb15c3d2388ee415bb810239038", null ],
+    [ "NearTrackSpacingPixels", "class_station_overlay_item.html#aa8bdc9d037ab4786c354ddc4ca806ffe", null ]
 ];
