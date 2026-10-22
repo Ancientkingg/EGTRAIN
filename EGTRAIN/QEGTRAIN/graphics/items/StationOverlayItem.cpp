@@ -2,13 +2,19 @@
 
 #include "graphics/items/TrackLineItem.h"
 
+#include <QGlyphRun>
 #include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
 #include <QLineF>
+#include <QPaintDevice>
 #include <QPainter>
 #include <QPainterPath>
+#include <QPen>
+#include <QRawFont>
 #include <QStyleOptionGraphicsItem>
+#include <QTextBlock>
 #include <QTextDocument>
+#include <QTextLayout>
 
 #include <algorithm>
 #include <cmath>
@@ -24,9 +30,7 @@ constexpr qreal kNameCollisionGap = 2.0;
 // A name meets the pictogram of a neighbour at the same height along the artwork line.
 // It covers that pictogram only when they share more than this many pixels both ways.
 constexpr qreal kPictogramOverlapPixels = 2.0;
-// The station mark is light with a dark halo of this many logical pixels.
-const QColor kMarkFill(232, 238, 242);
-const QColor kMarkHalo(16, 26, 34);
+// The station mark is light, stationMarkFill(), with a halo of this many logical pixels in canvasColor().
 constexpr qreal kMarkHaloPixels = 2.0;
 // The top of the name is this many mark frames below the footprint of the squares, and its bottom as many above the pin.
 constexpr qreal kNearNameGap = 0.25;
@@ -49,6 +53,101 @@ QPointF shiftTo(const QGraphicsItem* item, const QPointF& pivot, const QPointF& 
 	const QPointF target = item->parentItem() ? item->parentItem()->mapFromScene(scenePoint) : scenePoint;
 	return target - item->pos() - pivot;
 }
+
+// The eight directions around a point, 45 degrees apart.
+constexpr qreal kDiagonal = 0.70710678118654752;
+constexpr QPointF kHaloDirections[] = {{1.0, 0.0}, {kDiagonal, kDiagonal}, {0.0, 1.0}, {-kDiagonal, kDiagonal},
+	{-1.0, 0.0}, {-kDiagonal, -kDiagonal}, {0.0, -1.0}, {kDiagonal, -kDiagonal}};
+// Qt draws a glyph up to this many device pixels from its glyph cache, and fills the outline of a larger one.
+constexpr qreal kCachedGlyphPixels = 64.0;
+
+// The halo of a StationNameItem, a child stacked behind it: a band of StationNameItem::HaloPixels on screen around each
+// letter of the name in canvasColor(), drawn on every paint, so that it stays on the letters at any zoom and at any
+// position of the view. While Qt draws the letters from its glyph cache, the band is the letters drawn sixteen times
+// around their place, in the eight directions at half and at all of its width. Larger letters Qt fills as outlines,
+// and there the band is a stroke along their outlines, which costs less than sixteen fills. The glyphs are taken from
+// the document of the name at the first paint, and their outlines when the first stroke needs them.
+class StationNameHalo : public QGraphicsItem {
+public:
+	enum { Type = UserType + 15 };
+
+	// The halo of name, in a font of fontPixels pixels, which reaches at most reach, in the units of the name, past its
+	// letters. Its bounds leave half as much again for the antialiased edge, a device pixel at most.
+	StationNameHalo(QGraphicsTextItem* name, qreal fontPixels, qreal reach)
+		: QGraphicsItem(name), m_fontPixels(fontPixels), m_reach(reach),
+		  m_bounds(name->boundingRect().adjusted(-1.5 * reach, -1.5 * reach, 1.5 * reach, 1.5 * reach)) {
+		setFlag(QGraphicsItem::ItemStacksBehindParent);
+		setAcceptedMouseButtons(Qt::NoButton);
+	}
+
+	int type() const override { return Type; }
+	QRectF boundingRect() const override { return m_bounds; }
+
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
+		const qreal pixelsPerUnit = QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform());
+		if (pixelsPerUnit <= 0.0)
+			return;
+		if (!m_laidOut) {
+			m_runs = glyphRuns(static_cast<const QGraphicsTextItem*>(parentItem()));
+			m_laidOut = true;
+		}
+		const qreal width = std::min(StationNameItem::HaloPixels / pixelsPerUnit, m_reach);
+		const qreal devicePixelRatio = painter->device() ? painter->device()->devicePixelRatio() : 1.0;
+		painter->save();
+		if (m_fontPixels * pixelsPerUnit * devicePixelRatio <= kCachedGlyphPixels) {
+			painter->setPen(canvasColor());
+			for (const qreal reach : {width / 2.0, width})
+				for (const QPointF& direction : kHaloDirections)
+					for (const QGlyphRun& run : std::as_const(m_runs))
+						painter->drawGlyphRun(direction * reach, run);
+		} else {
+			if (m_outlines.isEmpty())
+				m_outlines = outlines(m_runs);
+			painter->setRenderHint(QPainter::Antialiasing);
+			painter->strokePath(m_outlines, QPen(canvasColor(), 2.0 * width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+		}
+		painter->restore();
+	}
+
+private:
+	// The glyphs of the document of name, where it draws them. They come from each line, since a layout of a document
+	// block holds no text of its own to take them from.
+	static QList<QGlyphRun> glyphRuns(const QGraphicsTextItem* name) {
+		QList<QGlyphRun> runs;
+		for (QTextBlock block = name->document()->begin(); block.isValid(); block = block.next()) {
+			const QTextLayout* layout = block.layout();
+			for (int line = 0; line < layout->lineCount(); ++line)
+				for (QGlyphRun run : layout->lineAt(line).glyphRuns()) {
+					QList<QPointF> positions = run.positions();
+					for (QPointF& position : positions)
+						position += layout->position();
+					run.setPositions(positions);
+					runs.append(run);
+				}
+		}
+		return runs;
+	}
+
+	// The outlines of the glyphs of runs, where they are drawn.
+	static QPainterPath outlines(const QList<QGlyphRun>& runs) {
+		QPainterPath path;
+		for (const QGlyphRun& run : runs) {
+			const QRawFont font = run.rawFont();
+			const QList<quint32> glyphs = run.glyphIndexes();
+			const QList<QPointF> positions = run.positions();
+			for (qsizetype index = 0; index < glyphs.size() && index < positions.size(); ++index)
+				path.addPath(font.pathForGlyph(glyphs.at(index)).translated(positions.at(index)));
+		}
+		return path;
+	}
+
+	qreal m_fontPixels;
+	qreal m_reach;
+	QRectF m_bounds;
+	QList<QGlyphRun> m_runs;
+	bool m_laidOut = false;
+	QPainterPath m_outlines;
+};
 
 QList<QPointF> fitCollisionCandidates() {
 	return {
@@ -94,7 +193,7 @@ void StationMarkItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, 
 	const qreal pixelsPerUnit = QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform());
 	if (m_nearLook || pixelsPerUnit <= 0.0)
 		return;
-	paintStationMark(painter, QRectF(offset(), QSizeF(pixmap().size())), m_class, kMarkFill, kMarkHalo,
+	paintStationMark(painter, QRectF(offset(), QSizeF(pixmap().size())), m_class, stationMarkFill(), canvasColor(),
 		kMarkHaloPixels / pixelsPerUnit);
 }
 
@@ -104,6 +203,17 @@ void StationMarkItem::setNearLook(bool nearLook) {
 	prepareGeometryChange();
 	m_nearLook = nearLook;
 	update();
+}
+
+StationNameItem::StationNameItem(const QString& text, const QFont& font, QGraphicsItem* parent)
+	: QGraphicsTextItem(text, parent) {
+	setFont(font);
+	setDefaultTextColor(Qt::white);
+	setZValue(NameZValue);
+	setAcceptedMouseButtons(Qt::NoButton);
+	// The halo is widest at the smallest size of the name on screen.
+	const qreal pixels = font.pixelSize() > 0 ? font.pixelSize() : QFontMetricsF(font).height();
+	m_halo = new StationNameHalo(this, pixels, HaloPixels * pixels / StationOverlayItem::MinNamePixels);
 }
 
 StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF& stableAnchor,
@@ -363,7 +473,7 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	if (m_fitSymbolVisible)
 		paintStationMark(painter,
 			stationMarkFrameIn(m_symbolRect.translated(m_fitCollisionOffset), m_visual.cls, kMarkHaloPixels),
-			m_visual.cls, kMarkFill, kMarkHalo, kMarkHaloPixels);
+			m_visual.cls, stationMarkFill(), canvasColor(), kMarkHaloPixels);
 	if (isLabelVisible()) {
 		painter->setPen(Qt::white);
 		painter->setFont(m_labelFont);
@@ -516,14 +626,17 @@ void StationOverlayItem::setPlatformBars(const QList<QPolygonF>& bars) {
 }
 
 void StationOverlayItem::applyViewScale(qreal viewScale, bool nearLook) {
-	// A plain picture and a mark without station squares keep the far look, so that they stay to be seen and clicked.
+	// A plain picture and a mark without station squares keep the far look, so that they stay to be seen and clicked. In
+	// the near look such a mark keeps its pin and its name at their smallest size on screen.
 	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
 	const bool nearMark = nearLook && mark && !mark->nodeCentres().isEmpty();
+	const bool keptPin = nearLook && mark && mark->nodeCentres().isEmpty();
 	viewScale = std::abs(viewScale);
-	if (viewScale > 0.0 && (viewScale != m_appliedViewScale || nearMark != m_appliedNearLook)) {
+	if (viewScale > 0.0 && (viewScale != m_appliedViewScale || nearMark != m_appliedNearLook || keptPin != m_appliedKeptPin)) {
 		m_appliedViewScale = viewScale;
 		m_appliedNearLook = nearMark;
-		placeArtwork(viewScale, nearMark);
+		m_appliedKeptPin = keptPin;
+		placeArtwork(viewScale, nearMark, keptPin);
 	}
 	// The area follows the mark, which the station layer and the parent of the mark can hide.
 	if (m_area)
@@ -556,8 +669,13 @@ qreal hullTopAt(const QList<QPointF>& centres, qreal x) {
 // footprint of the squares, and the name sits a small gap under the footprint, centred under it, so that it keeps its
 // place when the look switches. The frame of a station or major station stands on the top centre of the box of its
 // centres for a single centre, a row or a stack, and a halt stands on its first square. A plain picture and its name
-// stay at their artwork point.
-void StationOverlayItem::placeArtwork(qreal viewScale, bool nearLook) {
+// stay at their artwork point. A kept pin, that of a mark without squares in the near look, and its name have their
+// smallest size on screen.
+void StationOverlayItem::placeArtwork(qreal viewScale, bool nearLook, bool keptPin) {
+	const auto itemScale = [viewScale, keptPin](qreal nativeSizePx, qreal presentationScale, qreal minPx) {
+		return keptPin && nativeSizePx > 0.0 ? minPx / (nativeSizePx * viewScale)
+											 : readableItemScale(nativeSizePx, presentationScale, viewScale, minPx);
+	};
 	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
 	QList<QPointF> centres;
 	if (mark)
@@ -569,7 +687,7 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool nearLook) {
 	m_markSceneRect = QRectF();
 	m_squaresSceneRect = QRectF();
 	if (m_picture) {
-		const qreal scale = readableItemScale(m_pictureNativePixels, m_pictureSceneScale, viewScale, MinPictogramPixels);
+		const qreal scale = itemScale(m_pictureNativePixels, m_pictureSceneScale, MinPictogramPixels);
 		side = m_pictureNativePixels * scale;
 		if (mark) {
 			const qreal halo = kMarkHaloPixels / viewScale;
@@ -599,7 +717,7 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool nearLook) {
 		enlargeAbout(m_picture, pivot, scale / m_pictureSceneScale, shift);
 	}
 	if (m_name) {
-		const qreal scale = readableItemScale(m_nameNativePixels, m_nameSceneScale, viewScale, MinNamePixels);
+		const qreal scale = itemScale(m_nameNativePixels, m_nameSceneScale, MinNamePixels);
 		const QPointF pivot = m_nameAnchor * m_nameSceneScale;
 		m_nameFactor = scale / m_nameSceneScale;
 		m_nameSpots.clear();

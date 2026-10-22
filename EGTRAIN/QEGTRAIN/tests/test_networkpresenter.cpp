@@ -379,6 +379,12 @@ int main(int argc, char* argv[]) {
 		halt.hasPosition = true;
 		halt.positionKm = 10.0;
 		classes.stations.push_back(halt);
+		// A halt at the position of B1.Gvc, which no platform takes, has a square there.
+		SceneStation squareHalt;
+		squareHalt.id = squareHalt.name = "Hsq";
+		squareHalt.hasPosition = true;
+		squareHalt.positionKm = 164.0;
+		classes.stations.push_back(squareHalt);
 		presenter.showPreview(classes);
 		QStringList marks;
 		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
@@ -387,9 +393,10 @@ int main(int argc, char* argv[]) {
 				marks << overlay->stationName() + "=" + QString::number(static_cast<int>(overlay->visual().cls));
 		}
 		marks.sort();
-		ok &= expect(marks == QStringList({"Gdg=1", "Gvc=1", "Hlt=0", "Ut=2"}),
+		ok &= expect(marks == QStringList({"Gdg=1", "Gvc=1", "Hlt=0", "Hsq=0", "Ut=2"}),
 			"a station gets the mark of its class from its connections and platforms");
-		// The mark of a station with platforms gets the centres of their station squares, one without them its anchor.
+		// The mark of a station with platforms gets the centres of their station squares, one without them those of the
+		// squares at its position, as in a run.
 		bool centred = !presenter.m_stationOverlays.isEmpty();
 		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
 			const auto* mark = dynamic_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
@@ -408,9 +415,45 @@ int main(int argc, char* argv[]) {
 							&& item->data(PreviewGraphics::Id).toString() == QString::fromStdString(nodeId)
 							&& !expected.contains(item->sceneBoundingRect().center()))
 							expected.append(item->sceneBoundingRect().center());
-			centred = centred && mark->nodeCentres() == expected && (overlay->stationName() != "Gdg" || expected.size() == 2);
+			if (station->platforms.empty())
+				for (QGraphicsItem* item : scene.items())
+					if (qgraphicsitem_cast<StationNodeItem*>(item)
+						&& item->data(PreviewGraphics::StationId).toString() == QString::fromStdString(station->id))
+						expected.append(item->sceneBoundingRect().center());
+			centred = centred && mark->nodeCentres() == expected && (overlay->stationName() != "Gdg" || expected.size() == 2)
+				&& (overlay->stationName() != "Hsq" || expected.size() == 1) && (overlay->stationName() != "Hlt" || expected.isEmpty());
 		}
 		ok &= expect(centred, "the preview gives each station mark the centres of its station squares");
+		// In the near look before a run, as in a run, the halt with a square shows its square alone, and the halt without
+		// one keeps its pin and its name at their smallest size on screen at every zoom.
+		const auto overlayNamed = [&presenter](const QString& name) -> StationOverlayItem* {
+			for (StationOverlayItem* overlay : presenter.m_stationOverlays)
+				if (overlay->stationName() == name)
+					return overlay;
+			return nullptr;
+		};
+		StationOverlayItem* withSquare = overlayNamed("Hsq");
+		StationOverlayItem* withoutSquare = overlayNamed("Hlt");
+		bool squareAlone = withSquare && withoutSquare;
+		QList<QSizeF> keptPin;
+		QList<qreal> keptName;
+		for (const qreal viewScale : {4.0, 10.0}) {
+			if (!squareAlone)
+				break;
+			withSquare->applyViewScale(viewScale, true);
+			withoutSquare->applyViewScale(viewScale, true);
+			const auto* mark = static_cast<const StationMarkItem*>(withSquare->pictureItem());
+			const auto* pin = static_cast<const StationMarkItem*>(withoutSquare->pictureItem());
+			squareAlone = mark->isNearLook() && mark->sceneBoundingRect().isEmpty() && !pin->isNearLook();
+			keptPin << pin->sceneBoundingRect().size() * viewScale;
+			keptName << withoutSquare->nameItem()->sceneBoundingRect().height() * viewScale;
+		}
+		ok &= expect(squareAlone, "before a run a halt with a square draws no pin in the near look");
+		ok &= expect(keptPin.size() == 2 && std::abs(keptPin[0].width() - keptPin[1].width()) < 1e-6
+				&& std::abs(keptPin[0].height() - keptPin[1].height()) < 1e-6
+				&& std::abs(keptPin[0].width() - StationOverlayItem::MinPictogramPixels) < 1.0
+				&& std::abs(keptName[0] - keptName[1]) < 1e-6,
+			"a pin kept in the near look and its name keep their size on screen at every zoom");
 		presenter.clear();
 
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());

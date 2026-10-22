@@ -136,7 +136,13 @@ QRectF stationFootprintRect(const QList<QPointF>& centres, StationClass cls, qre
 QPainterPath stationAreaShape(const QList<QPointF>& centres, qreal width);
 /// The fill of the area of a station: the blue of the pin of a major station at an alpha of 56 of 255.
 QColor stationAreaColor();
-/// The mark in its dark variant for light surfaces, at 16 and 32 pixels.
+/// The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their halo.
+QColor canvasColor();
+/// The light colour of the station pins, RGB (232, 238, 242): the pin of a station, and the edge and the dot of the
+/// other pins.
+QColor stationMarkFill();
+/// The mark at 16 and 32 pixels in the colours of the canvas: stationMarkFill() with a halo in canvasColor(), which
+/// outlines the light pin on a light surface.
 QIcon stationMarkIcon(StationClass cls);
 /// The playback speed for a delay of delayMs milliseconds per simulated second, as a factor of real time:
 /// 1000 / delayMs with an "x", whole from 10x and with one decimal below. "Fastest" for a delay of 0 or less.

@@ -77,11 +77,11 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			// The pin of the class with its halo, whole and centred in the swatch, a pixel clear of its edges.
-			const QColor fill(16, 26, 34);
+			// The pin of the class in the colours of the canvas, whole and centred in the swatch, a pixel clear of its edges.
+			// Its dark halo outlines it on the light panel.
 			const QRectF area = QRectF(rect()).adjusted(1.0, 1.0, -1.0, -1.0);
-			paintStationMark(&painter, stationMarkFrameIn(area, m_entry.stationClass, 1.0), m_entry.stationClass, fill,
-				Qt::white, 1.0);
+			paintStationMark(&painter, stationMarkFrameIn(area, m_entry.stationClass, 1.0), m_entry.stationClass,
+				stationMarkFill(), canvasColor(), 1.0);
 			return;
 		}
 

@@ -24,7 +24,7 @@
 class StationMarkItem : public QGraphicsPixmapItem {
 public:
 	/// The z value of the station square that holds the mark: over the other squares (z 1), which the pin can
-	/// cover, and under platform bars and signals (z 2), names (z 3) and trains.
+	/// cover, and under platform bars and signals (z 2), trains and names.
 	static constexpr qreal HostZValue = 1.05;
 
 	/// A mark of class cls in a transparent pixmap of size by size pixels, one scene unit per pixel before the
@@ -57,6 +57,30 @@ private:
 	bool m_nearLook = false;
 	QRectF m_farBounds;
 	QPainterPath m_farShape;
+};
+
+/// The name of a station on the network canvas: white text in a halo of HaloPixels logical pixels in canvasColor(), a
+/// child item stacked behind it, so that a track, a pin or a train under the name does not cross its letters. It is
+/// stacked over everything else on the canvas except the boxes that a click opens, and it takes no click. The text
+/// and the font stay as constructed.
+class StationNameItem : public QGraphicsTextItem {
+public:
+	/// Over the trains (z 4), their speed (TrainBadgeItem) and the notices of a virtual coupling (z 4.4), and under the
+	/// callouts of a train and the details of a passenger (z 5).
+	static constexpr qreal NameZValue = 4.5;
+	/// The width of the halo around the letters on screen, in logical pixels.
+	static constexpr qreal HaloPixels = 2.0;
+
+	/// The name text in font, white, at NameZValue, with its halo.
+	StationNameItem(const QString& text, const QFont& font, QGraphicsItem* parent = nullptr);
+	/// The halo, a child item behind the name, drawn on every paint without a cached picture. While Qt draws the letters
+	/// from its glyph cache, it is the letters drawn sixteen times around their place, in eight directions at half and
+	/// at all of HaloPixels on screen; for larger letters it is a stroke along their outlines that reaches as far past
+	/// them. It is at most as wide as at the smallest size of the name on screen, StationOverlayItem::MinNamePixels.
+	QGraphicsItem* haloItem() const { return m_halo; }
+
+private:
+	QGraphicsItem* m_halo = nullptr;
 };
 
 /// The overlay of a station at its anchor in the scene. It ignores the transformation of the view, so its own
@@ -272,11 +296,12 @@ public:
 	/// at the x of the centre of the footprint of its squares (stationFootprintRect()): a station or major station on the
 	/// top centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station
 	/// on its own area. It stands there in both looks and draws nothing in the near look, which a mark without node
-	/// centres does not take: it keeps its pin as the only thing to see and click. Its name sits under the footprint in
-	/// both looks, so that mark and name share their x. The area of the station is shown while the mark is visible: in
-	/// the far look the hull of its node centres widened by AreaMarginPixels on screen, and in the near look the hull of
-	/// its node centres and platform bars widened by as much. A plain picture keeps the far look and, like its name, its
-	/// artwork point.
+	/// centres does not take: it keeps its pin as the only thing to see and click, and there the pin and the name keep
+	/// their smallest size on screen, MinPictogramPixels and MinNamePixels, at every zoom. Its name sits under the
+	/// footprint in both looks, so that mark and name share their x. The area of the station is shown while the mark is
+	/// visible: in the far look the hull of its node centres widened by AreaMarginPixels on screen, and in the near look
+	/// the hull of its node centres and platform bars widened by as much. A plain picture keeps the far look and, like its
+	/// name, its artwork point.
 	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }
@@ -306,7 +331,7 @@ protected:
 
 private:
 	void rebuildGeometry();
-	void placeArtwork(qreal viewScale, bool nearLook);
+	void placeArtwork(qreal viewScale, bool nearLook, bool keptPin);
 	void chooseNameSpot(const QList<QPair<const StationOverlayItem*, QRectF>>& pictograms,
 		const QList<QPair<const QGraphicsItem*, QRectF>>& tracks);
 	QRectF labelRectForSide(LabelSide side) const;
@@ -347,6 +372,7 @@ private:
 	QPointF m_nameAnchor;
 	qreal m_appliedViewScale = 0.0;
 	bool m_appliedNearLook = false;
+	bool m_appliedKeptPin = false;
 	// The pin of the far look and the footprint of the squares in scene coordinates, in either look; null for a plain
 	// picture. The footprint alone, its halo included; null without node centres.
 	QRectF m_markSceneRect;

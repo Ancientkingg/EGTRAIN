@@ -3,10 +3,12 @@
 #include <QGuiApplication>
 #include <QFontMetricsF>
 #include <QImage>
+#include <QMap>
 #include <QPainter>
 
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/SignalItem.h"
+#include "graphics/items/StationOverlayItem.h"
 #include "graphics/SignalGeometry.h"
 
 #include <iostream>
@@ -72,6 +74,25 @@ static int pixelsOfColor(const QImage& image, const QColor& color) {
 		for (int x = 0; x < image.width(); ++x)
 			count += image.pixelColor(x, y) == color;
 	return count;
+}
+
+// The colour of most opaque pixels of image, then those of the light, dark and blue colours of the pins and of white
+// that three opaque pixels or more have.
+static QString pinColours(const QImage& image) {
+	QMap<QRgb, int> counts;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			if (const QColor colour = image.pixelColor(x, y); colour.alpha() == 255)
+				++counts[colour.rgb()];
+	QRgb most = 0;
+	for (auto count = counts.cbegin(); count != counts.cend(); ++count)
+		if (count.value() > counts.value(most))
+			most = count.key();
+	QString colours = QColor(most).name();
+	for (const QColor& colour : {stationMarkFill(), canvasColor(), QColor(80, 120, 210), QColor(Qt::white)})
+		if (counts.value(colour.rgb()) >= 3)
+			colours += " " + colour.name();
+	return colours;
 }
 
 int main(int argc, char* argv[]) {
@@ -218,16 +239,15 @@ int main(int argc, char* argv[]) {
 			"major station, light with a dark dot for a station, dark with a light edge and dot for a halt");
 	}
 	// The menu icon fits the whole pin with its halo and centres it: the outer columns stay empty, and the outer rows hold
-	// at most the white halo, so that a pin cut at its top or its tip shows there. Only the pin of a major station is
-	// blue.
+	// at most the dark halo, so that a pin cut at its top or its tip shows there. Only the pin of a major station is blue.
+	// At 32 pixels it has the colours of the pin of its class on the canvas.
 	for (const StationClass cls : {StationClass::Major, StationClass::Station, StationClass::Halt}) {
 		for (const int size : {16, 32}) {
 			const QImage icon = stationMarkIcon(cls).pixmap(QSize(size, size)).toImage();
 			const QRectF area(0.0, 0.0, size, size);
 			const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, size / 16.0), cls, size / 16.0);
-			const auto halo = [](const QColor& colour) {
-				return colour.alpha() == 0 || (colour.red() > 224 && colour.green() > 224 && colour.blue() > 224);
-			};
+			// Next to nothing, or dark as the halo: the pins are light or blue where they meet the halo.
+			const auto halo = [](const QColor& colour) { return colour.alpha() <= 8 || colour.value() < 96; };
 			bool edgesEmpty = icon.width() == size && icon.height() == size;
 			bool blue = false;
 			for (int y = 0; y < icon.height(); ++y) {
@@ -244,6 +264,16 @@ int main(int argc, char* argv[]) {
 					&& QLineF(painted.center(), area.center()).length() < 0.01,
 				"the menu icon shows the whole pin, centred, blue only for a major station");
 		}
+		StationMarkItem canvasPin(cls, 60);
+		QImage canvas(100, 100, QImage::Format_ARGB32_Premultiplied);
+		canvas.fill(Qt::transparent);
+		{
+			QPainter painter(&canvas);
+			painter.translate(20.0, 20.0);
+			canvasPin.paint(&painter, nullptr, nullptr);
+		}
+		const QImage icon = stationMarkIcon(cls).pixmap(QSize(32, 32)).toImage();
+		ok &= expect(pinColours(icon) == pinColours(canvas), "the menu icon has the colours of the pin of its class on the canvas");
 	}
 	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
 	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
@@ -295,6 +325,12 @@ int main(int argc, char* argv[]) {
 	badge.setSpeedVisible(true);
 	badge.setSpeedText(QString());
 	ok &= expect(drawsNothing(), "a badge without a speed draws nothing");
+	// The speed, promoted or not, stays under the station names, which stay readable.
+	const bool underNames = badge.zValue() < StationNameItem::NameZValue;
+	badge.setPromoted(true);
+	ok &= expect(underNames && badge.zValue() < StationNameItem::NameZValue,
+		"the speed of a train, promoted or not, is stacked under the station names");
+	badge.setPromoted(false);
 
 	const SignalGeometry horizontal = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150);

@@ -1,4 +1,5 @@
 #include "graphics/NetworkView.h"
+#include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/VirtualArcItem.h"
@@ -11,7 +12,6 @@
 
 namespace {
 constexpr qreal kFitPadding = 24.0;
-const QColor kCanvasColor(0x10, 0x1a, 0x22);
 const QColor kGridColor(0x18, 0x28, 0x32);
 constexpr qreal kGridBaseSpacing = 80.0;
 constexpr qreal kGridMinPixels = 24.0;
@@ -28,7 +28,7 @@ NetworkView::NetworkView(QWidget* parent)
 
 	setMouseTracking(true);
 	setSceneRect(QRectF(0, 0, 0, 0));
-	setBackgroundBrush(kCanvasColor);
+	setBackgroundBrush(canvasColor());
 	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
@@ -287,7 +287,7 @@ bool NetworkView::viewportEvent(QEvent* event) {
 
 void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
 	QEGTRAIN_PROFILE_SCOPE("render/viewport_paint/background", "render", "render/viewport_paint");
-	painter->fillRect(rect, kCanvasColor);
+	painter->fillRect(rect, canvasColor());
 
 	const qreal viewScale = qAbs(transform().m11());
 	if (!std::isfinite(viewScale) || viewScale <= 0.0)

@@ -626,38 +626,48 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				platformCount);
 			auto* overlay = m_stationOverlays.back();
 			tagPreviewItem(overlay, "station", station.id);
-			const auto bind = [&](QGraphicsItem* decoration, bool artwork) {
-				if (artwork) tagPreviewItem(decoration, "station", station.id);
-				const auto node = nodeItems.find(station.nodeId);
-				if (node != nodeItems.end()) {
-					const QPointF position = decoration->scenePos();
-					decoration->setParentItem(node->second);
-					decoration->setPos(node->second->mapFromScene(position));
-					if (artwork)
-						node->second->setZValue(StationMarkItem::HostZValue);
-				}
-			};
+			// The mark hangs from the square of the node of the station, which it stacks over. The name stays an item of its
+			// own, which stacks over everything.
 			if (auto* picture = m_stationPictures.value(overlay, nullptr)) {
-				bind(picture, true);
-				// The mark and its area are placed by the station squares of the platforms, and the area covers their bars.
+				tagPreviewItem(picture, "station", station.id);
+				const auto host = nodeItems.find(station.nodeId);
+				if (host != nodeItems.end()) {
+					const QPointF position = picture->scenePos();
+					picture->setParentItem(host->second);
+					picture->setPos(host->second->mapFromScene(position));
+					host->second->setZValue(StationMarkItem::HostZValue);
+				}
+				// The mark and its area are placed by the station squares of the platforms, and the area covers their bars. A
+				// station without platforms has the squares of the nodes at its position, the nearest to its anchor first, as in
+				// a run.
 				QList<QPointF> centres;
 				QList<QPolygonF> bars;
-				if (sceneStation != sceneModel.stations.cend())
+				const auto addSquare = [&](const std::string& nodeId) {
+					const auto node = nodeItems.find(nodeId);
+					if (node == nodeItems.end() || !qgraphicsitem_cast<StationNodeItem*>(node->second))
+						return;
+					const QPointF centre = node->second->sceneBoundingRect().center();
+					if (!centres.contains(centre))
+						centres.append(centre);
+					if (const auto bar = platformBars.find(nodeId); bar != platformBars.end())
+						bars.append(bar->second->mapToScene(bar->second->rect()));
+				};
+				if (sceneStation != sceneModel.stations.cend()) {
 					for (const auto& platform : sceneStation->platforms)
-						for (const auto& nodeId : platform.nodeIds) {
-							const auto node = nodeItems.find(nodeId);
-							if (node == nodeItems.end() || !qgraphicsitem_cast<StationNodeItem*>(node->second))
-								continue;
-							const QPointF centre = node->second->sceneBoundingRect().center();
-							if (!centres.contains(centre))
-								centres.append(centre);
-							if (const auto bar = platformBars.find(nodeId); bar != platformBars.end())
-								bars.append(bar->second->mapToScene(bar->second->rect()));
-						}
+						for (const auto& nodeId : platform.nodeIds)
+							addSquare(nodeId);
+					if (sceneStation->platforms.empty()) {
+						for (const auto& [nodeId, membership] : memberships)
+							if (membership.stationId == station.id)
+								addSquare(nodeId);
+						std::stable_sort(centres.begin(), centres.end(), [&anchor](const QPointF& left, const QPointF& right) {
+							return QLineF(left, anchor).length() < QLineF(right, anchor).length();
+						});
+					}
+				}
 				overlay->setNodeCentres(centres);
 				overlay->setPlatformBars(bars);
 			}
-			bind(m_stationLabels.back(), false);
 			break;
 		}
 	}
@@ -810,12 +820,10 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 	picture->setVisible(m_stationLayerVisible);
 	QFont font;
 	font.setPixelSize(station_size / 5);
-	auto* label = scene->addText(StationOverlayItem::displayName(sname), font);
-	label->setDefaultTextColor(Qt::white);
+	auto* label = new StationNameItem(StationOverlayItem::displayName(sname), font);
+	scene->addItem(label);
 	label->setScale(scale);
-	label->setZValue(3);
 	label->setPos(artworkCoord - QPointF(label->boundingRect().width() * scale / 2.0, label->boundingRect().height() * scale / 2.0));
-	label->setAcceptedMouseButtons(Qt::NoButton);
 	m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
 	overlay->attachArtwork(picture, label, platformCount);
@@ -2343,7 +2351,9 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 		msgGroup->addToGroup(line);
 		msgGroup->addToGroup(textBox);
 		msgGroup->addToGroup(text);
-		msgGroup->setZValue(5);
+		// Over the trains (z 4) and their speed (z 4.2 and 4.3), and under the station names (z 4.5): the notice shows
+		// by itself, and only what a click opens may cover a name.
+		msgGroup->setZValue(4.4);
 		m_scene->addItem(msgGroup);
 		m_vcMessageItems.insert(trainItem->index, msgGroup);
 	} else {
