@@ -96,4 +96,6 @@ In the table of stops on the tab **Timetable** of **Editors > Services**, Return
 
 In the traction curve on the tab **Traction** of **Editors > Rolling stock units**, the arrow keys move between the cells and change no number, and Tab leaves the table. Typing into a cell replaces its number; a double click or F2 (Return on macOS) opens the cell with its number. In an open cell, Return or Enter keeps the new number, Esc restores the old one, and Tab keeps the number and opens the next cell.
 
+The tables on the tabs **Run occurrences** and **Timetable** of **Editors > Services** and the table **Import results** of **Editors > Passengers** open no field in a cell: the arrow keys move in the table, and Tab leaves it. In the table of **Editors > Infrastructure**, the arrow keys move between the cells, and moving to a cell that can be changed opens its field. Tab leaves the table, but while a field is open, Tab keeps its value and moves to the next cell. Tab passes over an editor whose dock is behind the tab of another dock.
+
 While the icon button **Pick** beside **Target** on the tab **Incidents** of **Editors > Incidents** is on, the network view waits for a click on a signal head or a train, and Esc turns the button off.

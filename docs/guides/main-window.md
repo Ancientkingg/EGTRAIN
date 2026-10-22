@@ -10,8 +10,7 @@ category counts, default and available scenarios, validation state, and
 runtime/result readiness. Expand a category to follow source data to parsed
 canonical objects. Imported scenes also show conversion, skipped, and
 unresolved-reference counts from `import_report`. `Missing optional` means the
-scene is usable without that file; `Unsupported` means the file was found but
-EGTRAIN did not consume it. `Not built` means no runtime has been prepared from
+scene is usable without that file. `Not built` means no runtime has been prepared from
 the current input. Advanced mode raises this panel automatically after open;
 normal mode leaves it available through View when you need it.
 
