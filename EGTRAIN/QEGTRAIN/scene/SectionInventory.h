@@ -2,6 +2,7 @@
 #define SCENE_SECTION_INVENTORY_H
 
 #include "scene/SceneModel.h"
+#include "scene/SectionLabels.h"
 #include "scene/SignallingLevelNames.h"
 
 #include <cstddef>
@@ -206,15 +207,7 @@ std::string formatSceneSectionCoordinate(double coordinate);
 /// stop in every locale.
 std::string sceneSectionLabel(const SceneSectionDescriptor& section);
 
-/// The labels of the sections of an inventory by runtime id and by block id. A label that two sections
-/// share ends with the id in parentheses; label() returns the reference itself when it names no section.
-struct SceneSectionLabels {
-	std::unordered_map<std::string, std::string> byReference; ///< Label by every reference that resolve() accepts.
-	/// The label of the section that the reference names, or the reference itself when it names none or
-	/// more than one.
-	std::string label(const std::string& reference) const;
-};
-/// The labels of the sections of the inventory.
+/// The labels of the sections of the inventory (see SceneSectionLabels).
 SceneSectionLabels sceneSectionLabels(const SceneSectionInventory& inventory);
 
 #endif // SCENE_SECTION_INVENTORY_H
