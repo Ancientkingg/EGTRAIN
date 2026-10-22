@@ -980,6 +980,21 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "signal inspector fields are empty";
 		}
+		// The run names the track by its id in the scene and the section by its label; the tooltips keep the numbers and ids.
+		const QString trackId = QString::fromStdString(w.m_presenter->sceneTrackId(inspectorSignal->trackID));
+		const std::string& aheadLabel = inspectorSignal->sectionAheadLabel;
+		if (trackId.isEmpty() || w.m_inspector->signallingTrackIDText->text() != trackId
+			|| !w.m_inspector->signallingTrackIDText->toolTip().contains(QStringLiteral("Runtime track number: %1").arg(inspectorSignal->trackID))
+			|| (!inspectorSignal->sectionAheadId.empty()
+				&& (aheadLabel.empty() || w.m_inspector->signallingIDSectionAheadText->text() != QString::fromStdString(aheadLabel)
+					|| !w.m_inspector->signallingIDSectionAheadText->toolTip().contains(QString::fromStdString(inspectorSignal->sectionAheadId))))
+			|| !inspectorSignal->toolTip().startsWith(QStringLiteral("Track %1 at ").arg(trackId))) {
+			ok = false;
+			failures << QStringLiteral("signal inspector does not name track %1 and section %2 by id and label: %3 / %4")
+							.arg(inspectorSignal->trackID)
+							.arg(QString::fromStdString(inspectorSignal->sectionAheadId), w.m_inspector->signallingTrackIDText->text(),
+								w.m_inspector->signallingIDSectionAheadText->text());
+		}
 	}
 	w.m_inspector->handleCloseInfoDockWidget();
 	w.m_inspector->dock()->hide();

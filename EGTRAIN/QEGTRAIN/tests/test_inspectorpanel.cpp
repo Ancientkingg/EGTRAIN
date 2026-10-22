@@ -8,10 +8,12 @@
 #include "graphics/NetworkScene.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
+#include "graphics/items/ConnectionItem.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationNodeItem.h"
 #include "graphics/items/StationOverlayItem.h"
+#include "graphics/items/TrackLineItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "simulation/Infrastructure.h"
@@ -100,12 +102,18 @@ private:
 	Section m_section;
 };
 
-// The field of the form row with this label. The label names one row of the dock.
+// The field of the form row with this label: the one that is shown when several forms have such a row.
 static QWidget* field(const InspectorPanel& panel, const QString& label) {
-	for (QLabel* candidate : panel.dock()->findChildren<QLabel*>())
-		if (candidate->text() == label && candidate->buddy())
+	QWidget* first = nullptr;
+	for (QLabel* candidate : panel.dock()->findChildren<QLabel*>()) {
+		if (candidate->text() != label || !candidate->buddy())
+			continue;
+		if (candidate->buddy()->isVisible())
 			return candidate->buddy();
-	return nullptr;
+		if (!first)
+			first = candidate->buddy();
+	}
+	return first;
 }
 
 // Whether the form that holds the field has been hidden, whatever its parent shows.
@@ -253,6 +261,9 @@ int main(int argc, char* argv[]) {
 	panel.displayNodeInfo(&runNode);
 	ok &= expect(panel.dock()->windowTitle() == "Node Info" && text(panel, "Node ID") == "7" && text(panel, "Y (m)") == "2250.00",
 		"a node of a run is shown with its position in metres");
+	ok &= expect(text(panel, "Track ID") == "B10" && tip(panel, "Track ID") == "B10\nRuntime track number: 2",
+		"a node of a run names its track by its id in the scene, with the runtime number in the tooltip");
+	ok &= expect(tip(panel, "Y (m)") == "2250.00", "the other fields keep their text as tooltip");
 	ok &= expect(panel.previewSelectionKind().isEmpty(), "an item of a run is no selected item of the preview");
 	panel.clearPreviewInspection();
 	ok &= expect(text(panel, "Node ID") == "7", "the fields of a run stay when the canvas shows no preview");
@@ -269,8 +280,10 @@ int main(int argc, char* argv[]) {
 	scene.addItem(&runStation);
 	panel.displayStationNodeInfo(&runStation);
 	ok &= expect(panel.dock()->windowTitle() == "Station Node Info" && text(panel, "Name") == "Alpha" && text(panel, "Region") == "12"
-			&& text(panel, "Signalled") == "Yes" && text(panel, "Connected tracks") == "2, 5",
+			&& text(panel, "Signalled") == "Yes" && text(panel, "Connected tracks") == "B10, B11",
 		"a station node shows its name, region, signalling and tracks");
+	ok &= expect(text(panel, "Track ID") == "B10" && tip(panel, "Connected tracks") == "B10, B11\nRuntime track numbers: 2, 5",
+		"a station node names its tracks by their ids in the scene, with the runtime numbers in the tooltip");
 	StationOverlayItem selectedOverlay("Alpha", QPointF(0.0, 0.0), classifyStation());
 	selectedOverlay.setSourceIdentities({{8.0, 2}});
 	StationOverlayItem otherOverlay("Beta", QPointF(0.0, 0.0), classifyStation());
@@ -322,6 +335,16 @@ int main(int argc, char* argv[]) {
 	QWidget* signallingBox = field(panel, "Signals at location");
 	ok &= expect(host.signalInspections == 1 && text(panel, "Aspect") == "Stop" && text(panel, "Signals at location") == "first",
 		"selecting a signal shows its aspect and its details");
+	ok &= expect(text(panel, "Track ID") == "B10" && tip(panel, "Track ID") == "B10\nRuntime track number: 2"
+			&& text(panel, "Next track") == "B10" && tip(panel, "Next track") == "B10\nRuntime track number: 2",
+		"Signalling Info names the tracks by their ids in the scene, with the runtime numbers in the tooltips");
+	ok &= expect(text(panel, "ID of Block Section") == "B10 1.000 to 2.000 km"
+			&& tip(panel, "ID of Block Section") == "B10 1.000 to 2.000 km\nSection ID: @a@"
+			&& text(panel, "Protected section") == "B10 1.000 to 2.000 km"
+			&& tip(panel, "Protected section") == "B10 1.000 to 2.000 km\nSection ID: @a@",
+		"Signalling Info names the section ahead by its label, with its id in the tooltips");
+	ok &= expect(text(panel, "Length of Block Section (m)") == "1000.00" && tip(panel, "X (m)") == "1000.00",
+		"the other fields of Signalling Info keep their text as tooltip");
 
 	// Find names the head by its labels, and the ids of its sections find it too.
 	{
@@ -386,6 +409,53 @@ int main(int argc, char* argv[]) {
 		"a disabled incident button says why in its tooltip");
 	panel.handleCloseInfoDockWidget();
 	ok &= expect(incident && incident->isHidden(), "closing the form hides the incident button");
+
+	// A head with a section behind it only names that one as the protected section.
+	signal.sectionAheadId.clear();
+	signal.sectionAheadLabel.clear();
+	signal.sectionAheadTrackId = -1;
+	panel.displaySignallingInfo(&signal);
+	ok &= expect(text(panel, "Protected section") == "B10 0.000 to 1.000 km"
+			&& tip(panel, "Protected section") == "B10 0.000 to 1.000 km\nSection ID: @b@"
+			&& text(panel, "ID of Block Section") == "None" && tip(panel, "ID of Block Section") == "None",
+		"a head without a section ahead protects the section behind it");
+
+	// An arc lists the sections of the signals on it by their labels, with the ids in the tooltip.
+	Arc arcData;
+	arcData.ID = 3;
+	arcData.startNode.X = 0.5;
+	arcData.endNode.X = 1.5;
+	TrackLineItem runArc(QLineF(0.0, 0.0, 4.0, 0.0));
+	runArc.arc = &arcData;
+	runArc.track = 2;
+	scene.addItem(&runArc);
+	signal.sectionAheadId = "@a@";
+	signal.sectionAheadLabel = "B10 1.000 to 2.000 km";
+	presenter.allSignals.append(&signal);
+	panel.displayArcInfo(&runArc);
+	ok &= expect(panel.dock()->windowTitle() == "Arc Info" && text(panel, "Track ID") == "B10"
+			&& tip(panel, "Track ID") == "B10\nRuntime track number: 2",
+		"an arc of a run names its track by its id in the scene");
+	ok &= expect(text(panel, "Connected signals") == "B10 1.000 to 2.000 km; B10 0.000 to 1.000 km"
+			&& tip(panel, "Connected signals") == "B10 1.000 to 2.000 km; B10 0.000 to 1.000 km\nSection IDs: @a@, @b@",
+		"an arc names the sections of its signals by their labels, with their ids in the tooltip");
+	presenter.allSignals.clear();
+
+	// A connection names its two tracks by their ids in the scene.
+	Connections connectionData;
+	connectionData.idFirstTrackLine = 2;
+	connectionData.idSecondTrackLine = 5;
+	connectionData.xFirstNode = 1.0;
+	connectionData.xSecondNode = 2.0;
+	ConnectionItem runConnection(QLineF(0.0, 0.0, 4.0, 4.0));
+	runConnection.connection = &connectionData;
+	scene.addItem(&runConnection);
+	panel.displayConnectionInfo(&runConnection);
+	ok &= expect(panel.dock()->windowTitle() == "Connection Info" && text(panel, "First Track ID") == "B10"
+			&& text(panel, "Second Track ID") == "B11" && tip(panel, "Second Track ID") == "B11\nRuntime track number: 5"
+			&& text(panel, "X First Node (m)") == "1000.00",
+		"a connection names its tracks by their ids in the scene, with the runtime numbers in the tooltips");
+	panel.handleCloseInfoDockWidget();
 	presenter.m_signalDecorations.clear();
 
 	return ok ? 0 : 1;
