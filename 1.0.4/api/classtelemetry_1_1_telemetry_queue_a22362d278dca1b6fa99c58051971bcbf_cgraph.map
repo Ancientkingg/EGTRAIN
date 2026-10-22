@@ -1,0 +1,20 @@
+<map id="telemetry::TelemetryQueue::enqueueDiagnostic" name="telemetry::TelemetryQueue::enqueueDiagnostic">
+<area shape="rect" id="Node000001" title="Stores a diagnostic event under its generation, as enqueueUsage() does." alt="" coords="5,169,205,209"/>
+<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="267,115,439,140"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,166,287,141,289,146,188,171"/>
+<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="501,226,701,266"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="206,190,325,197,454,211,505,221,504,226,453,217,324,202,206,195"/>
+<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#a908033f48f0faf16da8063781514784d" title=" " alt="" coords="253,226,453,266"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="193,206,254,220,253,226,192,211"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="314,116,305,106,309,96,326,90,353,88,388,92,398,97,402,102,397,105,394,101,387,97,353,93,327,95,313,100,310,106,317,113"/>
+<area shape="rect" id="Node000003" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="522,29,681,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="381,112,435,88,500,63,527,56,529,61,502,69,437,93,383,117"/>
+<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="528,103,675,128"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="439,121,514,117,514,122,440,126"/>
+<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="524,176,679,201"/>
+<area shape="poly" id="edge7_Node000002_Node000005" title=" " alt="" coords="406,137,537,170,535,175,405,143"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="562,31,553,21,557,11,574,5,601,3,636,7,646,11,650,17,645,20,642,15,635,12,601,8,575,10,561,15,558,20,565,27"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="562,104,553,94,557,84,574,78,601,76,636,80,646,85,650,90,645,93,642,89,635,85,601,81,575,83,561,88,558,94,565,101"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="562,178,553,168,557,158,574,152,601,149,636,153,646,158,650,164,645,167,642,162,635,158,601,155,575,157,561,162,558,167,565,174"/>
+<area shape="poly" id="edge11_Node000007_Node000006" title=" " alt="" coords="453,243,488,243,488,249,453,249"/>
+</map>

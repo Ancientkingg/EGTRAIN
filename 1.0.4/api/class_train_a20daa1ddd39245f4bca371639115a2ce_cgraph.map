@@ -1,0 +1,17 @@
+<map id="Train::ComputeBlockTime_ETCSLevel_3_ForSection" name="Train::ComputeBlockTime_ETCSLevel_3_ForSection">
+<area shape="rect" id="Node000001" title="Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually ente..." alt="" coords="5,113,195,153"/>
+<area shape="rect" id="Node000002" href="$class_train.html#ae67e8c5e364a38ec05fe9fd268b1a064" title=" " alt="" coords="259,77,453,117"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,117,245,110,246,115,195,122"/>
+<area shape="rect" id="Node000008" href="$class_blocking_times.html#a65dcbd103eb1f25b1edcbb17c345a519" title=" " alt="" coords="243,141,469,196"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="195,143,229,148,229,153,195,149"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="517,77,645,117"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="454,94,503,94,503,99,454,99"/>
+<area shape="rect" id="Node000004" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="693,5,897,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="617,74,692,40,717,32,719,37,694,44,619,79"/>
+<area shape="rect" id="Node000005" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="697,55,893,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="645,85,689,79,689,85,646,91"/>
+<area shape="rect" id="Node000006" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="724,105,867,145"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="646,102,711,111,710,116,645,108"/>
+<area shape="rect" id="Node000007" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="699,169,891,195"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="616,114,653,135,694,154,721,163,719,168,692,159,650,140,613,119"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="guiSignalHasLevel" name="guiSignalHasLevel">
+<area shape="rect" id="Node000001" title="level is a signalling level from 0 to 5." alt="" coords="5,29,148,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="44,31,37,21,40,11,54,5,77,3,105,6,116,16,112,20,102,11,77,8,55,10,44,15,42,20,48,28"/>
+<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="196,29,360,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="148,39,182,39,182,45,148,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="249,31,243,21,246,11,258,5,278,3,302,6,312,15,308,19,300,11,278,8,260,10,250,15,248,20,254,28"/>
+<area shape="rect" id="Node000003" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="408,29,499,55"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="360,39,394,39,394,45,360,45"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="424,31,418,21,422,11,434,5,453,3,477,6,487,15,484,19,475,11,453,8,435,10,426,15,424,20,429,28"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="MainWindow::openGUI" name="MainWindow::openGUI">
+<area shape="rect" id="Node000001" title="Shows the window maximized, at most eight ninths of the screen when restored, and fits the view." alt="" coords="5,5,175,31"/>
+<area shape="rect" id="Node000002" href="$class_main_window.html#a2cfd0971aa8a2a72f60e7213ef421867" title="Fits the canvas to the network, or to the preview bounds while a preview shows." alt="" coords="223,5,381,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,15,209,15,209,21,175,21"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="TrainUnitPanel::addUnit" name="TrainUnitPanel::addUnit">
+<area shape="rect" id="Node000001" title="Appends a unit with a new unique id and selects it." alt="" coords="5,92,180,117"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="228,5,425,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,90,167,65,227,39,252,32,253,37,229,45,169,69,119,94"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title="Lists the units again and shows the selected one." alt="" coords="242,55,411,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,89,233,80,234,85,173,95"/>
+<area shape="rect" id="Node000005" href="$_scene_ids_8cpp.html#af917b70dc5917f8e912eb1c3dfd3563b" title="A free train unit id." alt="" coords="239,128,415,153"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="176,115,230,123,230,128,175,120"/>
+<area shape="rect" id="Node000006" href="$class_train_unit_panel.html#ad92b14ab276828fc66c1b0806a4d3520" title=" " alt="" coords="233,178,420,218"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="121,115,229,162,252,171,250,176,227,167,119,120"/>
+<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="473,55,568,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="411,65,459,65,459,70,411,70"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="489,56,482,46,486,36,499,30,521,28,547,32,558,40,555,44,545,36,521,33,500,35,490,40,487,46,493,53"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="295,129,288,120,292,110,305,104,327,101,353,105,364,114,361,118,351,110,327,107,306,109,296,113,293,119,299,126"/>
+</map>

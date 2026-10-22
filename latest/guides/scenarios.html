@@ -1,0 +1,521 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="V1 Scene Schema Reference" href="scene-schema.html"><link rel="prev" title="Editing and validating a case" href="editing-a-case.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Scenarios and the student loop - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/scenarios.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="scenarios-and-the-student-loop">
+<h1>Scenarios and the student loop<a class="headerlink" href="#scenarios-and-the-student-loop" title="Link to this heading">¶</a></h1>
+<p>This page describes the scenario library, the student loop of a case, and what the network view shows while a run plays and after it.</p>
+<section id="scenarios">
+<h2>Scenarios<a class="headerlink" href="#scenarios" title="Link to this heading">¶</a></h2>
+<p>Open the <strong>Incidents</strong> dock to choose the canonical default or another named
+scenario. The dock has the tabs <strong>Scenario</strong>, <strong>Incidents</strong> and <strong>Entrance delays</strong>,
+and a line above them names the selected scenario. The library on the <strong>Scenario</strong>
+tab shows each scenario’s ID, name, incident and entrance-delay counts, default
+marker, and an in-memory modified marker. The authored description remains
+available; Advanced mode adds the full validation status. Normal mode still marks
+an actionable invalid scenario as <code class="docutils literal notranslate"><span class="pre">Invalid</span></code> but does not surface non-blocking
+warning detail. <strong>Blank</strong> and <strong>Duplicate</strong> create isolated scenarios; editing incidents, names, or
+descriptions changes only the selected scenario. <strong>Import JSON…</strong> and
+<strong>Export JSON…</strong> use the standalone scenario object documented in the schema
+reference. Imports retain entrance delays, validate references against the
+open case, and report any adjusted ID rather than replacing an existing
+scenario or incident.</p>
+</section>
+<section id="the-student-loop">
+<h2>The student loop<a class="headerlink" href="#the-student-loop" title="Link to this heading">¶</a></h2>
+<p>The completed student loop is: open a case, optionally review <strong>Loaded Data</strong>
+and <strong>Validation</strong>, choose or edit a scenario, save (or <strong>Save Case Study As…</strong>),
+review the run summary, run the selected scenario, then use <strong>Run Results</strong> to
+open the existing timetable, delay, speed, and blocking-time views. Results
+are cleared when the case or scenario changes and are rebuilt only by a new
+run, so a result window is never presented as belonging to a newly selected
+scenario.</p>
+</section>
+<section id="replay">
+<h2>Replay<a class="headerlink" href="#replay" title="Link to this heading">¶</a></h2>
+<p>The <strong>Replay</strong> row that appears under the network after a run is described in <a class="reference internal" href="how-to.html#replay-a-completed-run"><span class="std std-ref">Replay a completed run</span></a>.</p>
+</section>
+<section id="incidents-and-follow">
+<h2>Incidents and Follow<a class="headerlink" href="#incidents-and-follow" title="Link to this heading">¶</a></h2>
+<p>The incident editor exposes occurrence, reduced-speed cap, recovery end (or
+until-destination), and destination termination directly; these are not hidden
+JSON-only settings. During playback, choose a train in the list next to <strong>Follow</strong> in the toolbar and
+activate <strong>Follow</strong> to center the network view on it immediately, including
+while paused.</p>
+</section>
+<section id="follow-in-detail">
+<h2>Follow in detail<a class="headerlink" href="#follow-in-detail" title="Link to this heading">¶</a></h2>
+<p>The list names the state of each train. A train that has not entered the network
+shows its scheduled entry time, as in “Rail-1 (scheduled 08:25:50)”; the time is
+the schedule, not the actual entry. After that a train is “(running)”,
+“(finished)”, “(hidden)” while the Trains layer is off, or “(no position)” when
+it has none to draw. The list keeps its width in the toolbar and asks for a popup as
+wide as the longest entry. The label at the right of the status bar names the
+state of the selected train in one short clause, such as “Rail-1 enters at
+08:25:50” or “Following Rail-1”, and ends a clause that does not fit with an
+ellipsis. Its tooltip, and the tooltips of <strong>Follow</strong> and of the list, say in full
+whether the train is followed and why not. A train that has not entered yet remains armed: the view does
+not move, and Follow starts when the train enters. While the Trains layer is off
+the view does not move either, and the nearest station is not emphasised; both
+return when the layer is switched on. Before a case has run, and in a case
+without services, <strong>Follow</strong> is disabled and its tooltip says why.</p>
+<p>In a live run Follow is switched off when the selected train leaves the network.
+The train stays in the list, but Follow cannot be switched on for it. In the
+replay of a completed run Follow stays on after the selected train has left, and
+continues when you go back in time. A train that is scheduled to enter after the
+end of the completed run has no position in its replay; the label says so and the
+view does not move. Follow is also cleared when the run ends, when
+it is disabled, when playback exits, or when the selected train is no longer
+available; it never silently switches to another train.</p>
+<p>In a live run the view glides after the followed train. It moves at an even speed and
+reaches each new position of the train about one update interval after that position
+arrived, so it is about one update behind the train and stays less than a third of the
+visible area behind it. When the run is paused, the view reaches the last position and
+stops. In the replay of a completed
+run the view moves to the train at once at every seek and every step of the playback,
+because the replay holds a frame every five seconds and a glide would show motion that
+was not recorded. Switching Follow on and choosing another train also move the view at
+once. Dragging the canvas, zooming with the wheel and resizing the window do not switch
+Follow off: in a live run the view returns to the train with a glide at the next
+update. The zoom buttons of the toolbar centre the view on the train at once, and
+<strong>Fit</strong> shows the whole network. Stop, switching Follow off and switching the Trains
+layer off stop the view where it is. The train item has its own movement of 120 ms
+between two updates.</p>
+</section>
+<section id="selecting-items">
+<h2>Selecting items<a class="headerlink" href="#selecting-items" title="Link to this heading">¶</a></h2>
+<p>Click a track, connection, node, station, signal, train or passenger on the
+canvas to select it, in the preview as well as during a run. The matching
+inspector opens, or for a passenger a box of its details above it, and a light
+blue ring marks the item. Its title reads
+<code class="docutils literal notranslate"><span class="pre">Preview:</span> <span class="pre">&lt;kind&gt;</span> <span class="pre">&lt;id&gt;</span> <span class="pre">(not</span> <span class="pre">running)</span></code> in the preview and Node Info, Station Node
+Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. A
+signal of the preview is named by the label of its section, as in
+<code class="docutils literal notranslate"><span class="pre">Preview:</span> <span class="pre">Signal</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km</span> <span class="pre">(not</span> <span class="pre">running)</span></code> in Paimpol. A signal that
+<code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> lists for the section comes first: <code class="docutils literal notranslate"><span class="pre">sig1</span> <span class="pre">(B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km)</span></code>.
+During a run the inspector names tracks by their scene ids and sections by their
+labels, and the tooltip of a field gives the runtime track number or the section
+id (<a class="reference internal" href="glossary.html#ids-and-labels"><span class="std std-ref">ids and labels</span></a>). The ring keeps its size at
+every zoom and neither covers nor recolours the item. It follows a moving train and
+disappears with the layer of its item. Clicking another item moves the ring;
+clicking an empty part of the canvas or closing the inspector removes it. The
+inspector also closes when a run stops.
+Dragging the canvas pans the view and keeps the selection.</p>
+</section>
+<section id="signal-heads">
+<h2>Signal heads<a class="headerlink" href="#signal-heads" title="Link to this heading">¶</a></h2>
+<p>Signal heads on the canvas show what the simulation holds for the displayed
+time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
+(green), Unavailable (a gray ring with a short gray bar) or Failed (a red lamp
+with a white cross). A head is unavailable when its section has no signalling area, so a scene
+without one shows rings for the whole run. A head is failed on every signal of a
+section for as long as a signal failure incident is active. The marks appear when
+a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
+canvas shows the last snapshot the simulation delivered, and after the run the
+replay slider shows the heads of the selected time. The tooltip and the signalling
+inspector name the state, and the Map key lists all five. The tooltip also names
+the track and the sections ahead of and behind the head, as in
+<code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km;</span> <span class="pre">ahead</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km;</span> <span class="pre">behind</span> <span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">0.230</span> <span class="pre">km</span></code>.</p>
+</section>
+<section id="delay-baseline">
+<h2>Delay baseline<a class="headerlink" href="#delay-baseline" title="Link to this heading">¶</a></h2>
+<p>A completed run without incidents or entrance delays can be frozen with <strong>Set
+delay baseline</strong>. The results panel confirms the completed run identity and
+places the next action or disabled reason beside the baseline controls.
+Selecting another scenario keeps the baseline, discards the results and closes
+the dock <strong>Run Results</strong>. Opened again from the menu <strong>View</strong>, the dock reads
+<code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">completed</span> <span class="pre">run</span> <span class="pre">|</span> <span class="pre">Scenario:</span> <span class="pre">&lt;scenario&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">Baseline:</span> <span class="pre">&lt;case&gt;</span> <span class="pre">/</span> <span class="pre">&lt;scenario&gt;.</span> <span class="pre">Run</span> <span class="pre">the</span> <span class="pre">selected</span> <span class="pre">scenario</span> <span class="pre">to</span> <span class="pre">create</span> <span class="pre">completed</span> <span class="pre">results</span> <span class="pre">for</span> <span class="pre">comparison.</span></code> A canonical scene edit, <strong>File &gt; New Case Study…</strong>, or
+opening another case clears the baseline and explains that a new run without incidents or
+entrance delays is needed. <strong>Compare delays</strong> requires a run with incidents or
+entrance delays that matches the baseline, and opens the delay analysis window
+on its tab Against baseline. The window reports the difference and the recorded
+direct incident evidence, and never states a cause. What it shows, how to read
+it and what it does not cover are in
+<a class="reference internal" href="delay-analysis.html#the-delay-analysis-window"><span class="std std-ref">How delays are calculated</span></a>.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="scene-schema.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">V1 Scene Schema Reference</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="editing-a-case.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Editing and validating a case</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Scenarios and the student loop</a><ul>
+<li><a class="reference internal" href="#scenarios">Scenarios</a></li>
+<li><a class="reference internal" href="#the-student-loop">The student loop</a></li>
+<li><a class="reference internal" href="#replay">Replay</a></li>
+<li><a class="reference internal" href="#incidents-and-follow">Incidents and Follow</a></li>
+<li><a class="reference internal" href="#follow-in-detail">Follow in detail</a></li>
+<li><a class="reference internal" href="#selecting-items">Selecting items</a></li>
+<li><a class="reference internal" href="#signal-heads">Signal heads</a></li>
+<li><a class="reference internal" href="#delay-baseline">Delay baseline</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

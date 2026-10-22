@@ -1,0 +1,7 @@
+<map id="CaseSettingsPanel::commit" name="CaseSettingsPanel::commit">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,156,75"/>
+<area shape="rect" id="Node000002" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title="The base time of the model has been set to this text. Emitted before the document is marked changed." alt="" coords="227,5,378,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,42,213,34,214,40,157,47"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="204,70,401,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,62,191,66,190,71,156,67"/>
+</map>

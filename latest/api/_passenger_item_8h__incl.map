@@ -1,0 +1,7 @@
+<map id="graphics/items/PassengerItem.h" name="graphics/items/PassengerItem.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="63,5,251,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,173,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,47,110,84,106,81,139,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="197,93,256,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,44,209,81,205,84,172,47"/>
+</map>

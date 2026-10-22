@@ -1,0 +1,9 @@
+<map id="widgets/PlainToolTip.h" name="widgets/PlainToolTip.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="44,5,211,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,68,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,33,64,72,61,68,111,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="92,79,163,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,31,130,65,125,65,125,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="187,79,313,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="148,28,220,69,217,74,146,33"/>
+</map>

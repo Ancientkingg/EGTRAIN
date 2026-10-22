@@ -1,0 +1,51 @@
+<map id="openAreaCapacityWindow" name="openAreaCapacityWindow">
+<area shape="rect" id="Node000001" title="Asks for the scope, analyses it and opens the window, which deletes itself on close...." alt="" coords="5,213,199,239"/>
+<area shape="poly" id="edge31_Node000001_Node000001" title=" " alt="" coords="63,215,55,205,59,195,75,189,102,187,136,191,149,200,145,204,134,195,102,192,76,194,63,199,60,204,67,211"/>
+<area shape="rect" id="Node000002" href="$_area_capacity_8cpp.html#ad7a62b2ddfb9e5af716ae1744dc9933a" title="Occupation rates of the resources, the envelope and the chain of the selected trains." alt="" coords="262,29,422,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,212,160,141,199,99,245,64,257,57,260,62,248,68,203,103,164,145,113,215"/>
+<area shape="rect" id="Node000003" href="$_area_capacity_window_8cpp.html#a971ddcd31b6dd8485cb12b52f3e41012" title=" " alt="" coords="255,103,429,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="119,211,174,175,246,137,266,130,267,135,248,142,177,179,122,216"/>
+<area shape="rect" id="Node000004" href="$_area_capacity_window_8cpp.html#a8fd0e895bcf5a4af24039d1ac7b077bc" title="The route and block range of the scope by block ids, as the export names the area." alt="" coords="271,176,413,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="184,211,256,199,257,205,185,216"/>
+<area shape="rect" id="Node000006" href="$_area_capacity_window_8cpp.html#a319b62cae345e5b3d3fcd3ee14321f28" title="The route and block range of the scope by the labels of the blocks, as the window names the area." alt="" coords="275,249,409,275"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="187,236,261,247,260,253,187,241"/>
+<area shape="rect" id="Node000008" href="$class_area_capacity_window.html#a7d1a200175ee456cee0c882875190a4a" title=" " alt="" coords="257,307,427,347"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="134,236,282,299,280,304,132,241"/>
+<area shape="rect" id="Node000017" href="$class_area_capacity_scope_dialog.html#a11ef54b034b103da361fc0b6d05ac3e4" title="The scope that the widgets hold now." alt="" coords="247,371,437,411"/>
+<area shape="poly" id="edge32_Node000001_Node000017" title=" " alt="" coords="116,237,169,294,207,328,248,357,260,363,257,368,245,362,203,332,165,298,112,241"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="304,31,296,21,300,11,316,5,342,3,375,7,388,16,384,20,373,11,342,8,317,10,303,15,301,20,308,27"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="304,104,296,94,300,84,316,78,342,76,375,80,388,89,384,94,373,85,342,81,317,83,303,88,301,94,308,101"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="304,178,296,168,300,158,316,152,342,149,375,153,388,163,384,167,373,158,342,155,317,157,303,162,301,167,308,174"/>
+<area shape="rect" id="Node000005" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title=" " alt="" coords="485,172,669,197"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="414,185,472,184,472,189,414,190"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="541,174,533,164,537,154,552,148,577,145,608,149,620,158,617,162,606,154,577,151,554,153,541,158,539,163,545,170"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="304,251,296,241,300,231,316,225,342,223,375,227,388,236,384,240,373,231,342,228,317,230,303,235,301,240,308,247"/>
+<area shape="rect" id="Node000007" href="$_capacity_scope_8cpp.html#aac48329cb36d06bcc0e23530bf055943" title="As capacityScopeLabelFrom, for the windows: the blocks are named by their labels, &quot;first through last..." alt="" coords="489,245,665,271"/>
+<area shape="poly" id="edge11_Node000006_Node000007" title=" " alt="" coords="409,258,475,257,475,262,409,264"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="541,247,533,237,537,227,552,221,577,219,608,222,620,231,617,236,606,227,577,224,554,226,541,231,539,236,545,244"/>
+<area shape="rect" id="Node000009" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="499,319,655,344"/>
+<area shape="poly" id="edge14_Node000008_Node000009" title=" " alt="" coords="427,326,485,327,485,332,427,331"/>
+<area shape="rect" id="Node000014" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="489,396,666,421"/>
+<area shape="poly" id="edge24_Node000008_Node000014" title=" " alt="" coords="403,345,438,357,529,389,527,394,436,362,402,350"/>
+<area shape="poly" id="edge23_Node000009_Node000009" title=" " alt="" coords="541,320,533,310,537,300,552,294,577,292,608,296,620,305,617,309,606,301,577,297,554,299,541,304,539,310,545,317"/>
+<area shape="rect" id="Node000010" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="717,268,880,293"/>
+<area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="633,316,729,294,730,299,634,321"/>
+<area shape="rect" id="Node000013" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="1163,353,1316,393"/>
+<area shape="poly" id="edge21_Node000009_Node000013" title=" " alt="" coords="656,330,863,338,1115,354,1149,358,1149,363,1114,359,863,343,655,336"/>
+<area shape="poly" id="edge18_Node000010_Node000010" title=" " alt="" coords="763,270,755,260,759,250,774,244,799,241,829,245,842,254,838,258,827,250,799,247,775,249,762,254,760,259,767,266"/>
+<area shape="rect" id="Node000011" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="949,195,1094,220"/>
+<area shape="poly" id="edge16_Node000010_Node000011" title=" " alt="" coords="829,265,927,229,954,221,955,226,929,234,831,270"/>
+<area shape="rect" id="Node000012" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="928,268,1115,293"/>
+<area shape="poly" id="edge19_Node000010_Node000012" title=" " alt="" coords="880,278,914,278,914,283,880,283"/>
+<area shape="poly" id="edge17_Node000011_Node000011" title=" " alt="" coords="986,196,978,186,982,176,997,170,1021,168,1051,172,1063,181,1060,185,1049,177,1021,173,998,175,986,180,984,186,990,193"/>
+<area shape="poly" id="edge20_Node000012_Node000012" title=" " alt="" coords="986,270,978,260,982,250,997,244,1021,241,1051,245,1063,254,1060,258,1049,250,1021,247,998,249,986,254,984,259,990,266"/>
+<area shape="poly" id="edge22_Node000013_Node000013" title=" " alt="" coords="1199,353,1196,343,1203,334,1217,328,1239,326,1265,329,1278,336,1276,341,1263,334,1239,331,1219,333,1206,338,1202,344,1204,352"/>
+<area shape="poly" id="edge25_Node000014_Node000014" title=" " alt="" coords="541,398,533,388,537,378,552,372,577,369,608,373,620,382,617,386,606,378,577,375,554,377,541,382,539,387,545,394"/>
+<area shape="rect" id="Node000015" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="722,393,875,433"/>
+<area shape="poly" id="edge26_Node000014_Node000015" title=" " alt="" coords="666,408,708,408,708,414,666,413"/>
+<area shape="poly" id="edge30_Node000015_Node000015" title=" " alt="" coords="757,393,755,383,761,374,776,368,799,366,825,369,839,376,836,381,823,374,799,371,777,373,765,378,760,384,762,392"/>
+<area shape="rect" id="Node000016" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="931,393,1112,433"/>
+<area shape="poly" id="edge27_Node000015_Node000016" title=" " alt="" coords="876,410,917,410,917,415,876,415"/>
+<area shape="poly" id="edge29_Node000016_Node000013" title=" " alt="" coords="1112,393,1149,387,1150,392,1113,399"/>
+<area shape="poly" id="edge28_Node000016_Node000016" title=" " alt="" coords="981,393,978,383,985,374,999,368,1021,366,1047,369,1060,376,1058,381,1045,374,1021,371,1001,373,988,378,984,384,986,392"/>
+</map>

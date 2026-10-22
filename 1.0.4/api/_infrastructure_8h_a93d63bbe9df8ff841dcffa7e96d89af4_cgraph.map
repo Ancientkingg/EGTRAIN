@@ -1,0 +1,6 @@
+<map id="Print_Station_Delay_Stats" name="Print_Station_Delay_Stats">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,156,69"/>
+<area shape="rect" id="Node000002" href="$_infrastructure_8cpp.html#a3bb815e8c4e7336c4ba3a71c84e06b01" title=" " alt="" coords="204,29,355,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,47,190,47,190,52,156,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="242,30,240,20,246,11,259,5,279,3,303,6,315,13,313,18,301,11,279,8,260,10,249,15,245,21,247,28"/>
+</map>

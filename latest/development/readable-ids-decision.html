@@ -1,0 +1,932 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="QEGTRAIN source layout" href="../architecture/source-layout.html"><link rel="prev" title="Code documentation investigation" href="code-documentation-investigation.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Readable ids decision - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/readable-ids-decision.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="readable-ids-decision">
+<h1>Readable ids decision<a class="headerlink" href="#readable-ids-decision" title="Link to this heading">¶</a></h1>
+<p>This page records how the program shows the ids of blocks, sections and signals, the options that were compared and what each costs. Decided in #1075 on 2026-10-22. Paths are relative to <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> and line numbers are those of <code class="docutils literal notranslate"><span class="pre">40b8f778</span></code>, before #1076 and #1077.</p>
+<section id="decision">
+<h2>Decision<a class="headerlink" href="#decision" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Question</p></th>
+<th class="head"><p>Choice</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ids</p></td>
+<td><p>Unchanged. Scene files, legacy import and export, recovery copies, golden files, CSV exports and the live frame keep the ids they have today.</p></td>
+</tr>
+<tr class="row-odd"><td><p>What the user reads</p></td>
+<td><p>A label that the program derives from the scene. The id stays in the tooltip, in a Copy action and, in validation messages, in the text.</p></td>
+</tr>
+<tr class="row-even"><td><p>Block section</p></td>
+<td><p>The track and the kilometres of the two ends: <code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">21.010</span> <span class="pre">to</span> <span class="pre">21.310</span> <span class="pre">km</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Switch section</p></td>
+<td><p>The piece on each track: <code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">21.010</span> <span class="pre">to</span> <span class="pre">21.235,</span> <span class="pre">B1</span> <span class="pre">21.252</span> <span class="pre">to</span> <span class="pre">21.450</span> <span class="pre">km</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Authored labels</p></td>
+<td><p>None in this step.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Exports</p></td>
+<td><p>No label column in this step. The id stays the only key.</p></td>
+</tr>
+<tr class="row-even"><td><p>Track number of a run</p></td>
+<td><p>The scene track id, such as <code class="docutils literal notranslate"><span class="pre">B10</span></code>, with the runtime number in the tooltip.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="the-problem">
+<h2>The problem<a class="headerlink" href="#the-problem" title="Link to this heading">¶</a></h2>
+<p>On Paimpol:</p>
+<ol class="arabic simple">
+<li><p>Click a signal head in the preview. The inspector title is “Preview: Signal &#64;0-B0&#64; (not running)” and its details read “Track B0; section &#64;0-B0&#64;; forward; authored signal IDs: None” (<code class="docutils literal notranslate"><span class="pre">widgets/InspectorPanel.cpp:447</span></code> to <code class="docutils literal notranslate"><span class="pre">:455</span></code>).</p></li>
+<li><p>In <strong>Editors &gt; Incidents</strong>, tab <strong>Incidents</strong>, click <strong>Add Incident</strong>. The <strong>Target</strong> list of the signal failure holds the 140 block ids <code class="docutils literal notranslate"><span class="pre">0-B0</span></code>, <code class="docutils literal notranslate"><span class="pre">1-B0</span></code> and so on, with no position or station (<code class="docutils literal notranslate"><span class="pre">editors/IncidentPanel.cpp:39</span></code> to <code class="docutils literal notranslate"><span class="pre">:50</span></code> and <code class="docutils literal notranslate"><span class="pre">:425</span></code>).</p></li>
+<li><p>Run the case and choose <strong>Diagrams &gt; Blocking time…</strong> with <code class="docutils literal notranslate"><span class="pre">route0</span></code>. The block lists read “1:&#64;0-B0&#64;”, “2:&#64;1-B0&#64;” and so on, and entry 72 is “72:&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000” (<code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeScope.cpp:91</span></code> and <code class="docutils literal notranslate"><span class="pre">:92</span></code>).</p></li>
+<li><p>During the run, click a signal on the main line. <strong>Signalling Info</strong> shows <strong>Track ID</strong> 0 for the track that the preview calls B0 (<code class="docutils literal notranslate"><span class="pre">widgets/InspectorPanel.cpp:678</span></code>).</p></li>
+</ol>
+<section id="how-the-ids-are-formed">
+<h3>How the ids are formed<a class="headerlink" href="#how-the-ids-are-formed" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Id</p></th>
+<th class="head"><p>Example</p></th>
+<th class="head"><p>Formed in</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Track</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B</span></code> and the number of the legacy folder (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp:1076</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Node, arc</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0.node.1</span></code>, <code class="docutils literal notranslate"><span class="pre">B0.arc.100</span></code></p></td>
+<td><p>the track and the first column of <code class="docutils literal notranslate"><span class="pre">NodiCumPari.txt</span></code> or <code class="docutils literal notranslate"><span class="pre">ArchiCumPari.txt</span></code> (<code class="docutils literal notranslate"><span class="pre">:1110</span></code>, <code class="docutils literal notranslate"><span class="pre">:1164</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Block</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0-B0</span></code>, <code class="docutils literal notranslate"><span class="pre">71-B0</span></code></p></td>
+<td><p>the row of <code class="docutils literal notranslate"><span class="pre">BlockCumPari.txt</span></code>, counted from 0, and the track (<code class="docutils literal notranslate"><span class="pre">:1205</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Block section</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code></p></td>
+<td><p>the block id between <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> signs (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:15</span></code> to <code class="docutils literal notranslate"><span class="pre">:19</span></code>, <code class="docutils literal notranslate"><span class="pre">:329</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Switch section</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code></p></td>
+<td><p>the two blocks that hold the nodes of a connection, each followed by <code class="docutils literal notranslate"><span class="pre">-</span></code> and the kilometre of its node as printf <code class="docutils literal notranslate"><span class="pre">%f</span></code> writes it (<code class="docutils literal notranslate"><span class="pre">:169</span></code> to <code class="docutils literal notranslate"><span class="pre">:177</span></code>, <code class="docutils literal notranslate"><span class="pre">:363</span></code> to <code class="docutils literal notranslate"><span class="pre">:377</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Signal head</p></td>
+<td><p>the id of the section it protects</p></td>
+<td><p>no committed scene has a signal, so every head uses its section id (<code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp:666</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">-</span></code> before a kilometre is a separator, not a minus sign. <code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code> is block 71 of track B0 up to the node at 21.235 km, then block 0 of track B1 from 21.252 km. A block that the editor adds is called <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">block_2</span></code> and so on (<code class="docutils literal notranslate"><span class="pre">editors/infrastructure/BlockRouteFacets.cpp:121</span></code>, <code class="docutils literal notranslate"><span class="pre">:149</span></code>), so not every block id holds a number.</p>
+<p>The run numbers its tracks by their place in the list of track ids sorted as text (<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp:206</span></code> to <code class="docutils literal notranslate"><span class="pre">:208</span></code>, <code class="docutils literal notranslate"><span class="pre">:274</span></code> to <code class="docutils literal notranslate"><span class="pre">:276</span></code>, <code class="docutils literal notranslate"><span class="pre">:660</span></code>), and <strong>Track ID</strong>, <strong>Next track</strong> and the signal tooltips show that number. It matches the digits of the id only in scenes with at most ten tracks. In Netherlands 266 of the 268 tracks get another number: B10 is track 2 and B100 is track 3. In Copenhagen 166 of 168 differ and in Milano_Brescia 36 of 38.</p>
+</section>
+<section id="the-ids-are-data">
+<h3>The ids are data<a class="headerlink" href="#the-ids-are-data" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The run splits section ids on <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code> and takes the parts by position: <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp:633</span></code> to <code class="docutils literal notranslate"><span class="pre">:660</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeDiagram.cpp:31</span></code> to <code class="docutils literal notranslate"><span class="pre">:46</span></code> and <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:137</span></code> to <code class="docutils literal notranslate"><span class="pre">:145</span></code>. The importer and the exporter read route tokens the same way (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp:1216</span></code> to <code class="docutils literal notranslate"><span class="pre">:1244</span></code>, <code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp:66</span></code> to <code class="docutils literal notranslate"><span class="pre">:175</span></code>). A search of the product sources outside <code class="docutils literal notranslate"><span class="pre">tests/</span></code> for the literals <code class="docutils literal notranslate"><span class="pre">'&#64;'</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;&#64;&quot;</span></code> finds 78 lines in 8 files, 41 of them in <code class="docutils literal notranslate"><span class="pre">Signalling.cpp</span></code>.</p></li>
+<li><p>Scene files hold both forms. Paimpol <code class="docutils literal notranslate"><span class="pre">route0</span></code> lists <code class="docutils literal notranslate"><span class="pre">0-B0</span></code> to <code class="docutils literal notranslate"><span class="pre">70-B0</span></code> and then <code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code>. The six committed scenes hold 25,730 block-id occurrences.</p></li>
+<li><p>127 of the 134 files in <code class="docutils literal notranslate"><span class="pre">tests/characterization/expected</span></code> contain a block or section id, 2,338 in all (<code class="docutils literal notranslate"><span class="pre">grep</span> <span class="pre">-lE</span> <span class="pre">'[0-9]+-B[0-9]+'</span></code>). The CSV exports, <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">section_id</span></code> in the live frame (<code class="docutils literal notranslate"><span class="pre">io/LiveFrame.cpp:54</span></code>) contain them too.</p></li>
+</ul>
+</section>
+</section>
+<section id="the-committed-scenes">
+<h2>The committed scenes<a class="headerlink" href="#the-committed-scenes" title="Link to this heading">¶</a></h2>
+<p>Counted with a short Python program that repeats the layout of <code class="docutils literal notranslate"><span class="pre">buildSceneSectionInventory</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:271</span></code> to <code class="docutils literal notranslate"><span class="pre">:419</span></code>) on the JSON files. The four converted case studies are Paimpol, Netherlands, Copenhagen and Milano_Brescia. Amsterdam_Hilversum_Student has the same infrastructure, stations and signalling files as Netherlands, so it is not listed.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scene</p></th>
+<th class="head"><p>Tracks</p></th>
+<th class="head"><p>Blocks</p></th>
+<th class="head"><p>Switch sections</p></th>
+<th class="head"><p>Stations</p></th>
+<th class="head"><p>Tracks with a platform</p></th>
+<th class="head"><p>Blocks between two stations of their track</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Paimpol</p></td>
+<td><p>6</p></td>
+<td><p>140</p></td>
+<td><p>8</p></td>
+<td><p>10</p></td>
+<td><p>6</p></td>
+<td><p>122</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td><p>268</p></td>
+<td><p>1,984</p></td>
+<td><p>714</p></td>
+<td><p>41</p></td>
+<td><p>80</p></td>
+<td><p>684</p></td>
+</tr>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td><p>168</p></td>
+<td><p>1,513</p></td>
+<td><p>328</p></td>
+<td><p>94</p></td>
+<td><p>25</p></td>
+<td><p>1,136</p></td>
+</tr>
+<tr class="row-odd"><td><p>Milano_Brescia</p></td>
+<td><p>38</p></td>
+<td><p>312</p></td>
+<td><p>110</p></td>
+<td><p>29</p></td>
+<td><p>35</p></td>
+<td><p>175</p></td>
+</tr>
+<tr class="row-even"><td><p>Assignment_Gvc_Gdg_Ut</p></td>
+<td><p>2</p></td>
+<td><p>64</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+<td><p>2</p></td>
+<td><p>64</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>Every track has one chain of nodes with <code class="docutils literal notranslate"><span class="pre">x_km</span></code>, so every block can be placed by its track and kilometres.</p></li>
+<li><p>A station cannot place every block. In Netherlands 581 blocks lie on the 188 tracks without a platform, and 6 stations have only a position, no platform.</p></li>
+<li><p>Every station has a name equal to its id, often a code such as <code class="docutils literal notranslate"><span class="pre">Ut</span></code>, <code class="docutils literal notranslate"><span class="pre">Utzl</span></code> or <code class="docutils literal notranslate"><span class="pre">Gvc</span></code>.</p></li>
+<li><p>Netherlands has 714 switch sections for 708 connections. Where a connection node lies on a block boundary, the connection makes a switch section with the block on each side.</p></li>
+<li><p>No scene has a signal, so every signal head shows a section id.</p></li>
+<li><p>The longest block id has 7 characters (<code class="docutils literal notranslate"><span class="pre">10-B100</span></code>), its block section id 9 and the longest switch section id 39.</p></li>
+</ul>
+</section>
+<section id="options-and-their-cost">
+<h2>Options and their cost<a class="headerlink" href="#options-and-their-cost" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>(a) Labels beside unchanged ids</p></th>
+<th class="head"><p>(b) Readable ids with a scene migration</p></th>
+<th class="head"><p>(c) Tooltips and a glossary entry only</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>What the user reads</p></td>
+<td><p>Labels in lists, fields, titles, the chart strip and validation messages</p></td>
+<td><p>New ids in the same places</p></td>
+<td><p>The same ids; the decoded form only on hover</p></td>
+</tr>
+<tr class="row-odd"><td><p>Product files</p></td>
+<td><p>About 25 (17 <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>), listed in the plan below</p></td>
+<td><p>The 12 files that parse ids, the importer, the exporter, a migration step, and the display sites of (a) if the lists should read well</p></td>
+<td><p>About 12, the same places as (a) without visible texts, plus the glossary</p></td>
+</tr>
+<tr class="row-even"><td><p>Tests</p></td>
+<td><p>Expected texts in 7 unit test files and 4 end-to-end sources; new cases for the label</p></td>
+<td><p>127 golden files recorded again; 1,913 ids in 6 fixture files; 284 ids in 11 test sources</p></td>
+<td><p>Few, tooltips are seldom checked</p></td>
+</tr>
+<tr class="row-odd"><td><p>Data</p></td>
+<td><p>None</p></td>
+<td><p>25,730 block-id occurrences in the committed scenes rewritten by a step from schema 1 to 2</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-even"><td><p>Compatibility</p></td>
+<td><p>No file, export or frame changes</p></td>
+<td><p>Every saved scene needs the step; recovery copies of schema 1 are still listed but can no longer be opened (<code class="docutils literal notranslate"><span class="pre">OtherSceneVersion</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery/RecoveryStore.h:44</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery/RecoveryPrompt.cpp:44</span></code> and <code class="docutils literal notranslate"><span class="pre">:45</span></code>); CSV keys and <code class="docutils literal notranslate"><span class="pre">section_id</span></code> values change; the legacy export must map the new ids back to row numbers</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p>Size, estimated</p></td>
+<td><p>250 to 350 changed product lines and 150 to 250 test lines</p></td>
+<td><p>1,500 lines or more of code and tests, plus the regenerated scenes and golden files</p></td>
+<td><p>About 100 lines and the glossary entry</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>(a) The test files are <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_blocks.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_incident.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">test_diagramwindow.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">test_blockingtimediagram.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scenevalidator.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">test_completedrun.cpp</span></code>, and in <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code> <code class="docutils literal notranslate"><span class="pre">Captures.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">CreatorAcceptance.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">EditorSmoke.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">PostRun.cpp</span></code>. They were found by searching <code class="docutils literal notranslate"><span class="pre">tests/</span></code> for the texts that change. The size is about 45 call sites at 3 to 6 lines each, plus about 60 lines for the label function.</p></li>
+<li><p>(b) The production migration registry is empty today (<code class="docutils literal notranslate"><span class="pre">scene/SceneMigration.cpp:196</span></code> to <code class="docutils literal notranslate"><span class="pre">:199</span></code>) and the schema version is 1 (<code class="docutils literal notranslate"><span class="pre">scene/SceneModel.h:14</span></code>), so this would be the first schema step. A readable block id such as <code class="docutils literal notranslate"><span class="pre">B0.block.71</span></code> would still be wrapped and joined by the run (<code class="docutils literal notranslate"><span class="pre">SectionInventory.cpp:376</span></code> and <code class="docutils literal notranslate"><span class="pre">:377</span></code>, <code class="docutils literal notranslate"><span class="pre">Signalling.cpp:633</span></code> and <code class="docutils literal notranslate"><span class="pre">:634</span></code>), so a switch section would read <code class="docutils literal notranslate"><span class="pre">&#64;B0.block.71&#64;-21.235000/&#64;B1.block.0&#64;-21.252000</span></code> unless the runtime form changes too, with every parser above.</p></li>
+<li><p>(c) A tooltip needs the decoded form of the id, so (c) needs the same label function as (a). It leaves the lists of 140 to 2,698 bare ids, the strip and the validation messages as they are.</p></li>
+</ul>
+</section>
+<section id="why-labels">
+<h2>Why labels<a class="headerlink" href="#why-labels" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>(a) fixes what the four Paimpol steps show without touching data, so nothing in the scenes, the legacy files, the golden files, the exports or the live frame can break.</p></li>
+<li><p>(a) costs little more than (c), because both need the label function and (a) only uses it in more places.</p></li>
+<li><p>(b) crosses the data-loss boundaries of the repository: scene files, a first migration step, the legacy export and recovery. It changes 127 golden files, which hides real behaviour changes in a large diff, and still leaves switch sections hard to read.</p></li>
+</ul>
+<p>Against (a):</p>
+<ul class="simple">
+<li><p>One thing has two names. A label is not a reference: it changes when an earlier block of the same track changes length, and the id does not. Notes, bug reports and scripts use the id, which the tooltip and the Copy action give.</p></li>
+<li><p>A block label is about twice as wide as a block id, so the chart strip shows fewer labels at one zoom.</p></li>
+<li><p>The run inspector needs labels during the run, so the presenter builds them once per run from the scene of the run.</p></li>
+<li><p>Validation messages get longer.</p></li>
+</ul>
+<p>None of these blocks the decision.</p>
+</section>
+<section id="the-label">
+<h2>The label<a class="headerlink" href="#the-label" title="Link to this heading">¶</a></h2>
+<section id="rules">
+<h3>Rules<a class="headerlink" href="#rules" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>A block section reads <code class="docutils literal notranslate"><span class="pre">&lt;track&gt;</span> <span class="pre">&lt;start&gt;</span> <span class="pre">to</span> <span class="pre">&lt;end&gt;</span> <span class="pre">km</span></code>. Start and end are the <code class="docutils literal notranslate"><span class="pre">startKm</span></code> and <code class="docutils literal notranslate"><span class="pre">endKm</span></code> of its descriptor (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:332</span></code> and <code class="docutils literal notranslate"><span class="pre">:333</span></code>), which follow the layout of the run, including a last block that is extended to the track end (<code class="docutils literal notranslate"><span class="pre">:320</span></code> to <code class="docutils literal notranslate"><span class="pre">:323</span></code>) or cut at it (<code class="docutils literal notranslate"><span class="pre">:310</span></code> to <code class="docutils literal notranslate"><span class="pre">:313</span></code>).</p></li>
+<li><p>A switch section reads <code class="docutils literal notranslate"><span class="pre">&lt;first</span> <span class="pre">track&gt;</span> <span class="pre">&lt;start&gt;</span> <span class="pre">to</span> <span class="pre">&lt;first</span> <span class="pre">node&gt;,</span> <span class="pre">&lt;second</span> <span class="pre">track&gt;</span> <span class="pre">&lt;second</span> <span class="pre">node&gt;</span> <span class="pre">to</span> <span class="pre">&lt;end&gt;</span> <span class="pre">km</span></code>: the part of the first block up to the connection, then the part of the second block from it. These are the nodes of the section in order (<code class="docutils literal notranslate"><span class="pre">:389</span></code> to <code class="docutils literal notranslate"><span class="pre">:397</span></code>). A piece whose two ends round to the same value shows that value once, as in <code class="docutils literal notranslate"><span class="pre">B104</span> <span class="pre">58.000</span> <span class="pre">to</span> <span class="pre">58.099,</span> <span class="pre">B100</span> <span class="pre">58.152</span> <span class="pre">km</span></code>. Six switch sections of Netherlands and one of Milano_Brescia have such a piece, and no route uses them.</p></li>
+<li><p>Kilometres have three decimals, which is 1 m, and a full stop as the decimal mark in every locale. The shortest block of the committed scenes is 2 m (Netherlands).</p></li>
+<li><p>The track is the scene track id. A track has no other name: <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code> gives tracks only an <code class="docutils literal notranslate"><span class="pre">id</span></code>.</p></li>
+<li><p>When two sections would get the same label, both labels end with the id in parentheses. No section of the committed scenes needs this. It can happen with blocks shorter than 0.5 m, since validation only asks for a positive length (<code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.cpp:729</span></code>).</p></li>
+<li><p>A reference that names no section, or more than one, keeps its id as the label. This covers an unknown block and a block whose track has no single chain of nodes, for which the inventory makes no section (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:35</span></code> to <code class="docutils literal notranslate"><span class="pre">:54</span></code>, <code class="docutils literal notranslate"><span class="pre">:79</span></code>, <code class="docutils literal notranslate"><span class="pre">:297</span></code>), and a runtime id that two sections share, which validation reports (<code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.cpp:1815</span></code> to <code class="docutils literal notranslate"><span class="pre">:1819</span></code>) and for which <code class="docutils literal notranslate"><span class="pre">exact()</span></code> finds no section (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp:179</span></code> to <code class="docutils literal notranslate"><span class="pre">:188</span></code>).</p></li>
+<li><p>A signal with an authored id shows that id, then the label of its section. A head without an authored signal shows the label of its section.</p></li>
+<li><p>A run shows the scene track id from <code class="docutils literal notranslate"><span class="pre">BlockSet::sceneTrackId</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h:242</span></code>) where it shows a track number today. The number moves to the tooltip.</p></li>
+</ol>
+<p>The label holds no block number. The number in an imported id is the row in the legacy file. Editor ids hold none, and inserting, moving or deleting a block (<code class="docutils literal notranslate"><span class="pre">editors/infrastructure/BlockRouteFacets.cpp:111</span></code> to <code class="docutils literal notranslate"><span class="pre">:164</span></code>) changes the place of the blocks after it but not their ids. A number in the label would then either differ from the id or follow two rules. The kilometres come from the layout that the run uses, so they stay right after any edit. In all committed scenes the number in the id is still the place of the block on its track, counted from 0.</p>
+<p>The label holds no station. Station names equal the station ids, which in Netherlands are codes such as <code class="docutils literal notranslate"><span class="pre">Ut</span></code>, and there only 684 of 1,984 blocks lie between two stations of their own track. A missing station name therefore changes nothing in the label.</p>
+</section>
+<section id="examples-from-the-committed-scenes">
+<h3>Examples from the committed scenes<a class="headerlink" href="#examples-from-the-committed-scenes" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scene</p></th>
+<th class="head"><p>Id</p></th>
+<th class="head"><p>Label</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Paimpol</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">0.230</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Paimpol</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;70-B0&#64;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">20.710</span> <span class="pre">to</span> <span class="pre">21.010</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Paimpol</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">21.010</span> <span class="pre">to</span> <span class="pre">21.235,</span> <span class="pre">B1</span> <span class="pre">21.252</span> <span class="pre">to</span> <span class="pre">21.450</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Paimpol</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B1&#64;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B1</span> <span class="pre">21.150</span> <span class="pre">to</span> <span class="pre">21.450</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Netherlands</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B32&#64;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B32</span> <span class="pre">1.254</span> <span class="pre">to</span> <span class="pre">1.560</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;1-B32&#64;-1.577000/&#64;0-B36&#64;-1.582000</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B32</span> <span class="pre">1.560</span> <span class="pre">to</span> <span class="pre">1.577,</span> <span class="pre">B36</span> <span class="pre">1.582</span> <span class="pre">to</span> <span class="pre">1.587</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;2-B8&#64;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B8</span> <span class="pre">22.140</span> <span class="pre">to</span> <span class="pre">22.400</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Copenhagen</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;55-B8&#64;-38.100000/&#64;0-B157&#64;-38.135000</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B8</span> <span class="pre">38.023</span> <span class="pre">to</span> <span class="pre">38.100,</span> <span class="pre">B157</span> <span class="pre">38.135</span> <span class="pre">to</span> <span class="pre">38.140</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Milano_Brescia</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;1-B4&#64;-11.140000/&#64;1-B2&#64;-11.240000</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B4</span> <span class="pre">10.156</span> <span class="pre">to</span> <span class="pre">11.140,</span> <span class="pre">B2</span> <span class="pre">11.240</span> <span class="pre">to</span> <span class="pre">12.543</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Milano_Brescia</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;1-B4&#64;-11.340000/&#64;1-B2&#64;-11.420000</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B4</span> <span class="pre">10.156</span> <span class="pre">to</span> <span class="pre">11.340,</span> <span class="pre">B2</span> <span class="pre">11.420</span> <span class="pre">to</span> <span class="pre">12.543</span> <span class="pre">km</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Assignment_Gvc_Gdg_Ut</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">2.000</span> <span class="pre">km</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The two Milano_Brescia rows are two connections between the same two blocks. A label with only the block ends would be the same for both, which is why a switch label names the nodes of its connection.</p>
+<p>Every section of each committed scene gets its own label. Block labels have at most 24 characters and switch labels at most 47.</p>
+</section>
+<section id="width">
+<h3>Width<a class="headerlink" href="#width" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Chart strip: a label is cut in the middle at 240 px (<code class="docutils literal notranslate"><span class="pre">diagrams/DiagramWindow.cpp:408</span></code>), and a label that collides with its neighbour is left out (<code class="docutils literal notranslate"><span class="pre">:406</span></code> to <code class="docutils literal notranslate"><span class="pre">:417</span></code>). Measured with Pillow and the macOS system font at 13 px, with an order number of three digits in front: block labels take at most 180 px and fit, switch labels at most 317 px. The switch ids that they replace take at most 318 px, so switch labels are cut as the ids are today. Block ids with the same number in front take 83 to 99 px.</p></li>
+<li><p>Choosers: a dialog opens 480 px wide or 32 line heights, whichever is wider (<code class="docutils literal notranslate"><span class="pre">widgets/DialogLayout.h:184</span></code>), and widens to its content up to nine tenths of the screen (<code class="docutils literal notranslate"><span class="pre">:181</span></code>, <code class="docutils literal notranslate"><span class="pre">:194</span></code>). A <code class="docutils literal notranslate"><span class="pre">ChoiceComboBox</span></code> cuts a longer text in the middle and opens its list as wide as its widest entry within the same limit (<code class="docutils literal notranslate"><span class="pre">widgets/ChoiceComboBox.h:47</span></code>, <code class="docutils literal notranslate"><span class="pre">:62</span></code>). Since a switch label is as wide as its id, the <strong>Blocking time</strong> and <strong>Capacity by area</strong> choosers keep the width they have today. An entry of the <strong>Capacity</strong> chooser holds two labels and grows: for <code class="docutils literal notranslate"><span class="pre">route0</span></code> from about 235 px to 410 px, which stays within those limits.</p></li>
+<li><p>Fonts of Windows and Linux were not measured.</p></li>
+</ul>
+</section>
+</section>
+<section id="where-labels-appear-and-where-ids-stay">
+<h2>Where labels appear and where ids stay<a class="headerlink" href="#where-labels-appear-and-where-ids-stay" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Place</p></th>
+<th class="head"><p>Today</p></th>
+<th class="head"><p>With labels</p></th>
+<th class="head"><p>Where the id stays</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Preview inspector of a signal (<code class="docutils literal notranslate"><span class="pre">widgets/InspectorPanel.cpp:436</span></code> to <code class="docutils literal notranslate"><span class="pre">:455</span></code>)</p></td>
+<td><p>Title and fields with <code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code></p></td>
+<td><p>“Preview: Signal B0 0.000 to 0.230 km (not running)”; <strong>Protected section</strong> and <strong>ID of Block Section</strong> show the label</p></td>
+<td><p>Field tooltips; “section &#64;0-B0&#64;” in the details</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Signalling Info</strong> of a run (<code class="docutils literal notranslate"><span class="pre">:678</span></code> to <code class="docutils literal notranslate"><span class="pre">:698</span></code>)</p></td>
+<td><p><strong>Track ID</strong> 0, sections by id, <strong>Next track</strong> 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span></code>, labels</p></td>
+<td><p>Tooltips: runtime track number and section id</p></td>
+</tr>
+<tr class="row-even"><td><p>Node, arc and connection info (<code class="docutils literal notranslate"><span class="pre">:479</span></code>, <code class="docutils literal notranslate"><span class="pre">:525</span></code>, <code class="docutils literal notranslate"><span class="pre">:574</span></code>, <code class="docutils literal notranslate"><span class="pre">:616</span></code>, <code class="docutils literal notranslate"><span class="pre">:645</span></code>, <code class="docutils literal notranslate"><span class="pre">:646</span></code>)</p></td>
+<td><p>Runtime track numbers, section ids</p></td>
+<td><p>Scene track ids, labels</p></td>
+<td><p>Tooltips</p></td>
+</tr>
+<tr class="row-odd"><td><p>Signal tooltips and <strong>Find</strong> (<code class="docutils literal notranslate"><span class="pre">graphics/items/SignalItem.cpp:73</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp:237</span></code>, <code class="docutils literal notranslate"><span class="pre">:262</span></code>, <code class="docutils literal notranslate"><span class="pre">:666</span></code>, <code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp:4359</span></code>)</p></td>
+<td><p>“Track 0 at 0.23 km; ahead &#64;0-B0&#64;; behind none”</p></td>
+<td><p>“Track B0 at 0.23 km; ahead B0 0.000 to 0.230 km; behind none”</p></td>
+<td><p>The inspector</p></td>
+</tr>
+<tr class="row-even"><td><p>Context menu of a signal (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp:3268</span></code> to <code class="docutils literal notranslate"><span class="pre">:3282</span></code>, <code class="docutils literal notranslate"><span class="pre">:3426</span></code> to <code class="docutils literal notranslate"><span class="pre">:3431</span></code>)</p></td>
+<td><p><strong>Copy canonical ID</strong>, <strong>Copy signal location</strong></p></td>
+<td><p>Both unchanged; the signal menu of a run gains <strong>Copy section ID</strong></p></td>
+<td><p>The copied text</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Target</strong> of a signal failure (<code class="docutils literal notranslate"><span class="pre">editors/IncidentPanel.cpp:425</span></code> to <code class="docutils literal notranslate"><span class="pre">:429</span></code>)</p></td>
+<td><p>Block ids</p></td>
+<td><p>Labels; the item data stays the id, which <code class="docutils literal notranslate"><span class="pre">commitTarget</span></code> saves (<code class="docutils literal notranslate"><span class="pre">:622</span></code>)</p></td>
+<td><p>Item tooltip</p></td>
+</tr>
+<tr class="row-even"><td><p>Section choices of the infrastructure editor (<code class="docutils literal notranslate"><span class="pre">editors/InfrastructurePanel.cpp:558</span></code> to <code class="docutils literal notranslate"><span class="pre">:566</span></code>)</p></td>
+<td><p>“base block 0-B0 / track B0”, “connection connection.0 / 71-B0 -&gt; 0-B1”</p></td>
+<td><p>Labels, with the “(legacy: …)” and “Invalid: …” forms kept</p></td>
+<td><p>Item tooltip; the <strong>Blocks</strong> table, where the id is edited</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Blocking time</strong> chooser (<code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeScope.cpp:91</span></code>, <code class="docutils literal notranslate"><span class="pre">:92</span></code>)</p></td>
+<td><p>“72:&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000”</p></td>
+<td><p>“72: B0 21.010 to 21.235, B1 21.252 to 21.450 km”</p></td>
+<td><p>Item tooltip</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Capacity</strong> chooser (<code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope.cpp:345</span></code> to <code class="docutils literal notranslate"><span class="pre">:352</span></code>)</p></td>
+<td><p>“1:&#64;0-B0&#64; to 125:&#64;124-B0&#64; (125 blocks)”</p></td>
+<td><p>“1: B0 0.000 to 0.230 km through 125: B0 36.910 to 37.062 km (125 blocks)”; “through”, since a label holds “to”</p></td>
+<td><p>Item tooltip</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Capacity by area</strong> chooser (<code class="docutils literal notranslate"><span class="pre">diagrams/AreaCapacityWindow.cpp:629</span></code>)</p></td>
+<td><p>As <strong>Blocking time</strong></p></td>
+<td><p>As <strong>Blocking time</strong></p></td>
+<td><p>Item tooltip</p></td>
+</tr>
+<tr class="row-even"><td><p>Window subtitles (<code class="docutils literal notranslate"><span class="pre">app/ResultViews.cpp:521</span></code> to <code class="docutils literal notranslate"><span class="pre">:525</span></code>; <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope.cpp:226</span></code>, <code class="docutils literal notranslate"><span class="pre">:227</span></code>)</p></td>
+<td><p>“route0 / A / &#64;0-B0&#64; to &#64;124-B0&#64;”</p></td>
+<td><p>Labels joined by “through”</p></td>
+<td><p>The CSV column <code class="docutils literal notranslate"><span class="pre">Section</span></code> keeps the id form, so file text and subtitle are made separately</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Capacity</strong> window context and compressed diagram title (<code class="docutils literal notranslate"><span class="pre">app/ResultViews.cpp:837</span></code> to <code class="docutils literal notranslate"><span class="pre">:840</span></code>, <code class="docutils literal notranslate"><span class="pre">:849</span></code> to <code class="docutils literal notranslate"><span class="pre">:852</span></code>)</p></td>
+<td><p>“Section: route0 / A / &#64;0-B0&#64; to &#64;124-B0&#64;”</p></td>
+<td><p>Labels joined by “through”</p></td>
+<td><p>Item tooltip of the chooser; the CSV column <code class="docutils literal notranslate"><span class="pre">Section</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Capacity by area</strong> context (<code class="docutils literal notranslate"><span class="pre">diagrams/AreaCapacityWindow.cpp:768</span></code> to <code class="docutils literal notranslate"><span class="pre">:771</span></code>, <code class="docutils literal notranslate"><span class="pre">governingText</span></code> at <code class="docutils literal notranslate"><span class="pre">:272</span></code> to <code class="docutils literal notranslate"><span class="pre">:285</span></code>)</p></td>
+<td><p>“Area: … Governing resource: &#64;0-B0&#64;”</p></td>
+<td><p>Labels</p></td>
+<td><p>The CSV column <code class="docutils literal notranslate"><span class="pre">Area</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Chart section strip (<code class="docutils literal notranslate"><span class="pre">diagrams/DiagramWindow.cpp:401</span></code>)</p></td>
+<td><p>“1:&#64;0-B0&#64;”</p></td>
+<td><p>“1: B0 0.000 to 0.230 km”</p></td>
+<td><p>Hover text</p></td>
+</tr>
+<tr class="row-even"><td><p>Strip hover and notices (<code class="docutils literal notranslate"><span class="pre">:321</span></code>, <code class="docutils literal notranslate"><span class="pre">:331</span></code>; <code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeDiagram.cpp:48</span></code> to <code class="docutils literal notranslate"><span class="pre">:54</span></code>, <code class="docutils literal notranslate"><span class="pre">:313</span></code>, <code class="docutils literal notranslate"><span class="pre">:420</span></code> to <code class="docutils literal notranslate"><span class="pre">:434</span></code>)</p></td>
+<td><p>“Physical reference section 1:&#64;0-B0&#64; | Route: …”</p></td>
+<td><p>The label, then the id in parentheses</p></td>
+<td><p>The same text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hover of a blocking envelope (<code class="docutils literal notranslate"><span class="pre">app/ResultViews.cpp:129</span></code> to <code class="docutils literal notranslate"><span class="pre">:134</span></code>)</p></td>
+<td><p>“Resource: &#64;0-B0&#64;”</p></td>
+<td><p>“Resource: B0 0.000 to 0.230 km (&#64;0-B0&#64;)”</p></td>
+<td><p>The same text</p></td>
+</tr>
+<tr class="row-even"><td><p>Validation messages (<code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.cpp:257</span></code> to <code class="docutils literal notranslate"><span class="pre">:260</span></code>, <code class="docutils literal notranslate"><span class="pre">:312</span></code>, <code class="docutils literal notranslate"><span class="pre">:313</span></code>, <code class="docutils literal notranslate"><span class="pre">:343</span></code> to <code class="docutils literal notranslate"><span class="pre">:349</span></code>, <code class="docutils literal notranslate"><span class="pre">:381</span></code> to <code class="docutils literal notranslate"><span class="pre">:396</span></code>, <code class="docutils literal notranslate"><span class="pre">:1093</span></code> to <code class="docutils literal notranslate"><span class="pre">:1095</span></code>)</p></td>
+<td><p>Ids</p></td>
+<td><p>The id, then the label in parentheses; the parentheses keep the comma of a switch label apart from the commas of a list</p></td>
+<td><p>The message and the <strong>Path</strong> column</p></td>
+</tr>
+<tr class="row-odd"><td><p>Run review (<code class="docutils literal notranslate"><span class="pre">app/RunController.cpp:191</span></code> to <code class="docutils literal notranslate"><span class="pre">:193</span></code>)</p></td>
+<td><p>“target=0-B0”</p></td>
+<td><p>Unchanged</p></td>
+<td><p>The text</p></td>
+</tr>
+<tr class="row-even"><td><p>Result tables of <strong>Capacity</strong> and <strong>Capacity by area</strong> (<code class="docutils literal notranslate"><span class="pre">app/ResultViews.cpp:768</span></code> to <code class="docutils literal notranslate"><span class="pre">:810</span></code>; <code class="docutils literal notranslate"><span class="pre">diagrams/AreaCapacityWindow.cpp:85</span></code> to <code class="docutils literal notranslate"><span class="pre">:90</span></code>, <code class="docutils literal notranslate"><span class="pre">:139</span></code>, <code class="docutils literal notranslate"><span class="pre">:231</span></code>, <code class="docutils literal notranslate"><span class="pre">:245</span></code>)</p></td>
+<td><p>Ids</p></td>
+<td><p>Unchanged</p></td>
+<td><p>The cell; the label is its tooltip, because <strong>Export capacity CSV…</strong> and <strong>Export area capacity CSV…</strong> write the same rows</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The status text after a target is picked, “The target of incident … is now …” (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp:2912</span></code>), reads the text of the <strong>Target</strong> list and so shows the label without a change of its own.</p>
+</section>
+<section id="what-does-not-change">
+<h2>What does not change<a class="headerlink" href="#what-does-not-change" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Scene files: block ids, route tokens, the references of restrictions, boundaries, dependencies and signals, and incident targets. The schema version stays 1 and no migration step is added.</p></li>
+<li><p>Legacy import and export: the importer forms the same ids and the exporter maps them back to legacy rows (<code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp:107</span></code> to <code class="docutils literal notranslate"><span class="pre">:175</span></code>).</p></li>
+<li><p>Recovery copies: they are bundles of the scene (<code class="docutils literal notranslate"><span class="pre">recovery/RecoveryStore.h:108</span></code>), and labels are not stored.</p></li>
+<li><p>Golden files: 127 of the 134 hold ids and none holds a text of the user interface, so none changes.</p></li>
+<li><p>CSV exports: same columns and keys. Blocking time <code class="docutils literal notranslate"><span class="pre">Block</span></code> (<code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeDiagram.cpp:19</span></code>, <code class="docutils literal notranslate"><span class="pre">:391</span></code>), trajectory <code class="docutils literal notranslate"><span class="pre">Block</span></code> (<code class="docutils literal notranslate"><span class="pre">diagrams/RunExports.cpp:33</span></code>), capacity <code class="docutils literal notranslate"><span class="pre">Block</span></code>, <code class="docutils literal notranslate"><span class="pre">Section</span></code> and <code class="docutils literal notranslate"><span class="pre">Reference</span> <span class="pre">label</span></code> (<code class="docutils literal notranslate"><span class="pre">:455</span></code> to <code class="docutils literal notranslate"><span class="pre">:457</span></code>, <code class="docutils literal notranslate"><span class="pre">:508</span></code>, <code class="docutils literal notranslate"><span class="pre">:549</span></code>; <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope.cpp:54</span></code>, <code class="docutils literal notranslate"><span class="pre">:227</span></code>) and area capacity resources (<code class="docutils literal notranslate"><span class="pre">diagrams/AreaCapacityWindow.cpp:470</span></code>, <code class="docutils literal notranslate"><span class="pre">:498</span></code>, <code class="docutils literal notranslate"><span class="pre">:526</span></code>). <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> keeps its form.</p></li>
+<li><p>Live frame: <code class="docutils literal notranslate"><span class="pre">section_id</span></code> (<code class="docutils literal notranslate"><span class="pre">io/LiveFrame.cpp:54</span></code>, <a class="reference download internal" download="" href="../_downloads/1e337ae4e1bb3c230be6f761b4dedb36/frame-v1.schema.json"><span class="xref download myst">frame schema</span></a>) keeps the id and gains no label field.</p></li>
+<li><p>Copy actions: <strong>Copy canonical ID</strong> and <strong>Copy signal location</strong> copy the same text; <code class="docutils literal notranslate"><span class="pre">tests/e2e/VisualPolish.cpp:1755</span></code> to <code class="docutils literal notranslate"><span class="pre">:1791</span></code> checks the second.</p></li>
+<li><p>Diagnostics: code, item id, related id, path and suggested fix keep the id, also in the JSON of <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneDiagnostic.cpp:30</span></code> to <code class="docutils literal notranslate"><span class="pre">:42</span></code>). Only message texts gain labels.</p></li>
+</ul>
+<p>The exports gain no label column in this step. Scripts join the CSV rows on the id with scene files, <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> and the live frame, and the <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">run output</span></a> page lists the columns. If a label column is wanted later, it goes at the end of each file, so that the column positions of the blocking time export (<code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeDiagram.cpp:18</span></code> to <code class="docutils literal notranslate"><span class="pre">:25</span></code>) and the header checks of <code class="docutils literal notranslate"><span class="pre">tools/e2e/csv_export_smoke.sh</span></code>, which match the start of each header line, stay valid.</p>
+</section>
+<section id="implementation-plan">
+<h2>Implementation plan<a class="headerlink" href="#implementation-plan" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p>Add the label to <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.h</span></code> and <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>, beside <code class="docutils literal notranslate"><span class="pre">formatSceneSectionCoordinate</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">/// What a person reads for a section: "B0 21.010 to 21.310 km" for a block section, or the piece on each</span>
+<span class="c1">/// track, "B0 21.010 to 21.235, B1 21.252 to 21.450 km", for a switch section.</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">sceneSectionLabel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">SceneSectionDescriptor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">section</span><span class="p">);</span>
+
+<span class="c1">/// The labels of the sections of an inventory by runtime id and by block id. A label that two sections</span>
+<span class="c1">/// share ends with the id in parentheses; label() returns the reference itself when it names no section.</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">SceneSectionLabels</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">byReference</span><span class="p">;</span>
+<span class="w">	</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">reference</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="n">SceneSectionLabels</span><span class="w"> </span><span class="nf">sceneSectionLabels</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">SceneSectionInventory</span><span class="o">&amp;</span><span class="w"> </span><span class="n">inventory</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Test it next to the inventory cases in <code class="docutils literal notranslate"><span class="pre">tests/test_scenebuilder.cpp</span></code>, on the <code class="docutils literal notranslate"><span class="pre">line</span></code> and <code class="docutils literal notranslate"><span class="pre">crossovers</span></code> fixtures: a block, a switch, a piece with equal ends, a shared label and an unknown reference.</p>
+</li>
+<li><p>Scene-time call sites, which already build an inventory:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.cpp</span></code>: the five messages listed above, from the inventory built at <code class="docutils literal notranslate"><span class="pre">:902</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">editors/InfrastructurePanel.cpp:558</span></code> to <code class="docutils literal notranslate"><span class="pre">:566</span></code>: <code class="docutils literal notranslate"><span class="pre">sectionLabel</span></code> returns the shared label. <code class="docutils literal notranslate"><span class="pre">populateSectionCombo</span></code> (<code class="docutils literal notranslate"><span class="pre">:532</span></code> to <code class="docutils literal notranslate"><span class="pre">:556</span></code>) then serves the signal (<code class="docutils literal notranslate"><span class="pre">editors/infrastructure/SignalFacets.cpp:98</span></code> to <code class="docutils literal notranslate"><span class="pre">:103</span></code>), dependency (<code class="docutils literal notranslate"><span class="pre">BlockRouteFacets.cpp:265</span></code> to <code class="docutils literal notranslate"><span class="pre">:269</span></code>), restriction (<code class="docutils literal notranslate"><span class="pre">:283</span></code> to <code class="docutils literal notranslate"><span class="pre">:290</span></code>) and station boundary choices (<code class="docutils literal notranslate"><span class="pre">StationFacets.cpp:325</span></code> to <code class="docutils literal notranslate"><span class="pre">:340</span></code>), and the route catalog and list (<code class="docutils literal notranslate"><span class="pre">InfrastructurePanel.cpp:395</span></code> to <code class="docutils literal notranslate"><span class="pre">:419</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">editors/IncidentPanel.cpp:425</span></code> to <code class="docutils literal notranslate"><span class="pre">:429</span></code>: label as text, id as data and tooltip.</p></li>
+<li><p>Preview: <code class="docutils literal notranslate"><span class="pre">scene/TrackPreview.cpp:352</span></code>, where each preview signal is added, gives it its label; <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp:666</span></code>, <code class="docutils literal notranslate"><span class="pre">widgets/InspectorPanel.cpp:436</span></code> to <code class="docutils literal notranslate"><span class="pre">:455</span></code> and <code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp:3268</span></code> read it.</p></li>
+</ul>
+</li>
+<li><p>Run-time call sites:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp</span></code> builds the labels once when a run starts, from the scene of the run, and sets them on the signal items next to the section ids (<code class="docutils literal notranslate"><span class="pre">:1372</span></code> to <code class="docutils literal notranslate"><span class="pre">:1421</span></code>). <code class="docutils literal notranslate"><span class="pre">graphics/items/SignalItem.cpp:70</span></code> to <code class="docutils literal notranslate"><span class="pre">:77</span></code>, <code class="docutils literal notranslate"><span class="pre">NetworkPresenter.cpp:237</span></code> and <code class="docutils literal notranslate"><span class="pre">:262</span></code>, and <code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp:4359</span></code> use them.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">widgets/InspectorPanel.cpp:479</span></code>, <code class="docutils literal notranslate"><span class="pre">:525</span></code>, <code class="docutils literal notranslate"><span class="pre">:574</span></code>, <code class="docutils literal notranslate"><span class="pre">:616</span></code>, <code class="docutils literal notranslate"><span class="pre">:645</span></code>, <code class="docutils literal notranslate"><span class="pre">:646</span></code> and <code class="docutils literal notranslate"><span class="pre">:678</span></code> to <code class="docutils literal notranslate"><span class="pre">:698</span></code>: scene track ids from <code class="docutils literal notranslate"><span class="pre">sceneTrackId</span></code> and section labels, with tooltips for the runtime number and the id. Every field of the inspector sets its tooltip to its own text when the text changes (<code class="docutils literal notranslate"><span class="pre">:178</span></code> to <code class="docutils literal notranslate"><span class="pre">:183</span></code>), so a tooltip with the id is set after <code class="docutils literal notranslate"><span class="pre">setText</span></code>, or that hook changes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp:3406</span></code> to <code class="docutils literal notranslate"><span class="pre">:3431</span></code>: <strong>Copy section ID</strong> on the signal menu of a run.</p></li>
+</ul>
+</li>
+<li><p>Result windows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">diagrams/CompletedRunData.h</span></code> and <code class="docutils literal notranslate"><span class="pre">diagrams/CompletedRunCapture.cpp:226</span></code> to <code class="docutils literal notranslate"><span class="pre">:253</span></code> keep the labels of the run’s sections, from the scene that <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> already receives.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diagrams/RunExports.cpp:295</span></code> to <code class="docutils literal notranslate"><span class="pre">:305</span></code> and <code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeScope.h</span></code> pass them to the choosers: <code class="docutils literal notranslate"><span class="pre">BlockingTimeScope.cpp:91</span></code> and <code class="docutils literal notranslate"><span class="pre">:92</span></code>, <code class="docutils literal notranslate"><span class="pre">CapacityScope.cpp:345</span></code> to <code class="docutils literal notranslate"><span class="pre">:352</span></code>, <code class="docutils literal notranslate"><span class="pre">AreaCapacityWindow.cpp:629</span></code>. The choosers keep selecting by index, as they do now (<code class="docutils literal notranslate"><span class="pre">BlockingTimeScope.cpp:143</span></code>, <code class="docutils literal notranslate"><span class="pre">AreaCapacityWindow.cpp:640</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">widgets/ChoiceComboBox.h</span></code>: since #1076 the tooltip of the field shows the current text and then the tooltip of the field (the <strong>Target</strong> of an incident has its own). With labels it shows the current text, then the tooltip of the current item (the id) when it has one, then the tooltip of the field.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diagrams/DiagramWindow.cpp:321</span></code>, <code class="docutils literal notranslate"><span class="pre">:331</span></code> and <code class="docutils literal notranslate"><span class="pre">:401</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/BlockingTimeDiagram.cpp:48</span></code> to <code class="docutils literal notranslate"><span class="pre">:54</span></code>, <code class="docutils literal notranslate"><span class="pre">:313</span></code> and <code class="docutils literal notranslate"><span class="pre">:420</span></code> to <code class="docutils literal notranslate"><span class="pre">:434</span></code>, <code class="docutils literal notranslate"><span class="pre">app/ResultViews.cpp:129</span></code> to <code class="docutils literal notranslate"><span class="pre">:134</span></code> and <code class="docutils literal notranslate"><span class="pre">:524</span></code> to <code class="docutils literal notranslate"><span class="pre">:525</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope.cpp:226</span></code> to <code class="docutils literal notranslate"><span class="pre">:227</span></code>: labels in the strip, hover texts, notes and subtitles. <code class="docutils literal notranslate"><span class="pre">capacityScopeLabelFrom</span></code> (<code class="docutils literal notranslate"><span class="pre">CapacityScope.cpp:226</span></code> and <code class="docutils literal notranslate"><span class="pre">:227</span></code>) also fills the <code class="docutils literal notranslate"><span class="pre">Section</span></code> column of the capacity CSV and, through <code class="docutils literal notranslate"><span class="pre">AreaCapacityWindow.cpp:374</span></code> to <code class="docutils literal notranslate"><span class="pre">:383</span></code>, the <code class="docutils literal notranslate"><span class="pre">Area</span></code> column of the area capacity CSV, so it keeps the id form and a separate display label serves the window context, the compressed diagram title and the area context (<code class="docutils literal notranslate"><span class="pre">app/ResultViews.cpp:837</span></code> to <code class="docutils literal notranslate"><span class="pre">:852</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/AreaCapacityWindow.cpp:768</span></code> to <code class="docutils literal notranslate"><span class="pre">:771</span></code>).</p></li>
+<li><p>The result tables keep the id and get the label as cell tooltip.</p></li>
+</ul>
+</li>
+<li><p>Update the tests listed under the options, then the glossary: a short entry that explains the track id, the block id, the block section id, the switch section id with its separator <code class="docutils literal notranslate"><span class="pre">-</span></code>, the label, and the runtime track number. Review the manual pages that show ids (<code class="docutils literal notranslate"><span class="pre">docs/guides/capacity-analysis.md:74</span></code> to <code class="docutils literal notranslate"><span class="pre">:79</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling-levels.md</span></code>, <code class="docutils literal notranslate"><span class="pre">scene-schema.md</span></code> and <code class="docutils literal notranslate"><span class="pre">tutorial-minimal-scene.md:46</span></code>) once the code is final.</p></li>
+</ol>
+<p>Verification for the code change: build, CTest, <code class="docutils literal notranslate"><span class="pre">tools/e2e/visual_polish_smoke.sh</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/e2e/headless_smoke.py</span></code> and <code class="docutils literal notranslate"><span class="pre">tools/e2e/roundtrip_smoke.py</span></code>, and a check of the inspector, the <strong>Target</strong> list, the three choosers and the strip on Paimpol and Netherlands in the application.</p>
+</section>
+<section id="where-part-1-differs-from-the-plan">
+<h2>Where part 1 differs from the plan<a class="headerlink" href="#where-part-1-differs-from-the-plan" title="Link to this heading">¶</a></h2>
+<p>Part 1 of the change made steps 1 and 4, step 2 without the preview, and the documentation of step 5. It differs from the plan in these points:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SceneSectionLabels</span></code> is in its own header, <code class="docutils literal notranslate"><span class="pre">scene/SectionLabels.h</span></code>, which <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.h</span></code> includes. The result windows include it after Qt headers, and Qt’s <code class="docutils literal notranslate"><span class="pre">signals</span></code> macro breaks <code class="docutils literal notranslate"><span class="pre">scene/SceneModel.h</span></code>, which has a member of that name.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SceneSectionLabels::labelWithId</span></code> gives the label with the id in parentheses, “B0 0.000 to 0.230 km (&#64;0-B0&#64;)”, for the strip hover, the notes and the envelope hover. A label that already ends with the id, by rule 5, keeps it once.</p></li>
+<li><p>The <strong>Target</strong> list of a signal failure names an authored signal by its id and the label of its protected section, “sig1 (T1 0.000 to 1.000 km)”, as rule 7 says. A signal without a protected section shows its id.</p></li>
+<li><p>Where labels are listed together, in the note on ambiguous reference sections, the note on sections without a usable extent and the governing resources of <strong>Capacity by area</strong>, they are joined with semicolons, since a switch label holds a comma. The id forms keep their commas.</p></li>
+<li><p>The tooltip of a choice field leaves out a line that repeats an earlier one, so a field whose item and field tooltips are equal shows that text once.</p></li>
+</ul>
+</section>
+<section id="part-2">
+<h2>Part 2<a class="headerlink" href="#part-2" title="Link to this heading">¶</a></h2>
+<p>Part 2 made the preview item of step 2 and all of step 3. On Paimpol:</p>
+<ul class="simple">
+<li><p>A signal of the preview keeps the label of its section and its name by rule 7 (<code class="docutils literal notranslate"><span class="pre">TrackPreviewSignal</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/TrackPreview.h</span></code>). The first signal of B0 has the inspector title “Preview: Signal B0 0.230 to 0.310 km (not running)”. <strong>Protected section</strong> and <strong>ID of Block Section</strong> show “B0 0.230 to 0.310 km”, their tooltips add “Section ID: &#64;1-B0&#64;”, and the details keep “Track B0; section &#64;1-B0&#64;; forward; authored signal IDs: None”. The tooltip of the head starts with “Track B0 at 0.23 km; section B0 0.230 to 0.310 km”, and its context menu is called “Preview: B0 0.230 to 0.310 km”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">showRuntime</span></code> builds the labels from the scene of the run and gives each signal head the scene track id and the labels of its sections (<code class="docutils literal notranslate"><span class="pre">graphics/items/SignalItem.h</span></code>). The tooltip of the forward head at 0.23 km starts with “Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km”.</p></li>
+<li><p><strong>Signalling Info</strong>, Node Info, Station Node Info, Arc Info and Connection Info show scene track ids and labels. A field that shows one has the text as its tooltip and, below it, “Runtime track number: 0” or “Section ID: &#64;1-B0&#64;”. <strong>Connected signals</strong> of an arc joins its labels with semicolons and lists the ids in the tooltip.</p></li>
+<li><p><strong>Find</strong> lists a signal with the labels and finds it by the ids of its sections too, which it does not show. It names the track of a station node by its scene id: “Station: Brelidy-Plouec (track B0)”.</p></li>
+<li><p>The signal menu of a run has <strong>Copy section ID</strong>. It copies the id of the section ahead of the head, or of the section behind it when there is none ahead: the section that <strong>Protected section</strong> shows.</p></li>
+</ul>
+<p>Where part 2 differs from the plan:</p>
+<ul class="simple">
+<li><p>The examples in <a class="reference internal" href="#the-problem">The problem</a> and in the table name the signal at 0.23 km by <code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code>. A signal of the preview stands at the start of the section it names, and the first section of a track has no signal, so that signal names <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code>. In a run the reversed head at 0.23 km has <code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code> ahead and <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code> behind, not “behind none”.</p></li>
+<li><p>The table keeps the id of a signal only in the inspector. <strong>Find</strong> also matches the ids, so a search for <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code> still finds the heads of that section.</p></li>
+</ul>
+</section>
+<section id="open-questions">
+<h2>Open questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Station context for route choosers. The stations of a route are known in travel order (<code class="docutils literal notranslate"><span class="pre">sceneRouteStations</span></code>, <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.h:194</span></code>), so a chooser could show “Guingamp to Gourland” beside the label of each block of a route. In Netherlands, Amsterdam_Hilversum_Student and Assignment_Gvc_Gdg_Ut the station names are codes.</p></li>
+<li><p>Whether the runtime track number should follow the digits of the track id instead of its sorted place. That changes no label but would make <strong>Track ID</strong> right without a tooltip; it touches the run and needs its own issue.</p></li>
+<li><p>Authored labels or track names. The scene format has no field for them.</p></li>
+<li><p>A label column in the exports, as described above.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../architecture/source-layout.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">QEGTRAIN source layout</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="code-documentation-investigation.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Code documentation investigation</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Readable ids decision</a><ul>
+<li><a class="reference internal" href="#decision">Decision</a></li>
+<li><a class="reference internal" href="#the-problem">The problem</a><ul>
+<li><a class="reference internal" href="#how-the-ids-are-formed">How the ids are formed</a></li>
+<li><a class="reference internal" href="#the-ids-are-data">The ids are data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-committed-scenes">The committed scenes</a></li>
+<li><a class="reference internal" href="#options-and-their-cost">Options and their cost</a></li>
+<li><a class="reference internal" href="#why-labels">Why labels</a></li>
+<li><a class="reference internal" href="#the-label">The label</a><ul>
+<li><a class="reference internal" href="#rules">Rules</a></li>
+<li><a class="reference internal" href="#examples-from-the-committed-scenes">Examples from the committed scenes</a></li>
+<li><a class="reference internal" href="#width">Width</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#where-labels-appear-and-where-ids-stay">Where labels appear and where ids stay</a></li>
+<li><a class="reference internal" href="#what-does-not-change">What does not change</a></li>
+<li><a class="reference internal" href="#implementation-plan">Implementation plan</a></li>
+<li><a class="reference internal" href="#where-part-1-differs-from-the-plan">Where part 1 differs from the plan</a></li>
+<li><a class="reference internal" href="#part-2">Part 2</a></li>
+<li><a class="reference internal" href="#open-questions">Open questions</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

@@ -1,0 +1,19 @@
+<map id="reportCannotOpen" name="reportCannotOpen">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,103,147,128"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="37,104,28,94,33,84,49,78,76,76,110,80,120,85,124,90,119,93,116,89,109,85,76,81,50,83,36,88,33,94,41,101"/>
+<area shape="rect" id="Node000002" href="$namespacecannot__open.html#a205e5ea6c4bdc873c4200c4abbec104a" title=" " alt="" coords="250,29,389,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="102,100,145,81,194,63,236,53,237,58,195,69,147,86,104,105"/>
+<area shape="rect" id="Node000005" href="$namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c" title="The title of the message box." alt="" coords="250,103,389,128"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="147,113,236,113,236,118,147,118"/>
+<area shape="rect" id="Node000006" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="195,176,444,201"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="120,126,264,169,262,175,118,131"/>
+<area shape="poly" id="edge7_Node000002_Node000002" title=" " alt="" coords="280,31,271,21,276,11,292,5,319,3,354,7,363,11,367,17,363,20,360,15,352,12,319,8,293,10,279,15,277,20,284,27"/>
+<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="492,29,649,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="389,39,478,39,478,45,389,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="536,31,528,21,532,11,547,5,571,3,600,6,612,15,609,20,598,11,571,8,548,10,536,15,533,20,540,28"/>
+<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="697,29,872,55"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="649,39,684,39,684,45,649,45"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="750,31,742,21,746,11,761,5,785,3,814,6,826,15,823,20,812,11,785,8,762,10,750,15,747,20,754,28"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="280,104,271,94,276,84,292,78,319,76,354,80,363,85,367,90,363,93,360,89,352,85,319,81,293,83,279,88,277,94,284,101"/>
+<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="280,178,271,168,276,158,292,152,319,149,354,153,363,158,367,164,363,167,360,162,352,158,319,155,293,157,279,162,277,167,284,174"/>
+</map>

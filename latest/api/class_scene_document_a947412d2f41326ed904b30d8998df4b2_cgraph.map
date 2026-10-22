@@ -1,0 +1,5 @@
+<map id="SceneDocument::setEditable" name="SceneDocument::setEditable">
+<area shape="rect" id="Node000001" title="Opens or closes the model for edits, and emits editableChanged() when that changes." alt="" coords="5,5,215,31"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a757efc9c4eac4817ef7c7fadbfbaa994" title="The model has been opened (editable true) or closed for edits." alt="" coords="263,5,509,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,15,249,15,249,21,215,21"/>
+</map>

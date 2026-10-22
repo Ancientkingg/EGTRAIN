@@ -1,0 +1,5 @@
+<map id="NetworkPresenter::~NetworkPresenter" name="NetworkPresenter::~NetworkPresenter">
+<area shape="rect" id="Node000001" title="Stops the movement of the trains." alt="" coords="5,5,156,45"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a1012f4c1a63b39a3897b4c4702fb8d24" title="Stops the movement of every train between its last two places." alt="" coords="204,5,411,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,23,190,23,190,28,157,28"/>
+</map>

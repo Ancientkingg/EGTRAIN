@@ -1,0 +1,5 @@
+<map id="telemetry::TelemetryEvent" name="telemetry::TelemetryEvent">
+<area shape="rect" id="Node000001" title="One occurrence of an event." alt="" coords="5,116,200,141"/>
+<area shape="rect" id="Node000002" href="$structtelemetry_1_1_telemetry_event_input.html" title=" " alt="" coords="5,5,200,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,59,105,116,100,116,100,59"/>
+</map>

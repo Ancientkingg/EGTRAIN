@@ -1,0 +1,5 @@
+<map id="Arc" name="Arc">
+<area shape="rect" id="Node000001" title="A directed piece of track between two nodes." alt="" coords="12,121,55,147"/>
+<area shape="rect" id="Node000002" href="$class_node.html" title=" " alt="" coords="5,5,61,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="36,45,36,121,31,121,31,45"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="TrainUnitSourceLinker::linkFile" name="TrainUnitSourceLinker::linkFile">
+<area shape="rect" id="Node000001" title="Links this file, which takes the current values of the unit as the ones that came from it." alt="" coords="5,87,168,127"/>
+<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" title="Watches exactly the linked files and the folders that hold them." alt="" coords="216,5,379,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,84,231,48,233,53,140,89"/>
+<area shape="rect" id="Node000003" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="224,94,371,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,104,210,104,210,109,168,109"/>
+<area shape="rect" id="Node000004" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title="The status of a link, or a link itself, has changed." alt="" coords="216,144,379,184"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="161,124,211,138,210,143,160,129"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="263,96,255,86,259,76,274,70,297,67,327,71,338,80,335,84,325,76,297,73,275,75,263,79,261,85,267,92"/>
+</map>

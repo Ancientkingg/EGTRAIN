@@ -1,0 +1,8 @@
+<map id="PassengerPanel::refresh" name="PassengerPanel::refresh">
+<area shape="rect" id="Node000001" title="Shows the passengers of the document and keeps the selected rows where they still exist." alt="" coords="5,54,183,79"/>
+<area shape="rect" id="Node000002" href="$class_passenger_panel.html#add7b16e614d373cce568b2e072a0ddd8" title="Empties the table with the result of the latest import." alt="" coords="231,5,437,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,51,217,43,218,48,169,57"/>
+<area shape="rect" id="Node000003" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="287,94,381,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,77,274,94,273,99,171,82"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="295,96,287,86,291,76,307,70,334,67,368,71,381,81,377,85,366,76,334,73,308,75,295,80,292,85,299,92"/>
+</map>

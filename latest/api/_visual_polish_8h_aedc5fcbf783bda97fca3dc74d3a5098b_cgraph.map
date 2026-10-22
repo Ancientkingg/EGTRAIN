@@ -1,0 +1,13 @@
+<map id="stationMarkIcon" name="stationMarkIcon">
+<area shape="rect" id="Node000001" title="The mark in its dark variant for light surfaces, at 16 and 32 pixels." alt="" coords="5,67,132,92"/>
+<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="38,68,31,58,35,48,47,42,69,40,94,44,105,52,102,56,92,48,69,45,49,47,39,52,36,58,42,65"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" title=" " alt="" coords="189,29,324,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,64,178,55,179,60,133,69"/>
+<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4" title="The largest square frame centred in area in which paintStationMark() paints inside area,..." alt="" coords="180,103,333,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="133,89,177,97,176,103,132,94"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="226,31,219,21,223,11,235,5,257,3,282,6,293,15,290,19,280,11,257,8,237,10,227,15,224,20,230,28"/>
+<area shape="poly" id="edge6_Node000003_Node000003" title=" " alt="" coords="226,104,219,94,223,84,235,78,257,76,282,80,293,88,290,92,280,84,257,81,237,83,227,88,224,94,230,101"/>
+<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title="The area that paintStationMark() paints, its halo included. The bar reaches past frame." alt="" coords="381,103,529,128"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="334,113,367,113,367,118,334,118"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="423,104,416,94,419,84,433,78,455,76,482,80,494,88,490,93,480,84,455,81,434,83,423,88,421,94,427,101"/>
+</map>

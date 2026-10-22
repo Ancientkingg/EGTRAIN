@@ -1,0 +1,6 @@
+<map id="FocusWheel::watch" name="FocusWheel::watch">
+<area shape="rect" id="Node000001" title="Creates a Watcher for root, which owns it." alt="" coords="5,29,152,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,31,39,21,42,11,56,5,79,3,107,6,118,16,114,20,104,11,79,8,57,10,46,15,44,20,50,28"/>
+<area shape="rect" id="Node000002" href="$class_focus_wheel_1_1_watcher.html#ad00a11590e72d270d94ebc39456eaea2" title="Guards the fields of root and watches it and its descendants. root owns the watcher." alt="" coords="200,22,361,62"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="153,39,186,39,186,45,153,45"/>
+</map>

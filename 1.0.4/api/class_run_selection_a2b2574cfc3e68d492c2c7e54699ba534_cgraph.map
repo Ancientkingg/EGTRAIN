@@ -1,0 +1,6 @@
+<map id="RunSelection::pruneExcluded" name="RunSelection::pruneExcluded">
+<area shape="rect" id="Node000001" title="Forgets exclusions of services that are gone and of occurrences beyond the count of their service." alt="" coords="5,29,216,55"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="264,29,483,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,39,251,39,251,45,216,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="331,31,322,21,327,11,344,5,373,3,411,7,421,12,425,18,420,20,417,16,409,12,373,8,345,10,330,15,327,20,335,27"/>
+</map>

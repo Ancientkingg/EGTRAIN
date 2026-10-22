@@ -1,0 +1,25 @@
+<map id="UpdateTelemetryController::maybePromptForUpdateChecks" name="UpdateTelemetryController::maybePromptForUpdateChecks">
+<area shape="rect" id="Node000001" title="Asks once whether to check for updates automatically, and checks when the answer or the setting is ye..." alt="" coords="5,204,241,244"/>
+<area shape="rect" id="Node000002" href="$namespaceupdate__prompt.html#a82c1c5be32beff8f5f711f66ff1f9334" title="Below the question: what the check does and where to change the answer." alt="" coords="291,29,486,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,202,203,142,244,108,288,79,301,72,303,77,291,84,247,113,206,146,145,206"/>
+<area shape="rect" id="Node000003" href="$namespaceupdate__prompt.html#a053138b81be5c78b193ab21cd54592c5" title="The question of the first message box, whether to check for updates automatically." alt="" coords="291,117,486,157"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="185,201,313,159,314,164,186,206"/>
+<area shape="rect" id="Node000004" href="$_update_settings_8cpp.html#aa2b2cb64256e4731e74a780c89db57cc" title="The choice stored under &quot;updates/automaticCheck&quot;, or Unknown when none is stored." alt="" coords="575,166,747,191"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="241,211,561,184,561,190,242,217"/>
+<area shape="rect" id="Node000005" href="$class_update_telemetry_controller.html#a19bc2d57fb1f7df0388e9aa329bcff94" title=" " alt="" coords="289,232,488,272"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="242,234,276,237,275,243,241,239"/>
+<area shape="rect" id="Node000007" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="536,313,785,338"/>
+<area shape="poly" id="edge13_Node000001_Node000007" title=" " alt="" coords="172,242,228,263,290,281,408,303,522,315,522,320,408,308,289,287,226,268,170,247"/>
+<area shape="rect" id="Node000008" href="$_update_settings_8cpp.html#a2e63cb77401af6e590fcc8cb34e71250" title="Stores the choice under &quot;updates/automaticCheck&quot;. Unknown removes the key." alt="" coords="301,371,477,397"/>
+<area shape="poly" id="edge14_Node000001_Node000008" title=" " alt="" coords="157,242,291,326,353,362,351,367,288,330,155,247"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="340,30,337,20,345,10,362,5,389,3,419,5,436,13,434,18,418,11,389,8,363,10,348,15,342,21,345,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="340,118,337,108,345,98,362,93,389,91,419,93,436,101,434,106,418,99,389,96,363,98,348,103,342,109,345,116"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="617,168,608,158,613,148,631,141,661,139,699,143,710,148,713,154,709,157,706,152,698,149,661,145,632,147,616,152,613,157,621,164"/>
+<area shape="poly" id="edge8_Node000005_Node000004" title=" " alt="" coords="443,229,535,200,572,192,573,197,537,205,444,235"/>
+<area shape="rect" id="Node000006" href="$_update_settings_8cpp.html#aafad3b22f25264ecfe072e5b38a4c751" title="True for a check that the user started (manual) and when automatic checks are enabled." alt="" coords="571,239,750,265"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="488,249,557,249,557,255,488,255"/>
+<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="464,269,600,306,599,312,463,275"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="617,241,608,231,613,221,631,215,661,213,699,217,710,222,713,228,709,230,706,226,698,222,661,218,632,220,616,225,613,230,621,237"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="617,314,608,304,613,294,631,288,661,286,699,290,710,295,713,301,709,304,706,299,698,295,661,291,632,293,616,298,613,304,621,311"/>
+<area shape="poly" id="edge15_Node000008_Node000008" title=" " alt="" coords="346,373,337,363,342,353,359,347,389,345,427,349,437,354,440,360,436,362,433,358,425,354,389,350,360,352,345,357,342,362,350,369"/>
+</map>

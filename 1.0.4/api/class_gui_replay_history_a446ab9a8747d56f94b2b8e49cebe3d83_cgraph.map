@@ -1,0 +1,5 @@
+<map id="GuiReplayHistory::evictedBeforeTime" name="GuiReplayHistory::evictedBeforeTime">
+<area shape="rect" id="Node000001" title="Frames before this step, in seconds from the start of the run, were dropped, or 0 when none were." alt="" coords="5,5,196,45"/>
+<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#adaaf08e3b6f16671f143142825dd6c39" title="The step of the oldest frame kept, in seconds from the start of the run. 0 when the history is empty." alt="" coords="244,13,445,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,23,231,23,231,28,196,28"/>
+</map>

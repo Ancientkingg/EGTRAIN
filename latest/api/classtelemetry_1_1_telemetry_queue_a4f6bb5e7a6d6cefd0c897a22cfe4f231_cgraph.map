@@ -1,0 +1,12 @@
+<map id="telemetry::TelemetryQueue::retireExactEndpoint" name="telemetry::TelemetryQueue::retireExactEndpoint">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,25,205,65"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="749,29,949,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,22,253,10,382,3,512,6,633,16,736,28,735,34,633,21,512,12,382,8,254,16,184,27"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" title="True when endpoint is on the list of retired endpoints." alt="" coords="253,25,453,65"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,42,240,42,240,48,205,48"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="253,89,453,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,62,263,83,261,88,183,68"/>
+<area shape="rect" id="Node000005" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="501,57,701,97"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="453,93,487,89,488,94,454,99"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="701,63,735,59,736,64,702,68"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="NetworkView::wheelEvent" name="NetworkView::wheelEvent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,197,56"/>
+<area shape="rect" id="Node000002" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed." alt="" coords="463,5,693,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,36,449,22,449,27,198,41"/>
+<area shape="rect" id="Node000003" href="$class_network_view.html#acfca8b5474a26b98c458e7d75decd1e5" title=" " alt="" coords="245,56,415,81"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,51,232,55,231,60,198,57"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="393,53,501,31,502,36,394,58"/>
+<area shape="rect" id="Node000004" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="741,74,963,114"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="415,70,728,85,728,91,415,75"/>
+<area shape="rect" id="Node000005" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="485,107,671,132"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="394,79,502,101,501,106,393,84"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="671,108,727,103,728,108,672,113"/>
+</map>

@@ -1,0 +1,26 @@
+var class_run_selection =
+[
+    [ "appliedScenarioId", "class_run_selection.html#a37ab419cebb2ccbcc90e1651cb4553fc", null ],
+    [ "applySelectedScenario", "class_run_selection.html#a6a1ba84faa331c70743c2a2aa238557c", null ],
+    [ "clearAppliedScenario", "class_run_selection.html#a620edc3279fdfda66a25feb6bc6dc878", null ],
+    [ "clearModifiedScenarios", "class_run_selection.html#ad22ee931d645e919585e129f76f94ae5", null ],
+    [ "excludeAll", "class_run_selection.html#a3d53bdde6173e14c5fc20e0a9851ece5", null ],
+    [ "excluded", "class_run_selection.html#a8cca816811ab5177645f08407fae64f4", null ],
+    [ "hasExclusions", "class_run_selection.html#abe01062c0fb1296c56ff477039d5259c", null ],
+    [ "includeAll", "class_run_selection.html#afbafcaba84f27a6abd22d98255f275d3", null ],
+    [ "isExcluded", "class_run_selection.html#abaec58a04e1aa529098fdc4e6433ddd4", null ],
+    [ "isScenarioModified", "class_run_selection.html#a028b122d6097a640618a77541c0b7f72", null ],
+    [ "markScenarioModified", "class_run_selection.html#a104ddc10eecabee462a9b33c7c4f7786", null ],
+    [ "pruneExcluded", "class_run_selection.html#a2b2574cfc3e68d492c2c7e54699ba534", null ],
+    [ "scenarioDeleted", "class_run_selection.html#a30b5372bd8a5706cbda5b827422b2789", null ],
+    [ "scenarioId", "class_run_selection.html#a2c14443d9fc3d2899751ede640359fec", null ],
+    [ "scenarioRenamed", "class_run_selection.html#ab27a4e51b2a951d194efa6a724229e77", null ],
+    [ "selectedCount", "class_run_selection.html#a14f85e70459ddbe762b362fce0f50106", null ],
+    [ "selectedInPeriodCount", "class_run_selection.html#aae52f093911598afa2bc3e77db764815", null ],
+    [ "selectedOccurrences", "class_run_selection.html#ae187b0931733c170c2b0e481f177650f", null ],
+    [ "selectedScenario", "class_run_selection.html#a7e787eb4e3abe94b3768c2bf9c7cf394", null ],
+    [ "selectedScenario", "class_run_selection.html#a9a950b50afa3fc3e9b9aa78806a05b84", null ],
+    [ "selectScenario", "class_run_selection.html#ab52c5a649c5038533dfa9f577df2532c", null ],
+    [ "serviceRenamed", "class_run_selection.html#a65a6b2ae345746e7a0cc79d4edee47cb", null ],
+    [ "setExcluded", "class_run_selection.html#a80775767bea52c61e5759b452e19411b", null ]
+];

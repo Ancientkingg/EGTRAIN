@@ -1,0 +1,6 @@
+<map id="TrainUnitPanel::refresh" name="TrainUnitPanel::refresh">
+<area shape="rect" id="Node000001" title="Lists the units again and shows the selected one." alt="" coords="5,29,175,55"/>
+<area shape="rect" id="Node000002" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="223,29,317,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,39,209,39,209,45,175,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="240,31,234,21,237,11,250,5,270,3,295,6,305,15,301,19,292,11,270,8,251,10,241,15,239,20,245,28"/>
+</map>

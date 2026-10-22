@@ -1,0 +1,111 @@
+# Release rehearsal
+
+Date:
+
+This record names one candidate. Fill this record while you
+follow the [release testing checklist](release-testing-checklist.md).
+
+## Candidate
+
+| Item | Value |
+| --- | --- |
+| Commit |  |
+| Source (run URL or release tag) |  |
+| Version shown by About EGTRAIN, macOS |  |
+| Version shown by About EGTRAIN, Windows |  |
+| Version shown by About EGTRAIN, Linux |  |
+
+## Assets
+
+| Platform and asset | Exact file name | Downloaded from |
+| --- | --- | --- |
+| macOS package |  |  |
+| Windows installer |  |  |
+| Windows portable archive |  |  |
+| Older Windows installer (row W5) |  |  |
+| Linux package |  |  |
+| Assignment bundle |  |  |
+| Bundle used for the workflow |  |  |
+| `update-manifest.json` (published release only) |  |  |
+
+## Environment
+
+| Item | macOS | Windows | Linux |
+| --- | --- | --- | --- |
+| Operating system and exact version |  |  |  |
+| Processor architecture |  |  |  |
+| Machine type (clean machine, virtual machine or user account) |  |  |  |
+| User rights |  |  |  |
+| Qt, CMake or other development tools present on the machine |  |  |  |
+| Visual C++ runtime installed before the test |  |  |  |
+| Anything installed or changed to make the package start |  |  |  |
+| Dialogs shown at first start, in order |  |  |  |
+| System warning at first start, with its text |  |  |  |
+
+## Results
+
+A result is Pass, Fail, Not applicable with a reason, or Not run.
+
+| Check | macOS | Windows | Linux | Evidence or defect |
+| --- | --- | --- | --- | --- |
+| Clean GUI launch |  |  |  |  |
+| Open downloaded `.egscene` |  |  |  |  |
+| Loaded Data and validation |  |  |  |  |
+| Scenario select or edit |  |  |  |  |
+| Save As outside package |  |  |  |  |
+| Source bundle unchanged |  |  |  |  |
+| GUI simulation completes |  |  |  |  |
+| Result views open |  |  |  |  |
+| CSV export |  |  |  |  |
+| PNG export |  |  |  |  |
+| Saved copy reopens |  |  |  |  |
+| No source or development dependency |  |  |  |  |
+| R1 Run from a second location |  |  |  |  |
+| R2 Drop a bundle onto the open window |  |  |  |  |
+| R3 Unsaved changes |  |  |  |  |
+| R4 Damaged file |  |  |  |  |
+| R5 Non-ASCII path |  |  |  |  |
+| R6 Assignment bundle |  |  |  |  |
+| R7 First start |  |  |  |  |
+| R8 Manual update check |  |  |  |  |
+| R9 In-app update |  |  |  |  |
+| R10 Installation that cannot be updated in place |  |  |  |  |
+| R11 Save an installed example |  |  |  |  |
+| R12 Bundle of the previous release |  |  |  |  |
+| M1 File type in Finder |  |  |  |  |
+| M2 Open a case study by double-click |  |  |  |  |
+| M3 Double-click a damaged file and a special path |  |  |  |  |
+| M4 First start of an ad hoc build |  |  |  |  |
+| M5 First start of a notarized build |  |  |  |  |
+| W1 Windows assets |  |  |  |  |
+| W2 Install |  |  |  |  |
+| W3 Uninstall |  |  |  |  |
+| W4 Reinstall |  |  |  |  |
+| W5 Upgrade |  |  |  |  |
+| W6 Portable archive |  |  |  |  |
+| W7 Open a case study by double-click |  |  |  |  |
+| W8 In-app update of an installed copy |  |  |  |  |
+| W9 Double-click a damaged file and a special path |  |  |  |  |
+
+## Source bundle
+
+File:
+
+| Item | macOS | Windows | Linux |
+| --- | --- | --- | --- |
+| Comparison command used |  |  |  |
+| Result of the comparison |  |  |  |
+| Modification time before |  |  |  |
+| Modification time after |  |  |  |
+
+## Defects
+
+| Platform | Row | Issue link |
+| --- | --- | --- |
+|  |  |  |
+
+## Not exercised
+
+| What was not run | Platform | Why |
+| --- | --- | --- |
+|  |  |  |

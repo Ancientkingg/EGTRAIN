@@ -1,0 +1,5 @@
+<map id="PlaybackProfiler::notePaint" name="PlaybackProfiler::notePaint">
+<area shape="rect" id="Node000001" title="Counts one completed paint of the view while measuring." alt="" coords="5,5,201,31"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" title="True while the window runs." alt="" coords="249,5,453,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,15,236,15,236,21,202,21"/>
+</map>

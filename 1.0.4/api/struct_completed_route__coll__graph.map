@@ -1,0 +1,5 @@
+<map id="CompletedRoute" name="CompletedRoute">
+<area shape="rect" id="Node000001" title="One route of the run." alt="" coords="12,101,143,127"/>
+<area shape="rect" id="Node000002" href="$struct_route_diagram_path.html" title=" " alt="" coords="5,5,149,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,45,80,101,75,101,75,45"/>
+</map>

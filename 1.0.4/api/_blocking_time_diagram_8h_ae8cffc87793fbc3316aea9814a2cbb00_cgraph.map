@@ -1,0 +1,8 @@
+<map id="blockSectionBounds" name="blockSectionBounds">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,159,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,46,43,36,46,26,60,20,82,18,109,22,120,30,117,35,107,26,82,23,61,25,50,30,48,36,54,43"/>
+<area shape="rect" id="Node000002" href="$struct_block_section_extent.html#ae3ac53b4733f8cd5abebd6ae09ea6e68" title=" " alt="" coords="207,5,355,45"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="159,42,193,37,194,42,160,48"/>
+<area shape="rect" id="Node000003" href="$struct_block_section_extent.html#aab3817d0c41b8d86c28ec8c8f37cf8e9" title=" " alt="" coords="207,69,355,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="160,67,194,73,193,78,159,72"/>
+</map>

@@ -1,0 +1,38 @@
+var _section_inventory_8h =
+[
+    [ "SceneSectionDescriptor", "struct_scene_section_descriptor.html", "struct_scene_section_descriptor" ],
+    [ "SceneSectionInventory", "struct_scene_section_inventory.html", "struct_scene_section_inventory" ],
+    [ "SceneSectionTransition", "struct_scene_section_transition.html", "struct_scene_section_transition" ],
+    [ "SceneRouteVisit", "struct_scene_route_visit.html", "struct_scene_route_visit" ],
+    [ "SceneRouteTraversal", "struct_scene_route_traversal.html", "struct_scene_route_traversal" ],
+    [ "SceneRouteStations", "struct_scene_route_stations.html", "struct_scene_route_stations" ],
+    [ "SceneStopResolution", "struct_scene_stop_resolution.html", "struct_scene_stop_resolution" ],
+    [ "SceneSignallingAreaConflict", "struct_scene_signalling_area_conflict.html", "struct_scene_signalling_area_conflict" ],
+    [ "SceneSectionSignalling", "struct_scene_section_signalling.html", "struct_scene_section_signalling" ],
+    [ "SceneAreaSignalling", "struct_scene_area_signalling.html", "struct_scene_area_signalling" ],
+    [ "SceneSignallingAnalysis", "struct_scene_signalling_analysis.html", "struct_scene_signalling_analysis" ],
+    [ "SceneBlockExtent", "struct_scene_block_extent.html", "struct_scene_block_extent" ],
+    [ "SceneStopResolutionStatus", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399", [
+      [ "Resolved", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399af691f042a559b1c1a4f89826c6f75760", null ],
+      [ "AmbiguousPlatform", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399acd8f5c18d8c4bf2af801232dd4540290", null ],
+      [ "OffRouteContext", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399a533944cdc28115c38c8edd547845c342", null ],
+      [ "OutOfOrder", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399a126667d3723cdd75c5386d245727e1e8", null ],
+      [ "InvalidPlatform", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399a828dc541534971f6c9c73994f03c12d3", null ],
+      [ "UnknownStation", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399a13d9c32397fb2071cbd637be44ae7284", null ],
+      [ "UnresolvedRoute", "_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399ae3f1ad4830e6189a87e2cce0c239d9e6", null ]
+    ] ],
+    [ "analyzeSignallingAreas", "_section_inventory_8h.html#a980f3c9bdc48de47b7a80afd938f8ec6", null ],
+    [ "buildSceneRouteTraversal", "_section_inventory_8h.html#a767aeebb22fd91d15658526e6bd5acbd", null ],
+    [ "buildSceneRouteTraversal", "_section_inventory_8h.html#a2147b834777a02bb54e37deeedd9a4fb", null ],
+    [ "buildSceneSectionInventory", "_section_inventory_8h.html#a0a493a67878c96b3c90d791a1fa68552", null ],
+    [ "classifySceneSectionTransition", "_section_inventory_8h.html#a9cb3de6815c38bfd0cf14a022a187786", null ],
+    [ "formatSceneSectionCoordinate", "_section_inventory_8h.html#a38867ed655babc4f9d2a81b27deff310", null ],
+    [ "resolveSceneServiceStops", "_section_inventory_8h.html#af454f6ad805e4782da5b9ee9d8a43dbe", null ],
+    [ "sceneBlockExtent", "_section_inventory_8h.html#a70ff699bacfd05e1892bd3e5d5378c50", null ],
+    [ "sceneRouteDirection", "_section_inventory_8h.html#ae4f9207213b44d11e550fd70a54d3fde", null ],
+    [ "sceneRouteStations", "_section_inventory_8h.html#a976f8f27d55432ea7c8062522a7ebb4a", null ],
+    [ "sceneSectionLabel", "_section_inventory_8h.html#a51767c3e1d490b330b50d4a4ba4d4388", null ],
+    [ "sceneSectionLabels", "_section_inventory_8h.html#a64c14cbefafa78e81ec551a43f333429", null ],
+    [ "sceneSectionsOverlap", "_section_inventory_8h.html#a27f18250734df7f228d6cc0fdb9b6ad6", null ],
+    [ "sceneSignalFailureTarget", "_section_inventory_8h.html#aada86a733299e516b7fc5ad92a65eee4", null ]
+];

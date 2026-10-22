@@ -1,0 +1,13 @@
+<map id="writeViewLayout" name="writeViewLayout">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,103,136,128"/>
+<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="40,104,33,94,37,84,49,78,71,76,96,80,107,88,104,92,94,84,71,81,51,83,41,88,38,94,44,101"/>
+<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="200,29,319,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,100,183,64,202,57,204,62,185,68,100,105"/>
+<area shape="rect" id="Node000003" href="$_scene_exporter_8cpp.html#a884eb8f6955c729fe312754aa8e13e0b" title=" " alt="" coords="184,103,335,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="136,113,170,113,170,118,136,118"/>
+<area shape="rect" id="Node000004" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="203,176,315,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="105,126,214,168,212,173,103,131"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="228,31,222,21,225,11,238,5,259,3,285,6,296,15,292,19,283,11,259,8,240,10,229,15,227,20,233,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="228,104,222,94,225,84,238,78,259,76,285,80,296,88,292,92,283,84,259,81,240,83,229,88,227,94,233,101"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="228,177,222,168,225,158,238,152,259,149,285,153,296,162,292,166,283,158,259,155,240,157,229,161,227,167,233,174"/>
+</map>

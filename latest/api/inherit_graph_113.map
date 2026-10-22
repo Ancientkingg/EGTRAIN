@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,31,152,56"/>
+<area shape="rect" id="Node000001" href="$class_connection_item.html" title="The line of a connection between two track lines, in scene coordinates." alt="" coords="200,5,325,31"/>
+<area shape="poly" id="edge34_Node000000_Node000001" title=" " alt="" coords="165,29,200,24,200,29,166,34"/>
+<area shape="rect" id="Node000002" href="$class_track_line_item.html" title="The line of an arc of a track line, in scene coordinates." alt="" coords="206,55,319,80"/>
+<area shape="poly" id="edge35_Node000000_Node000002" title=" " alt="" coords="166,52,206,57,205,63,165,57"/>
+<area shape="rect" id="Node000003" href="$class_virtual_arc_item.html" title="A track line drawn as two lines, firstLine and secondLine, with one click target over both." alt="" coords="373,55,489,80"/>
+<area shape="poly" id="edge36_Node000002_Node000003" title=" " alt="" coords="333,65,373,65,373,70,333,70"/>
+</map>

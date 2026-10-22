@@ -1,0 +1,5 @@
+<map id="LiveStreamGuard::~LiveStreamGuard" name="LiveStreamGuard::~LiveStreamGuard">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,233,45"/>
+<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#ab1624ac972383e5f2d1aea51544f7699" title="Sends the frames that are still queued and ends the stream. Call this while no run is going on." alt="" coords="281,5,424,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,23,267,23,267,28,234,28"/>
+</map>

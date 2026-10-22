@@ -1,0 +1,13 @@
+<map id="telemetry::Worker" name="telemetry::Worker">
+<area shape="rect" id="Node000001" title=" " alt="" coords="203,197,341,223"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html" title=" " alt="" coords="5,101,205,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,131,253,195,250,199,136,136"/>
+<area shape="rect" id="Node000003" href="$class_http_reply.html" title="The response of one request. A redirect of a get() is followed, but never from https to http." alt="" coords="229,101,315,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="275,141,275,197,269,197,269,141"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="235,5,309,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="275,45,275,101,269,101,269,45"/>
+<area shape="rect" id="Node000005" href="$structtelemetry_1_1_prepared_batch.html" title="A batch ready to post." alt="" coords="339,101,527,127"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="403,136,293,199,291,195,401,131"/>
+<area shape="rect" id="Node000006" href="$structtelemetry_1_1_batch_token.html" title="The events of a prepared batch, for discardBatch() once the receiver gave a final answer." alt="" coords="350,5,517,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="436,45,436,101,431,101,431,45"/>
+</map>

@@ -1,0 +1,30 @@
+<map id="telemetry::TelemetrySender::operator=" name="telemetry::TelemetrySender::operator=">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,216,208,256"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_sender.html#ab541d770d96bd7a8f18623eadb186bbd" title=" " alt="" coords="256,5,459,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,214,172,141,211,99,254,62,277,49,279,53,258,66,214,103,176,144,123,217"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_sender.html#ad14231c3f113cab1b3cf965471a6dda3" title=" " alt="" coords="507,92,709,132"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="121,214,144,187,175,156,213,127,255,106,315,90,376,83,437,83,494,88,493,93,437,88,377,88,316,95,257,110,216,132,179,160,148,191,125,217"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_sender.html#a9a482c617df51d9ebaeacd82a9cf219f" title=" " alt="" coords="256,120,459,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="151,213,255,170,276,162,278,167,257,174,153,218"/>
+<area shape="rect" id="Node000005" href="$classtelemetry_1_1_telemetry_sender.html#ab04a761b9bbcbecbaa997b1b2001d09c" title=" " alt="" coords="256,184,459,224"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="208,220,242,216,243,221,208,226"/>
+<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_sender.html#ab8f226e7d0eb5f5ee61783a482f7faba" title=" " alt="" coords="256,248,459,288"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="208,246,243,251,242,256,208,252"/>
+<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_sender.html#acb1b449e3a4de6b4c11ef128f35e9beb" title=" " alt="" coords="256,312,459,352"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="153,254,257,298,278,305,276,310,255,302,151,259"/>
+<area shape="rect" id="Node000008" href="$classtelemetry_1_1_telemetry_sender.html#a63aff60ffeeea563d18ef17a5388b88c" title=" " alt="" coords="256,376,459,416"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="128,254,183,307,219,336,257,362,270,368,268,373,255,366,216,341,179,311,124,258"/>
+<area shape="rect" id="Node000012" href="$classtelemetry_1_1_telemetry_sender.html#a863f93afda16ffb2bdf5ea474cd3bb65" title=" " alt="" coords="256,444,459,484"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="121,255,142,292,173,337,212,385,258,426,273,436,270,440,254,430,208,388,168,340,137,294,116,258"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="459,126,493,122,493,127,459,131"/>
+<area shape="rect" id="Node000009" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title="True when packaged, enabled and interactive, with non&#45;empty terms and a valid exact HTTPS endpoint." alt="" coords="509,285,707,310"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="432,373,457,362,471,352,481,341,490,331,505,320,525,312,527,317,508,325,494,335,484,345,475,356,460,366,434,378"/>
+<area shape="rect" id="Node000010" href="$classtelemetry_1_1_sender_thread.html#a5f4f1231c4faf7082ca94f7fce022dde" title=" " alt="" coords="517,335,699,375"/>
+<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="458,377,503,369,504,375,459,382"/>
+<area shape="rect" id="Node000011" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="509,423,707,449"/>
+<area shape="poly" id="edge11_Node000008_Node000011" title=" " alt="" coords="459,410,515,418,514,424,458,415"/>
+<area shape="poly" id="edge12_Node000011_Node000011" title=" " alt="" coords="567,425,559,415,563,405,580,399,608,397,643,401,653,405,657,411,653,414,650,409,642,406,608,402,581,404,567,409,564,414,571,421"/>
+<area shape="rect" id="Node000013" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="529,497,687,522"/>
+<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="459,480,524,492,523,497,458,485"/>
+<area shape="poly" id="edge15_Node000013_Node000013" title=" " alt="" coords="567,498,559,488,563,478,580,472,608,470,643,474,653,479,657,484,653,487,650,483,642,479,608,475,581,477,567,482,564,488,571,495"/>
+</map>

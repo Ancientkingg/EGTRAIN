@@ -1,0 +1,20 @@
+<map id="dialog_folders::inInstallation" name="dialog_folders::inInstallation">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,117,212,143"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="68,119,60,109,64,99,81,93,109,91,144,95,154,99,157,105,153,108,150,103,142,100,109,96,82,98,68,103,65,108,72,115"/>
+<area shape="rect" id="Node000002" href="$namespacedialog__folders.html#a89df3db14c75cb7ac0d4a9e999ccde1d" title=" " alt="" coords="268,29,447,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,115,259,71,303,56,305,62,261,77,144,120"/>
+<area shape="rect" id="Node000003" href="$namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79" title=" " alt="" coords="503,73,653,113"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="212,119,488,97,489,102,213,124"/>
+<area shape="rect" id="Node000004" href="$_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2" title=" " alt="" coords="279,155,435,180"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="194,140,266,151,265,156,193,145"/>
+<area shape="rect" id="Node000006" href="$namespacedialog__folders.html#ab86e736f34d54930599b38b2b6e4120e" title=" " alt="" coords="260,228,455,253"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="139,140,316,220,314,225,137,145"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,31,314,21,318,11,333,5,357,3,388,6,400,15,397,20,386,11,357,8,334,10,322,15,319,20,326,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="537,73,535,63,541,54,556,48,578,46,604,49,618,56,615,61,602,54,578,51,557,53,544,58,540,64,542,72"/>
+<area shape="poly" id="edge7_Node000004_Node000003" title=" " alt="" coords="395,152,504,115,506,120,397,157"/>
+<area shape="poly" id="edge8_Node000004_Node000004" title=" " alt="" coords="322,156,314,146,318,136,333,130,357,128,388,132,400,141,397,145,386,137,357,133,334,135,322,140,319,146,326,153"/>
+<area shape="rect" id="Node000005" href="$namespacescene__save__policy.html#aedd625aae76b1b1d7716d50d4c05956f" title=" " alt="" coords="503,161,653,201"/>
+<area shape="poly" id="edge9_Node000004_Node000005" title=" " alt="" coords="436,169,489,173,489,178,435,175"/>
+<area shape="poly" id="edge10_Node000005_Node000005" title=" " alt="" coords="537,161,535,151,541,142,556,136,578,134,604,137,618,144,615,149,602,142,578,139,557,141,544,146,540,152,542,160"/>
+<area shape="poly" id="edge12_Node000006_Node000006" title=" " alt="" coords="322,230,314,220,318,210,333,204,357,201,388,205,400,214,397,218,386,210,357,207,334,209,322,214,319,219,326,226"/>
+</map>

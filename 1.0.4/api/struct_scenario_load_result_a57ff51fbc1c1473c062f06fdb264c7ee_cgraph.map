@@ -1,0 +1,6 @@
+<map id="ScenarioLoadResult::success" name="ScenarioLoadResult::success">
+<area shape="rect" id="Node000001" title="True when no diagnostic is an error." alt="" coords="5,22,156,62"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="204,29,287,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,39,190,39,190,45,156,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="218,31,212,21,215,11,227,5,245,3,268,6,277,15,274,19,265,11,245,8,228,10,219,15,218,20,223,28"/>
+</map>

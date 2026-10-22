@@ -1,0 +1,5 @@
+<map id="NetworkPresenter::trackLine" name="NetworkPresenter::trackLine">
+<area shape="rect" id="Node000001" title="The line of the preview with this track id in the scene, or null." alt="" coords="5,5,212,31"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a28d577f5bbbb4e9de524c1beace0a1d1" title="The id in the scene of the track line with this index in the run; empty when the run has none for it." alt="" coords="260,5,491,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,15,246,15,246,21,212,21"/>
+</map>

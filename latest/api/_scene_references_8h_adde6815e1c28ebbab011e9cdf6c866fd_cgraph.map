@@ -1,0 +1,7 @@
+<map id="sceneRewriteBlockReferences" name="sceneRewriteBlockReferences">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,224,55"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="72,31,63,21,68,11,85,5,115,3,152,7,162,12,166,18,161,20,159,16,151,12,115,8,87,10,72,15,69,20,76,27"/>
+<area shape="rect" id="Node000002" href="$_scene_references_8cpp.html#ac653c3e3cff67cb72ec8dff713a44a2b" title="reference with every component oldId replaced by newId." alt="" coords="272,29,484,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,39,258,39,258,45,224,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="336,31,327,21,331,11,349,5,378,3,415,7,426,12,429,18,425,20,422,16,414,12,378,8,350,10,335,15,332,20,340,27"/>
+</map>

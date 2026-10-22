@@ -1,0 +1,6 @@
+<map id="TrackLineItem::paint" name="TrackLineItem::paint">
+<area shape="rect" id="Node000001" title="Draws the line with the pen of the item, in occupiedTrackColor() while a train occupies the track." alt="" coords="5,29,160,55"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#af4d1772532a63c691de494ce9f3f9471" title=" " alt="" coords="208,29,356,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,39,194,39,194,45,160,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="249,31,243,21,246,11,260,5,282,3,309,6,320,15,317,19,307,11,282,8,261,10,250,15,248,20,254,28"/>
+</map>

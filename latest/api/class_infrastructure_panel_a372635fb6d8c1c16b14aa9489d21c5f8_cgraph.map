@@ -1,0 +1,11 @@
+<map id="InfrastructurePanel::refreshBlockTrackFilter" name="InfrastructurePanel::refreshBlockTrackFilter">
+<area shape="rect" id="Node000001" title="Lists the tracks that blocks can be filtered on again and keeps the chosen track where it still exist..." alt="" coords="5,69,184,109"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" title="False while no scene is loaded or a run uses it." alt="" coords="232,5,377,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,67,225,47,226,52,162,72"/>
+<area shape="rect" id="Node000004" href="$class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" title="The key of the chosen facet, one of facetKeys()." alt="" coords="232,69,377,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="185,87,219,87,219,92,185,92"/>
+<area shape="rect" id="Node000005" href="$class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" title="The model of the document; an empty scene without one." alt="" coords="232,133,377,173"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="162,107,226,127,225,132,160,112"/>
+<area shape="rect" id="Node000003" href="$class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" title="True when a scene is loaded." alt="" coords="425,5,571,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="378,23,411,23,411,28,378,28"/>
+</map>

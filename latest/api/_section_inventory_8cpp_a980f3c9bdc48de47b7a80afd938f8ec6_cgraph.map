@@ -1,0 +1,16 @@
+<map id="analyzeSignallingAreas" name="analyzeSignallingAreas">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,180,84"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,60,49,50,53,40,68,34,93,32,123,36,135,45,132,49,121,41,93,37,69,39,57,44,54,50,61,57"/>
+<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="231,29,395,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="180,57,217,52,218,57,181,62"/>
+<area shape="rect" id="Node000004" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="228,79,399,119"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="180,80,215,84,214,89,180,85"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="278,31,270,21,274,11,289,5,313,3,344,6,356,15,353,20,342,11,313,8,290,10,278,15,275,20,282,28"/>
+<area shape="rect" id="Node000003" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="487,29,577,55"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="396,39,473,39,473,45,396,45"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="496,31,489,21,493,11,507,5,532,3,562,6,574,15,571,20,560,11,532,8,509,10,496,15,494,20,500,28"/>
+<area shape="rect" id="Node000005" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="447,79,617,119"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="399,97,433,97,433,102,399,102"/>
+<area shape="rect" id="Node000006" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="447,143,617,183"/>
+<area shape="poly" id="edge8_Node000004_Node000006" title=" " alt="" coords="383,117,451,137,449,142,382,122"/>
+</map>

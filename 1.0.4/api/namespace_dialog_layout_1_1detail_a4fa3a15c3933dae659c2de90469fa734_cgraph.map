@@ -1,0 +1,10 @@
+<map id="DialogLayout::detail::showMessage" name="DialogLayout::detail::showMessage">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,159,69"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="42,30,40,20,46,10,60,5,82,3,107,6,121,13,118,18,105,11,82,8,62,10,49,15,45,21,47,28"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="207,29,388,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,47,193,47,193,52,159,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="257,30,255,20,261,10,276,5,297,3,322,6,336,13,333,18,321,11,297,8,277,10,265,15,260,21,262,28"/>
+<area shape="rect" id="Node000003" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="436,29,589,69"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="388,47,422,47,422,52,388,52"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="473,30,470,20,477,10,491,5,513,3,538,6,551,13,549,18,536,11,513,8,492,10,480,15,475,21,478,28"/>
+</map>

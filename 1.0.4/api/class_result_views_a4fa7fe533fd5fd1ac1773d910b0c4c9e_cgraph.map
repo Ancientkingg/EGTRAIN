@@ -1,0 +1,28 @@
+<map id="ResultViews::showTimetableTable" name="ResultViews::showTimetableTable">
+<area shape="rect" id="Node000001" title="Opens ResultViewName::kTimetable." alt="" coords="5,169,216,209"/>
+<area shape="rect" id="Node000002" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="272,29,439,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,167,186,115,223,87,263,64,278,57,281,62,265,68,226,92,189,119,133,171"/>
+<area shape="rect" id="Node000003" href="$_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" title="A provider that calls csv on the shared run with the visible train ids." alt="" coords="290,103,421,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="171,166,263,137,290,129,292,134,265,142,172,171"/>
+<area shape="rect" id="Node000004" href="$_run_exports_8cpp.html#a51e23926b07af75724be1c3bff22f587" title="The planned and simulated times and the delays of every stop, in seconds." alt="" coords="284,176,427,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="216,186,270,186,270,191,216,191"/>
+<area shape="rect" id="Node000005" href="$class_timetable_table_window.html#a505633277a4e552d1b0890a565e4b4dc" title=" " alt="" coords="264,226,447,266"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="197,206,257,220,255,225,196,211"/>
+<area shape="rect" id="Node000008" href="$_train_colors_8cpp.html#a0d05e7c9cd25392d1449b9be80d25689" title=" " alt="" coords="286,315,425,340"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="147,207,265,276,320,306,317,310,263,280,144,211"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="316,31,307,21,312,11,328,5,355,3,390,7,399,11,403,17,399,20,396,15,388,12,355,8,329,10,315,15,313,20,320,27"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="316,104,307,94,312,84,328,78,355,76,390,80,399,85,403,90,399,93,396,89,388,85,355,81,329,83,315,88,313,94,320,101"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="316,178,307,168,312,158,328,152,355,149,390,153,399,158,403,164,399,167,396,162,388,158,355,155,329,157,315,162,313,167,320,174"/>
+<area shape="rect" id="Node000006" href="$class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db" title=" " alt="" coords="756,198,895,238"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="429,223,494,211,554,207,601,207,708,211,743,212,742,218,708,217,601,212,555,212,495,217,430,229"/>
+<area shape="rect" id="Node000007" href="$class_train_filter_button.html#a63cb6ba918cf5701ce73849f4a366252" title=" " alt="" coords="533,226,670,266"/>
+<area shape="poly" id="edge9_Node000005_Node000007" title=" " alt="" coords="447,243,518,243,518,249,447,249"/>
+<area shape="poly" id="edge10_Node000007_Node000006" title=" " alt="" coords="670,235,742,226,742,231,671,240"/>
+<area shape="poly" id="edge16_Node000008_Node000008" title=" " alt="" coords="316,316,307,306,312,296,328,290,355,288,390,292,399,297,403,302,399,305,396,301,388,297,355,293,329,295,315,300,313,306,320,313"/>
+<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="495,315,708,340"/>
+<area shape="poly" id="edge12_Node000008_Node000009" title=" " alt="" coords="425,325,481,325,481,330,425,330"/>
+<area shape="rect" id="Node000010" href="$_scene_model_8cpp.html#ae53d137b1740d6eb1634c41e827293f5" title=" " alt="" coords="505,389,697,429"/>
+<area shape="poly" id="edge14_Node000008_Node000010" title=" " alt="" coords="396,338,528,382,526,387,394,343"/>
+<area shape="poly" id="edge13_Node000009_Node000009" title=" " alt="" coords="565,316,557,306,561,296,576,290,601,288,633,292,645,301,642,305,631,297,601,293,577,295,565,300,562,306,569,313"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="559,389,557,379,564,370,579,364,601,362,627,365,642,372,639,377,626,370,601,367,580,369,567,374,562,380,565,388"/>
+</map>

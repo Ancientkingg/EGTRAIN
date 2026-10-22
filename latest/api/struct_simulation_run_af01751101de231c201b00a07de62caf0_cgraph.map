@@ -1,0 +1,11 @@
+<map id="SimulationRun::resetInfrastructure" name="SimulationRun::resetInfrastructure">
+<area shape="rect" id="Node000001" title="Returns the infrastructure to the state of a new run." alt="" coords="5,55,252,80"/>
+<area shape="rect" id="Node000002" href="$struct_run_infrastructure.html#ab02b49f237201f2f52c106335b33a17c" title="Returns every member to the state of a new object." alt="" coords="300,47,443,87"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,65,286,65,286,70,252,70"/>
+<area shape="rect" id="Node000003" href="$class_block_set.html#ae8900f58f7303f7e02a1588e640aeb3f" title=" " alt="" coords="514,5,658,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="442,48,516,31,517,36,443,54"/>
+<area shape="rect" id="Node000004" href="$class_connections.html#ac88d39f818e8a52e8c630cb388ed520c" title="Sets the numbers to 0 and speedlimit to 16.667 m/s." alt="" coords="491,55,681,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="443,65,477,65,477,70,443,70"/>
+<area shape="rect" id="Node000005" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="518,104,654,129"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="443,81,517,98,516,103,442,86"/>
+</map>

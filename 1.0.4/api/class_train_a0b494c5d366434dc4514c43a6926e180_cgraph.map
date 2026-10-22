@@ -1,0 +1,5 @@
+<map id="Train::recordDirectIncident" name="Train::recordDirectIncident">
+<area shape="rect" id="Node000001" title="recordDirectIncidentId with the ID of the incident, or its target when it has none." alt="" coords="5,5,199,31"/>
+<area shape="rect" id="Node000002" href="$class_train.html#aae86e0228dcc9da75848221be573a189" title="Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is t..." alt="" coords="247,5,452,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,15,233,15,233,21,199,21"/>
+</map>

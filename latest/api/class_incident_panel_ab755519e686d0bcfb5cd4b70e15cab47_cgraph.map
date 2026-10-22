@@ -1,0 +1,5 @@
+<map id="IncidentPanel::hideEvent" name="IncidentPanel::hideEvent">
+<area shape="rect" id="Node000001" title="Ends picking, unless the window system hid the panel, as when the window is minimized." alt="" coords="5,5,188,31"/>
+<area shape="rect" id="Node000002" href="$class_incident_panel.html#a4a9dda1a9168404be9f1d7b5d91358c0" title=" " alt="" coords="236,5,444,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,15,222,15,222,21,188,21"/>
+</map>

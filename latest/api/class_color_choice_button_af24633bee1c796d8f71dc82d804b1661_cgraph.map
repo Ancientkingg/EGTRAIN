@@ -1,0 +1,11 @@
+<map id="ColorChoiceButton::chooseColor" name="ColorChoiceButton::chooseColor">
+<area shape="rect" id="Node000001" title="What the colour dialog result goes through. An invalid colour is ignored." alt="" coords="5,49,156,89"/>
+<area shape="rect" id="Node000002" href="$class_color_choice_button.html#a6ed77f3215c493d7e5f0a7063e0a101f" title=" " alt="" coords="204,5,355,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,50,190,42,191,48,157,55"/>
+<area shape="rect" id="Node000003" href="$class_color_choice_button.html#a00930b3201d01d063825235f0fd25d4d" title="Shows the stored text without changing it; never emits colorChanged." alt="" coords="204,93,355,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,83,191,91,190,96,156,89"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="242,94,240,84,246,75,259,69,279,67,303,70,315,77,313,82,301,75,279,72,260,74,249,79,245,85,247,92"/>
+<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="403,101,616,126"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="355,111,389,111,389,116,355,116"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="472,102,464,92,468,82,484,76,509,74,542,78,554,87,551,92,540,83,509,79,485,81,472,86,469,92,476,99"/>
+</map>

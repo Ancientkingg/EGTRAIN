@@ -1,0 +1,7 @@
+<map id="ComputeBlockingTimesInMixedSignallingForAllTrains" name="ComputeBlockingTimesInMixedSignallingForAllTrains">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,233,69"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="73,30,70,20,77,10,94,5,119,3,148,6,164,13,162,18,147,11,119,8,95,10,80,15,75,21,78,28"/>
+<area shape="rect" id="Node000002" href="$_rolling_stock_8cpp.html#a2ca32310c7b2a9fa6808228e2e52e827" title=" " alt="" coords="281,37,460,62"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="233,47,268,47,268,52,233,52"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="330,38,321,28,326,18,343,12,371,10,406,14,416,19,420,24,415,27,413,23,405,19,371,15,344,17,329,22,327,28,334,35"/>
+</map>

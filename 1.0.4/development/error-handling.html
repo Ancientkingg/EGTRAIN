@@ -1,0 +1,817 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Documentation decision" href="documentation-decision.html"><link rel="prev" title="Coding guidelines" href="coding-guidelines.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Error handling - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/error-handling.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="error-handling">
+<h1>Error handling<a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h1>
+<p>How EGTRAIN handles failure: which exceptions are caught and which escape, the fatal paths, what the user sees for each recoverable failure, the safety nets, and the crashes seen and reproduced on 2026-10-19. Paths are relative to <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code>.</p>
+<section id="in-short">
+<h2>In short<a class="headerlink" href="#in-short" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Runs, run preparation, scene reading in the window, window events and both <code class="docutils literal notranslate"><span class="pre">main</span></code> functions catch exceptions; the tables below give where and what the user sees. On macOS the guard on window events (<code class="docutils literal notranslate"><span class="pre">GuardedApplication::notify</span></code>) sees nothing, so an exception that leaves a slot there still ends in <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code>.</p></li>
+<li><p>The output folder of a run, the scene folder that <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> reads and the folder of a legacy import are checked with the <code class="docutils literal notranslate"><span class="pre">std::error_code</span></code> overloads of <code class="docutils literal notranslate"><span class="pre">std::filesystem</span></code>, so a folder that cannot be created or read gives a diagnostic instead of an exception.</p></li>
+<li><p>The window build installs a crash handler (<code class="docutils literal notranslate"><span class="pre">app/CrashNote.cpp</span></code>, see <a class="reference internal" href="#crash-notes">Crash notes</a>): <code class="docutils literal notranslate"><span class="pre">std::set_terminate</span></code>, and signal handlers for SIGSEGV, SIGBUS, SIGILL, SIGFPE and SIGABRT. Headless runs and <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> have none. The other handler is <code class="docutils literal notranslate"><span class="pre">qInstallMessageHandler(qtMessageToLog)</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.cpp</span></code>), which routes Qt messages to the log. An exception that passes the guards ends in <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> and <code class="docutils literal notranslate"><span class="pre">abort()</span></code>; the window build then leaves a crash note that the next start reports.</p></li>
+</ul>
+</section>
+<section id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
+<section id="where-they-are-caught">
+<h3>Where they are caught<a class="headerlink" href="#where-they-are-caught" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Area</p></th>
+<th class="head"><p>Where</p></th>
+<th class="head"><p>Behaviour</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Simulation run</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DispatchController::runSimulation</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code>), around the stages in <code class="docutils literal notranslate"><span class="pre">runSimulationStages</span></code></p></td>
+<td><p>The run ends as failed. See <a class="reference internal" href="#what-happens-when-one-is-caught">What happens when one is caught</a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Run preparation and scene reading in the window</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code> around <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code> around <code class="docutils literal notranslate"><span class="pre">readScene</span></code></p></td>
+<td><p>Becomes <code class="docutils literal notranslate"><span class="pre">run.prepare.exception</span></code> (“Cannot prepare the run: <what>”) or <code class="docutils literal notranslate"><span class="pre">scene.read.exception</span></code> (“Cannot read the scene: <what>”).</p></td>
+</tr>
+<tr class="row-even"><td><p>Window events</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GuardedApplication::notify</span></code></p></td>
+<td><p>Logged as <code class="docutils literal notranslate"><span class="pre">Unexpected</span> <span class="pre">error</span> <span class="pre">in</span> <span class="pre">&lt;class&gt;</span> <span class="pre">(event</span> <span class="pre">&lt;type&gt;):</span> <span class="pre">&lt;what&gt;</span></code> in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>, and the event counts as not handled. Not on macOS.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Process entry</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">main</span></code> in <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code> and in <code class="docutils literal notranslate"><span class="pre">scene/SceneTool.cpp</span></code></p></td>
+<td><p>Exit code 70 with an <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> error line, or exit code 1 with <code class="docutils literal notranslate"><span class="pre">error:</span> <span class="pre">&lt;what&gt;</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Telemetry</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">telemetry/TelemetrySender.cpp</span></code> (<code class="docutils literal notranslate"><span class="pre">catch</span> <span class="pre">(...)</span></code> around every operation and the timer pump), <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/RunController.cpp</span></code></p></td>
+<td><p>Fails closed and silently, by design.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Recovery copies</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">recovery/RecoveryController.cpp</span></code> (thread start and worker loop), <code class="docutils literal notranslate"><span class="pre">recovery/RecoveryStore.cpp</span></code></p></td>
+<td><p>Turned into a “Cannot write the recovery copy” outcome.</p></td>
+</tr>
+<tr class="row-even"><td><p>Live stream</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code> (per operation and the thread body), <code class="docutils literal notranslate"><span class="pre">io/LiveCommand.cpp</span></code> (parses with exceptions off), <code class="docutils literal notranslate"><span class="pre">io/ExternalState.cpp</span></code></p></td>
+<td><p>Logged; the stream stops.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scene JSON</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">json::parse</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneModel.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneBundle.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneWriter.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneCompatibility.cpp</span></code>; typed reads through <code class="docutils literal notranslate"><span class="pre">SceneFieldReader</span></code></p></td>
+<td><p>Becomes a <code class="docutils literal notranslate"><span class="pre">SceneDiagnostic</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Number parsing</p></td>
+<td><p>every <code class="docutils literal notranslate"><span class="pre">std::stoi</span></code>/<code class="docutils literal notranslate"><span class="pre">stod</span></code>/<code class="docutils literal notranslate"><span class="pre">stoll</span></code> is caught or its input is checked first</p></td>
+<td><p>Becomes a diagnostic.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">map::at</span></code></p></td>
+<td><p>every <code class="docutils literal notranslate"><span class="pre">std::map::at</span></code> and <code class="docutils literal notranslate"><span class="pre">unordered_map::at</span></code> follows a lookup or a validation</p></td>
+<td><p>No throw expected.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="filesystem-failures-that-give-diagnostics">
+<h3>Filesystem failures that give diagnostics<a class="headerlink" href="#filesystem-failures-that-give-diagnostics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Check</p></th>
+<th class="head"><p>Diagnostic</p></th>
+<th class="head"><p>What the user sees</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>The output folder of a run and its subfolders (<code class="docutils literal notranslate"><span class="pre">ensureDirectory</span></code> in <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">run.output.folder</span></code>: “Cannot create the output folder <path>: <reason>”</p></td>
+<td><p>Window: <strong>Cannot Run Scene</strong> with that text, Run Results status “Failed”, the case stays open. Without a window: the diagnostic on standard error and exit code 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/TEMP</span></code> of a run with <code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code></p></td>
+<td><p>none; the run throws “Cannot create the folder <path>: <reason>”, which <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> catches</p></td>
+<td><p>The run fails as below.</p></td>
+</tr>
+<tr class="row-even"><td><p>The scene folder in <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneModel.cpp</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.dir.unreadable</span></code>: “Cannot read the scene folder: <reason>”; a path that does not exist or is not a folder keeps <code class="docutils literal notranslate"><span class="pre">scene.dir.missing</span></code></p></td>
+<td><p>Window: <strong>Cannot Open Case Study</strong>. At the start, headless and in <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>, <code class="docutils literal notranslate"><span class="pre">pack</span></code> and <code class="docutils literal notranslate"><span class="pre">export</span></code>: the diagnostic and exit code 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The legacy folder of an import and its passenger files (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.import.missing</span></code> with the reason; passenger files that cannot be checked count as absent</p></td>
+<td><p><strong>Cannot Import Legacy Case</strong>, or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code> exits with 1.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="where-they-still-escape">
+<h3>Where they still escape<a class="headerlink" href="#where-they-still-escape" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Throw site</p></th>
+<th class="head"><p>Reached from</p></th>
+<th class="head"><p>Thread</p></th>
+<th class="head"><p>Caught by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp</span></code> <code class="docutils literal notranslate"><span class="pre">fs::exists</span></code>/<code class="docutils literal notranslate"><span class="pre">is_directory</span></code> without <code class="docutils literal notranslate"><span class="pre">error_code</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> only</p></td>
+<td><p>main</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>’s <code class="docutils literal notranslate"><span class="pre">main</span></code>: exit code 1</p></td>
+</tr>
+<tr class="row-odd"><td><p>Range-for over <code class="docutils literal notranslate"><span class="pre">fs::directory_iterator(dir,</span> <span class="pre">ec)</span></code>: the increment still throws (<code class="docutils literal notranslate"><span class="pre">SceneImporter.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneExporter.cpp</span></code>)</p></td>
+<td><p>import and export; needs an I/O error during a listing</p></td>
+<td><p>GUI or main</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code> (not on macOS) or <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>’s <code class="docutils literal notranslate"><span class="pre">main</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code></p></td>
+<td><p>Train vectors sized <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">timestep)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp</span></code>), built on the GUI thread; the scene validator checks only that the duration is positive and finite</p></td>
+<td><p>GUI, or main without a window</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>: <strong>Cannot Run Scene</strong>; without a window, <code class="docutils literal notranslate"><span class="pre">main</span></code>: exit code 70</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="what-happens-when-one-is-caught">
+<h3>What happens when one is caught<a class="headerlink" href="#what-happens-when-one-is-caught" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Where it is thrown</p></th>
+<th class="head"><p>Outcome</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A run, on the simulation <code class="docutils literal notranslate"><span class="pre">QThread</span></code> or with <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> returns normally, so <code class="docutils literal notranslate"><span class="pre">SimulationWorker::simulationFinished</span></code> is still emitted. <code class="docutils literal notranslate"><span class="pre">lastRunError()</span></code> holds the text, <code class="docutils literal notranslate"><span class="pre">app.run</span></code> logs “The run stopped because of an error: <what>”, and the live stream gets <code class="docutils literal notranslate"><span class="pre">run_cancelled</span></code> once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows <strong>Simulation Failed</strong> (“The run stopped because of an error: … The case is still open and unchanged.”), the status bar says “Simulation failed”, Run Results says “Failed” and the case stays open and editable. Without a window the exit code is 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p>A slot or event handler on the GUI thread</p></td>
+<td><p>Linux and Windows: <code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code> logs it, the event counts as not handled, and an <strong>Unexpected Error</strong> box says that the case is still open and should be saved. Further exceptions while that box waits or is open are only logged. What the slot had done before the throw is not undone. macOS: <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> at the throw, because an exception cannot pass the frames of QtWidgets.</p></td>
+</tr>
+<tr class="row-even"><td><p>Startup, before <code class="docutils literal notranslate"><span class="pre">application.exec()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">main</span></code> logs “EGTRAIN stopped because of an unexpected error: <what>” in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> and exits with 70.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">error:</span> <span class="pre">&lt;what&gt;</span></code> on standard error and exit code 1.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>An exception that reaches <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> leaves only the <code class="docutils literal notranslate"><span class="pre">libc++abi:</span> <span class="pre">terminating</span> <span class="pre">due</span> <span class="pre">to</span> <span class="pre">uncaught</span> <span class="pre">exception</span></code> line on standard error, which a user who starts the app from Finder never sees.</p>
+</section>
+</section>
+<section id="fatal-paths">
+<h2>Fatal paths<a class="headerlink" href="#fatal-paths" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Path</p></th>
+<th class="head"><p>Where</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::abort()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BlockingTimeList::checkIndex</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>) on a negative index</p></td>
+<td><p>The only deliberate abort. It logs and flushes first.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">_exit(127)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">update/UpdateHelper.cpp</span></code>, in a forked child after <code class="docutils literal notranslate"><span class="pre">exec</span></code> fails</p></td>
+<td><p>Correct use.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">assert</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">io/third_party/pugixml.cpp</span></code></p></td>
+<td><p>Compiled out in release builds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Q_ASSERT</span></code>, <code class="docutils literal notranslate"><span class="pre">qFatal</span></code>, <code class="docutils literal notranslate"><span class="pre">Q_UNREACHABLE</span></code>, <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code></p></td>
+<td><p>none in the application code</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Uncaught exceptions</p></td>
+<td><p>see <a class="reference internal" href="#where-they-still-escape">Where they still escape</a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dangling scene items</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QGraphicsScene</span></code>’s BSP index</p></td>
+<td><p>See below.</p></td>
+</tr>
+<tr class="row-even"><td><p>Fixed simulation arrays</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">arcs_in_signalling_block_section[20]</span></code> is written without a bound check (<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.cpp</span></code>)</p></td>
+<td><p>Relies on the validator rejecting sections with more than 20 arcs. <code class="docutils literal notranslate"><span class="pre">IDConnectedBS</span></code> is checked, and delayed indexes are checked in <code class="docutils literal notranslate"><span class="pre">RollingStockOccupation.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="scene-items-and-the-paint-crash">
+<h3>Scene items and the paint crash<a class="headerlink" href="#scene-items-and-the-paint-crash" title="Link to this heading">¶</a></h3>
+<p>The network view paints through Qt’s BSP index. The index keeps a pointer to an item in every leaf that the item’s rectangle covered when it was indexed. A paint dereferences each pointer in the leaves it visits (<code class="docutils literal notranslate"><span class="pre">QGraphicsSceneFindItemBspTreeVisitor::visit</span></code>, then <code class="docutils literal notranslate"><span class="pre">QGraphicsItem::topLevelItem</span></code>). A pointer is left behind when an item’s rectangle shrinks or moves without <code class="docutils literal notranslate"><span class="pre">prepareGeometryChange()</span></code>, the item is then removed using its new rectangle, and it is deleted before the index runs again. Heap corruption that overwrites a leaf list has the same stack.</p>
+<p>On <code class="docutils literal notranslate"><span class="pre">main</span></code>, every geometry setter of the custom items calls <code class="docutils literal notranslate"><span class="pre">prepareGeometryChange()</span></code> first. One hazard is structural: <code class="docutils literal notranslate"><span class="pre">TrainItemGroup::boundingRect()</span></code> returns <code class="docutils literal notranslate"><span class="pre">childrenBoundingRect()</span></code> (<code class="docutils literal notranslate"><span class="pre">graphics/items/TrainItemGroup.cpp</span></code>), so the group’s rectangle changes whenever a body changes, and only callers that call <code class="docutils literal notranslate"><span class="pre">prepareForChildGeometryChange()</span></code> first (<code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">TrainItemGroup::applyViewScale</span></code>) keep the index right. Deleting a body or <code class="docutils literal notranslate"><span class="pre">removeFromGroup</span></code> does not notify the group.</p>
+<p>The paint crash came from the selection effect. Qt rounds the bounds of an item with an enabled <code class="docutils literal notranslate"><span class="pre">QGraphicsEffect</span></code> to whole device pixels of each view (<code class="docutils literal notranslate"><span class="pre">QGraphicsItemPrivate::effectiveBoundingRect</span></code>), so the rectangle of a selected item in the index changed with zoom and scroll without <code class="docutils literal notranslate"><span class="pre">prepareGeometryChange()</span></code>, and a selected item removed and deleted after the view moved stayed in the leaves of its old rectangle (AddressSanitizer: read in <code class="docutils literal notranslate"><span class="pre">effectiveBoundingRect</span></code> under <code class="docutils literal notranslate"><span class="pre">QGraphicsView::paintEvent</span></code>, free in <code class="docutils literal notranslate"><span class="pre">~PassengerItem</span></code>). <code class="docutils literal notranslate"><span class="pre">HighlightEffect</span></code> is therefore disabled; it draws nothing itself, since <code class="docutils literal notranslate"><span class="pre">SelectionCueItem</span></code> shows the selection. <code class="docutils literal notranslate"><span class="pre">test_highlighteffect</span></code> checks that a selected item removed after a zoom change is no longer found in the scene.</p>
+<p>The visual polish smoke also had a use after free: it added a temporary <code class="docutils literal notranslate"><span class="pre">SignalItem</span></code> to <code class="docutils literal notranslate"><span class="pre">NetworkPresenter::allSignals</span></code>, deleted it, pumped events during a live run and only then removed the pointer, so a frame drawn in between could call <code class="docutils literal notranslate"><span class="pre">setAspectCode</span></code> on freed memory (<code class="docutils literal notranslate"><span class="pre">NetworkPresenter::updateSignalling</span></code>). It was found by reading and did not reproduce. The test now removes the pointer before it deletes the item.</p>
+</section>
+<section id="other-hazards">
+<h3>Other hazards<a class="headerlink" href="#other-hazards" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Train::BrakingDistanceFastComputation</span></code> and <code class="docutils literal notranslate"><span class="pre">AccelerationTimeFollowingMode</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/RollingStockBraking.cpp</span></code>) divide by an arc count that is 0 when no arc ends between the two positions. The result is NaN, the comparisons that use it are false, and an approach time is silently not found. No crash and no log.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RunController::clearSimulationWorker</span></code> (<code class="docutils literal notranslate"><span class="pre">app/RunController.cpp</span></code>) waits for the worker thread without a timeout. A step that never checks the stop flag freezes the window when the run is stopped or the window closes.</p></li>
+</ul>
+</section>
+</section>
+<section id="recoverable-failures">
+<h2>Recoverable failures<a class="headerlink" href="#recoverable-failures" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Failure</p></th>
+<th class="head"><p>User sees</p></th>
+<th class="head"><p>Logged</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Scene cannot be read, in the window</p></td>
+<td><p>“Cannot Open Case Study” box (<code class="docutils literal notranslate"><span class="pre">app/SceneSession.cpp</span></code>) with the first diagnostic, then the status bar “Scene unchanged: … could not be opened.” The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (<code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>). An exception while the scene is read gives the same box.</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scene of another version</p></td>
+<td><p>Question box with Check for Updates or the upgrade offer</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Scene named on the command line cannot be read</p></td>
+<td><p>Box, then the default case opens (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>)</p></td>
+<td><p>Standard error</p></td>
+</tr>
+<tr class="row-odd"><td><p>Default scene cannot be read at start</p></td>
+<td><p>“Cannot Start EGTRAIN” box, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>)</p></td>
+<td><p>Standard error</p></td>
+</tr>
+<tr class="row-even"><td><p>Save fails</p></td>
+<td><p>“Cannot Save Scene” box with the first diagnostic. Three Save As errors call <code class="docutils literal notranslate"><span class="pre">QMessageBox::critical</span></code> directly (<code class="docutils literal notranslate"><span class="pre">SceneSession.cpp</span></code>), which bypasses dialog suppression and the log.</p></td>
+<td><p>Yes, except those three</p></td>
+</tr>
+<tr class="row-odd"><td><p>Legacy import fails</p></td>
+<td><p>Status bar “Legacy import failed. Scene unchanged.” and a box with the summary</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
+<td><p>“Cannot Run Scene” box with the first diagnostic; Run Results status “Failed”</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Run stopped by an exception</p></td>
+<td><p>“Simulation Failed” box; status bar “Simulation failed”; Run Results status “Failed”</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Run with zero trains</p></td>
+<td><p>Nothing visible: one error line in the Console Log dock (<code class="docutils literal notranslate"><span class="pre">DispatchController.cpp</span></code>)</p></td>
+<td><p>Dock</p></td>
+</tr>
+<tr class="row-odd"><td><p>Run ends without results and was not stopped</p></td>
+<td><p>Run Results says “Failed” and the status bar says “Simulation ended without results”</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Run output files cannot be written</p></td>
+<td><p>Nothing: <code class="docutils literal notranslate"><span class="pre">ofstream::open</span></code> is not checked (for example <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code>), and the run reports success</p></td>
+<td><p>One line for one file (<code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Result export fails</p></td>
+<td><p>“Export failed” warning with the path, without the reason from the OS</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Live stream cannot start</p></td>
+<td><p>“Cannot Start EGTRAIN” box, exit 2 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>)</p></td>
+<td><p>Standard error</p></td>
+</tr>
+<tr class="row-odd"><td><p>Manual update check fails</p></td>
+<td><p>Warning box with the network error</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Automatic update check fails</p></td>
+<td><p>Nothing visible (<code class="docutils literal notranslate"><span class="pre">qWarning</span></code>, <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>)</p></td>
+<td><p>Dock, category <code class="docutils literal notranslate"><span class="pre">app.ui</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Telemetry send or consent fails</p></td>
+<td><p>Nothing, by design; a consent save error shows in the dialog</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Autosave fails</p></td>
+<td><p>Status bar “Autosave unavailable: …” once per scene, overwritten by the next status message; during a pick of an incident target it waits until the pick ends (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>)</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>A recovery copy cannot be removed</p></td>
+<td><p>Status bar for 8 s (<code class="docutils literal notranslate"><span class="pre">MainWindow.cpp</span></code>)</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">UserPrompts::showError</span></code> (<code class="docutils literal notranslate"><span class="pre">widgets/UserPrompts.h</span></code>) logs <code class="docutils literal notranslate"><span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> at error level in <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>, then shows the box. In a run with dialogs suppressed it prints <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_DIALOG_SUPPRESSED:</span> <span class="pre">&lt;title&gt;:</span> <span class="pre">&lt;message&gt;</span></code> to standard error instead of the box.</p>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">util/Log.h</span></code> has the categories <code class="docutils literal notranslate"><span class="pre">sim.setup</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.step</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.events</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.pax</span></code>, <code class="docutils literal notranslate"><span class="pre">io.railml</span></code>, <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code>, <code class="docutils literal notranslate"><span class="pre">app.run</span></code>, <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> and <code class="docutils literal notranslate"><span class="pre">update</span></code>, and the levels debug to error. <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code> sets the rules.</p></li>
+<li><p>In the application the sink (<code class="docutils literal notranslate"><span class="pre">consoleLogSink</span></code>, <code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.cpp</span></code>) writes to the Console Log dock, to standard output or standard error, and to the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code>. Without that variable nothing is written to disk.</p></li>
+<li><p>The dock is hidden at start (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>, View menu or Ctrl+Shift+L), keeps its text in memory only and does not draw attention to an error.</p></li>
+</ul>
+</section>
+<section id="safety-nets">
+<h2>Safety nets<a class="headerlink" href="#safety-nets" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Net</p></th>
+<th class="head"><p>What it does</p></th>
+<th class="head"><p>Limits</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Autosave and recovery copies (#858, <code class="docutils literal notranslate"><span class="pre">recovery/</span></code>)</p></td>
+<td><p>Every 30 s with unsaved edits, writes a copy under <code class="docutils literal notranslate"><span class="pre">AppLocalDataLocation/Recovery/&lt;instance&gt;</span></code> (or <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code>), held by a lock file. At the next start <code class="docutils literal notranslate"><span class="pre">RecoveryStore::scan()</span></code> offers the copies whose lock is free, and <code class="docutils literal notranslate"><span class="pre">RecoveryPrompt</span></code> says “EGTRAIN closed before this case was saved”. A clean close removes the folder.</p></td>
+<td><p>Off in offscreen and suppressed runs unless <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> is set. Nothing is written before the first autosave, and <code class="docutils literal notranslate"><span class="pre">scan()</span></code> deletes a folder without a copy, so a crash with a saved case or before the first autosave leaves no copy. The prompt says that the app crashed only when a crash note exists.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Crash note (<code class="docutils literal notranslate"><span class="pre">app/CrashNote.cpp</span></code>)</p></td>
+<td><p>A fatal signal or an uncaught exception in the window build writes a note, and the next start reports it. See <a class="reference internal" href="#crash-notes">Crash notes</a>.</p></td>
+<td><p>No note for headless runs, <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>, a forced quit or a power loss. No stack on Windows.</p></td>
+</tr>
+<tr class="row-even"><td><p>Diagnostics consent (<code class="docutils literal notranslate"><span class="pre">telemetry/</span></code>)</p></td>
+<td><p>With consent, sends enum-only events such as <code class="docutils literal notranslate"><span class="pre">operation.failed</span></code> with an operation (<code class="docutils literal notranslate"><span class="pre">scene_open</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation</span></code>, <code class="docutils literal notranslate"><span class="pre">export</span></code>) and an error code (<code class="docutils literal notranslate"><span class="pre">invalid_input</span></code>, <code class="docutils literal notranslate"><span class="pre">unsupported_format</span></code>, <code class="docutils literal notranslate"><span class="pre">io_failure</span></code>, <code class="docutils literal notranslate"><span class="pre">internal_failure</span></code>). A run that an exception ends after it has started sends <code class="docutils literal notranslate"><span class="pre">simulation.failed</span></code> and <code class="docutils literal notranslate"><span class="pre">operation.failed</span></code> with <code class="docutils literal notranslate"><span class="pre">simulation</span></code> and <code class="docutils literal notranslate"><span class="pre">internal_failure</span></code>.</p></td>
+<td><p>The consent text promises no native crash dumps and no raw error messages. Schema version 1 has no name for a crash, and new names need a new schema version (<code class="docutils literal notranslate"><span class="pre">docs/telemetry/README.md</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Logging core (<code class="docutils literal notranslate"><span class="pre">util/Log.h</span></code>)</p></td>
+<td><p>Categories, levels and one sink</p></td>
+<td><p>No log file unless <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code> is set.</p></td>
+</tr>
+<tr class="row-even"><td><p>Startup notice of the previous run</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reportRolledBackUpdate</span></code> (<code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>) reads <code class="docutils literal notranslate"><span class="pre">update-record.txt</span></code> left by the previous process and shows a box at the next start.</p></td>
+<td><p>Covers updates only.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="crash-notes">
+<h3>Crash notes<a class="headerlink" href="#crash-notes" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">main</span></code> calls <code class="docutils literal notranslate"><span class="pre">installCrashHandler(crashNoteFolder())</span></code> once the <code class="docutils literal notranslate"><span class="pre">QApplication</span></code> exists. The folder is <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_CRASH_DIR</span></code> when it is set; otherwise scripted runs and the offscreen and minimal platforms keep no notes, and a normal run uses <code class="docutils literal notranslate"><span class="pre">AppLocalDataLocation/Crashes</span></code>. At install time the handler formats the note path, <code class="docutils literal notranslate"><span class="pre">crash-&lt;UTC</span> <span class="pre">start</span> <span class="pre">time&gt;-&lt;pid&gt;.txt</span></code>, and a header with the version, Qt, the system and the executable.</p>
+<ul class="simple">
+<li><p>A fatal signal appends the header, <code class="docutils literal notranslate"><span class="pre">Signal:</span> <span class="pre">&lt;name&gt;</span></code> and, on macOS and Linux, <code class="docutils literal notranslate"><span class="pre">Stack:</span></code> with the frames of <code class="docutils literal notranslate"><span class="pre">backtrace_symbols_fd</span></code>. The handler does not allocate and runs on an alternate stack on the main thread. <code class="docutils literal notranslate"><span class="pre">backtrace</span></code> is called once at install so that the handler loads nothing, but it is not on the POSIX list of calls that are safe in a signal handler, so a corrupted heap can leave a partial note. It then raises the signal again with the default action, so the system still writes its own crash report and shows its own message.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> appends the header and <code class="docutils literal notranslate"><span class="pre">Uncaught</span> <span class="pre">exception:</span> <span class="pre">&lt;what()&gt;</span></code>, then calls <code class="docutils literal notranslate"><span class="pre">abort()</span></code>, whose SIGABRT handler adds the stack.</p></li>
+<li><p>On Windows an unhandled exception filter writes <code class="docutils literal notranslate"><span class="pre">Exception:</span> <span class="pre">0x&lt;code&gt;</span></code> and passes the exception on to the filter it replaced: the C++ runtime turns an uncaught C++ exception into <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code>, and the system reports any other. The SIGABRT handler returns instead of raising again, so that <code class="docutils literal notranslate"><span class="pre">abort()</span></code> goes on to its fast-fail report. The runtime keeps the terminate handler per thread and only the main thread has it, so an exception on another thread leaves the exception code and SIGABRT but not its text. There is no stack.</p></li>
+<li><p>At the next start <code class="docutils literal notranslate"><span class="pre">takeCrashNote</span></code> renames each <code class="docutils literal notranslate"><span class="pre">crash-*.txt</span></code> to <code class="docutils literal notranslate"><span class="pre">reported-crash-*.txt</span></code> and keeps the newest 10 reported notes. The newest note is named in <strong>Recover Unsaved Work</strong> when copies can be recovered, otherwise in the notice “EGTRAIN Closed Unexpectedly” with <strong>Show Crash Note</strong>, and in a warning of the category <code class="docutils literal notranslate"><span class="pre">app.ui</span></code>.</p></li>
+</ul>
+<p>No crash event is sent: schema version 1 of the diagnostics has no name for one, so the consent text (“no native crash dumps”) stays true. <code class="docutils literal notranslate"><span class="pre">tests/test_crashnote.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">tools/e2e/recovery_smoke.py</span></code> crash child processes on purpose, so the system keeps crash reports of them.</p>
+</section>
+</section>
+<section id="crashes-seen-on-2026-10-19">
+<h2>Crashes seen on 2026-10-19<a class="headerlink" href="#crashes-seen-on-2026-10-19" title="Link to this heading">¶</a></h2>
+<p>Crash reports from <code class="docutils literal notranslate"><span class="pre">~/Library/Logs/DiagnosticReports</span></code> on a development Mac, and the reproductions made for #981 with the Qt 5.15.19 build of 946ee7eb. macOS keeps at most 25 reports per process name and may only update an existing report for a repeated crash, so the folder undercounts.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Crash</p></th>
+<th class="head"><p>Stack (own frames)</p></th>
+<th class="head"><p>Trigger</p></th>
+<th class="head"><p>Status on 946ee7eb</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SIGABRT, uncaught <code class="docutils literal notranslate"><span class="pre">filesystem_error</span></code> “in create_directories: Not a directory”</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ensureDirectory</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">MainWindow::timedPreparation</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">QObject::event</span></code> (window); <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">main</span></code> (headless)</p></td>
+<td><p>Run when the output folder cannot be created</p></td>
+<td><p>Reproduced every time, in the window and headless</p></td>
+</tr>
+<tr class="row-odd"><td><p>SIGABRT on the <code class="docutils literal notranslate"><span class="pre">QThread</span></code>, uncaught <code class="docutils literal notranslate"><span class="pre">filesystem_error</span></code> “in create_directories: File exists”</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> &lt;- QtCore &lt;- <code class="docutils literal notranslate"><span class="pre">_pthread_start</span></code> (throw site lost)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code> run when <code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/TEMP</span></code> cannot be created</p></td>
+<td><p>Reproduced every time</p></td>
+</tr>
+<tr class="row-even"><td><p>SIGABRT, uncaught <code class="docutils literal notranslate"><span class="pre">filesystem_error</span></code> “in posix_stat: … Permission denied” or “File name too long”</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">std::__fs::filesystem::__status</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">loadScenePath</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">main</span></code></p></td>
+<td><p>Opening a scene whose path cannot be read, at start or with <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code></p></td>
+<td><p>Reproduced every time; the window’s File &gt; Open shares the code but was not clicked</p></td>
+</tr>
+<tr class="row-odd"><td><p>SIGABRT in <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">loadScene</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">loadScenePath</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">main</span></code>; legacy import on an unreadable folder</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>, <code class="docutils literal notranslate"><span class="pre">pack</span></code>, <code class="docutils literal notranslate"><span class="pre">export</span></code>, <code class="docutils literal notranslate"><span class="pre">import</span></code></p></td>
+<td><p>Reproduced every time</p></td>
+</tr>
+<tr class="row-even"><td><p>SIGSEGV while painting the network view (12 reports, Qt 5, 20:31-20:45)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QGraphicsItem::topLevelItem</span></code> &lt;- BSP visitor &lt;- <code class="docutils literal notranslate"><span class="pre">QGraphicsView::paintEvent</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">NetworkView::viewportEvent</span></code> … <code class="docutils literal notranslate"><span class="pre">MainWindowTestAccess::runVisualPolish</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">MainWindow::waitForUpdates</span></code></p></td>
+<td><p>Visual polish smoke, live Copenhagen run at scale 2; binaries of an experiment on f299a252 with a dialog probe</p></td>
+<td><p>Reproduced on that tree (3 of 4 runs, and 3 of 3 under AddressSanitizer, which reads a garbage item pointer in <code class="docutils literal notranslate"><span class="pre">QGraphicsItemPrivate::effectiveBoundingRect</span></code> after “Clear selection”). Not reproduced on 946ee7eb in 26 runs of the same phases.</p></td>
+</tr>
+<tr class="row-odd"><td><p>SIGSEGV in <code class="docutils literal notranslate"><span class="pre">QGraphicsSceneBspTree::items</span></code> (Qt 6)</p></td>
+<td><p>Same paint path, symbolised (<code class="docutils literal notranslate"><span class="pre">qgraphicsscene_bsp.cpp</span></code>)</p></td>
+<td><p>Visual polish smoke, live phase at scale 1, Qt 6 build</p></td>
+<td><p>Seen once; not reproduced</p></td>
+</tr>
+<tr class="row-even"><td><p>SIGBUS at window teardown (Qt 6)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QObject::destroyed</span></code> of a <code class="docutils literal notranslate"><span class="pre">QExpandingLineEdit</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">~QTableWidget</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">~InfrastructurePanel</span></code> &lt;- <code class="docutils literal notranslate"><span class="pre">~MainWindow</span></code></p></td>
+<td><p>Window closed while a table cell editor was open, in the creator acceptance smoke</p></td>
+<td><p>Seen twice with Qt 6 only; cause inferred</p></td>
+</tr>
+<tr class="row-odd"><td><p>SIGABRT in <code class="docutils literal notranslate"><span class="pre">qDetectCpuFeatures</span></code> (Qt 6)</p></td>
+<td><p>Before <code class="docutils literal notranslate"><span class="pre">main</span></code></p></td>
+<td><p>Qt 6 test binaries started under a sandbox</p></td>
+<td><p>Environment, not EGTRAIN code</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Five rounds of the CTest smokes, <code class="docutils literal notranslate"><span class="pre">headless_smoke.py</span></code> and <code class="docutils literal notranslate"><span class="pre">roundtrip_smoke.py</span></code>, ten runs of the live visual polish phases, and AddressSanitizer runs of the visual phases and of all committed scenes headless, produced no crash on 946ee7eb.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="documentation-decision.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Documentation decision</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="coding-guidelines.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Coding guidelines</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Error handling</a><ul>
+<li><a class="reference internal" href="#in-short">In short</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a><ul>
+<li><a class="reference internal" href="#where-they-are-caught">Where they are caught</a></li>
+<li><a class="reference internal" href="#filesystem-failures-that-give-diagnostics">Filesystem failures that give diagnostics</a></li>
+<li><a class="reference internal" href="#where-they-still-escape">Where they still escape</a></li>
+<li><a class="reference internal" href="#what-happens-when-one-is-caught">What happens when one is caught</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fatal-paths">Fatal paths</a><ul>
+<li><a class="reference internal" href="#scene-items-and-the-paint-crash">Scene items and the paint crash</a></li>
+<li><a class="reference internal" href="#other-hazards">Other hazards</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#recoverable-failures">Recoverable failures</a></li>
+<li><a class="reference internal" href="#logging">Logging</a></li>
+<li><a class="reference internal" href="#safety-nets">Safety nets</a><ul>
+<li><a class="reference internal" href="#crash-notes">Crash notes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#crashes-seen-on-2026-10-19">Crashes seen on 2026-10-19</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

@@ -1,0 +1,5 @@
+<map id="TrainBadgeItem::setPresentation" name="TrainBadgeItem::setPresentation">
+<area shape="rect" id="Node000001" title="Sets how much the badge shows." alt="" coords="5,5,240,31"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" title="How much the badge shows." alt="" coords="288,5,503,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,15,274,15,274,21,240,21"/>
+</map>

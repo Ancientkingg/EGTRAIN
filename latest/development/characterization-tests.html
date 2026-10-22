@@ -1,0 +1,812 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="CI and release" href="ci-and-release.html"><link rel="prev" title="Smoke tests" href="smoke-tests.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Simulation characterization tests - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/characterization-tests.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="simulation-characterization-tests">
+<h1>Simulation characterization tests<a class="headerlink" href="#simulation-characterization-tests" title="Link to this heading">¶</a></h1>
+<p>This page describes the characterization tests that pin what the simulation core does, how to read
+their golden files and how to change an expectation on purpose.</p>
+<section id="characterization-tests">
+<h2>Characterization tests<a class="headerlink" href="#characterization-tests" title="Link to this heading">¶</a></h2>
+<p>The characterization tests pin what the simulation core does today, so that
+refactors of movement, signalling and global state show up as a reviewable
+diff. They drive the real <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> in the test process on the small
+scene <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line</span></code> (“Characterization Line”):
+one track of 16 km in eight blocks of 2 km, three stations, seven services and
+twelve scenarios (<code class="docutils literal notranslate"><span class="pre">baseline</span></code>, <code class="docutils literal notranslate"><span class="pre">signal-failure-forward</span></code>, <code class="docutils literal notranslate"><span class="pre">signal-failure-reverse</span></code>,
+<code class="docutils literal notranslate"><span class="pre">signal-failure-adjacent</span></code>, <code class="docutils literal notranslate"><span class="pre">signal-failure-staggered</span></code>, <code class="docutils literal notranslate"><span class="pre">signal-failure-last</span></code>,
+<code class="docutils literal notranslate"><span class="pre">signal-failure-first</span></code>, <code class="docutils literal notranslate"><span class="pre">signal-failure-entered</span></code>, <code class="docutils literal notranslate"><span class="pre">signal-failure-late</span></code>,
+<code class="docutils literal notranslate"><span class="pre">signal-failure-retarget</span></code>, <code class="docutils literal notranslate"><span class="pre">entrance-delay-f2</span></code>, <code class="docutils literal notranslate"><span class="pre">breakdown-f1</span></code>).
+The stub cases add the routes <code class="docutils literal notranslate"><span class="pre">routeStubIn</span></code> and <code class="docutils literal notranslate"><span class="pre">routeStubOut</span></code> and the services
+<code class="docutils literal notranslate"><span class="pre">U1</span></code> and <code class="docutils literal notranslate"><span class="pre">D1</span></code> to the scene in the test, because a route with <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> or <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> in
+the fixture would add a movement authority to the cases with a signal failure on
+those sections.</p>
+<p>The passenger cases add station <code class="docutils literal notranslate"><span class="pre">P</span></code>, services <code class="docutils literal notranslate"><span class="pre">Q1</span></code> to <code class="docutils literal notranslate"><span class="pre">Q3</span></code> and passengers in the
+test. Transfer cases also add <code class="docutils literal notranslate"><span class="pre">Platform_4</span></code> on B: its numeric label reaches the
+walking time calculation, while <code class="docutils literal notranslate"><span class="pre">B.platform.1</span></code> reads as 0. Only transfer cases
+have this platform, because its node adds a second timetable point named B.
+Their B stops have no planned arrival. The cases set <code class="docutils literal notranslate"><span class="pre">PAX_GUI</span></code> directly with
+the window off; the <a class="reference internal" href="../guides/command-line.html"><span class="std std-doc">command line</span></a> reads <code class="docutils literal notranslate"><span class="pre">-pax</span></code> only
+with <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">1</span></code>.</p>
+<p>All railway and rolling-stock values are copied from the committed Assignment
+scene. The signalling level is not part of the scene. The test sets it with one
+network-wide signalling area, so one scene covers levels 0 to 5 and “none”. The
+border cases use two areas that meet at 8 km, the edge between <code class="docutils literal notranslate"><span class="pre">3-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">4-B0</span></code>
+at station B. In <code class="docutils literal notranslate"><span class="pre">border-0-2-near-fwd</span></code> and <code class="docutils literal notranslate"><span class="pre">border-0-1-near-fwd</span></code> they meet at
+4 km, the edge between <code class="docutils literal notranslate"><span class="pre">1-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">2-B0</span></code>.
+<a class="reference internal" href="../guides/signalling-levels.html"><span class="std std-doc">Signalling levels</span></a> says what each level
+does and cites these cases.</p>
+<p>A case is a scenario, a set of services and a level. The case table is in
+<code class="docutils literal notranslate"><span class="pre">tests/characterization/test_characterization.cpp</span></code>:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Cases</p></th>
+<th class="head"><p>Run</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">single-train</span></code></p></td>
+<td><p>train <code class="docutils literal notranslate"><span class="pre">T1</span></code> alone, no signalling area</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">follow-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">follow-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> following each other</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sf-forward-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>the same trains with a signal failure from 400 s to 1000 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sf-reverse-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">R1</span></code> and <code class="docutils literal notranslate"><span class="pre">R2</span></code> in the opposite direction, same failure window</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sf-adjacent-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-2</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> with failures on the adjacent sections <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> from 400 s to 1000 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sf-staggered-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-2</span></code></p></td>
+<td><p>the same trains and sections, with the failure on <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> ending at 700 s and the one on <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> at 1000 s</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sf-last-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-2</span></code></p></td>
+<td><p>the same trains with a failure on <code class="docutils literal notranslate"><span class="pre">7-B0</span></code>, the last section of the route, from 400 s to 1000 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sf-first-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-2</span></code></p></td>
+<td><p>the same trains with a failure on <code class="docutils literal notranslate"><span class="pre">0-B0</span></code>, the first section of the route, from 0 s to 400 s; both trains wait to enter until the failure has ended, at every level; without a signalling level they enter together at 402 s, as nothing separates trains there</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sf-entered-level-none</span></code></p></td>
+<td><p>the same trains with a failure on <code class="docutils literal notranslate"><span class="pre">0-B0</span></code> from 90 s to 400 s, without a signalling level; <code class="docutils literal notranslate"><span class="pre">F1</span></code> has entered by then and runs on, <code class="docutils literal notranslate"><span class="pre">F2</span></code> waits to enter until the failure has ended</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">same-entry-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">T1</span></code> and <code class="docutils literal notranslate"><span class="pre">F1</span></code>, both due at 60 s at the entry of the same route, without an incident; without a signalling level both enter at 60 s, as nothing separates trains there; at levels 0 to 5 <code class="docutils literal notranslate"><span class="pre">F1</span></code> enters after <code class="docutils literal notranslate"><span class="pre">T1</span></code> has moved on</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entry-order-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-2</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F2</span></code> and <code class="docutils literal notranslate"><span class="pre">L1</span></code> on the <code class="docutils literal notranslate"><span class="pre">sf-first</span></code> scenario; <code class="docutils literal notranslate"><span class="pre">F2</span></code> is listed before <code class="docutils literal notranslate"><span class="pre">L1</span></code> in the scene but <code class="docutils literal notranslate"><span class="pre">L1</span></code> is due first, so <code class="docutils literal notranslate"><span class="pre">L1</span></code> enters first when the failure ends</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sf-late-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-3</span></code></p></td>
+<td><p>train <code class="docutils literal notranslate"><span class="pre">F1</span></code> alone with a failure on <code class="docutils literal notranslate"><span class="pre">2-B0</span></code> from 188 s to 600 s; at 188 s <code class="docutils literal notranslate"><span class="pre">F1</span></code> is 316 m before the failed section at top speed, closer than its braking distance of 767 m, so it brakes with full force and its position never goes back; it passes the authority and runs through the failed section</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sf-retarget-level-0</span></code></p></td>
+<td><p>train <code class="docutils literal notranslate"><span class="pre">F1</span></code> alone with a failure on <code class="docutils literal notranslate"><span class="pre">6-B0</span></code> from 600 s and one on <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> from 752 s to 1200 s; <code class="docutils literal notranslate"><span class="pre">F1</span></code> brakes to 11.1 m/s at the end of <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> for the first failure, and 23 m before that point the second failure makes the end of <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> a stop target, which <code class="docutils literal notranslate"><span class="pre">F1</span></code> cannot reach; it brakes with full force, its position never goes back, it passes the authority and stops at the end of <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> for the failure on <code class="docutils literal notranslate"><span class="pre">6-B0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">late-leader-level-3</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">L1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code>; <code class="docutils literal notranslate"><span class="pre">L1</span></code> is <code class="docutils literal notranslate"><span class="pre">F1</span></code> with a dwell of 100 s at C, so <code class="docutils literal notranslate"><span class="pre">F2</span></code> is held behind it there</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">single-track-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>train <code class="docutils literal notranslate"><span class="pre">S1</span></code> from A to B and <code class="docutils literal notranslate"><span class="pre">R1</span></code> from C to A, with a single-track restriction from <code class="docutils literal notranslate"><span class="pre">1-B0</span></code> to <code class="docutils literal notranslate"><span class="pre">4-B0</span></code>, protected by <code class="docutils literal notranslate"><span class="pre">0-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">5-B0</span></code>; with a signalling level <code class="docutils literal notranslate"><span class="pre">R1</span></code> waits in front of the section while <code class="docutils literal notranslate"><span class="pre">S1</span></code> is in it</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">single-track-follow-level-3</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> in the same direction through the restricted section; the output equals <code class="docutils literal notranslate"><span class="pre">follow-level-3</span></code> and <code class="docutils literal notranslate"><span class="pre">-4</span></code>, because the restriction does not delay a train that follows the holder</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stub-departure-first-level-0</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">D1</span></code> (due at 60 s) and <code class="docutils literal notranslate"><span class="pre">U1</span></code> (due at 160 s) on a stub track, the closed end of the line from station B to station C, with a single-track restriction over <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> to <code class="docutils literal notranslate"><span class="pre">7-B0</span></code>, protected by <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">7-B0</span></code>; <code class="docutils literal notranslate"><span class="pre">D1</span></code> runs out of the stub and <code class="docutils literal notranslate"><span class="pre">U1</span></code> into it, and <code class="docutils literal notranslate"><span class="pre">U1</span></code> waits at the entry of its route until <code class="docutils literal notranslate"><span class="pre">D1</span></code> has left the stub</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-arrival-first-level-0</span></code></p></td>
+<td><p>the same stub with <code class="docutils literal notranslate"><span class="pre">U1</span></code> due at 60 s and <code class="docutils literal notranslate"><span class="pre">D1</span></code> due at 160 s; <code class="docutils literal notranslate"><span class="pre">D1</span></code> waits at the entry of its route until <code class="docutils literal notranslate"><span class="pre">U1</span></code> has left the stub</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stub-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>the same stub with both trains due at 60 s; the forward route of <code class="docutils literal notranslate"><span class="pre">U1</span></code> reserves the free stub at 59 s, and <code class="docutils literal notranslate"><span class="pre">D1</span></code> waits outside until <code class="docutils literal notranslate"><span class="pre">U1</span></code> has left; both reach their last stop</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-zero-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>the same stub with both trains due at step zero; step zero initializes trajectories and reserves before the first movement; both finish without overlap</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">running-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>S1 runs from A to B and a copy of R1 runs from C to B on existing blocks 7 to 4; both are moving and requesting when the free 4000 to 12000 m stretch is first reserved, and both finish without opposing overlap</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">running-forward-first-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code>, <code class="docutils literal notranslate"><span class="pre">running-reverse-first-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>the same approaches with one entry 3 s later and capped at the existing 40 km/h approach speed; both are moving at different speeds, giving each direction a turn at priority</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">running-follower-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>F2 follows S1 to B while R1 waits; all finish without opposing zone overlap</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-breakdown-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
+<td><p>the forward owner is held at its origin by a breakdown from 60 to 120 s; its reservation survives, the opposing train waits, and both finish</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">running-through-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<td><p>the original full-route F1 and R1 on the line without a passing loop; no opposing zone overlap, but both cannot finish because the waiting loser occupies the winner’s exit track</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-2-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-2-rev</span></code></p></td>
+<td><p>level 0 from A to 8 km and level 2 from 8 km to C; <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> run from A to C, <code class="docutils literal notranslate"><span class="pre">R1</span></code> and <code class="docutils literal notranslate"><span class="pre">R2</span></code> from C to A, so a <code class="docutils literal notranslate"><span class="pre">rev</span></code> case enters on the C side and <code class="docutils literal notranslate"><span class="pre">border-0-2-rev</span></code> mirrors <code class="docutils literal notranslate"><span class="pre">border-2-0-fwd</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border-2-0-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-2-0-rev</span></code></p></td>
+<td><p>the same trains with level 2 from A to 8 km and level 0 from 8 km to C</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-3-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-3-rev</span></code></p></td>
+<td><p>the same trains with level 0 from A to 8 km and level 3 from 8 km to C</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-1-fwd</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> with level 0 from A to 8 km and level 1 from 8 km to C</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-2-near-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-1-near-fwd</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> with level 0 from A to 4 km and level 2 or level 1 from 4 km to C, so that the head of a train in <code class="docutils literal notranslate"><span class="pre">2-B0</span></code> has the level 0 sections <code class="docutils literal notranslate"><span class="pre">1-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">0-B0</span></code> behind it</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pax-board-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-board-gui1</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-full-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-full-gui1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Q1</span></code> boards passengers at P, including ties and an entry during the stop; a later entry stays at P. Full cases cut ties with three seats at P and B; alighting at B frees seats before boarding</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pax-transfer-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-transfer-gui1</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Q1</span></code> connects to <code class="docutils literal notranslate"><span class="pre">Q2</span></code> on the same platform and to <code class="docutils literal notranslate"><span class="pre">Q3</span></code> on another label; a passenger also starts a second journey on <code class="docutils literal notranslate"><span class="pre">Q3</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entrance-delay-f2-level-0</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> with an entrance delay of 120 s for <code class="docutils literal notranslate"><span class="pre">F2</span></code> at A, its first stop; a train is not held at the stop where it begins its route, so every simulated time equals <code class="docutils literal notranslate"><span class="pre">follow-level-0</span></code> and only the planned departure of <code class="docutils literal notranslate"><span class="pre">F2</span></code> at A moves, from 180 s to 300 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">breakdown-f1-level-0</span></code></p></td>
+<td><p>the same trains with a breakdown of <code class="docutils literal notranslate"><span class="pre">F1</span></code> from 200 s that caps its speed at 40 km/h until the end of its route; <code class="docutils literal notranslate"><span class="pre">F1</span></code> reaches C late and <code class="docutils literal notranslate"><span class="pre">F2</span></code>, held behind it, has not reached C when the run ends at 1500 s</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Every case runs in CTest. They are listed in
+<code class="docutils literal notranslate"><span class="pre">tests/characterization/CMakeLists.txt</span></code>, in the order of the table, and each
+has a golden file. Any case can also be run by hand with <code class="docutils literal notranslate"><span class="pre">--case</span></code>. Each case is
+its own CTest entry and process, labelled <code class="docutils literal notranslate"><span class="pre">characterization</span></code> and <code class="docutils literal notranslate"><span class="pre">unit</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>test_characterization<span class="w"> </span>test_crossover_chain<span class="w"> </span>test_signalling_aspects
+ctest<span class="w"> </span>--test-dir<span class="w"> </span>build<span class="w"> </span>-L<span class="w"> </span>characterization<span class="w"> </span>--output-on-failure
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">characterization_repeatable</span></code> runs several cases in one process and then the
+first one again. The two runs of that case must be identical, with no
+tolerance. It fails when state from an earlier run leaks into a later one.
+The same executable can run any scene directories back to back:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--repeat<span class="w"> </span>EGTRAIN/QEGTRAIN/Scenes/Paimpol<span class="w"> </span>EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>EGTRAIN/QEGTRAIN/Scenes/Paimpol
+</pre></div>
+</div>
+<p>A step is a scene directory, optionally followed by <code class="docutils literal notranslate"><span class="pre">#</span></code> and a case name. Without
+a case name the scene runs as committed.</p>
+<p>Three more entries run committed scenes this way: <code class="docutils literal notranslate"><span class="pre">characterization_repeat_paimpol</span></code>
+(Paimpol twice, then Assignment, then Paimpol again),
+<code class="docutils literal notranslate"><span class="pre">characterization_repeat_milano_paimpol</span></code> (Milano-Brescia and Paimpol, alternating)
+and <code class="docutils literal notranslate"><span class="pre">characterization_repeat_netherlands</span></code> (Netherlands, Paimpol, Netherlands, labelled
+<code class="docutils literal notranslate"><span class="pre">slow</span></code>). They fail when a run leaves state behind that changes a later run of the
+same scene, which is what a change to the arrays of the run can cause.</p>
+<p>These entries compare the observation of each run: what the test reads from
+memory, and the two station statistics files. The other files of a run are not
+read. <code class="docutils literal notranslate"><span class="pre">--repeat-files</span></code> runs the steps in the same way, but every run writes its
+files into a folder of its own (<code class="docutils literal notranslate"><span class="pre">run-01</span></code>, <code class="docutils literal notranslate"><span class="pre">run-02</span></code> and so on, in a temporary
+folder), and after the last run every distinct step runs once more in a fresh
+process of the same executable, with the same working directory and
+environment. Every file of every in-process run must then be equal, byte for
+byte, to the file of the fresh run of its step, and both must hold the same set
+of files. The files are the ones a headless run of the application writes with
+<code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code>, including <code class="docutils literal notranslate"><span class="pre">TrainServicePathDiagram.txt</span></code>, which the
+test writes after the run as the application does.
+<code class="docutils literal notranslate"><span class="pre">TrainTrajectories/Computing_Times.txt</span></code> is the only file
+whose content is not compared. It has to exist, but it holds wall-clock timings
+and the computation time accumulated over the process, so it differs from run to
+run. As with <code class="docutils literal notranslate"><span class="pre">--repeat</span></code>, a step has to appear twice. A difference is reported
+with the run, the step, the file and the first differing line, and the folders
+of a failed test are kept; the message names them. The fresh run is
+<code class="docutils literal notranslate"><span class="pre">--single</span> <span class="pre">STEP</span> <span class="pre">--output-dir</span> <span class="pre">DIR</span></code>, which can also be used by hand. Use a new or
+empty folder, because a run replaces only the files it writes.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--repeat-files<span class="w"> </span>EGTRAIN/QEGTRAIN/Scenes/Paimpol<span class="w"> </span>EGTRAIN/QEGTRAIN/Scenes/Paimpol
+</pre></div>
+</div>
+<p>Three entries run this way. <code class="docutils literal notranslate"><span class="pre">characterization_repeat_files_paimpol</span></code> (labelled
+<code class="docutils literal notranslate"><span class="pre">slow</span></code>) and <code class="docutils literal notranslate"><span class="pre">characterization_repeat_files_milano_paimpol</span></code> run the sequences of
+<code class="docutils literal notranslate"><span class="pre">characterization_repeat_paimpol</span></code> and <code class="docutils literal notranslate"><span class="pre">characterization_repeat_milano_paimpol</span></code>.
+<code class="docutils literal notranslate"><span class="pre">characterization_repeat_files_fixture</span></code> runs <code class="docutils literal notranslate"><span class="pre">sf-forward-level-3</span></code> twice,
+<code class="docutils literal notranslate"><span class="pre">single-track-level-4</span></code>, and <code class="docutils literal notranslate"><span class="pre">sf-forward-level-3</span></code> again on the line fixture,
+which gives an incident and a single-track restriction that no committed scene
+has. They fail when a run in a process writes a file that differs from the file
+of a fresh process, which is what state left behind by an earlier run can cause
+in a file that the entries above never read.</p>
+<p><code class="docutils literal notranslate"><span class="pre">characterization_aspects_dutch</span></code> (labelled <code class="docutils literal notranslate"><span class="pre">slow</span></code>) runs Netherlands and
+Assignment once each with <code class="docutils literal notranslate"><span class="pre">--aspects</span></code> and fails unless at least one route
+section leaves the clear code 270 and returns to it during the run.</p>
+<p><code class="docutils literal notranslate"><span class="pre">test_crossover_chain</span></code> is a separate executable, because the harness above is
+tied to the line fixture (its length, its block size and the station at 8 km).
+It runs the scene <code class="docutils literal notranslate"><span class="pre">tests/fixtures/scenes/crossovers</span></code>: a chain of five tracks
+with two crossovers that follow each other directly, so that the second half of
+the first crossover and the first half of the second one share one long block.
+The rolling stock and the timetable are copied from the line fixture. Platform
+B lies inside the second crossover, and <code class="docutils literal notranslate"><span class="pre">F1</span></code> reaches it long before its planned
+departure, so <code class="docutils literal notranslate"><span class="pre">F1</span></code> stands in the crossover while <code class="docutils literal notranslate"><span class="pre">F2</span></code> arrives. The geometry is
+synthetic. For each of the levels 0, 1, 2 and 5, one CTest entry
+(<code class="docutils literal notranslate"><span class="pre">characterization_crossover_chain_level_0</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code>, <code class="docutils literal notranslate"><span class="pre">-2</span></code>, <code class="docutils literal notranslate"><span class="pre">-5</span></code>) sets a
+network-wide area of that level and runs train <code class="docutils literal notranslate"><span class="pre">F1</span></code> alone, train <code class="docutils literal notranslate"><span class="pre">R1</span></code> alone in
+the opposite direction, and <code class="docutils literal notranslate"><span class="pre">F1</span></code> with <code class="docutils literal notranslate"><span class="pre">F2</span></code> behind it. A train alone has to reach
+its last platform and stand only at platforms. The follower has to reach it too,
+stay behind the rear of <code class="docutils literal notranslate"><span class="pre">F1</span></code>, and not enter the second crossover while <code class="docutils literal notranslate"><span class="pre">F1</span></code> is
+in it. At levels 0, 1 and 2 it also has to wait in the second half of the first
+crossover meanwhile; at level 5 it waits further back, in front of the first
+crossover, and that is not checked. The levels 3 and 4 are not run, because a
+train alone does not stop in front of the second crossover there. The test reads
+no golden file. Each level also runs <code class="docutils literal notranslate"><span class="pre">R1</span></code> on a route marked <code class="docutils literal notranslate"><span class="pre">reversed</span></code> with
+its sections in reverse order, with the same expectations, and refuses <code class="docutils literal notranslate"><span class="pre">F1</span></code> on
+a route marked <code class="docutils literal notranslate"><span class="pre">reversed</span></code> with its sections in forward order with
+<code class="docutils literal notranslate"><span class="pre">scene.route.direction</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">test_signalling_aspects</span></code> is a third executable, because it needs no scene and
+no Qt. It builds routes of up to seven sections by hand in the route list of
+the run and calls the release and the activation of the mixed signalling
+(<code class="docutils literal notranslate"><span class="pre">releaseMixedSignallingSystem</span></code> and <code class="docutils literal notranslate"><span class="pre">activateMixedSignallingSystem</span></code>, in the
+order of a step) and the release of the last section
+(<code class="docutils literal notranslate"><span class="pre">relLastSectionMixedSignalling</span></code>). After a step it writes the code, state, signal
+speed limit, speed in braking and exit speed of every section: one line per
+case, with the group, the parameters, a <code class="docutils literal notranslate"><span class="pre">|</span></code> and one token
+<code class="docutils literal notranslate"><span class="pre">code:state:signal:braking:exit</span></code> per section. The header of the golden file
+<code class="docutils literal notranslate"><span class="pre">tests/characterization/expected/signalling-aspects.txt</span></code> explains the fields.
+The groups are uniform levels, two levels with a border, three or more levels,
+sweeps of a moving train that carry the state from step to step, the release
+functions, other signal speeds and a held single-track zone. The cases are in
+the file, and the comparison is exact text, without a tolerance. The speed
+limits of the sections are numbers of the test, not railway data. The test also
+checks, without the golden file, the aspects of one step for every level, the
+release of one connected section on two routes of different lengths, the level
+mask of a route, and that a step leaves the lists of occupied and connected
+sections as they were. A change of the aspect routines that is not
+meant to change behaviour has to leave the file as it is. The file has no
+<code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">case:</span></code> line and no <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">known-wrong:</span></code> line, because it is not a case of the
+table. It is recorded with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_UPDATE_EXPECTATIONS=1</span></code>, like the others. The
+command in “Changing an expectation deliberately” that runs every
+characterization test records it too; this command records it alone:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">EGTRAIN_UPDATE_EXPECTATIONS</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>build/EGTRAIN/QEGTRAIN/tests/characterization/test_signalling_aspects<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--expect<span class="w"> </span>EGTRAIN/QEGTRAIN/tests/characterization/expected/signalling-aspects.txt
+</pre></div>
+</div>
+<p>The test does not call diverging switches, double switches, station boundaries,
+signal failures or the authorities of levels 3 and 4. Its CTest entry is
+<code class="docutils literal notranslate"><span class="pre">characterization_signalling_aspects</span></code>, labelled <code class="docutils literal notranslate"><span class="pre">characterization</span></code> and <code class="docutils literal notranslate"><span class="pre">unit</span></code>.</p>
+<section id="reading-a-golden-file">
+<h3>Reading a golden file<a class="headerlink" href="#reading-a-golden-file" title="Link to this heading">¶</a></h3>
+<p>Golden files are in <code class="docutils literal notranslate"><span class="pre">tests/characterization/expected/&lt;case&gt;.txt</span></code>. Lines starting
+with <code class="docutils literal notranslate"><span class="pre">#</span></code> are comments. The header names the case and the run. Every other line is
+one fact: some key words, then <code class="docutils literal notranslate"><span class="pre">name=value</span></code> fields.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span> <span class="pre">&lt;id&gt;</span> <span class="pre">sample</span></code>: time <code class="docutils literal notranslate"><span class="pre">t</span></code> (s), route position <code class="docutils literal notranslate"><span class="pre">x</span></code> (m) and speed <code class="docutils literal notranslate"><span class="pre">v</span></code> (m/s),
+every 60 s from the first to the last step the train is in the network.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span> <span class="pre">&lt;id&gt;</span> <span class="pre">stop</span></code>: a stretch of at least 5 s below 0.001 m/s, with its first and
+last step, position and <code class="docutils literal notranslate"><span class="pre">dwell</span></code> (last minus first step).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span> <span class="pre">&lt;id&gt;</span> <span class="pre">braking</span></code>: the last step at the speed before a stop that is
+followed by a continuous speed decrease down to that stop.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">separation</span> <span class="pre">&lt;lead&gt;&gt;&lt;follower&gt;</span></code>: the smallest distance between the rear of the
+leading train and the head of the one behind it, and when. Negative means
+overlap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aspect</span> <span class="pre">&lt;route&gt;</span> <span class="pre">&lt;section&gt;</span></code>: the signal aspect code of the section as <code class="docutils literal notranslate"><span class="pre">step:code</span></code>
+at every change, starting at step 0 (270 clear, 180, 75, 0 stop, 751 BACC).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result</span></code>, <code class="docutils literal notranslate"><span class="pre">run_result</span></code>, <code class="docutils literal notranslate"><span class="pre">network</span></code>: timetable and run results as the application
+reports them. <code class="docutils literal notranslate"><span class="pre">n/a</span></code> means the value is not available.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">blocktime</span></code>: the blocking-time records of a train.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">capacity_pair</span> <span class="pre">&lt;leader&gt;</span> <span class="pre">&lt;follower&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">capacity_resource</span> <span class="pre">&lt;section&gt;</span></code>: what
+<code class="docutils literal notranslate"><span class="pre">analyzeCapacity</span></code> and <code class="docutils literal notranslate"><span class="pre">analyzeAreaCapacity</span></code> report for the two trains of a
+case, with all sections of their route as the area and a period of 3600 s,
+the default of the capacity dialog. Only the cases <code class="docutils literal notranslate"><span class="pre">follow</span></code>, <code class="docutils literal notranslate"><span class="pre">sf-forward</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sf-reverse</span></code>, <code class="docutils literal notranslate"><span class="pre">sf-adjacent</span></code>, <code class="docutils literal notranslate"><span class="pre">sf-staggered</span></code>, <code class="docutils literal notranslate"><span class="pre">sf-last</span></code> and <code class="docutils literal notranslate"><span class="pre">sf-first</span></code> at the
+levels 0 and 2 have them, and only when both trains have complete blocking
+times; <code class="docutils literal notranslate"><span class="pre">F2</span></code> is still in <code class="docutils literal notranslate"><span class="pre">7-B0</span></code> when <code class="docutils literal notranslate"><span class="pre">sf-adjacent-level-0</span></code> ends, so that case
+has none. The pair line gives <code class="docutils literal notranslate"><span class="pre">min_headway</span></code> (s) with the sections that govern
+it, <code class="docutils literal notranslate"><span class="pre">cycle</span></code> (s) and <code class="docutils literal notranslate"><span class="pre">cycle_pct</span></code> (percent of the period) from the first train
+to the second after compression, whether the compressed trains overlap
+(<code class="docutils literal notranslate"><span class="pre">conflict_free</span></code>), and the sections where they touch (<code class="docutils literal notranslate"><span class="pre">critical</span></code>). Each
+resource line gives the number of trains and occupations of a section, the sum
+of the occupation times (<code class="docutils literal notranslate"><span class="pre">occupation</span></code>, s), their union (<code class="docutils literal notranslate"><span class="pre">union</span></code>, s),
+<code class="docutils literal notranslate"><span class="pre">occupation_pct</span></code>, and <code class="docutils literal notranslate"><span class="pre">governing=1</span></code> for the section with the largest sum. The
+values cover these two trains only, not the capacity of the line.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">incident</span></code>, <code class="docutils literal notranslate"><span class="pre">boundary</span></code>, <code class="docutils literal notranslate"><span class="pre">authority</span></code>: the incident definition, and for the steps
+just before and after its start and end, how many signal-failure authorities
+exist and which sections are blocked.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stats</span></code>: the rows of <code class="docutils literal notranslate"><span class="pre">TrainTrajectories/Stats_Stations.txt</span></code>, which holds six
+significant digits. An early arrival counts there as a delay of 0 in the
+total and in <code class="docutils literal notranslate"><span class="pre">N_StopTrains</span></code>. The average and deviation cover the delayed
+trains only.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">signed_stats</span></code>: the same rows of <code class="docutils literal notranslate"><span class="pre">TrainTrajectories/Pos&amp;Neg_Stats_Stations.txt</span></code>,
+where early arrivals are negative delays.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delay_summary</span> <span class="pre">&lt;arrival|departure&gt;</span> <span class="pre">&lt;station|network&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">delay_input</span> <span class="pre">&lt;train&gt;</span></code>:
+what <code class="docutils literal notranslate"><span class="pre">summarizeDelays</span></code> reports for the timetable results of the run and the
+entrance delay of each train, with the thresholds 0, 60, 180 and 300 s (a call
+is later only when it is strictly later). A row counts its calls by status
+and by early, on time and late, and gives sum, mean, minimum and maximum over
+the calls that have a delay; <code class="docutils literal notranslate"><span class="pre">n/a</span></code> means no call has one, never 0. Only the
+cases <code class="docutils literal notranslate"><span class="pre">entrance-delay-f2-level-0</span></code> and <code class="docutils literal notranslate"><span class="pre">breakdown-f1-level-0</span></code> have them. A
+<code class="docutils literal notranslate"><span class="pre">delay-pair-&lt;incident</span> <span class="pre">case&gt;.txt</span></code> file comes from <code class="docutils literal notranslate"><span class="pre">test_characterization</span> <span class="pre">--pair</span> <span class="pre">&lt;baseline</span> <span class="pre">case&gt;</span> <span class="pre">&lt;incident</span> <span class="pre">case&gt;</span></code>, which runs both cases in one process.
+It holds the same lines for both runs, with <code class="docutils literal notranslate"><span class="pre">baseline</span></code> or <code class="docutils literal notranslate"><span class="pre">incident</span></code> after the
+key, and the lines of <code class="docutils literal notranslate"><span class="pre">compareAgainstBaseline</span></code>: <code class="docutils literal notranslate"><span class="pre">delay_compare</span> <span class="pre">status</span></code>, one
+<code class="docutils literal notranslate"><span class="pre">delay_compare</span> <span class="pre">diagnostic</span></code> for every reason a baseline does not fit, a
+<code class="docutils literal notranslate"><span class="pre">delay_compare</span> <span class="pre">occurrence</span></code> line per train (entrance delay, direct evidence,
+final call, additional delay and <code class="docutils literal notranslate"><span class="pre">secondary</span></code>), a <code class="docutils literal notranslate"><span class="pre">delay_compare</span> <span class="pre">call</span></code> line per
+call and a <code class="docutils literal notranslate"><span class="pre">delay_compare</span> <span class="pre">total</span></code>. Its CTest entry is
+<code class="docutils literal notranslate"><span class="pre">characterization_delay_pair_&lt;incident</span> <span class="pre">case&gt;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pax</span> <span class="pre">&lt;id&gt;</span> <span class="pre">state</span></code>: changes in network membership, status, active journey and trip,
+waiting station and platform, awaited and boarded trains, and arrival station.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gui_platform</span> <span class="pre">&lt;station&gt;</span> <span class="pre">&lt;platform&gt;</span></code>: changes in the ordered passenger IDs sent
+to the window; <code class="docutils literal notranslate"><span class="pre">-</span></code> means empty.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gui_passenger</span> <span class="pre">&lt;id&gt;</span></code>: changes in status, waiting platform, next train and next
+destination sent to the window.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onboard</span> <span class="pre">&lt;train&gt;</span></code>: changes in onboard count and capacity sent to the window.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">journey</span> <span class="pre">&lt;passenger&gt;</span> <span class="pre">&lt;journey&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">trip</span> <span class="pre">&lt;passenger&gt;</span> <span class="pre">&lt;trip&gt;</span></code>: final start and
+completion flags, actual times and arrival delay, plus walking and waiting
+times for journeys. Passenger times are absolute seconds of the day; trace
+<code class="docutils literal notranslate"><span class="pre">t</span></code> values are steps of the run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">file</span> <span class="pre">PassengerStatus.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">file</span> <span class="pre">JourneyDelays.txt</span></code>: every line of the two
+passenger files, as whitespace separated tokens.</p></li>
+</ul>
+<p>Passenger traces store the first snapshot and print only later changes, in step
+order. Passenger windows have equal ends, so no golden depends on the seed.</p>
+<p>Transfers to a platform with another label never complete: the passenger stays
+on the arrival platform. Waiting time is accumulated for the first journey
+only. With <code class="docutils literal notranslate"><span class="pre">PAX_GUI</span></code> off the persistent platform lists stay empty. The snapshot
+part for passengers who just left never matches when the base time is at or
+above the horizon. A station with platforms on two nodes of one route has one
+timetable point per node; result rows and statistics for a stop at that station
+read the first point. See <a class="reference internal" href="../guides/delay-analysis.html#limits"><span class="std std-ref">Delay analysis</span></a>.</p>
+<p>Both station statistics files take the arrival of a stop from its timetable
+point, the arrival that <code class="docutils literal notranslate"><span class="pre">TimetablePoints.txt</span></code>, the timetable results, the
+diagrams and the CSV export report, so a <code class="docutils literal notranslate"><span class="pre">result</span></code> line and a station row show
+the same delay. A train that did not reach a stop, and a stop without a planned
+arrival, have no delay and are counted in neither file. A stop with no timetable
+point keeps the arrival recorded during the run. A station row without such a
+train holds <code class="docutils literal notranslate"><span class="pre">-1</span></code> in the average, deviation, maximum, cumulative and percentage
+columns and 0 in <code class="docutils literal notranslate"><span class="pre">Total_Delay</span></code> and the train counts. The <code class="docutils literal notranslate"><span class="pre">Final_Station</span></code> row is
+the same statistic over the last stop of each train whose last stop is counted;
+when no last stop is counted it holds the values of a row without a counted train. The first station of the network has no row and
+is not in <code class="docutils literal notranslate"><span class="pre">TOTALS</span></code>; its calls can still be the last stop of a train and so enter
+<code class="docutils literal notranslate"><span class="pre">Final_Station</span></code>. See <a class="reference internal" href="../guides/delay-analysis.html#the-station-statistics-files"><span class="std std-ref">Delay analysis</span></a>.</p>
+<p>Integers and strings must match exactly. Floats match within an absolute
+tolerance of 1e-4 and a relative tolerance of 1e-9, and the statistics rows
+within 1e-5 relative. A failure prints the first 20 differing lines with the
+expected and the actual line, and writes the actual output to
+<code class="docutils literal notranslate"><span class="pre">&lt;case&gt;.actual.txt</span></code> in the test’s build directory.</p>
+<p>Each run also checks facts that do not come from the golden file, so a
+re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
+backward movement, acceleration and braking within what the rolling stock can do,
+no faster run to station B than the top speed allows (in a stub case only for a
+train that starts before B), planned dwell and departure times kept, stops only at a platform, a
+block boundary or behind another train, no overlap of two trains, and in every
+station row of <code class="docutils literal notranslate"><span class="pre">stats</span></code> and <code class="docutils literal notranslate"><span class="pre">signed_stats</span></code> a <code class="docutils literal notranslate"><span class="pre">Total_Delay</span></code> and an <code class="docutils literal notranslate"><span class="pre">N_StopTrains</span></code>
+that equal the sum and the number of the arrival delays of its <code class="docutils literal notranslate"><span class="pre">result</span></code> lines
+(only the late ones in the sum for <code class="docutils literal notranslate"><span class="pre">stats</span></code>). In a <code class="docutils literal notranslate"><span class="pre">single-track-*</span></code> case <code class="docutils literal notranslate"><span class="pre">S1</span></code> and
+<code class="docutils literal notranslate"><span class="pre">R1</span></code> are never inside the restricted section at the same time. In a stub case
+both trains reach their last stop and are never inside the stub together. The
+terminating running approaches also must all reach their last stop, and every
+running case checks opposing zone overlap at every shared step. A case
+without a signalling area is not checked for overlap or for the single-track
+section: a scene without a signalling level does not separate trains, and
+validation warns about it (<code class="docutils literal notranslate"><span class="pre">scene.signalling.level.missing</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scene.single_track.no_effect</span></code>).
+The <code class="docutils literal notranslate"><span class="pre">-level-none</span></code> goldens therefore show trains at one position.</p>
+<p>The signal states that the simulation hands to the window are checked at every
+step of every case against the section codes of all routes. There must be one
+entry per section and direction. Its code is the most restrictive code of the
+route copies of the section (0, 751, 75, 180, 270 in that order). Its level is
+the signalling level of the section, or none. Its failed flag is set exactly
+from the start to the end of a signal failure.</p>
+</section>
+<section id="changing-an-expectation-deliberately">
+<h3>Changing an expectation deliberately<a class="headerlink" href="#changing-an-expectation-deliberately" title="Link to this heading">¶</a></h3>
+<p>Run the case with the update switch, then review the diff before committing:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">EGTRAIN_UPDATE_EXPECTATIONS</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>ctest<span class="w"> </span>--test-dir<span class="w"> </span>build<span class="w"> </span>-L<span class="w"> </span>characterization
+git<span class="w"> </span>diff<span class="w"> </span>EGTRAIN/QEGTRAIN/tests/characterization/expected
+</pre></div>
+</div>
+<p>To run one case directly, call the executable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">EGTRAIN_UPDATE_EXPECTATIONS</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--fixture<span class="w"> </span>EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--expect<span class="w"> </span>EGTRAIN/QEGTRAIN/tests/characterization/expected<span class="w"> </span>--case<span class="w"> </span>follow-level-3
+</pre></div>
+</div>
+<p>The switch rewrites the golden file and passes. It is refused when the <code class="docutils literal notranslate"><span class="pre">CI</span></code>
+environment variable is set, and it writes nothing when a check above fails.
+Read the whole diff and check that every changed number is a consequence of the
+change you made and still physically plausible. Commit the new golden file in
+the same commit as the behaviour change and give the reason in the commit
+message. Do not edit the scene fixture to make a case pass. Changing it changes
+every golden file, so add a service or scenario instead.</p>
+</section>
+<section id="known-wrong-behaviour">
+<h3>Known-wrong behaviour<a class="headerlink" href="#known-wrong-behaviour" title="Link to this heading">¶</a></h3>
+<p>Behaviour that is known to be wrong can be pinned and marked. The golden file
+still pins it, so a refactor cannot change it unnoticed. The golden header
+carries <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">known-wrong:</span> <span class="pre">#&lt;issue&gt;</span> <span class="pre">&lt;reason&gt;</span></code> and the case table carries the same
+text. The test fails when the two differ and prints <code class="docutils literal notranslate"><span class="pre">KNOWN-WRONG</span> <span class="pre">#&lt;issue&gt;</span></code> on
+every run. A marked case is exempt from the checks on stops, separation and
+timetable. The change that fixes the bug updates the golden file and removes the
+marker in one commit. The markers are in the <code class="docutils literal notranslate"><span class="pre">kKnownWrong</span></code> table of
+<code class="docutils literal notranslate"><span class="pre">test_characterization.cpp</span></code>. List the marked cases with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>grep<span class="w"> </span>-rn<span class="w"> </span><span class="s2">"known-wrong: #"</span><span class="w"> </span>EGTRAIN/QEGTRAIN/tests/characterization/expected
+</pre></div>
+</div>
+<p>No case carries a marker. The table is empty, every golden header says
+<code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">known-wrong:</span> <span class="pre">none</span></code>, the grep lists nothing and the checks apply to every case.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="ci-and-release.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">CI and release</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="smoke-tests.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Smoke tests</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Simulation characterization tests</a><ul>
+<li><a class="reference internal" href="#characterization-tests">Characterization tests</a><ul>
+<li><a class="reference internal" href="#reading-a-golden-file">Reading a golden file</a></li>
+<li><a class="reference internal" href="#changing-an-expectation-deliberately">Changing an expectation deliberately</a></li>
+<li><a class="reference internal" href="#known-wrong-behaviour">Known-wrong behaviour</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

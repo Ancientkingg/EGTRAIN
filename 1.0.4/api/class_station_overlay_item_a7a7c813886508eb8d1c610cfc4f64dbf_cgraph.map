@@ -1,0 +1,5 @@
+<map id="StationOverlayItem::setNetworkDegree" name="StationOverlayItem::setNetworkDegree">
+<area shape="rect" id="Node000001" title="Sets the number of connections, and marks an interchange or an endpoint also when the degree does not..." alt="" coords="5,5,157,45"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" title="The number of connections at the station." alt="" coords="205,5,355,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,23,192,23,192,28,158,28"/>
+</map>

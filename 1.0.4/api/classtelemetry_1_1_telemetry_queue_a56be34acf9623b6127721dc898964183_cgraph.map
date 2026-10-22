@@ -1,0 +1,27 @@
+<map id="telemetry::TelemetryQueue::prepareBatch" name="telemetry::TelemetryQueue::prepareBatch">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,246,205,286"/>
+<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a7a632c90b64def51977be566377b667d" title=" " alt="" coords="289,153,418,179"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,243,307,181,309,186,157,248"/>
+<area shape="rect" id="Node000006" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="750,176,905,201"/>
+<area shape="poly" id="edge17_Node000001_Node000006" title=" " alt="" coords="206,279,310,289,434,294,568,287,635,277,699,262,727,252,754,238,799,208,802,212,757,243,729,257,701,267,636,282,569,292,434,299,309,295,205,284"/>
+<area shape="rect" id="Node000007" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="501,228,700,253"/>
+<area shape="poly" id="edge16_Node000001_Node000007" title=" " alt="" coords="206,258,488,244,488,249,206,264"/>
+<area shape="rect" id="Node000008" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="253,329,453,369"/>
+<area shape="poly" id="edge15_Node000001_Node000008" title=" " alt="" coords="167,283,280,322,278,327,165,289"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="314,155,305,145,309,135,326,129,353,127,388,131,398,135,402,141,397,144,394,139,387,136,353,132,327,134,313,139,310,144,317,151"/>
+<area shape="rect" id="Node000003" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="515,103,687,128"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="416,151,524,128,525,133,417,156"/>
+<area shape="rect" id="Node000005" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="754,29,901,55"/>
+<area shape="poly" id="edge13_Node000002_Node000005" title=" " alt="" coords="367,151,422,106,459,82,500,63,561,47,624,38,685,34,740,34,740,39,686,39,625,43,563,52,502,69,462,87,425,110,370,155"/>
+<area shape="poly" id="edge14_Node000002_Node000006" title=" " alt="" coords="418,166,737,182,736,187,418,172"/>
+<area shape="poly" id="edge11_Node000002_Node000007" title=" " alt="" coords="398,176,545,221,544,226,396,181"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="564,104,556,94,560,84,575,78,601,76,633,80,645,89,641,93,631,85,601,81,576,83,564,88,561,94,568,101"/>
+<area shape="rect" id="Node000004" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="748,103,907,128"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="687,113,734,113,734,118,687,118"/>
+<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="638,100,747,63,770,56,772,61,749,69,640,105"/>
+<area shape="poly" id="edge9_Node000003_Node000006" title=" " alt="" coords="642,126,701,145,775,169,774,174,699,150,640,131"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="790,104,782,94,787,84,802,78,827,76,859,80,871,89,868,93,857,85,827,81,803,83,790,88,788,94,794,101"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="790,31,782,21,787,11,802,5,827,3,859,7,871,16,868,20,857,11,827,8,803,10,790,15,788,20,794,27"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="790,178,782,168,787,158,802,152,827,149,859,153,871,163,868,167,857,158,827,155,803,157,790,162,788,167,794,174"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="564,230,556,220,560,210,575,204,601,201,633,205,645,215,641,219,631,210,601,207,576,209,564,214,561,219,568,226"/>
+</map>

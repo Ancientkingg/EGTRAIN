@@ -1,0 +1,4 @@
+<map id="telemetry_smoke::failObservationInstallation" name="telemetry_smoke::failObservationInstallation">
+<area shape="rect" id="Node000001" title="Throws std::bad_alloc when point is the installFailurePoint of state, and counts the failure." alt="" coords="5,29,249,69"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="82,30,79,20,87,10,103,5,127,3,156,6,171,13,169,18,154,11,127,8,104,10,90,15,85,21,87,28"/>
+</map>

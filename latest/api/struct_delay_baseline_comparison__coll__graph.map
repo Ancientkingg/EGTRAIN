@@ -1,0 +1,7 @@
+<map id="DelayBaselineComparison" name="DelayBaselineComparison">
+<area shape="rect" id="Node000001" title="The comparison of a scenario run with a baseline run." alt="" coords="5,217,200,243"/>
+<area shape="rect" id="Node000002" href="$struct_baseline_totals.html" title="The totals are over the final arrival of each occurrence." alt="" coords="45,121,161,147"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,161,105,217,100,217,100,161"/>
+<area shape="rect" id="Node000003" href="$struct_run_result_value.html" title="A result that may not exist. An unavailable value is shown as empty or &quot;&#45;&quot;, never as 0." alt="" coords="41,5,165,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,45,105,121,100,121,100,45"/>
+</map>

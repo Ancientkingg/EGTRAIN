@@ -1,0 +1,10 @@
+<map id="printSceneDiagnostics" name="printSceneDiagnostics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,172,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="58,31,51,21,55,11,67,5,89,3,114,6,125,15,122,19,112,11,89,8,69,10,59,15,56,20,62,28"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix." alt="" coords="220,29,331,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="172,39,206,39,206,45,172,45"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="249,31,243,21,246,11,257,5,275,3,297,6,306,15,303,19,295,11,275,8,259,10,250,15,249,20,253,28"/>
+<area shape="rect" id="Node000003" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="379,29,489,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="331,39,365,39,365,45,331,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="407,31,402,21,405,11,416,5,434,3,456,6,465,15,461,19,453,11,434,8,418,10,409,15,407,20,412,28"/>
+</map>

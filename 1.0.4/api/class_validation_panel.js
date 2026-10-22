@@ -1,0 +1,22 @@
+var class_validation_panel =
+[
+    [ "LoadedDataContext", "struct_validation_panel_1_1_loaded_data_context.html", "struct_validation_panel_1_1_loaded_data_context" ],
+    [ "ValidationPanel", "class_validation_panel.html#a7732f66ad0f2206d81d1646ca89c9fcf", null ],
+    [ "activateItem", "class_validation_panel.html#af865cff10dca3de09804499268e7bde5", null ],
+    [ "refresh", "class_validation_panel.html#aa32685c968df1b6ac1a6b3f6a08fac51", null ],
+    [ "refreshed", "class_validation_panel.html#a0276d0961cd849d8dbae4fda9b247df1", null ],
+    [ "refreshLoadedData", "class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2", null ],
+    [ "selectDiagnosticOfFile", "class_validation_panel.html#a7e8d663c49c1fc8c80c5fdea5450da6f", null ],
+    [ "setAdvancedDetails", "class_validation_panel.html#a953c713ed8390cc8aabdfca568073268", null ],
+    [ "setDiagnostics", "class_validation_panel.html#a8553dba435bbade0e92753e7b7387443", null ],
+    [ "setDocument", "class_validation_panel.html#ab43ceb5f2f4b3c86b954a9325109ce4e", null ],
+    [ "setDurationOverride", "class_validation_panel.html#a97b3ba2dc44b6bcbfb063a31d0e4493b", null ],
+    [ "setLoadedDataContext", "class_validation_panel.html#a7641fe904df24e36029fa48d38bd7745", null ],
+    [ "statusChanged", "class_validation_panel.html#a4979c0251d3df4697453be10900c5c51", null ],
+    [ "statusLabel", "class_validation_panel.html#a2f3b49690f7763b6f127ebe949918514", null ],
+    [ "table", "class_validation_panel.html#a447f5a3723e0dfbf9b7fe36689c4800e", null ],
+    [ "targetActivated", "class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6", null ],
+    [ "tree", "class_validation_panel.html#a37dfe514f08ea3bf6200f013b3e1c840", null ],
+    [ "updateStatus", "class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e", null ],
+    [ "kTargetTypeRole", "class_validation_panel.html#a0b77ddaed7546541308878eddf19968b", null ]
+];

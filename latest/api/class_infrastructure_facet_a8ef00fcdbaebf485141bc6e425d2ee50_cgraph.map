@@ -1,0 +1,5 @@
+<map id="InfrastructureFacet::InfrastructureFacet" name="InfrastructureFacet::InfrastructureFacet">
+<area shape="rect" id="Node000001" title="A facet is not copied; the panel owns one of each kind." alt="" coords="5,5,157,45"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_facet.html#a9edf07a88e8287f92ca0898f8d8ade04" title="Makes the base of a facet, which holds nothing." alt="" coords="205,5,357,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,23,191,23,191,28,158,28"/>
+</map>

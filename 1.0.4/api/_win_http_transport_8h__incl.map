@@ -1,0 +1,13 @@
+<map id="update/WinHttpTransport.h" name="update/WinHttpTransport.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="115,5,311,31"/>
+<area shape="rect" id="Node000002" href="$_http_transport_8h.html" title=" " alt="" coords="127,79,298,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,31,215,65,210,65,210,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,103,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="188,106,93,149,91,144,186,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="127,152,202,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="207,106,182,142,178,139,203,103"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="227,152,297,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="223,103,248,139,244,142,219,106"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="322,152,373,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="236,102,314,143,312,148,233,106"/>
+</map>

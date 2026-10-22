@@ -1,0 +1,14 @@
+<map id="SelfUpdater::cleanupStaleStaging" name="SelfUpdater::cleanupStaleStaging">
+<area shape="rect" id="Node000001" title="Removes staging folders that an earlier update left next to the installation." alt="" coords="5,95,196,135"/>
+<area shape="rect" id="Node000002" href="$class_self_updater.html#a7e4e41bec9b7f8372da7f28a53a6f274" title=" " alt="" coords="259,65,430,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,98,247,90,248,95,197,103"/>
+<area shape="rect" id="Node000005" href="$_update_preparation_8cpp.html#a7c7f5e9fe792e0949955d5b1e0c032a9" title=" " alt="" coords="244,139,445,164"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="197,127,245,134,244,139,196,132"/>
+<area shape="rect" id="Node000003" href="$_update_preparation_8cpp.html#a35dbcff4565ea28466fb4fa64c0d4e11" title=" " alt="" coords="503,29,634,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,63,489,52,490,57,424,68"/>
+<area shape="rect" id="Node000004" href="$_update_preparation_8cpp.html#a49f8aad16df96158db11db9b2bea4635" title=" " alt="" coords="493,103,644,128"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="422,88,480,98,480,103,421,93"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="532,31,524,21,528,11,544,5,569,3,600,7,612,16,609,20,598,11,569,8,545,10,532,15,529,20,536,27"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="532,104,524,94,528,84,544,78,569,76,600,80,612,89,609,93,598,85,569,81,545,83,532,88,529,94,536,101"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="308,140,300,130,304,120,320,114,345,112,376,116,388,125,385,129,374,121,345,117,321,119,308,124,305,130,312,137"/>
+</map>

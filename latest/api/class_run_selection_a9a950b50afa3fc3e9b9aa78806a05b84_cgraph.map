@@ -1,0 +1,9 @@
+<map id="RunSelection::selectedScenario" name="RunSelection::selectedScenario">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,232,55"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="280,29,404,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,39,266,39,266,45,232,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="310,31,303,21,307,11,320,5,342,3,369,6,380,15,377,19,367,11,342,8,321,10,310,15,308,20,314,28"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="452,29,623,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="404,39,438,39,438,45,404,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="505,31,498,21,502,11,515,5,537,3,564,6,575,15,572,19,562,11,537,8,517,10,506,15,504,20,509,28"/>
+</map>

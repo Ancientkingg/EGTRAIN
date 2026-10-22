@@ -1,0 +1,11 @@
+<map id="blockSectionAxisRange" name="blockSectionAxisRange">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,180,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="58,46,51,36,55,26,69,20,93,18,122,22,134,31,130,35,120,27,93,23,70,25,58,30,56,36,62,43"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#ae8cffc87793fbc3316aea9814a2cbb00" title=" " alt="" coords="228,45,381,70"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="180,55,214,55,214,60,180,60"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="272,46,265,36,269,26,282,20,305,18,332,22,343,30,340,35,330,26,305,23,284,25,273,30,270,36,276,43"/>
+<area shape="rect" id="Node000003" href="$struct_block_section_extent.html#ae3ac53b4733f8cd5abebd6ae09ea6e68" title=" " alt="" coords="429,5,577,45"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="381,42,415,37,416,42,382,48"/>
+<area shape="rect" id="Node000004" href="$struct_block_section_extent.html#aab3817d0c41b8d86c28ec8c8f37cf8e9" title=" " alt="" coords="429,69,577,109"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="382,67,416,73,415,78,381,72"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="Train::TotalEnergyConsumptionWithAndWithoutRegBraking" name="Train::TotalEnergyConsumptionWithAndWithoutRegBraking">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,228,45"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a62f0bf91ef58cb3e3b91175d0f67fb0b" title=" " alt="" coords="276,5,484,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,23,263,23,263,28,228,28"/>
+</map>

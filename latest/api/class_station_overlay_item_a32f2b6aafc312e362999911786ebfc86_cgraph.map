@@ -1,0 +1,5 @@
+<map id="StationOverlayItem::shape" name="StationOverlayItem::shape">
+<area shape="rect" id="Node000001" title="The visible mark and label; empty for a scene decoration." alt="" coords="5,5,155,45"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a68d5d0899e5551d3adf68241a3bd819b" title="The label is drawn." alt="" coords="203,5,352,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,23,189,23,189,28,155,28"/>
+</map>

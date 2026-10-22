@@ -1,0 +1,20 @@
+<map id="graphics/items/NodeItem.h" name="graphics/items/NodeItem.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="405,5,603,31"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,159,165,185"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="461,38,118,162,116,157,459,33"/>
+<area shape="rect" id="Node000003" href="$_network_presenter_8cpp.html" title=" " alt="" coords="189,159,413,185"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="469,39,400,81,351,123,314,161,310,157,347,119,397,77,466,35"/>
+<area shape="rect" id="Node000004" href="$_network_scene_8h.html" title=" " alt="" coords="411,79,597,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="507,44,507,79,501,79,501,44"/>
+<area shape="rect" id="Node000007" href="$_inspector_panel_8cpp.html" title=" " alt="" coords="873,159,1071,185"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="538,35,661,102,773,130,909,157,908,162,771,135,659,106,535,40"/>
+<area shape="rect" id="Node000008" href="$_node_item_8cpp.html" title=" " alt="" coords="672,79,885,104"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="562,32,735,76,734,81,561,37"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="426,109,178,155,141,162,140,157,177,149,425,104"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="463,111,332,162,330,157,461,106"/>
+<area shape="rect" id="Node000005" href="$_network_scene_8cpp.html" title=" " alt="" coords="645,159,848,185"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="553,106,712,157,711,162,552,111"/>
+<area shape="rect" id="Node000006" href="$_selection_cue_item_8cpp.html" title=" " alt="" coords="438,152,621,192"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="514,116,526,151,521,153,509,118"/>
+<area shape="poly" id="edge8_Node000004_Node000007" title=" " alt="" coords="586,104,904,157,903,162,585,109"/>
+</map>

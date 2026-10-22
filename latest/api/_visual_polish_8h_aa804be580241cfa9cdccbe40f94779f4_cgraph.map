@@ -1,0 +1,7 @@
+<map id="simulationSpeedMode" name="simulationSpeedMode">
+<area shape="rect" id="Node000001" title="The label of simulationSpeedLabel() followed by &quot; real time&quot;, or &quot;Fastest&quot;." alt="" coords="5,29,172,55"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="54,31,46,21,50,11,65,5,89,3,118,6,130,15,127,20,116,11,89,8,66,10,54,15,51,20,58,28"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a390edc9c1e6f62d5b3ed847698920d13" title=" " alt="" coords="220,29,387,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,39,206,39,206,45,173,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="268,31,261,21,265,11,279,5,303,3,333,6,345,15,342,20,331,11,303,8,281,10,269,15,266,20,273,28"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="lockSwitchesWhileTrainTraverses" name="lockSwitchesWhileTrainTraverses">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,243,96"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="81,72,71,62,76,52,94,46,124,44,163,48,173,53,177,59,172,62,170,57,161,53,124,49,95,51,79,56,76,62,84,69"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#aa4d0088e47ad59d2fa1bbca0fa3332f8" title=" " alt="" coords="329,29,463,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,68,314,52,315,57,208,73"/>
+<area shape="rect" id="Node000003" href="$_signalling_8cpp.html#a5dae0c1df215e9154ed51bc44572903c" title=" " alt="" coords="291,103,501,143"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="211,93,277,103,276,108,211,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="353,31,343,21,348,11,366,5,396,3,435,7,445,12,449,18,444,20,442,16,433,12,396,8,367,10,351,15,348,20,356,27"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="346,104,343,94,351,84,369,79,396,77,427,79,444,87,442,92,426,85,396,82,370,84,354,89,348,95,351,102"/>
+</map>

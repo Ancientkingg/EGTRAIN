@@ -1,0 +1,33 @@
+<map id="SceneSession::addRecentScene" name="SceneSession::addRecentScene">
+<area shape="rect" id="Node000001" title="Puts the absolute form of path first in the recent scenes, which keep at most 8. An installed scene i..." alt="" coords="5,219,232,245"/>
+<area shape="rect" id="Node000002" href="$_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2" title=" " alt="" coords="307,125,463,150"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,217,334,152,336,157,156,222"/>
+<area shape="rect" id="Node000005" href="$class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" title="Fills the Recent Scenes menu again from the settings." alt="" coords="280,248,489,288"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="213,242,266,249,266,255,212,247"/>
+<area shape="rect" id="Node000008" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="537,182,744,207"/>
+<area shape="poly" id="edge19_Node000001_Node000008" title=" " alt="" coords="232,221,523,200,524,206,232,227"/>
+<area shape="rect" id="Node000009" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="826,182,933,207"/>
+<area shape="poly" id="edge20_Node000001_Node000009" title=" " alt="" coords="135,243,231,328,305,383,390,436,435,459,481,478,527,492,573,500,618,502,662,495,703,479,742,454,765,428,774,401,774,372,769,342,764,311,763,279,770,248,790,217,811,202,815,206,794,221,775,250,768,280,769,310,774,341,779,372,779,402,769,431,746,458,706,484,663,500,618,507,572,506,526,497,479,483,432,464,387,441,302,388,228,332,131,247"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="343,126,334,116,339,106,356,100,385,98,421,102,431,107,435,112,430,115,428,111,419,107,385,103,357,105,342,110,340,116,347,123"/>
+<area shape="rect" id="Node000003" href="$namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79" title=" " alt="" coords="565,117,716,157"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="463,135,552,135,552,140,463,140"/>
+<area shape="rect" id="Node000004" href="$namespacescene__save__policy.html#aedd625aae76b1b1d7716d50d4c05956f" title=" " alt="" coords="565,29,716,69"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="418,122,536,79,559,71,561,76,538,84,420,127"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="596,118,594,108,601,98,617,93,641,91,668,94,683,101,681,106,667,99,641,96,618,98,604,103,599,109,602,116"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="596,30,594,20,601,10,617,5,641,3,668,6,683,13,681,18,667,11,641,8,618,10,604,15,599,21,602,28"/>
+<area shape="rect" id="Node000006" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="562,255,719,281"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="489,265,548,265,548,271,489,271"/>
+<area shape="poly" id="edge12_Node000005_Node000008" title=" " alt="" coords="443,245,537,216,568,208,569,213,538,221,444,251"/>
+<area shape="rect" id="Node000010" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="539,329,742,369"/>
+<area shape="poly" id="edge15_Node000005_Node000010" title=" " alt="" coords="449,286,565,323,563,328,448,291"/>
+<area shape="rect" id="Node000011" href="$_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2" title=" " alt="" coords="567,418,715,443"/>
+<area shape="poly" id="edge17_Node000005_Node000011" title=" " alt="" coords="412,286,468,331,539,379,598,410,596,415,536,384,465,335,408,290"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="602,257,594,247,598,237,614,231,641,229,674,233,687,242,683,246,672,237,641,234,615,236,602,241,599,246,606,253"/>
+<area shape="rect" id="Node000007" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="792,255,967,281"/>
+<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="720,265,778,265,778,271,720,271"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="841,257,832,247,837,237,853,231,879,229,913,233,925,242,922,246,911,237,879,234,854,236,840,241,838,246,845,253"/>
+<area shape="poly" id="edge13_Node000008_Node000009" title=" " alt="" coords="744,192,812,192,812,197,744,197"/>
+<area shape="poly" id="edge14_Node000009_Node000009" title=" " alt="" coords="841,184,832,174,837,164,853,158,879,155,913,159,925,169,922,173,911,164,879,161,854,163,840,168,838,173,845,180"/>
+<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="596,330,594,320,601,310,617,305,641,303,668,306,683,313,681,318,667,311,641,308,618,310,604,315,599,321,602,328"/>
+<area shape="poly" id="edge18_Node000011_Node000011" title=" " alt="" coords="602,420,594,410,598,400,614,394,641,391,674,395,687,405,683,409,672,400,641,397,615,399,602,404,599,409,606,416"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="NetworkPresenter::updatePaxIconInfo" name="NetworkPresenter::updatePaxIconInfo">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,87,197,127"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#aa360cc99d5a45dcfab687ea8408a9825" title="Shows the details of a passenger above its icon; a replay adds that the journey details are unavailab..." alt="" coords="245,5,492,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,84,245,55,273,47,275,52,246,60,158,89"/>
+<area shape="rect" id="Node000004" href="$_network_presenter_8cpp.html#a1b57662dc5e3aac38290b652a37de442" title="The details of a passenger in the snapshot; only the id is known when the snapshot is null or does no..." alt="" coords="301,94,436,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,104,287,104,287,109,197,109"/>
+<area shape="rect" id="Node000005" href="$class_network_presenter.html#a7f9a72f4a0c0a5ca7c5d13ebccbd30ba" title="Deletes the passenger information of the selected passenger icon. The icon stays selected." alt="" coords="270,144,467,184"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="196,124,262,138,261,144,195,129"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="540,5,769,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="492,23,526,23,526,28,492,28"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="326,96,316,86,321,76,339,69,369,67,407,71,417,76,421,82,416,85,414,80,405,77,369,73,340,75,325,80,322,85,329,92"/>
+</map>

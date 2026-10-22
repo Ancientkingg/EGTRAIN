@@ -1,0 +1,86 @@
+<map id="InspectorPanel::InspectorPanel" name="InspectorPanel::InspectorPanel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,387,191,427"/>
+<area shape="rect" id="Node000002" href="$class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close." alt="" coords="247,5,423,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,387,109,322,132,232,150,182,173,134,202,88,237,48,256,35,259,39,240,52,206,91,178,136,155,184,137,233,114,323,104,388"/>
+<area shape="rect" id="Node000003" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="1095,322,1300,362"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,385,171,329,255,254,305,215,360,179,418,146,478,121,639,62,710,39,777,25,843,23,908,34,976,63,1048,111,1069,133,1078,157,1079,182,1077,208,1074,233,1074,259,1080,284,1097,308,1100,312,1097,316,1093,312,1075,286,1068,260,1068,233,1072,207,1074,182,1073,158,1064,136,1045,115,974,67,907,39,842,28,778,31,711,44,641,67,480,126,420,151,363,183,308,220,258,258,174,333,119,389"/>
+<area shape="rect" id="Node000004" href="$class_inspector_panel.html#aa80fff5a89b2adde1c73122ce6611a88" title="The button that adds an incident was clicked." alt="" coords="246,387,423,427"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="191,405,232,405,232,410,191,410"/>
+<area shape="rect" id="Node000026" href="$class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816" title="A dock with this window title." alt="" coords="239,451,431,491"/>
+<area shape="poly" id="edge52_Node000001_Node000026" title=" " alt="" coords="173,425,248,445,247,450,172,430"/>
+<area shape="rect" id="Node000027" href="$_plain_tool_tip_8h.html#af52b32a95e15749255a0578bd8a4a8d2" title=" " alt="" coords="285,631,385,656"/>
+<area shape="poly" id="edge53_Node000001_Node000027" title=" " alt="" coords="121,426,313,619,309,623,117,429"/>
+<area shape="poly" id="edge49_Node000004_Node000003" title=" " alt="" coords="339,386,354,339,381,278,400,247,422,217,448,190,477,168,529,145,598,127,679,114,765,107,851,106,931,113,998,128,1026,139,1048,152,1066,169,1074,189,1077,209,1076,229,1076,270,1083,289,1097,308,1101,312,1097,316,1093,312,1078,291,1071,270,1071,229,1071,209,1069,190,1061,172,1045,156,1024,144,997,133,930,118,851,112,765,112,679,119,599,132,531,150,480,172,451,194,426,220,404,250,386,281,359,341,344,388"/>
+<area shape="rect" id="Node000005" href="$class_inspector_panel.html#a096e2ad882e7ee8d8f9f690ae6efdf76" title=" " alt="" coords="802,272,1021,297"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="378,385,425,365,478,347,557,328,639,313,788,293,788,298,639,319,559,334,479,353,427,370,380,390"/>
+<area shape="rect" id="Node000009" href="$class_inspector_panel.html#a9def868a85f375bc122f6d86f6a42cb3" title="Shows the form of a connection of the run, with the positions of its nodes in metres." alt="" coords="776,569,1047,595"/>
+<area shape="poly" id="edge9_Node000004_Node000009" title=" " alt="" coords="424,422,613,460,729,488,746,503,754,519,763,534,778,548,808,563,806,567,774,552,758,537,750,521,742,506,727,492,612,465,423,427"/>
+<area shape="rect" id="Node000010" href="$class_inspector_panel.html#a15c7d92113eb29ee3e8a93ed16f6a21d" title="Shows the form of a node of the run, with its coordinates in metres." alt="" coords="796,619,1027,644"/>
+<area shape="poly" id="edge13_Node000004_Node000010" title=" " alt="" coords="409,425,432,437,447,450,456,464,465,476,480,488,515,503,546,510,605,510,634,509,663,512,695,521,730,539,746,555,754,573,762,590,778,605,788,611,785,615,774,609,758,593,749,575,742,558,726,543,693,526,662,517,633,515,605,516,546,515,513,508,477,492,461,480,452,467,443,454,429,442,407,430"/>
+<area shape="rect" id="Node000011" href="$class_inspector_panel.html#a9314119dab81cb034a25ba76406e5edb" title="Hides the dock and shows the information of the passenger on the canvas instead." alt="" coords="780,321,1043,347"/>
+<area shape="poly" id="edge17_Node000004_Node000011" title=" " alt="" coords="423,389,478,381,770,345,770,351,479,386,424,395"/>
+<area shape="rect" id="Node000012" href="$class_inspector_panel.html#a8a9e6e714c6f2d156223355a4b198652" title=" " alt="" coords="479,395,728,420"/>
+<area shape="poly" id="edge20_Node000004_Node000012" title=" " alt="" coords="423,405,465,405,465,410,423,410"/>
+<area shape="rect" id="Node000016" href="$class_inspector_panel.html#a1d3af9cc3aaa238887b6a9d3ced84b0c" title="Shows the form of a signal of the run, with its position and the length of the section ahead in metre..." alt="" coords="781,733,1042,759"/>
+<area shape="poly" id="edge28_Node000004_Node000016" title=" " alt="" coords="417,425,433,437,447,457,454,477,456,517,458,554,466,572,480,589,511,610,541,618,570,619,600,615,631,611,662,610,695,617,730,635,748,655,755,678,761,699,778,719,788,725,785,730,774,723,756,702,749,679,743,658,726,639,693,622,662,615,631,616,601,620,571,624,540,623,509,614,477,593,461,575,453,556,451,517,449,478,442,460,429,441,414,430"/>
+<area shape="rect" id="Node000021" href="$class_inspector_panel.html#a3cdc32714b92ead207f9aeb2267f80cf" title="Shows the form of a station node of the run and selects its station." alt="" coords="802,669,1021,709"/>
+<area shape="poly" id="edge38_Node000004_Node000021" title=" " alt="" coords="415,425,432,437,444,450,451,464,457,490,462,516,469,527,480,539,512,558,542,567,572,569,601,567,631,564,662,565,694,572,730,589,746,605,755,623,762,639,778,655,791,662,788,667,774,659,758,642,750,625,742,608,726,594,693,577,661,570,631,570,601,572,572,574,541,572,510,563,477,543,465,530,457,517,451,491,446,466,440,453,429,441,412,430"/>
+<area shape="rect" id="Node000022" href="$class_inspector_panel.html#a94b73d93204564c7ebd6754649bb1a87" title="Shows the train and follows it." alt="" coords="489,648,717,673"/>
+<area shape="poly" id="edge42_Node000004_Node000022" title=" " alt="" coords="418,425,433,438,450,462,457,487,458,511,456,535,455,559,456,582,464,604,481,627,497,640,494,644,477,631,459,607,451,583,449,559,451,535,453,511,452,488,445,464,429,441,414,430"/>
+<area shape="rect" id="Node000025" href="$class_inspector_panel.html#adaa566081ff6821ac1fb51c12e265d3a" title="Does what handleCloseInfoDockWidget does and hides the dock." alt="" coords="494,182,713,222"/>
+<area shape="poly" id="edge50_Node000004_Node000025" title=" " alt="" coords="352,385,406,330,477,269,547,226,550,231,480,273,409,334,356,389"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="987,295,1047,306,1097,316,1096,322,1046,311,986,300"/>
+<area shape="rect" id="Node000006" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="1105,567,1290,607"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="1022,293,1048,307,1074,343,1112,410,1183,553,1178,556,1107,413,1070,345,1045,311,1020,297"/>
+<area shape="rect" id="Node000007" href="$class_track_line_item.html#aa41b680d18b2297565423a2a126a818d" title="The state of the track during a run." alt="" coords="1100,258,1295,298"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="1021,279,1086,278,1086,283,1021,285"/>
+<area shape="rect" id="Node000008" href="$class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="1128,634,1267,674"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="1023,289,1048,307,1064,326,1076,345,1085,384,1084,423,1076,462,1068,501,1066,539,1073,578,1083,598,1097,618,1117,634,1113,638,1093,621,1078,601,1068,580,1060,540,1063,500,1071,461,1078,422,1080,385,1071,347,1060,329,1045,311,1020,294"/>
+<area shape="poly" id="edge10_Node000009_Node000003" title=" " alt="" coords="940,567,991,540,1045,504,1082,471,1116,436,1171,371,1175,375,1120,439,1086,475,1048,508,993,545,942,572"/>
+<area shape="poly" id="edge11_Node000009_Node000006" title=" " alt="" coords="1047,582,1091,583,1091,588,1047,587"/>
+<area shape="poly" id="edge12_Node000009_Node000008" title=" " alt="" coords="989,592,1047,605,1125,627,1124,632,1046,610,988,597"/>
+<area shape="poly" id="edge14_Node000010_Node000003" title=" " alt="" coords="1025,616,1045,605,1061,590,1079,566,1117,503,1179,374,1184,376,1122,505,1084,569,1065,593,1048,609,1028,621"/>
+<area shape="poly" id="edge15_Node000010_Node000006" title=" " alt="" coords="994,616,1091,601,1091,606,995,621"/>
+<area shape="poly" id="edge16_Node000010_Node000008" title=" " alt="" coords="1027,638,1115,645,1114,650,1026,643"/>
+<area shape="poly" id="edge18_Node000011_Node000003" title=" " alt="" coords="1043,335,1081,336,1081,341,1043,340"/>
+<area shape="poly" id="edge19_Node000011_Node000006" title=" " alt="" coords="1026,344,1048,356,1074,376,1098,400,1137,453,1167,507,1187,553,1182,555,1162,510,1133,456,1094,403,1071,380,1045,360,1024,349"/>
+<area shape="poly" id="edge23_Node000012_Node000006" title=" " alt="" coords="677,418,704,427,730,441,746,457,754,474,762,490,778,504,814,523,846,535,876,542,905,545,968,546,1047,555,1091,564,1090,569,1046,561,968,552,905,550,875,547,845,541,812,528,774,508,758,493,749,476,741,460,726,445,702,432,676,423"/>
+<area shape="rect" id="Node000013" href="$class_inspector_panel.html#aaf2e3b1dac2cf67d123fc7275c8d1536" title=" " alt="" coords="807,207,1016,247"/>
+<area shape="poly" id="edge21_Node000012_Node000013" title=" " alt="" coords="614,392,677,327,723,289,775,257,793,249,795,254,777,262,727,294,681,331,618,396"/>
+<area shape="rect" id="Node000014" href="$_network_presenter_8cpp.html#a5ad7e0d37140be7daecd2de8ac3410c4" title=" " alt="" coords="807,395,1015,420"/>
+<area shape="poly" id="edge24_Node000012_Node000014" title=" " alt="" coords="728,405,793,405,793,410,728,410"/>
+<area shape="rect" id="Node000015" href="$_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303" title=" " alt="" coords="858,468,965,493"/>
+<area shape="poly" id="edge26_Node000012_Node000015" title=" " alt="" coords="658,417,845,462,844,468,657,423"/>
+<area shape="poly" id="edge22_Node000013_Node000003" title=" " alt="" coords="1017,243,1048,257,1064,270,1073,283,1082,296,1096,308,1107,314,1104,318,1093,312,1078,299,1069,286,1060,273,1045,262,1015,248"/>
+<area shape="poly" id="edge25_Node000014_Node000014" title=" " alt="" coords="866,397,855,386,861,376,880,370,911,368,953,372,964,377,967,384,962,386,960,381,951,377,911,373,881,375,864,380,861,386,869,393"/>
+<area shape="poly" id="edge27_Node000015_Node000015" title=" " alt="" coords="866,470,855,460,861,450,880,443,911,441,953,446,964,451,967,457,962,459,960,455,951,451,911,447,881,449,864,454,861,459,869,466"/>
+<area shape="poly" id="edge29_Node000016_Node000003" title=" " alt="" coords="1027,731,1045,719,1062,700,1072,682,1079,645,1081,604,1085,580,1092,554,1136,454,1176,373,1181,375,1140,457,1097,556,1090,581,1086,604,1084,646,1077,684,1066,703,1048,723,1030,735"/>
+<area shape="poly" id="edge30_Node000016_Node000006" title=" " alt="" coords="1024,731,1045,719,1056,708,1063,696,1069,672,1075,646,1082,633,1093,620,1104,612,1107,616,1096,624,1086,636,1080,648,1074,673,1068,698,1060,711,1048,723,1026,736"/>
+<area shape="poly" id="edge37_Node000016_Node000008" title=" " alt="" coords="1004,731,1046,718,1070,704,1093,688,1119,677,1121,681,1096,692,1072,708,1048,723,1006,736"/>
+<area shape="rect" id="Node000017" href="$_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47" title=" " alt="" coords="1127,725,1267,751"/>
+<area shape="poly" id="edge31_Node000016_Node000017" title=" " alt="" coords="1042,740,1114,738,1114,743,1042,745"/>
+<area shape="poly" id="edge36_Node000017_Node000017" title=" " alt="" coords="1159,727,1150,717,1155,707,1171,701,1197,699,1231,703,1243,712,1240,716,1229,707,1197,704,1172,706,1158,711,1156,716,1163,723"/>
+<area shape="rect" id="Node000018" href="$class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" title="The aspect code of the head." alt="" coords="1348,652,1524,677"/>
+<area shape="poly" id="edge32_Node000017_Node000018" title=" " alt="" coords="1236,723,1347,687,1376,679,1378,684,1349,693,1238,728"/>
+<area shape="rect" id="Node000019" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title="The state of a signal head for an aspect code, as SignalCueKind lists it." alt="" coords="1368,725,1504,751"/>
+<area shape="poly" id="edge33_Node000017_Node000019" title=" " alt="" coords="1268,735,1354,735,1354,741,1268,741"/>
+<area shape="rect" id="Node000020" href="$class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" title="The signal has failed." alt="" coords="1367,775,1505,800"/>
+<area shape="poly" id="edge35_Node000017_Node000020" title=" " alt="" coords="1260,748,1361,769,1360,774,1259,753"/>
+<area shape="poly" id="edge34_Node000019_Node000019" title=" " alt="" coords="1397,727,1389,717,1393,707,1409,701,1436,699,1469,703,1482,712,1479,716,1467,707,1436,704,1411,706,1397,711,1394,716,1401,723"/>
+<area shape="poly" id="edge39_Node000021_Node000003" title=" " alt="" coords="1019,670,1045,655,1065,632,1075,610,1081,585,1092,554,1178,374,1183,376,1097,556,1086,587,1080,612,1070,635,1048,659,1022,675"/>
+<area shape="poly" id="edge40_Node000021_Node000006" title=" " alt="" coords="1014,666,1045,654,1069,638,1093,620,1114,610,1117,615,1096,624,1072,642,1048,659,1016,671"/>
+<area shape="poly" id="edge41_Node000021_Node000008" title=" " alt="" coords="1021,673,1114,661,1115,667,1021,678"/>
+<area shape="rect" id="Node000023" href="$class_inspector_panel.html#a7a5fe31a4b6297e89acad9fe507f0e30" title="Shows the train and, when changeFollowMode is set, follows it." alt="" coords="810,783,1013,823"/>
+<area shape="poly" id="edge43_Node000022_Node000023" title=" " alt="" coords="707,671,730,684,748,705,755,728,761,749,778,769,799,782,796,786,774,773,756,752,750,729,743,708,726,688,704,676"/>
+<area shape="poly" id="edge46_Node000023_Node000003" title=" " alt="" coords="1012,790,1029,782,1045,769,1065,744,1076,720,1081,696,1082,672,1081,618,1084,588,1092,554,1134,454,1175,373,1180,376,1139,457,1097,556,1089,589,1086,619,1087,672,1086,697,1081,722,1069,747,1049,773,1032,786,1014,795"/>
+<area shape="poly" id="edge47_Node000023_Node000006" title=" " alt="" coords="1012,789,1029,781,1045,769,1059,752,1066,734,1069,697,1071,659,1078,639,1093,620,1101,613,1104,617,1097,624,1083,642,1076,660,1074,698,1071,736,1064,755,1049,773,1032,785,1014,794"/>
+<area shape="poly" id="edge48_Node000023_Node000008" title=" " alt="" coords="1012,787,1045,769,1062,751,1069,730,1076,709,1093,688,1114,674,1117,679,1096,692,1081,712,1074,732,1066,753,1048,773,1014,791"/>
+<area shape="rect" id="Node000024" href="$_gui_simulation_snapshot_8h.html#a9d3587a1b79afd5c277b880adabbf418" title=" " alt="" coords="1131,799,1263,824"/>
+<area shape="poly" id="edge44_Node000023_Node000024" title=" " alt="" coords="1013,803,1118,806,1118,812,1013,809"/>
+<area shape="poly" id="edge45_Node000024_Node000024" title=" " alt="" coords="1159,800,1150,790,1155,780,1171,774,1197,772,1231,776,1243,785,1240,790,1229,781,1197,777,1172,779,1158,784,1156,790,1163,797"/>
+<area shape="poly" id="edge51_Node000025_Node000003" title=" " alt="" coords="662,179,744,159,793,151,845,146,898,147,950,154,1001,169,1048,193,1062,206,1070,220,1075,250,1079,280,1085,294,1097,308,1102,312,1098,317,1093,312,1080,297,1074,281,1070,251,1065,222,1058,209,1045,198,999,174,949,159,897,152,845,152,793,156,745,164,663,185"/>
+<area shape="poly" id="edge54_Node000027_Node000027" title=" " alt="" coords="297,632,288,622,293,612,308,606,335,604,368,608,380,617,377,622,366,613,335,609,310,611,296,616,293,622,300,629"/>
+<area shape="rect" id="Node000028" href="$_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315" title=" " alt="" coords="515,721,691,747"/>
+<area shape="poly" id="edge55_Node000027_Node000028" title=" " alt="" coords="374,654,552,714,551,719,373,659"/>
+<area shape="poly" id="edge56_Node000028_Node000028" title=" " alt="" coords="560,723,551,713,556,703,574,697,603,695,642,699,652,704,656,710,651,712,648,708,640,704,603,700,575,702,559,707,556,712,564,719"/>
+</map>

@@ -1,0 +1,44 @@
+<map id="DelayAnalysisWindow::DelayAnalysisWindow" name="DelayAnalysisWindow::DelayAnalysisWindow">
+<area shape="rect" id="Node000001" title="baseline is the baseline run when one is set. The Against baseline tab compares it with scenario." alt="" coords="5,258,180,298"/>
+<area shape="rect" id="Node000002" href="$_delay_analysis_8cpp.html#a36d28ae11255f792bc410c0819aed184" title=" " alt="" coords="275,29,411,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,257,116,217,144,167,180,116,202,92,227,72,261,54,264,59,229,76,206,96,184,119,148,170,121,220,104,259"/>
+<area shape="rect" id="Node000003" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="507,80,767,105"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="102,256,120,224,148,184,184,146,227,116,265,99,306,87,390,74,472,71,543,76,543,81,471,77,391,79,307,92,267,104,229,120,187,150,152,188,125,227,106,259"/>
+<area shape="rect" id="Node000005" href="$_delay_analysis_8cpp.html#acb545fe8bb0a8c7be03694784d1d9009" title=" " alt="" coords="251,155,435,180"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="118,256,166,221,227,189,249,181,250,186,229,194,169,226,121,260"/>
+<area shape="rect" id="Node000007" href="$_delay_analysis_8cpp.html#ad8491edb84439158fe447805bae82f55" title=" " alt="" coords="228,228,459,253"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="180,262,244,253,244,258,180,268"/>
+<area shape="rect" id="Node000008" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="265,301,421,327"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="180,288,252,298,251,304,180,293"/>
+<area shape="rect" id="Node000012" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="237,375,450,400"/>
+<area shape="poly" id="edge21_Node000001_Node000012" title=" " alt="" coords="140,296,229,336,301,367,299,372,227,340,138,301"/>
+<area shape="rect" id="Node000014" href="$class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db" title=" " alt="" coords="567,457,706,497"/>
+<area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="110,296,158,354,191,384,229,409,289,428,374,445,554,467,553,472,373,450,287,434,227,414,188,389,154,358,106,300"/>
+<area shape="rect" id="Node000015" href="$class_train_filter_button.html#a63cb6ba918cf5701ce73849f4a366252" title=" " alt="" coords="275,475,412,515"/>
+<area shape="poly" id="edge26_Node000001_Node000015" title=" " alt="" coords="106,297,125,331,153,373,188,417,230,454,263,473,260,477,226,459,184,421,148,377,121,334,102,300"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,31,294,21,298,11,315,5,343,3,379,7,389,11,393,17,388,20,385,15,377,12,343,8,316,10,302,15,299,20,307,27"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="835,117,981,143"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="730,103,822,116,821,121,729,108"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="865,119,855,109,860,99,878,93,908,91,947,95,957,100,961,106,956,108,954,104,945,100,908,96,879,98,863,103,860,108,868,115"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="303,156,294,146,298,136,315,130,343,128,379,132,389,137,393,142,388,145,385,141,377,137,343,133,316,135,302,140,299,146,307,153"/>
+<area shape="rect" id="Node000006" href="$_delay_analysis_8cpp.html#a1f9eca401d0a3e572b4e7a63d8682e2c" title="The totals over the final arrival of each of the occurrences." alt="" coords="579,153,694,179"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="435,164,566,164,566,169,435,170"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="593,155,584,145,589,135,607,129,637,127,675,131,686,136,689,142,685,144,682,140,674,136,637,132,608,134,592,139,589,144,597,151"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="303,230,294,220,298,210,315,204,343,201,379,205,389,210,393,216,388,219,385,214,377,210,343,207,316,209,302,214,299,219,307,226"/>
+<area shape="poly" id="edge20_Node000008_Node000008" title=" " alt="" coords="303,303,294,293,298,283,315,277,343,275,379,279,389,283,393,289,388,292,385,287,377,284,343,280,316,282,302,287,299,292,307,299"/>
+<area shape="rect" id="Node000009" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="555,227,718,252"/>
+<area shape="poly" id="edge13_Node000008_Node000009" title=" " alt="" coords="382,299,506,262,550,252,551,257,507,267,384,304"/>
+<area shape="rect" id="Node000011" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="560,301,713,341"/>
+<area shape="poly" id="edge18_Node000008_Node000011" title=" " alt="" coords="421,313,546,316,546,321,421,318"/>
+<area shape="poly" id="edge14_Node000009_Node000004" title=" " alt="" coords="672,224,766,188,864,146,866,151,768,192,674,229"/>
+<area shape="poly" id="edge15_Node000009_Node000009" title=" " alt="" coords="593,228,584,218,589,208,607,202,637,200,675,204,686,209,689,215,685,218,682,213,674,209,637,205,608,207,592,212,589,218,597,225"/>
+<area shape="rect" id="Node000010" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="815,227,1001,252"/>
+<area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="718,237,801,237,801,242,718,242"/>
+<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="865,228,855,218,860,208,878,202,908,200,947,204,957,209,961,215,956,218,954,213,945,209,908,205,879,207,863,212,860,218,868,225"/>
+<area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="587,301,584,291,592,282,610,276,637,274,668,277,685,284,683,289,667,282,637,279,611,281,595,286,589,292,592,299"/>
+<area shape="poly" id="edge22_Node000012_Node000012" title=" " alt="" coords="303,376,294,366,298,356,315,350,343,348,379,352,389,357,393,362,388,365,385,361,377,357,343,353,316,355,302,360,299,366,307,373"/>
+<area shape="rect" id="Node000013" href="$namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde" title=" " alt="" coords="535,389,738,415"/>
+<area shape="poly" id="edge23_Node000012_Node000013" title=" " alt="" coords="450,390,522,394,521,399,450,395"/>
+<area shape="poly" id="edge24_Node000013_Node000013" title=" " alt="" coords="593,391,584,381,589,371,607,365,637,363,675,367,686,372,689,378,685,380,682,376,674,372,637,368,608,370,592,375,589,380,597,387"/>
+<area shape="poly" id="edge27_Node000015_Node000014" title=" " alt="" coords="412,488,554,479,554,485,412,494"/>
+</map>

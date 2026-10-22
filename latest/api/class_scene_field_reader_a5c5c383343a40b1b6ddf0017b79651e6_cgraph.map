@@ -1,0 +1,8 @@
+<map id="SceneFieldReader::arraySection" name="SceneFieldReader::arraySection">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,233,56"/>
+<area shape="rect" id="Node000002" href="$class_scene_field_reader.html#a38681a834cd04f10752c10054793098f" title=" " alt="" coords="281,5,497,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,30,267,27,268,32,234,35"/>
+<area shape="rect" id="Node000003" href="$class_scene_field_reader.html#a53879345feee72005c27d93ac4a54315" title=" " alt="" coords="545,31,731,56"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="234,41,532,41,532,46,234,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="498,26,532,30,531,35,497,32"/>
+</map>

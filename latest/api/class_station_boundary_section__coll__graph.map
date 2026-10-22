@@ -1,0 +1,10 @@
+<map id="StationBoundarySection" name="StationBoundarySection">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,371,184,396"/>
+<area shape="rect" id="Node000002" href="$class_section.html" title=" " alt="" coords="59,255,130,280"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,294,97,370,92,370,92,294"/>
+<area shape="rect" id="Node000003" href="$class_arc.html" title="A directed piece of track between two nodes." alt="" coords="155,130,197,155"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="163,169,105,256,100,253,158,166"/>
+<area shape="rect" id="Node000004" href="$class_node.html" title=" " alt="" coords="47,5,103,31"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="73,45,66,100,68,164,79,214,93,253,88,255,74,215,63,164,61,99,67,44"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="95,40,169,128,164,132,91,43"/>
+</map>

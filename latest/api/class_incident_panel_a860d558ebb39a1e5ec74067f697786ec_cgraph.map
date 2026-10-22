@@ -1,0 +1,28 @@
+<map id="IncidentPanel::refreshTargets" name="IncidentPanel::refreshTargets">
+<area shape="rect" id="Node000001" title="Lists the choices of targets of the selected incident again." alt="" coords="5,160,216,185"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="276,37,479,63"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,158,190,124,263,88,321,65,323,70,265,92,193,129,134,162"/>
+<area shape="rect" id="Node000004" href="$class_incident_panel.html#a4a9dda1a9168404be9f1d7b5d91358c0" title=" " alt="" coords="273,103,481,128"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="170,157,304,128,305,134,171,163"/>
+<area shape="rect" id="Node000005" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="264,153,491,193"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="216,170,250,170,250,175,216,175"/>
+<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="302,241,453,267"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="154,183,323,235,321,240,152,188"/>
+<area shape="rect" id="Node000010" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="268,315,487,340"/>
+<area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="129,183,188,227,265,277,330,307,327,312,263,282,185,231,126,187"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="334,39,325,29,330,19,348,13,377,11,416,15,426,20,430,26,425,28,422,24,414,20,377,16,349,18,333,23,330,28,338,35"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="566,29,790,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="479,45,552,43,552,48,479,50"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="630,31,620,21,625,11,645,5,678,3,722,7,733,13,736,19,731,21,729,16,721,12,678,8,646,10,628,15,625,20,634,27"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="539,103,817,128"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="472,150,538,137,587,128,588,133,539,142,473,155"/>
+<area shape="rect" id="Node000007" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="573,176,783,201"/>
+<area shape="poly" id="edge9_Node000005_Node000007" title=" " alt="" coords="491,176,559,180,559,185,491,181"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="630,105,620,94,625,84,645,78,678,76,722,80,733,86,736,92,731,95,729,90,721,86,678,81,646,83,628,88,625,94,634,101"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="630,178,620,168,625,158,645,151,678,149,722,154,733,159,736,166,731,168,729,163,721,159,678,155,646,157,628,162,625,167,634,174"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="334,243,325,233,330,223,348,217,377,215,416,219,426,224,430,230,425,232,422,228,414,224,377,220,349,222,333,227,330,232,338,239"/>
+<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="607,249,749,275"/>
+<area shape="poly" id="edge12_Node000008_Node000009" title=" " alt="" coords="453,253,593,257,593,262,453,259"/>
+<area shape="poly" id="edge13_Node000009_Node000009" title=" " alt="" coords="630,251,620,241,625,231,645,225,678,223,722,227,733,233,736,239,731,241,729,236,721,232,678,228,646,230,628,235,625,240,634,247"/>
+<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="334,316,325,306,330,296,348,290,377,288,416,292,426,297,430,303,425,306,422,301,414,297,377,293,349,295,333,300,330,306,338,313"/>
+</map>
