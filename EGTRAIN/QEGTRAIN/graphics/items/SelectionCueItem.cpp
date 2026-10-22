@@ -34,8 +34,9 @@ QRectF ownRect(const QGraphicsItem* item) {
 	return item->sceneBoundingRect(); // NOLINT(clang-analyzer-core.CallAndMessage): the item is never null
 }
 
-// The pictogram of a station node: a child of the anchor square in the preview, else the picture of the overlay of the
-// station, found by the station id of the square in the preview and by its node of the run.
+// The pictogram of a station node: a child of the anchor square in the preview, else the mark of the overlay of the
+// station, found by the station id of the square in the preview and by its node of the run, when the square is at the
+// place of the mark: its centre is one of the node centres of the mark.
 const QGraphicsItem* pictogramOf(const QGraphicsItem* item) {
 	if (item->type() != StationNodeItem::Type)
 		return nullptr;
@@ -51,8 +52,10 @@ const QGraphicsItem* pictogramOf(const QGraphicsItem* item) {
 			continue;
 		const auto* overlay = static_cast<const StationOverlayItem*>(other);
 		if (station->node ? overlay->hasSourceIdentity() && overlay->matchesSourceIdentity(station->node->ID, station->track)
-						  : overlay->data(PreviewGraphics::Id) == stationId)
-			return overlay->pictureItem();
+						  : overlay->data(PreviewGraphics::Id) == stationId) {
+			const auto* mark = dynamic_cast<const StationMarkItem*>(overlay->pictureItem());
+			return mark && mark->nodeCentres().contains(item->sceneBoundingRect().center()) ? mark : nullptr;
+		}
 	}
 	return nullptr;
 }

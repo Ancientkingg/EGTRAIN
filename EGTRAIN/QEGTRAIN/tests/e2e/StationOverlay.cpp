@@ -5,6 +5,7 @@
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
+#include "graphics/items/SelectionCueItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationNodeItem.h"
 #include "graphics/items/StationOverlayItem.h"
@@ -175,6 +176,24 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		}
 		if (!centred)
 			failures << "a station mark lacks the centres of its station squares";
+		// The selection ring of a station square of the run holds the mark of its station only where the square is at the
+		// place of the mark.
+		bool ringed = true;
+		for (const QGraphicsItem* item : w.scene->items()) {
+			const auto* square = qgraphicsitem_cast<const StationNodeItem*>(item);
+			if (!square || !square->node)
+				continue;
+			for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays)) {
+				const auto* mark = overlay ? dynamic_cast<const StationMarkItem*>(overlay->pictureItem()) : nullptr;
+				if (!mark || !mark->isVisible() || mark->parentItem() == square
+					|| !overlay->matchesSourceIdentity(square->node->ID, square->track))
+					continue;
+				const bool atPlace = mark->nodeCentres().contains(square->sceneBoundingRect().center());
+				ringed = ringed && SelectionCueItem(square).targetRect().contains(mark->sceneBoundingRect()) == atPlace;
+			}
+		}
+		if (!ringed)
+			failures << "the selection ring of a station square holds a mark that is not at its place";
 		// The detail captures are centred on the station with most platforms.
 		const auto detailStation = std::max_element(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 			[](const StationOverlayItem* left, const StationOverlayItem* right) {
