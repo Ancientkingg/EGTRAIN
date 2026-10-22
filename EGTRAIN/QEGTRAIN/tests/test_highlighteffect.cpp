@@ -1,5 +1,6 @@
 #include "graphics/items/HighlightEffect.h"
 
+#include "graphics/NetworkScene.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
 #include "graphics/items/NodeItem.h"
@@ -7,6 +8,7 @@
 #include "graphics/items/SelectionCueItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationNodeItem.h"
+#include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
@@ -323,6 +325,29 @@ int main(int argc, char* argv[]) {
 		station->setGraphicsEffect(nullptr);
 		artwork->setGraphicsEffect(effect = new HighlightEffect(Qt::blue, 1.0));
 		ok &= expect(effect->cue() && effect->cue()->targetRect() == expected, "the pictogram of a station in the preview stands for the station");
+	}
+	// A station square of the preview that does not hold the artwork is surrounded with the artwork of its station.
+	{
+		QGraphicsScene scene;
+		QGraphicsView view(&scene);
+		QPixmap picture(24, 24);
+		picture.fill(Qt::white);
+		auto* anchor = new StationNodeItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+		auto* other = new StationNodeItem(QRectF(-10.0, 30.0, 20.0, 20.0));
+		other->setData(PreviewGraphics::StationId, QStringLiteral("north"));
+		scene.addItem(anchor);
+		scene.addItem(other);
+		auto* artwork = new QGraphicsPixmapItem(picture, anchor);
+		artwork->setPos(30.0, -40.0);
+		auto* overlay = new StationOverlayItem(QStringLiteral("North"), QPointF(), classifyStation(true));
+		overlay->setData(PreviewGraphics::Id, QStringLiteral("north"));
+		scene.addItem(overlay);
+		overlay->attachArtwork(artwork, nullptr, 1);
+		auto* effect = new HighlightEffect(Qt::blue, 1.0);
+		other->setGraphicsEffect(effect);
+		const QRectF expected = QRectF(-10.0, 30.0, 20.0, 20.0).united(QRectF(30.0, -40.0, 24.0, 24.0));
+		ok &= expect(effect->cue() && effect->cue()->targetRect() == expected,
+			"a station square of the preview is surrounded together with the pictogram of its station");
 	}
 	// Every kind of item: cue-coloured pixels around it at an overview scale, none without the effect.
 	for (const Kind& kind : kinds()) {
