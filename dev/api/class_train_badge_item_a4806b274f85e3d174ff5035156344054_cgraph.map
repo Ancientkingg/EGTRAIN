@@ -1,5 +1,8 @@
 <map id="TrainBadgeItem::paint" name="TrainBadgeItem::paint">
-<area shape="rect" id="Node000001" title="Draws the speed in white with a dark outline when showsSpeed() is true, and nothing otherwise." alt="" coords="5,5,171,31"/>
-<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title="The badge draws the speed: in the Detailed presentation, while the speed is visible and not empty." alt="" coords="219,5,432,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,15,205,15,205,21,171,21"/>
+<area shape="rect" id="Node000001" title="Draws the speed in white with a dark outline when showsSpeed() is true, and nothing otherwise." alt="" coords="5,55,171,80"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h..." alt="" coords="274,29,377,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,56,260,46,261,52,171,61"/>
+<area shape="rect" id="Node000003" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title="The badge draws the speed: in the Detailed presentation, while the speed is visible and not empty." alt="" coords="219,79,432,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="171,73,205,76,205,82,170,78"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="287,31,278,21,283,11,299,5,325,3,359,7,371,16,368,20,357,11,325,8,300,10,286,15,284,20,291,27"/>
 </map>

@@ -16,6 +16,7 @@ var _blocking_time_diagram_8h =
     [ "blockingSegmentInSections", "_blocking_time_diagram_8h.html#a418d59f41d12a8d575af399a2319ca04", null ],
     [ "blockingTimeCsvHeader", "_blocking_time_diagram_8h.html#a88c7774ff8abc2790f37548811ba11a8", null ],
     [ "blockingTimeEntryAmbiguous", "_blocking_time_diagram_8h.html#a3c1e5db02d54b3ef9db55b8bee1b9082", null ],
+    [ "blockingTimeNote", "_blocking_time_diagram_8h.html#a19ca4a81a54a1bbc3bdf1dde75fa7449", null ],
     [ "blockSectionBounds", "_blocking_time_diagram_8h.html#ae8cffc87793fbc3316aea9814a2cbb00", null ],
     [ "blockSectionCapacityScopeIssue", "_blocking_time_diagram_8h.html#adcf9933259eba38375607b9a01c8f432", null ],
     [ "blockSectionCsvRows", "_blocking_time_diagram_8h.html#ac0aad245fbc57109d80f3eb8fe69588c", null ],

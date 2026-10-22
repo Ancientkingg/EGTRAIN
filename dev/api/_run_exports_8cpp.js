@@ -7,6 +7,7 @@ var _run_exports_8cpp =
     [ "buildBlockingTimeCsv", "_run_exports_8cpp.html#a9c606782f6939f1f978024eaf50b3515", null ],
     [ "capacityAnalysisCsv", "_run_exports_8cpp.html#ab420be6557579b41e9121557671bc2f5", null ],
     [ "capacityCsvFrom", "_run_exports_8cpp.html#acfdef5a662b4ac2ea5818632014a313a", null ],
+    [ "capacityEvidenceBlocks", "_run_exports_8cpp.html#a1773e5c39aece36b65bb11b78d7f15fc", null ],
     [ "capacityEvidenceText", "_run_exports_8cpp.html#a377514d82329bc112de7abd1211fa0fb", null ],
     [ "compressedBlockingTimeDiagramData", "_run_exports_8cpp.html#a1f2742e6fad4e30bbfe970d0e8a2c7c3", null ],
     [ "csvProviderFrom", "_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e", null ],

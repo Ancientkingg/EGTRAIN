@@ -161,6 +161,8 @@ Functions</h2></td></tr>
 <tr class="memdesc:a409140b657b52e1822517ded4f3d9678"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when the scope has no reference route.  <br /></td></tr>
 <tr class="memitem:a1f2742e6fad4e30bbfe970d0e8a2c7c3" id="r_a1f2742e6fad4e30bbfe970d0e8a2c7c3"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_blocking_time_diagram_data.html">BlockingTimeDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1f2742e6fad4e30bbfe970d0e8a2c7c3">compressedBlockingTimeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope, const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result)</td></tr>
 <tr class="memitem:a377514d82329bc112de7abd1211fa0fb" id="r_a377514d82329bc112de7abd1211fa0fb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a377514d82329bc112de7abd1211fa0fb">capacityEvidenceText</a> (const std::vector&lt; <a class="el" href="struct_capacity_headway_evidence.html">CapacityHeadwayEvidence</a> &gt; &amp;evidence, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels)</td></tr>
+<tr class="memitem:a1773e5c39aece36b65bb11b78d7f15fc" id="r_a1773e5c39aece36b65bb11b78d7f15fc"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1773e5c39aece36b65bb11b78d7f15fc">capacityEvidenceBlocks</a> (const std::vector&lt; <a class="el" href="struct_capacity_headway_evidence.html">CapacityHeadwayEvidence</a> &gt; &amp;evidence)</td></tr>
+<tr class="memdesc:a1773e5c39aece36b65bb11b78d7f15fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The blocks of the evidence by their ids, "leader/follower", joined with ", ", for the cells of the windows.  <br /></td></tr>
 <tr class="memitem:ab420be6557579b41e9121557671bc2f5" id="r_ab420be6557579b41e9121557671bc2f5"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab420be6557579b41e9121557671bc2f5">capacityAnalysisCsv</a> (const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result, const QString &amp;sectionLabel)</td></tr>
 <tr class="memitem:acfdef5a662b4ac2ea5818632014a313a" id="r_acfdef5a662b4ac2ea5818632014a313a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#acfdef5a662b4ac2ea5818632014a313a">capacityCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 <tr class="memdesc:acfdef5a662b4ac2ea5818632014a313a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when the scope has an issue or the occurrences do not form a chain.  <br /></td></tr>
@@ -194,7 +196,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8cpp_a96f46f75ea72acb64797227079ad4f77_cgraph.svg" width="1188" height="1132"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8cpp_a96f46f75ea72acb64797227079ad4f77_cgraph.svg" width="1188" height="1006"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -222,7 +224,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8cpp_a409140b657b52e1822517ded4f3d9678_cgraph.svg" width="1048" height="852"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8cpp_a409140b657b52e1822517ded4f3d9678_cgraph.svg" width="1048" height="724"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -377,6 +379,30 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a1773e5c39aece36b65bb11b78d7f15fc" name="a1773e5c39aece36b65bb11b78d7f15fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1773e5c39aece36b65bb11b78d7f15fc">&#9670;&#160;</a></span>capacityEvidenceBlocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string capacityEvidenceBlocks </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_capacity_headway_evidence.html">CapacityHeadwayEvidence</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>evidence</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The blocks of the evidence by their ids, "leader/follower", joined with ", ", for the cells of the windows. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8cpp_a1773e5c39aece36b65bb11b78d7f15fc_cgraph.svg" width="190" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a377514d82329bc112de7abd1211fa0fb" name="a377514d82329bc112de7abd1211fa0fb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a377514d82329bc112de7abd1211fa0fb">&#9670;&#160;</a></span>capacityEvidenceText()</h2>
 
@@ -395,7 +421,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ". With <span class="tt">labels</span> the blocks are named by their labels, "leader / follower", for the tooltips of the window; the export names them by their ids. </p>
+<p>The evidence as the export writes it, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ". With <span class="tt">labels</span> it is the tooltip of the windows instead: one line per item, "leader / follower: leader offset … s,
+follower offset … s, headway … s", with the blocks named by their labels. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -1,0 +1,7 @@
+<map id="capacityDetailsText" name="capacityDetailsText">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,156,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,31,42,21,46,11,59,5,81,3,107,6,118,15,115,19,105,11,81,8,60,10,50,15,47,20,53,28"/>
+<area shape="rect" id="Node000002" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="204,29,345,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="157,39,190,39,190,45,157,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="243,31,236,21,240,11,253,5,275,3,301,6,312,15,309,19,299,11,275,8,254,10,244,15,241,20,247,28"/>
+</map>

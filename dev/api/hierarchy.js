@@ -33,6 +33,7 @@ var hierarchy =
     [ "CapacityCriticalBlock", "struct_capacity_critical_block.html", null ],
     [ "CapacityHeadwayEvidence", "struct_capacity_headway_evidence.html", null ],
     [ "CapacityPairRow", "struct_capacity_pair_row.html", null ],
+    [ "ColourKeyEntry", "struct_colour_key_entry.html", null ],
     [ "CommandLineOption", "struct_command_line_option.html", null ],
     [ "CompletedRoute", "struct_completed_route.html", null ],
     [ "CompletedRunData", "struct_completed_run_data.html", null ],
@@ -200,6 +201,9 @@ var hierarchy =
     ] ],
     [ "QGraphicsScene", null, [
       [ "NetworkScene", "class_network_scene.html", null ]
+    ] ],
+    [ "QGraphicsTextItem", null, [
+      [ "StationNameItem", "class_station_name_item.html", null ]
     ] ],
     [ "QGraphicsView", null, [
       [ "NetworkView", "class_network_view.html", null ]

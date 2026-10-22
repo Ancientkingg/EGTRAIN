@@ -38,12 +38,17 @@ requests that made the change, or the issue where none did.
   blue area that covers the squares, also where the squares run diagonally.
   Closer in a station with squares at its place draws no pin: the station
   squares, the platform bars and the area show, and the area also covers the
-  bars. A station without such a square keeps its pin. A run without the shared
+  bars. A station without such a square keeps its pin, and closer in that pin
+  and its name keep their smallest size on screen. A run without the shared
   preview does not count connections and draws no major station. The name sits
   under the station, or above the pin or beside the squares where its text
   would cross a track. At every zoom the frame of the pin is at least 24 px and
   the name at least 12 px, and names that overlap are hidden by rank. Where the
   scene size is larger than that, the scene size applies, as in the reference.
+  A name has a halo of 2 logical pixels in the canvas colour around its letters
+  and is stacked over the tracks, the pins and the trains, so that it stays
+  readable where no free spot is left. The reference stacked the trains over
+  the names.
 - Canvas (#509). The background `#101a22` with a faint `#182832` grid replaces
   the solid black background.
 - Selection (#606). A ring in the cue colour (61,214,255) marks the selected

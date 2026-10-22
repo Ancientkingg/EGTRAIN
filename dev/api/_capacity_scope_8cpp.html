@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_capacity_scop
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_capacity_scope_8h_source.html">diagrams/CapacityScope.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_choice_combo_box_8h_source.html">widgets/ChoiceComboBox.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_dialog_layout_8h_source.html">widgets/DialogLayout.h</a>&quot;</code><br />
 <code>#include &lt;QComboBox&gt;</code><br />
@@ -139,7 +140,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_capacity_scop
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CapacityScope.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp__incl.svg" width="5078" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp__incl.svg" width="5294" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -155,10 +156,37 @@ Functions</h2></td></tr>
 <tr class="memitem:aef5487a731116924537c202f04406798" id="r_aef5487a731116924537c202f04406798"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#aef5487a731116924537c202f04406798">firstCapacityScopeWithPairFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memitem:aa88001510e05548edcb57449cb5cfa18" id="r_aa88001510e05548edcb57449cb5cfa18"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa88001510e05548edcb57449cb5cfa18">capacityScopeLabelFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 <tr class="memitem:aac48329cb36d06bcc0e23530bf055943" id="r_aac48329cb36d06bcc0e23530bf055943"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aac48329cb36d06bcc0e23530bf055943">capacityScopeTextFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
-<tr class="memdesc:aac48329cb36d06bcc0e23530bf055943"><td class="mdescLeft">&#160;</td><td class="mdescRight">As capacityScopeLabelFrom, for the windows: the blocks are named by their labels, "first through last".  <br /></td></tr>
+<tr class="memitem:a74ebcc2ef0c4497ef2216e9acfd788e7" id="r_a74ebcc2ef0c4497ef2216e9acfd788e7"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a74ebcc2ef0c4497ef2216e9acfd788e7">capacityScopeBlocksText</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memitem:aa7a97579ac684fb18ca368d029471b60" id="r_aa7a97579ac684fb18ca368d029471b60"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa7a97579ac684fb18ca368d029471b60">capacityReferenceText</a> (const std::string &amp;source, const std::string &amp;label)</td></tr>
+<tr class="memitem:aef6bf25092ffd019abf81b3d7b3eda4a" id="r_aef6bf25092ffd019abf81b3d7b3eda4a"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aef6bf25092ffd019abf81b3d7b3eda4a">capacityReferenceOf</a> (const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result, const std::string &amp;identity)</td></tr>
+<tr class="memdesc:aef6bf25092ffd019abf81b3d7b3eda4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">capacityReferenceText for the train <span class="tt">identity</span> of the result; empty when the result does not have it.  <br /></td></tr>
+<tr class="memitem:a62c99b76d89924c576c2d5779369660e" id="r_a62c99b76d89924c576c2d5779369660e"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a62c99b76d89924c576c2d5779369660e">capacityDetailsText</a> (const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result)</td></tr>
 <tr class="memitem:a4f64e5cefd15be361bdc4d1bb39727cf" id="r_a4f64e5cefd15be361bdc4d1bb39727cf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4f64e5cefd15be361bdc4d1bb39727cf">chooseCapacityAnalysisScope</a> (QWidget *parent, const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;run, <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a62c99b76d89924c576c2d5779369660e" name="a62c99b76d89924c576c2d5779369660e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62c99b76d89924c576c2d5779369660e">&#9670;&#160;</a></span>capacityDetailsText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString capacityDetailsText </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>result</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The Calculation details of the Capacity window: "Cycle time 155.5 s / period 3600 s × 100 = 4.3%" and on a second line "From &lt;first train&gt; to &lt;cycle-closing train&gt;". The percentage has one decimal, as the context line has it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_a62c99b76d89924c576c2d5779369660e_cgraph.svg" width="351" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a1eacf23720ac45233dc640e58f1217a2" name="a1eacf23720ac45233dc640e58f1217a2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1eacf23720ac45233dc640e58f1217a2">&#9670;&#160;</a></span>capacityInputFrom()</h2>
 
@@ -215,6 +243,88 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="aef6bf25092ffd019abf81b3d7b3eda4a" name="aef6bf25092ffd019abf81b3d7b3eda4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef6bf25092ffd019abf81b3d7b3eda4a">&#9670;&#160;</a></span>capacityReferenceOf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString capacityReferenceOf </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>result</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>identity</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>capacityReferenceText for the train <span class="tt">identity</span> of the result; empty when the result does not have it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aef6bf25092ffd019abf81b3d7b3eda4a_cgraph.svg" width="388" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aa7a97579ac684fb18ca368d029471b60" name="aa7a97579ac684fb18ca368d029471b60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7a97579ac684fb18ca368d029471b60">&#9670;&#160;</a></span>capacityReferenceText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString capacityReferenceText </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>source</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>label</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The reference time of a train as a window names it, from the referenceSource and referenceLabel of <a class="el" href="struct_capacity_analysis_train.html" title="One train of the chain: its occupations and the reference time they are shifted by.">CapacityAnalysisTrain</a>: "planned departure at &lt;station&gt;", "planned arrival at &lt;station&gt;", "planned entry time" or "simulated entry time"; empty without a source. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aa7a97579ac684fb18ca368d029471b60_cgraph.svg" width="182" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a74ebcc2ef0c4497ef2216e9acfd788e7" name="a74ebcc2ef0c4497ef2216e9acfd788e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74ebcc2ef0c4497ef2216e9acfd788e7">&#9670;&#160;</a></span>capacityScopeBlocksText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString capacityScopeBlocksText </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The first and last block of the scope with their numbers and labels, one per line, for the tooltip of capacityScopeTextFrom; empty without blocks. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_a74ebcc2ef0c4497ef2216e9acfd788e7_cgraph.svg" width="396" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ae772795361eed14e636e3f0f7ad92b6b" name="ae772795361eed14e636e3f0f7ad92b6b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae772795361eed14e636e3f0f7ad92b6b">&#9670;&#160;</a></span>capacityScopeIssueFrom()</h2>
 
@@ -265,7 +375,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aa88001510e05548edcb57449cb5cfa18_cgraph.svg" width="195" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aa88001510e05548edcb57449cb5cfa18_cgraph.svg" width="462" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -288,12 +398,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>As capacityScopeLabelFrom, for the windows: the blocks are named by their labels, "first through last". </p>
+<p>For the windows: "route (corridor), blocks 36 to 72" without the parts the scope lacks, or "no selected route". The blocks are named by their numbers in the route, from 1, or by their count when the scope has no numbers. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aac48329cb36d06bcc0e23530bf055943_cgraph.svg" width="187" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aac48329cb36d06bcc0e23530bf055943_cgraph.svg" width="454" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

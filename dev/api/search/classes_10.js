@@ -107,10 +107,11 @@ var searchData=
   ['stationboundarysection_104',['StationBoundarySection',['../class_station_boundary_section.html',1,'']]],
   ['stationdelaysummary_105',['StationDelaySummary',['../struct_station_delay_summary.html',1,'']]],
   ['stationmarkitem_106',['StationMarkItem',['../class_station_mark_item.html',1,'']]],
-  ['stationnodeitem_107',['StationNodeItem',['../class_station_node_item.html',1,'']]],
-  ['stationoverlayitem_108',['StationOverlayItem',['../class_station_overlay_item.html',1,'']]],
-  ['stationplatform_109',['StationPlatform',['../class_station_platform.html',1,'']]],
-  ['stations_110',['Stations',['../class_stations.html',1,'']]],
-  ['stationtick_111',['StationTick',['../struct_station_tick.html',1,'']]],
-  ['stationvisual_112',['StationVisual',['../struct_station_visual.html',1,'']]]
+  ['stationnameitem_107',['StationNameItem',['../class_station_name_item.html',1,'']]],
+  ['stationnodeitem_108',['StationNodeItem',['../class_station_node_item.html',1,'']]],
+  ['stationoverlayitem_109',['StationOverlayItem',['../class_station_overlay_item.html',1,'']]],
+  ['stationplatform_110',['StationPlatform',['../class_station_platform.html',1,'']]],
+  ['stations_111',['Stations',['../class_stations.html',1,'']]],
+  ['stationtick_112',['StationTick',['../struct_station_tick.html',1,'']]],
+  ['stationvisual_113',['StationVisual',['../struct_station_visual.html',1,'']]]
 ];

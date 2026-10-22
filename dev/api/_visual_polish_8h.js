@@ -34,6 +34,7 @@ var _visual_polish_8h =
       [ "HighSpeed", "_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97a419dcbabdbac74acb57d4d21aa110da8", null ],
       [ "Freight", "_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97aa2eca8f6be5b0bf0f2cddcda7cfca376", null ]
     ] ],
+    [ "canvasColor", "_visual_polish_8h.html#a2e7d09af69daec1cb464c65129b19737", null ],
     [ "classifySignalAspect", "_visual_polish_8h.html#ac90f4bc2aaf513636a1b81df1096bc61", null ],
     [ "classifySignalCue", "_visual_polish_8h.html#a2511e34f95b2de260988d67c627468bf", null ],
     [ "classifyStation", "_visual_polish_8h.html#a7ea3f93e7d09822b4b13415ffc8f307d", null ],
@@ -53,6 +54,7 @@ var _visual_polish_8h =
     [ "stationAreaShape", "_visual_polish_8h.html#aad6e3639cb92ebdb855e80911a082344", null ],
     [ "stationFootprintRect", "_visual_polish_8h.html#aa164be426ade64b2fd1bebe183b15674", null ],
     [ "stationMarkBounds", "_visual_polish_8h.html#ab5821bb5e3b802765eef37c3ccc25547", null ],
+    [ "stationMarkFill", "_visual_polish_8h.html#a533b0acec8e0aa932ee206a07c02a1d8", null ],
     [ "stationMarkFrameIn", "_visual_polish_8h.html#a2420ddd0ca6f0c9af6acb01c987d2ed4", null ],
     [ "stationMarkIcon", "_visual_polish_8h.html#aedc5fcbf783bda97fca3dc74d3a5098b", null ],
     [ "stationMarkShape", "_visual_polish_8h.html#a53bf883918011b406bcde8613aa0354d", null ],

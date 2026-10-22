@@ -118,13 +118,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_blocking_time
 <code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
-<code>#include &lt;iomanip&gt;</code><br />
-<code>#include &lt;locale&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for BlockingTimeDiagram.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8cpp__incl.svg" width="1074" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8cpp__incl.svg" width="890" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -149,6 +147,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a88c7774ff8abc2790f37548811ba11a8" id="r_a88c7774ff8abc2790f37548811ba11a8"><td class="memItemLeft">const std::vector&lt; std::string &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a88c7774ff8abc2790f37548811ba11a8">blockingTimeCsvHeader</a> ()</td></tr>
 <tr class="memitem:ac0aad245fbc57109d80f3eb8fe69588c" id="r_ac0aad245fbc57109d80f3eb8fe69588c"><td class="memItemLeft">std::vector&lt; std::vector&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac0aad245fbc57109d80f3eb8fe69588c">blockSectionCsvRows</a> (const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents)</td></tr>
 <tr class="memitem:aa191b9b565bd3ab43b7c4f3929976938" id="r_aa191b9b565bd3ab43b7c4f3929976938"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa191b9b565bd3ab43b7c4f3929976938">blockSectionGeometryNote</a> (const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels)</td></tr>
+<tr class="memitem:a19ca4a81a54a1bbc3bdf1dde75fa7449" id="r_a19ca4a81a54a1bbc3bdf1dde75fa7449"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a19ca4a81a54a1bbc3bdf1dde75fa7449">blockingTimeNote</a> (int omitted, bool nothingPlotted, bool unplaced, const std::string &amp;routeId)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a418d59f41d12a8d575af399a2319ca04" name="a418d59f41d12a8d575af399a2319ca04"></a>
@@ -225,6 +224,42 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a19ca4a81a54a1bbc3bdf1dde75fa7449" name="a19ca4a81a54a1bbc3bdf1dde75fa7449"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19ca4a81a54a1bbc3bdf1dde75fa7449">&#9670;&#160;</a></span>blockingTimeNote()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string blockingTimeNote </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>omitted</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>nothingPlotted</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>unplaced</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>routeId</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8cpp_a19ca4a81a54a1bbc3bdf1dde75fa7449_cgraph.svg" width="152" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ae8cffc87793fbc3316aea9814a2cbb00" name="ae8cffc87793fbc3316aea9814a2cbb00"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae8cffc87793fbc3316aea9814a2cbb00">&#9670;&#160;</a></span>blockSectionBounds()</h2>
 
@@ -242,7 +277,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8cpp_ae8cffc87793fbc3316aea9814a2cbb00_cgraph.svg" width="360" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8cpp_ae8cffc87793fbc3316aea9814a2cbb00_cgraph.svg" width="164" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -534,7 +569,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8cpp_ae45e2a1c7e5942b44fb086aef31a100b_cgraph.svg" width="519" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8cpp_ae45e2a1c7e5942b44fb086aef31a100b_cgraph.svg" width="519" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

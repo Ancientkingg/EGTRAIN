@@ -1,5 +1,6 @@
 var _visual_polish_8cpp =
 [
+    [ "canvasColor", "_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737", null ],
     [ "classifySignalAspect", "_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61", null ],
     [ "classifySignalCue", "_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf", null ],
     [ "classifyStation", "_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace", null ],
@@ -19,6 +20,7 @@ var _visual_polish_8cpp =
     [ "stationAreaShape", "_visual_polish_8cpp.html#aad6e3639cb92ebdb855e80911a082344", null ],
     [ "stationFootprintRect", "_visual_polish_8cpp.html#aa164be426ade64b2fd1bebe183b15674", null ],
     [ "stationMarkBounds", "_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547", null ],
+    [ "stationMarkFill", "_visual_polish_8cpp.html#a533b0acec8e0aa932ee206a07c02a1d8", null ],
     [ "stationMarkFrameIn", "_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4", null ],
     [ "stationMarkIcon", "_visual_polish_8cpp.html#aedc5fcbf783bda97fca3dc74d3a5098b", null ],
     [ "stationMarkShape", "_visual_polish_8cpp.html#a53bf883918011b406bcde8613aa0354d", null ],

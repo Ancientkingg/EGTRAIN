@@ -121,10 +121,14 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:affc19659fe5213ff060ba727366afee3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>.  <br /></td></tr>
 <tr class="memitem:a14df6e49f1aba64c2c2937731aa475bb" id="r_a14df6e49f1aba64c2c2937731aa475bb"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a14df6e49f1aba64c2c2937731aa475bb">blockIds</a></td></tr>
 <tr class="memdesc:a14df6e49f1aba64c2c2937731aa475bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Range of the first route; its first block is the reference of each train.  <br /></td></tr>
+<tr class="memitem:afccf085c1ed2097ffbfd991c6307e44a" id="r_afccf085c1ed2097ffbfd991c6307e44a"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#afccf085c1ed2097ffbfd991c6307e44a">sectionIndices</a></td></tr>
+<tr class="memdesc:afccf085c1ed2097ffbfd991c6307e44a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Positions of those blocks in the route, from 0; empty when unknown.  <br /></td></tr>
 <tr class="memitem:a1d3a7bf67f309a250924283b99d7e990" id="r_a1d3a7bf67f309a250924283b99d7e990"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1d3a7bf67f309a250924283b99d7e990">secondRouteIndex</a> = -1</td></tr>
 <tr class="memdesc:a1d3a7bf67f309a250924283b99d7e990"><td class="mdescLeft">&#160;</td><td class="mdescRight">-1 for no second route  <br /></td></tr>
 <tr class="memitem:a5c49d20b77515f3744ce56939d8edb1e" id="r_a5c49d20b77515f3744ce56939d8edb1e"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5c49d20b77515f3744ce56939d8edb1e">secondBlockIds</a></td></tr>
 <tr class="memdesc:a5c49d20b77515f3744ce56939d8edb1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The range of the second route, empty for none.  <br /></td></tr>
+<tr class="memitem:afd32b2bac279d93a9e02a74e931f562a" id="r_afd32b2bac279d93a9e02a74e931f562a"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#afd32b2bac279d93a9e02a74e931f562a">secondSectionIndices</a></td></tr>
+<tr class="memdesc:afd32b2bac279d93a9e02a74e931f562a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Positions of those blocks in the second route, from 0.  <br /></td></tr>
 <tr class="memitem:a9b3c9f14da0d2734856f9ee64a717a5d" id="r_a9b3c9f14da0d2734856f9ee64a717a5d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9b3c9f14da0d2734856f9ee64a717a5d">periodSeconds</a> = 3600.0</td></tr>
 <tr class="memdesc:a9b3c9f14da0d2734856f9ee64a717a5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analysis period in seconds.  <br /></td></tr>
 <tr class="memitem:ae1efbe2e874f383f72ecf61e749aa4a9" id="r_ae1efbe2e874f383f72ecf61e749aa4a9"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae1efbe2e874f383f72ecf61e749aa4a9">occurrenceIds</a></td></tr>
@@ -244,6 +248,38 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>-1 for no second route </p>
+
+</div>
+</div>
+<a id="afd32b2bac279d93a9e02a74e931f562a" name="afd32b2bac279d93a9e02a74e931f562a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd32b2bac279d93a9e02a74e931f562a">&#9670;&#160;</a></span>secondSectionIndices</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;int&gt; AreaCapacityScope::secondSectionIndices</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Positions of those blocks in the second route, from 0. </p>
+
+</div>
+</div>
+<a id="afccf085c1ed2097ffbfd991c6307e44a" name="afccf085c1ed2097ffbfd991c6307e44a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afccf085c1ed2097ffbfd991c6307e44a">&#9670;&#160;</a></span>sectionIndices</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;int&gt; AreaCapacityScope::sectionIndices</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Positions of those blocks in the route, from 0; empty when unknown. </p>
 
 </div>
 </div>
