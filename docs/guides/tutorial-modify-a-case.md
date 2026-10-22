@@ -34,20 +34,20 @@ Close the timetable window. The window should show the same values.
 Both edits are to the service `Guin-Paim-EXPRESS-1`, the train that runs from Guingamp to Paimpol and stops at Pontrieaux on the way.
 
 1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list. The dock has the tabs **Service**, **Timetable** and **Run occurrences**.
-2. Open the tab **Timetable** and click the row `Pontrieaux` in the table of stops. The dialog **Edit timetable stop** opens.
+2. Open the tab **Timetable** and click the row `Pontrieaux` in the table of stops. The dialog **Edit Timetable Stop** opens.
 
    ![The dialog Edit timetable stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as committed: compatible platform (no platform), planned arrival 1567, planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
 3. Try **Cancel** first: change **Minimum dwell (s)** from 60 to 999 and choose **Cancel**. The row still shows 60 and the title bar shows no mark for unsaved changes.
 4. Click the row again, enter `180` in **Minimum dwell (s)** and choose **OK**. **OK** applies all fields of the dialog together. The row shows 180 and the title bar shows the mark.
-5. Open the tab **Service**, set **Running performance (parameter) %** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
+5. Open the tab **Service**, set **Performance (%)** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
 
 A dwell longer than the window between the planned arrival and departure is allowed but is reported, as the next step shows.
 
 ## 4. Validate
 
-Choose **View > Scene Validation** (Ctrl+Shift+V). The columns are **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
+Choose **View > Scene Validation** (Ctrl+Shift+V). The columns are **Severity**, **Message** and **Fix**, and the tooltip of a row names its **Code**, **File** and **Path**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
 
-- Code `scene.dwell.exceeds_window`, message "Dwell time exceeds departure - arrival window", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
+- Code `scene.dwell.exceeds_window`, message "Minimum dwell is longer than the time from arrival to departure", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
 
 ![The dock Scene Validation after the dwell edit. The first row is a warning with the code scene.dwell.exceeds_window and the message Dwell time exceeds departure - arrival window, in services.json. Rows below it are scene.passenger.legs.empty warnings.](../images/how-to-scene-validation.png)
 
@@ -56,7 +56,7 @@ A warning does not block a run. An error does: **Run** is disabled and the dock 
 ## 5. Save, reopen from Recent Scenes, and check the original
 
 1. Choose **File > Save Scene**. This writes `paimpol-practice.egscene`.
-2. Open the original: choose **Open Case** in the toolbar, then `Paimpol` under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Running performance (parameter) %** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
+2. Open the original: choose **Open Case** in the toolbar, then `Paimpol` under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Performance (%)** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
 3. Choose **File > Recent Scenes** > `paimpol-practice`, then `Guin-Paim-EXPRESS-1` in the list in the dock **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
 
 The supplied case is a scene folder, not a file, and the second step above shows that its values are as they were. In a source checkout, a save into that folder rewrites its JSON files with the indentation that EGTRAIN writes, so `git status` lists the files whose committed layout differs, such as `rolling_stock.json` and `passengers.json`, even when no value changed. `git checkout -- EGTRAIN/QEGTRAIN/Scenes/Paimpol` restores the committed files.
@@ -85,8 +85,8 @@ The other train, `Guin-Paim-ALL-STOPS-1-1`, has the same times as before.
 
 A comparison needs two runs of the same case: a baseline without incidents or entrance delays, and a scenario that has them. The order matters because every edit clears the baseline ([the table below](#what-clears-results-and-the-baseline)). Make the scenario first, then run both.
 
-1. Open the dock **Incidents** (**Editors > Incidents**). The list **Scenarios** has one row, for the scenario `baseline` (named Baseline), with 0 incident(s), 0 delay(s) and the marker `default`. With it selected, choose **Duplicate** (**Blank** makes an empty scenario instead). The new scenario `baseline_copy` is selected. Replace **Name** with `Express breakdown`.
-2. Open the tab **Incidents** of the dock and choose **Add Incident**. Set **Type** to `train_breakdown` and **Target** to `Guin-Paim-EXPRESS-1-1 | route route6 | entry +10 s`. Enter `900` in **Start (s)**. Leave **Use recovery end (s)** ticked and enter `1200` in the field below it, leave **Reduced speed cap** unticked, and press Enter after each number. The train stops at 900 s and recovers at 1200 s. For a signal failure, the icon button **Pick** beside **Target** takes the block of the signal head that you click on the network view.
+1. Open the dock **Incidents** (**Editors > Incidents**). The list **Scenarios** has one row, for the scenario `baseline` (named Baseline), with the marker `default`. With it selected, choose **Duplicate** (**New** makes an empty scenario instead). The new scenario `baseline_copy` is selected. Replace **Name** with `Express breakdown`.
+2. Open the tab **Incidents** of the dock and choose **Add Incident**. Set **Type** to `Train breakdown` and **Target** to `Guin-Paim-EXPRESS-1-1 (route route6, +10 s)`. Enter `900` in **Start (s)**. Leave **End (s)** ticked and enter `1200` in the field below it, leave **Reduced speed** unticked, and press Enter after each number. The train stops at 900 s and recovers at 1200 s. For a signal failure, the icon button **Pick** beside **Target** takes the block of the signal head that you click on the network view.
 3. Choose **File > Save Scene**. The list marks the scenario `modified` until you save. Saving does not clear results or the baseline.
 4. Choose `baseline` in the list. Choosing a scenario is not an edit. Choose **Run** and check that the dialog **Run simulation** says **Active incidents** 0 and the scenario `baseline`. After "Simulation complete", choose **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** now starts with `Baseline: Paimpol practice / baseline`.
 5. Choose `baseline_copy` in the list. The results are cleared, so the dock **Run Results** and the **Replay** row close, and the baseline stays. The entry of the menu **View** that starts with Run Results opens the dock again, as in the picture below. Choose **Run**; the dialog now says **Active incidents** 1. After "Simulation complete", choose **Compare delays**.
@@ -155,7 +155,7 @@ The first command prints the diagnostics and exits with 0 when there is no error
 }
 ```
 
-- **Import JSON...** and **Export JSON...** in the dock **Incidents** exchange one scenario object like this one ([scenarios](scenarios.md#scenarios)).
+- **Import...** and **Export...** in the dock **Incidents** exchange one scenario object like this one ([scenarios](scenarios.md#scenarios)).
 - The times in this tutorial are elapsed seconds from the base time of the case, which is 07:10:40 in Paimpol.
 
 ## If something does not work

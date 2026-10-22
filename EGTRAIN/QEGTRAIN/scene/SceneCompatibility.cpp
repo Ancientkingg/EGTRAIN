@@ -148,16 +148,17 @@ void explainRejection(SceneCompatibilityProbeResult& result, bool draftLayout) {
 	if (draft) {
 		result.classification = SceneCompatibilityClass::OlderUnsupported;
 		addDiagnostic(result.diagnostics, "scene.compatibility.draft",
-			"This scene uses the draft layout that EGTRAIN saved before 2026-08-08 (" + found + ", " + saved
+			"This case uses the draft layout that EGTRAIN saved before 2026-08-08 (" + found + ", " + saved
 				+ "). That layout is not supported.",
 			"scene.json", "Import the original legacy case again with File > Load Legacy Case...");
 	} else if (result.classification == SceneCompatibilityClass::Newer) {
 		addDiagnostic(result.diagnostics, "scene.compatibility.newer",
-			"This scene uses " + found + " (" + saved + "). " + reads + " and does not open newer scenes.",
+			"This case was saved by a newer version of EGTRAIN, in " + found + " (" + saved + "). " + reads + ".",
 			"scene.json", "Update EGTRAIN with Help > Check for Updates...");
 	} else {
 		addDiagnostic(result.diagnostics, "scene.compatibility.older",
-			"This scene uses " + found + " (" + saved + "). " + reads + " and cannot convert older scenes.",
+			"This case was saved by an older version of EGTRAIN, in " + found + " (" + saved + "), and cannot be converted. "
+				+ reads + ".",
 			"scene.json",
 			"Open a scene saved by this version of EGTRAIN, or import the original legacy case again with File > Load Legacy Case...");
 	}

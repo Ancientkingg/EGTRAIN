@@ -52,7 +52,7 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_emptyStateLabel = EditorLayout::emptyStateLabel(detailPane);
 	m_emptyStateLabel->setObjectName("compositionEmptyStateLabel");
 	detailLayout->addWidget(m_emptyStateLabel);
-	detailLayout->addWidget(new QLabel("Composition Id", detailPane));
+	detailLayout->addWidget(new QLabel("Composition ID", detailPane));
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("compositionIdEdit");
 	detailLayout->addWidget(m_idEdit);
@@ -79,17 +79,17 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	detailLayout->addLayout(unitButtonLayout);
 
 	// selected unit: its original sources and the tractive-effort plot
-	detailLayout->addWidget(new QLabel("Original parameter source", detailPane));
+	detailLayout->addWidget(new QLabel("Parameter file", detailPane));
 	m_unitSourceDataLabel = EditorLayout::wrappedLabel(QString(), detailPane);
 	m_unitSourceDataLabel->setObjectName("compositionUnitSourceDataLabel");
 	m_unitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	detailLayout->addWidget(m_unitSourceDataLabel);
-	detailLayout->addWidget(new QLabel("Original tractive-effort source", detailPane));
+	detailLayout->addWidget(new QLabel("Traction file", detailPane));
 	m_unitSourceTractionLabel = EditorLayout::wrappedLabel(QString(), detailPane);
 	m_unitSourceTractionLabel->setObjectName("compositionUnitSourceTractionLabel");
 	m_unitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	detailLayout->addWidget(m_unitSourceTractionLabel);
-	m_plotTractionButton = new QPushButton("Plot input traction characteristic", detailPane);
+	m_plotTractionButton = new QPushButton("Plot Traction Curve", detailPane);
 	m_plotTractionButton->setObjectName("plotCompositionUnitTractionButton");
 	detailLayout->addWidget(m_plotTractionButton);
 	m_unitWarningLabel = new QLabel(detailPane);
@@ -282,7 +282,7 @@ void CompositionPanel::deleteComposition() {
 		consumers << QString::fromStdString(consumer);
 	if (!consumers.isEmpty()) {
 		m_prompts->showError(this, "Cannot Delete Composition",
-			QString("Cannot delete composition '%1' because it is still referenced by:\n• %2\nReassign those services first.")
+			QString("Composition '%1' is used by:\n• %2\nReassign those services first.")
 				.arg(QString::fromStdString(id), consumers.join("\n• ")),
 			true);
 		return;
@@ -336,7 +336,7 @@ void CompositionPanel::addUnit() {
 		return;
 	SceneModel& model = m_document->mutableModel();
 	if (model.trainUnits.empty()) {
-		QMessageBox::information(this, "Add Rolling Stock Unit", "This scene has no rolling stock units defined.");
+		QMessageBox::information(this, "Add Rolling Stock Unit", "This case has no rolling stock units.");
 		return;
 	}
 

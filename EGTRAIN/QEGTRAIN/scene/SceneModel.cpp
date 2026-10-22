@@ -332,7 +332,7 @@ double scenePlatformCapacity(double lengthM, double widthM) {
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
 	scene.schemaVersion = kCurrentSceneSchemaVersion;
-	scene.name = "Untitled Case Study";
+	scene.name = "Untitled case";
 	scene.baseTime = "08:00:00";
 	scene.settings.hasDuration = true;
 	scene.settings.durationSeconds = 3600.0;
@@ -618,7 +618,7 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 		SceneLoadedData curve = makeLoadedData("tractive_effort_curve", "rolling_stock.json",
 			static_cast<int>(unit.tractionCurve.size()), unit.tractionCurve.empty() ? "Invalid" : "Parsed");
 		if (!unit.tractionCurve.empty()) {
-			SceneLoadedData plot = makeLoadedData("Plot tractive effort", "rolling_stock.json", 1, "Ready");
+			SceneLoadedData plot = makeLoadedData("Plot traction curve", "rolling_stock.json", 1, "Ready");
 			plot.targetType = "train_unit_plot";
 			curve.children.push_back(std::move(plot));
 		}
@@ -673,7 +673,7 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 	const SceneScenario* selectedScenario = defaultScenario(static_cast<const SceneModel&>(scene));
 	const std::string effectiveDefaultScenario = selectedScenario ? selectedScenario->id : std::string();
 	for (const auto& scenario : scene.scenarios) {
-		std::string label = "Scenario: " + (scenario.name.empty() ? scenario.id : scenario.name + " [" + scenario.id + "]");
+		std::string label = scenario.name.empty() ? scenario.id : scenario.name;
 		if (scenario.id == effectiveDefaultScenario)
 			label += " (default)";
 		SceneLoadedData item = makeLoadedData(label, scenarioSource,

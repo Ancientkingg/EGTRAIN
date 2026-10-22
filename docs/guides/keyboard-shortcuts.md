@@ -77,11 +77,11 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Save Scene As Folder**, **Import Legacy Case**, and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
 | **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
 | EGTRAIN *version* is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
-| **Linked source changed** | **Keep local** | **Keep local** |
+| **Linked File Changed** | **Keep Edits** | **Keep Edits** |
 
 ## Result windows
 
-The chart windows of **Diagrams**, such as **Speed / distance**, **Delays**, **Timetable graph...** and **Blocking time...**, and the chart of **Plot input traction characteristic** take these keys while the chart has the focus. [Diagram navigation](diagram-navigation.md) describes the mouse and the trackpad.
+The chart windows of **Diagrams**, such as **Speed / distance**, **Delays**, **Timetable graph...** and **Blocking time...**, and the chart of **Plot Traction Curve** take these keys while the chart has the focus. [Diagram navigation](diagram-navigation.md) describes the mouse and the trackpad.
 
 | Key | Effect |
 | --- | --- |
@@ -92,7 +92,7 @@ The chart windows of **Diagrams**, such as **Speed / distance**, **Delays**, **T
 
 ## Editors
 
-In the table of stops on the tab **Timetable** of **Editors > Services**, Return or Enter opens **Edit timetable stop** for the selected row, as a click does.
+In the table of stops on the tab **Timetable** of **Editors > Services**, Return or Enter opens **Edit Timetable Stop** for the selected row, as a click does.
 
 In the traction curve on the tab **Traction** of **Editors > Rolling stock units**, the arrow keys move between the cells and change no number, and Tab leaves the table. Typing into a cell replaces its number; a double click or F2 (Return on macOS) opens the cell with its number. In an open cell, Return or Enter keeps the new number, Esc restores the old one, and Tab keeps the number and opens the next cell.
 

@@ -72,7 +72,7 @@ private:
 	const QFormLayout* m_form;
 };
 
-// One entry of the route choice: where the route goes and in which direction, with the stations it traverses as tooltip.
+// One entry of the route choice: where the route goes, marked when it runs reversed, with the stations it passes as tooltip.
 void addRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route, const SceneSectionInventory& inventory) {
 	const SceneRouteStations traversal = sceneRouteStations(model, route, inventory);
 	QStringList stations;
@@ -85,18 +85,19 @@ void addRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute&
 			}
 		stations << name;
 	}
-	const QString description = !traversal.resolved ? QStringLiteral("Unresolved route")
-		: stations.isEmpty()						? QStringLiteral("Route without station anchors")
-													: QString("%1 → %2").arg(stations.first(), stations.last());
-	const QString direction = traversal.direction > 0 ? QStringLiteral("forward")
-		: traversal.direction < 0					  ? QStringLiteral("reverse")
-													  : QStringLiteral("unknown direction");
-	combo->addItem(QString("%1 · %2 [%3]").arg(description, direction, QString::fromStdString(route.id)), QString::fromStdString(route.id));
-	combo->setItemData(combo->count() - 1,
-		traversal.resolved ? QString("Traversed stations (not scheduled calls): %1")
-								 .arg(stations.isEmpty() ? QStringLiteral("none") : stations.join(" → "))
-						   : QStringLiteral("Station order unavailable: fix the route topology."),
-		Qt::ToolTipRole);
+	const QString id = QString::fromStdString(route.id);
+	QString text = !traversal.resolved ? QStringLiteral("%1 (cannot be resolved)").arg(id)
+		: stations.isEmpty()		   ? QStringLiteral("%1 (no stations)").arg(id)
+									   : QString("%1 → %2 [%3]").arg(stations.first(), stations.last(), id);
+	if (traversal.resolved && !stations.isEmpty() && traversal.direction < 0)
+		text += QStringLiteral(" (reversed)");
+	combo->addItem(text, id);
+	QString tip;
+	if (!traversal.resolved)
+		tip = QStringLiteral("Fix this route's sections to see its stations.");
+	else if (!stations.isEmpty())
+		tip = QString("Passes %1").arg(stations.join(" → "));
+	combo->setItemData(combo->count() - 1, tip, Qt::ToolTipRole);
 }
 
 } // namespace
@@ -144,16 +145,16 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("serviceIdEdit");
-	form->addRow("Service Id", m_idEdit);
+	form->addRow("Service ID", m_idEdit);
 	m_operatingCodeEdit = new QLineEdit(detailPane);
 	m_operatingCodeEdit->setObjectName("serviceOperatingCodeEdit");
-	form->addRow("Service code (number)", m_operatingCodeEdit);
+	form->addRow("Operating code", m_operatingCodeEdit);
 	m_categoryCombo = new ChoiceComboBox(detailPane);
 	m_categoryCombo->setObjectName("serviceCategoryCombo");
 	form->addRow("Category", m_categoryCombo);
 	m_colorButton = new ServiceColorField(form, detailPane);
 	m_colorButton->setObjectName("serviceColorButton");
-	form->addRow("Service visualization colour", m_colorButton);
+	form->addRow("Colour", m_colorButton);
 	m_compositionCombo = new ChoiceComboBox(detailPane);
 	m_compositionCombo->setObjectName("serviceCompositionCombo");
 	form->addRow("Composition", m_compositionCombo);
@@ -162,21 +163,21 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_routeCombo->setObjectName("serviceRouteCombo");
 	form->addRow("Route", m_routeCombo);
 
-	m_hasEntryTimeCheck = new QCheckBox("Entry Time (s)", detailPane);
+	m_hasEntryTimeCheck = new QCheckBox("Entry time (s)", detailPane);
 	m_hasEntryTimeCheck->setObjectName("serviceHasEntryTimeCheck");
 	m_entryTimeSecondsEdit = new QLineEdit(detailPane);
 	m_entryTimeSecondsEdit->setObjectName("serviceEntryTimeSecondsEdit");
 	m_entryTimeSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_entryTimeSecondsEdit));
 	form->addRow(m_hasEntryTimeCheck, m_entryTimeSecondsEdit);
 
-	m_hasRepeatCheck = new QCheckBox("Repeat Headway (s)", detailPane);
+	m_hasRepeatCheck = new QCheckBox("Repeat every (s)", detailPane);
 	m_hasRepeatCheck->setObjectName("serviceHasRepeatCheck");
 	m_headwaySecondsEdit = new QLineEdit(detailPane);
 	m_headwaySecondsEdit->setObjectName("serviceHeadwaySecondsEdit");
 	m_headwaySecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_headwaySecondsEdit));
 	form->addRow(m_hasRepeatCheck, m_headwaySecondsEdit);
 
-	m_hasRepeatCountCheck = new QCheckBox("Configured total", detailPane);
+	m_hasRepeatCountCheck = new QCheckBox("Repeat count", detailPane);
 	m_hasRepeatCountCheck->setObjectName("serviceHasRepeatCountCheck");
 	m_repeatCountEdit = new QLineEdit(detailPane);
 	m_repeatCountEdit->setObjectName("serviceRepeatCountEdit");
@@ -189,9 +190,9 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_performancePercentEdit->setDecimals(std::numeric_limits<double>::max_digits10);
 	m_performancePercentEdit->setValue(100);
 	m_performancePercentEdit->setKeyboardTracking(false);
-	form->addRow("Running performance (parameter) %", m_performancePercentEdit);
+	form->addRow("Performance (%)", m_performancePercentEdit);
 
-	m_hasMaximumSpeedCheck = new QCheckBox("Maximum speed restriction km/h", detailPane);
+	m_hasMaximumSpeedCheck = new QCheckBox("Maximum speed (km/h)", detailPane);
 	m_hasMaximumSpeedCheck->setObjectName("serviceHasMaximumSpeedCheck");
 	m_maximumSpeedKmhEdit = new ServiceSpeedSpinBox(detailPane);
 	m_maximumSpeedKmhEdit->setObjectName("serviceMaximumSpeedKmhEdit");
@@ -200,7 +201,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_maximumSpeedKmhEdit->setValue(100.0);
 	form->addRow(m_hasMaximumSpeedCheck, m_maximumSpeedKmhEdit);
 
-	m_hasOperatingCodeStepCheck = new QCheckBox("Service code (number) step", detailPane);
+	m_hasOperatingCodeStepCheck = new QCheckBox("Code step", detailPane);
 	m_hasOperatingCodeStepCheck->setObjectName("serviceHasOperatingCodeStepCheck");
 	m_operatingCodeStepEdit = new QLineEdit(detailPane);
 	m_operatingCodeStepEdit->setObjectName("serviceOperatingCodeStepEdit");
@@ -229,15 +230,13 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	QWidget* occurrencePane = new QWidget(this);
 	QVBoxLayout* occurrenceLayout = new QVBoxLayout(occurrencePane);
-	occurrenceLayout->addWidget(new QLabel("Run occurrences", occurrencePane));
 	m_occurrenceSelectionLabel = new QLabel(occurrencePane);
 	m_occurrenceSelectionLabel->setObjectName("serviceOccurrenceSelectionLabel");
 	occurrenceLayout->addWidget(m_occurrenceSelectionLabel);
 	m_occurrenceTable = new QTableWidget(occurrencePane);
 	m_occurrenceTable->setObjectName("serviceOccurrenceTable");
 	m_occurrenceTable->setColumnCount(6);
-	m_occurrenceTable->setHorizontalHeaderLabels({"Include", "Service code (number)", "Generated service", "Scheduled entry",
-		"Running performance (parameter) %", "Maximum speed restriction (km/h)"});
+	m_occurrenceTable->setHorizontalHeaderLabels({"Run", "Operating code", "Route", "Entry", "Performance (%)", "Maximum speed (km/h)"});
 	m_occurrenceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_occurrenceTable->setTabKeyNavigation(false);
 	m_occurrenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -245,9 +244,9 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_occurrenceTable->horizontalHeader()->setStretchLastSection(true);
 	occurrenceLayout->addWidget(m_occurrenceTable, 1);
 	QHBoxLayout* occurrenceButtonLayout = new QHBoxLayout();
-	m_selectAllButton = new QPushButton("Select all", occurrencePane);
+	m_selectAllButton = new QPushButton("Select All", occurrencePane);
 	m_selectAllButton->setObjectName("selectAllOccurrencesButton");
-	m_selectNoneButton = new QPushButton("Select none", occurrencePane);
+	m_selectNoneButton = new QPushButton("Select None", occurrencePane);
 	m_selectNoneButton->setObjectName("selectNoneOccurrencesButton");
 	occurrenceButtonLayout->addWidget(m_selectAllButton);
 	occurrenceButtonLayout->addWidget(m_selectNoneButton);
@@ -403,7 +402,7 @@ void ServicePanel::updateDetail() {
 			const QString currentCategory = QString::fromStdString(service->category);
 			categoryIndex = m_categoryCombo->findData(currentCategory);
 			if (categoryIndex < 0 && !currentCategory.isEmpty()) {
-				m_categoryCombo->addItem(QString("Unknown: %1").arg(currentCategory), currentCategory);
+				m_categoryCombo->addItem(QString("%1 (unknown)").arg(currentCategory), currentCategory);
 				categoryIndex = m_categoryCombo->count() - 1;
 			}
 			if (categoryIndex < 0)
@@ -439,7 +438,8 @@ void ServicePanel::updateDetail() {
 		if (service) {
 			const QString currentRoute = QString::fromStdString(service->route);
 			if (m_routeCombo->findData(currentRoute) < 0)
-				m_routeCombo->addItem(QString("Missing route [%1]").arg(currentRoute), currentRoute);
+				m_routeCombo->addItem(currentRoute.isEmpty() ? QStringLiteral("(none)") : QString("%1 (missing)").arg(currentRoute),
+					currentRoute);
 			m_routeCombo->setCurrentIndex(m_routeCombo->findData(currentRoute));
 		}
 		m_routeCombo->setToolTip(m_routeCombo->currentData(Qt::ToolTipRole).toString());
@@ -528,10 +528,18 @@ QString ServicePanel::generatedServiceLabel(const SceneService& service, int occ
 	const double entry = sceneServiceScheduledEntry(service, occurrence);
 	const QString entryText = std::isfinite(entry)
 		? QString("+%1 s").arg(QString::number(entry, 'g', 12))
-		: QStringLiteral("(invalid scheduled entry)");
-	return QString("%1 | route %2 | entry %3")
-		.arg(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code),
-			QString::fromStdString(service.route), entryText);
+		: QStringLiteral("no entry time");
+	return QString("%1 (route %2, %3)")
+		.arg(QString::fromStdString(code.empty() ? service.id : code), QString::fromStdString(service.route), entryText);
+}
+
+QString ServicePanel::occurrenceSummaryText(int total, int selected, int selectedInPeriod, int shown) {
+	QString text = QString("%1 of %2 selected").arg(selected).arg(total);
+	if (selectedInPeriod != selected)
+		text += QString(", %1 in the run period").arg(selectedInPeriod);
+	if (shown < total)
+		text += QString("\nShowing the first %1. All of them run. Lower the repeat count to choose which.").arg(shown);
+	return text;
 }
 
 void ServicePanel::refreshOccurrencePreview() {
@@ -540,7 +548,8 @@ void ServicePanel::refreshOccurrencePreview() {
 		m_occurrenceTable->clearContents();
 		m_occurrenceTable->setRowCount(0);
 		m_updatingOccurrencePreview = false;
-		m_occurrenceSelectionLabel->setText(QStringLiteral("No scene loaded"));
+		m_occurrenceSelectionLabel->clear();
+		m_occurrenceSelectionLabel->setToolTip(QString());
 		m_selectAllButton->setEnabled(false);
 		m_selectNoneButton->setEnabled(false);
 		return;
@@ -573,12 +582,12 @@ void ServicePanel::refreshOccurrencePreview() {
 			m_occurrenceTable->setItem(row, 0, include);
 			const std::string code = sceneServiceOccurrenceOperatingCode(service, occurrence);
 			m_occurrenceTable->setItem(row, 1,
-				new QTableWidgetItem(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code)));
-			m_occurrenceTable->setItem(row, 2, new QTableWidgetItem(QString("route %1").arg(QString::fromStdString(service.route))));
+				new QTableWidgetItem(code.empty() ? QStringLiteral("-") : QString::fromStdString(code)));
+			m_occurrenceTable->setItem(row, 2,
+				new QTableWidgetItem(service.route.empty() ? QStringLiteral("-") : QString::fromStdString(service.route)));
 			const double entry = sceneServiceScheduledEntry(service, occurrence);
 			m_occurrenceTable->setItem(row, 3,
-				new QTableWidgetItem(std::isfinite(entry) ? QString("+%1 s").arg(QString::number(entry, 'g', 12))
-														  : QStringLiteral("(invalid scheduled entry)")));
+				new QTableWidgetItem(std::isfinite(entry) ? QString("+%1 s").arg(QString::number(entry, 'g', 12)) : QStringLiteral("-")));
 			m_occurrenceTable->setItem(row, 4,
 				new QTableWidgetItem(QString::number(static_cast<double>(service.performancePercent), 'g', 6)));
 			m_occurrenceTable->setItem(row, 5,
@@ -586,24 +595,17 @@ void ServicePanel::refreshOccurrencePreview() {
 			for (int column = 0; column < m_occurrenceTable->columnCount(); ++column)
 				m_occurrenceTable->item(row, column)
 					->setToolTip(generatedServiceLabel(service, occurrence)
-						+ QString(" [%1, #%2]").arg(QString::fromStdString(service.id)).arg(occurrence));
+						+ QString("\nService %1, run %2").arg(QString::fromStdString(service.id)).arg(occurrence));
 		}
 		if (row >= displayedOccurrences)
 			break;
 	}
 	m_occurrenceTable->resizeColumnsToContents();
 	m_updatingOccurrencePreview = false;
-	QString text = QString("Configured total: %1; Number of services in sim.: %2; Selected: %3; Selected in period: %4.\n"
-						   "Counting rule: scheduled entry ≥ 0 and < %5 s; these are configured identities, not observed trains.")
-					   .arg(totalOccurrences)
-					   .arg(sceneInPeriodOccurrences(model, durationSeconds))
-					   .arg(m_runSelection->selectedCount(model, durationSeconds))
-					   .arg(m_runSelection->selectedInPeriodCount(model, durationSeconds))
-					   .arg(QString::number(durationSeconds, 'g', 12));
-	if (totalOccurrences > displayedOccurrences)
-		text += QString("\nPreview limited to %1 rows; generation is not truncated. Reduce the configured pattern before Run.")
-					.arg(displayedOccurrences);
-	m_occurrenceSelectionLabel->setText(text);
+	m_occurrenceSelectionLabel->setText(occurrenceSummaryText(totalOccurrences, m_runSelection->selectedCount(model, durationSeconds),
+		m_runSelection->selectedInPeriodCount(model, durationSeconds), displayedOccurrences));
+	m_occurrenceSelectionLabel->setToolTip(
+		QString("An occurrence is in the run period when it enters from 0 up to %1 s.").arg(QString::number(durationSeconds, 'g', 12)));
 	m_occurrenceSelectionLabel->setWordWrap(true);
 	const bool controlsEnabled = canEdit() && totalOccurrences <= kMaxOccurrences;
 	m_occurrenceTable->setEnabled(controlsEnabled);
@@ -678,7 +680,7 @@ void ServicePanel::deleteService() {
 		consumers << QString::fromStdString(consumer);
 	if (!consumers.isEmpty()) {
 		m_prompts->showError(this, "Cannot Delete Service",
-			QString("Cannot delete service '%1' because it is still referenced by:\n• %2\nRemove those operation references first.")
+			QString("Service '%1' is used by:\n• %2\nRemove those references first.")
 				.arg(QString::fromStdString(id), consumers.join("\n• ")),
 			true);
 		return;
@@ -712,7 +714,7 @@ void ServicePanel::commitIdEdit() {
 	if (sceneUniqueServiceId(model, newId) != newId) {
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(QString::fromStdString(oldId));
-		m_prompts->showError(this, "Service ID already exists", "Choose a unique service ID.", true);
+		m_prompts->showError(this, "Duplicate Service ID", "Choose a unique service ID.", true);
 		return;
 	}
 	sceneRewriteServiceReferences(model, oldId, newId);

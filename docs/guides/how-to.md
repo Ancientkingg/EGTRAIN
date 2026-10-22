@@ -75,7 +75,7 @@ A run starts its clock at the **Base time** in **Editors > Case Settings**.
 You need an open case. EGTRAIN checks it when it opens, after every edit and before every run. An error disables **Run** and a warning does not.
 
 1. Read the line under **Current case study** in the dock **Case and Layers**. It says **Ready to run**, or it shows the first error.
-2. Choose **View > Scene Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**.
+2. Choose **View > Scene Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**. Without **View > Advanced / Developer details**, **Code**, **File** and **Path** are in the tooltip of a row instead.
 
    ![The dock Scene Validation of Paimpol practice, a copy of Paimpol, after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view.](../images/how-to-scene-validation.png)
 3. Fix the first error in the editor that matches its **File** and **Path** (menu **Editors**), and read the table again. It updates after each edit.
@@ -104,7 +104,7 @@ If EGTRAIN closes without an answer, for example after a crash, it offers the ed
 You need an open case that you have copied ([Copy and save a case](#copy-and-save-a-case)) and no active run. The contents of the dock **Services** are disabled during a run; the menu entry still opens it.
 
 1. Choose **Editors > Services** and select the service in the list at the top of the dock. The dock has the tabs **Service**, **Timetable** and **Run occurrences**. Open the tab **Timetable**.
-2. In the table of stops, click the row of the stop. The dialog **Edit timetable stop** opens with the station, the platform, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**.
+2. In the table of stops, click the row of the stop. The dialog **Edit Timetable Stop** opens with the station, the platform, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**.
 3. Change the field. **Planned time display** switches the dialog between **Elapsed offsets (s)** (seconds from the base time of the case) and **Clock time**. Blank means the time is absent, and `0` is the start of the simulation.
 4. Click **OK** to apply the fields together, or **Cancel** to leave the stop as it was.
 
@@ -116,23 +116,23 @@ For the whole exercise of changing a copy, saving it, opening it again, validati
 
 You need an open case that you have copied and no active run. The editors **Rolling stock units** and **Compositions** are not disabled during a run, but an edit there discards the results of that run.
 
-1. Choose **Editors > Rolling stock units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Traction Row**, **Delete Traction Row**). **Plot input traction characteristic** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Scene Validation**. The limits are in [Rolling stock](scene-schema.md#rolling-stock).
+1. Choose **Editors > Rolling stock units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Row**, **Delete Row**). **Plot Traction Curve** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Scene Validation**. The limits are in [Rolling stock](scene-schema.md#rolling-stock).
 2. Choose **Editors > Compositions** to put units in order for a train: **Add Composition**, **Add Unit**, **Remove Unit**, **Move Up**, **Move Down**.
 3. Choose the composition of a service in **Editors > Services**.
 
-**Link parameter file...** and **Link traction file...** in the editor of a unit read the values of a unit from a text file. The links last for the session: **Unlink** removes one, and reopening or replacing the case clears them. [Review what loaded](main-window.md#review-what-loaded) gives the file formats and the rules for a changed file.
+**Link File...** on the tabs **Physical** and **Traction** of the editor of a unit reads the values of a unit from a parameter file or a traction file. The links last for the session: **Unlink** removes one, and reopening or replacing the case clears them. [Review what loaded](main-window.md#review-what-loaded) gives the file formats and the rules for a changed file.
 
 ## Compare a scenario with a baseline
 
 A scenario is a named set of incidents and entrance delays. **Set delay baseline** freezes a completed run without them, and **Compare delays** shows how much later or earlier each call of a run with them is. Any edit of the case clears the baseline, so build the scenario before you run the baseline.
 
-1. Choose **Editors > Incidents**. The list **Scenarios** holds each scenario. Click **Blank**, or select a scenario and click **Duplicate**, to create the scenario to test.
+1. Choose **Editors > Incidents**. The list **Scenarios** holds each scenario. Click **New**, or select a scenario and click **Duplicate**, to create the scenario to test.
 2. In the incident editor of the dock, click **Add Incident** and fill its fields. A signal head or a train that is selected on the network view becomes the target of the new incident. The icon button **Pick** beside **Target** waits for the next one that you click and takes it as the target; Esc or a second click on **Pick** stops the wait. A signal head gives a signal failure of its block, or of the authored signal when exactly one protects its section, and a train of a completed run gives a breakdown of its occurrence. You can also start on the network view: right-click a signal head and choose **Add signal failure**, or right-click a train after a run and choose **Add train breakdown**. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab **Incidents** with the new incident selected and puts the cursor in **Start (s)**. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so. For an entrance delay, open the tab **Entrance delays** and click **Add**. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change **Service**, **Occurrence**, **Station** and **Delay (s)**; the line in the list follows each change, and **Delay (s)** takes effect when you press Enter or leave the field.
 3. Select the scenario without incidents and entrance delays (the example cases have one, `baseline`). Click **Run**, and **Run simulation**. When the run has ended, click **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** names the baseline.
 4. Select the scenario with the incident in the list **Scenarios**. This keeps the baseline and discards the results. Run it.
 5. Click **Compare delays**. The window **Delay analysis** opens on the tab **Against baseline**.
 
-The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same scene revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenarios.md) describes the library. **Import JSON...** and **Export JSON...** in the dock move a single scenario between cases.
+The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same scene revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenarios.md) describes the library. **Import...** and **Export...** in the dock move a single scenario between cases.
 
 ## Move around the network view and follow a train
 
@@ -231,4 +231,4 @@ EGTRAIN keeps the 10 newest notes that it has reported.
 | **Compare delays** | There is no baseline, or the completed run has neither an incident nor an entrance delay | Same |
 | **Follow** | No run has started, or the case has no services | Run the case and choose a train |
 
-When **Run** is enabled but a message refuses the run, it names the problem, for example `Select at least one generated service occurrence before running.` On Windows and Linux the message is titled **Cannot Run Scene**. In the tab **Run occurrences** of **Services**, tick **Include** for at least one occurrence.
+When **Run** is enabled but a message refuses the run, it names the problem, for example `Select at least one generated service occurrence before running.` On Windows and Linux the message is titled **Cannot Run Scene**. In the tab **Run occurrences** of **Services**, tick **Run** for at least one occurrence.

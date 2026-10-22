@@ -24,24 +24,34 @@ namespace {
 struct FacetEntry {
 	const char* key;
 	const char* title;
+	/// The name of one row, in sentence case and in Title Case.
+	const char* noun;
+	const char* titleNoun;
 };
 
 // The facets in the order of the combo.
 constexpr FacetEntry kFacets[] = {
-	{"tracks", "Tracks"},
-	{"nodes", "Nodes"},
-	{"arcs", "Arcs"},
-	{"blocks", "Blocks"},
-	{"connections", "Connections"},
-	{"stations", "Stations"},
-	{"platforms", "Platforms"},
-	{"signals", "Signals"},
-	{"signalling_areas", "Signalling area"},
-	{"routes", "Routes"},
-	{"block_dependencies", "Block dependencies"},
-	{"single_track_restrictions", "Single-track restrictions"},
-	{"station_boundaries", "Station boundaries"},
+	{"tracks", "Tracks", "Track", "Track"},
+	{"nodes", "Nodes", "Node", "Node"},
+	{"arcs", "Arcs", "Arc", "Arc"},
+	{"blocks", "Blocks", "Block", "Block"},
+	{"connections", "Connections", "Connection", "Connection"},
+	{"stations", "Stations", "Station", "Station"},
+	{"platforms", "Platforms", "Platform", "Platform"},
+	{"signals", "Signals", "Signal", "Signal"},
+	{"signalling_areas", "Signalling areas", "Signalling area", "Signalling Area"},
+	{"routes", "Routes", "Route", "Route"},
+	{"block_dependencies", "Block dependencies", "Block dependency", "Block Dependency"},
+	{"single_track_restrictions", "Single-track restrictions", "Single-track restriction", "Single-Track Restriction"},
+	{"station_boundaries", "Station boundaries", "Station boundary", "Station Boundary"},
 };
+
+const FacetEntry* facetEntry(const QString& key) {
+	for (const FacetEntry& entry : kFacets)
+		if (key == QLatin1String(entry.key))
+			return &entry;
+	return nullptr;
+}
 
 const SceneModel& emptyScene() {
 	static const SceneModel scene;
@@ -54,10 +64,9 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	setObjectName("infrastructurePanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	QHBoxLayout* facetRow = new QHBoxLayout();
-	facetRow->addWidget(new QLabel("Entity", this));
 	m_facetCombo = new QComboBox(this);
 	m_facetCombo->setObjectName("infrastructureFacetCombo");
-	m_facetCombo->setAccessibleName("Infrastructure entity");
+	m_facetCombo->setAccessibleName("Infrastructure type");
 	for (const FacetEntry& entry : kFacets)
 		m_facetCombo->addItem(QString::fromLatin1(entry.title), QString::fromLatin1(entry.key));
 	facetRow->addWidget(m_facetCombo, 1);
@@ -66,7 +75,7 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_blockTrackFilterCombo = new QComboBox(this);
 	m_blockTrackFilterCombo->setObjectName("blockTrackFilterCombo");
 	m_blockTrackFilterCombo->setAccessibleName("Block track filter");
-	m_blockTrackFilterCombo->setToolTip("Show blocks on one track; Add appends to this track");
+	m_blockTrackFilterCombo->setToolTip("Track to show. Add puts new blocks on it.");
 	layout->addWidget(m_blockTrackFilterCombo);
 
 	m_guidanceLabel = new QLabel(this);
@@ -337,11 +346,11 @@ void InfrastructurePanel::updateSelection() {
 	if (!hasScene())
 		deleteHint = QStringLiteral("Open a case to delete infrastructure.");
 	else if (!canEdit())
-		deleteHint = QStringLiteral("The scene cannot be edited while a run is in progress.");
+		deleteHint = QStringLiteral("Stop the run to edit.");
 	else if (row < 0)
 		deleteHint = QStringLiteral("Select a row to delete.");
 	else
-		deleteHint = QStringLiteral("Delete the selected row. A row that other items refer to cannot be deleted.");
+		deleteHint = QStringLiteral("Delete the selected row");
 	m_deleteButton->setToolTip(deleteHint);
 	if (key == QStringLiteral("blocks")) {
 		const int blockRows = static_cast<int>(m_blockRowModelIndices.size());
@@ -369,8 +378,8 @@ void InfrastructurePanel::refreshBlockTrackFilter() {
 	for (const std::string& trackId : invalidTracks) {
 		const QString value = QString::fromStdString(trackId);
 		m_blockTrackFilterCombo->addItem(trackId.empty()
-				? QStringLiteral("Invalid track: (empty)")
-				: QStringLiteral("Invalid track: %1").arg(value),
+				? QStringLiteral("(none)")
+				: QStringLiteral("%1 (missing)").arg(value),
 			value);
 	}
 	int selected = m_blockTrackFilterCombo->findData(previousTrack);
@@ -423,7 +432,7 @@ void InfrastructurePanel::refreshRouteSectionPanel() {
 				} else if (const SceneSectionDescriptor* resolved = inventory.resolve(raw)) {
 					item->setText(QStringLiteral("%1 (legacy: %2)").arg(sectionLabel(labels, *resolved), QString::fromStdString(raw)));
 				} else {
-					item->setText(QStringLiteral("Invalid: %1").arg(QString::fromStdString(raw)));
+					item->setText(QStringLiteral("%1 (missing)").arg(QString::fromStdString(raw)));
 				}
 			}
 		}
@@ -515,7 +524,9 @@ void InfrastructurePanel::refuseEdit(const QString& message) {
 }
 
 bool InfrastructurePanel::confirmDelete(const QString& id, const std::vector<std::string>& consumers) {
-	const QString kind = facetTitle().toLower();
+	const FacetEntry* entry = facetEntry(facetKey());
+	const QString noun = entry ? QString::fromLatin1(entry->noun) : QStringLiteral("Row");
+	const QString titleNoun = entry ? QString::fromLatin1(entry->titleNoun) : QStringLiteral("Row");
 	if (!consumers.empty()) {
 		// A box that lists every consumer of a track or a node can be taller than the screen.
 		constexpr std::size_t kMaxListedConsumers = 10;
@@ -525,13 +536,12 @@ bool InfrastructurePanel::confirmDelete(const QString& id, const std::vector<std
 		QString list = lines.join("\n• ");
 		if (consumers.size() > kMaxListedConsumers)
 			list += QString("\nand %1 more").arg(static_cast<int>(consumers.size() - kMaxListedConsumers));
-		m_prompts->showError(this, "Cannot Delete Infrastructure Entity",
-			QString("Cannot delete %1 '%2' because it is still referenced by:\n• %3\nRemove or rebind those consumers first.")
-				.arg(kind, id, list),
-			true);
+		m_prompts->showError(this, QStringLiteral("Cannot Delete %1").arg(titleNoun),
+			QString("%1 '%2' is used by:\n• %3\nRemove or change these first.").arg(noun, id, list), true);
 		return false;
 	}
-	return m_prompts->confirm(this, "Delete infrastructure entity", QString("Delete %1 '%2'?").arg(kind, id));
+	return m_prompts->confirm(this, QStringLiteral("Delete %1").arg(titleNoun),
+		QString("Delete %1 '%2'?").arg(noun.toLower(), id));
 }
 
 void InfrastructurePanel::populateSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory,
@@ -553,11 +563,11 @@ void InfrastructurePanel::populateSectionCombo(QComboBox* combo, const SceneSect
 			combo->addItem(QStringLiteral("%1 (legacy: %2)").arg(sectionLabel(labels, *resolved), QString::fromStdString(current)),
 				QString::fromStdString(current));
 		} else {
-			combo->addItem(QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)), QString::fromStdString(current));
+			combo->addItem(QStringLiteral("%1 (missing)").arg(QString::fromStdString(current)), QString::fromStdString(current));
 		}
 		selected = combo->count() - 1;
 	} else if (selected < 0 && current.empty() && !allowNone) {
-		combo->addItem(QStringLiteral("Invalid: (empty)"), QString());
+		combo->addItem(QStringLiteral("(none)"), QString());
 		selected = combo->count() - 1;
 	}
 	combo->setCurrentIndex(selected >= 0 ? selected : (combo->count() > 0 ? 0 : -1));

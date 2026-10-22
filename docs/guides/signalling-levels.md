@@ -41,12 +41,12 @@ section different levels shows them. The editor shows the labels of the levels
 | Value | Label | One line from the program |
 | --- | --- | --- |
 | none | `No signalling` | Trains in this area are not separated. |
-| 0 | `0 ATB fixed block` | Fixed block; the block before an occupied one is limited to 40 km/h. |
-| 1 | `1 ETCS Level 1 fixed block` | Fixed block; moves trains like level 2; no blocking times. |
-| 2 | `2 ETCS Level 2 fixed block` | Fixed block; moves trains like level 1; blocking times computed. |
+| 0 | `0 ATB fixed block` | Fixed block. The block before an occupied one is limited to 40 km/h. |
+| 1 | `1 ETCS Level 1 fixed block` | Fixed block, without blocking times. |
+| 2 | `2 ETCS Level 2 fixed block` | Fixed block, with blocking times. |
 | 3 | `3 ETCS Level 3 moving block` | Movement authority ends 50 m behind the train ahead. |
-| 4 | `4 Virtual coupling` | Moving block; a train can follow the train ahead at its speed. |
-| 5 | `5 BACC track circuits` | Fixed block; one extra empty block (double red) before an occupied one. |
+| 4 | `4 Virtual coupling` | Moving block. A train can follow the train ahead at its speed. |
+| 5 | `5 BACC track circuits` | Fixed block, with one extra empty block (double red) before an occupied one. |
 
 ### What happens in a step
 

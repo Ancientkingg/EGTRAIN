@@ -47,7 +47,7 @@ void populateSignallingSystemCombo(QComboBox* combo, int current) {
 		const bool unchosen = current == kSignallingLevelUnset;
 		combo->addItem(unchosen ? QStringLiteral("Choose a signalling system") : QString::fromStdString(signallingLevelName(current)), current);
 		combo->setItemData(0,
-			unchosen ? QStringLiteral("No system is chosen yet. Choose the system that governs the sections inside this area.")
+			unchosen ? QStringLiteral("Not chosen yet")
 					 : QString::fromStdString(signallingLevelDescription(current)),
 			Qt::ToolTipRole);
 	}
@@ -66,7 +66,7 @@ void populateSignallingAreaTrackCombo(QComboBox* combo, const SceneModel& scene,
 		return;
 	combo->clear();
 	if (!current.empty() && !sceneHasTrack(scene, current))
-		combo->addItem(QStringLiteral("Invalid track: %1").arg(QString::fromStdString(current)), QString::fromStdString(current));
+		combo->addItem(QStringLiteral("%1 (missing)").arg(QString::fromStdString(current)), QString::fromStdString(current));
 	combo->addItem(QStringLiteral("(all tracks)"), QString());
 	for (const SceneTrack& track : scene.tracks) {
 		const QString id = QString::fromStdString(track.id);
@@ -126,7 +126,7 @@ public:
 		if (item.id == newId)
 			return;
 		if (!idCanReplaceRow(items, row, newId)) {
-			panel.refuseEdit(QStringLiteral("Infrastructure IDs must be non-empty and unique"));
+			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
 			return;
 		}
 		const std::string oldId = item.id;

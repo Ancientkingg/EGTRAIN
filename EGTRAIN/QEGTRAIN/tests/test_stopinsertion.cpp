@@ -283,7 +283,7 @@ int main() {
 		const SceneService beforeAmbiguous = secondOnly.services[0];
 		const auto ambiguous = insertSceneStop(secondOnly, secondOnly.services[0], 0,
 			stop("station-a", "", 20.0, 50.0));
-		ok &= expect(!ambiguous.inserted && contains(ambiguous.error, "choose a platform")
+		ok &= expect(!ambiguous.inserted && ambiguous.error == "The new stop (A) has no platform and the route reaches more than one here. Choose a platform."
 				&& sameStops(secondOnly.services[0].stops, beforeAmbiguous.stops),
 			"a stop without a platform at a station with two reachable platforms asks for a platform");
 		ok &= expect(insertSceneStop(secondOnly, secondOnly.services[0], 0,

@@ -73,11 +73,12 @@ public:
 
 	/// The delays of the selected scenario, one row each.
 	QListWidget* listWidget() const { return m_listWidget; }
-	/// The services of the scene, each with its id as the data. A service that the scene lacks is shown as invalid.
+	/// The services of the scene, each with its id as the data. A service that the scene lacks is shown as missing.
 	QComboBox* serviceCombo() const { return m_serviceCombo; }
-	/// The occurrence of the service, counted from 1, up to the number of occurrences in the counted time.
+	/// The occurrence of the service, counted from 1, up to the number of occurrences in the counted time, which its suffix
+	/// gives.
 	QSpinBox* occurrenceEdit() const { return m_occurrenceEdit; }
-	/// The valid range of occurrences and the label of the chosen occurrence.
+	/// The label of the chosen occurrence; empty when the delay names no service of the scene.
 	QLabel* occurrenceContextLabel() const { return m_occurrenceContextLabel; }
 	/// The message above the fields while no entrance delay is selected; hidden otherwise.
 	QLabel* emptyStateLabel() const { return m_emptyStateLabel; }

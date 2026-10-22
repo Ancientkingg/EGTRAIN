@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
 		document.replace(delayScene(), false);
 		selection.selectScenario("base");
 		panel.refresh();
-		ok &= expect(items(panel.listWidget()) == QStringList({"s1 / #2 @ A: 30 s | code 100-2", "s2 / #1 @ X: 0 s | code s2"})
+		ok &= expect(items(panel.listWidget()) == QStringList({"100-2 at A: +30 s", "s2 at X: +0 s"})
 				&& panel.listWidget()->currentRow() == 0 && panel.listWidget()->isEnabled() && panel.addButton()->isEnabled()
 				&& panel.duplicateButton()->isEnabled() && panel.deleteButton()->isEnabled(),
 			"the delays of the selected scenario are listed with the service code, and the first is selected");
@@ -165,14 +165,14 @@ int main(int argc, char** argv) {
 
 		// the fields
 		ok &= expect(choices(panel.serviceCombo())
-					== QStringList({"100-1 | route r1 | entry +0 s", "s2 | route r1 | entry +0 s", "s3 | route r1 | entry +0 s"})
+					== QStringList({"100-1 (route r1, +0 s)", "s2 (route r1, +0 s)", "s3 (route r1, +0 s)"})
 				&& panel.serviceCombo()->currentData().toString() == "s1" && panel.serviceCombo()->isEnabled(),
 			"the services are offered by their first occurrence, and the service of the delay is chosen");
 		ok &= expect(panel.occurrenceEdit()->minimum() == 1 && panel.occurrenceEdit()->maximum() == 3 && panel.occurrenceEdit()->value() == 2
 				&& panel.occurrenceEdit()->isEnabled(),
 			"the occurrences of the service limit the occurrence");
-		ok &= expect(panel.occurrenceContextLabel()->text() == "Valid occurrence range: 1..3 | 100-2 | route r1 | entry +1200 s",
-			"the context names the range of occurrences and the generated service");
+		ok &= expect(panel.occurrenceContextLabel()->text() == "100-2 (route r1, +1200 s)" && panel.occurrenceEdit()->suffix() == " of 3",
+			"the context names the generated service, and the occurrence the number of occurrences");
 		ok &= expect(choices(panel.stationCombo()) == QStringList({"A", "D"}) && panel.stationCombo()->currentText() == "A"
 				&& panel.stationCombo()->isEnabled(),
 			"the stations are the first calls of the service with a planned departure");
@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
 		// another delay
 		panel.listWidget()->setCurrentRow(1);
 		ok &= expect(panel.serviceCombo()->currentData().toString() == "s2" && panel.occurrenceEdit()->maximum() == 1
-				&& panel.occurrenceContextLabel()->text() == "Valid occurrence range: 1..1 | s2 | route r1 | entry +0 s"
+				&& panel.occurrenceContextLabel()->text() == "s2 (route r1, +0 s)" && panel.occurrenceEdit()->suffix() == " of 1"
 				&& choices(panel.stationCombo()) == QStringList({"X"}) && panel.secondsEdit()->value() == 0.0 && events.log.empty(),
 			"another delay shows its own fields, and selecting it edits nothing");
 		panel.listWidget()->setCurrentRow(0);
@@ -198,8 +198,8 @@ int main(int argc, char** argv) {
 		panel.occurrenceEdit()->setValue(3);
 		panel.commitOccurrence();
 		ok &= expect(document.model().scenarios[0].entranceDelays[0].occurrence == 3 && events.log == edit
-				&& panel.occurrenceContextLabel()->text().endsWith("100-3 | route r1 | entry +2400 s")
-				&& items(panel.listWidget())[0] == "s1 / #3 @ D: 30 s | code 100-3",
+				&& panel.occurrenceContextLabel()->text() == "100-3 (route r1, +2400 s)"
+				&& items(panel.listWidget())[0] == "100-3 at D: +30 s",
 			"an occurrence is written to the document, and the context and the list show it");
 		events.log.clear();
 		panel.commitOccurrence();
@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
 		panel.secondsEdit()->setValue(-12.5);
 		panel.commitSeconds();
 		ok &= expect(document.model().scenarios[0].entranceDelays[0].delaySeconds == -12.5 && events.log == edit
-				&& items(panel.listWidget())[0] == "s1 / #3 @ D: -12.5 s | code 100-3",
+				&& items(panel.listWidget())[0] == "100-3 at D: -12.5 s",
 			"a delay that is negative is written to the document, and the list shows it");
 		events.log.clear();
 		panel.commitSeconds();
@@ -221,9 +221,9 @@ int main(int argc, char** argv) {
 				&& document.lastChangeLabel() == "Change entrance delay service",
 			"another service starts at its first occurrence and at a station where it plans to depart");
 		panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s3"));
-		ok &= expect(changed.serviceId == "s3" && changed.stationId.empty() && panel.stationCombo()->currentText() == "Invalid: (empty)"
-				&& choices(panel.stationCombo()) == QStringList({"Invalid: (empty)"})
-				&& panel.occurrenceContextLabel()->text() == "Valid occurrence range: 1..1 | s3 | route r1 | entry +0 s",
+		ok &= expect(changed.serviceId == "s3" && changed.stationId.empty() && panel.stationCombo()->currentText() == "(none)"
+				&& choices(panel.stationCombo()) == QStringList({"(none)"})
+				&& panel.occurrenceContextLabel()->text() == "s3 (route r1, +0 s)",
 			"a service without a call where it departs has no station to choose");
 		panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s1"));
 		ok &= expect(changed.serviceId == "s1" && changed.stationId == "A" && changed.occurrence == 1, "the first station is chosen again");
@@ -233,10 +233,10 @@ int main(int argc, char** argv) {
 		document.mutableModel().scenarios[0].entranceDelays[1].stationId.clear();
 		panel.refresh();
 		panel.listWidget()->setCurrentRow(1);
-		ok &= expect(panel.serviceCombo()->currentText() == "Invalid: gone" && panel.stationCombo()->currentText() == "Invalid: (empty)"
-				&& panel.occurrenceContextLabel()->text() == "Valid occurrence range: 1..1 | Generated operating code: (unavailable)"
-				&& items(panel.listWidget())[1] == "gone / #1 @ (empty): 0 s",
-			"a delay of a service that is gone is shown as invalid, without a code");
+		ok &= expect(panel.serviceCombo()->currentText() == "gone (missing)" && panel.stationCombo()->currentText() == "(none)"
+				&& panel.occurrenceContextLabel()->text().isEmpty() && panel.occurrenceEdit()->suffix() == " of 1"
+				&& items(panel.listWidget())[1] == "gone #1 at (none): +0 s",
+			"a delay of a service that is gone is shown as missing, without a code");
 		document.mutableModel().scenarios[0].entranceDelays[1] = delay("s2", 1, "X", 0.0);
 		panel.refresh();
 
@@ -329,7 +329,7 @@ int main(int argc, char** argv) {
 			"the stations follow the timetable of the service, and the selection stays");
 		document.mutableModel().settings.durationSeconds = 7200.0;
 		document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
-		ok &= expect(panel.occurrenceEdit()->maximum() == 6 && panel.occurrenceContextLabel()->text().startsWith("Valid occurrence range: 1..6"),
+		ok &= expect(panel.occurrenceEdit()->maximum() == 6 && panel.occurrenceEdit()->suffix() == " of 6",
 			"a longer case gives the service more occurrences");
 		panel.setOccurrenceDuration([] { return 2400.0; });
 		document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
@@ -337,10 +337,10 @@ int main(int argc, char** argv) {
 		panel.setOccurrenceDuration({});
 		document.mutableModel().services[0].operatingCode = "200";
 		document.markChanged(SceneDocument::Services, "Change service code");
-		ok &= expect(items(panel.listWidget())[0].endsWith("code 200-2"), "the list follows the service code");
+		ok &= expect(items(panel.listWidget())[0].startsWith("200-2 at "), "the list follows the service code");
 		document.mutableModel().services[0].operatingCode = "300";
 		document.markChanged(SceneDocument::Scenarios, "Edit scenario");
-		ok &= expect(items(panel.listWidget())[0].endsWith("code 200-2"), "the delays stay as they are when only scenarios change");
+		ok &= expect(items(panel.listWidget())[0].startsWith("200-2 at "), "the delays stay as they are when only scenarios change");
 		document.mutableModel().services[0].operatingCode = "100";
 		document.mutableModel().settings.durationSeconds = 3600.0;
 		document.markChanged(SceneDocument::Services | SceneDocument::CaseSettings, "Edit");
@@ -379,7 +379,7 @@ int main(int argc, char** argv) {
 		other.scenarios[0].entranceDelays.resize(1);
 		other.scenarios[0].entranceDelays[0].delaySeconds = 4.0;
 		document.replace(other, false);
-		ok &= expect(items(panel.listWidget()) == QStringList({"s1 / #2 @ A: 4 s | code 100-2"}) && !document.isDirty(),
+		ok &= expect(items(panel.listWidget()) == QStringList({"100-2 at A: +4 s"}) && !document.isDirty(),
 			"opening another scene shows its delays without an edit");
 
 		// detach

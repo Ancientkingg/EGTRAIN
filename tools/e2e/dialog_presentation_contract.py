@@ -177,7 +177,7 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     if unsignalled and not zero:
         # The status repeats the validator message, which names the sections and tracks.
         prefix = (f"Ready to run, but no signalling area is defined. {unsignalled} of {unsignalled} route sections "
-                  f"{'has' if unsignalled == 1 else 'have'} no signalling level and "
+                  f"{'has' if unsignalled == 1 else 'have'} no signalling system and "
                   f"{'runs' if unsignalled == 1 else 'run'} without signalling: ")
         assert rendered["status"].startswith(prefix) and rendered["status"].endswith(")."), rendered
     else:

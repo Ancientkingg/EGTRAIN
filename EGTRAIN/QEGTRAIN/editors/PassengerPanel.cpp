@@ -1,5 +1,6 @@
 #include "editors/PassengerPanel.h"
 
+#include "editors/CountText.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
@@ -37,15 +38,21 @@
 
 namespace {
 
-// Adds the current value of a combo that is not among its choices as an entry marked invalid, with the reason as its
-// tooltip, and returns its index.
-int addInvalidEntry(QComboBox* combo, const std::string& current, const QString& reason) {
-	combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
-								   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
+// Adds the current value of a combo that is not among its choices as an entry marked with `state`, such as "missing",
+// with the reason as its tooltip, and returns its index.
+int addInvalidEntry(QComboBox* combo, const std::string& current, const QString& reason,
+	const QString& state = QStringLiteral("missing")) {
+	combo->addItem(current.empty() ? QStringLiteral("(none)")
+								   : QStringLiteral("%1 (%2)").arg(QString::fromStdString(current), state),
 		QString::fromStdString(current));
 	const int index = combo->count() - 1;
 	combo->setItemData(index, reason, Qt::ToolTipRole);
 	return index;
+}
+
+bool hasStation(const SceneModel& sceneModel, const std::string& stationId) {
+	return std::any_of(sceneModel.stations.begin(), sceneModel.stations.end(),
+		[&stationId](const SceneStation& station) { return station.id == stationId; });
 }
 
 // Why a station that is not among the choices of a combo is invalid: the scene has no such station, or the service of
@@ -54,10 +61,8 @@ QString invalidStationReason(const SceneModel& sceneModel, const std::string& st
 	if (stationId.empty())
 		return QStringLiteral("No station is set.");
 	const QString id = QString::fromStdString(stationId);
-	const bool inScene = std::any_of(sceneModel.stations.begin(), sceneModel.stations.end(),
-		[&stationId](const SceneStation& station) { return station.id == stationId; });
-	return inScene ? QStringLiteral("Station %1 is not a stop of the service of this leg.").arg(id)
-				   : QStringLiteral("Station %1 is not in this scene.").arg(id);
+	return hasStation(sceneModel, stationId) ? QStringLiteral("Station %1 is not a stop of the service of this leg.").arg(id)
+											 : QStringLiteral("Station %1 is not in this case.").arg(id);
 }
 
 // The stations to choose from. `allowed` limits them to a set of station ids; null allows all. A current id that is not
@@ -74,13 +79,13 @@ void populateStationCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 			continue;
 		const QString label = station.name.empty()
 			? QString::fromStdString(station.id)
-			: QStringLiteral("%1 | %2").arg(QString::fromStdString(station.id),
-				  QString::fromStdString(station.name));
+			: QStringLiteral("%1 (%2)").arg(QString::fromStdString(station.name), QString::fromStdString(station.id));
 		combo->addItem(label, QString::fromStdString(station.id));
 	}
 	int selected = combo->findData(QString::fromStdString(current));
 	if (selected < 0)
-		selected = addInvalidEntry(combo, current, invalidStationReason(sceneModel, current));
+		selected = addInvalidEntry(combo, current, invalidStationReason(sceneModel, current),
+			hasStation(sceneModel, current) ? QStringLiteral("not a stop") : QStringLiteral("missing"));
 	combo->setCurrentIndex(selected);
 }
 
@@ -97,18 +102,19 @@ void populateServiceCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 	if (selected < 0) {
 		selected = addInvalidEntry(combo, current,
 			current.empty() ? QStringLiteral("No service is set.")
-							: QStringLiteral("Service %1 is not in this scene.").arg(QString::fromStdString(current)));
+							: QStringLiteral("Service %1 is not in this case.").arg(QString::fromStdString(current)));
 	}
 	combo->setCurrentIndex(selected);
 }
 
+// The message and the fix of the first error, else of the first diagnostic, for a dialog.
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
 	for (const auto& d : diagnostics) {
 		if (d.severity == SceneSeverity::Error)
-			return QString::fromStdString(d.message);
+			return QString::fromStdString(toDialogText(d));
 	}
 	if (!diagnostics.empty())
-		return QString::fromStdString(diagnostics.front().message);
+		return QString::fromStdString(toDialogText(diagnostics.front()));
 	return QString();
 }
 
@@ -170,7 +176,7 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	passengerListLayout->addLayout(passengerButtonLayout);
 	m_importButton = new QPushButton("Import...", passengerListPane);
 	m_importButton->setObjectName("passengerImportButton");
-	m_importButton->setToolTip("Import the exact legacy DAS and RouteChoice passenger pair; imported records are appended.");
+	m_importButton->setToolTip("Add passengers from a legacy case's Passengers folder.");
 	passengerListLayout->addWidget(m_importButton);
 	passengerListLayout->addStretch();
 	passengerListPane->setMaximumWidth(passengerListPane->fontMetrics().averageCharWidth() * 30);
@@ -303,7 +309,6 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_importResultTable->setTabKeyNavigation(false);
 	m_importResultTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_importResultTable->horizontalHeader()->setStretchLastSection(true);
-	m_importResultTable->setToolTip("Transient results from the most recent passenger import; not persisted.");
 	passengerDetailLayout->addWidget(m_importResultTable);
 	m_importResultHeading->hide();
 	m_importResultTable->hide();
@@ -460,7 +465,7 @@ void PassengerPanel::updatePassengerDetail() {
 			for (const auto& journey : passenger->journeys) {
 				QString label = QString::fromStdString(journey.id);
 				if (!journey.activity.empty())
-					label += QStringLiteral(" | ") + QString::fromStdString(journey.activity);
+					label += QStringLiteral(" (%1)").arg(QString::fromStdString(journey.activity));
 				m_journeyList->addItem(label);
 			}
 		}
@@ -487,20 +492,19 @@ void PassengerPanel::updatePassengerDetail() {
 		for (const auto& diagnostic : *m_diagnostics) {
 			if (!belongsToPassenger(diagnostic, passengerPrefix, passenger->id, journeyIds, legIds))
 				continue;
-			const QString line = QString::fromStdString(severityLabel(diagnostic.severity)).toUpper()
-				+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
+			// The colour of the error callout says that its lines are errors; the other callout names the severity.
+			const QString message = QString::fromStdString(diagnostic.message);
 			if (diagnostic.severity == SceneSeverity::Error) {
-				errors << line;
+				errors << message;
 			} else {
-				notes << line;
-				hasWarning = hasWarning || diagnostic.severity == SceneSeverity::Warning;
+				const bool warning = diagnostic.severity == SceneSeverity::Warning;
+				notes << (warning ? QStringLiteral("Warning: ") : QStringLiteral("Note: ")) + message;
+				hasWarning = hasWarning || warning;
 			}
 		}
 	}
 	if (errors.isEmpty() && notes.isEmpty()) {
-		DialogLayout::setHelp(m_diagnosticLabel,
-			passenger ? QStringLiteral("No validation messages for this passenger selection.")
-					  : QStringLiteral("Select a passenger, or use Add to create one or Import to read a legacy passenger folder."));
+		DialogLayout::setHelp(m_diagnosticLabel, passenger ? QString() : QStringLiteral("Select a passenger or add one."));
 	} else {
 		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, cappedLines(errors));
 	}
@@ -779,7 +783,7 @@ void PassengerPanel::commitPassengerId() {
 	if (newId.empty() || (newId != oldId && duplicate)) {
 		const QSignalBlocker blocker(m_passengerIdEdit);
 		m_passengerIdEdit->setText(QString::fromStdString(oldId));
-		m_prompts->showError(this, newId.empty() ? "Invalid Passenger ID" : "Passenger ID already exists",
+		m_prompts->showError(this, newId.empty() ? "Invalid Passenger ID" : "Duplicate Passenger ID",
 			newId.empty() ? "Passenger IDs must not be empty." : "Choose a unique passenger ID.", true);
 		return;
 	}
@@ -808,7 +812,7 @@ void PassengerPanel::commitJourneyId() {
 	if (newId.empty() || (newId != oldId && duplicate)) {
 		const QSignalBlocker blocker(m_journeyIdEdit);
 		m_journeyIdEdit->setText(QString::fromStdString(oldId));
-		m_prompts->showError(this, newId.empty() ? "Invalid Journey ID" : "Journey ID already exists",
+		m_prompts->showError(this, newId.empty() ? "Invalid Journey ID" : "Duplicate Journey ID",
 			newId.empty() ? "Journey IDs must not be empty." : "Choose a unique journey ID.", true);
 		return;
 	}
@@ -878,7 +882,7 @@ void PassengerPanel::commitLegId() {
 	if (newId.empty() || (newId != oldId && duplicate)) {
 		const QSignalBlocker blocker(m_legIdEdit);
 		m_legIdEdit->setText(QString::fromStdString(oldId));
-		m_prompts->showError(this, newId.empty() ? "Invalid Leg ID" : "Leg ID already exists",
+		m_prompts->showError(this, newId.empty() ? "Invalid Leg ID" : "Duplicate Leg ID",
 			newId.empty() ? "Leg IDs must not be empty." : "Choose a unique leg ID.", true);
 		return;
 	}
@@ -963,13 +967,13 @@ void PassengerPanel::importPassengers() {
 		}
 		if (imported.rows.empty())
 			addResultRow(QFileInfo(sourcePath).fileName(), sourcePath, 0, QString(), QStringLiteral("Rejected"),
-				QStringLiteral("The exact DAS and RouteChoice passenger pair could not be read"));
+				QStringLiteral("Could not read the DAS and RouteChoice files"));
 		QString message = firstDiagnosticMessage(imported.diagnostics);
 		if (message.isEmpty())
 			message = QStringLiteral("Passenger import reported errors.");
-		m_prompts->showError(this, "Passenger Import Diagnostics", message, true);
+		m_prompts->showError(this, "Passenger Import Failed", message, true);
 		m_importResultTable->resizeColumnsToContents();
-		emit statusMessage(QStringLiteral("Passenger import rejected; the scene was not changed"), 7000);
+		emit statusMessage(QStringLiteral("Passenger import failed. Nothing was changed"), 7000);
 		return;
 	}
 
@@ -1007,7 +1011,7 @@ void PassengerPanel::importPassengers() {
 				rejectedPassengerIds.insert(passenger.id);
 			addResultRow(QStringLiteral("%1 (batch)").arg(QFileInfo(sourcePath).fileName()), sourcePath, 0,
 				QString::fromStdString(passenger.id), QStringLiteral("Rejected"),
-				QStringLiteral("Passenger, journey, or leg ID collides with existing or earlier imported data"));
+				QStringLiteral("Passenger, journey or leg ID already exists"));
 			continue;
 		}
 		passengerIds.insert(passenger.id);
@@ -1022,13 +1026,13 @@ void PassengerPanel::importPassengers() {
 		const QString status = !row.accepted || rejectedByBatch ? QStringLiteral("Rejected")
 																: (row.unresolvedReferences ? QStringLiteral("Unresolved") : QStringLiteral("Accepted"));
 		const QString detail = rejectedByBatch
-			? QStringLiteral("Passenger ID collides with existing or earlier imported data")
+			? QStringLiteral("Passenger ID already exists")
 			: QString::fromStdString(row.context);
 		addResultRow(QFileInfo(file).fileName(), file, row.row, QString::fromStdString(row.passengerId), status, detail);
 	}
 	if (imported.rows.empty() && imported.diagnostics.empty())
 		addResultRow(QFileInfo(sourcePath).fileName(), sourcePath, 0, QString(), QStringLiteral("Rejected"),
-			QStringLiteral("No passenger source rows were found"));
+			QStringLiteral("No passengers found"));
 	for (const auto& report : imported.report)
 		model.importReport.push_back(report);
 	if (rejectedPassengers > 0) {
@@ -1041,8 +1045,10 @@ void PassengerPanel::importPassengers() {
 		emit changed();
 	}
 	m_importResultTable->resizeColumnsToContents();
-	emit statusMessage(QString("Passenger import: %1 accepted, %2 rejected; unresolved rows remain visible")
-						   .arg(acceptedPassengers)
-						   .arg(rejectedPassengers),
-		7000);
+	QString summary = acceptedPassengers > 0
+		? QStringLiteral("Imported ") + countText(acceptedPassengers, QStringLiteral("passenger"), QStringLiteral("passengers"))
+		: QStringLiteral("No passengers imported");
+	if (rejectedPassengers > 0)
+		summary += QStringLiteral(", %1 rejected").arg(rejectedPassengers);
+	emit statusMessage(summary, 7000);
 }

@@ -32,7 +32,7 @@ QString autosavedText(const QDateTime& writtenAt) {
 
 QString sourceText(const RecoveryCandidate& candidate) {
 	if (candidate.source.kind == RecoverySourceKind::Untitled || candidate.source.path.isEmpty())
-		return QStringLiteral("New case study, not saved");
+		return QStringLiteral("Not saved yet");
 	return QDir::toNativeSeparators(candidate.source.path);
 }
 
@@ -42,7 +42,7 @@ QString noteText(const RecoveryCandidate& candidate) {
 		case RecoveryCandidateState::NewerRecordVersion:
 			return QStringLiteral("This copy was made by a newer version of EGTRAIN and cannot be opened by this version.");
 		case RecoveryCandidateState::OtherSceneVersion:
-			return QStringLiteral("This copy uses a different scene version and cannot be opened by this version of EGTRAIN.");
+			return QStringLiteral("This version of EGTRAIN cannot open this copy.");
 		case RecoveryCandidateState::Openable:
 			break;
 	}
@@ -68,8 +68,8 @@ bool originalMayBeNewer(RecoverySourceStatus status) {
 }
 
 QString removedText(int removed) {
-	const QString what = removed == 1 ? QStringLiteral("1 older recovery copy was") : QStringLiteral("%1 older recovery copies were").arg(removed);
-	return what + QStringLiteral(" removed, because EGTRAIN keeps the newest %1.").arg(RecoveryStore::kMaxKeptInstances);
+	const QString what = removed == 1 ? QStringLiteral("Removed 1 older copy.") : QStringLiteral("Removed %1 older copies.").arg(removed);
+	return what + QStringLiteral(" EGTRAIN keeps the newest %1.").arg(RecoveryStore::kMaxKeptInstances);
 }
 
 } // namespace
@@ -172,12 +172,10 @@ RecoveryPrompt::RecoveryPrompt(const RecoveryScan& scan, QWidget* parent, const 
 
 	const QString context = m_candidates.size() == 1
 		? QStringLiteral(
-			  "EGTRAIN closed before this case was saved. Recovering opens the copy as an unsaved case. "
-			  "The original stays unchanged until you save.")
+			  "EGTRAIN closed before this case was saved. The original stays unchanged until you save.")
 		: QStringLiteral(
-			  "EGTRAIN closed before these cases were saved. Choose one to recover. "
-			  "Recovering opens the copy as an unsaved case. The originals stay unchanged until you save. "
-			  "Copies you leave are offered again at the next start.");
+			  "EGTRAIN closed before these cases were saved. Recovering opens an unsaved copy. "
+			  "The originals stay unchanged until you save.");
 	DialogLayout::install(*this, QStringLiteral("Recover Unsaved Work"), context, body, actions, availableGeometry);
 
 	// The confirmation sits above the buttons, outside the scrolling list, so that it is always in view.

@@ -133,7 +133,7 @@ SelfUpdateCapability SelfUpdater::capability() {
 #endif
 	SelfUpdateCapability result;
 #if !EGTRAIN_PACKAGED_BUILD
-	result.reason = QStringLiteral("Self-update is available only in packaged release builds.");
+	result.reason = QStringLiteral("Updates install only in a packaged release.");
 	return result;
 #else
 	const QString applicationPath = QFileInfo(QCoreApplication::applicationFilePath()).absoluteFilePath();

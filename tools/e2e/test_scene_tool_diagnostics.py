@@ -102,7 +102,7 @@ def main() -> None:
         raise SystemExit(f"expected one grouped dwell diagnostic, got {len(dwell)}")
     if not dwell[0].split("x ", 1)[0].isdigit():
         raise SystemExit(f"expected grouped diagnostic count: {dwell[0]}")
-    for detail in ("services.json", "Dwell time exceeds departure - arrival window"):
+    for detail in ("services.json", "Minimum dwell is longer than the time from arrival to departure"):
         if detail not in dwell[0]:
             raise SystemExit(f"grouped diagnostic lost {detail}: {dwell[0]}")
     for context in (

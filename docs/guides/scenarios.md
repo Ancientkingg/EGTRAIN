@@ -11,9 +11,9 @@ tab shows each scenario's ID, name, incident and entrance-delay counts, default
 marker, and an in-memory modified marker. The authored description remains
 available; Advanced mode adds the full validation status. Normal mode still marks
 an actionable invalid scenario as `Invalid` but does not surface non-blocking
-warning detail. **Blank** and **Duplicate** create isolated scenarios; editing incidents, names, or
-descriptions changes only the selected scenario. **Import JSON...** and
-**Export JSON...** use the standalone scenario object documented in the schema
+warning detail. **New** and **Duplicate** create isolated scenarios; editing incidents, names, or
+descriptions changes only the selected scenario. **Import...** and
+**Export...** use the standalone scenario object documented in the schema
 reference. Imports retain entrance delays, validate references against the
 open case, and report any adjusted ID rather than replacing an existing
 scenario or incident.

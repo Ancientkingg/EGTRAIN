@@ -53,7 +53,7 @@ The editors, **Scene Validation**, **Loaded Data** and **Console Log** are hidde
 
 EGTRAIN checks the case when it opens, after every edit and before every run. An error stops a run, and a warning does not. Paimpol has no errors. It has a few hundred warnings, nearly all with the code `scene.passenger.legs.empty` (a passenger journey without route-choice legs), and they do not matter for this walk.
 
-To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The table lists each finding with its **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**. The status bar names validation only when it finds an error (`Not ready: N validation error(s) must be fixed`). **View > Advanced / Developer details** adds the counts, as in `Validation: 0 error(s), N warning(s)`, and the dock **Loaded Data**.
+To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The table lists each finding with its **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**; **Code**, **File** and **Path** are in the tooltip of a row and show as columns with **View > Advanced / Developer details**. The status bar names validation only when it finds an error (`Cannot run: 1 error`). **View > Advanced / Developer details** adds the counts, as in `2 warnings`, and the dock **Loaded Data**.
 
 ## 4. Run the simulation
 

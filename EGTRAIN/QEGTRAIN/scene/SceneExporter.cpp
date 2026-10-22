@@ -1114,7 +1114,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	const auto admitTrack = [&](const std::string& name, const std::string& file) {
 		int number = 0;
 		if (!reconstructibleTrackNumber(name, number) || !reconstructedTracks.insert(number).second) {
-			addDiag(SceneSeverity::Error, "scene.export.ref", "Canonical area conversion requires unique track numbers in canonical decimal spelling: " + name, file);
+			addDiag(SceneSeverity::Error, "scene.export.ref", "Track numbers must be unique whole numbers: " + name, file);
 			return false;
 		}
 		return true;

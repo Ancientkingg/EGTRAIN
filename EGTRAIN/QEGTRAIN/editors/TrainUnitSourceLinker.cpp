@@ -79,7 +79,7 @@ void TrainUnitSourceLinker::link(std::string unitId, bool traction) { // NOLINT(
 	const auto it = m_links.find(unitId);
 	const QString oldPath = it == m_links.end() ? QString() : (traction ? it->second.tractionPath : it->second.dataPath);
 	const QString selected = QFileDialog::getOpenFileName(m_dialogParent,
-		traction ? QStringLiteral("Link traction source") : QStringLiteral("Link parameter source"),
+		traction ? QStringLiteral("Link Traction File") : QStringLiteral("Link Parameter File"),
 		oldPath.isEmpty() ? QDir::homePath() : QFileInfo(oldPath).absolutePath());
 	if (selected.isEmpty() || !loaded() || m_document->revision() != sceneRevision)
 		return;
@@ -112,7 +112,7 @@ void TrainUnitSourceLinker::linkFile(const std::string& unitId, bool traction, c
 		state.tractionDeferred = deferred;
 	else
 		state.dataDeferred = deferred;
-	*status = deferred ? QStringLiteral("Linked; pending reload after run") : QStringLiteral("Linked; waiting for reload");
+	*status = deferred ? QStringLiteral("Linked. Loads after the run") : QStringLiteral("Linked");
 	refreshWatches();
 	m_pendingPaths.insert(path);
 	m_debounceTimer.start();
@@ -151,7 +151,7 @@ void TrainUnitSourceLinker::retry(const std::string& unitId, bool traction) {
 	if (path.isEmpty())
 		return;
 	const bool deferred = runActive();
-	const QString status = deferred ? QStringLiteral("Retry pending after run") : QStringLiteral("Retrying");
+	const QString status = deferred ? QStringLiteral("Retries after the run") : QStringLiteral("Retrying");
 	if (traction) {
 		it->second.tractionSignature.clear();
 		it->second.tractionDeferred = deferred;
@@ -237,10 +237,10 @@ void TrainUnitSourceLinker::scheduleChange(const QString& changedPath) {
 			if (running && sourceFileSignature(linkedPath) != (traction ? current.tractionSignature : current.dataSignature)) {
 				if (traction) {
 					current.tractionDeferred = true;
-					current.tractionStatus = QStringLiteral("Changed during run; pending reload");
+					current.tractionStatus = QStringLiteral("Changed. Reloads after the run");
 				} else {
 					current.dataDeferred = true;
-					current.dataStatus = QStringLiteral("Changed during run; pending reload");
+					current.dataStatus = QStringLiteral("Changed. Reloads after the run");
 				}
 			}
 		};
@@ -334,17 +334,17 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 				continue;
 			if (traction) {
 				it->second.tractionSignature = signature;
-				it->second.tractionStatus = QStringLiteral("Rejected: %1; Retry available").arg(error);
+				it->second.tractionStatus = QStringLiteral("Not loaded: %1").arg(error);
 				it->second.tractionDeferred = false;
 			} else {
 				it->second.dataSignature = signature;
-				it->second.dataStatus = QStringLiteral("Rejected: %1; Retry available").arg(error);
+				it->second.dataStatus = QStringLiteral("Not loaded: %1").arg(error);
 				it->second.dataDeferred = false;
 			}
 		}
 		refreshWatches();
 		emit statusChanged();
-		emit statusMessage(QString("Source reload rejected: %1").arg(error), 8000);
+		emit statusMessage(QString("Could not reload the file: %1").arg(error), 8000);
 		return;
 	}
 
@@ -380,16 +380,15 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 	if (!conflicts.isEmpty() || deferredChange) {
 		QMessageBox dialog(m_dialogParent);
 		dialog.setIcon(QMessageBox::Question);
-		dialog.setWindowTitle("Linked source changed");
+		dialog.setWindowTitle("Linked File Changed");
 		dialog.setText(QString("%1 changed for %2.")
-				.arg(traction ? QStringLiteral("The traction source") : QStringLiteral("The parameter source"),
+				.arg(traction ? QStringLiteral("The traction file") : QStringLiteral("The parameter file"),
 					affectedNames.join(", ")));
 		dialog.setInformativeText(conflicts.isEmpty()
-				? QStringLiteral("The source changed during a run. Reload the external values or keep local edits?")
-				: QStringLiteral("Local edits conflict in %1. Reload the external values or keep local edits?")
-					  .arg(conflicts.join(", ")));
+				? QStringLiteral("It changed during the run. Reload it or keep your edits?")
+				: QStringLiteral("You also edited %1 here. Reload the file or keep your edits?").arg(conflicts.join(", ")));
 		QPushButton* reloadButton = dialog.addButton("Reload", QMessageBox::AcceptRole);
-		QPushButton* keepButton = dialog.addButton("Keep local", QMessageBox::RejectRole);
+		QPushButton* keepButton = dialog.addButton("Keep Edits", QMessageBox::RejectRole);
 		dialog.setDefaultButton(keepButton);
 		dialog.exec();
 		reload = dialog.clickedButton() == reloadButton;
@@ -429,11 +428,11 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 				continue;
 			if (traction) {
 				it->second.tractionSignature = signature;
-				it->second.tractionStatus = QStringLiteral("Kept local; Retry available");
+				it->second.tractionStatus = QStringLiteral("Kept your edits");
 				it->second.tractionDeferred = false;
 			} else {
 				it->second.dataSignature = signature;
-				it->second.dataStatus = QStringLiteral("Kept local; Retry available");
+				it->second.dataStatus = QStringLiteral("Kept your edits");
 				it->second.dataDeferred = false;
 			}
 		}

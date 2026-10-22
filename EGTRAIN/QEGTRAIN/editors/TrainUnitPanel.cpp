@@ -151,7 +151,7 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		status->setObjectName("trainUnit" + name + "StatusLabel");
 		pageLayout->addWidget(status);
 	};
-	addHeading(detailPane, detailLayout, "Rolling stock unit ID");
+	addHeading(detailPane, detailLayout, "ID");
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("trainUnitIdEdit");
 	detailLayout->addWidget(m_idEdit);
@@ -164,13 +164,12 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	QWidget* tractionPage = new QWidget(m_tabs);
 	QVBoxLayout* tractionLayout = new QVBoxLayout(tractionPage);
-	addHeading(tractionPage, tractionLayout, "Rolling stock engine");
-	tractionLayout->addWidget(new QLabel("Tractive-effort source reference", tractionPage));
+	tractionLayout->addWidget(new QLabel("Traction file", tractionPage));
 	m_sourceTractionEdit = new QLineEdit(tractionPage);
 	m_sourceTractionEdit->setObjectName("trainUnitSourceTractionEdit");
 	m_sourceTractionEdit->setPlaceholderText("Optional");
 	tractionLayout->addWidget(m_sourceTractionEdit);
-	addSourceLink(tractionPage, tractionLayout, "Link traction file...", "SourceTraction", m_linkTractionButton,
+	addSourceLink(tractionPage, tractionLayout, "Link File...", "SourceTraction", m_linkTractionButton,
 		m_unlinkTractionButton, m_retryTractionButton, m_sourceTractionStatusLabel);
 
 	tractionLayout->addWidget(new QLabel("Traction curve", tractionPage));
@@ -191,11 +190,11 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->setMinimumHeight(m_tractionTable->fontMetrics().lineSpacing() * 8);
 	tractionLayout->addWidget(m_tractionTable, 1);
 	QGridLayout* tractionButtonLayout = new QGridLayout();
-	m_addTractionRowButton = new QPushButton("Add Traction Row", tractionPage);
+	m_addTractionRowButton = new QPushButton("Add Row", tractionPage);
 	m_addTractionRowButton->setObjectName("addTrainUnitTractionRowButton");
-	m_removeTractionRowButton = new QPushButton("Delete Traction Row", tractionPage);
+	m_removeTractionRowButton = new QPushButton("Delete Row", tractionPage);
 	m_removeTractionRowButton->setObjectName("removeTrainUnitTractionRowButton");
-	m_plotButton = new QPushButton("Plot input traction characteristic", tractionPage);
+	m_plotButton = new QPushButton("Plot Traction Curve", tractionPage);
 	m_plotButton->setObjectName("plotTrainUnitTractionButton");
 	tractionButtonLayout->addWidget(m_addTractionRowButton, 0, 0);
 	tractionButtonLayout->addWidget(m_removeTractionRowButton, 0, 1);
@@ -205,7 +204,6 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	QWidget* physicalPage = new QWidget(m_tabs);
 	QVBoxLayout* physicalPageLayout = new QVBoxLayout(physicalPage);
-	addHeading(physicalPage, physicalPageLayout, "Rolling stock unit characteristics");
 	QFormLayout* physicalLayout = new QFormLayout();
 	physicalLayout->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	physicalLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
@@ -225,12 +223,12 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		physicalLayout->addRow(new QLabel(physicalLabels[i], physicalPage), edit);
 	}
 	physicalPageLayout->addLayout(physicalLayout);
-	physicalPageLayout->addWidget(new QLabel("Parameter source reference", physicalPage));
+	physicalPageLayout->addWidget(new QLabel("Parameter file", physicalPage));
 	m_sourceDataEdit = new QLineEdit(physicalPage);
 	m_sourceDataEdit->setObjectName("trainUnitSourceDataEdit");
 	m_sourceDataEdit->setPlaceholderText("Optional");
 	physicalPageLayout->addWidget(m_sourceDataEdit);
-	addSourceLink(physicalPage, physicalPageLayout, "Link parameter file...", "SourceData", m_linkDataButton,
+	addSourceLink(physicalPage, physicalPageLayout, "Link File...", "SourceData", m_linkDataButton,
 		m_unlinkDataButton, m_retryDataButton, m_sourceDataStatusLabel);
 	physicalPageLayout->addStretch(1);
 	m_tabs->addTab(physicalPage, "Physical");
@@ -406,8 +404,8 @@ void TrainUnitPanel::setSourceState(bool traction, const QString& linkedPath, co
 		statusLabel->setText(QStringLiteral("Unlinked"));
 		statusLabel->setToolTip(QString());
 	} else if (!QFileInfo(linkedPath).exists()) {
-		// A file that is gone is missing whatever the last answer to its changes was, also after Keep local.
-		statusLabel->setText(QStringLiteral("Missing: %1; Retry available").arg(breakablePath(linkedPath)));
+		// A file that is gone is missing whatever the last answer to its changes was, also after Keep Edits.
+		statusLabel->setText(QStringLiteral("File not found: %1").arg(breakablePath(linkedPath)));
 		statusLabel->setToolTip(display_path::format(linkedPath));
 	} else {
 		statusLabel->setText(status.isEmpty() ? QStringLiteral("Linked: %1").arg(QFileInfo(linkedPath).fileName()) : status);
@@ -483,7 +481,7 @@ void TrainUnitPanel::deleteUnit() {
 		consumers << QString::fromStdString(consumer);
 	if (!consumers.isEmpty()) {
 		m_prompts->showError(this, "Cannot Delete Rolling Stock Unit",
-			QString("Cannot delete rolling stock unit '%1' because it is still referenced by:\n• %2\nRemove it from those compositions first.")
+			QString("Rolling stock unit '%1' is used by:\n• %2\nRemove it from those compositions first.")
 				.arg(QString::fromStdString(id), consumers.join("\n• ")),
 			true);
 		return;

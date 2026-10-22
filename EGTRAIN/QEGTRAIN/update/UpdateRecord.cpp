@@ -66,8 +66,7 @@ UpdateRecordText describeUpdateRecord(const UpdateRecord& record) {
 			QStringLiteral("Nothing was changed. Choose Check for Updates in the Help menu to try again.")};
 	return {QStringLiteral("The update to EGTRAIN %1 could not be started, so the previous version was restored.")
 				.arg(version),
-		QStringLiteral("Automatic update checks will not offer %1 again. A newer version is offered as usual, "
-					   "and Check for Updates in the Help menu still offers %1.")
+		QStringLiteral("EGTRAIN will not offer %1 again on its own. Check for Updates in the Help menu still offers it.")
 			.arg(version)};
 }
 

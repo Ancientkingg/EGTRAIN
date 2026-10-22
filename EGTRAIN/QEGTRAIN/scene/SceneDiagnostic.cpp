@@ -27,6 +27,10 @@ std::string toDisplayText(const SceneDiagnostic& d) {
 	return text;
 }
 
+std::string toDialogText(const SceneDiagnostic& d) {
+	return d.suggestedFix.empty() ? d.message : d.message + "\n\n" + d.suggestedFix;
+}
+
 nlohmann::json toJson(const SceneDiagnostic& d) {
 	nlohmann::json j;
 	j["severity"] = severityLabel(d.severity);

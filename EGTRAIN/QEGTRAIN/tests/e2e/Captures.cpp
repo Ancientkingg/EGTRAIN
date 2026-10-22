@@ -359,7 +359,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		settle();
 		return true;
 	};
-	// Adds a stop through the dialog Add timetable stop, with a planned arrival or departure when the time is not negative.
+	// Adds a stop through the dialog Add Timetable Stop, with a planned arrival or departure when the time is not negative.
 	const auto addStop = [&w](const QString& station, const QString& platform, int arrival, int departure) {
 		bool chosen = false;
 		const QPointer<QTimer> poll = whenShown(
@@ -378,7 +378,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 					dialog.reject();
 			});
 		w.m_addStopButton->click();
-		return dialogOpened(poll, QStringLiteral("Add timetable stop")) && chosen;
+		return dialogOpened(poll, QStringLiteral("Add Timetable Stop")) && chosen;
 	};
 
 	auto& steps = captureRun.steps;
@@ -507,7 +507,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		return saved;
 	});
 
-	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit timetable stop,
+	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit Timetable Stop,
 	// whose dwell becomes 180 s, and the warning that this gives in Scene Validation.
 	steps.push_back([&w] {
 		if (!editLine(w.m_caseNameEdit, QStringLiteral("Paimpol practice")))
@@ -525,7 +525,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 			w, [&w] { return w.findChild<QDialog*>(QStringLiteral("stopEditorDialog")); },
 			[](QDialog& dialog) {
 				if (saveCapture(dialog.grab(), QStringLiteral("tutorial-modify-edit-timetable-stop.png"), QStringLiteral("Paimpol"),
-						QStringLiteral("Edit timetable stop for Pontrieaux of Guin-Paim-EXPRESS-1, as committed"))) {
+						QStringLiteral("Edit Timetable Stop for Pontrieaux of Guin-Paim-EXPRESS-1, as committed"))) {
 					dialog.findChild<QLineEdit*>(QStringLiteral("stopEditorDwellEdit"))->setText(QStringLiteral("180"));
 					dialog.findChild<QPushButton*>(QStringLiteral("stopEditorAcceptButton"))->click();
 				}
@@ -533,7 +533,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 					dialog.reject();
 			});
 		w.m_timetableStopsPanel->editStop(row);
-		return dialogOpened(poll, QStringLiteral("Edit timetable stop"));
+		return dialogOpened(poll, QStringLiteral("Edit Timetable Stop"));
 	});
 	steps.push_back([&w, showOnly, windowShot] {
 		showOnly({w.m_validationDock});
@@ -552,8 +552,8 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		showTab(w.m_incidentDock, QStringLiteral("Incidents"));
 		w.m_addIncidentButton->click();
 		settle();
-		ok = ok && chooseText(w.m_incidentTypeCombo, QStringLiteral("train_breakdown"))
-			&& chooseText(w.m_incidentTargetCombo, QStringLiteral("Guin-Paim-EXPRESS-1-1 | route route6 | entry +10 s"))
+		ok = ok && chooseText(w.m_incidentTypeCombo, QStringLiteral("Train breakdown"))
+			&& chooseText(w.m_incidentTargetCombo, QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
 			&& editLine(w.m_incidentStartSecondsEdit, QStringLiteral("900"));
 		w.m_incidentHasEndSecondsCheck->setChecked(true);
 		ok = ok && editLine(w.m_incidentEndSecondsEdit, QStringLiteral("1200"));

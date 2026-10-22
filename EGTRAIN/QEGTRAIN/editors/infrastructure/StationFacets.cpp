@@ -182,11 +182,11 @@ public:
 				table.setCellWidget(row, kLengthColumn,
 					makeGeometryField(panel, row, kLengthColumn, platform.hasLength ? platform.lengthM : kDefaultPlatformLengthM,
 						"platformLengthEdit",
-						QStringLiteral("Platform length in metres; default is 100 m when absent. Capacity derives from platform geometry.")));
+						QStringLiteral("Sets the passenger capacity. Default 100 m.")));
 				table.setCellWidget(row, kWidthColumn,
 					makeGeometryField(panel, row, kWidthColumn, platform.hasWidth ? platform.widthM : kDefaultPlatformWidthM,
 						"platformWidthEdit",
-						QStringLiteral("Platform width in metres; default is 2.5 m when absent. Capacity derives from platform geometry.")));
+						QStringLiteral("Sets the passenger capacity. Default 2.5 m.")));
 				++row;
 			}
 		}
@@ -259,7 +259,7 @@ public:
 		if (edit == Edit::Changed)
 			panel.entityChanged(column == 1 ? QStringLiteral("Rename platform") : QStringLiteral("Edit platform"));
 		else if (edit == Edit::UnsafeId)
-			panel.refuseEdit(QStringLiteral("Infrastructure IDs must be non-empty and unique"));
+			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
 	}
 
 	// A platform goes to the first station.
@@ -324,7 +324,7 @@ private:
 		const SceneStationBoundary& boundary) const override {
 		addSectionCombo(panel, inventory, row, 0, boundary.entranceBlock, "boundaryEntranceCombo",
 			storeIn(&SceneStationBoundary::entranceBlock))
-			->setToolTip(QStringLiteral("Required entrance section; none is not permitted"));
+			->setToolTip(QStringLiteral("Required"));
 		// Choosing no exit clears the flag and the section together.
 		addSectionCombo(
 			panel, inventory, row, 1, boundary.hasExitBlock ? boundary.exitBlock : std::string(), "boundaryExitCombo",
@@ -337,7 +337,7 @@ private:
 				return true;
 			},
 			true, QStringLiteral("(none)"))
-			->setToolTip(QStringLiteral("Exit section; (none) clears the exit atomically"));
+			->setToolTip(QStringLiteral("Exit section, or (none)"));
 		setCell(*panel.table(), row, 2, flagText(boundary.direction));
 	}
 	std::string rowTitle(const SceneStationBoundary& boundary) const override { return boundary.entranceBlock; }

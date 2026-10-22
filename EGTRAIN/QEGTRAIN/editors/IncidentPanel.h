@@ -122,7 +122,8 @@ public:
 	QListWidget* listWidget() const { return m_listWidget; }
 	/// The field of the id of the selected incident.
 	QLineEdit* idEdit() const { return m_idEdit; }
-	/// The type: "signal_failure" or "train_breakdown".
+	/// The type: "Signal failure" or "Train breakdown", with the stored type, "signal_failure" or "train_breakdown", as the
+	/// data of the item.
 	QComboBox* typeCombo() const { return m_typeCombo; }
 	/// The targets for the type. The data of an item is the target id, and its data in role Qt::UserRole + 1 the
 	/// occurrence, 0 for all occurrences of a service.
