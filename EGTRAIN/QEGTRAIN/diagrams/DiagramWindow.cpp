@@ -112,10 +112,10 @@ QPen emphasisedPen(const QPen& base) {
 	return pen;
 }
 
-// Planned series are drawn dashed and have their own legend entry; both rules use
-// this one test of the series name.
+// Planned series are drawn dashed and have their own legend entry; both rules use this one test: the "planned" property
+// of the series, or its name.
 bool isPlannedSeries(const QAbstractSeries* series) {
-	return series->name().contains("planned", Qt::CaseInsensitive);
+	return series->property("planned").toBool() || series->name().contains("planned", Qt::CaseInsensitive);
 }
 
 constexpr QMargins kChartMargins(12, 8, 12, 8);
@@ -173,8 +173,9 @@ class LineKindLegend : public QGraphicsObject {
 public:
 	struct Kind {
 		QString name;
-		QPen pen;	 // the sample line, or the outline of a box
-		bool filled; // drawn as a box, like a filled envelope
+		QPen pen;	   // the sample line, or the outline of a box
+		bool filled;   // drawn as a box, like a filled block
+		QColor fill{}; // the fill of the box; invalid for a faint fill in the colour of the pen
 	};
 	LineKindLegend(QChart* chart, std::vector<Kind> kinds, const QFont& font, const QColor& textColor)
 		: QGraphicsObject(chart), m_chart(chart), m_kinds(std::move(kinds)), m_font(font), m_textColor(textColor) {
@@ -197,8 +198,11 @@ public:
 			const QRectF sample(entry.second, QSizeF(kSample, metrics.height()));
 			painter->setPen(kind.pen);
 			if (kind.filled) {
-				QColor fill = kind.pen.color();
-				fill.setAlpha(40);
+				QColor fill = kind.fill;
+				if (!fill.isValid()) {
+					fill = kind.pen.color();
+					fill.setAlpha(40);
+				}
 				painter->setBrush(fill);
 				painter->drawRect(sample.adjusted(1, 3, -1, -3));
 				painter->setBrush(Qt::NoBrush);
@@ -271,8 +275,8 @@ public:
 		setAcceptedMouseButtons(Qt::NoButton);
 		setZValue(100);
 		setProperty("sectionCount", static_cast<int>(m_sections.size()));
-		m_notice = m_sections.empty() ? "Reference sections unavailable; no physical geometry shown."
-									  : QString::fromStdString(blockSectionGeometryNote(m_sections, labels ? &m_labels : nullptr)).trimmed();
+		m_notice = m_sections.empty() ? "No section boundaries for this route"
+									  : QString::fromStdString(blockSectionGeometryNote(m_sections, labels ? &m_labels : nullptr));
 		setProperty("geometryNotice", m_notice);
 		connect(chart, &QChart::plotAreaChanged, this, [this] {
 			prepareGeometryChange();
@@ -323,17 +327,18 @@ public:
 				const bool labelMatches = labelHit && section.lowerKm() == labelHit->lowerKm() && section.upperKm() == labelHit->upperKm();
 				if ((inHeader && (labelHit ? labelMatches : point.x() >= std::min(start, end) - 3 && point.x() <= std::max(start, end) + 3))
 					|| (!headerOnly && plot.contains(point) && std::min(std::abs(point.x() - start), std::abs(point.x() - end)) <= 4))
-					details << QString("Physical reference section %1%2 | Route: %3 | Directed X: %4 to %5 km")
+					details << QString("Section %1%2\n%3 to %4 km along %5")
 								   .arg(section.order)
-								   .arg(sectionText(section, true), m_route)
+								   .arg(sectionText(section, true))
 								   .arg(section.startKm, 0, 'g', 12)
-								   .arg(section.endKm, 0, 'g', 12);
+								   .arg(section.endKm, 0, 'g', 12)
+								   .arg(m_route);
 			}
 		if (inNotice) {
 			details << m_notice;
 			for (const auto& section : m_sections)
 				if (!section.geometryValid)
-					details << QString("%1%2 | Geometry unavailable: %3").arg(section.order).arg(sectionText(section, true), QString::fromStdString(section.issue));
+					details << QString("%1%2: not drawn, %3").arg(section.order).arg(sectionText(section, true), QString::fromStdString(section.issue));
 		}
 		return details.join('\n');
 	}
@@ -512,6 +517,16 @@ std::vector<std::pair<double, QString>> labelledStations(const std::vector<Stati
 	return {{middle.position, metrics.elidedText(middle.spellings.last(), Qt::ElideRight, plot.width() / 2.0 - slack)}};
 }
 
+// Removes `axis` from `chart` with what it drew. QChart hides the items of a removed axis only when it deletes them, on
+// the next turn of the event loop, and until then they follow the visibility of the axis. So the axis hides first, and
+// its old items stop following it: a picture taken before that turn shows one axis on that side, and showing the axis
+// again in a chart shows only its new items.
+void removeAxisNow(QChart* chart, QAbstractAxis* axis) {
+	axis->hide();
+	chart->removeAxis(axis);
+	QObject::disconnect(axis, &QAbstractAxis::visibleChanged, nullptr, nullptr);
+}
+
 } // namespace
 
 DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
@@ -572,15 +587,21 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	connect(m_clearPinButton, &QPushButton::clicked, this, &DiagramWindow::clearPin);
 	m_pinLabel = new QLabel("", this);
 	m_pinLabel->setObjectName("diagramPinLabel");
-	// Shown only while a train is selected: an empty label would still take a gap in the top bar.
+	// Both are shown only while a train is selected: an empty label would still take a gap in the top bar.
 	m_pinLabel->hide();
+	m_clearPinButton->hide();
 
 	QPushButton* resetZoomBtn = new QPushButton("Reset zoom", this);
-	resetZoomBtn->setToolTip("Restore full bounds; keep train filters and selection (Home or 0)");
+	// The wheel zooms with Control or Command held; the tooltip names the key that the platform uses.
+#ifdef Q_OS_MACOS
+	resetZoomBtn->setToolTip("Show the whole chart (Home or 0)\nPinch, Command-scroll or +/- zooms\nArrow keys pan");
+#else
+	resetZoomBtn->setToolTip("Show the whole chart (Home or 0)\nPinch, Ctrl-scroll or +/- zooms\nArrow keys pan");
+#endif
 	connect(resetZoomBtn, &QPushButton::clicked, this, &DiagramWindow::resetZoom);
 
 	m_csvButton = new QPushButton("Export CSV...", this);
-	m_csvButton->setToolTip("Write the raw data of the visible trains to a CSV file");
+	m_csvButton->setToolTip("Save the data of the visible trains as CSV");
 	m_csvButton->hide();
 	connect(m_csvButton, &QPushButton::clicked, this, &DiagramWindow::exportCsv);
 
@@ -605,7 +626,7 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_readout->setObjectName("diagramNavigationHelp");
 	m_readout->setWordWrap(true);
 	m_readout->setTextFormat(Qt::PlainText);
-	refreshNavigationHelp();
+	m_readout->setText("Drag to zoom. Scroll to pan. Home resets.");
 	m_warningLabel = new QLabel(this);
 	m_warningLabel->setObjectName("diagramWarning");
 	m_warningLabel->setTextFormat(Qt::PlainText);
@@ -634,36 +655,27 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 }
 
 void DiagramWindow::setPresentation(const QString& heading, const QString& context,
-	const QString& warning) {
+	const QString& warning, const QString& contextToolTip) {
 	setWindowTitle(heading);
 	m_warningLabel->setText(warning);
 	m_warningLabel->setVisible(!warning.isEmpty());
 	m_contextLabel->setMaximumHeight(m_contextLabel->fontMetrics().height() * 3);
 	m_contextLabel->setText(context);
-	m_contextLabel->setToolTip(plainToolTip(context));
+	m_contextLabel->setToolTip(plainToolTip(contextToolTip.isEmpty() ? context : contextToolTip));
 	m_contextLabel->setVisible(!context.isEmpty());
+}
+
+void DiagramWindow::setColourKey(const QString& layer, std::vector<ColourKeyEntry> key) {
+	m_colourKeyLayer = layer;
+	m_colourKey = std::move(key);
+	refreshLegend();
 }
 
 void DiagramWindow::setRollingStockSubject(bool on) {
 	m_rollingStockSubject = on;
 	m_trainsButton->setVisible(!on);
-	m_clearPinButton->setVisible(!on);
+	m_clearPinButton->setVisible(!on && !m_pinnedTrainId.isEmpty());
 	m_pinLabel->setVisible(!on && !m_pinnedTrainId.isEmpty());
-	refreshNavigationHelp();
-}
-
-void DiagramWindow::refreshNavigationHelp() {
-	if (!m_readout) return;
-	// The wheel zooms with Control or Command held; the help names the key that the platform uses.
-#ifdef Q_OS_MACOS
-	const QString zoom = QStringLiteral("pinch or Command-scroll to zoom");
-#else
-	const QString zoom = QStringLiteral("pinch or Ctrl+wheel to zoom");
-#endif
-	const QString navigation = "Drag to zoom; two-finger scroll to pan; " + zoom + ". +/- zoom, arrows pan, Home resets.";
-	m_readout->setText((m_rollingStockSubject ? QStringLiteral("Input tractive effort by speed. ")
-											  : QStringLiteral("Hover to inspect; click to select. "))
-		+ navigation);
 }
 
 // A chart with more than one kind of line gets a legend of the kinds. A sample takes the line style and width of the
@@ -675,6 +687,7 @@ void DiagramWindow::refreshLegend() {
 	chart->setMargins(kChartMargins);
 	const QColor text = palette().color(QPalette::WindowText);
 	std::vector<LineKindLegend::Kind> kinds;
+	bool keyed = false;
 	for (QAbstractSeries* series : chart->series()) {
 		const auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy) continue; // an area series is the fill of an envelope whose outline is a line series
@@ -682,6 +695,14 @@ void DiagramWindow::refreshLegend() {
 		const bool filled = series->property("inspectionFilled").toBool();
 		// The kind is the layer the chart builder gave the series, else planned or simulated.
 		QString name = series->property("layer").toString();
+		// The layer of the colour key has the entries of the key in its place, the first time it comes.
+		if (!m_colourKey.empty() && name == m_colourKeyLayer) {
+			if (!keyed)
+				for (const ColourKeyEntry& entry : m_colourKey)
+					kinds.push_back({entry.name, QPen(entry.outline.isValid() ? entry.outline : entry.colour.darker(135), 1.5), true, entry.colour});
+			keyed = true;
+			continue;
+		}
 		if (name.isEmpty()) name = isPlannedSeries(series) ? QStringLiteral("planned") : QStringLiteral("simulated");
 		name[0] = name[0].toUpper();
 		const auto known = std::find_if(kinds.begin(), kinds.end(), [&name](const LineKindLegend::Kind& kind) { return kind.name == name; });
@@ -696,7 +717,7 @@ void DiagramWindow::refreshLegend() {
 	if (sections) {
 		QColor stroke = palette().color(QPalette::Text);
 		stroke.setAlpha(100); // as the overlay draws the boundaries
-		kinds.push_back({QStringLiteral("Physical section"), QPen(stroke, 1, Qt::DotLine), false});
+		kinds.push_back({QStringLiteral("Section boundary"), QPen(stroke, 1, Qt::DotLine), false});
 	}
 	if (kinds.size() > 1 || sections) m_lineLegend = new LineKindLegend(chart, std::move(kinds), font(), text);
 }
@@ -736,6 +757,8 @@ void DiagramWindow::setChart(QChart* chart) {
 	m_clockAxis = nullptr;
 	m_stationAxis = nullptr;
 	m_stations.clear();
+	m_colourKeyLayer.clear();
+	m_colourKey.clear();
 	if (chart)
 		applyChartStyle(chart);
 	QChart* previous = m_view->chart();
@@ -936,8 +959,9 @@ void DiagramWindow::applyTimeAxis() {
 		QList<QAbstractSeries*> attached;
 		for (auto* series : chart->series())
 			if (series->attachedAxes().contains(old)) attached.append(series);
-		chart->removeAxis(old);
+		removeAxisNow(chart, old);
 		old->deleteLater();
+		numeric->show();
 		chart->addAxis(numeric, alignment);
 		for (auto* series : attached) series->attachAxis(numeric);
 		m_fullBounds.insert(numeric, bounds);
@@ -987,7 +1011,7 @@ void DiagramWindow::applyTimeAxis() {
 		if (series->attachedAxes().contains(seconds)) seriesList.append(series);
 	const auto alignment = seconds->alignment();
 	const auto bounds = m_fullBounds.take(seconds);
-	chart->removeAxis(seconds);
+	removeAxisNow(chart, seconds);
 	seconds->setParent(this); // keep the original numeric ticks and grid for the roundtrip
 	m_numericAxis = seconds;
 	chart->addAxis(clock, alignment);
@@ -1120,6 +1144,7 @@ void DiagramWindow::pinTrain(const QString& trainId) {
 		m_pinLabel->setText(QString("Selected: %1").arg(trainId));
 		m_pinLabel->setVisible(!m_rollingStockSubject);
 	}
+	if (m_clearPinButton) m_clearPinButton->setVisible(!m_rollingStockSubject);
 	refreshEmphasis();
 	emit trainSelected(trainId);
 }
@@ -1130,6 +1155,7 @@ void DiagramWindow::clearPin() {
 		m_pinLabel->clear();
 		m_pinLabel->hide();
 	}
+	if (m_clearPinButton) m_clearPinButton->hide();
 	refreshEmphasis();
 }
 
@@ -1207,7 +1233,8 @@ void DiagramWindow::resetZoom() {
 
 void DiagramWindow::exportPng() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", dialog_folders::suggestedPath("diagram.png"), "PNG Image (*.png)");
+	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("diagram.png") : QFileInfo(m_csvSuggestedName).completeBaseName() + ".png";
+	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", dialog_folders::suggestedPath(suggested), "PNG Image (*.png)");
 	if (path.isEmpty())
 		return; // cancelled: no file is written
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
@@ -1218,7 +1245,7 @@ void DiagramWindow::exportPng() {
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
-			QString("Could not write the image to:\n%1").arg(path));
+			QString("Could not save the image to:\n%1").arg(path));
 		return;
 	}
 	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
@@ -1228,7 +1255,7 @@ void DiagramWindow::exportPng() {
 	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
-			QString("Could not export the image and provenance to:\n%1").arg(path));
+			QString("Could not save the image to:\n%1").arg(path));
 }
 
 void DiagramWindow::exportCsv() {
@@ -1253,7 +1280,7 @@ void DiagramWindow::exportCsv() {
 	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written) {
 		QMessageBox::warning(this, "Export failed",
-			QString("Could not export the data and provenance to:\n%1").arg(path));
+			QString("Could not save the data to:\n%1").arg(path));
 		return;
 	}
 	// The window has no status line of its own, so the main window names the saved file.
@@ -1359,7 +1386,7 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	}
 	QString identity = selected->name();
 	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
-	updateReadout(sample, identity + " (nearest sample)");
+	updateReadout(sample, identity);
 	const QStringList contexts = selected->property("inspectionPoints").toStringList();
 	if (sampleIndex >= 0 && sampleIndex < contexts.size() && !contexts[sampleIndex].isEmpty())
 		m_tooltip->setText(m_tooltip->text() + "\n" + contexts[sampleIndex]);

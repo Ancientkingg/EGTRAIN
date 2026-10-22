@@ -34,6 +34,13 @@ struct StationTick {
 	QStringList spellings; ///< Plain-text labels, longest first
 };
 
+/// What a colour of the series of a chart means, for the legend below the plot.
+struct ColourKeyEntry {
+	QString name;	  ///< In sentence case, such as "Switch"
+	QColor colour;	  ///< The fill of the series, with its alpha
+	QColor outline{}; ///< The outline of the series; invalid for the fill colour, darker
+};
+
 /// Reusable non-modal window that shows a chart with a train visibility
 /// dropdown, hover and click identification, rubber-band zoom with reset,
 /// PNG export, and optional CSV export.
@@ -55,12 +62,16 @@ public:
 	/// Shows the chart and takes ownership of it. Numeric axes that keep the ticks Qt gives them get ticks on round
 	/// values, and their range widens to the first round tick past each end; a range that starts at zero keeps that
 	/// start. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series
-	/// the chart has when it is set: the "layer" property of a series, else planned or simulated by its name.
+	/// the chart has when it is set: the "layer" property of a series, else planned or simulated. A series is planned when
+	/// its "planned" property is true or its name holds "planned"; a planned series is drawn dashed.
 	void setChart(QChart* chart);
 	/// Sets the window title to `heading` and shows `context` and `warning` in labels of their own; an empty text hides
-	/// its label.
+	/// its label. The context label has `contextToolTip` as its tooltip, or the context itself when it is empty.
 	void setPresentation(const QString& heading, const QString& context,
-		const QString& warning = QString());
+		const QString& warning = QString(), const QString& contextToolTip = QString());
+	/// Explains the colours of the series whose "layer" property is `layer`: the legend below the plot shows a filled
+	/// swatch for each entry of `key` in place of the entry of that layer. Set after setChart; a new chart clears it.
+	void setColourKey(const QString& layer, std::vector<ColourKeyEntry> key);
 	/// True for a chart of rolling stock input, which has no trains: hides the train filter and the selection.
 	void setRollingStockSubject(bool on);
 	/// Paints the series of each listed train in its colour: the pen colour of a
@@ -80,7 +91,8 @@ public:
 	/// Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus `startOffsetSeconds`, the clock time
 	/// of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is in range.
 	/// False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller, without
-	/// the round widening of setChart; reset restores those bounds.
+	/// the round widening of setChart; reset restores those bounds. The numeric axis is hidden while the clock axis takes
+	/// its place, so that the chart draws one axis on that side.
 	void setTimeAxisY(bool on, long long startOffsetSeconds = 0);
 	/// As setTimeAxisY, for the X axis.
 	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);
@@ -89,7 +101,8 @@ public:
 	/// trains currently visible so it can export only what the user is looking at.
 	/// `trainIds` adds to the train filter the trains that have CSV rows but no plotted series.
 	/// An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save
-	/// names the file in the status bar of the main window that is the parent of this window.
+	/// names the file in the status bar of the main window that is the parent of this window. Export PNG suggests
+	/// `suggestedFileName` with the suffix png, or diagram.png without a name.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
 		const QString& suggestedFileName, const QStringList& trainIds = {});
 	/// Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A
@@ -151,7 +164,6 @@ private:
 	QStringList visibleTrainIds() const;
 	QString groupIdForSeries(QAbstractSeries* series) const;
 	void updateReadout(const QPointF& value, const QString& seriesName);
-	void refreshNavigationHelp();
 	void refreshLegend();
 
 	QPointer<QChartView> m_view;
@@ -168,6 +180,8 @@ private:
 	QPointer<QLabel> m_tooltip;
 	QPointer<QGraphicsObject> m_sectionOverlay;
 	QPointer<QGraphicsObject> m_lineLegend;
+	QString m_colourKeyLayer;
+	std::vector<ColourKeyEntry> m_colourKey;
 	QHash<QAbstractAxis*, QPair<double, double>> m_fullBounds;
 	QHash<QAbstractAxis*, QPair<double, double>> m_builderBounds; // ranges of the widened axes as the chart builder set them
 	long long m_startOffset = 0;

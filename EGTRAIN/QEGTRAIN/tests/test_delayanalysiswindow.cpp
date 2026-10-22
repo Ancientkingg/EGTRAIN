@@ -184,6 +184,12 @@ QStringList headerTexts(const QTableWidget* tableWidget) {
 	return texts;
 }
 
+// The tooltip of the column whose header is `header`, or "missing" without such a column.
+QString headerTip(const QTableWidget* tableWidget, const QString& header) {
+	const int column = headerTexts(tableWidget).indexOf(header);
+	return column < 0 ? QStringLiteral("missing") : tableWidget->horizontalHeaderItem(column)->toolTip();
+}
+
 // The row of the table whose first column and column `column` hold the two texts, or -1.
 int rowOf(const QTableWidget* tableWidget, const QString& first, int column, const QString& other) {
 	for (int row = 0; tableWidget && row < tableWidget->rowCount(); ++row) {
@@ -225,13 +231,17 @@ bool exerciseCalls() {
 	ok &= expect(window.windowTitle() == "Delay analysis" && !window.isModal(), "the window is not modal");
 	for (const QTableWidget* tableWidget : window.findChildren<QTableWidget*>())
 		ok &= expect(!tableWidget->tabKeyNavigation(), "Tab leaves each table of the window");
-	ok &= expect(!window.findChild<QLabel*>("dialogHeading") && labelText(window, "dialogContext") == "Run: Case A / follow-level-0\nBaseline: none set",
+	ok &= expect(!window.findChild<QLabel*>("dialogHeading") && labelText(window, "dialogContext") == "Run: Case A / follow-level-0\nBaseline: none",
 		"the window title is the only heading and the context names the run and its scenario");
 	const QTableWidget* calls = table(window, "delayCalls");
 	ok &= expect(headerTexts(calls)
-			== QStringList({"Service", "Occurrence", "Train", "Operating code", "Station", "Journey order", "Call", "Event", "Planned [s]",
-				"Simulated [s]", "Delay [s]", "Class", "Status"}),
+			== QStringList({"Service", "Occurrence", "Train", "Operating code", "Station", "Journey order", "Call", "Event", "Planned (s)",
+				"Simulated (s)", "Delay (s)", "Class", "Status"}),
 		"the columns of the calls");
+	ok &= expect(headerTip(calls, "Delay (s)") == "Simulated minus planned time\nNegative is early" && headerTip(calls, "Planned (s)").isEmpty(),
+		"the delay header says what a delay is");
+	ok &= expect(!allText(window).contains("authored plan") && window.findChild<QComboBox*>("delayAnalysisEvents")->toolTip().isEmpty(),
+		"no help paragraph above the calls and no tooltip on the events choice");
 	ok &= expect(rows(calls) == 6, "the arrivals of two trains at three stations");
 	ok &= expect(rowTexts(calls, 0) == QStringList({"F1", "1", "F1-1", "", "A", "1", "1", "Arrival", "-", "-", "-", "Not available", "No plan, not reached"}),
 		"an arrival without a plan and without a time has no delay, not 0");
@@ -267,7 +277,7 @@ bool exerciseSummary() {
 	const QTableWidget* summary = table(window, "delaySummary");
 	bool ok = expect(headerTexts(summary)
 			== QStringList({"Station", "Calls", "Available", "No plan", "Not reached", "No plan, not reached", "Early", "On time", "Late",
-				"Sum [s]", "Mean [s]", "Minimum [s]", "Maximum [s]", "Later than 0 s", "Later than 60 s", "Later than 180 s", "Later than 300 s"}),
+				"Sum (s)", "Mean (s)", "Minimum (s)", "Maximum (s)", "Later than 0 s", "Later than 60 s", "Later than 180 s", "Later than 300 s"}),
 		"the columns of the summary name the thresholds");
 	ok &= expect(rows(summary) == 4, "a row for each station and one for all selected stations");
 	ok &= expect(rowTexts(summary, 0) == QStringList({"A", "2", "0", "0", "0", "2", "0", "0", "0", "-", "-", "-", "-", "-", "-", "-", "-"}),
@@ -284,9 +294,11 @@ bool exerciseSummary() {
 			== QStringList({"All selected stations", "6", "4", "0", "0", "2", "3", "0", "1", "-289", "-72.25", "-269", "+157", "25.0% (1 of 4)",
 				"25.0% (1 of 4)", "0.0% (0 of 4)", "0.0% (0 of 4)"}),
 		"all selected stations");
-	const QString help = allText(window);
-	ok &= expect(help.contains("strictly later") && help.contains("0 s, 60 s, 180 s and 300 s") && help.contains("not counted as 0"),
-		"the window states the thresholds, that later means strictly later and that missing events are not counted as 0");
+	bool tips = true;
+	for (const char* header : {"Later than 0 s", "Later than 60 s", "Later than 180 s", "Later than 300 s"})
+		tips &= headerTip(summary, header) == "Strictly later\nCounts available events only";
+	ok &= expect(tips && headerTip(summary, "Late").isEmpty() && !allText(window).contains("not counted as 0"),
+		"each threshold header says that later means strictly later and counts available events only, without a help paragraph");
 
 	// The departures of follow-level-0: B has the delays 0 and +157, A is not reached and C has no plan.
 	chooseEvents(window, 1);
@@ -337,11 +349,11 @@ bool exerciseFilters() {
 	const TrainFilterButton* stations = filterButton(window, "delayAnalysisStations");
 	const QTableWidget* calls = table(window, "delayCalls");
 	const QTableWidget* summary = table(window, "delaySummary");
-	bool ok = expect(occurrences && stations && occurrences->text() == "Occurrences (2/2)" && stations->text() == "Stations (3/3)"
+	bool ok = expect(occurrences && stations && occurrences->text() == "Trains (2/2)" && stations->text() == "Stations (3/3)"
 			&& occurrences->visibleTrainIds() == QStringList({"F1 #1", "F2 #1"}) && stations->visibleTrainIds() == QStringList({"A", "B", "C"}),
 		"the buttons list the occurrences and the stations with their counts");
 
-	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", false) && occurrences->text() == "Occurrences (1/2)", "one occurrence is unchecked");
+	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", false) && occurrences->text() == "Trains (1/2)", "one occurrence is unchecked");
 	ok &= expect(rows(calls) == 3 && cell(calls, 0, 0) == "F2" && cell(calls, 2, 0) == "F2", "only F2 remains in the calls");
 	showTab(window, 1);
 	// F2 at B and C: +157 and -10, and A has no arrival: 2 available, sum 147, mean 73.5, minimum -10, maximum 157.
@@ -385,25 +397,31 @@ bool exerciseBaseline() {
 	ok &= expect(labelText(window, "dialogContext") == "Run: Case A / signal-failure-forward\nBaseline: Case A / baseline",
 		"the context names both runs");
 	ok &= expect(labelText(window, "delayBaselineTotals")
-			== "Occurrences: 2. Final arrival later: 2, same: 0, earlier: 0, not available: 0. Positive additional delay: +508 s. "
-			   "Net additional delay: +508 s.",
+			== "2 trains. At the final arrival: 2 later. Added delay +508 s, net +508 s.",
 		"the totals");
 	const QTableWidget* occurrences = table(window, "delayBaselineOccurrences");
 	ok &= expect(headerTexts(occurrences)
-			== QStringList({"Service", "Occurrence", "Train", "Operating code", "Input delay (primary) [s]", "Input delay at",
-				"Direct incident evidence", "Final station", "Baseline final arrival [s]", "Scenario final arrival [s]", "Additional delay [s]",
-				"Change", "Secondary delay [s]"}),
+			== QStringList({"Service", "Occurrence", "Train", "Operating code", "Input delay (s)", "Input delay station",
+				"Direct incident evidence", "Final station", "Baseline final arrival (s)", "Scenario final arrival (s)", "Additional delay (s)",
+				"Change", "Secondary delay (s)"}),
 		"the columns of the occurrences");
+	ok &= expect(headerTip(occurrences, "Input delay (s)") == "Entrance delay set in this scenario"
+			&& headerTip(occurrences, "Secondary delay (s)") == "Additional delay at the final arrival minus the input delay"
+			&& headerTip(occurrences, "Additional delay (s)") == "This run minus the baseline, same call",
+		"the delay headers of the trains say what they mean");
 	ok &= expect(rows(occurrences) == 2
 			&& rowTexts(occurrences, 0) == QStringList({"F1", "1", "F1-1", "", "0", "", "Yes: inc.fwd", "C", "933", "1218", "+285", "Later", "+285"})
 			&& rowTexts(occurrences, 1) == QStringList({"F2", "1", "F2-1", "", "0", "", "None recorded", "C", "1150", "1373", "+223", "Later", "+223"}),
 		"the final arrivals, the input delay and the evidence of each occurrence");
 	const QTableWidget* calls = table(window, "delayBaselineCalls");
 	ok &= expect(headerTexts(calls)
-			== QStringList({"Service", "Occurrence", "Station", "Journey order", "Call", "Final call", "Arrival: Baseline [s]",
-				"Arrival: Scenario [s]", "Arrival: Additional delay [s]", "Arrival: Change", "Departure: Baseline [s]", "Departure: Scenario [s]",
-				"Departure: Additional delay [s]", "Departure: Change"}),
+			== QStringList({"Service", "Occurrence", "Station", "Journey order", "Call", "Final call", "Arrival: Baseline (s)",
+				"Arrival: Scenario (s)", "Arrival: Additional delay (s)", "Arrival: Change", "Departure: Baseline (s)", "Departure: Scenario (s)",
+				"Departure: Additional delay (s)", "Departure: Change"}),
 		"the columns of the calls");
+	ok &= expect(headerTip(calls, "Arrival: Additional delay (s)") == "This run minus the baseline, same call"
+			&& headerTip(calls, "Departure: Additional delay (s)") == "This run minus the baseline, same call",
+		"the additional delay headers of the calls say what they mean");
 	ok &= expect(rows(calls) == 6, "a row for each call of each occurrence");
 	ok &= expect(rowTexts(calls, 0) == QStringList({"F1", "1", "A", "1", "1", "No", "-", "-", "-", "Not available", "-", "-", "-", "Not available"}),
 		"a call without a time in either run is not available, not 0");
@@ -413,24 +431,22 @@ bool exerciseBaseline() {
 		"F2 at B");
 	ok &= expect(rowTexts(calls, 5) == QStringList({"F2", "1", "C", "3", "1", "Yes", "1150", "1373", "+223", "Later", "1151", "1374", "+223", "Later"}),
 		"the final call");
-	const QString note = labelText(window, "delayBaselineNote");
-	ok &= expect(note.contains("primary delay") && note.contains("no cause") && note.contains("without recorded direct incident evidence is not shown to be propagated"),
-		"the window states what the input delay, the secondary delay and the evidence mean");
+	ok &= expect(labelText(window, "delayBaselineNote").isEmpty() && !window.findChild<QLabel*>("delayBaselineNote")->isVisible(),
+		"a compatible baseline shows no note above the totals");
 	ok &= expect(exportButton(window)->isEnabled(), "the tab can be exported");
 
 	// The occurrence choice limits the occurrences, the calls and the totals. The station choice limits the calls only.
 	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", false), "F1 is unchecked");
 	ok &= expect(rows(occurrences) == 1 && cell(occurrences, 0, 0) == "F2" && rows(calls) == 3
 			&& labelText(window, "delayBaselineTotals")
-				== "Occurrences: 1. Final arrival later: 1, same: 0, earlier: 0, not available: 0. Positive additional delay: +223 s. "
-				   "Net additional delay: +223 s.",
+				== "1 train. At the final arrival: 1 later. Added delay +223 s, net +223 s.",
 		"the totals are those of the chosen occurrences");
 	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", true) && setChecked(window, "delayAnalysisStations", "A", false), "A is unchecked");
 	ok &= expect(rows(occurrences) == 2 && rows(calls) == 4 && rowOf(calls, "F1", 2, "A") < 0
-			&& labelText(window, "delayBaselineTotals").contains("Positive additional delay: +508 s."),
+			&& labelText(window, "delayBaselineTotals").contains("Added delay +508 s,"),
 		"an unchecked station leaves the calls and not the occurrences");
 	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", false) && setChecked(window, "delayAnalysisOccurrences", "F2 #1", false)
-			&& labelText(window, "delayBaselineTotals") == "No occurrence is selected." && !exportButton(window)->isEnabled(),
+			&& labelText(window, "delayBaselineTotals") == "No train is selected." && !exportButton(window)->isEnabled(),
 		"nothing chosen shows no total and nothing to export");
 
 	// The events choice belongs to the other tabs.
@@ -450,7 +466,7 @@ bool exerciseEvidenceAndInputDelay() {
 	const QTableWidget* occurrences = table(level3, "delayBaselineOccurrences");
 	bool ok = expect(rowTexts(occurrences, 0)[6] == "Yes: inc.fwd" && rowTexts(occurrences, 1)[6] == "None recorded" && cell(occurrences, 1, 10) == "+228",
 		"only F1 has evidence and F2 is later without it");
-	ok &= expect(labelText(level3, "delayBaselineTotals").contains("Positive additional delay: +513 s. Net additional delay: +513 s."), "the total at level 3");
+	ok &= expect(labelText(level3, "delayBaselineTotals").contains("Added delay +513 s, net +513 s."), "the total at level 3");
 
 	DelayRunSnapshot baseline = snapshot("baseline",
 		{makeRow("X", 1, "P", 1, 1, {kNone, 100.0, kNone, 100.0}), makeRow("X", 1, "Q", 2, 1, {500.0, 560.0, 450.0, 560.0}),
@@ -490,8 +506,8 @@ bool exerciseMissingCall() {
 	bool ok = expect(rowTexts(occurrences, 1) == QStringList({"F2", "1", "F2-1", "", "0", "", "None recorded", "C", "1230", "-", "-", "Not available", "-"}),
 		"a missing arrival has no difference and no secondary delay");
 	ok &= expect(labelText(window, "delayBaselineTotals")
-			== "Occurrences: 2. Final arrival later: 1, same: 0, earlier: 0, not available: 1. Positive additional delay: +341 s. "
-			   "Net additional delay: +341 s. The sums leave out the occurrences that have no final arrival difference.",
+			== "2 trains. At the final arrival: 1 later, 1 not available. Added delay +341 s, net +341 s. Sums leave out trains without a final "
+			   "arrival.",
 		"the totals are incomplete");
 	ok &= expect(cell(table(window, "delayBaselineCalls"), 5, 8) == "-" && cell(table(window, "delayBaselineCalls"), 5, 9) == "Not available",
 		"the call that was not reached is not available");
@@ -500,12 +516,12 @@ bool exerciseMissingCall() {
 		lineSnapshot("baseline", {331, 660, 933, 934, 688, 748, 1021, 1022}));
 	showTab(none, 2);
 	const QString totals = labelText(none, "delayBaselineTotals");
-	ok &= expect(totals.contains("not available: 2.") && totals.contains("Positive additional delay: -. Net additional delay: -.") && !totals.contains(" 0 s"),
+	ok &= expect(totals.contains("At the final arrival: 2 not available.") && totals.contains("Added delay -, net -.") && !totals.contains(" 0 s"),
 		"without a difference the sums are not available, not 0");
 	return ok;
 }
 
-// A baseline that cannot be used: every reason is a row with its code and a sentence. Y is only in the baseline, W only in this
+// A baseline that cannot be used: every reason is a row with its sentence. Y is only in the baseline, W only in this
 // run and Z has other stations.
 bool exerciseIncompatible() {
 	const CallTimes departureAtP = {kNone, 100.0, kNone, 100.0};
@@ -530,17 +546,21 @@ bool exerciseIncompatible() {
 	const QTableWidget* diagnostics = table(window, "delayBaselineDiagnostics");
 	bool ok = expect(diagnostics->isVisible() && !window.findChild<QWidget*>("delayBaselineOccurrences")->isVisible(),
 		"an incompatible baseline shows the reasons and no difference");
-	ok &= expect(headerTexts(diagnostics) == QStringList({"Code", "Meaning"}) && rows(diagnostics) == 10, "all ten reasons are listed, not the first");
-	const QStringList codes = {"scenario_ids_equal", "scene_revision_differs", "base_time_differs", "duration_differs", "timestep_differs",
-		"baseline_has_incidents", "baseline_has_entrance_delays", "occurrence_only_in_baseline", "calls_differ", "occurrence_only_in_scenario"};
+	ok &= expect(headerTexts(diagnostics) == QStringList({"Reason"}) && rows(diagnostics) == 10, "all ten reasons are listed, not the first");
+	const std::pair<DelayDiagnosticKind, const char*> reasons[] = {{DelayDiagnosticKind::ScenarioIdsEqual, ""},
+		{DelayDiagnosticKind::SceneRevisionDiffers, ""}, {DelayDiagnosticKind::BaseTimeDiffers, ""}, {DelayDiagnosticKind::DurationDiffers, ""},
+		{DelayDiagnosticKind::TimestepDiffers, ""}, {DelayDiagnosticKind::BaselineHasIncidents, ""},
+		{DelayDiagnosticKind::BaselineHasEntranceDelays, ""}, {DelayDiagnosticKind::OccurrenceOnlyInBaseline, "Y"},
+		{DelayDiagnosticKind::CallsDiffer, "Z"}, {DelayDiagnosticKind::OccurrenceOnlyInScenario, "W"}};
 	for (int index = 0; index < 10; ++index)
-		ok &= expect(cell(diagnostics, index, 0) == codes[index], "the code of each reason, in a fixed order");
-	ok &= expect(cell(diagnostics, 0, 1) == "Both runs have the same scenario id. A run cannot be compared with itself."
-			&& cell(diagnostics, 7, 1) == "Occurrence Y #1 is in the baseline run only."
-			&& cell(diagnostics, 8, 1) == "Occurrence Z #1 has other calls in the two runs: other stations, another journey order or another call number."
-			&& cell(diagnostics, 9, 1) == "Occurrence W #1 is in this run only.",
-		"the sentences name the occurrences");
-	ok &= expect(labelText(window, "delayBaselineNote").contains("cannot be compared") && !exportButton(window)->isEnabled(),
+		ok &= expect(cell(diagnostics, index, 0) == delayDiagnosticText({reasons[index].first, reasons[index].second, 1}),
+			"the sentence of each reason, in a fixed order, without its code");
+	ok &= expect(cell(diagnostics, 0, 0) == "Both runs have the same scenario id. A run cannot be compared with itself."
+			&& cell(diagnostics, 7, 0) == "Train Y #1 is in the baseline run only."
+			&& cell(diagnostics, 8, 0) == "Train Z #1 has other calls in the two runs: other stations, another journey order or another call number."
+			&& cell(diagnostics, 9, 0) == "Train W #1 is in this run only.",
+		"the sentences name the trains");
+	ok &= expect(labelText(window, "delayBaselineNote") == "This run cannot be compared with the baseline:" && !exportButton(window)->isEnabled(),
 		"the note says so and there is nothing to export");
 	// The choice of occurrences does not hide a reason.
 	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "X #1", false) && rows(diagnostics) == 10, "the reasons do not depend on the choice");
@@ -551,7 +571,7 @@ bool exerciseNoBaseline() {
 	DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
 	window.show();
 	showTab(window, 2);
-	bool ok = expect(labelText(window, "delayBaselineNote").startsWith("No delay baseline is set.")
+	bool ok = expect(labelText(window, "delayBaselineNote") == "No baseline is set. In Run Results, click Set delay baseline after a run without incidents or entrance delays."
 			&& !table(window, "delayBaselineDiagnostics")->isVisible() && !window.findChild<QWidget*>("delayBaselineOccurrences")->isVisible(),
 		"without a baseline the tab says so");
 	ok &= expect(!exportButton(window)->isEnabled(), "there is nothing to export on the baseline tab");

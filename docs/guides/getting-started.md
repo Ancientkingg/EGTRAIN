@@ -80,7 +80,7 @@ The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slide
 
 ## 6. Read the results
 
-The dock **Run Results** names the run in its title and in the lines at its top, for example `Run: Paimpol / baseline`, `Occurrences: 2/2 selected` and `Status: Completed`. When some ticked occurrences enter outside the run period, the line `Occurrences` also gives the number inside it, as in `Occurrences: 196/196 selected, 185 in the run period`; that number is the **Selected in period** of the dialog **Run simulation**. Its table has one row for each train and a last row, **Network total**. The trains of Paimpol are `Guin-Paim-ALL-STOPS-1-1` and `Guin-Paim-EXPRESS-1-1`. The columns are **Train**, **Operating code**, **Performance (%)**, **Maximum speed (km/h)**, **Start time (hh:mm:ss)**, **End time (hh:mm:ss)**, **Travel time (h:mm:ss)** and four energy columns in kWh.
+The dock **Run Results** names the run in the lines at its top, for example `Run: Paimpol / baseline`, `Occurrences: 2/2 selected` and `Status: Completed`. When some ticked occurrences enter outside the run period, the line `Occurrences` also gives the number inside it, as in `Occurrences: 196/196 selected, 185 in the run period`; that number is the **Selected in period** of the dialog **Run simulation**. Its table has one row for each train and a last row, **Network total**. The trains of Paimpol are `Guin-Paim-ALL-STOPS-1-1` and `Guin-Paim-EXPRESS-1-1`. The columns are **Train**, **Operating code**, **Performance (%)**, **Maximum speed (km/h)**, **Start time (hh:mm:ss)**, **End time (hh:mm:ss)**, **Travel time (h:mm:ss)** and four energy columns in kWh.
 
 To open a result window, click **Open result view...** in the dock and choose an entry, or use the menu **Diagrams**. Two to try first:
 
@@ -96,7 +96,7 @@ The other entries are listed in [How-to](how-to.md#results-and-exports). The ent
 1. In the dock **Run Results**, click **Export CSV...**. The dialog **Export Data** suggests the name `run_summary.csv`. Choose a folder of your own and save. The file has one row for each train and the row **Network total**.
 2. Click **Export PNG...**. The dialog **Export Table** suggests `run_summary.png`. Save it. The picture shows the whole table, with every row and column, also those the dock has to scroll to.
 
-Each chart window and the window **Timetable** have their own **Export CSV...** and **Export PNG...** for the data and the picture of that window. **Delay analysis** has only **Export CSV...**, **Capacity** has **Export capacity CSV...** and **Capacity by area** has **Export area capacity CSV...**. Every export writes a second file with the same name plus `.provenance.json`, which records the run that produced it. Keep the two files together.
+Each chart window and the window **Timetable** have their own **Export CSV...** and **Export PNG...** for the data and the picture of that window. **Delay analysis**, **Capacity** and **Capacity by area** have only **Export CSV...**. Every export writes a second file with the same name plus `.provenance.json`, which records the run that produced it. Keep the two files together.
 
 An export dialog starts in your Documents folder, or in your home folder when there is none. Exports are not written to the output folder below.
 

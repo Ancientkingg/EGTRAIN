@@ -628,15 +628,15 @@ int main() {
 
 	{
 		RunResults evidence;
-		ok &= expect(directIncidentEvidenceText(evidence) == "Direct incident evidence recorded for 0 of 0 trains",
+		ok &= expect(directIncidentEvidenceText(evidence) == "Incidents acted on 0 of 0 trains",
 			"the evidence text of a run without trains counts none");
 		TrainRunResult held;
 		held.directIncidentIds = {"signal-failure-1", "speed-cap-2"};
 		evidence.trains = {held};
-		ok &= expect(directIncidentEvidenceText(evidence) == "Direct incident evidence recorded for 1 of 1 train",
+		ok &= expect(directIncidentEvidenceText(evidence) == "Incidents acted on 1 of 1 train",
 			"the evidence text counts a train once however many incidents it has and says train for one");
 		evidence.trains = {held, TrainRunResult(), held, TrainRunResult()};
-		ok &= expect(directIncidentEvidenceText(evidence) == "Direct incident evidence recorded for 2 of 4 trains",
+		ok &= expect(directIncidentEvidenceText(evidence) == "Incidents acted on 2 of 4 trains",
 			"the evidence text counts the trains with and without a recorded incident");
 	}
 

@@ -437,13 +437,20 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels) {
 	QStringList values;
 	for (const auto& item : evidence)
-		values << QString(labels ? "%1 / %2 (leader=%3 s; follower=%4 s; candidate=%5 s)" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
+		values << QString(labels ? "%1 / %2: leader offset %3 s, follower offset %4 s, headway %5 s" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
 					  .arg(QString::fromStdString(labels ? labels->label(item.leaderBlockId) : item.leaderBlockId),
 						  QString::fromStdString(labels ? labels->label(item.followerBlockId) : item.followerBlockId),
 						  QString::fromStdString(csv::formatDouble(item.leaderOffset)),
 						  QString::fromStdString(csv::formatDouble(item.followerOffset)),
 						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
-	return values.join("; ").toStdString();
+	return values.join(labels ? "\n" : "; ").toStdString();
+}
+
+std::string capacityEvidenceBlocks(const std::vector<CapacityHeadwayEvidence>& evidence) {
+	QStringList values;
+	for (const auto& item : evidence)
+		values << QString::fromStdString(item.leaderBlockId + "/" + item.followerBlockId);
+	return values.join(", ").toStdString();
 }
 
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel) {

@@ -326,7 +326,7 @@ int main(int argc, char** argv) {
 	const QRect screen = window.screen()->availableGeometry();
 	bool ok = window.width() <= screen.width() * 9 / 10
 		&& window.height() <= screen.height() * 4 / 5
-		&& context && context->isVisible() && context->text().contains("Case A")
+		&& context && context->isVisible() && context->text() == "Run: Case A / Scenario B"
 		&& context->textFormat() == Qt::PlainText
 		&& table && table->rowCount() == 1 && table->item(0, 0)->text() == "train-a"
 		&& window.findChild<TrainFilterButton*>()->isVisible();

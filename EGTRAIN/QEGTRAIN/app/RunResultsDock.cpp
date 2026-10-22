@@ -72,10 +72,6 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	m_summaryLabel = EditorLayout::wrappedLabel(QString(), container);
 	m_summaryLabel->setObjectName("runResultsContextLabel");
 	containerLayout->addWidget(m_summaryLabel);
-	auto* resultsCaption = new QLabel(container);
-	resultsCaption->setObjectName("runResultsViewsCaption");
-	DialogLayout::setHelp(resultsCaption, "Results");
-	containerLayout->addWidget(resultsCaption);
 	QHBoxLayout* resultViews = new QHBoxLayout();
 	auto* diagramsButton = new QToolButton(container);
 	diagramsButton->setText("Open result view...");
@@ -132,7 +128,7 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 		QBuffer buffer(&data);
 		if (!buffer.open(QIODevice::WriteOnly) || !fullTableImage(*m_table).save(&buffer, "PNG")) {
 			operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("write the image to", path));
+			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("save the image to", path));
 			return;
 		}
 		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
@@ -140,7 +136,7 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 			m_runController->completedRun() ? m_runController->completedRun()->provenance : RunProvenance());
 		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 		if (!written)
-			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("export the image and provenance to", path));
+			QMessageBox::warning(m_window, "Export failed", path_message::writeFailed("save the image to", path));
 	});
 	resultViews->addWidget(exportCsvBtn);
 	resultViews->addWidget(exportPngBtn);
@@ -167,12 +163,12 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	containerLayout->addWidget(m_delayFeedbackLabel);
 	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
 	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
-	m_setDelayBaselineButton->setToolTip("Freeze this completed run with no incidents or entrance delays as the delay baseline");
+	m_setDelayBaselineButton->setToolTip("Use this run as the delay baseline");
 	QObject::connect(m_setDelayBaselineButton, &QPushButton::clicked, m_runController, &RunController::setDelayBaseline);
 	delayRow->addWidget(m_setDelayBaselineButton);
 	m_compareDelayButton = new QPushButton("Compare delays", container);
 	m_compareDelayButton->setObjectName("compareDelayButton");
-	m_compareDelayButton->setToolTip("Compare the completed run with the frozen delay baseline");
+	m_compareDelayButton->setToolTip("Compare this run with the delay baseline");
 	QObject::connect(m_compareDelayButton, &QPushButton::clicked, views, &ResultViews::showDelayComparison);
 	delayRow->addWidget(m_compareDelayButton);
 	delayRow->addStretch();
@@ -190,7 +186,7 @@ void RunResultsDock::refresh() {
 		return;
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	refreshSummary();
-	m_dock->setWindowTitle(QStringLiteral("Run Results \u2014 %1").arg(completedRunContext(run->provenance)));
+	m_dock->setWindowTitle(QStringLiteral("Run Results"));
 
 	const RunResults& results = run->results;
 	// The headers and their tooltips stay as the constructor set them.
@@ -307,11 +303,11 @@ void RunResultsDock::updateAvailability(bool resultsAvailable) {
 	const RunController::DelayBaselineState delay = m_runController->delayBaselineState(resultsAvailable);
 	m_setDelayBaselineButton->setEnabled(delay.canSet);
 	m_setDelayBaselineButton->setToolTip(delay.canSet
-			? QStringLiteral("Freeze this completed run with no incidents or entrance delays as the delay baseline")
-			: QStringLiteral("Complete a run with no incidents or entrance delays before setting a delay baseline"));
+			? QStringLiteral("Use this run as the delay baseline")
+			: QStringLiteral("Needs a completed run without incidents or entrance delays"));
 	m_compareDelayButton->setEnabled(delay.canCompare);
 	m_compareDelayButton->setToolTip(delay.canCompare
-			? QStringLiteral("Compare the completed run with the frozen delay baseline")
-			: QStringLiteral("Run a completed scenario with incidents or entrance delays after setting a baseline"));
+			? QStringLiteral("Compare this run with the delay baseline")
+			: QStringLiteral("Needs a baseline and a run with incidents or entrance delays"));
 	m_delayFeedbackLabel->setText(delay.feedback);
 }

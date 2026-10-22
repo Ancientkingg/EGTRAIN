@@ -72,8 +72,8 @@ static bool blockSectionTests() {
 	const auto broken = buildBlockSectionExtents({{"@ok@", 0.0, 1.0}, {"@nan@", 1.0, nan}, {"@inf@", 1.0, inf}, {"@zero@", 2.0, 2.0},
 		{"@tiny@", 3.0, 3.0 + 5e-10}, {"@last@", 4.0, 5.0}});
 	ok &= expect(broken.size() == 6 && broken[0].geometryValid && !broken[1].geometryValid
-			&& broken[1].issue == "coordinate is not finite" && !broken[2].geometryValid
-			&& broken[2].issue == "coordinate is not finite" && !broken[3].geometryValid && broken[3].issue == "zero length"
+			&& broken[1].issue == "no valid position" && !broken[2].geometryValid
+			&& broken[2].issue == "no valid position" && !broken[3].geometryValid && broken[3].issue == "zero length"
 			&& !broken[4].geometryValid && broken[4].issue == "zero length" && broken[5].geometryValid,
 		"sections without finite ends or length are listed without geometry");
 	ok &= expect(broken[1].order == 2 && broken[2].order == 3 && broken[3].order == 4 && broken[4].order == 5
@@ -90,24 +90,21 @@ static bool blockSectionTests() {
 	const std::vector<BlockSectionExtent> route = buildBlockSectionExtents({{"@0-B0@", 0.0, 2.0}, {"@1-B0@", 2.0, 4.0}, {"@2-B0@", 4.0, 6.0}});
 	std::vector<BlockingTimeDiagramSegment> same = {envelope("@2-B0@", 4.0, 6.0)};
 	matchBlockingSegmentsToSections(same, route, "route0");
-	ok &= expect(same[0].referenceSection == 3
-			&& same[0].referenceNote == "Reference section: 3 of 3, @2-B0@, 4.000 to 6.000 km (same section)",
-		"same id and interval gives the section and its note");
+	ok &= expect(same[0].referenceSection == 3 && same[0].referenceNote.empty(),
+		"same id and interval gives the section and no note, as the hover names the block");
 	SceneSectionLabels routeLabels;
 	routeLabels.byReference = {{"@2-B0@", "B0 4.000 to 6.000 km"}};
 	matchBlockingSegmentsToSections(same, route, "route0", &routeLabels);
-	ok &= expect(same[0].referenceSection == 3
-			&& same[0].referenceNote == "Reference section: 3 of 3, B0 4.000 to 6.000 km (@2-B0@), 4.000 to 6.000 km (same section)",
-		"with labels the note names the section by its label and id");
+	ok &= expect(same[0].referenceSection == 3 && same[0].referenceNote.empty(), "with labels the same section has no note either");
 
 	std::vector<BlockingTimeDiagramSegment> opposite = {envelope("@1-B0@", 4.0, 2.0)};
 	matchBlockingSegmentsToSections(opposite, route, "route0");
-	ok &= expect(opposite[0].referenceSection == 2 && opposite[0].referenceNote.find("(same section)") != std::string::npos,
+	ok &= expect(opposite[0].referenceSection == 2 && opposite[0].referenceNote.empty(),
 		"an envelope from high X to low X matches the same section");
 
 	std::vector<BlockingTimeDiagramSegment> otherId = {envelope("@9-B0@", 2.0, 4.0)};
 	matchBlockingSegmentsToSections(otherId, route, "route0");
-	ok &= expect(otherId[0].referenceSection == 0 && otherId[0].referenceNote == "Not a section of the reference route route0",
+	ok &= expect(otherId[0].referenceSection == 0 && otherId[0].referenceNote == "Not on route0",
 		"the same interval with another id is not a section of the route");
 
 	std::vector<BlockingTimeDiagramSegment> point = {envelope("@1-B0@", 3.0, 3.0)};
@@ -122,32 +119,31 @@ static bool blockSectionTests() {
 	const auto twice = buildBlockSectionExtents({{"@x@", 0.0, 1.0}, {"@x@", 5.0, 6.0}});
 	std::vector<BlockingTimeDiagramSegment> second = {envelope("@x@", 5.0, 6.0)};
 	matchBlockingSegmentsToSections(second, twice, "route0");
-	ok &= expect(second[0].referenceSection == 2 && second[0].referenceNote.find("2 of 2") != std::string::npos,
+	ok &= expect(second[0].referenceSection == 2 && second[0].referenceNote.empty(),
 		"a repeated id matches the occurrence with the equal interval");
 	std::vector<BlockingTimeDiagramSegment> overlapping = {envelope("@x@", 0.5, 1.5), envelope("@x@", 5.5, 8.0)};
 	matchBlockingSegmentsToSections(overlapping, twice, "route0");
 	ok &= expect(overlapping[0].referenceSection == 1
-			&& overlapping[0].referenceNote
-				== "Reference section: 1 of 2, @x@, 0.000 to 1.000 km (shares a block with this envelope's section)"
-			&& overlapping[1].referenceSection == 2,
+			&& overlapping[0].referenceNote == "Section 1 of 2: @x@" && overlapping[1].referenceSection == 2
+			&& overlapping[1].referenceNote == "Section 2 of 2: @x@",
 		"an envelope of the same id between the intervals shares a block with the first section it overlaps");
 
 	const auto duplicated = buildBlockSectionExtents({{"@d@", 0.0, 1.0}, {"@d@", 0.0, 1.0}});
 	std::vector<BlockingTimeDiagramSegment> first = {envelope("@d@", 0.0, 1.0)};
 	matchBlockingSegmentsToSections(first, duplicated, "route0");
-	ok &= expect(first[0].referenceSection == 0 && first[0].referenceNote.find("Ambiguous") != std::string::npos
+	ok &= expect(first[0].referenceSection == 0 && first[0].referenceNote == "Matches several sections of route0: 1:@d@, 2:@d@"
 			&& duplicated.size() == 2,
 		"coincident occurrences are retained but cannot identify one envelope occurrence");
 	SceneSectionLabels switchLabels;
 	switchLabels.byReference = {{"@d@", "D 0.000 to 0.500, E 2.000 to 2.500 km"}};
 	matchBlockingSegmentsToSections(first, duplicated, "route0", &switchLabels);
 	ok &= expect(first[0].referenceNote
-			== "Ambiguous reference sections on route route0: 1: D 0.000 to 0.500, E 2.000 to 2.500 km (@d@); "
+			== "Matches several sections of route0: 1: D 0.000 to 0.500, E 2.000 to 2.500 km (@d@); "
 			   "2: D 0.000 to 0.500, E 2.000 to 2.500 km (@d@)",
 		"with labels the ambiguous sections are named by label and id, apart by semicolons");
 	std::vector<BlockingTimeDiagramSegment> sharedMany = {envelope("@d@", 0.2, 0.8)};
 	matchBlockingSegmentsToSections(sharedMany, duplicated, "route0");
-	ok &= expect(sharedMany[0].referenceSection == 0 && sharedMany[0].referenceNote.find("Ambiguous") != std::string::npos,
+	ok &= expect(sharedMany[0].referenceSection == 0 && sharedMany[0].referenceNote.find("Matches several sections") == 0,
 		"shared-resource overlap with several occurrences is ambiguous");
 	same[0].startPositionKm = same[0].endPositionKm;
 	matchBlockingSegmentsToSections(same, route, "route0");
@@ -159,9 +155,7 @@ static bool blockSectionTests() {
 	std::vector<BlockingTimeDiagramSegment> plain = {envelope("@34-B88@", 10.0, 10.5)};
 	matchBlockingSegmentsToSections(plain, composite, "route32");
 	ok &= expect(plain[0].referenceSection == 1
-			&& plain[0].referenceNote
-				== "Reference section: 1 of 1, @3-B157@-59.120000/@34-B88@-59.130000, 10.000 to 10.500 km "
-				   "(shares a block with this envelope's section)",
+			&& plain[0].referenceNote == "Section 1 of 1: @3-B157@-59.120000/@34-B88@-59.130000",
 		"a plain id matches the composite section that holds its block");
 	std::vector<BlockingTimeDiagramSegment> apart = {envelope("@34-B88@", 11.0, 12.0)};
 	matchBlockingSegmentsToSections(apart, composite, "route32");
@@ -171,7 +165,7 @@ static bool blockSectionTests() {
 	const auto unusable = buildBlockSectionExtents({{"@t@", 0.0, 5e-10}});
 	std::vector<BlockingTimeDiagramSegment> tiny = {envelope("@t@", 0.0, 5e-10)};
 	matchBlockingSegmentsToSections(tiny, unusable, "route0");
-	ok &= expect(tiny[0].referenceSection == 0 && tiny[0].referenceNote == "Not a section of the reference route route0",
+	ok &= expect(tiny[0].referenceSection == 0 && tiny[0].referenceNote == "Not on route0",
 		"a section without geometry is not a candidate");
 
 	// Rows of the export.
@@ -216,20 +210,32 @@ static bool blockSectionTests() {
 	};
 	ok &= expect(blockSectionGeometryNote(sections(4, 0)).empty() && blockSectionGeometryNote({}).empty(),
 		"usable extents give no note");
-	ok &= expect(blockSectionGeometryNote(sections(4, 1)) == " Reference sections without a usable extent: @s0@.",
+	ok &= expect(blockSectionGeometryNote(sections(4, 1)) == "Sections not drawn (no valid length): @s0@",
 		"one section without geometry is named");
-	ok &= expect(blockSectionGeometryNote(sections(4, 3)) == " Reference sections without a usable extent: @s0@, @s1@, @s2@.",
+	ok &= expect(blockSectionGeometryNote(sections(4, 3)) == "Sections not drawn (no valid length): @s0@, @s1@, @s2@",
 		"three sections without geometry are all named");
-	ok &= expect(blockSectionGeometryNote(sections(5, 4))
-			== " Reference sections without a usable extent: @s0@, @s1@, @s2@ and 1 more.",
+	ok &= expect(blockSectionGeometryNote(sections(5, 4)) == "Sections not drawn (no valid length): @s0@, @s1@, @s2@ and 1 more",
 		"more than three sections without geometry end with the number left out");
 	const auto mixed = buildBlockSectionExtents({{"@a@", 0.0, 1.0}, {"@b@", 1.0, 1.0}, {"@c@", 1.0, 2.0}, {"@d@", 2.0, nan}});
-	ok &= expect(blockSectionGeometryNote(mixed) == " Reference sections without a usable extent: @b@, @d@.",
+	ok &= expect(blockSectionGeometryNote(mixed) == "Sections not drawn (no valid length): @b@, @d@",
 		"the note lists the sections without geometry in route order and no others");
 	SceneSectionLabels mixedLabels;
 	mixedLabels.byReference = {{"@b@", "T 1.000 km"}};
-	ok &= expect(blockSectionGeometryNote(mixed, &mixedLabels) == " Reference sections without a usable extent: T 1.000 km (@b@); @d@.",
+	ok &= expect(blockSectionGeometryNote(mixed, &mixedLabels) == "Sections not drawn (no valid length): T 1.000 km (@b@); @d@",
 		"with labels the note names the sections by label and id, apart by semicolons");
+
+	// The note above the chart has only the parts that apply, and no count of 0.
+	ok &= expect(blockingTimeNote(0, false, false, "route0").empty(), "nothing missing gives no note");
+	ok &= expect(blockingTimeNote(0, false, true, "route0").empty(), "blocks that were not placed say nothing while the chart has some");
+	ok &= expect(blockingTimeNote(1, false, true, "route0") == "1 block or stop could not be placed on route0 and is not shown.",
+		"one block or stop that is not shown is said in the singular");
+	ok &= expect(blockingTimeNote(3, false, true, "route0") == "3 blocks or stops could not be placed on route0 and are not shown.",
+		"the count of the blocks or stops that are not shown");
+	ok &= expect(blockingTimeNote(0, true, false, "route0") == "No complete blocking times in this section and period.",
+		"an empty chart without blocks that were not placed has nothing in its section and period");
+	ok &= expect(blockingTimeNote(2, true, true, "route0")
+			== "2 blocks or stops could not be placed on route0 and are not shown. No blocking times could be placed on route0.",
+		"an empty chart whose blocks were not placed says so after the count");
 	const auto returning = buildBlockSectionExtents({{"@a@", 2, 8}, {"@b@", 8, -2}, {"@a@", -2, 2}});
 	ok &= expect(blockSectionBounds(returning) == std::make_optional(std::make_pair(-2.0, 8.0)),
 		"returning route includes intermediate endpoints, not only first/last");

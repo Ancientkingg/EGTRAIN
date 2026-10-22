@@ -55,7 +55,8 @@ struct BlockingTimeDiagramSegment {
 	bool capacityCritical = false;
 	// Order of the matched section of the reference route, 0 for none.
 	int referenceSection = 0;
-	// Empty means the envelope was not matched to the sections.
+	// What the hover says about the section of the reference route; empty when the block is that section, or when it
+	// was not matched to the sections.
 	std::string referenceNote;
 };
 
@@ -132,7 +133,8 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 
 // Exact id/interval matches take precedence over overlapping shared resources. Several candidates
 // are ambiguous, never first-match. Every call clears stale fields, including locations/empty routes.
-// The notes name a section by its label and id when `labels` is given, else by its id.
+// An exact match sets the section and no note. The notes name a section by its label and id when `labels` is given,
+// else by its id.
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId,
 	const SceneSectionLabels* labels = nullptr);
@@ -167,8 +169,13 @@ inline constexpr char kUnmappedEnvelopeLayer[] = "unmapped blocking envelope";
 // One row of the blocking-time export for each extent, as wide as the header.
 std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<BlockSectionExtent>& extents);
 
-// Sentence for the chart note that lists the sections without a usable extent, starting with a
-// space; empty when every extent is usable. A section is named by its label and id when `labels` is given.
+// The notice of the section strip that lists the sections without a usable extent; empty when every extent is usable.
+// A section is named by its label and id when `labels` is given.
 std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents, const SceneSectionLabels* labels = nullptr);
+
+// The note above a blocking-time chart: what it leaves out, from the parts that apply. `omitted` blocks or stops could
+// not be placed on the route `routeId`; `nothingPlotted` adds that the chart is empty, which `unplaced` blames on blocks
+// that could not be placed. Empty when nothing is missing.
+std::string blockingTimeNote(int omitted, bool nothingPlotted, bool unplaced, const std::string& routeId);
 
 #endif // BLOCKINGTIMEDIAGRAM_H

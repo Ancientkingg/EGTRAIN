@@ -610,6 +610,8 @@ static bool exerciseButtonDefaults() {
 	if (!ok) return false;
 	ok &= buttonFlags(window, "diagram window button");
 	ok &= expect(csv->isVisible() && csv->isEnabled(), "diagram window shows Export CSV with a provider");
+	auto* clear = topButton(window, "Clear selection");
+	ok &= expect(clear->isHidden(), "Clear selection is hidden while no train is selected");
 	const auto clickTrain = [&] {
 		const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(20, 30), chart->series().first())));
 		QMouseEvent press(QEvent::MouseButtonPress, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
@@ -623,6 +625,7 @@ static bool exerciseButtonDefaults() {
 		if (label->text().startsWith("Selected:")) pin = label;
 	ok &= expect(pin && pin->text() == "Selected: A", "click selects train A in the button test");
 	if (!pin) return false;
+	ok &= expect(clear->isVisible(), "Clear selection shows together with the selection");
 	view->setFocus();
 	pressKey(view, Qt::Key_Return);
 	pressKey(view, Qt::Key_Enter);
@@ -632,6 +635,8 @@ static bool exerciseButtonDefaults() {
 	pressKey(&window, Qt::Key_Return);
 	ok &= expect(pin->text() == "Selected: A", "Enter in the window keeps the selection");
 	ok &= expect(calls == 0, "Enter starts no CSV export");
+	clear->click();
+	ok &= expect(clear->isHidden() && pin->isHidden(), "Clear selection hides itself and the selection");
 	DiagramWindow input("Input traction");
 	input.setProperty("inputTrainUnitId", "unit-a");
 	input.setChart(buttonTestChart());
@@ -723,7 +728,7 @@ static bool exerciseBlockSections() {
 	const std::string authored = "@repeat<&>" + std::string(80, 'X') + "@";
 	auto extents = buildBlockSectionExtents({{authored, 1, 3}, {authored, 1, 3}, {"@reverse@", 8, 5}, {"@missing<&>@", 4, 4}});
 	window.setBlockSections(extents, "reference<&>");
-	ok &= expect(legendKinds(window) == QStringList({"Simulated", "Physical section"}), "the legend names the drawn section boundaries");
+	ok &= expect(legendKinds(window) == QStringList({"Simulated", "Section boundary"}), "the legend names the drawn section boundaries");
 	DiagramWindow sectionsOnly("Physical sections only");
 	auto* empty = new QChart;
 	auto* km = new QValueAxis;
@@ -731,7 +736,7 @@ static bool exerciseBlockSections() {
 	empty->addAxis(km, Qt::AlignBottom);
 	sectionsOnly.setChart(empty);
 	sectionsOnly.setBlockSections(extents, "reference<&>");
-	ok &= expect(legendKinds(sectionsOnly) == QStringList({"Physical section"}), "a chart with only section boundaries names them in the legend");
+	ok &= expect(legendKinds(sectionsOnly) == QStringList({"Section boundary"}), "a chart with only section boundaries names them in the legend");
 	window.show();
 	QApplication::processEvents();
 	auto* view = window.findChild<QChartView*>();
@@ -772,7 +777,7 @@ static bool exerciseBlockSections() {
 	};
 	// The strip lies above the plot, where no click can select a series. A click that reaches the section code shows its details.
 	click(header);
-	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().contains("Physical reference section"),
+	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().contains("km along reference<&>"),
 		"a click on the section strip inspects the section and selects no train");
 	// A boundary inside the plot, away from every sample: the dotted line is inspected but belongs to no train.
 	click(view->mapFromScene(chart->mapToScene(chartPoint(8, chart->plotArea().height() / 2))));
@@ -897,7 +902,7 @@ static bool exerciseBlockSections() {
 	const double labelledWidth = QFontMetricsF(window.font()).horizontalAdvance("1: T 0.000 to 0.250 km");
 	hover(QPointF(plot.left() + labelledWidth - 2, headerPoint(0, 0).y() + 5));
 	ok &= expect(tooltip->isVisible()
-			&& tooltip->text().startsWith("Physical reference section 1: T 0.000 to 0.250 km (@n0@) | Route: crowded"),
+			&& tooltip->text().startsWith("Section 1: T 0.000 to 0.250 km (@n0@)\n0 to 0.25 km along crowded"),
 		"the strip names a section by its label, and the hover by its label and id");
 	window.setBlockSections(extents, "reference<&>");
 	overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
@@ -921,7 +926,7 @@ static bool exerciseBlockSections() {
 	wheel(view, {}, QPoint(0, 120), Qt::ControlModifier, chartPoint(3, 100));
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));
-	ok &= expect(tooltip->isVisible() && tooltip->text().contains("Physical reference section"), "header inspection follows zoom");
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("km along reference<&>"), "header inspection follows zoom");
 	wheel(view, QPoint(-10, -8), {});
 	window.resize(window.width() - 80, window.height() - 50);
 	QApplication::processEvents();
@@ -934,7 +939,7 @@ static bool exerciseBlockSections() {
 	hover(headerPoint(2, 5));
 	ok &= expect(x->min() == 0 && x->max() == 12 && tooltip->isVisible() && boundaryPainted(), "reset retains original section alignment");
 	hover(headerPoint(6.5, 5));
-	ok &= expect(tooltip->isVisible() && tooltip->text().contains("@reverse@") && tooltip->text().contains("Directed X: 8 to 5 km"),
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("@reverse@") && tooltip->text().contains("8 to 5 km along reference<&>"),
 		"a section towards decreasing X reports its directed ends in hover");
 	hover(headerPoint(2, rowHeight + 5));
 	ok &= expect(tooltip->text().contains("@missing<&>@") && tooltip->text().contains("zero length")
@@ -982,7 +987,7 @@ static bool exerciseBlockSections() {
 	window.setBlockSections({}, "no-geometry");
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));
-	ok &= expect(tooltip->isVisible() && tooltip->text().contains("no physical geometry"), "empty section geometry is explicitly reported inside chart");
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("No section boundaries for this route"), "empty section geometry is explicitly reported inside chart");
 	return ok;
 }
 
@@ -1188,16 +1193,9 @@ static bool exerciseStationAxis() {
 }
 
 // A chart with more than one kind of line names the kinds in a legend below the plot: the layer of a series, else planned
-// or simulated by its name. The help line does not explain them, and the rolling-stock subject has its own help.
+// or simulated by its "planned" property or its name. The help line does not explain them and is the same for every chart.
 static bool exerciseLegend() {
-#ifdef Q_OS_MACOS
-	const QString zoom = QStringLiteral("pinch or Command-scroll to zoom");
-#else
-	const QString zoom = QStringLiteral("pinch or Ctrl+wheel to zoom");
-#endif
-	const QString navigation = "Drag to zoom; two-finger scroll to pan; " + zoom + ". +/- zoom, arrows pan, Home resets.";
-	const QString general = "Hover to inspect; click to select. " + navigation;
-	const QString inputTraction = "Input tractive effort by speed. " + navigation;
+	const QString general = "Drag to zoom. Scroll to pan. Home resets.";
 	bool ok = true;
 
 	DiagramWindow window("Legend");
@@ -1205,15 +1203,40 @@ static bool exerciseLegend() {
 	window.setChart(makeNamedChart({"Train A (planned arrival)", "Train A (simulated arrival)"}));
 	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}) && navigationHelp(window) == general,
 		"planned and simulated lines are named in the legend, not in the help");
-	window.setChart(makeNamedChart({"Train A", "Train B (arrival delay)", "Train A (recorded trajectory)"}));
+	window.setChart(makeNamedChart({"Train A", "Train B", "Train A"}));
 	ok &= expect(legendKinds(window).isEmpty(), "a chart with one kind of line has no legend");
 	window.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)", "Train B"}));
 	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "the planned name test ignores letter case");
+	QChart* plannedByProperty = makeNamedChart({"Train A", "Train A"});
+	plannedByProperty->series()[0]->setProperty("planned", true);
+	window.setChart(plannedByProperty);
+	const auto* plannedLine = qobject_cast<QXYSeries*>(plannedByProperty->series()[0]);
+	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}) && plannedLine->pen().style() == Qt::DashLine,
+		"a series whose planned property is set is planned without the word in its name, and drawn dashed");
+	// The colour key takes the place of its layer, the first time the layer comes; a new chart clears it.
+	const auto keyedChart = [] {
+		QChart* chart = makeNamedChart({"A", "A", "B", "A"});
+		chart->series()[0]->setProperty("layer", "blocking time");
+		chart->series()[1]->setProperty("layer", "simulated");
+		chart->series()[2]->setProperty("layer", "blocking time");
+		chart->series()[3]->setProperty("planned", true);
+		return chart;
+	};
+	window.setChart(keyedChart());
+	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Simulated", "Planned"}), "without a colour key the layer names its kind");
+	window.setColourKey("blocking time", {{"Block or station", QColor(100, 160, 240)}, {"Switch", QColor(240, 210, 40)}});
+	ok &= expect(legendKinds(window) == QStringList({"Block or station", "Switch", "Simulated", "Planned"}),
+		"the colour key replaces the entry of its layer with a swatch for each colour");
+	window.setColourKey("no such layer", {{"Conflict", QColor(220, 50, 50)}});
+	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Simulated", "Planned"}), "a key for a layer the chart lacks shows nothing");
+	window.setColourKey("blocking time", {{"Conflict", QColor(220, 50, 50)}});
+	window.setChart(keyedChart());
+	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Simulated", "Planned"}), "a new chart clears the colour key");
 	QChart* layered = makeNamedChart({"A", "A (planned reference)", "A again"});
-	layered->series()[0]->setProperty("layer", "calculated blocking envelope");
-	layered->series()[2]->setProperty("layer", "recorded trajectory");
+	layered->series()[0]->setProperty("layer", "blocking time");
+	layered->series()[2]->setProperty("layer", "simulated");
 	window.setChart(layered);
-	ok &= expect(legendKinds(window) == QStringList({"Calculated blocking envelope", "Planned", "Recorded trajectory"}),
+	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Planned", "Simulated"}),
 		"the layer of a series names its kind");
 
 	// At the size of the window on a 1280 by 800 screen the legend is inside the chart, below the plot and its axis texts.
@@ -1231,9 +1254,7 @@ static bool exerciseLegend() {
 	DiagramWindow input("Help of an input traction curve");
 	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
 	input.setChart(makeNamedChart({"Unit planned"}));
-	ok &= expect(navigationHelp(input) == inputTraction, "input traction has its own help");
-	input.setRollingStockSubject(false);
-	ok &= expect(navigationHelp(input) == general, "help follows the chart after the rolling-stock subject is switched off");
+	ok &= expect(navigationHelp(input) == general, "input traction has the same help");
 	return ok;
 }
 
@@ -1324,7 +1345,38 @@ static bool exerciseClockTicks() {
 	return ok;
 }
 
-// Once Export CSV... has saved the file, the status bar of the main window names it.
+// The clock axis of setTimeAxisY takes the place of the numeric time axis, so the chart draws one vertical axis with one
+// title, also in a picture taken before the event loop turns, as an export or an offscreen capture takes it. No test here
+// runs the event loop, so the items of a removed axis that Qt deletes later stay in the scene as they would there.
+static bool exerciseSingleVerticalAxis() {
+	DiagramWindow window("Single vertical axis");
+	QChart* chart = makeNamedChart({"A"});
+	chart->axes(Qt::Horizontal).first()->setTitleText("Distance (km)");
+	chart->axes(Qt::Vertical).first()->setTitleText("Elapsed simulation time (s)");
+	window.setChart(chart);
+	window.resize(800, 500);
+	window.show();
+	const auto verticalTitles = [&window] {
+		for (int turn = 0; turn < 4; ++turn) QApplication::processEvents();
+		window.grab();
+		QStringList titles;
+		for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
+			if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible() && text->rotation() != 0)
+				titles << text->toPlainText();
+		return titles;
+	};
+	bool ok = expect(verticalTitles() == QStringList({"Elapsed simulation time (s)"}), "a numeric time axis has one vertical title");
+	window.setTimeAxisY(true, 8 * 3600);
+	ok &= expect(verticalTitles() == QStringList({"Time"}), "the clock axis is the only vertical axis that the chart draws");
+	window.setTimeAxisY(false);
+	ok &= expect(verticalTitles() == QStringList({"Elapsed simulation time (s)"}), "numeric labels again show the numeric axis alone");
+	window.setTimeAxisY(true, 8 * 3600);
+	ok &= expect(verticalTitles() == QStringList({"Time"}), "a second clock axis is again the only vertical axis");
+	return ok;
+}
+
+// Once Export CSV... has saved the file, the status bar of the main window names it. Export PNG... suggests the name of
+// the CSV with .png.
 static bool exerciseCsvSavedMessage() {
 	QMainWindow mainWindow;
 	auto* window = new DiagramWindow("Saved message", &mainWindow);
@@ -1342,8 +1394,19 @@ static bool exerciseCsvSavedMessage() {
 			}
 	});
 	topButton(*window, "Export CSV...")->click();
-	return expect(QFile::exists(path) && mainWindow.statusBar()->currentMessage().contains(QDir::toNativeSeparators(path)),
+	bool ok = expect(QFile::exists(path) && mainWindow.statusBar()->currentMessage().contains(QDir::toNativeSeparators(path)),
 		"the status bar of the main window names the saved CSV file");
+	QString suggested;
+	QTimer::singleShot(0, window, [&suggested] {
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+				dialog->reject();
+			}
+	});
+	topButton(*window, "Export PNG...")->click();
+	ok &= expect(suggested == "saved.png", "Export PNG suggests the name of the CSV with .png");
+	return ok;
 }
 
 // A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.
@@ -1833,7 +1896,7 @@ int main(int argc, char* argv[]) {
 		!input.findChild<TrainFilterButton*>()->isVisible()
 			&& input.findChild<QLabel*>("diagramContext")->text().contains(authoredId)
 			&& !input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Planned:")
-			&& input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Input tractive effort"),
+			&& input.findChild<QLabel*>("diagramNavigationHelp")->text() == "Drag to zoom. Scroll to pan. Home resets.",
 		"input traction uses rolling-stock subject and no visible train filter");
 	input.setPresentation("Updated heading", "Case C / Scenario D", scientificWarning);
 	app.processEvents();
@@ -1849,9 +1912,8 @@ int main(int argc, char* argv[]) {
 	const QString longContext = "Reference: " + QString(1500, QLatin1Char('R'))
 		+ " | Case: " + QString(1500, QLatin1Char('C'));
 	for (const QString& warning : {scientificWarning,
-			 QStringLiteral("Stop arrivals/departures and dwell, not continuous movement. Ambiguous/unmapped portions omitted; no extrapolation."),
-			 QStringLiteral("Calculated envelopes, not observed occupation; movement only within scope. Unmapped endpoints/events omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation."),
-			 QStringLiteral("Calculated envelopes and recorded movement, each train moved by the shift of its occupations; movement only within its envelopes. Unmapped endpoints omitted: 2; incomplete/missing-clearance blocks omitted. No extrapolation.")}) {
+			 QStringLiteral("2 blocks or stops could not be placed on route0 and are not shown."),
+			 QStringLiteral("2 blocks or stops could not be placed on route0 and are not shown. No blocking times could be placed on route0.")}) {
 		input.setPresentation("Scientific interpretation", longContext, warning);
 		app.processEvents();
 		const auto* label = input.findChild<QLabel*>("diagramWarning");
@@ -1886,6 +1948,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseLongAxisTitle();
 	ok &= exerciseRoundTicks();
 	ok &= exerciseClockTicks();
+	ok &= exerciseSingleVerticalAxis();
 	ok &= exerciseCsvSavedMessage();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
