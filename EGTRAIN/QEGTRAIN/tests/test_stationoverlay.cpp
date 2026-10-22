@@ -811,6 +811,34 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
+		// The frame of a diagonal station stands on its area, under the top of the box of its node centres. With the four
+		// spots by the dots and the frame blocked, its name goes above a frame on the top centre of that box.
+		QGraphicsScene scene;
+		const QTransform far = QTransform::fromScale(0.1, 0.1);
+		const MarkRig rig = addMarkRig(scene, "Alpha", {QPointF(0.0, 0.0), QPointF(-270.0, -270.0), QPointF(270.0, 270.0)});
+		const auto place = [&]() {
+			rig.overlay->applyViewScale(0.2, false);
+			rig.overlay->applyViewScale(0.1, false);
+			StationOverlayItem::resolveNameCollisions({rig.overlay}, far);
+			return rig.name->sceneBoundingRect();
+		};
+		const QRectF under = place();
+		scene.addItem(new TrackLineItem(QLineF(-2000.0, under.center().y(), 2000.0, under.center().y())));
+		const QRectF above = place();
+		scene.addItem(new TrackLineItem(QLineF(-2000.0, above.center().y(), 2000.0, above.center().y())));
+		const QRectF right = place();
+		scene.addItem(new TrackLineItem(QLineF(right.center().x(), -2000.0, right.center().x(), 2000.0)));
+		const QRectF left = place();
+		scene.addItem(new TrackLineItem(QLineF(left.center().x(), -2000.0, left.center().x(), 2000.0)));
+		const QRectF last = place();
+		ok &= expect(samePoint(frameAnchorInScene(rig), QPointF(0.0, 0.0)) && above.bottom() < -240.0
+				&& above.bottom() > -270.0 - 240.0 && right.left() > 0.0 && left.right() < 0.0,
+			"the first four spots of a diagonal station are under the dots, above its frame, right and left of the dots");
+		ok &= expect(last.bottom() < -270.0 - 240.0 && std::abs(last.center().x()) < 1e-6,
+			"a name with its first four spots blocked goes above a frame on the top of the box of the node centres");
+	}
+
+	{
 		// A name whose spot under the dots crosses a track goes above the mark, and keeps its place when the look
 		// switches: the spot above the mark counts from the frame of the far look in both looks.
 		QGraphicsScene scene;

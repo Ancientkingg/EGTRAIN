@@ -633,8 +633,11 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 		m_nameSpots.clear();
 		QPointF shift;
 		if (mark) {
-			// The spots in the order they are tried, each a small gap from the dots or the mark.
+			// The spots in the order they are tried, each a small gap from the dots or the mark, and last above a frame on
+			// the top centre of the box of the centres, where the frame of a row or a stack stands.
 			const qreal gap = kNearNameGap * side;
+			const auto highest = std::min_element(centres.cbegin(), centres.cend(),
+				[](const QPointF& a, const QPointF& b) { return a.y() < b.y(); });
 			const qreal margin = m_name->document()->documentMargin() * scale;
 			const QSizeF size = m_name->boundingRect().size() * scale;
 			m_nameTextRect = QRectF(-size.width() / 2.0 + margin, margin, size.width() - 2.0 * margin,
@@ -642,7 +645,8 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 			m_nameSpots = {QPointF(marks.center().x(), marks.bottom() + gap),
 				QPointF(marks.center().x(), markTop - gap - size.height()),
 				QPointF(marks.right() + gap + size.width() / 2.0, marks.center().y() - size.height() / 2.0),
-				QPointF(marks.left() - gap - size.width() / 2.0, marks.center().y() - size.height() / 2.0)};
+				QPointF(marks.left() - gap - size.width() / 2.0, marks.center().y() - size.height() / 2.0),
+				QPointF(marks.center().x(), highest->y() - side - gap - size.height())};
 			shift = shiftTo(m_name, pivot, m_nameSpots.first());
 		}
 		m_nameSpotChosen = m_nameSpots.isEmpty();
