@@ -11,7 +11,7 @@ Canonical authored geometry and Fit padding remain in use, so comparisons must
 distinguish geometry from symbol presentation. Station artwork uses a mark per
 station class with the historical parent. At scene scale it keeps the historical
 anchor and offset; on the canvas it is placed by the station squares at the
-place of the station. Zoomed out the mark is a roundel over a faint area of the
+place of the station. Zoomed out the mark is a roundel on a faint area of the
 station, zoomed in a dot on each station square. Its frame on screen is at least
 24 px and the name at least 12 px, so stations stay locatable at Fit; above that
 the scene size applies. The name goes under the squares, or off the tracks above
@@ -31,16 +31,18 @@ requests that made the change, or the issue where none did.
   with a dark halo replaces the raster `station_pixmap`. Until the tracks at the
   stations are 12 logical pixels apart on screen it is a roundel: a ring for a
   station without a platform, the ring with a blue bar for one with a platform
-  and a disc with the bar for one with three or more connections, over a faint
-  blue area that covers the station squares. Closer in it is a dot on each
-  station square, one small dot for a station without a platform and a capsule
-  over the squares for one with three or more connections. A run without the
-  shared preview does not count connections and draws no major station. The
-  name sits under the station, or above the mark or beside the squares where
-  its text would cross a track. At every zoom the frame of the mark is at least
-  24 px and the name at least 12 px, and names that overlap are hidden by rank.
-  Where the scene size is larger than that, the scene size applies, as in the
-  reference.
+  and a disc with the bar for one with three or more connections. It stands on
+  the upper edge of the hull of the station squares, above the middle of the
+  dots of the closer look, and so on the faint blue area that covers the
+  squares, also where the squares run diagonally. Closer in it is a dot on each
+  station square, one small dot on the first square of a station without a
+  platform and a capsule over the squares for one with three or more
+  connections. A run without the shared preview does not count connections and
+  draws no major station. The name sits under the station, or above the mark or
+  beside the squares where its text would cross a track. At every zoom the frame
+  of the mark is at least 24 px and the name at least 12 px, and names that
+  overlap are hidden by rank. Where the scene size is larger than that, the
+  scene size applies, as in the reference.
 - Canvas (#509). The background `#101a22` with a faint `#182832` grid replaces
   the solid black background.
 - Selection (#606). A ring in the cue colour (61,214,255) marks the selected
