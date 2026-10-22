@@ -1,5 +1,6 @@
 #include "graphics/items/HighlightEffect.h"
 
+#include "graphics/NetworkScene.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
 #include "graphics/items/NodeItem.h"
@@ -7,6 +8,7 @@
 #include "graphics/items/SelectionCueItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationNodeItem.h"
+#include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
@@ -323,6 +325,33 @@ int main(int argc, char* argv[]) {
 		station->setGraphicsEffect(nullptr);
 		artwork->setGraphicsEffect(effect = new HighlightEffect(Qt::blue, 1.0));
 		ok &= expect(effect->cue() && effect->cue()->targetRect() == expected, "the pictogram of a station in the preview stands for the station");
+	}
+	// A station square of the preview that does not hold the mark is surrounded with the mark of its station when it is
+	// at the place of the mark; a square beyond the place rule, more than 32 frames from the anchor, is surrounded alone.
+	{
+		QGraphicsScene scene;
+		QGraphicsView view(&scene);
+		auto* anchor = new StationNodeItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+		auto* other = new StationNodeItem(QRectF(-10.0, 30.0, 20.0, 20.0));
+		auto* beyond = new StationNodeItem(QRectF(-10.0, 990.0, 20.0, 20.0));
+		for (StationNodeItem* square : {anchor, other, beyond}) {
+			square->setData(PreviewGraphics::StationId, QStringLiteral("north"));
+			scene.addItem(square);
+		}
+		auto* mark = new StationMarkItem(StationClass::Station, 24, anchor);
+		mark->setPos(30.0, -40.0);
+		auto* overlay = new StationOverlayItem(QStringLiteral("North"), QPointF(), classifyStation(true));
+		overlay->setData(PreviewGraphics::Id, QStringLiteral("north"));
+		scene.addItem(overlay);
+		overlay->attachArtwork(mark, nullptr, 1);
+		overlay->setNodeCentres({QPointF(0.0, 0.0), QPointF(0.0, 40.0), QPointF(0.0, 1000.0)});
+		auto* effect = new HighlightEffect(Qt::blue, 1.0);
+		other->setGraphicsEffect(effect);
+		ok &= expect(effect->cue() && effect->cue()->targetRect() == QRectF(-10.0, 30.0, 20.0, 20.0).united(mark->sceneBoundingRect()),
+			"a station square of the preview is surrounded together with the mark of its station");
+		beyond->setGraphicsEffect(effect = new HighlightEffect(Qt::blue, 1.0));
+		ok &= expect(effect->cue() && effect->cue()->targetRect() == QRectF(-10.0, 990.0, 20.0, 20.0),
+			"a station square of the preview beyond the place of its mark is surrounded alone");
 	}
 	// Every kind of item: cue-coloured pixels around it at an overview scale, none without the effect.
 	for (const Kind& kind : kinds()) {

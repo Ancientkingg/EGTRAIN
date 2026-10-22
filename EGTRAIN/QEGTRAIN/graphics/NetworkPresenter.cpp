@@ -199,6 +199,7 @@ void NetworkPresenter::clear() {
 	m_stationDecorations.clear();
 	m_stationLabels.clear();
 	m_stationPictures.clear();
+	m_stationTrackSpacing = 0.0;
 	m_signalsByAheadId.clear();
 	allArcs.clear();
 	allPlatforms.clear();
@@ -487,14 +488,16 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				item->setData(PreviewGraphics::StationId, QString::fromStdString(value.stationId));
 				item->setData(PreviewGraphics::PlatformId, QString::fromStdString(value.platformId));
 				if (options.platformBars) {
-					// The square has no position or transform of its own, so the bar is placed by points of the scene.
+					// The bar is placed by points of the scene and, as in the run, is an item of the scene at z 2, so that
+					// it draws over the station mark that a square holds.
 					const auto pointAt = [&line](std::size_t at) {
 						return QPointF(line.points[at].x, line.points[at].y + line.displayOffset);
 					};
-					auto* bar = new PlatformItem(QRectF(-2.5 * size, -0.45 * size, 5 * size, 0.9 * size), square);
+					auto* bar = new PlatformItem(QRectF(-2.5 * size, -0.45 * size, 5 * size, 0.9 * size));
 					placePlatformBar(bar, pointAt(index - 1), pointAt(index), lineEnd ? pointAt(index) : pointAt(index + 1), size);
 					bar->setPen(QPen(Qt::white, 0));
 					bar->setBrush(Qt::white);
+					scene->addItem(bar);
 					m_stationDecorations.push_back(bar);
 					bar->setVisible(m_stationLayerVisible);
 				}
@@ -603,14 +606,31 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 					const QPointF position = decoration->scenePos();
 					decoration->setParentItem(node->second);
 					decoration->setPos(node->second->mapFromScene(position));
+					if (artwork)
+						node->second->setZValue(StationMarkItem::HostZValue);
 				}
 			};
-			if (auto* picture = m_stationPictures.value(overlay, nullptr))
+			if (auto* picture = m_stationPictures.value(overlay, nullptr)) {
 				bind(picture, true);
+				// The dots of the near look sit on the station squares of the platforms.
+				QList<QPointF> centres;
+				if (sceneStation != sceneModel.stations.cend())
+					for (const auto& platform : sceneStation->platforms)
+						for (const auto& nodeId : platform.nodeIds) {
+							const auto node = nodeItems.find(nodeId);
+							if (node == nodeItems.end() || !qgraphicsitem_cast<StationNodeItem*>(node->second))
+								continue;
+							const QPointF centre = node->second->sceneBoundingRect().center();
+							if (!centres.contains(centre))
+								centres.append(centre);
+						}
+				overlay->setNodeCentres(centres);
+			}
 			bind(m_stationLabels.back(), false);
 			break;
 		}
 	}
+	measureStationTrackSpacing();
 
 	// Preview signals are derived from canonical block boundaries.  They stay
 	// in the existing decoration list so the layer toggle and teardown own them.
@@ -767,6 +787,33 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 	m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
 	overlay->attachArtwork(picture, label, platformCount);
+}
+
+void NetworkPresenter::measureStationTrackSpacing() {
+	std::vector<qreal> smallest;
+	for (const StationOverlayItem* overlay : std::as_const(m_stationOverlays)) {
+		const auto* mark = overlay ? dynamic_cast<const StationMarkItem*>(overlay->pictureItem()) : nullptr;
+		if (!mark)
+			continue;
+		const QList<QPointF> centres = mark->nodeCentres();
+		qreal nearest = std::numeric_limits<qreal>::max();
+		for (qsizetype first = 0; first < centres.size(); ++first)
+			for (qsizetype second = first + 1; second < centres.size(); ++second) {
+				// Squares at one place are one place, not two tracks.
+				const qreal distance = QLineF(centres.at(first), centres.at(second)).length();
+				if (distance > 1e-6)
+					nearest = std::min(nearest, distance);
+			}
+		if (nearest < std::numeric_limits<qreal>::max())
+			smallest.push_back(nearest);
+	}
+	if (smallest.empty()) {
+		m_stationTrackSpacing = track_separation * presentationScale();
+		return;
+	}
+	const auto median = smallest.begin() + static_cast<std::ptrdiff_t>(smallest.size() / 2);
+	std::nth_element(smallest.begin(), median, smallest.end());
+	m_stationTrackSpacing = *median;
 }
 
 QPointF NetworkPresenter::stationArtworkOffset(const TrackPreviewLine& line,

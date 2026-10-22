@@ -3,9 +3,11 @@
 
 #include <QFont>
 #include <QGraphicsItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsTextItem>
 #include <QList>
+#include <QPainterPath>
 #include <QPointF>
 #include <QRectF>
 #include <QString>
@@ -15,21 +17,57 @@
 
 #include "graphics/VisualPolish.h"
 
-/// The scene-space mark of a station. The transparent pixmap only gives the size and anchor
-/// that StationOverlayItem enlarges; paint draws the mark of the station class over it.
+/// The scene-space mark of a station. In the far look the transparent pixmap only gives the size and anchor
+/// that StationOverlayItem enlarges, and paint draws the roundel of the station class over it. In the near look
+/// the mark is a dot on each station node of the station (paintStationNodeMark()), which covers its square.
 class StationMarkItem : public QGraphicsPixmapItem {
 public:
+	/// The z value of the station square that holds the mark: over the other squares (z 1), which the dots of
+	/// the near look cover, and under platform bars and signals (z 2), names (z 3) and trains.
+	static constexpr qreal HostZValue = 1.05;
+
 	/// A mark of class cls in a transparent pixmap of size by size pixels, one scene unit per pixel before the
 	/// scale of the item.
 	StationMarkItem(StationClass cls, int size, QGraphicsItem* parent = nullptr);
 
-	/// Paints the mark of the class over the pixmap, with a halo of 2 logical pixels.
+	/// The pixmap and the far mark that reaches past it in the far look; the dots and their halo in the near look.
+	QRectF boundingRect() const override;
+	/// The pixmap in the far look; the dots and their halo in the near look.
+	QPainterPath shape() const override;
+	/// Paints the mark of the class over the pixmap, or the dots in the near look, with a halo of 2 logical pixels.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
 	/// The class of the station.
 	StationClass stationClass() const { return m_class; }
+	/// The centres of the station squares at the place of the station in scene coordinates, in the order of its
+	/// nodes; StationOverlayItem::setNodeCentres() sets them.
+	QList<QPointF> nodeCentres() const { return m_nodeCentres; }
+	/// Sets the centres of the station squares.
+	void setNodeCentres(const QList<QPointF>& centres);
+	/// Shows the dots for a mark frame of side scene units at viewScale logical pixels per scene unit. Call it
+	/// with the item transform that the dots are drawn with, normally the identity.
+	void setNearLook(qreal side, qreal viewScale);
+	/// Shows the roundel of the class over the pixmap.
+	void setFarLook();
+	/// The dots are shown.
+	bool isNearLook() const { return m_nearLook; }
+	/// The side in scene units of the mark frame that sizes the dots of the near look.
+	qreal nearSide() const { return m_nearSide; }
+	/// The pixmap and the roundel that reaches past it, in item coordinates: boundingRect() in the far look.
+	QRectF farBoundingRect() const { return m_farBounds; }
 
 private:
+	void updateNearGeometry();
+
 	StationClass m_class;
+	QList<QPointF> m_nodeCentres;
+	bool m_nearLook = false;
+	qreal m_nearSide = 0.0;
+	qreal m_nearViewScale = 0.0;
+	// The dots in item coordinates, mapped from the scene when the near look was set.
+	QList<QPointF> m_itemCentres;
+	qreal m_itemSide = 0.0;
+	QPainterPath m_nearShape;
+	QRectF m_farBounds;
 };
 
 /// The overlay of a station at its anchor in the scene. It ignores the transformation of the view, so its own
@@ -202,6 +240,14 @@ public:
 	static constexpr qreal MinPictogramPixels = 24.0;
 	/// Smallest font size on screen, in logical pixels, of the scene-space name.
 	static constexpr qreal MinNamePixels = 12.0;
+	/// Smallest spacing on screen, in logical pixels, of the tracks at the stations for the near look, in which
+	/// the marks are dots on the station nodes.
+	static constexpr qreal NearTrackSpacingPixels = 12.0;
+	/// Width on screen, in logical pixels, by which the area of a station in the far look reaches past its node
+	/// centres on every side.
+	static constexpr qreal AreaMarginPixels = 6.0;
+	/// The z value of the area of a station: under the tracks and connections (z 0).
+	static constexpr qreal AreaZValue = -1.0;
 
 	/// Scale of an item of nativeSizePx that is at least minPx logical pixels on screen at viewScale,
 	/// in logical pixels per scene unit, and keeps presentationScale as soon as that is larger.
@@ -210,24 +256,47 @@ public:
 	/// Links the scene-space pictogram and name of this station. The items stay owned
 	/// by the scene; both are enlarged about their anchor (bottom centre of the pictogram,
 	/// top centre of the name) through their item transform, which stays the identity at
-	/// their scene size. Attach the items to their parents before the first applyViewScale:
-	/// the transform moves scenePos() of an enlarged item. More platforms rank a station
-	/// higher when names collide.
+	/// their scene size. For a station mark the transform also moves these anchors to the
+	/// station nodes (applyViewScale()). Attach the items to their parents before the first
+	/// applyViewScale: the transform moves scenePos() of an enlarged item. More platforms
+	/// rank a station higher when names collide.
+	/// For a StationMarkItem that is in a scene it also adds the area of the station to the scene, a path item at
+	/// AreaZValue in stationAreaColor() that takes no mouse input.
 	void attachArtwork(QGraphicsPixmapItem* picture, QGraphicsTextItem* name, int platformCount);
 	/// The attached pictogram, or null.
 	QGraphicsPixmapItem* pictureItem() const { return m_picture; }
 	/// The attached name, or null.
 	QGraphicsTextItem* nameItem() const { return m_name; }
+	/// The area of the station, or null for a plain picture.
+	QGraphicsPathItem* areaItem() const { return m_area; }
 	/// The number of platforms of the station.
 	int platformCount() const { return m_platformCount; }
-	/// Scales the attached items for the view scale (logical pixels per scene unit).
-	void applyViewScale(qreal viewScale);
+	/// Gives the attached station mark the centres in scene coordinates of the station squares that are at the place
+	/// of the anchor, those at most 32 mark frames at scene size from it, or the anchor alone without one. A station
+	/// with platform nodes on another line has its mark, dots, area and name at the place of its anchor only.
+	void setNodeCentres(const QList<QPointF>& centres);
+	/// Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the
+	/// bottom centre of its frame on the top edge of the convex hull of its node centres, at the x of the centre of its
+	/// dots: a station or major station on the top centre of their box for a single centre, a row or a stack, a halt on
+	/// its first square, and a diagonal station on its own area. It shows as the dots in the near look. Its name sits
+	/// under the dots in both looks, so that mark and name share their x. In the far look the area of the station is
+	/// the hull of its node centres widened by AreaMarginPixels on screen; it is shown while the mark is visible and
+	/// hidden in the near look. A plain picture keeps the far look and, like its name, its artwork point.
+	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }
-	/// Hides the attached names that overlap, on screen, the name of a higher-priority
-	/// station or that cover part of the visible pictogram of any other station. Selected
-	/// and followed stations keep their name. Pictograms stay visible. sceneToViewport is
-	/// the viewport transform of the view.
+	/// The area in scene coordinates that a station mark takes in either look at the applied view scale, its halo
+	/// included; the scene bounds of a plain picture.
+	QRectF pictogramSceneRect() const;
+	/// Places the names of station marks and hides the attached names that overlap, on screen, the name of a
+	/// higher-priority station or that cover part of the visible pictogram of any other station. A name goes
+	/// under the dots of its station, or, where its text there crosses a visible track line or the pictogram of
+	/// another station, shown or hidden, to the first of these spots that crosses neither: above the frame of the far
+	/// look, right of the dots, left of them, and above a frame on the top of the box of the node centres at the x of the dots;
+	/// without one it stays under the dots. A name is placed again only after applyViewScale() moved it. The spots do
+	/// not depend on the look and pictograms are tested by pictogramSceneRect(), so the same names show in both looks.
+	/// Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport
+	/// transform of the view.
 	static void resolveNameCollisions(const QList<StationOverlayItem*>& stations,
 		const QTransform& sceneToViewport);
 
@@ -241,6 +310,9 @@ protected:
 
 private:
 	void rebuildGeometry();
+	void placeArtwork(qreal viewScale, bool dots);
+	void chooseNameSpot(const QList<QPair<const StationOverlayItem*, QRectF>>& pictograms,
+		const QList<QPair<const QGraphicsItem*, QRectF>>& tracks);
 	QRectF labelRectForSide(LabelSide side) const;
 	QRectF translated(const QRectF& rect) const;
 	QRectF translatedSymbol(const QRectF& rect) const;
@@ -270,6 +342,7 @@ private:
 	QList<SourceIdentity> m_sourceIdentities;
 	QGraphicsPixmapItem* m_picture = nullptr;
 	QGraphicsTextItem* m_name = nullptr;
+	QGraphicsPathItem* m_area = nullptr;
 	qreal m_pictureSceneScale = 1.0;
 	qreal m_nameSceneScale = 1.0;
 	qreal m_pictureNativePixels = 0.0;
@@ -277,6 +350,15 @@ private:
 	QPointF m_pictureAnchor;
 	QPointF m_nameAnchor;
 	qreal m_appliedViewScale = 0.0;
+	bool m_appliedNearLook = false;
+	// The mark in either look, in scene coordinates; null for a plain picture.
+	QRectF m_markSceneRect;
+	// The places in scene coordinates for the top centre of the name, the first under the dots, the size of its text
+	// without the document margin in scene units, and its enlargement about m_nameAnchor.
+	QList<QPointF> m_nameSpots;
+	QRectF m_nameTextRect;
+	qreal m_nameFactor = 1.0;
+	bool m_nameSpotChosen = true;
 	int m_platformCount = 0;
 	bool m_nameHiddenByCollision = false;
 	std::function<void(const QString&)> m_displacedClickHandler;

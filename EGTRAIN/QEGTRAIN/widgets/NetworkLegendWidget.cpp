@@ -77,7 +77,14 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			paintStationMark(&painter, QRectF(15.0, 1.0, 16.0, 16.0), m_entry.stationClass, QColor(16, 26, 34), Qt::white, 1.0);
+			// The near look on two station nodes, a single dot for a halt, beside the roundel of the far look. Both
+			// with their halo stay inside the swatch.
+			const QColor fill(16, 26, 34);
+			const QList<QPointF> nodes = m_entry.stationClass == StationClass::Halt
+				? QList<QPointF>{QPointF(14.0, 9.0)}
+				: QList<QPointF>{QPointF(14.0, 5.5), QPointF(14.0, 12.5)};
+			paintStationNodeMark(&painter, nodes, m_entry.stationClass, 14.0, fill, Qt::white, 1.0);
+			paintStationMark(&painter, QRectF(27.0, 1.0, 16.0, 16.0), m_entry.stationClass, fill, Qt::white, 1.0);
 			return;
 		}
 

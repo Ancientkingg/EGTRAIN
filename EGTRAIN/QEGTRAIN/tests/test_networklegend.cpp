@@ -198,6 +198,33 @@ int main(int argc, char* argv[]) {
 			&& stationLegend.entries().at(0).stationClass == StationClass::Major
 			&& stationLegend.entries().at(2).stationClass == StationClass::Halt,
 		"the map key has one row for each station class on the canvas");
+	// Each station swatch shows the near mark on the left and the roundel on the right, apart, with the bar of a station
+	// or a major station, and nothing reaches the outer columns.
+	stationLegend.show();
+	QApplication::processEvents();
+	for (int row = 0; row < 3; ++row) {
+		const QWidget* swatch = stationLegend.findChild<QWidget*>(QString("mapKeySwatch%1").arg(row));
+		QImage image(46, 18, QImage::Format_ARGB32_Premultiplied);
+		image.fill(Qt::transparent);
+		if (swatch)
+			const_cast<QWidget*>(swatch)->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
+		const QColor fill(16, 26, 34);
+		bool edgesEmpty = swatch && swatch->size() == QSize(46, 18);
+		bool nearMark = false, farMark = false, blue = false;
+		for (int y = 0; y < image.height(); ++y) {
+			edgesEmpty = edgesEmpty && image.pixelColor(0, y).alpha() == 0 && image.pixelColor(22, y).alpha() == 0
+				&& image.pixelColor(45, y).alpha() == 0;
+			for (int x = 0; x < image.width(); ++x) {
+				const QColor colour = image.pixelColor(x, y);
+				nearMark = nearMark || (x < 22 && colour == fill);
+				farMark = farMark || (x > 22 && colour == fill);
+				blue = blue || colour == QColor(80, 120, 210);
+			}
+		}
+		const bool halt = stationLegend.entries().at(row).stationClass == StationClass::Halt;
+		ok &= expect(edgesEmpty && nearMark && farMark && blue == !halt,
+			"a station swatch shows the near mark beside the whole roundel");
+	}
 
 	// Train rows: one "Train" row for the default colour, then one row per other colour.
 	const auto trainRows = [](const NetworkLegendWidget& widget) {

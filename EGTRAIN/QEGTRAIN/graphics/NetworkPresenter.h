@@ -235,7 +235,8 @@ public:
 
 	/// Adds the overlay of a station at coord with its picture and name. scale is the item scale of the
 	/// picture and the name, and decorationOffset, in scene units, moves only the picture and the name;
-	/// the overlay stays at the position of the station. More platforms rank a name higher when names collide.
+	/// the overlay stays at the position of the station. StationOverlayItem::applyViewScale() then places the
+	/// picture and the name by the station nodes instead. More platforms rank a name higher when names collide.
 	void paintStationOverlay(QPointF coord, const StationVisual& visual, const std::string& sname,
 		qreal scale = 1.0, QPointF decorationOffset = QPointF(), int platformCount = 0);
 	/// The move in scene units of the picture and the name of a station from its anchor on line: the
@@ -282,6 +283,13 @@ public:
 	QList<QGraphicsItem*> m_stationLabels;
 	/// The picture of each overlay.
 	QMap<StationOverlayItem*, QGraphicsPixmapItem*> m_stationPictures;
+	/// The spacing of the tracks at the stations in scene units, which chooses the look of the station marks:
+	/// the median, over the stations with two or more station nodes, of the smallest distance between two of
+	/// their nodes. measureStationTrackSpacing() sets it and clear() resets it to 0.
+	qreal m_stationTrackSpacing = 0.0;
+	/// Measures m_stationTrackSpacing from the node centres of the station marks; track_separation times the
+	/// presentation scale when no station has two nodes.
+	void measureStationTrackSpacing();
 
 	/// The virtual coupling message of each train by train index.
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
