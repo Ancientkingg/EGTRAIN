@@ -292,7 +292,7 @@ public:
 	/// higher-priority station or that cover part of the visible pictogram of any other station. A name goes
 	/// under the dots of its station, or, where its text there crosses a visible track line or the pictogram of
 	/// another station, shown or hidden, to the first of these spots that crosses neither: above the frame of the far
-	/// look, right of the dots, left of them, and above a frame on the top centre of the box of the node centres;
+	/// look, right of the dots, left of them, and above a frame on the top of the box of the node centres at the x of the dots;
 	/// without one it stays under the dots. A name is placed again only after applyViewScale() moved it. The spots do
 	/// not depend on the look and pictograms are tested by pictogramSceneRect(), so the same names show in both looks.
 	/// Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport

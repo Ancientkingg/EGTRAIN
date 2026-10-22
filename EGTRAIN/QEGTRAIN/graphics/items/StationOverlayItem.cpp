@@ -634,7 +634,7 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 		QPointF shift;
 		if (mark) {
 			// The spots in the order they are tried, each a small gap from the dots or the mark, and last above a frame on
-			// the top centre of the box of the centres, where the frame of a row or a stack stands.
+			// the top of the box of the centres at the x of the dots, where the frame of a row or a stack stands.
 			const qreal gap = kNearNameGap * side;
 			const auto highest = std::min_element(centres.cbegin(), centres.cend(),
 				[](const QPointF& a, const QPointF& b) { return a.y() < b.y(); });
