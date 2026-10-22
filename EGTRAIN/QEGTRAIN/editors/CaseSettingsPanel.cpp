@@ -53,6 +53,15 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	CaseSettingsPanel::refresh();
 }
 
+CaseSettingsPanel::~CaseSettingsPanel() {
+	// A panel that is a shown window closes in the QWidget destructor, after this one, and the field with the focus then
+	// reports that editing finished.
+	QObject* const fields[] = {m_nameEdit, m_descriptionEdit, m_baseTimeEdit, m_durationSecondsEdit, m_bufferSecondsEdit,
+		m_recoveryPercentEdit};
+	for (QObject* field : fields)
+		field->disconnect(this);
+}
+
 void CaseSettingsPanel::setDocument(SceneDocument* document) {
 	QObject::disconnect(m_replacedConnection);
 	m_document = document;
