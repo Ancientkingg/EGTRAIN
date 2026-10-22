@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <iomanip>
+#include <iterator>
 #include <limits>
 #include <regex>
 #include <sstream>
@@ -142,6 +143,13 @@ std::string coordinateText(double coordinate) {
 	return formatSceneSectionCoordinate(coordinate);
 }
 
+// A section reference in a message: the reference, then its label in parentheses when it names a section. The
+// parentheses keep the comma of a switch section label apart from the commas of a list.
+std::string sectionText(const SceneSectionLabels& labels, const std::string& reference) {
+	const std::string label = labels.label(reference);
+	return label == reference ? reference : reference + " (" + label + ")";
+}
+
 // The name of a signalling area in a message; an area without an ID is named by its place in the file.
 std::string areaName(const SceneModel& scene, std::size_t index) {
 	const std::string& id = scene.signallingAreas[index].id;
@@ -221,7 +229,7 @@ std::vector<std::string> uncoveredStretches(const SceneModel& scene,
 // Runtime sections on a route that no signalling area covers keep the unset
 // signalling level, so trains there run without signalling.
 void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInventory& inventory,
-	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
+	const SceneSectionLabels& labels, const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
 	std::unordered_set<std::string> seenSectionIds;
 	std::vector<const SceneSectionDescriptor*> uncovered;
 	std::size_t routeSectionCount = 0;
@@ -252,7 +260,7 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 	}
 	std::vector<std::string> sectionIds;
 	for (const SceneSectionDescriptor* section : uncovered)
-		sectionIds.push_back(section->id);
+		sectionIds.push_back(sectionText(labels, section->id));
 	std::string message = scene.signallingAreas.empty() ? "No signalling area is defined. " : "";
 	message += std::to_string(uncovered.size()) + " of " + std::to_string(routeSectionCount)
 		+ (uncovered.size() == 1 ? " route sections has no signalling level and runs without signalling: "
@@ -275,7 +283,7 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 
 // One error per pair of areas that give sections of one scope different levels.
 void reportSignallingAreaConflicts(const SceneModel& scene, const SceneSectionInventory& inventory,
-	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
+	const SceneSectionLabels& labels, const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
 	struct PairConflict {
 		std::size_t firstArea;
 		std::size_t area;
@@ -310,7 +318,7 @@ void reportSignallingAreaConflicts(const SceneModel& scene, const SceneSectionIn
 			+ signallingLevelName(first.level) + ") and signalling area " + areaName(scene, pair.area) + " ("
 			+ signallingLevelName(second.level) + ") assign different levels to ";
 		message += pair.sectionCount == 1 ? "1 runtime section: " : std::to_string(pair.sectionCount) + " runtime sections, the first being ";
-		message += pair.firstSectionId + ", between " + coordinateText(pair.startKm) + " and "
+		message += sectionText(labels, pair.firstSectionId) + ", between " + coordinateText(pair.startKm) + " and "
 			+ coordinateText(pair.endKm) + " km";
 		diagnostics.error("scene.signalling_area.conflict", message, "signalling.json", "signalling_area",
 			second.id, "signalling_areas[" + std::to_string(pair.area) + "]", first.id,
@@ -320,7 +328,7 @@ void reportSignallingAreaConflicts(const SceneModel& scene, const SceneSectionIn
 
 // Warnings for usable areas that cut through route sections at an edge or contain no section at all.
 void reportSignallingAreaShapes(const SceneModel& scene, const SceneSectionInventory& inventory,
-	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
+	const SceneSectionLabels& labels, const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
 	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
 		const SceneSignallingArea& area = scene.signallingAreas[index];
 		const bool knownTrack = area.trackId.empty()
@@ -342,11 +350,12 @@ void reportSignallingAreaShapes(const SceneModel& scene, const SceneSectionInven
 			const std::string edge = atStart ? "start" : "end";
 			std::string message = "The " + edge + " of signalling area " + areaName(scene, index) + " ("
 				+ coordinateText(atStart ? area.startKm : area.endKm) + " km) lies inside route section "
-				+ split->id + " (" + coordinateText(split->startKm) + " to " + coordinateText(split->endKm)
-				+ " km), so the section is not part of the area";
+				+ sectionText(labels, split->id) + ", so the section is not part of the area";
 			if (splitIds.size() > 1) {
-				splitIds.erase(splitIds.begin());
-				message += "; " + namedItems(splitIds) + (splitIds.size() == 1 ? " is" : " are") + " cut the same way";
+				std::vector<std::string> others;
+				for (auto other = std::next(splitIds.begin()); other != splitIds.end(); ++other)
+					others.push_back(sectionText(labels, *other));
+				message += "; " + namedItems(others) + (others.size() == 1 ? " is" : " are") + " cut the same way";
 			}
 			diagnostics.warning("scene.signalling_area.splits_section", message, "signalling.json",
 				"signalling_area", area.id, path + (atStart ? ".start_km" : ".end_km"), split->id,
@@ -367,7 +376,7 @@ void reportSignallingAreaShapes(const SceneModel& scene, const SceneSectionInven
 // fixed-block signalling and through an end of authority at levels 3 and 4, so it needs a signalling level where it
 // lies.
 void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneSectionInventory& inventory,
-	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
+	const SceneSectionLabels& labels, const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
 	for (std::size_t index = 0; index < scene.singleTrackRestrictions.size(); ++index) {
 		const SceneSingleTrackRestriction& restriction = scene.singleTrackRestrictions[index];
 		const std::array<std::pair<const char*, const std::string*>, 4> roles = {{
@@ -378,14 +387,15 @@ void reportInactiveSingleTrackRestrictions(const SceneModel& scene, const SceneS
 		}};
 		std::string reasons, blocks, firstReason;
 		for (const auto& role : roles) {
-			blocks += (blocks.empty() ? "" : ", ") + std::string(role.first) + " " + *role.second;
+			blocks += (blocks.empty() ? "" : ", ") + std::string(role.first) + " " + sectionText(labels, *role.second);
 			const SceneSectionDescriptor* section = inventory.resolve(*role.second);
 			if (section == nullptr)
 				continue;
 			const SceneSectionSignalling* sectionSignalling = signalling.section(section->id);
 			if (sectionSignalling != nullptr && sectionSignalling->level != kSignallingLevelUnset)
 				continue;
-			reasons += (reasons.empty() ? "" : ", ") + std::string(role.first) + " " + *role.second + " has no signalling level";
+			reasons += (reasons.empty() ? "" : ", ") + std::string(role.first) + " " + sectionText(labels, *role.second)
+				+ " has no signalling level";
 			if (firstReason.empty())
 				firstReason = *role.second;
 		}
@@ -900,6 +910,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		&& errorCount() == errorsBeforeInfrastructure
 		&& nativeChainNodes.size() == scene.tracks.size();
 	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
+	const SceneSectionLabels sectionLabels = sceneSectionLabels(sectionInventory);
 	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
 		[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
 
@@ -1072,6 +1083,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			bool directionReported = false;
 			std::string firstForwardTransition;
 			std::string firstReverseTransition;
+			// The same transitions as the message names them, with the label of each section.
+			std::string firstForwardText;
+			std::string firstReverseText;
 			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
 				const SceneSectionTransition sectionTransition = classifySceneSectionTransition(scene,
 					*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
@@ -1079,20 +1093,25 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				const bool joinsReverse = sectionTransition.joinsReverse;
 				const std::string transition = route.blocks[sectionIndex - 1] + " -> "
 					+ route.blocks[sectionIndex];
+				const std::string transitionText = sectionText(sectionLabels, route.blocks[sectionIndex - 1]) + " -> "
+					+ sectionText(sectionLabels, route.blocks[sectionIndex]);
 				if (joinsForward) {
 					forward = true;
-					if (firstForwardTransition.empty())
+					if (firstForwardTransition.empty()) {
 						firstForwardTransition = transition;
+						firstForwardText = transitionText;
+					}
 				}
 				if (joinsReverse) {
 					reverse = true;
-					if (firstReverseTransition.empty())
+					if (firstReverseTransition.empty()) {
 						firstReverseTransition = transition;
+						firstReverseText = transitionText;
+					}
 				}
 				if (!directionReported && forward && reverse) {
 					diagnostics.error("scene.route.direction",
-						"Route changes direction between " + firstForwardTransition
-							+ " and " + firstReverseTransition,
+						"Route changes direction between " + firstForwardText + " and " + firstReverseText,
 						"signalling.json", "route", route.id, path + ".blocks",
 						"forward: " + firstForwardTransition + "; reverse: " + firstReverseTransition,
 						"Keep each connected route segment in one forward or one reverse order");
@@ -1105,6 +1124,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					reverse = false;
 					firstForwardTransition.clear();
 					firstReverseTransition.clear();
+					firstForwardText.clear();
+					firstReverseText.clear();
 					diagnostics.warning("scene.route.region_jump",
 						"Route crosses an undeclared regional coordinate discontinuity",
 						"signalling.json", "route", route.id,
@@ -1839,10 +1860,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				return section == nullptr ? std::string() : section->id;
 			};
 			const SceneSignallingAnalysis signalling = analyzeSignallingAreas(scene, sectionInventory);
-			reportSignallingAreaConflicts(scene, sectionInventory, signalling, diagnostics);
-			reportSignallingAreaShapes(scene, sectionInventory, signalling, diagnostics);
-			reportUncoveredRouteSections(scene, sectionInventory, signalling, diagnostics);
-			reportInactiveSingleTrackRestrictions(scene, sectionInventory, signalling, diagnostics);
+			reportSignallingAreaConflicts(scene, sectionInventory, sectionLabels, signalling, diagnostics);
+			reportSignallingAreaShapes(scene, sectionInventory, sectionLabels, signalling, diagnostics);
+			reportUncoveredRouteSections(scene, sectionInventory, sectionLabels, signalling, diagnostics);
+			reportInactiveSingleTrackRestrictions(scene, sectionInventory, sectionLabels, signalling, diagnostics);
 
 			std::unordered_map<std::string, std::size_t> endpointCounts;
 			for (const auto& connection : scene.connections) {

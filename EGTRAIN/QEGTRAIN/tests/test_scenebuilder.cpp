@@ -635,15 +635,25 @@ static std::set<std::string> namedUncoveredSections(const SceneModel& scene, boo
 		}
 		std::string list = diagnostic.message.substr(begin + marker.size());
 		complete = list.find(" more") == std::string::npos;
-		const std::size_t end = list.find(" (track");
+		const std::size_t end = list.rfind(" (track");
 		if (end != std::string::npos)
 			list.resize(end);
-		for (std::size_t position = 0; position < list.size();) {
-			std::size_t comma = list.find(", ", position);
-			if (comma == std::string::npos)
-				comma = list.size();
-			names.insert(list.substr(position, comma - position));
-			position = comma + 2;
+		// Each name is an id with its label in parentheses, and the label of a switch section has a comma of its own.
+		std::string item;
+		int depth = 0;
+		for (std::size_t position = 0; position <= list.size(); ++position) {
+			const char character = position < list.size() ? list[position] : ',';
+			if (character == '(')
+				++depth;
+			else if (character == ')')
+				--depth;
+			if (character == ',' && depth == 0) {
+				names.insert(item.substr(0, item.find(" (")));
+				item.clear();
+				++position;
+				continue;
+			}
+			item += character;
 		}
 	}
 	return names;

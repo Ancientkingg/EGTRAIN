@@ -516,8 +516,13 @@ int main(int argc, char** argv) {
 		"coherent reverse route order remains valid");
 	SceneModel directionChange = clean;
 	directionChange.routes[0].blocks = {"block-1", "block-2", "block-1"};
-	ok &= expect(hasCode(validateScene(directionChange), "scene.route.direction"),
-		"a route cannot change direction between connected sections");
+	const auto directionErrors = findAll(validateScene(directionChange), "scene.route.direction");
+	ok &= expect(directionErrors.size() == 1
+			&& directionErrors[0].message == "Route changes direction between block-1 (track-1 0.000 to 1.000 km) -> block-2 "
+											 "(track-1 1.000 to 2.000 km) and block-2 (track-1 1.000 to 2.000 km) -> block-1 "
+											 "(track-1 0.000 to 1.000 km)"
+			&& directionErrors[0].relatedId == "forward: block-1 -> block-2; reverse: block-2 -> block-1",
+		"a route cannot change direction between connected sections, and the message gives the labels of the sections");
 	SceneModel markedForward = clean;
 	markedForward.routes[0].reversed = true;
 	for (const auto& diagnostics : {validateScene(markedForward), validateRunnableScene(markedForward)}) {
@@ -872,7 +877,7 @@ int main(int argc, char** argv) {
 		"the test route runs in decreasing chainage");
 	reversedLevels.signallingAreas.clear();
 	ok &= expect(contains(levelMissingMessage(reversedLevels), "2 of 2 route sections have no signalling level")
-			&& contains(levelMissingMessage(reversedLevels), "@block-2@, @block-1@"),
+			&& contains(levelMissingMessage(reversedLevels), "@block-2@ (track-1 1.000 to 2.000 km), @block-1@ (track-1 0.000 to 1.000 km)"),
 		"a reversed route without areas names its sections in route order");
 	reversedLevels.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
 	const std::string reversedPartial = levelMissingMessage(reversedLevels);
@@ -920,14 +925,14 @@ int main(int argc, char** argv) {
 			&& pairDiagnostics[0].relatedId == "first" && pairDiagnostics[0].path == "signalling_areas[1]"
 			&& pairDiagnostics[0].message == "Signalling area first (2 ETCS Level 2 fixed block) and signalling area "
 											 "second (3 ETCS Level 3 moving block) assign different levels to 4 runtime sections, the first being "
-											 "@block-1@, between 0.000000 and 2.000000 km",
+											 "@block-1@ (track-1 0.000 to 1.000 km), between 0.000000 and 2.000000 km",
 		"two areas that disagree about two sections give one conflict that names both areas, levels and the sections");
 	SceneModel singleConflict = clean;
 	singleConflict.signallingAreas = {{"wide", 0.0, 2.0, 0, {}}, {"narrow", 1.0, 2.0, 5, {}}};
 	const auto singleConflictDiagnostics = findAll(validateRunnableScene(singleConflict), conflictCode);
 	const std::string singleConflictMessage = "Signalling area wide (0 ATB fixed block) and signalling area narrow "
 											  "(5 BACC track circuits) assign different levels to 1 runtime section: "
-											  "@block-2@, between 1.000000 and 2.000000 km";
+											  "@block-2@ (track-1 1.000 to 2.000 km), between 1.000000 and 2.000000 km";
 	ok &= expect(singleConflictDiagnostics.size() == 1 && singleConflictDiagnostics[0].message == singleConflictMessage,
 		"a conflict about one section names that section and its range");
 	ok &= expect(findAll(validateRunnableScene(clean), conflictCode).empty()
@@ -948,7 +953,7 @@ int main(int argc, char** argv) {
 			&& splitEndWarnings[0].file == "signalling.json" && splitEndWarnings[0].itemId == "head"
 			&& splitEndWarnings[0].path == "signalling_areas[0].end_km" && splitEndWarnings[0].relatedId == "@block-2@"
 			&& splitEndWarnings[0].message == "The end of signalling area head (1.500000 km) lies inside route section "
-											  "@block-2@ (1.000000 to 2.000000 km), so the section is not part of the area"
+											  "@block-2@ (track-1 1.000 to 2.000 km), so the section is not part of the area"
 			&& contains(splitEndWarnings[0].suggestedFix, "1.000000 or 2.000000 km")
 			&& !hasErrors(splitEndDiagnostics) && !hasCode(validateScene(splitEnd), splitCode),
 		"an area end inside a route section gives one warning that names the section, the edge and the section range");
@@ -957,7 +962,7 @@ int main(int argc, char** argv) {
 	const auto splitStartWarnings = findAll(validateRunnableScene(splitStart), splitCode);
 	ok &= expect(splitStartWarnings.size() == 1 && splitStartWarnings[0].path == "signalling_areas[0].start_km"
 			&& splitStartWarnings[0].message == "The start of signalling area tail (0.500000 km) lies inside route section "
-												"@block-1@ (0.000000 to 1.000000 km), so the section is not part of the area",
+												"@block-1@ (track-1 0.000 to 1.000 km), so the section is not part of the area",
 		"an area start inside a route section gives one warning");
 	SceneModel splitBoth = clean;
 	splitBoth.signallingAreas = {{"inner", 0.5, 1.5, 2, {}}};
@@ -985,8 +990,8 @@ int main(int argc, char** argv) {
 	splitMany.routes[0].blocks = {"block-1", "block-2", "block-3"};
 	splitMany.signallingAreas = {{"head", 0.0, 1.5, 2, {}}};
 	const auto splitManyWarnings = findAll(validateRunnableScene(splitMany), splitCode);
-	ok &= expect(splitManyWarnings.size() == 1 && contains(splitManyWarnings[0].message, "@block-2@ (1.000000 to 2.000000 km)")
-			&& contains(splitManyWarnings[0].message, "; @block-3@ is cut the same way"),
+	ok &= expect(splitManyWarnings.size() == 1 && contains(splitManyWarnings[0].message, "@block-2@ (track-1 1.000 to 2.000 km), so")
+			&& contains(splitManyWarnings[0].message, "; @block-3@ (track-2 0.000 to 2.000 km) is cut the same way"),
 		"an edge that cuts sections of several tracks gives one warning that names the others");
 
 	// An area that contains no complete section.
@@ -1039,7 +1044,7 @@ int main(int argc, char** argv) {
 		"without areas the fix gives the range of the network and no list of stretches");
 	const auto stretchPartial = findAll(validateRunnableScene(partialArea), levelMissing);
 	const std::string stretchPartialMessage =
-		"1 of 2 route sections has no signalling level and runs without signalling: @block-2@ (track track-1)";
+		"1 of 2 route sections has no signalling level and runs without signalling: @block-2@ (track-1 1.000 to 2.000 km) (track track-1)";
 	const std::string stretchPartialFix = "or a track-scoped area for each track listed. Without a level: "
 										  "track-1 1.000000 to 2.000000 km (after area partial)";
 	ok &= expect(stretchPartial.size() == 1 && stretchPartial[0].message == stretchPartialMessage
@@ -1289,10 +1294,12 @@ int main(int argc, char** argv) {
 	const SceneDiagnostic* unsignalledWarning = findCode(unsignalledDiagnostics, noEffect);
 	ok &= expect(unsignalledWarning != nullptr && unsignalledWarning->severity == SceneSeverity::Warning
 			&& unsignalledWarning->file == "signalling.json" && unsignalledWarning->path == "single_track_restrictions[0]"
-			&& contains(unsignalledWarning->message, "Single-track restriction 0 (start_block block-1, end_block block-2, "
-													 "protected_start_block block-1, protected_end_block block-2)")
-			&& contains(unsignalledWarning->message, "start_block block-1 has no signalling level")
-			&& contains(unsignalledWarning->message, "protected_end_block block-2 has no signalling level")
+			&& contains(unsignalledWarning->message,
+				"Single-track restriction 0 (start_block block-1 (track-1 0.000 to 1.000 km), end_block block-2 (track-1 1.000 "
+				"to 2.000 km), protected_start_block block-1 (track-1 0.000 to 1.000 km), protected_end_block block-2 "
+				"(track-1 1.000 to 2.000 km))")
+			&& contains(unsignalledWarning->message, "start_block block-1 (track-1 0.000 to 1.000 km) has no signalling level")
+			&& contains(unsignalledWarning->message, "protected_end_block block-2 (track-1 1.000 to 2.000 km) has no signalling level")
 			&& contains(unsignalledWarning->suggestedFix, "signalling level") && !hasErrors(unsignalledDiagnostics)
 			&& !hasCode(validateScene(restricted), noEffect) && hasCode(unsignalledDiagnostics, levelMissing),
 		"a single-track restriction without a signalling level warns that it has no effect");
@@ -1305,7 +1312,7 @@ int main(int argc, char** argv) {
 	restricted.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
 	const auto partialRestrictionDiagnostics = validateRunnableScene(restricted);
 	const SceneDiagnostic* partialRestrictionWarning = findCode(partialRestrictionDiagnostics, noEffect);
-	ok &= expect(partialRestrictionWarning != nullptr && contains(partialRestrictionWarning->message, "end_block block-2 has no signalling level")
+	ok &= expect(partialRestrictionWarning != nullptr && contains(partialRestrictionWarning->message, "end_block block-2 (track-1 1.000 to 2.000 km) has no signalling level")
 			&& !contains(partialRestrictionWarning->message, "start_block block-1 has"),
 		"the warning names only the blocks without a signalling level");
 	restricted.singleTrackRestrictions.clear();
@@ -1419,7 +1426,7 @@ int main(int argc, char** argv) {
 		std::count_if(longDiagnostics.begin(), longDiagnostics.end(), [&](const SceneDiagnostic& d) { return d.code == levelMissing; }) == 1
 			&& longWarning != nullptr
 			&& contains(longWarning->message, "200 of 200 route sections")
-			&& contains(longWarning->message, "@b4@ and 195 more")
+			&& contains(longWarning->message, "@b4@ (track-1 4.000 to 5.000 km) and 195 more")
 			&& !contains(longWarning->message, "@b5@")
 			&& contains(longWarning->message, "(track track-1)"),
 		"a long route gets one warning that names at most five sections");
