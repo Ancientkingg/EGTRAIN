@@ -3,6 +3,7 @@
 
 #include <QFont>
 #include <QGraphicsItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsTextItem>
 #include <QList>
@@ -242,6 +243,11 @@ public:
 	/// Smallest spacing on screen, in logical pixels, of the tracks at the stations for the near look, in which
 	/// the marks are dots on the station nodes.
 	static constexpr qreal NearTrackSpacingPixels = 12.0;
+	/// Width on screen, in logical pixels, by which the area of a station in the far look reaches past its node
+	/// centres on every side.
+	static constexpr qreal AreaMarginPixels = 6.0;
+	/// The z value of the area of a station: under the tracks and connections (z 0).
+	static constexpr qreal AreaZValue = -1.0;
 
 	/// Scale of an item of nativeSizePx that is at least minPx logical pixels on screen at viewScale,
 	/// in logical pixels per scene unit, and keeps presentationScale as soon as that is larger.
@@ -254,21 +260,27 @@ public:
 	/// station nodes (applyViewScale()). Attach the items to their parents before the first
 	/// applyViewScale: the transform moves scenePos() of an enlarged item. More platforms
 	/// rank a station higher when names collide.
+	/// For a StationMarkItem that is in a scene it also adds the area of the station to the scene, a path item at
+	/// AreaZValue in stationAreaColor() that takes no mouse input.
 	void attachArtwork(QGraphicsPixmapItem* picture, QGraphicsTextItem* name, int platformCount);
 	/// The attached pictogram, or null.
 	QGraphicsPixmapItem* pictureItem() const { return m_picture; }
 	/// The attached name, or null.
 	QGraphicsTextItem* nameItem() const { return m_name; }
+	/// The area of the station, or null for a plain picture.
+	QGraphicsPathItem* areaItem() const { return m_area; }
 	/// The number of platforms of the station.
 	int platformCount() const { return m_platformCount; }
 	/// Gives the attached station mark the centres in scene coordinates of the station squares that are at the place
 	/// of the anchor, those at most 32 mark frames at scene size from it, or the anchor alone without one. A station
-	/// with platform nodes on another line has its mark, dots and name at the place of its anchor only.
+	/// with platform nodes on another line has its mark, dots, area and name at the place of its anchor only.
 	void setNodeCentres(const QList<QPointF>& centres);
 	/// Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the
 	/// bottom centre of its frame on the top edge of the box of its node centres, centred over its dots, and shows as
-	/// the dots in the near look. Its name sits under the dots in both looks, so that mark and name share their x. A
-	/// plain picture keeps the far look and, like its name, its artwork point.
+	/// the dots in the near look. Its name sits under the dots in both looks, so that mark and name share their x. In
+	/// the far look the area of the station is the hull of its node centres widened by AreaMarginPixels on screen; it
+	/// is shown while the mark is visible and hidden in the near look. A plain picture keeps the far look and, like its
+	/// name, its artwork point.
 	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }
@@ -319,6 +331,7 @@ private:
 	QList<SourceIdentity> m_sourceIdentities;
 	QGraphicsPixmapItem* m_picture = nullptr;
 	QGraphicsTextItem* m_name = nullptr;
+	QGraphicsPathItem* m_area = nullptr;
 	qreal m_pictureSceneScale = 1.0;
 	qreal m_nameSceneScale = 1.0;
 	qreal m_pictureNativePixels = 0.0;

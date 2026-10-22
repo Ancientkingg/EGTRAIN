@@ -130,6 +130,11 @@ void paintStationNodeMark(QPainter* painter, const QList<QPointF>& centres, Stat
 	const QColor& fill, const QColor& halo, qreal haloWidth);
 /// The area that paintStationNodeMark() paints, its halo of haloWidth included; empty without centres.
 QPainterPath stationNodeMarkShape(const QList<QPointF>& centres, StationClass cls, qreal side, qreal haloWidth);
+/// The area of a station on the canvas: the convex hull of its node centres widened by width / 2 on every side, a
+/// disc for one centre and a capsule for two; empty without centres.
+QPainterPath stationAreaShape(const QList<QPointF>& centres, qreal width);
+/// The fill of the area of a station: the blue of the bar of the far mark at an alpha of 56 of 255.
+QColor stationAreaColor();
 /// The mark in its dark variant for light surfaces, at 16 and 32 pixels.
 QIcon stationMarkIcon(StationClass cls);
 /// The playback speed for a delay of delayMs milliseconds per simulated second, as a factor of real time:

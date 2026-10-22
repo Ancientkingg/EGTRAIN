@@ -27,6 +27,9 @@ bool containsAny(const std::string& text, std::initializer_list<const char*> nee
 
 // The blue of the bar of the roundel: the fill of the square of a major station.
 const QColor kStationMarkAccent(80, 120, 210);
+// The alpha of the area of a station: the highest step of 8 at which every track colour keeps a contrast of 3:1 on the
+// area over the canvas.
+constexpr int kStationAreaAlpha = 56;
 
 // One part of a station mark: path filled with fill and an edge of edgeWidth in edgeColor, painted over the fill, or
 // under it when edgeUnder is set, so that only its outer half shows.
@@ -327,6 +330,16 @@ QPainterPath stationNodeMarkShape(const QList<QPointF>& centres, StationClass cl
 	for (const QPainterPath& path : nodeMarkPaths(centres, cls, side, nodeMarkEdge(cls, side) / 2.0 + haloWidth))
 		shape.addPath(path);
 	return shape;
+}
+
+QPainterPath stationAreaShape(const QList<QPointF>& centres, qreal width) {
+	return centres.isEmpty() ? QPainterPath() : widenedHull(centres, width);
+}
+
+QColor stationAreaColor() {
+	QColor colour = kStationMarkAccent;
+	colour.setAlpha(kStationAreaAlpha);
+	return colour;
 }
 
 QIcon stationMarkIcon(StationClass cls) {

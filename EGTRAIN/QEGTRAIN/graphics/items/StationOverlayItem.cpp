@@ -1,5 +1,6 @@
 #include "graphics/items/StationOverlayItem.h"
 
+#include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
 #include <QLineF>
 #include <QPainter>
@@ -26,7 +27,8 @@ constexpr qreal kMarkHaloPixels = 2.0;
 // The top of the name is this many mark frames below the dots, also in the far look, which does not draw them.
 constexpr qreal kNearNameGap = 0.25;
 // A station node farther than this many mark frames at scene size from the anchor is at another place of the
-// station, such as a platform node on another line, and gets no dot and no say in where the mark and the name go.
+// station, such as a platform node on another line, and gets no dot, no area and no say in where the mark and the
+// name go.
 constexpr qreal kStationPlaceFrames = 32.0;
 
 // Enlarges item by factor about pivot in one change and moves pivot by shift. The item transform acts
@@ -510,6 +512,15 @@ void StationOverlayItem::attachArtwork(QGraphicsPixmapItem* picture, QGraphicsTe
 		m_nameNativePixels = font.pixelSize() > 0 ? font.pixelSize() : QFontMetricsF(font).height();
 		m_nameAnchor = QPointF(m_name->boundingRect().width() / 2.0, 0.0);
 	}
+	if (!m_area && dynamic_cast<StationMarkItem*>(m_picture) && m_picture->scene()) {
+		m_area = new QGraphicsPathItem;
+		m_area->setPen(Qt::NoPen);
+		m_area->setBrush(stationAreaColor());
+		m_area->setZValue(AreaZValue);
+		m_area->setAcceptedMouseButtons(Qt::NoButton);
+		m_area->setVisible(false);
+		m_picture->scene()->addItem(m_area);
+	}
 }
 
 void StationOverlayItem::setNodeCentres(const QList<QPointF>& centres) {
@@ -537,6 +548,9 @@ void StationOverlayItem::applyViewScale(qreal viewScale, bool nearLook) {
 		m_appliedNearLook = dots;
 		placeArtwork(viewScale, dots);
 	}
+	// The area follows the mark, which the station layer and the parent of the mark can hide.
+	if (m_area)
+		m_area->setVisible(!m_appliedNearLook && m_picture && m_picture->isVisible());
 }
 
 // A station mark and its name are placed by the node centres of the mark, or by the anchor without them, in both
@@ -569,6 +583,8 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 			if (mark) {
 				mark->setFarLook();
 				shift = shiftTo(m_picture, pivot, QPointF(marks.center().x(), top));
+				if (m_area)
+					m_area->setPath(stationAreaShape(centres, 2.0 * AreaMarginPixels / viewScale));
 			}
 			enlargeAbout(m_picture, pivot, scale / m_pictureSceneScale, shift);
 		}

@@ -662,15 +662,15 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
-		// A station mark at the place of its first node: the dots take the node centres within 32 frames of the anchor,
-		// and a station without one keeps the anchor.
+		// A station mark at the place of its first node: the dots and the area take the node centres within 32 frames
+		// of the anchor, and a station without one keeps the anchor.
 		QGraphicsScene scene;
 		const QPointF first(0.0, 0.0);
 		const QPointF second(30.0, 40.0);
 		const QPointF elsewhere(1000.0, 0.0);
 		const MarkRig rig = addMarkRig(scene, "Alpha", {first, second, elsewhere});
 		ok &= expect(rig.mark->nodeCentres() == QList<QPointF>({first, second}),
-			"a station node more than 32 frames from the anchor gets no dot");
+			"a station node more than 32 frames from the anchor gets no dot and no area");
 		rig.overlay->setNodeCentres({elsewhere});
 		ok &= expect(rig.mark->nodeCentres() == QList<QPointF>({first}), "a station with no node at its place keeps its anchor");
 		rig.overlay->setNodeCentres({first, second, elsewhere});
@@ -687,6 +687,16 @@ int main(int argc, char* argv[]) {
 			"the far mark stands on the top centre of the box of the station nodes, 24 pixels high");
 		ok &= expect(samePoint(nameAnchorInScene(rig), QPointF(farDots.center().x(), farDots.bottom() + 60.0)),
 			"the name is centred under the dots in the far look, at the x of the mark");
+		const QGraphicsPathItem* area = rig.overlay->areaItem();
+		ok &= expect(area && area->scene() == &scene && area->isVisible() && area->zValue() == StationOverlayItem::AreaZValue
+				&& area->zValue() < 0.0 && area->acceptedMouseButtons() == Qt::NoButton && !area->acceptHoverEvents()
+				&& area->pen().style() == Qt::NoPen && area->brush().color() == stationAreaColor(),
+			"the far look shows the station area under the tracks, without input");
+		const QRectF areaBounds = area ? area->path().boundingRect() : QRectF();
+		ok &= expect(area && area->path().contains(QPointF(15.0, 20.0)) && !area->path().contains(elsewhere)
+				&& containsRect(QRectF(-60.5, -60.5, 151.0, 161.0), areaBounds)
+				&& containsRect(areaBounds, QRectF(-59.5, -59.5, 149.0, 159.0)),
+			"the area covers the station nodes and reaches 6 pixels past them");
 
 		// Near look: tracks 20 pixels apart. The dots are drawn without enlargement on the nodes, sized by the frame of
 		// 24 pixels (48 scene units), and the name is a quarter frame under them.
@@ -702,6 +712,7 @@ int main(int argc, char* argv[]) {
 		ok &= expect(nearPick.contains(first + QPointF(1.0, 2.0)) && nearPick.contains(second + QPointF(1.0, 2.0))
 				&& !nearPick.contains(QPointF(60.0, 20.0)),
 			"the near mark is picked on its dots only");
+		ok &= expect(area && !area->isVisible(), "the near look hides the station area");
 		ok &= expect(samePoint(nameAnchorInScene(rig), QPointF(nearDots.center().x(), nearDots.bottom() + 12.0)),
 			"the name is centred under the dots in the near look");
 		auto* effect = new HighlightEffect(Qt::blue, 1.0);
@@ -711,12 +722,19 @@ int main(int argc, char* argv[]) {
 			"the selection cue of the station square surrounds the dots");
 		rig.node->setGraphicsEffect(nullptr);
 
-		// Back to the far look: the mark and the name return to their places.
+		// Back to the far look: the mark and the name return to their places and the area shows again.
 		view.setTransform(QTransform::fromScale(0.1, 0.1));
 		rig.overlay->applyViewScale(0.1, false);
 		ok &= expect(samePoint(frameAnchorInScene(rig), QPointF(farDots.center().x(), first.y()))
-				&& samePoint(nameAnchorInScene(rig), QPointF(farDots.center().x(), farDots.bottom() + 60.0)),
-			"the far mark and its name return after the near look");
+				&& samePoint(nameAnchorInScene(rig), QPointF(farDots.center().x(), farDots.bottom() + 60.0))
+				&& area && area->isVisible(),
+			"the far mark, its name and the area return after the near look");
+		rig.node->setVisible(false);
+		rig.overlay->applyViewScale(0.1, false);
+		ok &= expect(area && !area->isVisible(), "the area hides with the mark");
+		rig.node->setVisible(true);
+		rig.overlay->applyViewScale(0.1, false);
+		ok &= expect(area && area->isVisible(), "the area shows again with the mark");
 	}
 
 	{
