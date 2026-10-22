@@ -662,10 +662,26 @@ private:
 	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
 	// The target that the selection on the network view gives an incident: a signal failure for a signal head, a breakdown
-	// of its occurrence for a train. The type is empty when the selection gives none. `selected` names what is selected,
-	// "signal", "train" or "item", for when it gives no target or the incident panel does not offer it, and is empty when
-	// nothing is selected.
-	IncidentTarget selectedIncidentTarget(QString& selected) const;
+	// of its occurrence for a train. The type is empty when the selection gives none, and `why` then says why when it is
+	// given. `selected` names what is selected, "signal", "train" or "item", for when it gives no target or the incident
+	// panel does not offer it, and is empty when nothing is selected.
+	IncidentTarget selectedIncidentTarget(QString& selected, QString* why = nullptr) const;
+	// The target that an item of the network view gives an incident, as selectedIncidentTarget does for the selection: a
+	// signal head of the track preview by its kind and id, which give none for another kind, a signal of the run, or a
+	// train of the run by its index. The type is empty when the item gives none, and `why` then says why when it is given.
+	IncidentTarget previewIncidentTarget(const QString& kind, const QString& id, QString* why = nullptr) const;
+	IncidentTarget signalIncidentTarget(const SignalItem& signal, QString* why = nullptr) const;
+	IncidentTarget trainIncidentTarget(int trainIndex, QString* why = nullptr) const;
+	// Why the context menu of a signal or a train (`what`) and the inspector cannot add an incident with the target of the
+	// item now, or empty when they can. `why` says why the item gives no target.
+	QString viewIncidentBlocked(const IncidentTarget& target, const QString& what, const QString& why) const;
+	// Shows the button of the inspector that adds an incident while it shows a signal or a train, enabled as the context
+	// menu of the item is.
+	void updateInspectorIncidentAction();
+	// Adds an incident with the target of a signal or a train of the network view to the selected scenario, as Add
+	// Incident does, and shows it on the Incidents tab with the focus on its start. Nothing happens when the incident
+	// panel does not offer the target or the scene cannot be edited.
+	void addIncidentFromView(const IncidentTarget& target);
 	// Starts or ends picking the target of the selected incident on the network view: the cursor of the view, the hint in
 	// the status bar and the Esc shortcut.
 	void setIncidentTargetPick(bool picking);

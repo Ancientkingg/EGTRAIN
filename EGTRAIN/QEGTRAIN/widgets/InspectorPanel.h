@@ -17,6 +17,7 @@ class QGraphicsScene;
 class QLineEdit;
 class QMainWindow;
 class QPlainTextEdit;
+class QPushButton;
 class QWidget;
 class SignalItem;
 class StationNodeItem;
@@ -27,7 +28,8 @@ struct GuiPassengerState;
 struct SceneModel;
 
 /// The inspector dock, titled after the selected item. It has one form for each kind of item that the user can select on the canvas: a node, an arc,
-/// a connection, a signal and a train. Selecting an item shows its form, fills it in and puts a highlight on the item.
+/// a connection, a signal and a train. Selecting an item shows its form, fills it in and puts a highlight on the item. Under
+/// the form of a signal or a train the window can show a button that adds an incident for it.
 /// Before a run the items are the ones of the track preview, which the form fills in from the scene. During and after a
 /// run the items belong to the run and the form fills in from them. The panel keeps what is selected, so that the window
 /// can mark the station overlay and the train of the selection.
@@ -107,6 +109,14 @@ public:
 	/// Shows the train and, when changeFollowMode is set, follows it.
 	void displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode);
 
+	/// Shows the button under the form that adds an incident for the selected signal or train, with this text, or hides it
+	/// for an empty text. A reason that is not empty disables the button and is its tooltip. Closing the form hides it.
+	void showIncidentAction(const QString& text, const QString& blocked);
+
+Q_SIGNALS:
+	/// The button that adds an incident was clicked.
+	void incidentRequested();
+
 public slots:
 	/// Hides every form, forgets the selection, removes the passenger information and the highlight. The dock itself stays
 	/// as it is. Runs when the dock is closed.
@@ -182,6 +192,7 @@ private:
 	QLineEdit* trainTypeText = nullptr;
 	QLineEdit* trainLengthText = nullptr;
 	QLineEdit* trainWagonsText = nullptr;
+	QPushButton* incidentButton = nullptr;
 
 	// What is selected. A station of a run is known by its node and track, or by its name when the overlay has no node. A
 	// station of the preview is known by its id.

@@ -72,6 +72,9 @@ public:
 	/// setDefaultTarget(), and the type of that target, when the combo offers it; otherwise it is a signal failure without
 	/// a target. A scene without a scenario gets the baseline scenario first.
 	void addIncident();
+	/// Appends and selects an incident as addIncident() does, with this target and its type instead of the one of
+	/// setDefaultTarget(). False, and nothing changes, when no incident can be added or the combo does not offer the target.
+	bool addIncident(const IncidentTarget& target);
 	/// Inserts a copy of the selected incident, with a new unique id, after it.
 	void duplicateIncident();
 	/// Deletes the selected incident after the user has confirmed it.
@@ -173,6 +176,9 @@ private:
 	const SceneIncident* shownIncident() const;
 	// Records that the selected scenario is edited and tells the document.
 	void markEdited(const QString& label);
+	// Appends and selects a new incident with the target, or a signal failure without one for an empty type, in one edit.
+	// The scene must be editable and have the selected scenario.
+	void appendIncident(const IncidentTarget& target);
 
 	QPointer<SceneDocument> m_document;
 	QMetaObject::Connection m_replacedConnection;

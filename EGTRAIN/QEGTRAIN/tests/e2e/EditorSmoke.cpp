@@ -1,6 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include "app/DispatchController.h"
+#include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "ui_MainWindow.h"
@@ -20,6 +21,8 @@
 #include "editors/ValidationPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "graphics/items/PlatformItem.h"
+#include "graphics/items/SignalItem.h"
+#include "graphics/items/TrainBodyItem.h"
 #include "graphics/NetworkScene.h"
 #include "recovery/RecoveryController.h"
 #include "recovery/RecoveryStore.h"
@@ -86,6 +89,7 @@
 #include <QList>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QMenu>
 #include <QMenuBar>
 #include <QMetaObject>
 #include <QObject>
@@ -3734,6 +3738,121 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_incidentPanel->deleteIncident();
 			}
 			w.m_inspector->handleDisableHighlight();
+			// The menu of a signal head adds a signal failure of the block, from an entry in a group of its own after Show
+			// details. The Incidents tab shows the new incident with the focus on its start, and Undo takes the one edit back.
+			// The entry says why it is disabled when the head gives no target: no head stands at a switch section, but a block
+			// that shares its id with a signal gives none.
+			{
+				const QString hint = "Click a signal or a train for the incident target. Esc cancels.";
+				const QString headTrack = head->data(PreviewGraphics::TrackId).toString();
+				const bool headReversed = head->data(PreviewGraphics::Reversed).toBool();
+				const QPointF centre = head->sceneBoundingRect().center();
+				const auto openMenu = [&]() -> QAction* {
+					w.showSceneContextMenu(head, centre, w.networkView->viewport()->mapToGlobal(w.networkView->mapFromScene(centre)), false);
+					QMenu* menu = w.m_sceneContextMenu.data();
+					const QList<QAction*> entries = menu ? menu->actions() : QList<QAction*>();
+					const bool grouped = menu && menu->toolTipsVisible() && entries.value(0) && entries.value(0)->text() == "Show details"
+						&& entries.value(1) && entries.value(1)->isSeparator() && entries.value(2)
+						&& entries.value(2)->text() == "Add signal failure" && entries.value(3) && entries.value(3)->isSeparator();
+					return grouped ? entries.value(2) : nullptr;
+				};
+				sceneSignals(w.m_document->mutableModel()).push_back(SceneSignal{blockId.toStdString(), {}});
+				QAction* refused = openMenu();
+				const bool explained = refused && !refused->isEnabled() && refused->toolTip() == "No block or signal to fail here";
+				sceneSignals(w.m_document->mutableModel()).pop_back();
+				w.closeSceneContextMenu();
+				w.commitPendingEditorValues();
+				w.m_incidentDock->hide();
+				if (scenarioTabs)
+					scenarioTabs->setCurrentWidget(w.m_scenarioPanel);
+				const std::vector<SceneIncident> before = w.selectedScenarioIncidents();
+				const std::shared_ptr<const SceneModel> stateBefore = w.m_history->head();
+				QAction* entry = openMenu();
+				QMenu* menu = w.m_sceneContextMenu.data();
+				const bool offered = entry && entry->isEnabled();
+				if (offered) {
+					entry->trigger();
+					menu->close();
+				}
+				w.activateWindow();
+				QApplication::processEvents();
+				const std::vector<SceneIncident>& incidents = w.selectedScenarioIncidents();
+				const SceneIncident* added = incidents.size() == before.size() + 1 ? w.m_incidentPanel->selectedIncident() : nullptr;
+				const QString message = w.statusBar()->currentMessage();
+				const bool shown = added && added == &incidents.back() && added->type == "signal_failure"
+					&& QString::fromStdString(added->target) == blockId && w.m_incidentDock->isVisible() && scenarioTabs
+					&& scenarioTabs->currentWidget() == w.m_incidentPanel && QApplication::focusWidget() == w.m_incidentStartSecondsEdit
+					&& message == QString("Added a signal failure of %1.").arg(blockId)
+					&& w.statusBar()->fontMetrics().horizontalAdvance(message) <= w.statusBar()->fontMetrics().horizontalAdvance(hint);
+				// The history keeps a limited number of steps, so one Undo must reach the state before. Undo runs only after an
+				// edit, so that a failed check does not take back an earlier one.
+				const bool changed = w.m_history->head() != stateBefore;
+				const bool oneEdit = changed && w.m_history->undoLabel() == "Add incident";
+				if (changed)
+					w.m_undoAction->trigger();
+				QApplication::processEvents();
+				const bool undone = oneEdit && w.m_history->head() == stateBefore && w.m_history->redoLabel() == "Add incident"
+					&& sameIncidents(before, w.selectedScenarioIncidents());
+				const auto yes = [](bool value) { return value ? "yes" : "no"; };
+				if (!explained || !offered || !shown || !undone)
+					facetFailure(facetOk, "incident",
+						QString("the menu of a signal head did not add a signal failure of block %1 (disabled without a target: %2, "
+								"offered: %3, added and shown: %4, one edit that Undo takes back: %5; status: %6)")
+							.arg(blockId, yes(explained), yes(offered), yes(shown), yes(undone), message));
+				// The inspector of the signal head has the same action as a button under its form, and an arc has none. Undo drew
+				// the preview again, so the head is another item now.
+				head = w.m_inspector->resolvePreviewItem("signal", headId, headTrack, headReversed, w.m_document->revision());
+				QPushButton* button = w.m_inspector->incidentButton;
+				QGraphicsItem* arc = nullptr;
+				for (QGraphicsItem* item : w.scene->items())
+					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
+						arc = item;
+				if (arc)
+					w.scene->select(arc);
+				QApplication::processEvents();
+				const bool hiddenForArc = arc && button && button->objectName() == "inspectorIncidentButton" && button->isHidden();
+				sceneSignals(w.m_document->mutableModel()).push_back(SceneSignal{blockId.toStdString(), {}});
+				w.scene->select(head);
+				QApplication::processEvents();
+				const bool buttonExplained = button && button->isVisible() && !button->isEnabled()
+					&& button->toolTip() == "No block or signal to fail here";
+				sceneSignals(w.m_document->mutableModel()).pop_back();
+				w.m_inspector->handleDisableHighlight();
+				w.m_incidentDock->hide();
+				if (scenarioTabs)
+					scenarioTabs->setCurrentWidget(w.m_scenarioPanel);
+				w.scene->select(head);
+				QApplication::processEvents();
+				const bool buttonOffered = button && button->isVisible() && button->isEnabled() && button->text() == "Add signal failure"
+					&& button->accessibleName() == button->text() && button->toolTip().isEmpty();
+				const std::shared_ptr<const SceneModel> stateBeforeButton = w.m_history->head();
+				if (buttonOffered)
+					button->click();
+				w.activateWindow();
+				QApplication::processEvents();
+				const SceneIncident* fromButton = w.selectedScenarioIncidents().size() == before.size() + 1
+					? w.m_incidentPanel->selectedIncident()
+					: nullptr;
+				const bool buttonAdded = fromButton && fromButton == &w.selectedScenarioIncidents().back()
+					&& fromButton->type == "signal_failure" && QString::fromStdString(fromButton->target) == blockId
+					&& w.m_incidentDock->isVisible() && scenarioTabs && scenarioTabs->currentWidget() == w.m_incidentPanel
+					&& QApplication::focusWidget() == w.m_incidentStartSecondsEdit
+					&& w.statusBar()->currentMessage() == QString("Added a signal failure of %1.").arg(blockId)
+					&& w.m_history->undoLabel() == "Add incident";
+				const bool buttonChanged = w.m_history->head() != stateBeforeButton;
+				if (buttonChanged)
+					w.m_undoAction->trigger();
+				QApplication::processEvents();
+				const bool buttonUndone = buttonChanged && w.m_history->head() == stateBeforeButton
+					&& sameIncidents(before, w.selectedScenarioIncidents());
+				if (!hiddenForArc || !buttonExplained || !buttonOffered || !buttonAdded || !buttonUndone)
+					facetFailure(facetOk, "incident",
+						QString("the inspector of a signal head did not do what its menu does (hidden for an arc: %1, disabled without "
+								"a target: %2, offered: %3, added and shown: %4, undone: %5; status: %6)")
+							.arg(yes(hiddenForArc), yes(buttonExplained), yes(buttonOffered), yes(buttonAdded), yes(buttonUndone),
+								w.statusBar()->currentMessage()));
+				w.m_inspector->handleDisableHighlight();
+			}
 		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
@@ -5360,6 +5479,17 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return condition;
 	};
 	const auto process = []() { QApplication::processEvents(); };
+	// Opens the context menu of an item of the network view and returns its entry `text`, which follows Show details in a
+	// group of its own, or null.
+	const auto incidentEntry = [&w](QGraphicsItem* item, const QString& text) -> QAction* {
+		w.showSceneContextMenu(item, item->sceneBoundingRect().center(), QPoint(), false);
+		const QList<QAction*> entries = w.m_sceneContextMenu ? w.m_sceneContextMenu->actions() : QList<QAction*>();
+		const bool grouped = w.m_sceneContextMenu && w.m_sceneContextMenu->toolTipsVisible() && entries.value(0)
+			&& entries.value(0)->text() == "Show details" && entries.value(1) && entries.value(1)->isSeparator() && entries.value(2)
+			&& entries.value(2)->text() == text && entries.value(3) && entries.value(3)->isSeparator();
+		return grouped ? entries.value(2) : nullptr;
+	};
+	const QString pickHint = QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
 	const QString previousScenePath = w.m_session->m_sceneDir;
 	const auto finish = [&]() {
 		simulation.setNextRunOutputFolder({});
@@ -5606,12 +5736,29 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		w.redoScene();
 		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_document->revision() == revision,
 			"Undo or Redo worked while a run used the scene");
+		// The menu and the inspector of a signal say why they add no incident while the run goes.
+		SignalItem* runSignal = w.m_presenter->allSignals.value(0);
+		{
+			QAction* entry = runSignal ? incidentEntry(runSignal, "Add signal failure") : nullptr;
+			expect(entry && !entry->isEnabled() && entry->toolTip() == "Not available while the case runs",
+				"the menu of a signal did not say that it adds no incident while a run uses the scene");
+			w.closeSceneContextMenu();
+			w.m_inspector->displaySignallingInfo(runSignal);
+			QPushButton* button = w.m_inspector->incidentButton;
+			expect(button->isVisible() && button->text() == "Add signal failure" && !button->isEnabled()
+					&& button->toolTip() == "Not available while the case runs",
+				"the inspector of a signal did not say that it adds no incident while a run uses the scene");
+		}
 		QElapsedTimer waited;
 		waited.start();
 		while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		if (!expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable, "the run did not complete"))
 			return finish();
+		expect(w.m_inspector->incidentButton->isVisible() && w.m_inspector->incidentButton->isEnabled()
+				&& w.m_inspector->incidentButton->toolTip().isEmpty(),
+			"the inspector of a signal did not offer an incident after the run");
+		w.m_inspector->handleDisableHighlight();
 		expect(w.m_undoAction->isEnabled() && w.m_history->undoCount() == position
 				&& authoredSceneBytes(*w.m_history->head()) == states[position],
 			"a run changed the history");
@@ -5667,6 +5814,52 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			QStringLiteral("an edit after a run gave the focus to %1")
 				.arg(QApplication::focusWidget() ? QApplication::focusWidget()->objectName() : QStringLiteral("nothing")));
 		w.m_caseLayersDock->setVisible(layersShown);
+		undo();
+		// In a replay, the menu of a train adds a breakdown of its occurrence. The edit discards the results, which the status
+		// bar says, and the Incidents tab shows the new incident with the focus on its start.
+		if (!completeRun("incident_menu_run_output"))
+			return finish();
+		w.seekReplay(500);
+		TrainBodyItem* trainBody = nullptr;
+		GuiTrainState trainState;
+		for (int index = 0; index < simulation.run().numTrains && !trainBody && w.m_snapshot; ++index) {
+			for (const GuiTrainState& state : w.m_snapshot->trains) {
+				TrainBodyItem* body = state.index == index && !state.serviceId.empty() ? w.resolveTrainBodyItem(index) : nullptr;
+				if (body && body->isVisible() && !trainBody) {
+					trainBody = body;
+					trainState = state;
+				}
+			}
+		}
+		if (trainBody)
+			w.m_inspector->displayTrainDetails(trainBody, false);
+		expect(w.m_inspector->incidentButton->isVisible() && w.m_inspector->incidentButton->isEnabled()
+				&& w.m_inspector->incidentButton->text() == "Add train breakdown",
+			"the inspector of a train in a replay offered no breakdown");
+		// The menu acts on the train under the cursor, not on the selection.
+		w.m_inspector->handleDisableHighlight();
+		QAction* breakdown = trainBody ? incidentEntry(trainBody, "Add train breakdown") : nullptr;
+		if (!expect(w.m_replayActive && breakdown && breakdown->isEnabled(), "the menu of a train in a replay offered no breakdown"))
+			return finish();
+		w.activateWindow();
+		if (!step("a breakdown from the menu of a train", "Add incident", [&] {
+				breakdown->trigger();
+				w.closeSceneContextMenu();
+			}))
+			return finish();
+		const SceneIncident* added = w.m_incidentPanel->selectedIncident();
+		const QString message = w.statusBar()->currentMessage();
+		expect(added && added == &w.selectedScenarioIncidents().back() && added->type == "train_breakdown"
+				&& added->target == trainState.serviceId && added->hasOccurrence && added->occurrence == trainState.occurrence,
+			"the menu of a train did not add a breakdown of its occurrence");
+		const QString occurrence = QString("%1 #%2").arg(QString::fromStdString(trainState.serviceId)).arg(trainState.occurrence);
+		expect(!w.m_runController->m_resultsAvailable && !w.m_replayActive && message == "Added a breakdown of " + occurrence + "; run results discarded."
+				&& w.statusBar()->fontMetrics().horizontalAdvance(message) <= w.statusBar()->fontMetrics().horizontalAdvance(pickHint),
+			"a breakdown from the menu of a train did not discard the results with a short message: " + message);
+		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");
+		expect(w.m_incidentDock->isVisible() && scenarioTabs && scenarioTabs->currentWidget() == w.m_incidentPanel
+				&& QApplication::focusWidget() == w.m_incidentStartSecondsEdit,
+			"a breakdown from the menu of a train was not shown on the Incidents tab with the focus on its start");
 		undo();
 	}
 

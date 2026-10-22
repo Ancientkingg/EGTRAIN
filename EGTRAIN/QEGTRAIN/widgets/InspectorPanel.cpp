@@ -32,6 +32,7 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStringList>
@@ -161,6 +162,11 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	trainFormLayout->addRow("Number of wagons", trainWagonsText);
 	trainInfoWidget->setLayout(trainFormLayout);
 
+	// The button under the form of a signal or a train that adds an incident for it.
+	incidentButton = new QPushButton(infoWidget);
+	incidentButton->setObjectName("inspectorIncidentButton");
+	connect(incidentButton, &QPushButton::clicked, this, &InspectorPanel::incidentRequested);
+
 	// main layout
 	auto* infoWidgetMainLayout = new QVBoxLayout();
 	infoWidgetMainLayout->addWidget(arcInfoWidget);
@@ -168,6 +174,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	infoWidgetMainLayout->addWidget(connectionInfoWidget);
 	infoWidgetMainLayout->addWidget(signallingInfoWidget);
 	infoWidgetMainLayout->addWidget(trainInfoWidget);
+	infoWidgetMainLayout->addWidget(incidentButton, 0, Qt::AlignLeft);
 	infoWidgetMainLayout->addStretch();
 	infoWidget->setLayout(infoWidgetMainLayout);
 	for (QFormLayout* form : {arcFormLayout, nodeFormLayout, connectionFormLayout,
@@ -203,6 +210,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	connectionInfoWidget->hide();
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
+	incidentButton->hide();
 
 	connect(infoDockWidget, &InfoDockWidget::closed, this, &InspectorPanel::handleCloseInfoDockWidget);
 }
@@ -263,6 +271,7 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	connectionInfoWidget->hide();
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
+	incidentButton->hide();
 	m_presenter->removeTrainPaxInfoIcon();
 	m_presenter->trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
 	m_presenter->removePaxInfoIcon();
@@ -273,6 +282,14 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 		m_presenter->effect = nullptr;
 	}
 	m_host.inspectionChanged();
+}
+
+void InspectorPanel::showIncidentAction(const QString& text, const QString& blocked) {
+	incidentButton->setText(text);
+	incidentButton->setAccessibleName(text);
+	incidentButton->setEnabled(blocked.isEmpty());
+	incidentButton->setToolTip(blocked);
+	incidentButton->setVisible(!text.isEmpty());
 }
 
 void InspectorPanel::clearPreviewInspection() {

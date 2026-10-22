@@ -132,7 +132,7 @@ The first command prints the diagnostics and exits with 0 when there is no error
 
 ## Limits and the JSON route
 
-- The editors are tables, lists and dialogs. The network view can give an incident its target, with **Pick** beside **Target**, but you add the incident and set its other fields in the dock.
+- The editors are tables, lists and dialogs. The network view can give an incident its target, with **Pick** beside **Target**, and add one with **Add signal failure** in the context menu of a signal head or **Add train breakdown** in that of a train after a run. You set the other fields of the incident in the dock.
 - This tutorial changes one value at a time. For many changes at once, save the case with **File > Save Scene As Folder...** and edit the JSON files, then validate with `scene_tool validate`. The keys are in [editing examples](scene-schema.md#editing-examples) and the [schema reference](scene-schema.md).
 - The same two edits in `services.json` are `"performance_percent": 80` on the service and `"dwell_seconds": 180` on its second stop.
 - The same scenario is the object below in the list `scenarios` of `scenarios.json`. It has the incident id that the editor proposes (`new_incident`) and the scenario id that **Duplicate** proposes. The key `default_scenario_id` in that file names the scenario that a run without a window uses; set it to `baseline_copy` for that run.

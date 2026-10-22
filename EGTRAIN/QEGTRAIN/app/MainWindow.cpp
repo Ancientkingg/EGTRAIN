@@ -1645,6 +1645,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
 	m_incidentPanel->setDocument(m_document);
 	connect(m_incidentPanel, &IncidentPanel::changed, this, &MainWindow::refreshValidationPanel);
+	// The button of the inspector adds an incident for the signal or the train that it shows.
+	connect(m_inspector, &InspectorPanel::incidentRequested, this, [this] {
+		QString selected;
+		addIncidentFromView(selectedIncidentTarget(selected));
+	});
 	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
 	// of the panel waits for the next item that a click or Edit > Find... selects there.
 	m_incidentPanel->setDefaultTarget([this] {
@@ -2208,6 +2213,7 @@ void MainWindow::runPanelsChanged() {
 	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::playbackEnded() {
@@ -2554,6 +2560,8 @@ void MainWindow::invalidateAfterSceneChange() {
 	updatePassengerSwitch();
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
+	// The target of the signal or the train that the inspector shows can be gone.
+	updateInspectorIncidentAction();
 }
 
 namespace {
@@ -2859,43 +2867,130 @@ QString targetPickRetry(const QString& selected) {
 	return QStringLiteral("Not a signal or a train. Click one, or press Esc.");
 }
 
+// The entry of the context menu of a signal or a train (`what`), and the button of the inspector, that adds an incident
+// with its target.
+QString viewIncidentText(const QString& what) {
+	return what == QLatin1String("signal") ? QStringLiteral("Add signal failure") : QStringLiteral("Add train breakdown");
+}
+
+// The signal failure of the section that a signal head protects, by its runtime or block id, or none with the reason. No
+// head stands at a switch section, so a section without a target is one that the scene does not have, or a block that
+// shares its id with a signal.
+IncidentTarget signalFailureOf(const SceneModel& model, const std::string& section, QString* why) {
+	const std::string target = sceneSignalFailureTarget(model, buildSceneSectionInventory(model), section);
+	if (!target.empty())
+		return {"signal_failure", QString::fromStdString(target), 0};
+	if (why)
+		*why = QStringLiteral("No block or signal to fail here");
+	return {};
+}
+
 } // namespace
 
-IncidentTarget MainWindow::selectedIncidentTarget(QString& selected) const {
+IncidentTarget MainWindow::selectedIncidentTarget(QString& selected, QString* why) const {
 	selected.clear();
 	if (!m_document->isLoaded())
 		return {};
-	const SceneModel& model = m_document->model();
-	const auto signalFailure = [&model](const std::string& section) {
-		const std::string target = sceneSignalFailureTarget(model, buildSceneSectionInventory(model), section);
-		return target.empty() ? IncidentTarget() : IncidentTarget{"signal_failure", QString::fromStdString(target), 0};
-	};
-	IncidentTarget target;
 	if (m_showingTrackPreview) {
 		const QString kind = m_inspector->previewSelectionKind();
-		if (kind == "signal") {
-			selected = "signal";
-			target = signalFailure(m_inspector->previewSelectionId().toStdString());
-		} else if (!kind.isEmpty()) {
-			selected = "item";
-		}
-	} else if (const SignalItem* signal = m_presenter->m_inspectedSignal;
-		signal && m_presenter->m_signalDecorations.contains(m_presenter->m_inspectedSignal)) {
-		// The section that the inspector shows as protected: the one ahead, or the one behind at the end of a track.
-		selected = "signal";
-		target = signalFailure(!signal->sectionAheadId.empty() ? signal->sectionAheadId : signal->sectionBehindId);
-	} else if (const int index = m_inspector->selectedTrainIndex(); index >= 0) {
-		selected = "train";
-		if (m_snapshot) {
-			const auto train = std::find_if(m_snapshot->trains.cbegin(), m_snapshot->trains.cend(),
-				[index](const GuiTrainState& state) { return state.index == index; });
-			if (train != m_snapshot->trains.cend() && !train->serviceId.empty())
-				target = {"train_breakdown", QString::fromStdString(train->serviceId), train->occurrence};
-		}
-	} else if (m_presenter->effect) {
-		selected = "item";
+		if (!kind.isEmpty())
+			selected = kind == "signal" ? "signal" : "item";
+		return previewIncidentTarget(kind, m_inspector->previewSelectionId(), why);
 	}
-	return target;
+	if (const SignalItem* signal = m_presenter->m_inspectedSignal;
+		signal && m_presenter->m_signalDecorations.contains(m_presenter->m_inspectedSignal)) {
+		selected = "signal";
+		return signalIncidentTarget(*signal, why);
+	}
+	if (const int index = m_inspector->selectedTrainIndex(); index >= 0) {
+		selected = "train";
+		return trainIncidentTarget(index, why);
+	}
+	if (m_presenter->effect)
+		selected = "item";
+	return {};
+}
+
+IncidentTarget MainWindow::previewIncidentTarget(const QString& kind, const QString& id, QString* why) const {
+	if (kind != "signal" || !m_document->isLoaded())
+		return {};
+	return signalFailureOf(m_document->model(), id.toStdString(), why);
+}
+
+IncidentTarget MainWindow::signalIncidentTarget(const SignalItem& signal, QString* why) const {
+	if (!m_document->isLoaded())
+		return {};
+	// The section that the inspector shows as protected: the one ahead, or the one behind at the end of a track.
+	return signalFailureOf(m_document->model(), !signal.sectionAheadId.empty() ? signal.sectionAheadId : signal.sectionBehindId, why);
+}
+
+IncidentTarget MainWindow::trainIncidentTarget(int trainIndex, QString* why) const {
+	const GuiTrainState* train = nullptr;
+	if (m_snapshot)
+		for (const GuiTrainState& state : m_snapshot->trains)
+			if (state.index == trainIndex && !train)
+				train = &state;
+	if (!train) {
+		if (why)
+			*why = QStringLiteral("The run has no data on this train");
+		return {};
+	}
+	if (train->serviceId.empty()) {
+		if (why)
+			*why = QStringLiteral("This train runs no service");
+		return {};
+	}
+	return {"train_breakdown", QString::fromStdString(train->serviceId), train->occurrence};
+}
+
+QString MainWindow::viewIncidentBlocked(const IncidentTarget& target, const QString& what, const QString& why) const {
+	if (m_runController->running())
+		return QStringLiteral("Not available while the case runs");
+	if (target.type.isEmpty())
+		return why;
+	if (!m_incidentPanel->offersTarget(target))
+		return QStringLiteral("This %1 cannot be the target of an incident").arg(what);
+	return {};
+}
+
+void MainWindow::updateInspectorIncidentAction() {
+	// The inspector exists before the incident panel.
+	if (!m_incidentPanel)
+		return;
+	QString selected;
+	QString why;
+	const IncidentTarget target = selectedIncidentTarget(selected, &why);
+	if (selected == "signal" || selected == "train")
+		m_inspector->showIncidentAction(viewIncidentText(selected), viewIncidentBlocked(target, selected, why));
+	else
+		m_inspector->showIncidentAction(QString(), QString());
+}
+
+void MainWindow::addIncidentFromView(const IncidentTarget& target) {
+	// The edit can end a replay and draw the preview again, which deletes the items of the view and closes the menu, so it
+	// waits until the menu or the button has been handled.
+	QTimer::singleShot(0, this, [this, target] {
+		// Read first: a pending value that is committed can discard the results itself.
+		const bool discardsResults = m_runController->resultsAvailable();
+		commitPendingEditorValues();
+		if (!m_incidentPanel->addIncident(target)) {
+			// The target can have gone since the menu or the button was shown.
+			const QString blocked = viewIncidentBlocked(target,
+				target.type == "train_breakdown" ? QStringLiteral("train") : QStringLiteral("signal"), QString());
+			statusBar()->showMessage(blocked.isEmpty() ? QStringLiteral("No incident added.") : blocked + QLatin1Char('.'), 8000);
+			return;
+		}
+		if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
+			tabs->setCurrentWidget(m_incidentPanel);
+		revealEditorDock(m_incidentDock);
+		m_incidentStartSecondsEdit->setFocus(Qt::OtherFocusReason);
+		m_incidentStartSecondsEdit->selectAll();
+		// As short as the hint of a pick.
+		const QString added = target.type == "train_breakdown"
+			? QStringLiteral("Added a breakdown of %1 #%2").arg(target.id).arg(target.occurrence)
+			: QStringLiteral("Added a signal failure of %1").arg(target.id);
+		statusBar()->showMessage(added + (discardsResults ? QStringLiteral("; run results discarded.") : QStringLiteral(".")), 8000);
+	});
 }
 
 void MainWindow::setIncidentTargetPick(bool picking) {
@@ -3315,6 +3410,18 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		m_sceneContextMenu->close();
 		m_sceneContextMenu.clear();
 	}
+	// The entry that adds an incident with the target of a signal or a train (`what`), in a group of its own after Show
+	// details. A disabled one says why in its tooltip.
+	const auto addIncidentEntry = [this](QMenu* menu, const QString& what, const IncidentTarget& target, const QString& why) {
+		menu->addSeparator();
+		QAction* action = menu->addAction(viewIncidentText(what));
+		const QString blocked = viewIncidentBlocked(target, what, why);
+		action->setEnabled(blocked.isEmpty());
+		action->setToolTip(blocked);
+		action->setStatusTip(blocked);
+		connect(action, &QAction::triggered, this, [this, target] { addIncidentFromView(target); });
+		menu->addSeparator();
+	};
 	if (item && item->data(PreviewGraphics::Kind).isValid()) {
 		const QString kind = item->data(PreviewGraphics::Kind).toString();
 		if (kind == "node" || kind == "connection")
@@ -3325,6 +3432,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		const quint64 revision = m_document->revision();
 		QMenu* menu = new QMenu(this);
 		menu->setAttribute(Qt::WA_DeleteOnClose);
+		menu->setToolTipsVisible(true);
 		menu->setTitle("Preview: " + id);
 		const auto resolve = [this, kind, id, track, reversed, revision]() {
 			return m_inspector->resolvePreviewItem(kind, id, track, reversed, revision);
@@ -3332,6 +3440,11 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		connect(menu->addAction("Show details"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) m_inspector->displayPreviewInfo(current);
 		});
+		if (kind == "signal") {
+			QString why;
+			const IncidentTarget target = previewIncidentTarget(kind, id, &why);
+			addIncidentEntry(menu, "signal", target, why);
+		}
 		connect(menu->addAction("Center in view"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) centerSceneItem(current);
 		});
@@ -3376,6 +3489,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			if (auto* body = resolveTrainBodyItem(trainIndex))
 				m_inspector->displayTrainDetails(body, false);
 		});
+		QString why;
+		const IncidentTarget target = trainIncidentTarget(trainIndex, &why);
+		addIncidentEntry(menu, "train", target, why);
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, trainIndex]() {
 			if (auto* current = resolveTrainItem(trainIndex))
@@ -3478,6 +3594,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			if (auto* current = resolveSignalItem(track, position, reversed))
 				m_inspector->displaySignallingInfo(current);
 		});
+		QString why;
+		const IncidentTarget target = signalIncidentTarget(*signal, &why);
+		addIncidentEntry(menu, "signal", target, why);
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, track, position, reversed]() {
 			if (auto* current = resolveSignalItem(track, position, reversed))
@@ -3938,10 +4057,12 @@ void MainWindow::closeSceneContextMenu() {
 
 void MainWindow::inspectionChanged() {
 	updateViewportOverlays();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::signalInspected() {
 	updateSignalCues();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::followTrain(int trainIndex) {
