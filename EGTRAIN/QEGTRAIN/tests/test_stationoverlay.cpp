@@ -810,6 +810,32 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
+		// A name whose spot under the dots crosses a track goes above the mark, and keeps its place when the look
+		// switches: the spot above the mark counts from the frame of the far look in both looks.
+		QGraphicsScene scene;
+		const QTransform view = QTransform::fromScale(0.1, 0.1);
+		const MarkRig rig = addMarkRig(scene, "Alpha", {QPointF(0.0, 0.0), QPointF(0.0, 40.0)});
+		rig.overlay->applyViewScale(0.1, false);
+		StationOverlayItem::resolveNameCollisions({rig.overlay}, view);
+		const QRectF under = rig.name->sceneBoundingRect();
+		scene.addItem(new TrackLineItem(QLineF(-2000.0, under.center().y(), 2000.0, under.center().y())));
+		rig.overlay->applyViewScale(0.2, false);
+		rig.overlay->applyViewScale(0.1, false);
+		StationOverlayItem::resolveNameCollisions({rig.overlay}, view);
+		const QRectF farName = rig.name->sceneBoundingRect();
+		rig.overlay->applyViewScale(0.1, true);
+		StationOverlayItem::resolveNameCollisions({rig.overlay}, view);
+		const QRectF nearName = rig.name->sceneBoundingRect();
+		ok &= expect(farName.bottom() < under.top() && rig.mark->isNearLook() && nearName == farName
+				&& !rig.overlay->isNameHiddenByCollision(),
+			"a name above the mark keeps its place when the look switches to the dots");
+		rig.overlay->applyViewScale(0.1, false);
+		StationOverlayItem::resolveNameCollisions({rig.overlay}, view);
+		ok &= expect(!rig.mark->isNearLook() && rig.name->sceneBoundingRect() == farName,
+			"and when it switches back to the roundel");
+	}
+
+	{
 		// A name gives way in the same order to the mark of another station.
 		QGraphicsScene scene;
 		const QTransform far = QTransform::fromScale(0.1, 0.1);

@@ -608,7 +608,8 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 			m_markSceneRect = QRectF(frame.topLeft() + (far.topLeft() - pixmapRect.topLeft()) * k, far.size() * k);
 			if (!mark->nodeCentres().isEmpty())
 				m_markSceneRect |= stationNodeMarkShape(centres, mark->stationClass(), side, halo).boundingRect();
-			markTop = dots ? marks.top() : frame.top();
+			// Above the mark counts from the frame also in the near look, so that no spot depends on the look.
+			markTop = frame.top();
 		}
 		if (dots) {
 			m_picture->setTransform(QTransform());
