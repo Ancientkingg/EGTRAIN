@@ -5392,8 +5392,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 			}
 		}
-		// A case without passengers draws no platform bars and shows the switch off, and keeps the choice for a case with
-		// passengers.
+		// A case without passengers shows the switch off and still draws its platform bars, and keeps the choice for a
+		// case with passengers.
 		const QString passengerPath = QFileInfo(scenePath).dir().filePath(QStringLiteral("Paimpol"));
 		if (ok && w.m_document->model().passengers.empty() && QFileInfo(passengerPath).isDir()) {
 			const bool choiceBefore = QSettings().value(kShowPassengersKey).toBool();
@@ -5409,9 +5409,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (!w.openSceneDirectory(scenePath)) {
 					caseChangeFailure("the case without passengers did not open");
 				} else if (w.m_passengerLayerCheck->isChecked() || w.m_showPassengersAction->isChecked() || initial_variables.PAX_GUI
-					|| platformBars() != 0 || !QSettings().value(kShowPassengersKey).toBool()) {
-					caseChangeFailure(QString("a case without passengers showed passengers (check box: %1, menu: %2, platform "
-											  "bars: %3, choice kept: %4)")
+					|| platformBars() == 0 || !QSettings().value(kShowPassengersKey).toBool()) {
+					caseChangeFailure(QString("a case without passengers showed passengers or no platform bars (check box: %1, "
+											  "menu: %2, platform bars: %3, choice kept: %4)")
 							.arg(w.m_passengerLayerCheck->isChecked() ? "on" : "off")
 							.arg(w.m_showPassengersAction->isChecked() ? "on" : "off")
 							.arg(platformBars())

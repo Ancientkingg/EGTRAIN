@@ -2635,7 +2635,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			if (auto* stroke = qgraphicsitem_cast<QGraphicsLineItem*>(item))
 				if (stroke->pen().width() > 0 && !stroke->pen().isCosmetic()) return false;
 		}
-		if (!squares || !dots || !heads || (initial_variables.PAX_GUI && !platforms) || w.m_presenter->m_stationPictures.isEmpty()
+		if (!squares || !dots || !heads || !platforms || w.m_presenter->m_stationPictures.isEmpty()
 			|| w.m_presenter->m_stationLabels.size() != w.m_presenter->m_stationOverlays.size()) return false;
 		for (int i = 0; i < w.m_presenter->m_stationOverlays.size(); ++i) {
 			const auto* overlay = w.m_presenter->m_stationOverlays[i];
@@ -2672,9 +2672,9 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 				|| QLineF(labelRect.center(), textCenter).length() > 1e-6
 				|| QLineF(pictureRect.center(), textCenter - QPointF(0, w.m_presenter->station_size * expectedScale / 2)).length() > 1e-6)
 				return false;
-			// On the canvas the roundel stands on the top edge of the hull of the station nodes at the middle of the dots,
-			// and the dots of the near look lie on the nodes without an item transform. The name lies under the box or
-			// above the mark, centred on it, or beside the box.
+			// On the canvas the pin stands on the top edge of the hull of the station nodes at the middle of their
+			// footprint, also in the near look, which draws no mark. The name lies under the box or above it, centred on the
+			// pin, or beside the box.
 			const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
 			if (!mark || mark->nodeCentres().isEmpty()) return false;
 			const QList<QPointF> centres = mark->nodeCentres();
@@ -2682,7 +2682,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			for (const QPointF& centre : centres)
 				box = QRectF(QPointF(std::min(box.left(), centre.x()), std::min(box.top(), centre.y())),
 					QPointF(std::max(box.right(), centre.x()), std::max(box.bottom(), centre.y())));
-			const qreal markX = stationNodeMarkShape(centres, mark->stationClass(), 1.0, 0.0).boundingRect().center().x();
+			const qreal markX = stationFootprintRect(centres, mark->stationClass(), 1.0).center().x();
 			// The top edge of the hull at markX: the smallest y over the pairs of nodes around it, where a pair of one x
 			// counts at that x.
 			qreal hullTop = std::numeric_limits<qreal>::infinity();
@@ -2694,11 +2694,11 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 							upright ? std::min(a.y(), b.y()) : a.y() + (b.y() - a.y()) * (markX - a.x()) / (b.x() - a.x()));
 				}
 			const QPointF frameAnchor = picture->mapToScene(pixmapRect.center().x(), pixmapRect.bottom());
-			if (mark->isNearLook() ? !picture->transform().isIdentity() : QLineF(frameAnchor, QPointF(markX, hullTop)).length() > 1e-6)
+			if (QLineF(frameAnchor, QPointF(markX, hullTop)).length() > 1e-6)
 				return false;
 			const QRectF name = label->sceneBoundingRect();
 			const bool centred = qAbs(name.center().x() - markX) < 1e-6;
-			if (!(centred && name.top() > box.bottom()) && !(centred && name.bottom() < picture->sceneBoundingRect().top())
+			if (!(centred && name.top() > box.bottom()) && !(centred && name.bottom() < box.top())
 				&& !((name.left() > box.right() || name.right() < box.left()) && name.top() < box.center().y()
 					&& name.bottom() > box.center().y()))
 				return false;
@@ -3002,14 +3002,34 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 			"position-only artwork uses authored Z-before-A track")) return false;
 	auto* picture = w.m_presenter->m_stationPictures.value(earlier, nullptr);
 	if (!require(picture && picture->parentItem() == z1, "artwork bound downward to authored square with different winning station")) return false;
-	picture->setPos(picture->pos() + QPointF(150, -150));
+	// At this zoom the squares of the fixture are far enough apart for the near look: a station with squares draws no
+	// artwork, and its own square, not the square that holds the artwork, gives its canonical identity.
+	const auto* earlierMark = dynamic_cast<const StationMarkItem*>(picture);
+	if (!require(earlierMark && earlierMark->isNearLook() && earlierMark->shape().isEmpty(), "near look draws no artwork")) return false;
+	click(qgraphicsitem_cast<StationNodeItem*>(find("station-node", "z2"))->rect().center());
+	if (!require(w.m_inspector->nodeStationNameText->text() == "Duplicate [earlier]"
+				&& w.m_inspector->m_previewSelectedStationId == "earlier",
+			"own station square owns canonical station identity")) return false;
+	// Zoomed out to the far look the pin of "earlier" shows. It hangs under square z1, whose winning station is "later",
+	// and a click on it still gives "earlier".
+	for (int step = 0; step < 8 && earlierMark->isNearLook(); ++step) {
+		w.networkView->scale(0.5, 0.5);
+		w.updateViewportOverlays();
+	}
+	if (!require(!earlierMark->isNearLook() && !earlierMark->shape().isEmpty(), "far look draws the pin")) return false;
 	clickArtwork(picture);
 	if (!require(w.m_inspector->nodeStationNameText->text() == "Duplicate [earlier]"
 				&& w.m_inspector->m_previewSelectedStationId == "earlier",
 			"displaced artwork owns canonical station identity")) return false;
-	// Position-only artwork has a real station, not an invented node.
+	w.networkView->resetTransform();
+	w.networkView->scale(2, 2);
+	w.updateViewportOverlays();
+	// Position-only artwork has a real station, not an invented node. Without a square it keeps its pin in the near look.
 	auto* positionPicture = w.m_presenter->m_stationPictures.value(between, nullptr);
 	if (!require(positionPicture && !positionPicture->parentItem(), "position-only artwork has no invented parent")) return false;
+	const auto* positionMark = dynamic_cast<const StationMarkItem*>(positionPicture);
+	if (!require(positionMark && !positionMark->isNearLook() && !positionMark->shape().isEmpty(),
+			"position-only artwork keeps its pin in the near look")) return false;
 	positionPicture->setPos(positionPicture->pos() + QPointF(0, -300));
 	clickArtwork(positionPicture);
 	if (!require(w.m_inspector->nodeIDText->text() == "No node anchor" && w.m_inspector->nodeXText->text().toDouble() == 1500

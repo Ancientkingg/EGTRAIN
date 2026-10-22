@@ -313,13 +313,24 @@ int main(int argc, char* argv[]) {
 		options.selectedId = "B1";
 		presenter.showPreview(model, options);
 		ok &= expect(presenter.m_previewHasSelectedTrack, "a selected track is marked");
-		const auto stationDecorations = presenter.m_stationDecorations.size();
-		presenter.clear();
-		options.platformBars = true;
-		presenter.showPreview(model, options);
-		ok &= expect(presenter.m_stationDecorations.size() > stationDecorations, "platform bars are added to the station decorations");
+		// The preview draws the platform bars without being asked, among the station decorations, hidden in the far look
+		// and shown in the near look.
+		const auto bars = [&presenter](bool visible) {
+			return std::count_if(presenter.m_stationDecorations.cbegin(), presenter.m_stationDecorations.cend(),
+				[visible](QGraphicsItem* item) { return qgraphicsitem_cast<PlatformItem*>(item) && item->isVisible() == visible; });
+		};
+		ok &= expect(bars(false) > 0 && bars(true) == 0, "the preview draws the platform bars, hidden in the far look");
+		presenter.setStationNearLook(true);
+		ok &= expect(bars(true) > 0 && bars(false) == 0, "the platform bars show in the near look");
 		// B0 runs diagonally and bends at Gdg, its station between Gvc and Ut.
 		ok &= expect(barsAlong(scene, *presenter.trackLine("B0"), 2), "a platform bar is a scene item over the station marks and lies along its track, on the upper side");
+		const auto drawnBars = bars(true) + bars(false);
+		presenter.clear();
+		// A virtual station gets no platform bar, as it gets no overlay.
+		SceneModel withVirtual = model;
+		withVirtual.stations.push_back({"virtualLink", "virtualLink", false, 0.0, {{"virtualLink.platform", {"B1.Gdg"}}}});
+		presenter.showPreview(withVirtual);
+		ok &= expect(bars(true) + bars(false) == drawnBars, "a virtual station gets no platform bar");
 		presenter.clear();
 		// With Ut at the longitude of Gdg the track runs straight up from Gdg to Ut.
 		SceneModel vertical = model;
@@ -351,7 +362,7 @@ int main(int argc, char* argv[]) {
 			if (cycle == 0)
 				drawnWithOptions = scene.items().size();
 			ok &= expect(drawnWithOptions > 0 && scene.items().size() == drawnWithOptions,
-				"every cycle with a selection and platform bars draws the same items");
+				"every cycle with a selection draws the same items");
 			presenter.clear();
 			ok &= expect(registriesEmpty(presenter) && pointersNull(presenter) && scene.items().isEmpty(),
 				"clear after a preview with options leaves the registries empty and the scene as empty as a new scene");
@@ -397,8 +408,6 @@ int main(int argc, char* argv[]) {
 							&& item->data(PreviewGraphics::Id).toString() == QString::fromStdString(nodeId)
 							&& !expected.contains(item->sceneBoundingRect().center()))
 							expected.append(item->sceneBoundingRect().center());
-			if (expected.isEmpty())
-				expected.append(overlay->stableAnchor());
 			centred = centred && mark->nodeCentres() == expected && (overlay->stationName() != "Gdg" || expected.size() == 2);
 		}
 		ok &= expect(centred, "the preview gives each station mark the centres of its station squares");

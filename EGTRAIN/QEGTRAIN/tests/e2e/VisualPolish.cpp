@@ -1051,7 +1051,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 								.arg(around)
 								.arg(selection.item->graphicsEffect() == w.m_presenter->effect);
 			}
-			// A station node is surrounded together with the pictogram of its station.
+			// A station node is surrounded together with the pictogram of its station, which the near look does not draw.
 			if (cue && selection.item == stationItem) {
 				bool pictogramSurrounded = false;
 				for (const StationOverlayItem* overlay : w.m_presenter->m_stationOverlays) {
@@ -1059,7 +1059,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 							&& overlay->matchesSourceIdentity(stationItem->node->ID, stationItem->track)
 						? overlay->pictureItem()
 						: nullptr;
-					if (picture && picture->isVisible() && cue->targetRect().contains(picture->sceneBoundingRect()))
+					const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
+					if (picture && picture->isVisible()
+						&& ((mark && mark->isNearLook()) || cue->targetRect().contains(picture->sceneBoundingRect())))
 						pictogramSurrounded = true;
 				}
 				if (!pictogramSurrounded) {

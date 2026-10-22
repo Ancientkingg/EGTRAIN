@@ -93,6 +93,17 @@ constexpr double kPi = 3.14159265;
 // The zoom of the view from which the labels of the platforms are legible.
 constexpr qreal kDenseDetailZoom = 3.0;
 
+// A station node stands for a platform: its platform id is neither empty nor "None".
+bool hasPlatformId(const std::string& platformId) {
+	return !platformId.empty() && platformId != "None";
+}
+
+// A station node gets a platform bar for a platform of a station that is not virtual: its name does not hold "virtual",
+// as for the station overlays.
+bool hasPlatformBar(const std::string& stationName, const std::string& platformId) {
+	return hasPlatformId(platformId) && stationName.find("virtual") == std::string::npos;
+}
+
 // The class of the mark of a station: the connections at its node and its platforms.
 StationVisual stationMarkVisual(const SceneModel& sceneModel, const std::string& nodeId, int platformCount) {
 	int connections = 0;
@@ -201,6 +212,7 @@ void NetworkPresenter::clear() {
 	m_stationLabels.clear();
 	m_stationPictures.clear();
 	m_stationTrackSpacing = 0.0;
+	m_stationNearLook = false;
 	m_signalsByAheadId.clear();
 	allArcs.clear();
 	allPlatforms.clear();
@@ -479,6 +491,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		++connectionDegrees[connection.toNodeId];
 	}
 	std::map<std::string, QGraphicsItem*> nodeItems;
+	std::map<std::string, const PlatformItem*> platformBars;
 	for (const auto& line : preview.lines) {
 		if (!tracks.count(line.id))
 			continue;
@@ -499,8 +512,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				const auto& value = membership->second;
 				// A platform darkens the square only at the end of the line; an interior one is the ordinary grey.
 				const bool lineEnd = index + 1 == line.points.size();
-				const StationVisual visual = classifyStation(lineEnd && !value.platformId.empty()
-						&& value.platformId != "None",
+				const StationVisual visual = classifyStation(lineEnd && hasPlatformId(value.platformId),
 					connectionDegrees[point.nodeId]);
 				square->setPen(QPen(visual.outline, 0));
 				square->setBrush(visual.fill);
@@ -508,19 +520,13 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				tagPreviewItem(item, "station-node", point.nodeId);
 				item->setData(PreviewGraphics::StationId, QString::fromStdString(value.stationId));
 				item->setData(PreviewGraphics::PlatformId, QString::fromStdString(value.platformId));
-				if (options.platformBars) {
-					// The bar is placed by points of the scene and, as in the run, is an item of the scene at z 2, so that
-					// it draws over the station mark that a square holds.
+				if (hasPlatformBar(value.name, value.platformId)) {
+					// The bar is placed by points of the scene, as in the run.
 					const auto pointAt = [&line](std::size_t at) {
 						return QPointF(line.points[at].x, line.points[at].y + line.displayOffset);
 					};
-					auto* bar = new PlatformItem(QRectF(-2.5 * size, -0.45 * size, 5 * size, 0.9 * size));
-					placePlatformBar(bar, pointAt(index - 1), pointAt(index), lineEnd ? pointAt(index) : pointAt(index + 1), size);
-					bar->setPen(QPen(Qt::white, 0));
-					bar->setBrush(Qt::white);
-					scene->addItem(bar);
-					m_stationDecorations.push_back(bar);
-					bar->setVisible(m_stationLayerVisible);
+					platformBars[point.nodeId] =
+						addPlatformBar(pointAt(index - 1), pointAt(index), lineEnd ? pointAt(index) : pointAt(index + 1), size);
 				}
 			} else {
 				item = new NodeItem(rect);
@@ -633,8 +639,9 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			};
 			if (auto* picture = m_stationPictures.value(overlay, nullptr)) {
 				bind(picture, true);
-				// The dots of the near look sit on the station squares of the platforms.
+				// The mark and its area are placed by the station squares of the platforms, and the area covers their bars.
 				QList<QPointF> centres;
+				QList<QPolygonF> bars;
 				if (sceneStation != sceneModel.stations.cend())
 					for (const auto& platform : sceneStation->platforms)
 						for (const auto& nodeId : platform.nodeIds) {
@@ -644,8 +651,11 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 							const QPointF centre = node->second->sceneBoundingRect().center();
 							if (!centres.contains(centre))
 								centres.append(centre);
+							if (const auto bar = platformBars.find(nodeId); bar != platformBars.end())
+								bars.append(bar->second->mapToScene(bar->second->rect()));
 						}
 				overlay->setNodeCentres(centres);
+				overlay->setPlatformBars(bars);
 			}
 			bind(m_stationLabels.back(), false);
 			break;
@@ -809,6 +819,30 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 	m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
 	overlay->attachArtwork(picture, label, platformCount);
+}
+
+void NetworkPresenter::setStationNearLook(bool nearLook) {
+	m_stationNearLook = nearLook;
+	applyPlatformVisibility();
+}
+
+void NetworkPresenter::applyPlatformVisibility() {
+	for (QGraphicsItem* item : std::as_const(m_stationDecorations))
+		if (qgraphicsitem_cast<PlatformItem*>(item))
+			item->setVisible(platformBarsVisible());
+	const bool passengers = platformPassengersVisible();
+	const bool counters = paxTextVisible();
+	for (PlatformItem* platform : std::as_const(allPlatforms)) {
+		if (!platform)
+			continue;
+		if (platform->textIcon)
+			platform->textIcon->setVisible(counters);
+		for (PassengerItem* icon : std::as_const(platform->passengerIcons))
+			icon->setVisible(passengers);
+	}
+	// The details of a selected passenger go with its icon.
+	if (paxIconInfoItem)
+		paxIconInfoItem->setVisible(passengers);
 }
 
 void NetworkPresenter::measureStationTrackSpacing() {
@@ -1023,7 +1057,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			// draw nodes
 			if (i > 0 && !trackSet.member[i - 1].endNode.stationName.empty()) { // station Node (only visible from end nodes [end_node] -> i>1)
 				paintStationNode(pt, station_node_size, track, &trackSet.member[i - 1].endNode, false);
-				if (m_source->passengerGui()) {
+				if (hasPlatformBar(trackSet.member[i - 1].endNode.stationName, trackSet.member[i - 1].endNode.stationPlatformId)) {
 					paintStationPlatform(pt_prev, pt, pte, station_node_size, &trackSet.member[i - 1].endNode);
 				}
 			}
@@ -1048,7 +1082,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 				// draw last end_node Node
 				if (!trackSet.member[i].endNode.stationName.empty()) { // station Node
 					paintStationNode(pte, station_node_size, track, &trackSet.member[i].endNode, true);
-					if (m_source->passengerGui()) {
+					if (hasPlatformBar(trackSet.member[i].endNode.stationName, trackSet.member[i].endNode.stationPlatformId)) {
 						paintStationPlatform(pt, pte, pte, station_node_size, &trackSet.member[i].endNode);
 					}
 				} else {
@@ -1113,7 +1147,7 @@ void NetworkPresenter::paintNode(QPointF coord, int size, int track, Node* node)
 
 // draws a station Node; its platform id darkens the square only at the end of a line
 void NetworkPresenter::paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd) {
-	const bool hasPlatform = lineEnd && node && !node->stationPlatformId.empty() && node->stationPlatformId != "None";
+	const bool hasPlatform = lineEnd && node && hasPlatformId(node->stationPlatformId);
 	StationVisual visual = classifyStation(hasPlatform, node ? node->numConnections : 0);
 	QPen pen = QPen(visual.outline);
 	pen.setWidth(0);
@@ -1136,18 +1170,32 @@ void NetworkPresenter::paintStationNode(QPointF coord, int size, int track, Node
 	m_scene->addItem(el);
 }
 
-// paint platform next to station Node (upper side), along the track from before through coord to after
-void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node) {
+// Adds the white bar of a platform, 5 by 0.9 times size, the side of the square of the station node at node, and puts it
+// beside the node with placePlatformBar(), along the track from before through node to after. It is a decoration of the
+// stations, which platformBarsVisible() shows.
+PlatformItem* NetworkPresenter::addPlatformBar(QPointF before, QPointF node, QPointF after, qreal size) {
 	QPen pen = QPen(Qt::white);
 	pen.setWidth(0);
 	pen.setCosmetic(true);
-
 	// a rectangle centred on the origin of the item, which lies along the track on the upper side of the station Node
-	const qreal diameter = size * presentationScale();
-	auto* platformItem = new PlatformItem(QRectF(-2.5 * diameter, -0.45 * diameter, 5 * diameter, 0.9 * diameter));
-	placePlatformBar(platformItem, before, coord, after, diameter);
-	platformItem->setPen(pen);
-	platformItem->setBrush(Qt::white);
+	auto* bar = new PlatformItem(QRectF(-2.5 * size, -0.45 * size, 5 * size, 0.9 * size));
+	placePlatformBar(bar, before, node, after, size);
+	bar->setPen(pen);
+	bar->setBrush(Qt::white);
+	m_scene->addItem(bar);
+	m_stationDecorations.push_back(bar);
+	bar->setVisible(platformBarsVisible());
+	return bar;
+}
+
+// paint platform next to station Node (upper side), along the track from before through coord to after
+void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node) {
+	PlatformItem* platformItem = addPlatformBar(before, coord, after, size * presentationScale());
+	platformItem->node = node;
+	allPlatforms.push_back(platformItem);
+	// The counter and the passengers of a platform belong to a run with passengers.
+	if (!m_source->passengerGui())
+		return;
 
 	// find corresponding station platform
 	const StationPlatform* platform = m_source->platform(node->stationName, node->stationPlatformId);
@@ -1184,16 +1232,11 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 	platformItem->textIcon = textItem;
 
 	// add to scene
-	m_scene->addItem(platformItem);
 	m_scene->addItem(textItem);
-	m_stationDecorations.push_back(platformItem);
-	platformItem->setVisible(m_stationLayerVisible);
 
 	// hide textItem at first
 	textItem->setVisible(false);
 
-	// add item to allPlatforms list
-	allPlatforms.push_back(platformItem);
 	m_platformsById[{platformItem->stationId, platformItem->platformId}].push_back(platformItem);
 }
 
@@ -2357,7 +2400,7 @@ bool NetworkPresenter::passengerGui() const {
 }
 
 bool NetworkPresenter::paxTextVisible() const {
-	if (!m_passengerLayerVisible || !m_view)
+	if (!platformPassengersVisible() || !m_view)
 		return false;
 	return m_view->zoomRatio() >= kDenseDetailZoom;
 }
@@ -2429,7 +2472,8 @@ void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
 	// show text items from the beginning of the simulation
 	if (snapshot.timestep == 0) {
 		for (auto* platformIcon : allPlatforms) {
-			platformIcon->textIcon->setVisible(paxTextVisible());
+			if (platformIcon->textIcon)
+				platformIcon->textIcon->setVisible(paxTextVisible());
 		}
 	}
 
@@ -2518,6 +2562,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 		item->setPos(position);
 		item->setTransformationMode(Qt::SmoothTransformation);
 		item->passengerId = paxID;
+		item->setVisible(platformPassengersVisible());
 		m_scene->addItem(item);
 		shown.push_back(item);
 		restack.push_back(item);
@@ -2583,6 +2628,8 @@ void NetworkPresenter::updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, 
 		if (paxIconItem)
 			paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId),
 				playback == Playback::Replay);
+		if (paxIconInfoItem)
+			paxIconInfoItem->setVisible(platformPassengersVisible());
 	}
 }
 

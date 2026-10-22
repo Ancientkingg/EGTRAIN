@@ -237,8 +237,8 @@ default is `Assignment_Gvc_Gdg_Ut`, and `QEGTRAIN_E2E_SCENE_ALT` names the
 second scene, `Copenhagen` by default. The application creates, edits,
 validates, saves and reloads cases through the editors. When the first scene has
 no passengers, it turns the passengers on in `Paimpol` and checks that the first
-scene then draws no platform bars and shows the switch off, and that `Paimpol`
-shows it on again. It then edits a copy of
+scene then shows the switch off and still draws its platform bars, and that
+`Paimpol` shows the switch on again. It then edits a copy of
 the first scene in each editor and checks that every edit is one step of the
 history, that Undo and Redo return the scene to the state before and after each
 step (the bytes that Save writes, the editors, the validation, the unsaved mark

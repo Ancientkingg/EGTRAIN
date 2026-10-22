@@ -15,10 +15,14 @@
 #include <QTimer>
 #include <QToolButton>
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include "app/MainWindowSupport.h"
 #include "graphics/NetworkScene.h"
+#include "graphics/NetworkView.h"
+#include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
+#include "graphics/items/StationOverlayItem.h"
 #include "simulation/SimulationWorker.h"
 #include "widgets/ElidedLabel.h"
 
@@ -109,31 +113,67 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		failures << "scene has too few items";
 	}
 
-	// The platform bars and counters are the passenger items of the run. They exist only when the run started with passengers on.
-	const auto platformsShown = [&w](bool shown) {
-		const QList<PlatformItem*>& platforms = w.m_presenter->allPlatforms;
+	// The platform bars are drawn with or without passengers and show with the stations in the near look. The counters
+	// and icons on them are the passenger items of a run with passengers, which show only where the bars show and which
+	// Show Passengers turns off and on.
+	const QList<PlatformItem*>& platforms = w.m_presenter->allPlatforms;
+	const auto barsShown = [&platforms](bool shown) {
 		return !platforms.isEmpty() && std::all_of(platforms.cbegin(), platforms.cend(), [shown](const PlatformItem* platform) {
-			return platform->isVisible() == shown && (shown || !platform->textIcon->isVisible());
+			return platform->isVisible() == shown;
 		});
 	};
+	const auto passengersHidden = [&platforms]() {
+		return std::none_of(platforms.cbegin(), platforms.cend(), [](const PlatformItem* platform) {
+			return (platform->textIcon && platform->textIcon->isVisible())
+				|| std::any_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
+					[](const PassengerItem* icon) { return icon->isVisible(); });
+		});
+	};
+	const auto iconsShown = [&platforms]() {
+		return std::all_of(platforms.cbegin(), platforms.cend(), [](const PlatformItem* platform) {
+			return std::all_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
+				[](const PassengerItem* icon) { return icon->isVisible(); });
+		});
+	};
+	w.fitView();
+	w.updateViewportOverlays();
+	// At Fit the Stations switch leaves the bars hidden when it turns them on again.
+	w.m_stationLayerCheck->setChecked(false);
+	w.m_stationLayerCheck->setChecked(true);
+	const bool farHidden = barsShown(false) && passengersHidden();
+	// Zoomed in until the tracks at the stations are far enough apart for the near look.
+	const qreal spacing = w.m_presenter->m_stationTrackSpacing * std::abs(w.networkView->transform().m11());
+	if (spacing > 0.0)
+		w.networkView->zoomBy(1.05 * StationOverlayItem::NearTrackSpacingPixels / spacing);
+	w.updateViewportOverlays();
+	const bool nearShown = barsShown(true) && iconsShown();
+	w.m_stationLayerCheck->setChecked(false);
+	const bool layerHidden = barsShown(false) && passengersHidden();
+	w.m_stationLayerCheck->setChecked(true);
+	if (!farHidden || !nearShown || !layerHidden || !barsShown(true) || !iconsShown()) {
+		ok = false;
+		failures << "the platform bars and their passengers do not hide at Fit and with the stations, and show in the near look";
+	}
 	if (!hasPassengers) {
-		if (!w.m_presenter->allPlatforms.isEmpty()) {
+		if (std::any_of(platforms.cbegin(), platforms.cend(),
+				[](const PlatformItem* platform) { return platform->textIcon || !platform->passengerIcons.isEmpty(); })) {
 			ok = false;
-			failures << "platform bars without passengers turned on";
+			failures << "passenger counters or icons without passengers";
 		}
 	} else {
-		bool toggled = platformsShown(true);
 		w.m_passengerLayerCheck->setChecked(false);
-		toggled = toggled && !w.m_showPassengersAction->isChecked() && platformsShown(false)
+		bool toggled = !w.m_showPassengersAction->isChecked() && barsShown(true) && passengersHidden()
 			&& !QSettings().value(kShowPassengersKey).toBool();
 		w.m_showPassengersAction->setChecked(true);
-		toggled = toggled && w.m_passengerLayerCheck->isChecked() && platformsShown(true)
+		toggled = toggled && w.m_passengerLayerCheck->isChecked() && barsShown(true) && iconsShown()
 			&& QSettings().value(kShowPassengersKey).toBool();
 		if (!toggled) {
 			ok = false;
-			failures << "Show Passengers did not turn the passenger display off and on";
+			failures << "Show Passengers did not turn the passenger display off and on, or turned the platform bars off";
 		}
 	}
+	w.fitView();
+	w.updateViewportOverlays();
 	if (ok) {
 		std::fprintf(stdout, hasPassengers ? "E2E_PASSENGERS_TOGGLE_OK\n" : "E2E_PASSENGERS_DISABLED_OK\n");
 		std::fflush(stdout);

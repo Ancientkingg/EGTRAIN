@@ -75,8 +75,6 @@ public:
 		std::string selectedId;
 		/// The infrastructure panel is shown, so the arc or connection that it selects is marked.
 		bool markSelection = false;
-		/// A station node gets a platform bar.
-		bool platformBars = false;
 	};
 
 	/// What showPreview drew.
@@ -173,8 +171,8 @@ public:
 	/// Stops the movement of every train between its last two places.
 	void stopTrainAnimations();
 
-	/// Whether the labels of the platforms show: the passenger layer is shown and the view is zoomed in far enough to
-	/// read them, to a zoom ratio of at least 3.
+	/// Whether the labels of the platforms show: the passengers on the platforms show (platformPassengersVisible()) and
+	/// the view is zoomed in far enough to read them, to a zoom ratio of at least 3.
 	bool paxTextVisible() const;
 
 	/// The line of the preview that the track line with this index in the run is drawn on, or null.
@@ -211,7 +209,7 @@ public:
 	/// model on the scene, which holds no item, and fits the view to them. The caller clears the
 	/// scene first.
 	PreviewOutcome showPreview(const SceneModel& sceneModel);
-	/// The same, with the selection of the infrastructure panel and the platform bars of options.
+	/// The same, with the selection of the infrastructure panel of options.
 	PreviewOutcome showPreview(const SceneModel& sceneModel, const PreviewOptions& options);
 
 	/// Forgets the fit and the selection of the last preview; the preview itself stays.
@@ -297,6 +295,14 @@ public:
 	/// Measures m_stationTrackSpacing from the node centres of the station marks; track_separation times the
 	/// presentation scale when no station has two nodes.
 	void measureStationTrackSpacing();
+	/// The station marks are in the near look, in which the platform bars show. setStationNearLook() sets it and clear()
+	/// resets it to false.
+	bool m_stationNearLook = false;
+	/// Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (applyPlatformVisibility()).
+	void setStationNearLook(bool nearLook);
+	/// Shows or hides the platform bars by platformBarsVisible(), the icons of the passengers on them by
+	/// platformPassengersVisible() and their counters by paxTextVisible(). Call it after a change of a layer.
+	void applyPlatformVisibility();
 
 	/// The virtual coupling message of each train by train index.
 	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
@@ -365,8 +371,10 @@ public:
 	bool m_signalLayerVisible = true;
 	/// The passenger layer is shown.
 	bool m_passengerLayerVisible = true;
-	/// A platform bar shows with the stations and with the passengers.
-	bool platformBarsVisible() const { return m_stationLayerVisible && m_passengerLayerVisible; }
+	/// A platform bar shows with the stations in the near look.
+	bool platformBarsVisible() const { return m_stationLayerVisible && m_stationNearLook; }
+	/// The passengers on a platform show where its bar shows, with the passenger layer.
+	bool platformPassengersVisible() const { return platformBarsVisible() && m_passengerLayerVisible; }
 
 private:
 	QPointer<QGraphicsScene> m_scene;
@@ -399,6 +407,7 @@ private:
 	void egtrainPoint2Screen(Node* node, int track, double separation) const;
 	void egtrainPoint2Screen(Connections* connection, int track1, int track2, double separation) const;
 	void paintNode(QPointF coord, int size, int track, Node* node);
+	PlatformItem* addPlatformBar(QPointF before, QPointF node, QPointF after, qreal size);
 	void paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node);
 	void paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
 	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc);

@@ -28,11 +28,11 @@ constexpr qreal kPictogramOverlapPixels = 2.0;
 const QColor kMarkFill(232, 238, 242);
 const QColor kMarkHalo(16, 26, 34);
 constexpr qreal kMarkHaloPixels = 2.0;
-// The top of the name is this many mark frames below the dots, also in the far look, which does not draw them.
+// The top of the name is this many mark frames below the footprint of the squares, and its bottom as many above the pin.
 constexpr qreal kNearNameGap = 0.25;
-// A station node farther than this many mark frames at scene size from the anchor is at another place of the
-// station, such as a platform node on another line, and gets no dot, no area and no say in where the mark and the
-// name go.
+// A station node or platform bar farther than this many mark frames at scene size from the anchor is at another place
+// of the station, such as a platform node on another line, and gets no area and no say in where the mark and the name
+// go.
 constexpr qreal kStationPlaceFrames = 32.0;
 
 // Enlarges item by factor about pivot in one change and moves pivot by shift. The item transform acts
@@ -74,72 +74,36 @@ StationMarkItem::StationMarkItem(StationClass cls, int size, QGraphicsItem* pare
 	QPixmap frame(size, size);
 	frame.fill(Qt::transparent);
 	setPixmap(frame);
-	// The default shape follows opaque pixels, and the pixmap has none.
-	setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
-	// The far mark can reach past the pixmap. Its halo is widest when the frame has its smallest size on screen.
+	// The far mark can reach past the pixmap. Its halo and its edge are widest when the frame has its smallest size on
+	// screen.
 	const QRectF pixmapRect(offset(), QSizeF(size, size));
-	m_farBounds = pixmapRect.united(stationMarkBounds(pixmapRect, m_class,
-		kMarkHaloPixels * size / StationOverlayItem::MinPictogramPixels));
+	const qreal halo = kMarkHaloPixels * size / StationOverlayItem::MinPictogramPixels;
+	m_farBounds = pixmapRect.united(stationMarkBounds(pixmapRect, m_class, halo));
+	m_farShape = stationMarkShape(pixmapRect, m_class, halo);
 }
 
 QRectF StationMarkItem::boundingRect() const {
-	return m_nearLook ? m_nearShape.boundingRect() : m_farBounds;
+	return m_nearLook ? QRectF() : m_farBounds;
 }
 
 QPainterPath StationMarkItem::shape() const {
-	return m_nearLook ? m_nearShape : QGraphicsPixmapItem::shape();
+	return m_nearLook ? QPainterPath() : m_farShape;
 }
 
 void StationMarkItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
 	const qreal pixelsPerUnit = QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform());
-	if (pixelsPerUnit <= 0.0)
+	if (m_nearLook || pixelsPerUnit <= 0.0)
 		return;
-	if (m_nearLook)
-		paintStationNodeMark(painter, m_itemCentres, m_class, m_itemSide, kMarkFill, kMarkHalo,
-			kMarkHaloPixels / pixelsPerUnit);
-	else
-		paintStationMark(painter, QRectF(offset(), QSizeF(pixmap().size())), m_class, kMarkFill, kMarkHalo,
-			kMarkHaloPixels / pixelsPerUnit);
+	paintStationMark(painter, QRectF(offset(), QSizeF(pixmap().size())), m_class, kMarkFill, kMarkHalo,
+		kMarkHaloPixels / pixelsPerUnit);
 }
 
-void StationMarkItem::setNodeCentres(const QList<QPointF>& centres) {
-	if (m_nearLook)
-		prepareGeometryChange();
-	m_nodeCentres = centres;
-	if (m_nearLook) {
-		updateNearGeometry();
-		update();
-	}
-}
-
-void StationMarkItem::setNearLook(qreal side, qreal viewScale) {
-	prepareGeometryChange();
-	m_nearLook = true;
-	m_nearSide = side;
-	m_nearViewScale = viewScale;
-	updateNearGeometry();
-	update();
-}
-
-void StationMarkItem::setFarLook() {
-	if (!m_nearLook)
+void StationMarkItem::setNearLook(bool nearLook) {
+	if (m_nearLook == nearLook)
 		return;
 	prepareGeometryChange();
-	m_nearLook = false;
+	m_nearLook = nearLook;
 	update();
-}
-
-// The dots are drawn in item coordinates: the centres are mapped from the scene with the transform that
-// the item has now, and the frame and the halo are scaled with it.
-void StationMarkItem::updateNearGeometry() {
-	const QTransform sceneToItem = sceneTransform().inverted();
-	const qreal unitsPerSceneUnit = std::sqrt(std::abs(sceneToItem.determinant()));
-	m_itemCentres.clear();
-	for (const QPointF& centre : std::as_const(m_nodeCentres))
-		m_itemCentres.append(sceneToItem.map(centre));
-	m_itemSide = m_nearSide * unitsPerSceneUnit;
-	const qreal halo = m_nearViewScale > 0.0 ? kMarkHaloPixels / m_nearViewScale * unitsPerSceneUnit : 0.0;
-	m_nearShape = stationNodeMarkShape(m_itemCentres, m_class, m_itemSide, halo);
 }
 
 StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF& stableAnchor,
@@ -395,7 +359,7 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 		return;
 	painter->save();
 	painter->translate(m_viewportOffset);
-	// The bar of the roundel is wider than its ring, so the roundel is fitted to the symbol.
+	// The pin reaches past its frame, so it is fitted to the symbol by what it paints.
 	if (m_fitSymbolVisible)
 		paintStationMark(painter,
 			stationMarkFrameIn(m_symbolRect.translated(m_fitCollisionOffset), m_visual.cls, kMarkHaloPixels),
@@ -536,25 +500,34 @@ void StationOverlayItem::setNodeCentres(const QList<QPointF>& centres) {
 	for (const QPointF& centre : centres)
 		if (QLineF(centre, m_stableAnchor).length() <= reach)
 			place.append(centre);
-	mark->setNodeCentres(place.isEmpty() ? QList<QPointF>{m_stableAnchor} : place);
+	mark->setNodeCentres(place);
 	// The mark and the name are placed again by the next applyViewScale().
 	m_appliedViewScale = 0.0;
 }
 
+void StationOverlayItem::setPlatformBars(const QList<QPolygonF>& bars) {
+	const qreal reach = kStationPlaceFrames * m_pictureNativePixels * m_pictureSceneScale;
+	m_barCorners.clear();
+	for (const QPolygonF& bar : bars)
+		if (QLineF(bar.boundingRect().center(), m_stableAnchor).length() <= reach)
+			m_barCorners.append(bar);
+	// The area is drawn again by the next applyViewScale().
+	m_appliedViewScale = 0.0;
+}
+
 void StationOverlayItem::applyViewScale(qreal viewScale, bool nearLook) {
-	// The dots of the near look are sized by the frame that the mark has in the far look. A plain picture
-	// and a mark without station nodes keep the far look.
+	// A plain picture and a mark without station squares keep the far look, so that they stay to be seen and clicked.
 	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
-	const bool dots = nearLook && mark && !mark->nodeCentres().isEmpty();
+	const bool nearMark = nearLook && mark && !mark->nodeCentres().isEmpty();
 	viewScale = std::abs(viewScale);
-	if (viewScale > 0.0 && (viewScale != m_appliedViewScale || dots != m_appliedNearLook)) {
+	if (viewScale > 0.0 && (viewScale != m_appliedViewScale || nearMark != m_appliedNearLook)) {
 		m_appliedViewScale = viewScale;
-		m_appliedNearLook = dots;
-		placeArtwork(viewScale, dots);
+		m_appliedNearLook = nearMark;
+		placeArtwork(viewScale, nearMark);
 	}
 	// The area follows the mark, which the station layer and the parent of the mark can hide.
 	if (m_area)
-		m_area->setVisible(!m_appliedNearLook && m_picture && m_picture->isVisible());
+		m_area->setVisible(m_picture && m_picture->isVisible());
 }
 
 namespace {
@@ -579,11 +552,12 @@ qreal hullTopAt(const QList<QPointF>& centres, qreal x) {
 } // namespace
 
 // A station mark and its name are placed by the node centres of the mark, or by the anchor without them, in both
-// looks: the frame of the far look stands on the top edge of the hull of the centres at the x of the centre of the dots,
-// and the name sits a small gap under the dots, centred under them, so that it keeps its place when the look switches.
-// The frame of a station or major station stands on the top centre of the box of its centres for a single centre, a row
-// or a stack, and a halt stands on its first square. A plain picture and its name stay at their artwork point.
-void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
+// looks: the frame of the far look stands on the top edge of the hull of the centres at the x of the centre of the
+// footprint of the squares, and the name sits a small gap under the footprint, centred under it, so that it keeps its
+// place when the look switches. The frame of a station or major station stands on the top centre of the box of its
+// centres for a single centre, a row or a stack, and a halt stands on its first square. A plain picture and its name
+// stay at their artwork point.
+void StationOverlayItem::placeArtwork(qreal viewScale, bool nearLook) {
 	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
 	QList<QPointF> centres;
 	if (mark)
@@ -593,12 +567,13 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 	QPointF foot;
 	qreal markTop = 0.0;
 	m_markSceneRect = QRectF();
+	m_squaresSceneRect = QRectF();
 	if (m_picture) {
 		const qreal scale = readableItemScale(m_pictureNativePixels, m_pictureSceneScale, viewScale, MinPictogramPixels);
 		side = m_pictureNativePixels * scale;
 		if (mark) {
 			const qreal halo = kMarkHaloPixels / viewScale;
-			marks = stationNodeMarkShape(centres, mark->stationClass(), side, 0.0).boundingRect();
+			marks = stationFootprintRect(centres, mark->stationClass(), side);
 			foot = QPointF(marks.center().x(), hullTopAt(centres, marks.center().x()));
 			// The far bounds scaled from the pixmap to the frame that stands on the hull of the centres.
 			const QRectF pixmapRect(m_picture->offset(), QSizeF(m_picture->pixmap().size()));
@@ -606,25 +581,22 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 			const QRectF far = mark->farBoundingRect();
 			const qreal k = side / pixmapRect.height();
 			m_markSceneRect = QRectF(frame.topLeft() + (far.topLeft() - pixmapRect.topLeft()) * k, far.size() * k);
-			if (!mark->nodeCentres().isEmpty())
-				m_markSceneRect |= stationNodeMarkShape(centres, mark->stationClass(), side, halo).boundingRect();
-			// Above the mark counts from the frame also in the near look, so that no spot depends on the look.
-			markTop = frame.top();
+			// Above the mark counts from the painted top of the pin, its halo included.
+			markTop = m_markSceneRect.top();
+			m_squaresSceneRect = mark->nodeCentres().isEmpty() ? QRectF() : marks.adjusted(-halo, -halo, halo, halo);
+			m_markSceneRect |= m_squaresSceneRect;
+			// The area covers the platform bars in the near look, where they show.
+			if (m_area)
+				m_area->setPath(stationAreaShape(nearLook ? centres + m_barCorners : centres, 2.0 * AreaMarginPixels / viewScale));
 		}
-		if (dots) {
-			m_picture->setTransform(QTransform());
-			mark->setNearLook(side, viewScale);
-		} else {
-			const QPointF pivot = m_pictureAnchor * m_pictureSceneScale;
-			QPointF shift;
-			if (mark) {
-				mark->setFarLook();
-				shift = shiftTo(m_picture, pivot, foot);
-				if (m_area)
-					m_area->setPath(stationAreaShape(centres, 2.0 * AreaMarginPixels / viewScale));
-			}
-			enlargeAbout(m_picture, pivot, scale / m_pictureSceneScale, shift);
+		// The mark stands in its place in both looks.
+		const QPointF pivot = m_pictureAnchor * m_pictureSceneScale;
+		QPointF shift;
+		if (mark) {
+			mark->setNearLook(nearLook);
+			shift = shiftTo(m_picture, pivot, foot);
 		}
+		enlargeAbout(m_picture, pivot, scale / m_pictureSceneScale, shift);
 	}
 	if (m_name) {
 		const qreal scale = readableItemScale(m_nameNativePixels, m_nameSceneScale, viewScale, MinNamePixels);
@@ -633,9 +605,12 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 		m_nameSpots.clear();
 		QPointF shift;
 		if (mark) {
-			// The spots in the order they are tried, each a small gap from the dots or the mark, and last above a frame on
-			// the top of the box of the centres at the x of the dots, where the frame of a row or a stack stands.
+			// The spots in the order they are tried, each a small gap from the footprint or the pin, and last above a frame
+			// on the top of the box of the centres at the x of the footprint, where the frame of a row or a stack stands.
+			// A mark that draws nothing in the near look has neither pin nor frame there, so its name goes above the
+			// footprint instead and has no last spot.
 			const qreal gap = kNearNameGap * side;
+			const bool pinDrawn = !mark->isNearLook();
 			const auto highest = std::min_element(centres.cbegin(), centres.cend(),
 				[](const QPointF& a, const QPointF& b) { return a.y() < b.y(); });
 			const qreal margin = m_name->document()->documentMargin() * scale;
@@ -643,10 +618,11 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 			m_nameTextRect = QRectF(-size.width() / 2.0 + margin, margin, size.width() - 2.0 * margin,
 				size.height() - 2.0 * margin);
 			m_nameSpots = {QPointF(marks.center().x(), marks.bottom() + gap),
-				QPointF(marks.center().x(), markTop - gap - size.height()),
+				QPointF(marks.center().x(), (pinDrawn ? markTop : marks.top()) - gap - size.height()),
 				QPointF(marks.right() + gap + size.width() / 2.0, marks.center().y() - size.height() / 2.0),
-				QPointF(marks.left() - gap - size.width() / 2.0, marks.center().y() - size.height() / 2.0),
-				QPointF(marks.center().x(), highest->y() - side - gap - size.height())};
+				QPointF(marks.left() - gap - size.width() / 2.0, marks.center().y() - size.height() / 2.0)};
+			if (pinDrawn)
+				m_nameSpots.append(QPointF(marks.center().x(), highest->y() - side - gap - size.height()));
 			shift = shiftTo(m_name, pivot, m_nameSpots.first());
 		}
 		m_nameSpotChosen = m_nameSpots.isEmpty();
@@ -689,7 +665,7 @@ void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>&
 		sceneToViewport.m21(), sceneToViewport.m22(), 0.0, 0.0);
 	QList<StationOverlayItem*> ordered;
 	// The spots avoid every pictogram, also a hidden one: the names are not placed again when it shows. The hide test
-	// takes the visible pictograms on screen.
+	// takes the drawn pictograms on screen: of a mark in the near look the squares, which show, without the pin.
 	QList<QPair<const StationOverlayItem*, QRectF>> scenePictograms;
 	QList<QPair<const StationOverlayItem*, QRectF>> pictograms;
 	for (StationOverlayItem* station : stations) {
@@ -701,7 +677,8 @@ void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>&
 			continue;
 		scenePictograms.append({station, station->pictogramSceneRect()});
 		if (station->m_picture->isVisible())
-			pictograms.append({station, scaling.mapRect(scenePictograms.last().second)});
+			pictograms.append({station,
+				scaling.mapRect(station->m_appliedNearLook ? station->m_squaresSceneRect : scenePictograms.last().second)});
 	}
 	// The visible track lines with their scene bounds, collected once for the names that are placed again: a query
 	// of the scene for each spot costs more than the whole test.

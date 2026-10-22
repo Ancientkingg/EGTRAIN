@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
-		// The dots of the near look cover the station squares. A click on a square picks that square, also when the
-		// mark belongs to the square of another node, and a click in the dot of a track node under a dot picks the node;
-		// a click on a dot beside the squares and nodes picks the square that holds the mark.
+		// The near look draws no mark, so the station squares take the clicks again: a click on a square picks that
+		// square, the one that holds the mark too, a click beside the squares picks none and a click on a track node
+		// beside them picks the node.
 		NetworkScene scene(nullptr);
 		QGraphicsView view(&scene);
 		scaleView(view);
@@ -119,21 +119,24 @@ int main(int argc, char* argv[]) {
 		scene.addItem(&other);
 		auto* mark = new StationMarkItem(StationClass::Station, 24, &anchor);
 		mark->setNodeCentres({QPointF(0.0, 0.0), QPointF(0.0, 20.0)});
-		mark->setNearLook(24.0, 2.0);
+		mark->setNearLook(true);
 		StationNodeItem* picked = nullptr;
 		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem* item) { picked = item; });
 		sendLeftClick(scene, view, QPointF(0.0, 20.0));
-		ok &= expect(picked == &other, "a click on a station square under the dots of another node picks that square");
+		ok &= expect(picked == &other, "a click on a station square in the near look picks that square");
+		picked = nullptr;
+		sendLeftClick(scene, view, QPointF(0.0, 0.0));
+		ok &= expect(picked == &anchor, "a click on the square that holds the mark picks that square");
 		picked = nullptr;
 		sendLeftClick(scene, view, QPointF(4.0, 20.0));
-		ok &= expect(picked == &anchor, "a click on a dot beside the squares picks the square that holds the mark");
+		ok &= expect(!picked, "a click beside the squares in the near look picks no square");
 		NodeItem track(QRectF(2.0, -1.0, 2.0, 2.0));
 		scene.addItem(&track);
 		NodeItem* pickedNode = nullptr;
 		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem* item) { pickedNode = item; });
 		picked = nullptr;
 		sendLeftClick(scene, view, QPointF(3.0, 0.0));
-		ok &= expect(pickedNode == &track && !picked, "a click in the dot of a track node under the dots picks the node");
+		ok &= expect(pickedNode == &track && !picked, "a click on a track node beside the squares picks the node");
 	}
 
 	{

@@ -11,6 +11,7 @@
 #include <QToolButton>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -198,33 +199,40 @@ int main(int argc, char* argv[]) {
 			&& stationLegend.entries().at(0).stationClass == StationClass::Major
 			&& stationLegend.entries().at(2).stationClass == StationClass::Halt,
 		"the map key has one row for each station class on the canvas");
-	// Each station swatch shows the near mark on the left and the roundel on the right, apart, with the bar of a station
-	// or a major station, and nothing reaches the outer columns.
+	// Each station swatch shows the whole pin of its class, centred and clear of the edges, blue only for a major
+	// station. The classes keep their sizes: the pin of a halt is shorter than that of a major station.
 	stationLegend.show();
 	QApplication::processEvents();
+	QList<int> pinHeights;
 	for (int row = 0; row < 3; ++row) {
 		const QWidget* swatch = stationLegend.findChild<QWidget*>(QString("mapKeySwatch%1").arg(row));
 		QImage image(46, 18, QImage::Format_ARGB32_Premultiplied);
 		image.fill(Qt::transparent);
 		if (swatch)
 			const_cast<QWidget*>(swatch)->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
-		const QColor fill(16, 26, 34);
-		bool edgesEmpty = swatch && swatch->size() == QSize(46, 18);
-		bool nearMark = false, farMark = false, blue = false;
-		for (int y = 0; y < image.height(); ++y) {
-			edgesEmpty = edgesEmpty && image.pixelColor(0, y).alpha() == 0 && image.pixelColor(22, y).alpha() == 0
-				&& image.pixelColor(45, y).alpha() == 0;
+		// The dark variant: some opaque pixel darker than mid grey, which the thin dark edge and dot of a halt give too.
+		bool dark = false, blue = false;
+		QRect painted;
+		for (int y = 0; y < image.height(); ++y)
 			for (int x = 0; x < image.width(); ++x) {
 				const QColor colour = image.pixelColor(x, y);
-				nearMark = nearMark || (x < 22 && colour == fill);
-				farMark = farMark || (x > 22 && colour == fill);
+				if (colour.alpha() > 0)
+					painted |= QRect(x, y, 1, 1);
+				dark = dark || (colour.alpha() == 255 && colour.value() < 128);
 				blue = blue || colour == QColor(80, 120, 210);
 			}
-		}
-		const bool halt = stationLegend.entries().at(row).stationClass == StationClass::Halt;
-		ok &= expect(edgesEmpty && nearMark && farMark && blue == !halt,
-			"a station swatch shows the near mark beside the whole roundel");
+		const bool inside = swatch && swatch->size() == QSize(46, 18) && painted.left() > 0 && painted.top() > 0
+			&& painted.right() < 45 && painted.bottom() < 17;
+		const bool centred = std::abs((painted.left() + painted.right()) / 2.0 - 22.5) <= 1.0
+			&& std::abs((painted.top() + painted.bottom()) / 2.0 - 8.5) <= 1.0;
+		const bool major = stationLegend.entries().at(row).stationClass == StationClass::Major;
+		ok &= expect(inside && centred && dark && blue == major,
+			"a station swatch shows the whole pin of its class, centred");
+		pinHeights.append(painted.height());
 	}
+	ok &= expect(stationLegend.entries().at(0).stationClass == StationClass::Major && pinHeights.size() == 3
+			&& pinHeights.at(2) < pinHeights.at(0),
+		"the pin of a halt is shorter than the pin of a major station in the map key");
 
 	// Train rows: one "Train" row for the default colour, then one row per other colour.
 	const auto trainRows = [](const NetworkLegendWidget& widget) {

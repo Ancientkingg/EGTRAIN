@@ -1013,11 +1013,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_presenter->m_stationLayerVisible = checked;
 		for (auto* item : m_presenter->m_stationDecorations)
 			if (item)
-				item->setVisible(qgraphicsitem_cast<PlatformItem*>(item) ? m_presenter->platformBarsVisible() : checked);
+				item->setVisible(checked);
 		for (auto* label : m_presenter->m_stationLabels)
 			if (label)
 				label->setVisible(checked && m_presenter->m_stationNamesVisible);
-		// updateViewportOverlays owns station name visibility
+		// updateViewportOverlays owns station name visibility and that of the platform bars, which show in the near look
 		updateViewportOverlays();
 	});
 	connect(m_stationNamesCheck, &QCheckBox::toggled, this, [this](bool checked) {
@@ -2302,7 +2302,6 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	options.selectedFacet = m_infrastructurePanel->facetKey().toStdString();
 	options.selectedId = m_infrastructurePanel->selectionId().toStdString();
 	options.markSelection = m_infrastructureDock && m_infrastructureDock->isVisible();
-	options.platformBars = m_runController->passengerGui();
 	const NetworkPresenter::PreviewOutcome outcome = m_presenter->showPreview(sceneModel, options);
 	if (!outcome.available) {
 		statusBar()->showMessage("Scene loaded - no track preview available; simulation not running");
@@ -3070,7 +3069,7 @@ void MainWindow::updateCaseLayersPanel() {
 
 void MainWindow::updatePassengerSwitch() {
 	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
-	const QString passengerTip = hasPassengers ? QStringLiteral("Show passenger counts, icons and platform bars")
+	const QString passengerTip = hasPassengers ? QStringLiteral("Show passenger counts and icons")
 											   : QStringLiteral("This case has no passengers");
 	m_passengerLayerCheck->setEnabled(hasPassengers);
 	m_passengerLayerCheck->setToolTip(passengerTip);
@@ -3090,22 +3089,9 @@ void MainWindow::updatePassengerSwitch() {
 void MainWindow::applyPassengerLayer(bool shown) {
 	m_runController->setPassengerGui(shown);
 	m_presenter->m_passengerLayerVisible = shown;
-	for (auto* item : m_presenter->m_stationDecorations)
-		if (qgraphicsitem_cast<PlatformItem*>(item))
-			item->setVisible(m_presenter->platformBarsVisible());
-	for (auto* platform : m_presenter->allPlatforms) {
-		if (!platform)
-			continue;
-		if (platform->textIcon)
-			platform->textIcon->setVisible(m_presenter->paxTextVisible());
-		for (auto* icon : platform->passengerIcons)
-			if (icon)
-				icon->setVisible(shown);
-	}
+	m_presenter->applyPlatformVisibility();
 	if (m_presenter->trainPaxInfoItem)
 		m_presenter->trainPaxInfoItem->setVisible(shown);
-	if (m_presenter->paxIconInfoItem)
-		m_presenter->paxIconInfoItem->setVisible(shown);
 	updateNetworkLegend();
 	if (shown) {
 		m_presenter->updateTrainPaxInfo();
@@ -4398,11 +4384,17 @@ void MainWindow::bindStationOverlaySources() {
 			picture->setPos(target ? target->mapFromScene(scenePosition) : scenePosition);
 			if (target)
 				target->setZValue(StationMarkItem::HostZValue);
-			// The dots of the near look sit on the assigned station squares.
+			// The mark and its area are placed by the assigned station squares, and the area covers their platform bars.
 			QList<QPointF> centres;
 			for (const auto* station : assigned)
 				centres.append(station->sceneBoundingRect().center());
 			overlay->setNodeCentres(centres);
+			QList<QPolygonF> bars;
+			for (const auto* platform : std::as_const(m_presenter->allPlatforms))
+				for (const auto* station : assigned)
+					if (platform && platform->node == station->node)
+						bars.append(platform->mapToScene(platform->rect()));
+			overlay->setPlatformBars(bars);
 		}
 		if (overlay->hasSourceIdentity()) {
 			const double representativeNodeId = overlay->sourceNodeId();
@@ -4518,8 +4510,10 @@ void MainWindow::updateViewportOverlays() {
 	const qreal viewScale = std::abs(networkView->transform().m11());
 	if (m_presenter->effect)
 		m_presenter->effect->setViewScale(viewScale);
-	// The station marks are dots on the station nodes once the tracks of a station are far enough apart on screen.
+	// The station marks give way to the station squares and the platform bars once the tracks of a station are far
+	// enough apart on screen.
 	const bool nearLook = m_presenter->m_stationTrackSpacing * viewScale >= StationOverlayItem::NearTrackSpacingPixels;
+	m_presenter->setStationNearLook(nearLook);
 	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
 			overlay->applyViewScale(viewScale, nearLook);
@@ -4532,10 +4526,6 @@ void MainWindow::updateViewportOverlays() {
 			overlay->nameItem()->setVisible(m_presenter->m_stationLayerVisible && m_presenter->m_stationNamesVisible
 				&& !overlay->isNameHiddenByCollision());
 	updateSignalCues();
-	const bool paxText = m_presenter->paxTextVisible();
-	for (auto* platform : m_presenter->allPlatforms)
-		if (platform && platform->textIcon)
-			platform->textIcon->setVisible(paxText);
 	for (auto it = m_presenter->m_trainBadges.cbegin(); it != m_presenter->m_trainBadges.cend(); ++it) {
 		if (!it.value())
 			continue;
