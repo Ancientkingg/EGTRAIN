@@ -325,16 +325,27 @@ int main(int argc, char* argv[]) {
 		ok &= expect(presenter.m_signalsByAheadId.size() == 2 && presenter.m_signalsByAheadId.count("s0") == 1
 				&& presenter.m_signalsByAheadId.count("s1") == 1,
 			"the signals are indexed by the section ahead of them");
-		ok &= expect(presenter.allPlatforms.size() == (cycle > 0 ? 1 : 0), "the platform shows only with the passengers");
-		if (cycle > 0) {
-			const PlatformItem* platform = presenter.allPlatforms.value(0);
-			ok &= expect(platform && platform->stationId == "B" && platform->platformId == "P1" && platform->maxVolume == 40,
-				"the platform takes its details from the source");
-			ok &= expect(platform && platform->rotation() == 0
-					&& platformAlong(*platform, source->track(0).member[1].endNode, QPointF(1, 0),
-						presenter.station_node_size * presenter.presentationScale()),
-				"the platform of a level track is level, above its node");
-		}
+		ok &= expect(presenter.allPlatforms.size() == 1, "the run draws the platform with or without passengers");
+		PlatformItem* const platform = presenter.allPlatforms.value(0);
+		// The counter and the details of the platform come only with the passengers.
+		ok &= expect(platform
+				&& (source->passengers
+						? platform->stationId == "B" && platform->platformId == "P1" && platform->maxVolume == 40 && platform->textIcon
+						: platform->stationId.empty() && platform->maxVolume == 0 && !platform->textIcon),
+			"the platform takes its details from the source and has a counter only in a run with passengers");
+		ok &= expect(platform && platform->rotation() == 0
+				&& platformAlong(*platform, source->track(0).member[1].endNode, QPointF(1, 0),
+					presenter.station_node_size * presenter.presentationScale()),
+			"the platform of a level track is level, above its node");
+		// The bar shows with the stations in the near look; its counter waits for the zoom.
+		const auto counterShown = [platform]() { return platform && platform->textIcon && platform->textIcon->isVisible(); };
+		ok &= expect(platform && !platform->isVisible() && !counterShown(), "the platform and its counter are hidden in the far look");
+		presenter.setStationNearLook(true);
+		ok &= expect(platform && platform->isVisible() && !counterShown(), "the platform shows in the near look");
+		presenter.m_stationLayerVisible = false;
+		presenter.setStationNearLook(true);
+		ok &= expect(platform && !platform->isVisible(), "the platform hides with the stations");
+		presenter.m_stationLayerVisible = true;
 
 		presenter.paintTrain(trainAt(7.5), model, false);
 		ok &= expect(presenter.allTrains.size() == 1 && presenter.m_trainBadges.contains(0), "the train and its badge are added");
@@ -351,12 +362,25 @@ int main(int argc, char* argv[]) {
 		if (cycle == 0)
 			drawnItems = scene.items().size();
 		else
-			ok &= expect(scene.items().size() > drawnItems, "the platform adds items");
+			ok &= expect(scene.items().size() == drawnItems + 1, "the passengers add only the counter of the platform");
 		presenter.clear();
 		ok &= expect(scene.items().isEmpty() && presenter.allArcs.isEmpty() && presenter.allSignals.isEmpty()
 				&& presenter.m_signalsByAheadId.empty() && presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty()
 				&& presenter.allPlatforms.isEmpty() && presenter.m_stationOverlays.isEmpty(),
 			"clear leaves nothing of the run");
+	}
+
+	// A virtual station gets no platform bar, as it gets no overlay.
+	{
+		Node& middle = source->track(0).member[0].endNode;
+		middle.stationName = "virtualLink";
+		middle.stationPlatformId = "P2";
+		presenter.showRuntime(model);
+		ok &= expect(presenter.allPlatforms.size() == 1 && presenter.allPlatforms.value(0)->node == &source->track(0).member[1].endNode,
+			"a virtual station gets no platform bar");
+		presenter.clear();
+		middle.stationName.clear();
+		middle.stationPlatformId.clear();
 	}
 
 	// apply() shows the steps of a run on the items that showRuntime drew.
@@ -388,6 +412,35 @@ int main(int argc, char* argv[]) {
 		ok &= expect(track->operationalState() == TrackOperationalState::Occupied, "the track of an occupied arc shows as occupied");
 		ok &= expect(platform->passengerIcons.size() == 2 && platformText() == "Pax on platform: 2\nMax pax volume: 40",
 			"the platform shows its passengers");
+		// The passengers on the platform show only where its bar shows, with the passenger layer.
+		const auto iconsShown = [platform](bool shown) {
+			return std::all_of(platform->passengerIcons.cbegin(), platform->passengerIcons.cend(),
+				[shown](const PassengerItem* icon) { return icon->isVisible() == shown; });
+		};
+		ok &= expect(!platform->isVisible() && iconsShown(false), "the passengers on a hidden platform bar are hidden");
+		presenter.setStationNearLook(true);
+		ok &= expect(platform->isVisible() && iconsShown(true), "they show with the bar in the near look");
+		// The details of a selected passenger go with its icon, also when the next step paints them again.
+		PassengerItem* const selected = platform->passengerIcons[0];
+		presenter.paintPassengerInfoIcon(selected, passengerStateIn(&snapshot, selected->passengerId), false);
+		ok &= expect(presenter.paxIconInfoItem && presenter.paxIconInfoItem->isVisible(), "the details of a selected passenger show");
+		presenter.setStationNearLook(false);
+		presenter.updatePaxIconInfo(&snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(presenter.paxIconInfoItem && !presenter.paxIconInfoItem->isVisible(),
+			"they hide with the icon in the far look");
+		presenter.setStationNearLook(true);
+		ok &= expect(presenter.paxIconInfoItem->isVisible(), "they show again with the icon");
+		presenter.removePaxInfoIcon();
+		presenter.paxIconItem = nullptr;
+		presenter.m_passengerLayerVisible = false;
+		presenter.applyPlatformVisibility();
+		ok &= expect(platform->isVisible() && iconsShown(false), "the passenger layer hides them and not the bar");
+		presenter.m_passengerLayerVisible = true;
+		presenter.m_stationLayerVisible = false;
+		presenter.applyPlatformVisibility();
+		ok &= expect(!platform->isVisible() && iconsShown(false), "the station layer hides the bar and its passengers");
+		presenter.m_stationLayerVisible = true;
+		presenter.setStationNearLook(false);
 
 		snapshot.timestep = 11;
 		snapshot.trains = {trainAt(8.0)};
@@ -441,6 +494,8 @@ int main(int argc, char* argv[]) {
 		source->track(0).member[0].endNode.stationName = "B";
 		source->track(0).member[0].endNode.stationPlatformId = "P2";
 		presenter.showRuntime(model);
+		// The platforms and their passengers show in the near look.
+		presenter.setStationNearLook(true);
 		presenter.pax_pixmap_scaled = QPixmap(10, 10);
 		const qreal iconSize = presenter.pax_pixmap_scaled.width() * presenter.presentationScale();
 		ok &= expect(presenter.allPlatforms.size() == 2, "the run draws both platforms");
@@ -744,6 +799,8 @@ int main(int argc, char* argv[]) {
 		source->track(0).member[0].endNode.stationName = "B";
 		source->track(0).member[0].endNode.stationPlatformId = "P2";
 		presenter.showRuntime(model);
+		// The platforms and their passengers show in the near look.
+		presenter.setStationNearLook(true);
 		const Arc& lastArc = source->track(0).member[1];
 		const QLineF unit = QLineF(lastArc.startNode.graphX, lastArc.startNode.graphY, lastArc.endNode.graphX, lastArc.endNode.graphY)
 								.unitVector();
