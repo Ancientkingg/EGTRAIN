@@ -202,26 +202,31 @@ int main(int argc, char** argv) {
 		// Tab selects the whole text of a field, which puts the cursor at its end. The main window watches each editor dock
 		// as below, so that a field shows the start of its text again once the focus has left it.
 		SceneDocument document;
-		CaseSettingsPanel panel;
-		panel.setDocument(&document);
 		SceneModel scene = caseScene("Case E", "08:00:00");
 		scene.description = "A description that is much longer than the field, so that the field shows only a part of it";
 		document.replace(scene, false);
-		FocusWheel::watch(&panel);
-		panel.show();
-		panel.activateWindow();
-		QApplication::processEvents();
-		QLineEdit* description = panel.descriptionEdit();
-		description->setFocus(Qt::TabFocusReason);
-		QApplication::processEvents();
-		ok &= expect(description->hasFocus() && description->cursorPosition() == description->text().size()
-				&& description->fontMetrics().horizontalAdvance(description->text()) > description->width(),
-			"Tab into a long description puts the cursor at its end");
-		panel.baseTimeEdit()->setFocus(Qt::TabFocusReason);
-		QApplication::processEvents();
-		ok &= expect(!description->hasFocus() && description->cursorPosition() == 0
-				&& description->text() == QString::fromStdString(scene.description),
-			"a long description shows its start again once the focus has left it");
+		{
+			CaseSettingsPanel panel;
+			panel.setDocument(&document);
+			FocusWheel::watch(&panel);
+			panel.show();
+			panel.activateWindow();
+			QApplication::processEvents();
+			QLineEdit* description = panel.descriptionEdit();
+			description->setFocus(Qt::TabFocusReason);
+			QApplication::processEvents();
+			ok &= expect(description->hasFocus() && description->cursorPosition() == description->text().size()
+					&& description->fontMetrics().horizontalAdvance(description->text()) > description->width(),
+				"Tab into a long description puts the cursor at its end");
+			panel.baseTimeEdit()->setFocus(Qt::TabFocusReason);
+			QApplication::processEvents();
+			ok &= expect(!description->hasFocus() && description->cursorPosition() == 0
+					&& description->text() == QString::fromStdString(scene.description),
+				"a long description shows its start again once the focus has left it");
+			panel.baseTimeEdit()->setText("09:00:00");
+		}
+		ok &= expect(document.model().baseTime == "08:00:00" && !document.isDirty() && document.revision() == 1,
+			"a panel window that is closed with the focus in a field leaves the document as it is");
 	}
 
 	if (!ok)

@@ -18,6 +18,8 @@ class CaseSettingsPanel : public SceneEditorPanel {
 public:
 	/// Makes the fields, disabled until a loaded document is set.
 	explicit CaseSettingsPanel(QWidget* parent = nullptr);
+	/// Lets go of the fields first, so that a field that loses the focus later in the teardown edits nothing.
+	~CaseSettingsPanel() override;
 
 	/// Refreshes when the document is replaced.
 	void setDocument(SceneDocument* document) override;
