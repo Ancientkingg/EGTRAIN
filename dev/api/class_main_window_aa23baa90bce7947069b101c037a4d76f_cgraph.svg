@@ -808,9 +808,9 @@
 <!-- Node164 -->
 <g id="Node000164" class="node">
 <title>Node164</title>
-<g id="a_Node000164"><a xlink:href="_update_notices_8cpp.html#a3739c7b22182424aa05e456e2d6222a2" target="_top" xlink:title=" ">
-<polygon fill="#fff0f0" stroke="red" points="584,-686 463,-686 463,-667 584,-667 584,-686"/>
-<text text-anchor="middle" x="523.5" y="-674" font-family="Helvetica,sans-Serif" font-size="10.00">reportInstallerUpdate</text>
+<g id="a_Node000164"><a xlink:href="_update_notices_8cpp.html#aae82f482a0532d49b5e5becf273aea33" target="_top" xlink:title=" ">
+<polygon fill="#fff0f0" stroke="red" points="581.5,-686 465.5,-686 465.5,-667 581.5,-667 581.5,-686"/>
+<text text-anchor="middle" x="523.5" y="-674" font-family="Helvetica,sans-Serif" font-size="10.00">reportInPlaceUpdate</text>
 </a>
 </g>
 </g>
@@ -818,26 +818,26 @@
 <g id="edge48_Node000158_Node000164" class="edge">
 <title>Node158&#45;&gt;Node164</title>
 <g id="a_edge48_Node000158_Node000164"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M363.81,-554.89C374.07,-558.48 383.9,-563.5 392,-570.5 423.96,-598.14 395.28,-631.75 428,-658.5 435.22,-664.4 443.78,-668.58 452.76,-671.52"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="452.05,-674.95 462.62,-674.23 453.9,-668.2 452.05,-674.95"/>
+<path fill="none" stroke="#63b8ff" d="M363.81,-554.89C374.07,-558.48 383.9,-563.5 392,-570.5 423.96,-598.14 395.28,-631.75 428,-658.5 435.86,-664.92 445.3,-669.31 455.15,-672.27"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="454.53,-675.72 465.08,-674.77 456.24,-668.93 454.53,-675.72"/>
 </a>
 </g>
 </g>
-<!-- Node172 -->
-<g id="Node000172" class="node">
-<title>Node172</title>
-<g id="a_Node000172"><a xlink:href="_update_notices_8cpp.html#afdbe4ab164415bf902444dd4c6947405" target="_top" xlink:title=" ">
-<polygon fill="#fff0f0" stroke="red" points="591.5,-631 455.5,-631 455.5,-612 591.5,-612 591.5,-631"/>
-<text text-anchor="middle" x="523.5" y="-619" font-family="Helvetica,sans-Serif" font-size="10.00">reportRolledBackUpdate</text>
+<!-- Node173 -->
+<g id="Node000173" class="node">
+<title>Node173</title>
+<g id="a_Node000173"><a xlink:href="_update_notices_8cpp.html#a3739c7b22182424aa05e456e2d6222a2" target="_top" xlink:title=" ">
+<polygon fill="#fff0f0" stroke="red" points="584,-631 463,-631 463,-612 584,-612 584,-631"/>
+<text text-anchor="middle" x="523.5" y="-619" font-family="Helvetica,sans-Serif" font-size="10.00">reportInstallerUpdate</text>
 </a>
 </g>
 </g>
-<!-- Node158&#45;&gt;Node172 -->
-<g id="edge50_Node000158_Node000172" class="edge">
-<title>Node158&#45;&gt;Node172</title>
-<g id="a_edge50_Node000158_Node000172"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M353.88,-556.07C366.89,-559.53 380.29,-564.21 392,-570.5 411.12,-580.77 408.6,-593.77 428,-603.5 433.58,-606.3 439.55,-608.67 445.68,-610.67"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="444.81,-614.06 455.39,-613.52 446.78,-607.35 444.81,-614.06"/>
+<!-- Node158&#45;&gt;Node173 -->
+<g id="edge50_Node000158_Node000173" class="edge">
+<title>Node158&#45;&gt;Node173</title>
+<g id="a_edge50_Node000158_Node000173"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M353.88,-556.07C366.89,-559.53 380.29,-564.21 392,-570.5 411.12,-580.77 408.6,-593.77 428,-603.5 435.81,-607.42 444.37,-610.49 453.06,-612.89"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="452.33,-616.32 462.88,-615.33 454.02,-609.52 452.33,-616.32"/>
 </a>
 </g>
 </g>
@@ -950,10 +950,10 @@
 </a>
 </g>
 </g>
-<!-- Node172&#45;&gt;Node172 -->
-<g id="edge51_Node000172_Node000172" class="edge">
-<title>Node172&#45;&gt;Node172</title>
-<g id="a_edge51_Node000172_Node000172"><a xlink:title=" ">
+<!-- Node173&#45;&gt;Node173 -->
+<g id="edge51_Node000173_Node000173" class="edge">
+<title>Node173&#45;&gt;Node173</title>
+<g id="a_edge51_Node000173_Node000173"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M489.9,-631.08C473.55,-639.73 484.75,-649 523.5,-649 551.35,-649 564.97,-644.21 564.36,-638.31"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="566.66,-635.66 557.1,-631.08 561.72,-640.62 566.66,-635.66"/>
 </a>

@@ -228,7 +228,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Reads the text of a record. The lines end in LF or CRLF, the keys outcome, version and time must each occur (the first occurrence counts) and other keys are ignored. The outcome must be rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z. </p>
+<p>Reads the text of a record. The lines end in LF or CRLF, the keys outcome, version and time must each occur (the first occurrence counts) and other keys are ignored. The outcome must be applied, rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -278,7 +278,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and its version is newer than the installed one; any other record is stale. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
+<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and names the installed version (applied) or a newer one (rolled-back and not-applied); any other record is stale. The helper replaces an applied record when it puts the previous version back, so an applied record that names another version is out of date. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

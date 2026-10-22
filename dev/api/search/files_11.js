@@ -14,7 +14,8 @@ var searchData=
   ['updatesettings_2eh_11',['UpdateSettings.h',['../_update_settings_8h.html',1,'']]],
   ['updatetelemetrycontroller_2ecpp_12',['UpdateTelemetryController.cpp',['../_update_telemetry_controller_8cpp.html',1,'']]],
   ['updatetelemetrycontroller_2eh_13',['UpdateTelemetryController.h',['../_update_telemetry_controller_8h.html',1,'']]],
-  ['userprompts_2eh_14',['UserPrompts.h',['../_user_prompts_8h.html',1,'']]],
-  ['utf8path_2eh_15',['Utf8Path.h',['../_utf8_path_8h.html',1,'']]],
-  ['util_2ehpp_16',['Util.hpp',['../_util_8hpp.html',1,'']]]
+  ['updatetiming_2eh_14',['UpdateTiming.h',['../_update_timing_8h.html',1,'']]],
+  ['userprompts_2eh_15',['UserPrompts.h',['../_user_prompts_8h.html',1,'']]],
+  ['utf8path_2eh_16',['Utf8Path.h',['../_utf8_path_8h.html',1,'']]],
+  ['util_2ehpp_17',['Util.hpp',['../_util_8hpp.html',1,'']]]
 ];

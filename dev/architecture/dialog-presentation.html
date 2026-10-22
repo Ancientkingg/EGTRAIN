@@ -571,13 +571,13 @@
 <tr class="row-even"><td><p>EGTRAIN Update (installer)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">reportInstallerUpdate</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::information</span></code> that EGTRAIN was updated, or <code class="docutils literal notranslate"><span class="pre">QMessageBox::warning</span></code> that the installer finished but an older version runs or that the installer did not finish. OK only.</p></td>
-<td><p>At startup, directly before the rolled-back box, when the update helper left a record of an installer run for a version that is not older than the running one and the environment does not suppress updates.</p></td>
+<td><p>At startup, directly before the box of an update in place, when the update helper left a record of an installer run for a version that is not older than the running one and the environment does not suppress updates.</p></td>
 <td><p>No test opens it.</p></td>
 </tr>
-<tr class="row-odd"><td><p>EGTRAIN Update (rolled back or not applied)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">reportRolledBackUpdate</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>, text from <code class="docutils literal notranslate"><span class="pre">describeUpdateRecord</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::warning</span></code>. OK only.</p></td>
-<td><p>At startup, after the chooser and the privacy dialog and before the automatic check question, when the update helper left a record of a rollback, or of an update it could not apply, to a version newer than the running one and the environment does not suppress updates.</p></td>
+<tr class="row-odd"><td><p>EGTRAIN Update (update in place)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reportInPlaceUpdate</span></code> in <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>, text from <code class="docutils literal notranslate"><span class="pre">describeUpdateRecord</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox</span></code> with the information icon that EGTRAIN was updated, or with the warning icon that the update was rolled back or not applied. OK only.</p></td>
+<td><p>At startup, after the chooser and the privacy dialog and before the automatic check question, when the update helper left a record that it applied the update to the running version, or of a rollback, or of an update it could not apply, to a version newer than the running one, and the environment does not suppress updates.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_updaterecord</span></code> checks the text; no test opens the box.</p></td>
 </tr>
 <tr class="row-even"><td><p>Failure prompts through <code class="docutils literal notranslate"><span class="pre">showBlockingError</span></code></p></td>

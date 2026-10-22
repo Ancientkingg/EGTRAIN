@@ -19,6 +19,7 @@ var dir_9458562fe3910865afc206c157c32175 =
     [ "UpdateRecord.h", "_update_record_8h.html", "_update_record_8h" ],
     [ "UpdateSettings.cpp", "_update_settings_8cpp.html", "_update_settings_8cpp" ],
     [ "UpdateSettings.h", "_update_settings_8h.html", "_update_settings_8h" ],
+    [ "UpdateTiming.h", "_update_timing_8h.html", "_update_timing_8h" ],
     [ "WindowsStaging.h", "_windows_staging_8h.html", "_windows_staging_8h" ],
     [ "WinHttpTransport.cpp", "_win_http_transport_8cpp.html", "_win_http_transport_8cpp" ],
     [ "WinHttpTransport.h", "_win_http_transport_8h.html", "_win_http_transport_8h" ]

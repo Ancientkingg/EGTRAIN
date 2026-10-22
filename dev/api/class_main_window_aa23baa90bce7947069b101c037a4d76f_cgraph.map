@@ -87,10 +87,10 @@
 <area shape="poly" id="edge44_Node000158_Node000161" title=" " alt="" coords="405,821,422,877,455,958,479,1002,507,1045,540,1084,578,1117,598,1129,596,1133,574,1122,536,1088,502,1048,474,1005,451,960,417,879,400,823"/>
 <area shape="rect" id="Node000163" href="$class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" title="A file was asked to be opened. path is as the request named it." alt="" coords="576,549,831,575"/>
 <area shape="poly" id="edge47_Node000158_Node000163" title=" " alt="" coords="489,797,509,788,526,775,543,752,550,729,551,705,549,681,547,656,548,632,556,608,574,584,578,580,582,584,578,588,561,610,553,633,552,656,554,680,556,705,555,730,548,754,530,779,512,792,491,802"/>
-<area shape="rect" id="Node000164" href="$_update_notices_8cpp.html#a3739c7b22182424aa05e456e2d6222a2" title=" " alt="" coords="623,623,784,648"/>
-<area shape="poly" id="edge48_Node000158_Node000164" title=" " alt="" coords="489,795,509,786,526,775,538,761,545,747,549,717,554,687,561,672,574,657,608,640,610,644,578,661,565,675,559,688,554,718,550,749,543,764,530,779,512,791,491,800"/>
-<area shape="rect" id="Node000172" href="$_update_notices_8cpp.html#afdbe4ab164415bf902444dd4c6947405" title=" " alt="" coords="613,696,794,721"/>
-<area shape="poly" id="edge50_Node000158_Node000172" title=" " alt="" coords="476,793,527,774,541,764,550,753,559,741,575,730,599,721,601,726,577,735,563,745,554,756,544,768,529,779,478,798"/>
+<area shape="rect" id="Node000164" href="$_update_notices_8cpp.html#aae82f482a0532d49b5e5becf273aea33" title=" " alt="" coords="626,623,781,648"/>
+<area shape="poly" id="edge48_Node000158_Node000164" title=" " alt="" coords="489,795,509,786,526,775,538,761,545,747,549,717,554,687,561,672,574,657,592,646,611,638,613,643,594,651,578,661,565,675,559,688,554,718,550,749,543,764,530,779,512,791,491,800"/>
+<area shape="rect" id="Node000173" href="$_update_notices_8cpp.html#a3739c7b22182424aa05e456e2d6222a2" title=" " alt="" coords="623,696,784,721"/>
+<area shape="poly" id="edge50_Node000158_Node000173" title=" " alt="" coords="476,793,527,774,541,764,550,753,559,741,575,730,608,718,610,723,577,735,563,745,554,756,544,768,529,779,478,798"/>
 <area shape="rect" id="Node000177" href="$class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" title="Runs the scene that the window holds, if it is not running already." alt="" coords="609,745,797,771"/>
 <area shape="poly" id="edge52_Node000158_Node000177" title=" " alt="" coords="475,793,612,770,613,776,476,799"/>
 <area shape="poly" id="edge53_Node000158_Node000261" title=" " alt="" coords="489,797,509,788,526,775,546,746,554,716,553,687,549,656,544,626,544,595,552,565,574,535,578,532,581,535,578,538,557,567,549,596,549,625,554,655,558,686,559,717,551,748,530,778,512,793,491,802"/>
@@ -103,7 +103,7 @@
 <area shape="rect" id="Node000162" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="900,1132,1091,1157"/>
 <area shape="poly" id="edge45_Node000161_Node000162" title=" " alt="" coords="797,1142,886,1142,886,1147,797,1147"/>
 <area shape="poly" id="edge49_Node000164_Node000164" title=" " alt="" coords="657,625,646,614,652,604,671,598,703,596,745,600,757,605,760,612,755,614,753,609,744,605,703,601,672,603,655,608,652,614,660,621"/>
-<area shape="poly" id="edge51_Node000172_Node000172" title=" " alt="" coords="657,698,646,688,652,678,671,671,703,669,745,674,757,679,760,685,755,688,753,683,744,679,703,675,672,677,655,682,652,687,660,694"/>
+<area shape="poly" id="edge51_Node000173_Node000173" title=" " alt="" coords="657,698,646,688,652,678,671,671,703,669,745,674,757,679,760,685,755,688,753,683,744,679,703,675,672,677,655,682,652,687,660,694"/>
 <area shape="poly" id="edge54_Node000261_Node000038" title=" " alt="" coords="815,523,832,535,847,551,854,569,857,604,860,638,867,654,880,669,909,691,941,708,1010,731,1081,743,1146,747,1146,752,1080,748,1009,736,939,713,907,695,877,673,862,657,855,639,852,604,849,570,842,554,829,539,813,528"/>
 <area shape="rect" id="Node000262" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="892,635,1099,660"/>
 <area shape="poly" id="edge55_Node000261_Node000262" title=" " alt="" coords="812,523,832,535,850,556,857,578,864,600,880,620,891,627,888,631,877,624,859,603,852,580,846,558,829,539,809,528"/>

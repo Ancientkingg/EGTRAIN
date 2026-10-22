@@ -11,6 +11,7 @@ var class_self_updater =
     [ "isPreparing", "class_self_updater.html#a6188cca8f4f8309afa3654064e5ced10", null ],
     [ "preparing", "class_self_updater.html#a21dd6835be860b3cdae4fcaaf3dafd5c", null ],
     [ "progress", "class_self_updater.html#ad8637cde269408bad682982d807e774a", null ],
+    [ "removeUpdateBackup", "class_self_updater.html#ab484215b96727b9248a7b23ce9afa69c", null ],
     [ "restart", "class_self_updater.html#aa772a9bfef2ae0a4aab4dc9c88a4e29e", null ],
     [ "start", "class_self_updater.html#afc220b1e5093c3e2ab904c5f7c28677e", null ]
 ];

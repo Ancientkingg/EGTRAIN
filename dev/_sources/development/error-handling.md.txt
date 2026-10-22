@@ -119,7 +119,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Crash note (`app/CrashNote.cpp`) | A fatal signal or an uncaught exception in the window build writes a note, and the next start reports it. See [Crash notes](#crash-notes). | No note for headless runs, `scene_tool`, a forced quit or a power loss. No stack on Windows. |
 | Diagnostics consent (`telemetry/`) | With consent, sends enum-only events such as `operation.failed` with an operation (`scene_open`, `simulation`, `export`) and an error code (`invalid_input`, `unsupported_format`, `io_failure`, `internal_failure`). A run that an exception ends after it has started sends `simulation.failed` and `operation.failed` with `simulation` and `internal_failure`. | The consent text promises no native crash dumps and no raw error messages. Schema version 1 has no name for a crash, and new names need a new schema version (`docs/telemetry/README.md`). |
 | Logging core (`util/Log.h`) | Categories, levels and one sink | No log file unless `EGTRAIN_LOG_FILE` is set. |
-| Startup notice of the previous run | `reportRolledBackUpdate` (`update/UpdateNotices.cpp`) reads `update-record.txt` left by the previous process and shows a box at the next start. | Covers updates only. |
+| Startup notice of the previous run | `reportInPlaceUpdate` (`update/UpdateNotices.cpp`) reads `update-record.txt` left by the previous process and shows a box at the next start. | Covers updates only. |
 
 ### Crash notes
 

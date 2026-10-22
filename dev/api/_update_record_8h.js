@@ -11,7 +11,8 @@ var _update_record_8h =
     ] ],
     [ "UpdateOutcome", "_update_record_8h.html#a47d839c793e341182c4d3564973b669a", [
       [ "RolledBack", "_update_record_8h.html#a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86", null ],
-      [ "NotApplied", "_update_record_8h.html#a47d839c793e341182c4d3564973b669aafd3b8487e028269caf0bc898960bc554", null ]
+      [ "NotApplied", "_update_record_8h.html#a47d839c793e341182c4d3564973b669aafd3b8487e028269caf0bc898960bc554", null ],
+      [ "Applied", "_update_record_8h.html#a47d839c793e341182c4d3564973b669aa733d43480c8589b1368e5def6b480415", null ]
     ] ],
     [ "checkInstallerRecord", "_update_record_8h.html#aedd39575c06eb90ceb03d502cb20b062", null ],
     [ "describeUpdateRecord", "_update_record_8h.html#a0b07cefc60dd36435751649c1a50876c", null ],
