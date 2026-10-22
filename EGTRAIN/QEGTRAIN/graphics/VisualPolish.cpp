@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cctype>
 #include <initializer_list>
+#include <utility>
 
 namespace {
 
@@ -94,7 +95,7 @@ QPolygonF convexHull(QList<QPointF> points) {
 	});
 	points.erase(std::unique(points.begin(), points.end()), points.end());
 	if (points.size() < 3)
-		return QPolygonF(points);
+		return QPolygonF(std::move(points));
 	const auto turn = [](const QPointF& origin, const QPointF& a, const QPointF& b) {
 		return (a.x() - origin.x()) * (b.y() - origin.y()) - (a.y() - origin.y()) * (b.x() - origin.x());
 	};
