@@ -790,7 +790,7 @@ void Train::ConnectBlockTimesOfSwitchesForTrainCentricSignalling() {
 
 						// If there is a diverging switch having the same SwitchName and position but different ID, tthis means that this is a switch linked to two other switches and it has for this reason a left side that is a Point-End connected to a switch and the right sight that is a Point-Start connected to a different switch (the situation described in the figure here at the right) o-----oo----o
 						// Point-Start-----Point-End Point-Start-----Point-End
-						if ((BlockTime[j].SignallingLevel >= levelValue(SignallingLevel::EtcsLevel3)) && (BlockTime[j].SwitchName == BlockTime[i].SwitchName) && (BlockTime[j].GeoPosStart = BlockTime[i].GeoPosStart) && (BlockTime[j].BlockID != BlockTime[i].BlockID)) {
+						if ((BlockTime[j].SignallingLevel >= levelValue(SignallingLevel::EtcsLevel3)) && (BlockTime[j].SwitchName == BlockTime[i].SwitchName) && (BlockTime[j].GeoPosStart == BlockTime[i].GeoPosStart) && (BlockTime[j].BlockID != BlockTime[i].BlockID)) {
 							BlockTime[i].StartOccTime = BlockTime[j].StartOccTime;
 							BlockTime[i].EndOccTime = BlockTime[j].EndOccTime;
 							BlockTime[i].StartApproachTime = BlockTime[j].StartApproachTime;
