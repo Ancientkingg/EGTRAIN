@@ -685,7 +685,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		const QString mainSection = setSection("signals", 0, 1,
-			QStringLiteral("base block creator-main-block-0 /"));
+			QStringLiteral("creator-main 0.000 to 0.750 km"));
 		if (mainSection.isEmpty()) {
 			fail(QStringLiteral("signal protected-section selector lacked the authored block"));
 			return;
@@ -712,9 +712,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		const std::array<QString, 3> routePrefixes = {
-			QStringLiteral("base block creator-main-block-0 /"),
-			QStringLiteral("connection creator-switch /"),
-			QStringLiteral("base block creator-yard-block-2 /")};
+			QStringLiteral("creator-main 0.000 to 0.750 km"),
+			QStringLiteral("creator-main 0.750 to 1.000, creator-yard 1.500 to 1.750 km"),
+			QStringLiteral("creator-yard 1.750 to 2.000 km")};
 		for (const QString& prefix : routePrefixes) {
 			QString raw;
 			for (int index = 0; index < w.m_routeSectionCatalogCombo->count(); ++index) {
@@ -740,10 +740,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		if (setSection("block_dependencies", 0, 0,
-				QStringLiteral("base block creator-main-block-0 /"))
+				QStringLiteral("creator-main 0.000 to 0.750 km"))
 				.isEmpty()
 			|| setSection("block_dependencies", 0, 1,
-				QStringLiteral("base block creator-yard-block-2 /"))
+				QStringLiteral("creator-yard 1.750 to 2.000 km"))
 				.isEmpty()) {
 			fail(QStringLiteral("dependency typed selectors lacked safe sections"));
 			return;
@@ -753,10 +753,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		const std::array<QString, 4> restrictionPrefixes = {
-			QStringLiteral("base block creator-main-block-0 /"),
-			QStringLiteral("base block creator-yard-block-2 /"),
-			QStringLiteral("connection creator-switch /"),
-			QStringLiteral("base block creator-yard-block-2 /")};
+			QStringLiteral("creator-main 0.000 to 0.750 km"),
+			QStringLiteral("creator-yard 1.750 to 2.000 km"),
+			QStringLiteral("creator-main 0.750 to 1.000, creator-yard 1.500 to 1.750 km"),
+			QStringLiteral("creator-yard 1.750 to 2.000 km")};
 		for (int column = 0; column < 4; ++column)
 			if (setSection("single_track_restrictions", 0, column,
 					restrictionPrefixes[static_cast<std::size_t>(column)])
@@ -766,10 +766,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 		if (!addRow("station_boundaries")
 			|| setSection("station_boundaries", 0, 0,
-				QStringLiteral("base block creator-main-block-0 /"))
+				QStringLiteral("creator-main 0.000 to 0.750 km"))
 				.isEmpty()
 			|| setSection("station_boundaries", 0, 1,
-				QStringLiteral("base block creator-yard-block-2 /"))
+				QStringLiteral("creator-yard 1.750 to 2.000 km"))
 				.isEmpty()) {
 			fail(QStringLiteral("station boundary typed selectors lacked safe sections"));
 			return;

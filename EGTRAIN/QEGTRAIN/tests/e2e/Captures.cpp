@@ -645,7 +645,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		bool built = addRows("signalling_areas", 1);
 		auto* system = qobject_cast<QComboBox*>(w.m_infrastructureTable->cellWidget(0, 3));
 		built = built && system && chooseText(system, QStringLiteral("0 ATB fixed block")) && addRows("routes", 1);
-		for (const QString& section : {QStringLiteral("base block block / track track"), QStringLiteral("base block block_2 / track track")}) {
+		for (const QString& section : {QStringLiteral("track 0.000 to 1.000 km"), QStringLiteral("track 1.000 to 2.000 km")}) {
 			built = built && chooseText(w.m_routeSectionCatalogCombo, section);
 			w.m_addRouteSectionButton->click();
 			settle();

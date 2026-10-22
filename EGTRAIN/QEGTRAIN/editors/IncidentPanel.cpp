@@ -3,6 +3,7 @@
 #include "editors/ServicePanel.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneIds.h"
+#include "scene/SectionInventory.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/EditorLayout.h"
@@ -49,6 +50,19 @@ std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
 	for (const auto& block : sceneModel.blocks)
 		add(block.id);
 	return targets;
+}
+
+// The text of a signal failure target in the list: a signal by its id and the label of the section it protects, and a
+// block by the label of its section.
+QString signalFailureTargetText(const SceneModel& sceneModel, const SceneSectionLabels& labels, const std::string& target) {
+	for (const auto& signal : sceneSignals(sceneModel)) {
+		if (signal.id != target)
+			continue;
+		if (signal.protectedSection.empty())
+			return QString::fromStdString(target);
+		return QStringLiteral("%1 (%2)").arg(QString::fromStdString(target), QString::fromStdString(labels.label(signal.protectedSection)));
+	}
+	return QString::fromStdString(labels.label(target));
 }
 
 bool hasEditorFocus(QWidget* editor) {
@@ -421,13 +435,15 @@ void IncidentPanel::refreshTargets() {
 	m_targetCombo->clear();
 	m_targetCombo->addItem(QStringLiteral("Choose target"), QString());
 	int current = 0;
+	const bool signalFailure = incident && incident->type == "signal_failure";
 	if (incident) {
 		const SceneModel& model = m_document->model();
 		const QString target = QString::fromStdString(incident->target);
 		bool found = false;
-		if (incident->type == "signal_failure") {
+		if (signalFailure) {
+			const SceneSectionLabels labels = sceneSectionLabels(buildSceneSectionInventory(model));
 			for (const std::string& value : signalFailureTargets(model))
-				m_targetCombo->addItem(QString::fromStdString(value), QString::fromStdString(value));
+				m_targetCombo->addItem(signalFailureTargetText(model, labels, value), QString::fromStdString(value));
 			current = m_targetCombo->findData(target);
 			if (current < 0 && !target.isEmpty()) {
 				m_targetCombo->addItem(QStringLiteral("Invalid removed target: ") + target, target);
@@ -478,7 +494,7 @@ void IncidentPanel::refreshTargets() {
 				}
 			}
 		}
-		if (incident->type != "signal_failure" && !incident->target.empty()
+		if (!signalFailure && !incident->target.empty()
 			&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
 			m_targetCombo->addItem(
 				QStringLiteral("Invalid removed target [") + target + QStringLiteral(", ") + QString::number(incident->occurrence)
@@ -499,7 +515,8 @@ void IncidentPanel::refreshTargets() {
 									 .arg(m_targetCombo->itemData(index, Qt::UserRole + 1).toInt());
 		if (labelCounts.value(label) > 1)
 			m_targetCombo->setItemText(index, label + identity);
-		m_targetCombo->setItemData(index, label + identity, Qt::ToolTipRole);
+		// A signal or block shows its id, a train its text and stable identity.
+		m_targetCombo->setItemData(index, signalFailure ? m_targetCombo->itemData(index).toString() : label + identity, Qt::ToolTipRole);
 	}
 	m_targetCombo->setCurrentIndex(std::max(0, current));
 	const bool editable = incident != nullptr && canEdit();
@@ -510,7 +527,7 @@ void IncidentPanel::refreshTargets() {
 	// The field shows this tip below the current target.
 	if (!incident)
 		m_targetCombo->setToolTip(QString());
-	else if (incident->type == "signal_failure")
+	else if (signalFailure)
 		m_targetCombo->setToolTip(QStringLiteral("The signal or block that fails."));
 	else
 		m_targetCombo->setToolTip(

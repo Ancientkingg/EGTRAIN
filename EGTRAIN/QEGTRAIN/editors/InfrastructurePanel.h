@@ -20,6 +20,7 @@ class QListWidget;
 class QPushButton;
 struct SceneSectionDescriptor;
 struct SceneSectionInventory;
+struct SceneSectionLabels;
 
 /// The infrastructure of the scene: a combo on top to pick the kind of entity, a sentence about the kind
 /// (infrastructureGuidanceText), a table with one row for each entity of that kind, and under the table the buttons that
@@ -118,11 +119,11 @@ public:
 	/// instead, and the answer is no.
 	bool confirmDelete(const QString& id, const std::vector<std::string>& consumers);
 
-	/// The text that names a section in a list of sections.
-	static QString sectionLabel(const SceneSectionDescriptor& section);
-	/// Fills `combo` with the sections of the inventory, each with the id of the section as its data, and chooses
-	/// `current`. A section that is not in the inventory gets an item of its own, and `allowNone` adds an item with
-	/// `noneLabel` and no data on top.
+	/// The text that names a section in a list of sections: its label in `labels` (see sceneSectionLabels).
+	static QString sectionLabel(const SceneSectionLabels& labels, const SceneSectionDescriptor& section);
+	/// Fills `combo` with the sections of the inventory, each named by its label, with the id of the section as its
+	/// data and its tooltip, and chooses `current`. A section that is not in the inventory gets an item of its own, and
+	/// `allowNone` adds an item with `noneLabel` and no data on top.
 	static void populateSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory, const std::string& current,
 		bool allowNone, const QString& noneLabel);
 
