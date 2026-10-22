@@ -291,11 +291,11 @@ public:
 	/// Places the names of station marks and hides the attached names that overlap, on screen, the name of a
 	/// higher-priority station or that cover part of the visible pictogram of any other station. A name goes
 	/// under the dots of its station, or, where its text there crosses a track line or the pictogram of another
-	/// station, to the first of these spots that crosses neither: above the frame of the far look, right of the dots
-	/// and left of them; without one it stays under the dots. A name is placed again only after applyViewScale() moved
-	/// it. The spots do not depend on the look and pictograms are tested by pictogramSceneRect(), so the same names
-	/// show in both looks. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is
-	/// the viewport transform of the view.
+	/// station, hidden or not, to the first of these spots that crosses neither: above the frame of the far look,
+	/// right of the dots and left of them; without one it stays under the dots. A name is placed again only after
+	/// applyViewScale() moved it. The spots do not depend on the look and pictograms are tested by
+	/// pictogramSceneRect(), so the same names show in both looks. Selected and followed stations keep their name.
+	/// Pictograms stay visible. sceneToViewport is the viewport transform of the view.
 	static void resolveNameCollisions(const QList<StationOverlayItem*>& stations,
 		const QTransform& sceneToViewport);
 

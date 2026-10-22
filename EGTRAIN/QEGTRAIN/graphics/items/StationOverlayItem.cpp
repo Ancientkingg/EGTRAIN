@@ -684,18 +684,21 @@ void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>&
 	const QTransform scaling(sceneToViewport.m11(), sceneToViewport.m12(),
 		sceneToViewport.m21(), sceneToViewport.m22(), 0.0, 0.0);
 	QList<StationOverlayItem*> ordered;
+	// The spots avoid every pictogram, also a hidden one: the names are not placed again when it shows. The hide test
+	// takes the visible pictograms on screen.
 	QList<QPair<const StationOverlayItem*, QRectF>> scenePictograms;
+	QList<QPair<const StationOverlayItem*, QRectF>> pictograms;
 	for (StationOverlayItem* station : stations) {
 		if (!station)
 			continue;
 		if (station->m_name)
 			ordered.append(station);
-		if (station->m_picture && station->m_picture->isVisible())
-			scenePictograms.append({station, station->pictogramSceneRect()});
+		if (!station->m_picture)
+			continue;
+		scenePictograms.append({station, station->pictogramSceneRect()});
+		if (station->m_picture->isVisible())
+			pictograms.append({station, scaling.mapRect(scenePictograms.last().second)});
 	}
-	QList<QPair<const StationOverlayItem*, QRectF>> pictograms;
-	for (const auto& pictogram : std::as_const(scenePictograms))
-		pictograms.append({pictogram.first, scaling.mapRect(pictogram.second)});
 	// The visible track lines with their scene bounds, collected once for the names that are placed again: a query
 	// of the scene for each spot costs more than the whole test.
 	QList<QPair<const QGraphicsItem*, QRectF>> tracks;

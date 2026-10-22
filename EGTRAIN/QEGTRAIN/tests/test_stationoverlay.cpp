@@ -851,6 +851,24 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
+		// A name avoids the mark of another station also while that mark is hidden, so that it is not hidden when the mark
+		// shows again: the names are not placed again then.
+		QGraphicsScene scene;
+		const QTransform far = QTransform::fromScale(0.1, 0.1);
+		const MarkRig upper = addMarkRig(scene, "Upper", {QPointF(0.0, 0.0)});
+		const MarkRig lower = addMarkRig(scene, "Lower", {QPointF(0.0, 400.0)});
+		lower.mark->setVisible(false);
+		upper.overlay->applyViewScale(0.1, false);
+		lower.overlay->applyViewScale(0.1, false);
+		StationOverlayItem::resolveNameCollisions({upper.overlay, lower.overlay}, far);
+		lower.mark->setVisible(true);
+		StationOverlayItem::resolveNameCollisions({upper.overlay, lower.overlay}, far);
+		ok &= expect(!upper.overlay->isNameHiddenByCollision()
+				&& !upper.name->sceneBoundingRect().intersects(lower.overlay->pictogramSceneRect()),
+			"a name placed while the mark of another station is hidden stays clear of it when it shows");
+	}
+
+	{
 		// The screen-space mark of an overlay without scene artwork stays inside its bounds, the bar included.
 		for (const StationVisual& visual : {classifyStation(false, 3), classifyStation(true), classifyStation()}) {
 			StationOverlayItem overlay("Bounds", QPointF(), visual);
