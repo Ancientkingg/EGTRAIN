@@ -6,6 +6,7 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
+#include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/SignalItem.h"
@@ -14,6 +15,8 @@
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "simulation/Infrastructure.h"
+#include "simulation/Signalling.h"
+#include "widgets/FindDialog.h"
 #include "widgets/InfoDockWidget.h"
 
 #include <QApplication>
@@ -22,12 +25,14 @@
 #include <QLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QTextDocument>
 
 #include <iostream>
+#include <memory>
 #include <vector>
 
 static bool expect(bool condition, const char* message) {
@@ -63,6 +68,36 @@ public:
 	void inspectionChanged() override { ++inspectionChanges; }
 	void signalInspected() override { ++signalInspections; }
 	void followTrain(int trainIndex) override { followed.push_back(trainIndex); }
+};
+
+// The tracks of a run of six track lines, which the run numbers by their ids sorted as text: B10 is track 2 and B11
+// track 5. The run has nothing else.
+class SixTracks final : public RuntimeGeometrySource {
+public:
+	SixTracks() : m_tracks(6) {
+		const char* ids[] = {"B0", "B1", "B10", "B100", "B101", "B11"};
+		for (std::size_t track = 0; track < m_tracks.size(); ++track)
+			m_tracks[track].sceneTrackId = ids[track];
+	}
+
+	int trackCount() const override { return static_cast<int>(m_tracks.size()); }
+	BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
+	int regionOfTrack(int) const override { return 0; }
+	int stationCount() const override { return 0; }
+	Stations& station(int) const override { return m_station; }
+	int connectionCount() const override { return 0; }
+	Connections& connection(int) const override { return m_connection; }
+	int sectionCount() const override { return 0; }
+	const Section& section(int) const override { return m_section; }
+	const Route* route(int) const override { return nullptr; }
+	const StationPlatform* platform(const std::string&, const std::string&) const override { return nullptr; }
+	bool passengerGui() const override { return false; }
+
+private:
+	mutable std::vector<BlockSet> m_tracks;
+	mutable Stations m_station;
+	mutable Connections m_connection;
+	Section m_section;
 };
 
 // The field of the form row with this label. The label names one row of the dock.
@@ -206,6 +241,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(!panel.dock()->isVisible() && text(panel, "Node ID").isEmpty(), "clearing the preview empties the fields");
 
 	host.previewing = false;
+	presenter.setGeometrySource(std::make_unique<SixTracks>());
 	NodeItem runNode(QRectF(0.0, 0.0, 4.0, 4.0));
 	Node runData;
 	runData.ID = 7;
@@ -270,12 +306,52 @@ int main(int argc, char* argv[]) {
 	SignalItem signal(QRectF(0.0, 0.0, 4.0, 4.0));
 	signal.setAspectCode(0);
 	signal.setToolTip("first");
+	signal.trackID = 2;
+	signal.sceneTrackId = "B10";
+	signal.X = 1.0;
+	signal.sectionAheadId = "@a@";
+	signal.sectionAheadLabel = "B10 1.000 to 2.000 km";
+	signal.sectionAheadLength = 1.0;
+	signal.sectionAheadTrackId = 2;
+	signal.sectionBehindId = "@b@";
+	signal.sectionBehindLabel = "B10 0.000 to 1.000 km";
+	signal.sectionBehindTrackId = 2;
 	presenter.m_signalDecorations.append(&signal);
 	scene.addItem(&signal);
 	panel.displaySignallingInfo(&signal);
 	QWidget* signallingBox = field(panel, "Signals at location");
 	ok &= expect(host.signalInspections == 1 && text(panel, "Aspect") == "Stop" && text(panel, "Signals at location") == "first",
 		"selecting a signal shows its aspect and its details");
+
+	// Find names the head by its labels, and the ids of its sections find it too.
+	{
+		QStringList labels;
+		QStringList keys;
+		for (const NetworkPresenter::FindTarget& target : presenter.findTargets()) {
+			labels << target.label;
+			keys << target.keys;
+		}
+		const QString signalLabel("Signal: Track B10 at 1 km; ahead B10 1.000 to 2.000 km; behind B10 0.000 to 1.000 km, right");
+		ok &= expect(labels.contains(signalLabel) && labels.contains("Station: Alpha (track B10)"),
+			"Find names a signal by its track id and section labels and a station node by its track id");
+		FindDialog find;
+		find.setLabels(labels, keys);
+		auto* findField = find.findChild<QLineEdit*>();
+		auto* results = find.findChild<QListWidget*>();
+		const auto matches = [findField, results](const QString& words) {
+			findField->setText(words);
+			QStringList shown;
+			for (int row = 0; row < results->count(); ++row)
+				shown << results->item(row)->text();
+			return shown;
+		};
+		ok &= expect(findField && results && matches("b10 1.000 to 2.000") == QStringList{signalLabel},
+			"Find finds a signal by the label of its section");
+		ok &= expect(matches("@a@") == QStringList{signalLabel} && matches("signal @B@ right") == QStringList{signalLabel},
+			"Find finds a signal by the id of its section, also with words of its name");
+		ok &= expect(matches("@c@").isEmpty() && matches("Alpha") == QStringList{"Station: Alpha (track B10)"},
+			"a section id finds no other item");
+	}
 	signal.setAspectCode(180);
 	signal.setToolTip("second");
 	panel.refreshInspectedSignal();

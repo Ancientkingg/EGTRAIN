@@ -2599,8 +2599,11 @@ void MainWindow::setupEditMenu() {
 
 void MainWindow::showFind() {
 	QStringList labels;
-	for (const NetworkPresenter::FindTarget& target : m_presenter->findTargets())
+	QStringList keys;
+	for (const NetworkPresenter::FindTarget& target : m_presenter->findTargets()) {
 		labels.append(target.label);
+		keys.append(target.keys);
+	}
 	if (labels.isEmpty()) {
 		statusBar()->showMessage("Nothing to find: open a case first", 5000);
 		return;
@@ -2609,7 +2612,7 @@ void MainWindow::showFind() {
 		m_findDialog = new FindDialog(this);
 		connect(m_findDialog, &FindDialog::chosen, this, &MainWindow::goToFound);
 	}
-	m_findDialog->setLabels(labels);
+	m_findDialog->setLabels(labels, keys);
 	m_findDialog->open();
 }
 

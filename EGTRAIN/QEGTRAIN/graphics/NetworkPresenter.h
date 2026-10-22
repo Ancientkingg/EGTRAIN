@@ -22,6 +22,7 @@
 
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
+#include "scene/SectionLabels.h"
 #include "scene/TrackPreview.h"
 
 class Arc;
@@ -178,6 +179,8 @@ public:
 
 	/// The line of the preview that the track line with this index in the run is drawn on, or null.
 	const TrackPreviewLine* cachedTrackLine(int track) const;
+	/// The id in the scene of the track line with this index in the run; empty when the run has none for it.
+	std::string sceneTrackId(int track) const;
 
 	/// Adds a train of the run with its badge and train.wagonCount + 1 bodies of equal length, the first at
 	/// the head. The train is promoted when it is selected or followed.
@@ -222,6 +225,8 @@ public:
 		QGraphicsItem* item;
 		/// The point of the scene to centre on.
 		QPointF center;
+		/// More text that finds the item without being shown: the section ids of a signal.
+		QString keys;
 	};
 	/// The stations, the signals and the trains on the canvas, sorted by label, each label once. The items belong to
 	/// the scene and are only valid until it changes.
@@ -398,7 +403,8 @@ private:
 	void paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
 	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
 	void paintConnection(QPointF start, QPointF end, int penWidth, Connections* connection);
-	void paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex);
+	void paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex,
+		const SceneSectionLabels& labels);
 	void buildSignalIndex();
 	void buildTrackIndexes();
 	bool passengerGui() const;

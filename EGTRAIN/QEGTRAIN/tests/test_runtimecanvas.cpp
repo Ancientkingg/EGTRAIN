@@ -29,6 +29,7 @@
 #include <QPixmap>
 #include <QtMath>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -654,6 +655,47 @@ int main(int argc, char* argv[]) {
 			QApplication::processEvents();
 			ok &= expect(presenterEmpty(presenter) && scene.items().isEmpty(), "clear leaves no item, entry or pointer of the round");
 		}
+	}
+
+	// The heads of a run name their track by its id in the scene and their sections by the labels of the scene of the
+	// run, in the tooltip and in Find. The runtime number of the track and the section ids stay on the heads, and the ids
+	// find a head too.
+	{
+		QGraphicsScene labelScene;
+		NetworkPresenter labelPresenter(&labelScene, nullptr);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->track(0).sceneTrackId = "T";
+		labelPresenter.setGeometrySource(std::move(geometry));
+		SceneModel labelled;
+		labelled.tracks = {{"T"}};
+		labelled.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.b", "T", 5.0, 0.0}, {"T.c", "T", 10.0, 0.0}};
+		labelled.arcs = {{"T.arc.1", "T", "T.a", "T.b", 0.0, 0.0, 12.0}, {"T.arc.2", "T", "T.b", "T.c", 0.0, 0.0, 12.0}};
+		labelled.blocks = {{"s0", "T", 5.0}, {"s1", "T", 5.0}};
+		labelPresenter.showRuntime(labelled);
+		const SignalItem* forward = nullptr;
+		for (const SignalItem* head : labelPresenter.allSignals)
+			if (!head->reversedDirection)
+				forward = head;
+		ok &= expect(labelPresenter.sceneTrackId(0) == "T" && labelPresenter.sceneTrackId(1).empty(),
+			"the presenter gives the id in the scene of a track line of the run");
+		ok &= expect(forward && forward->trackID == 0 && forward->sceneTrackId == "T" && forward->sectionAheadId == "s1"
+				&& forward->sectionAheadLabel == "T 5.000 to 10.000 km" && forward->sectionBehindId == "s0"
+				&& forward->sectionBehindLabel == "T 0.000 to 5.000 km",
+			"a head of a run keeps its track number and section ids and gets the track id and the section labels");
+		ok &= expect(forward && forward->inspectionIdentity() == "Track T at 5 km; ahead T 5.000 to 10.000 km; behind T 0.000 to 5.000 km",
+			"the tooltip of a head of a run names the track by its id and the sections by their labels");
+		const QList<NetworkPresenter::FindTarget> targets = labelPresenter.findTargets();
+		const auto target = [&targets](const QString& label) {
+			const auto found = std::find_if(targets.cbegin(), targets.cend(),
+				[&label](const NetworkPresenter::FindTarget& candidate) { return candidate.label == label; });
+			return found == targets.cend() ? nullptr : &*found;
+		};
+		const NetworkPresenter::FindTarget* signalTarget =
+			target("Signal: Track T at 5 km; ahead T 5.000 to 10.000 km; behind T 0.000 to 5.000 km, right");
+		ok &= expect(signalTarget && signalTarget->item == forward && signalTarget->keys == "s1 s0",
+			"Find names a head by its labels and keeps its section ids as keys");
+		ok &= expect(target("Station: B (track T)") != nullptr, "Find names the track of a station node by its id");
+		labelPresenter.clear();
 	}
 
 	// A run draws a track whose view sets double_switch as the original drew a double switch: the middle arc and no node

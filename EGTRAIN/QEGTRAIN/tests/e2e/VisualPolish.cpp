@@ -3207,7 +3207,7 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 		const QList<NetworkPresenter::FindTarget> targets = w.m_presenter->findTargets();
 		const auto found = std::find_if(targets.cbegin(), targets.cend(),
 			[&prefix](const NetworkPresenter::FindTarget& target) { return target.label.startsWith(prefix); });
-		return found == targets.cend() ? NetworkPresenter::FindTarget{QString(), nullptr, QPointF()} : *found;
+		return found == targets.cend() ? NetworkPresenter::FindTarget{QString(), nullptr, QPointF(), QString()} : *found;
 	};
 	// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
 	w.activateWindow();
@@ -3261,6 +3261,22 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 		}
 	}
 	w.m_findAction->trigger();
+	// A signal is listed with the labels of its sections, and the label as well as the id of a section finds it.
+	const NetworkPresenter::FindTarget signalTarget = targetLabelled(QStringLiteral("Signal: "));
+	if (const auto* head = qgraphicsitem_cast<const SignalItem*>(signalTarget.item); head && !head->sectionAheadId.empty()) {
+		auto* field = w.m_findDialog->findChild<QLineEdit*>();
+		auto* results = w.m_findDialog->findChild<QListWidget*>();
+		const auto lists = [&](const std::string& words) {
+			field->setText(QString::fromStdString(words));
+			return !results->findItems(signalTarget.label, Qt::MatchExactly).isEmpty();
+		};
+		if (!signalTarget.label.contains(QString::fromStdString(head->sectionAheadLabel)) || !lists(head->sectionAheadLabel)
+			|| !lists(head->sectionAheadId)) {
+			failure = QStringLiteral("Find does not list \"%1\" by the label and the id of section %2")
+						  .arg(signalTarget.label, QString::fromStdString(head->sectionAheadId));
+			return false;
+		}
+	}
 	key(w.m_findDialog->findChild<QLineEdit*>(), Qt::Key_Escape);
 	const bool closed = !w.m_findDialog->isVisible();
 	w.setFollowTrain(-1);

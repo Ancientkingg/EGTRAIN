@@ -7,6 +7,7 @@
 #undef signals
 #endif
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 #ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #define signals Q_SIGNALS
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
@@ -234,9 +235,13 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 	// A station node of a run has the node of its stopping board; one of the preview has none.
 	for (QGraphicsItem* item : m_scene->items()) {
 		auto* station = qgraphicsitem_cast<StationNodeItem*>(item);
-		if (station && station->node && !station->node->stationName.empty())
-			targets.append({QStringLiteral("Station: %1 (track %2)").arg(QString::fromStdString(station->node->stationName)).arg(station->track),
-				station, station->sceneBoundingRect().center()});
+		if (!station || !station->node || station->node->stationName.empty())
+			continue;
+		const std::string track = sceneTrackId(station->track);
+		targets.append({QStringLiteral("Station: %1 (track %2)")
+							.arg(QString::fromStdString(station->node->stationName),
+								track.empty() ? QString::number(station->track) : QString::fromStdString(track)),
+			station, station->sceneBoundingRect().center(), QString()});
 	}
 	// The overlay of a station of the preview is drawn at a fixed size on the screen, so its anchor is its place.
 	for (StationOverlayItem* overlay : m_stationOverlays) {
@@ -245,7 +250,7 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 		const QString id = overlay->data(PreviewGraphics::Id).toString();
 		const QString name = overlay->stationName();
 		targets.append({name.isEmpty() || name == id ? QStringLiteral("Station: %1").arg(id) : QStringLiteral("Station: %1 (%2)").arg(name, id),
-			overlay, overlay->stableAnchor()});
+			overlay, overlay->stableAnchor(), QString()});
 	}
 	// A signal of a run knows its sections; the scene gives the ids of the signals that protect them.
 	std::map<std::string, QStringList> authoredIds;
@@ -260,14 +265,16 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 		const auto ids = signal->sectionAheadId.empty() ? authoredIds.end() : authoredIds.find(signal->sectionAheadId);
 		if (ids != authoredIds.end())
 			identity += QStringLiteral("; signal ID %1").arg(ids->second.join(QStringLiteral(", ")));
+		// The label names the sections by their labels, and the ids find them too.
 		targets.append({QStringLiteral("Signal: %1, %2").arg(identity, signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right")),
-			signal, signal->sceneBoundingRect().center()});
+			signal, signal->sceneBoundingRect().center(),
+			QString::fromStdString(signal->sectionAheadId + " " + signal->sectionBehindId).trimmed()});
 	}
 	for (TrainItemGroup* train : allTrains) {
 		if (!train || !train->isVisible() || !train->trainPolygonItemList || train->trainPolygonItemList->isEmpty())
 			continue;
 		targets.append({QStringLiteral("Train: %1").arg(QString::fromStdString(followTrainName(train->trainDescription, train->index))),
-			train->trainPolygonItemList->first(), train->sceneBoundingRect().center()});
+			train->trainPolygonItemList->first(), train->sceneBoundingRect().center(), QString()});
 	}
 	std::stable_sort(targets.begin(), targets.end(), [](const FindTarget& a, const FindTarget& b) { return a.label < b.label; });
 	targets.erase(std::unique(targets.begin(), targets.end(), [](const FindTarget& a, const FindTarget& b) { return a.label == b.label; }),
@@ -289,6 +296,12 @@ const TrackPreviewSignal* NetworkPresenter::previewSignal(const std::string& tra
 		return head.trackId == trackId && head.sectionId == sectionId;
 	});
 	return found == heads.end() ? nullptr : &*found;
+}
+
+std::string NetworkPresenter::sceneTrackId(int track) const {
+	if (!m_source || track < 0 || track >= m_source->trackCount())
+		return {};
+	return m_source->track(track).sceneTrackId;
 }
 
 const TrackPreviewLine* NetworkPresenter::cachedTrackLine(int track) const {
@@ -1047,7 +1060,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		}
 	}
 
-	// draw signalling
+	// draw signalling; the signals name their sections by the labels of the scene of the run
+	const SceneSectionLabels sectionLabels = sceneSectionLabels(buildSceneSectionInventory(sceneModel));
 	for (int i = 0; i < m_source->sectionCount(); i++) {
 		const Section& section = m_source->section(i);
 		// draw signal
@@ -1066,7 +1080,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			}
 
 			// draw signals at beggining of block section
-			paintSignal(section.start_node.X, node_size, line_width, section.trackLineId, track_separation, i);
+			paintSignal(section.start_node.X, node_size, line_width, section.trackLineId, track_separation, i, sectionLabels);
 		}
 	}
 
@@ -1374,7 +1388,8 @@ void NetworkPresenter::paintConnection(QPointF start, QPointF end, int penWidth,
 }
 
 // draws trackside signals (X is the beginning of the block section - except for the last signal of each trackline)
-void NetworkPresenter::paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex) {
+void NetworkPresenter::paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex,
+	const SceneSectionLabels& labels) {
 	const Section& section = m_source->section(sectionIndex);
 	const TrackPreviewLine* previewLine = cachedTrackLine(track);
 	if (!previewLine && !hasTrackGeometry(track))
@@ -1484,6 +1499,15 @@ void NetworkPresenter::paintSignal(double X, int size, int penWidth, int track, 
 
 	QGraphicsLineItem* basis2 = new QGraphicsLineItem(geometry.forwardBase);
 	basis2->setPen(penPost);
+
+	// The tooltip and the inspector name the track and the sections as the scene does.
+	for (SignalItem* plate : {plate1, plate2}) {
+		plate->sceneTrackId = m_source->track(track).sceneTrackId;
+		if (!plate->sectionAheadId.empty())
+			plate->sectionAheadLabel = labels.label(plate->sectionAheadId);
+		if (!plate->sectionBehindId.empty())
+			plate->sectionBehindLabel = labels.label(plate->sectionBehindId);
+	}
 
 	const auto addSignalDecoration = [this, track](QGraphicsItem* item) {
 		item->setData(kSignalDecorationRole, true);
