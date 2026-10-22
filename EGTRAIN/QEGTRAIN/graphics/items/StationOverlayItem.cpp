@@ -581,8 +581,8 @@ qreal hullTopAt(const QList<QPointF>& centres, qreal x) {
 // A station mark and its name are placed by the node centres of the mark, or by the anchor without them, in both
 // looks: the frame of the far look stands on the top edge of the hull of the centres at the x of the centre of the dots,
 // and the name sits a small gap under the dots, centred under them, so that it keeps its place when the look switches.
-// A single centre, a row and a stack put the frame on the top centre of their box. A plain picture and its name stay at
-// their artwork point.
+// The frame of a station or major station stands on the top centre of the box of its centres for a single centre, a row
+// or a stack, and a halt stands on its first square. A plain picture and its name stay at their artwork point.
 void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
 	QList<QPointF> centres;

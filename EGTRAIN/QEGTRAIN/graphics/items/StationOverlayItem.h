@@ -277,11 +277,11 @@ public:
 	void setNodeCentres(const QList<QPointF>& centres);
 	/// Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the
 	/// bottom centre of its frame on the top edge of the convex hull of its node centres, at the x of the centre of its
-	/// dots: on the top centre of their box for a single centre, a row or a stack, and on its own area for a diagonal
-	/// station. It shows as the dots in the near look. Its name sits under the dots in both looks, so that mark and name
-	/// share their x. In the far look the area of the station is the hull of its node centres widened by
-	/// AreaMarginPixels on screen; it is shown while the mark is visible and hidden in the near look. A plain picture
-	/// keeps the far look and, like its name, its artwork point.
+	/// dots: a station or major station on the top centre of their box for a single centre, a row or a stack, a halt on
+	/// its first square, and a diagonal station on its own area. It shows as the dots in the near look. Its name sits
+	/// under the dots in both looks, so that mark and name share their x. In the far look the area of the station is
+	/// the hull of its node centres widened by AreaMarginPixels on screen; it is shown while the mark is visible and
+	/// hidden in the near look. A plain picture keeps the far look and, like its name, its artwork point.
 	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }
@@ -290,13 +290,13 @@ public:
 	QRectF pictogramSceneRect() const;
 	/// Places the names of station marks and hides the attached names that overlap, on screen, the name of a
 	/// higher-priority station or that cover part of the visible pictogram of any other station. A name goes
-	/// under the dots of its station, or, where its text there crosses a track line or the pictogram of another
-	/// station, hidden or not, to the first of these spots that crosses neither: above the frame of the far look,
-	/// right of the dots, left of them, and above a frame on the top centre of the box of the node centres; without one
-	/// it stays under the dots. A name is placed again only after applyViewScale() moved it. The spots do not depend on
-	/// the look and pictograms are tested by pictogramSceneRect(), so the same names show in both looks. Selected and
-	/// followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the
-	/// view.
+	/// under the dots of its station, or, where its text there crosses a visible track line or the pictogram of
+	/// another station, shown or hidden, to the first of these spots that crosses neither: above the frame of the far
+	/// look, right of the dots, left of them, and above a frame on the top centre of the box of the node centres;
+	/// without one it stays under the dots. A name is placed again only after applyViewScale() moved it. The spots do
+	/// not depend on the look and pictograms are tested by pictogramSceneRect(), so the same names show in both looks.
+	/// Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport
+	/// transform of the view.
 	static void resolveNameCollisions(const QList<StationOverlayItem*>& stations,
 		const QTransform& sceneToViewport);
 
