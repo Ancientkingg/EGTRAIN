@@ -799,14 +799,14 @@ int main(int argc, char* argv[]) {
 		ok &= expect(place() == under, "a hidden track does not move a name");
 		below->setVisible(true);
 		scene.addItem(new TrackLineItem(QLineF(-2000.0, above.center().y(), 2000.0, above.center().y())));
-		const QRectF right = place();
-		ok &= expect(right.left() > dots.right() && right.top() < dots.center().y() && right.bottom() > dots.center().y(),
+		const QRectF rightSpot = place();
+		ok &= expect(rightSpot.left() > dots.right() && rightSpot.top() < dots.center().y() && rightSpot.bottom() > dots.center().y(),
 			"a name with tracks under the dots and above the mark goes right of the dots");
-		scene.addItem(new TrackLineItem(QLineF(right.center().x(), -2000.0, right.center().x(), 2000.0)));
-		const QRectF left = place();
-		ok &= expect(left.right() < dots.left() && left.top() < dots.center().y() && left.bottom() > dots.center().y(),
+		scene.addItem(new TrackLineItem(QLineF(rightSpot.center().x(), -2000.0, rightSpot.center().x(), 2000.0)));
+		const QRectF leftSpot = place();
+		ok &= expect(leftSpot.right() < dots.left() && leftSpot.top() < dots.center().y() && leftSpot.bottom() > dots.center().y(),
 			"then it goes left of the dots");
-		scene.addItem(new TrackLineItem(QLineF(left.center().x(), -2000.0, left.center().x(), 2000.0)));
+		scene.addItem(new TrackLineItem(QLineF(leftSpot.center().x(), -2000.0, leftSpot.center().x(), 2000.0)));
 		ok &= expect(place() == under, "a name with no free spot stays under the dots");
 	}
 
@@ -826,13 +826,13 @@ int main(int argc, char* argv[]) {
 		scene.addItem(new TrackLineItem(QLineF(-2000.0, under.center().y(), 2000.0, under.center().y())));
 		const QRectF above = place();
 		scene.addItem(new TrackLineItem(QLineF(-2000.0, above.center().y(), 2000.0, above.center().y())));
-		const QRectF right = place();
-		scene.addItem(new TrackLineItem(QLineF(right.center().x(), -2000.0, right.center().x(), 2000.0)));
-		const QRectF left = place();
-		scene.addItem(new TrackLineItem(QLineF(left.center().x(), -2000.0, left.center().x(), 2000.0)));
+		const QRectF rightSpot = place();
+		scene.addItem(new TrackLineItem(QLineF(rightSpot.center().x(), -2000.0, rightSpot.center().x(), 2000.0)));
+		const QRectF leftSpot = place();
+		scene.addItem(new TrackLineItem(QLineF(leftSpot.center().x(), -2000.0, leftSpot.center().x(), 2000.0)));
 		const QRectF last = place();
 		ok &= expect(samePoint(frameAnchorInScene(rig), QPointF(0.0, 0.0)) && above.bottom() < -240.0
-				&& above.bottom() > -270.0 - 240.0 && right.left() > 0.0 && left.right() < 0.0,
+				&& above.bottom() > -270.0 - 240.0 && rightSpot.left() > 0.0 && leftSpot.right() < 0.0,
 			"the first four spots of a diagonal station are under the dots, above its frame, right and left of the dots");
 		ok &= expect(last.bottom() < -270.0 - 240.0 && std::abs(last.center().x()) < 1e-6,
 			"a name with its first four spots blocked goes above a frame on the top of the box of the node centres");
@@ -900,15 +900,15 @@ int main(int argc, char* argv[]) {
 	{
 		// The screen-space mark of an overlay without scene artwork stays inside its bounds, the bar included.
 		for (const StationVisual& visual : {classifyStation(false, 3), classifyStation(true), classifyStation()}) {
-			StationOverlayItem overlay("Bounds", QPointF(), visual);
+			StationOverlayItem boundsOverlay("Bounds", QPointF(), visual);
 			QImage image(200, 100, QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);
 			{
 				QPainter painter(&image);
 				painter.translate(100.0, 50.0);
-				overlay.paint(&painter, nullptr, nullptr);
+				boundsOverlay.paint(&painter, nullptr, nullptr);
 			}
-			const QRect bounds = overlay.boundingRect().translated(100.0, 50.0).toAlignedRect();
+			const QRect bounds = boundsOverlay.boundingRect().translated(100.0, 50.0).toAlignedRect();
 			int outside = 0;
 			bool blue = false;
 			for (int y = 0; y < image.height(); ++y)
