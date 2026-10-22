@@ -324,6 +324,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	}
 
 	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
+	const SceneSectionLabels sectionLabels = sceneSectionLabels(sectionInventory);
 	std::unordered_set<std::string> seenTracks;
 	std::unordered_map<std::string, std::pair<double, double>> virtualSwitches;
 	for (const auto& section : sectionInventory.sections) {
@@ -349,8 +350,14 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					   / 2.0)
 				< kVirtualSwitchToleranceKm)
 			continue;
+		std::string authoredIds;
+		for (const SceneSignal& authored : scene.signals)
+			if (authored.protectedSection == section.id)
+				authoredIds += (authoredIds.empty() ? "" : ", ") + authored.id;
+		std::string label = sectionLabels.label(section.id);
+		std::string name = authoredIds.empty() ? label : authoredIds + " (" + label + ")";
 		result.previewSignals.push_back({section.firstTrackId, section.id,
-			section.startNodeId, section.startKm});
+			section.startNodeId, section.startKm, std::move(label), std::move(name)});
 	}
 
 	if (result.lines.empty())

@@ -25,6 +25,7 @@
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QTextDocument>
 
 #include <iostream>
 #include <vector>
@@ -76,6 +77,16 @@ static QWidget* field(const InspectorPanel& panel, const QString& label) {
 static bool formHidden(const InspectorPanel& panel, const QString& label) {
 	QWidget* widget = field(panel, label);
 	return widget && widget->parentWidget() && widget->parentWidget()->isHidden();
+}
+
+// The tooltip of the field of the row, as plain text.
+static QString tip(const InspectorPanel& panel, const QString& label) {
+	QWidget* widget = field(panel, label);
+	if (!widget)
+		return QStringLiteral("<no field>");
+	QTextDocument document;
+	document.setHtml(widget->toolTip());
+	return document.toPlainText();
 }
 
 static QString text(const InspectorPanel& panel, const QString& label) {
@@ -163,10 +174,22 @@ int main(int argc, char* argv[]) {
 	TrackPreviewSignal head;
 	head.trackId = "T1";
 	head.sectionId = "@b1@";
+	head.sectionLabel = "T1 0.000 to 1.000 km";
+	head.label = "sig1 (T1 0.000 to 1.000 km)";
 	presenter.m_cachedTrackPreview.previewSignals.push_back(head);
+	sceneSignals(host.model).push_back({"sig1", "@b1@"});
 	panel.displayPreviewInfo(signalPreview);
 	ok &= expect(panel.previewSelectionKind() == "signal" && panel.previewSelectionId() == "@b1@",
 		"a selected signal head of the preview is known by the section it stands at");
+	ok &= expect(panel.dock()->windowTitle() == "Preview: Signal sig1 (T1 0.000 to 1.000 km) (not running)",
+		"the title names a signal of the preview by its authored id and the label of its section");
+	ok &= expect(text(panel, "Protected section") == "T1 0.000 to 1.000 km" && text(panel, "ID of Block Section") == "T1 0.000 to 1.000 km",
+		"the fields of a signal of the preview name its section by its label");
+	ok &= expect(tip(panel, "Protected section") == "T1 0.000 to 1.000 km\nSection ID: @b1@"
+			&& tip(panel, "ID of Block Section") == "T1 0.000 to 1.000 km\nSection ID: @b1@",
+		"the tooltips of those fields give the id of the section");
+	ok &= expect(text(panel, "Signals at location") == "Track T1; section @b1@; forward; authored signal IDs: sig1",
+		"the details of a signal of the preview keep the id of its section");
 	panel.displayPreviewInfo(previewItem(scene, "node", "n9"));
 	ok &= expect(panel.previewSelectionKind().isEmpty() && panel.previewSelectionId().isEmpty(),
 		"an item of the preview that the scene does not have leaves nothing selected");

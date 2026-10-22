@@ -283,6 +283,14 @@ const TrackPreviewLine* NetworkPresenter::trackLine(const std::string& sceneTrac
 	return line == m_cachedTrackPreview.lines.end() ? nullptr : &*line;
 }
 
+const TrackPreviewSignal* NetworkPresenter::previewSignal(const std::string& trackId, const std::string& sectionId) const {
+	const auto& heads = m_cachedTrackPreview.previewSignals;
+	const auto found = std::find_if(heads.begin(), heads.end(), [&](const TrackPreviewSignal& head) {
+		return head.trackId == trackId && head.sectionId == sectionId;
+	});
+	return found == heads.end() ? nullptr : &*found;
+}
+
 const TrackPreviewLine* NetworkPresenter::cachedTrackLine(int track) const {
 	if (!m_source || track < 0 || track >= m_source->trackCount() || m_source->track(track).sceneTrackId.empty())
 		return nullptr;
@@ -683,10 +691,11 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			glyph->setData(PreviewGraphics::Reversed, reversed);
 			glyph->X = signal.rawX;
 			glyph->sectionAheadId = signal.sectionId;
+			glyph->sectionAheadLabel = signal.sectionLabel;
 			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km; section %3%4")
 					.arg(QString::fromStdString(signal.trackId))
 					.arg(signal.rawX, 0, 'g', 10)
-					.arg(QString::fromStdString(signal.sectionId))
+					.arg(QString::fromStdString(signal.sectionLabel))
 					.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
 			glyph->setPen(signalHeadPen());
 			glyph->setZValue(3.0);

@@ -34,6 +34,7 @@
 #include <QLabel>
 #include <QLineF>
 #include <QList>
+#include <QMenu>
 #include <QPointF>
 #include <QRectF>
 #include <QString>
@@ -507,19 +508,29 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		} else {
 			SceneModel identified = w.m_document->mutableModel();
 			const std::string sectionId = source.previewSignals.front().sectionId;
+			const QString sectionLabel = QString::fromStdString(source.previewSignals.front().sectionLabel);
 			sceneSignals(identified).push_back({"E2E_SIGNAL_PREVIEW_360", sectionId});
 			w.renderTrackPreview(identified);
 			w.updateViewportOverlays();
-			const bool inspectable = std::any_of(w.m_presenter->m_signalDecorations.cbegin(), w.m_presenter->m_signalDecorations.cend(),
+			// The tooltip names the section by its label; the id stays in the details of the inspector.
+			const auto found = std::find_if(w.m_presenter->m_signalDecorations.cbegin(), w.m_presenter->m_signalDecorations.cend(),
 				[&](QGraphicsItem* item) {
 					auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
 					return signal && signal->isVisible()
 						&& signal->inspectionIdentity().contains("E2E_SIGNAL_PREVIEW_360")
 						&& signal->toolTip().contains("E2E_SIGNAL_PREVIEW_360")
-						&& signal->toolTip().contains(QString::fromStdString(sectionId));
+						&& !sectionLabel.isEmpty() && signal->toolTip().contains(QStringLiteral("section ") + sectionLabel);
 				});
-			if (!inspectable)
+			QString menuTitle;
+			if (found != w.m_presenter->m_signalDecorations.cend()) {
+				w.showSceneContextMenu(*found, QPointF(), QPoint(), false);
+				menuTitle = w.m_sceneContextMenu ? w.m_sceneContextMenu->title() : QString();
+				w.closeSceneContextMenu();
+			}
+			if (found == w.m_presenter->m_signalDecorations.cend())
 				fail("signals", "authored preview signal ID and boundary are not inspectable");
+			else if (menuTitle != QStringLiteral("Preview: E2E_SIGNAL_PREVIEW_360 (%1)").arg(sectionLabel))
+				fail("signals", "the menu of an authored preview signal is called " + menuTitle);
 			else
 				marker("E2E_TRACK_PREVIEW_SIGNAL_IDENTITY_OK");
 		}

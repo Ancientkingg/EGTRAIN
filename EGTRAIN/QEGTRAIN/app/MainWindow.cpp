@@ -3433,7 +3433,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		QMenu* menu = new QMenu(this);
 		menu->setAttribute(Qt::WA_DeleteOnClose);
 		menu->setToolTipsVisible(true);
-		menu->setTitle("Preview: " + id);
+		// A signal is named by the label of its section, as the inspector names it.
+		const TrackPreviewSignal* head = kind == "signal" ? m_presenter->previewSignal(track.toStdString(), id.toStdString()) : nullptr;
+		menu->setTitle("Preview: " + (head ? QString::fromStdString(head->label) : id));
 		const auto resolve = [this, kind, id, track, reversed, revision]() {
 			return m_inspector->resolvePreviewItem(kind, id, track, reversed, revision);
 		};

@@ -43,6 +43,25 @@
 #include <cmath>
 #include <sstream>
 
+namespace {
+
+// Shows text in the field, and in its tooltip the text with tip, such as the id behind a label, under it. The other
+// fields get their text as tooltip from the textChanged hook of the constructor; this sets the tooltip after that.
+void setTextWithTip(QLineEdit* field, const QString& text, const QString& tip) {
+	field->setText(text);
+	field->setToolTip(plainToolTip(tip.isEmpty() ? text : text + QLatin1Char('\n') + tip));
+}
+
+// A section by its label, with its id in the tooltip; "None" without one.
+void setSectionText(QLineEdit* field, const std::string& id, const std::string& label) {
+	if (id.empty())
+		setTextWithTip(field, QStringLiteral("None"), QString());
+	else
+		setTextWithTip(field, QString::fromStdString(label.empty() ? id : label), QStringLiteral("Section ID: %1").arg(QString::fromStdString(id)));
+}
+
+} // namespace
+
 InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, NetworkPresenter& presenter, Host& host)
 	: QObject(window), m_scene(scene), m_presenter(&presenter), m_host(host) {
 	// main widget
@@ -446,16 +465,15 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		connectionInfoWidget->show();
 	} else if (kind == "signal") {
 		const std::string track = item->data(PreviewGraphics::TrackId).toString().toStdString();
-		const auto head = std::find_if(m_presenter->m_cachedTrackPreview.previewSignals.begin(), m_presenter->m_cachedTrackPreview.previewSignals.end(),
-			[&](const TrackPreviewSignal& signal) { return signal.trackId == track && signal.sectionId == id; });
-		if (head == m_presenter->m_cachedTrackPreview.previewSignals.end())
+		const TrackPreviewSignal* head = m_presenter->previewSignal(track, id);
+		if (!head)
 			return;
 		signallingTrackIDText->setText(text(track));
 		signallingXText->setText(number(head->rawX * 1000));
 		signallingAspectText->setText(unavailable);
-		signallingProtectedSectionText->setText(text(id));
+		setSectionText(signallingProtectedSectionText, id, head->sectionLabel);
 		signallingNextTrackText->setText(unavailable);
-		signallingIDSectionAheadText->setText(text(id));
+		setSectionText(signallingIDSectionAheadText, id, head->sectionLabel);
 		signallingLengthSectionAheadText->setText(unavailable);
 		QStringList ids;
 		for (const auto& signal : sceneSignals(model))
@@ -464,7 +482,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		signallingGroupDetails->setPlainText(QStringLiteral("Track %1; section %2; %3; authored signal IDs: %4")
 				.arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward",
 					ids.isEmpty() ? "None" : ids.join(", ")));
-		title = "Signal " + text(id);
+		title = "Signal " + text(head->label);
 		signallingInfoWidget->show();
 	} else {
 		return;

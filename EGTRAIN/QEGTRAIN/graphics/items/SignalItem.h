@@ -57,6 +57,10 @@ public:
 	std::string sectionAheadId;
 	/// The id of the block section behind the head; empty without one.
 	std::string sectionBehindId;
+	/// The label of the section ahead, as sceneSectionLabels gives it; empty without one.
+	std::string sectionAheadLabel;
+	/// The label of the section behind; empty without one.
+	std::string sectionBehindLabel;
 	/// The length of the section ahead as the run gives it, a difference of positions in kilometres; 0 without one.
 	double sectionAheadLength;
 	/// The length of the section behind, as for sectionAheadLength; 0 without one.

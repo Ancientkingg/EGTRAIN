@@ -45,10 +45,14 @@ struct TrackPreviewStation {
 
 /// A signal on the preview, at the start of a block section.
 struct TrackPreviewSignal {
-	std::string trackId;   ///< The track.
-	std::string sectionId; ///< Runtime id of the section that starts there.
-	std::string nodeId;	   ///< The node at the start of the section; empty when none lies there.
-	double rawX = 0.0;	   ///< Chainage in kilometres of the start of the section.
+	std::string trackId;	  ///< The track.
+	std::string sectionId;	  ///< Runtime id of the section that starts there.
+	std::string nodeId;		  ///< The node at the start of the section; empty when none lies there.
+	double rawX = 0.0;		  ///< Chainage in kilometres of the start of the section.
+	std::string sectionLabel; ///< The label of the section, as sceneSectionLabels gives it.
+	/// What names the signal: the ids of the authored signals that protect the section with the label in parentheses,
+	/// "sig1 (B0 0.230 to 0.310 km)", or the label alone when no authored signal does.
+	std::string label;
 };
 
 /// What the network preview draws of a scene.

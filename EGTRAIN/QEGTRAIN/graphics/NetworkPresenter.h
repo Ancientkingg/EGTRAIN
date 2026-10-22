@@ -229,6 +229,8 @@ public:
 
 	/// The line of the preview with this track id in the scene, or null.
 	const TrackPreviewLine* trackLine(const std::string& sceneTrackId) const;
+	/// The signal of the preview on this track at the start of this section, or null.
+	const TrackPreviewSignal* previewSignal(const std::string& trackId, const std::string& sectionId) const;
 	/// The factor from the historical presentation distances to the scene coordinates of the preview; 1 when
 	/// the preview does not project every visible line from the authored station views.
 	qreal presentationScale() const { return m_cachedTrackPreview.presentationScale; }

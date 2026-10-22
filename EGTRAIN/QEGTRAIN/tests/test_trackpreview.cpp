@@ -364,7 +364,19 @@ int main() {
 				&& result.previewSignals[1].nodeId == "B1.Gdg"
 				&& result.previewSignals[1].rawX == 136.0,
 			"preview signal identity uses the base section boundary and source coordinate");
+		ok &= expect(result.previewSignals[0].sectionLabel == "B0 28.000 to 64.000 km"
+				&& result.previewSignals[0].label == "B0 28.000 to 64.000 km"
+				&& result.previewSignals[1].sectionLabel == "B1 136.000 to 164.000 km",
+			"a preview signal without an authored signal is named by the label of its section");
 	}
+	// An authored signal that protects the section is named first, with the label in parentheses.
+	SceneModel authored = scene;
+	authored.signals = {{"sig1", "@B0.block.2@"}, {"other", "@B1.block.1@"}, {"sig2", "@B0.block.2@"}};
+	const TrackPreviewResult authoredResult = loadTrackPreview(authored);
+	ok &= expect(!authoredResult.previewSignals.empty()
+			&& authoredResult.previewSignals[0].sectionLabel == "B0 28.000 to 64.000 km"
+			&& authoredResult.previewSignals[0].label == "sig1, sig2 (B0 28.000 to 64.000 km)",
+		"a preview signal names the authored signals of its section before the label");
 	for (const auto& signal : result.previewSignals)
 		ok &= expect(signal.sectionId.find('/') == std::string::npos,
 			"connection-derived sections do not produce preview signals");
