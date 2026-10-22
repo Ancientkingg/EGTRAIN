@@ -1313,7 +1313,7 @@ int main(int argc, char** argv) {
 	const auto partialRestrictionDiagnostics = validateRunnableScene(restricted);
 	const SceneDiagnostic* partialRestrictionWarning = findCode(partialRestrictionDiagnostics, noEffect);
 	ok &= expect(partialRestrictionWarning != nullptr && contains(partialRestrictionWarning->message, "end_block block-2 (track-1 1.000 to 2.000 km) has no signalling level")
-			&& !contains(partialRestrictionWarning->message, "start_block block-1 has"),
+			&& !contains(partialRestrictionWarning->message, "start_block block-1 (track-1 0.000 to 1.000 km) has"),
 		"the warning names only the blocks without a signalling level");
 	restricted.singleTrackRestrictions.clear();
 	restricted.signallingAreas.clear();
