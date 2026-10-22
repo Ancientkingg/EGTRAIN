@@ -284,10 +284,16 @@ public:
 	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }
-	/// Hides the attached names that overlap, on screen, the name of a higher-priority
-	/// station or that cover part of the visible pictogram of any other station. Selected
-	/// and followed stations keep their name. Pictograms stay visible. sceneToViewport is
-	/// the viewport transform of the view.
+	/// The area in scene coordinates that a station mark takes in either look at the applied view scale, its halo
+	/// included; the scene bounds of a plain picture.
+	QRectF pictogramSceneRect() const;
+	/// Places the names of station marks and hides the attached names that overlap, on screen, the name of a
+	/// higher-priority station or that cover part of the visible pictogram of any other station. A name goes
+	/// under the dots of its station, or, where its text there crosses a track line or the pictogram of another
+	/// station, to the first of these spots that crosses neither: above the mark, right of the dots and left of
+	/// them; without one it stays under the dots. A name is placed again only after applyViewScale() moved it.
+	/// Pictograms are tested by pictogramSceneRect(), so the same names show in both looks. Selected and followed
+	/// stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view.
 	static void resolveNameCollisions(const QList<StationOverlayItem*>& stations,
 		const QTransform& sceneToViewport);
 
@@ -302,6 +308,8 @@ protected:
 private:
 	void rebuildGeometry();
 	void placeArtwork(qreal viewScale, bool dots);
+	void chooseNameSpot(const QList<QPair<const StationOverlayItem*, QRectF>>& pictograms,
+		const QList<QPair<const QGraphicsItem*, QRectF>>& tracks);
 	QRectF labelRectForSide(LabelSide side) const;
 	QRectF translated(const QRectF& rect) const;
 	QRectF translatedSymbol(const QRectF& rect) const;
@@ -340,6 +348,14 @@ private:
 	QPointF m_nameAnchor;
 	qreal m_appliedViewScale = 0.0;
 	bool m_appliedNearLook = false;
+	// The mark in either look, in scene coordinates; null for a plain picture.
+	QRectF m_markSceneRect;
+	// The places in scene coordinates for the top centre of the name, the first under the dots, the size of its text
+	// without the document margin in scene units, and its enlargement about m_nameAnchor.
+	QList<QPointF> m_nameSpots;
+	QRectF m_nameTextRect;
+	qreal m_nameFactor = 1.0;
+	bool m_nameSpotChosen = true;
 	int m_platformCount = 0;
 	bool m_nameHiddenByCollision = false;
 	std::function<void(const QString&)> m_displacedClickHandler;

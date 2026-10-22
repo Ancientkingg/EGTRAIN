@@ -5,6 +5,7 @@
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/SelectionCueItem.h"
 #include "graphics/items/StationNodeItem.h"
+#include "graphics/items/TrackLineItem.h"
 
 #include <QApplication>
 #include <QGraphicsSceneContextMenuEvent>
@@ -722,6 +723,14 @@ int main(int argc, char* argv[]) {
 			"the selection cue of the station square surrounds the dots");
 		rig.node->setGraphicsEffect(nullptr);
 
+		// One mark size in both looks, so that the names that show do not depend on the look.
+		const QRectF nearRect = rig.overlay->pictogramSceneRect();
+		ok &= expect(containsRect(nearRect, rig.mark->sceneBoundingRect()), "the pictogram rect holds the dots");
+		rig.overlay->applyViewScale(0.5, false);
+		ok &= expect(!rig.mark->isNearLook() && rig.mark->boundingRect() == rig.mark->farBoundingRect()
+				&& rig.overlay->pictogramSceneRect() == nearRect && containsRect(nearRect, rig.mark->sceneBoundingRect()),
+			"the pictogram rect is the same in both looks and holds the roundel");
+
 		// Back to the far look: the mark and the name return to their places and the area shows again.
 		view.setTransform(QTransform::fromScale(0.1, 0.1));
 		rig.overlay->applyViewScale(0.1, false);
@@ -735,6 +744,58 @@ int main(int argc, char* argv[]) {
 		rig.node->setVisible(true);
 		rig.overlay->applyViewScale(0.1, false);
 		ok &= expect(area && area->isVisible(), "the area shows again with the mark");
+	}
+
+	{
+		// A name whose text under the dots crosses a track line goes above the mark, then right of the dots, then left
+		// of them; with no free spot it stays under the dots.
+		QGraphicsScene scene;
+		const QTransform far = QTransform::fromScale(0.1, 0.1);
+		const MarkRig rig = addMarkRig(scene, "Alpha", {QPointF(0.0, 0.0), QPointF(0.0, 40.0)});
+		const QRectF dots = stationNodeMarkShape(rig.mark->nodeCentres(), StationClass::Station, 240.0, 0.0).boundingRect();
+		const auto place = [&]() {
+			rig.overlay->applyViewScale(0.2, false);
+			rig.overlay->applyViewScale(0.1, false);
+			StationOverlayItem::resolveNameCollisions({rig.overlay}, far);
+			return rig.name->sceneBoundingRect();
+		};
+		const QRectF under = place();
+		ok &= expect(under.top() > dots.bottom() && std::abs(under.center().x() - dots.center().x()) < 1e-6,
+			"a name without tracks in its way stays under the dots");
+		auto* below = new TrackLineItem(QLineF(-2000.0, under.center().y(), 2000.0, under.center().y()));
+		scene.addItem(below);
+		const QRectF above = place();
+		ok &= expect(above.bottom() < frameAnchorInScene(rig).y() - 240.0 && std::abs(above.center().x() - dots.center().x()) < 1e-6,
+			"a name whose spot under the dots crosses a track goes above the mark");
+		below->setVisible(false);
+		StationOverlayItem::resolveNameCollisions({rig.overlay}, far);
+		ok &= expect(rig.name->sceneBoundingRect() == above, "a name keeps its spot until the mark is placed again");
+		below->setVisible(true);
+		scene.addItem(new TrackLineItem(QLineF(-2000.0, above.center().y(), 2000.0, above.center().y())));
+		const QRectF right = place();
+		ok &= expect(right.left() > dots.right() && right.top() < dots.center().y() && right.bottom() > dots.center().y(),
+			"a name with tracks under the dots and above the mark goes right of the dots");
+		scene.addItem(new TrackLineItem(QLineF(right.center().x(), -2000.0, right.center().x(), 2000.0)));
+		const QRectF left = place();
+		ok &= expect(left.right() < dots.left() && left.top() < dots.center().y() && left.bottom() > dots.center().y(),
+			"then it goes left of the dots");
+		scene.addItem(new TrackLineItem(QLineF(left.center().x(), -2000.0, left.center().x(), 2000.0)));
+		ok &= expect(place() == under, "a name with no free spot stays under the dots");
+	}
+
+	{
+		// A name gives way in the same order to the mark of another station.
+		QGraphicsScene scene;
+		const QTransform far = QTransform::fromScale(0.1, 0.1);
+		const MarkRig upper = addMarkRig(scene, "Upper", {QPointF(0.0, 0.0)});
+		const MarkRig lower = addMarkRig(scene, "Lower", {QPointF(0.0, 400.0)});
+		upper.overlay->applyViewScale(0.1, false);
+		lower.overlay->applyViewScale(0.1, false);
+		StationOverlayItem::resolveNameCollisions({upper.overlay, lower.overlay}, far);
+		const QRectF name = upper.name->sceneBoundingRect();
+		ok &= expect(name.bottom() < frameAnchorInScene(upper).y() - 240.0 && !upper.overlay->isNameHiddenByCollision()
+				&& !name.intersects(lower.overlay->pictogramSceneRect()),
+			"a name whose spot under the dots covers the mark of another station goes above its own mark");
 	}
 
 	{

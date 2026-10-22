@@ -2673,7 +2673,8 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 				|| QLineF(pictureRect.center(), textCenter - QPointF(0, w.m_presenter->station_size * expectedScale / 2)).length() > 1e-6)
 				return false;
 			// On the canvas the roundel stands on the top centre of the box of the station nodes, and the dots of the near
-			// look lie on the nodes without an item transform. The name lies under the box, centred on the mark.
+			// look lie on the nodes without an item transform. The name lies under the box or above the mark, centred on
+			// it, or beside the box.
 			const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
 			if (!mark || mark->nodeCentres().isEmpty()) return false;
 			const QList<QPointF> centres = mark->nodeCentres();
@@ -2686,7 +2687,10 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			if (mark->isNearLook() ? !picture->transform().isIdentity() : QLineF(frameAnchor, QPointF(markX, box.top())).length() > 1e-6)
 				return false;
 			const QRectF name = label->sceneBoundingRect();
-			if (qAbs(name.center().x() - markX) > 1e-6 || name.top() <= box.bottom())
+			const bool centred = qAbs(name.center().x() - markX) < 1e-6;
+			if (!(centred && name.top() > box.bottom()) && !(centred && name.bottom() < picture->sceneBoundingRect().top())
+				&& !((name.left() > box.right() || name.right() < box.left()) && name.top() < box.center().y()
+					&& name.bottom() > box.center().y()))
 				return false;
 		}
 		return true;

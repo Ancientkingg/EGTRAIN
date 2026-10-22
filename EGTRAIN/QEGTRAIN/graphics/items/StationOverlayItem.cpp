@@ -1,11 +1,14 @@
 #include "graphics/items/StationOverlayItem.h"
 
+#include "graphics/items/TrackLineItem.h"
+
 #include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
 #include <QLineF>
 #include <QPainter>
 #include <QPainterPath>
 #include <QStyleOptionGraphicsItem>
+#include <QTextDocument>
 
 #include <algorithm>
 #include <cmath>
@@ -565,14 +568,26 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 	qreal side = 0.0;
 	QRectF marks;
 	qreal top = 0.0;
+	qreal markTop = 0.0;
+	m_markSceneRect = QRectF();
 	if (m_picture) {
 		const qreal scale = readableItemScale(m_pictureNativePixels, m_pictureSceneScale, viewScale, MinPictogramPixels);
 		side = m_pictureNativePixels * scale;
 		if (mark) {
+			const qreal halo = kMarkHaloPixels / viewScale;
 			marks = stationNodeMarkShape(centres, mark->stationClass(), side, 0.0).boundingRect();
 			top = std::min_element(centres.cbegin(), centres.cend(), [](const QPointF& a, const QPointF& b) {
 				return a.y() < b.y();
 			})->y();
+			// The far bounds scaled from the pixmap to the frame that stands on the box of the centres.
+			const QRectF pixmapRect(m_picture->offset(), QSizeF(m_picture->pixmap().size()));
+			const QRectF frame(marks.center().x() - side / 2.0, top - side, side, side);
+			const QRectF far = mark->farBoundingRect();
+			const qreal k = side / pixmapRect.height();
+			m_markSceneRect = QRectF(frame.topLeft() + (far.topLeft() - pixmapRect.topLeft()) * k, far.size() * k);
+			if (!mark->nodeCentres().isEmpty())
+				m_markSceneRect |= stationNodeMarkShape(centres, mark->stationClass(), side, halo).boundingRect();
+			markTop = dots ? marks.top() : frame.top();
 		}
 		if (dots) {
 			m_picture->setTransform(QTransform());
@@ -592,11 +607,52 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 	if (m_name) {
 		const qreal scale = readableItemScale(m_nameNativePixels, m_nameSceneScale, viewScale, MinNamePixels);
 		const QPointF pivot = m_nameAnchor * m_nameSceneScale;
+		m_nameFactor = scale / m_nameSceneScale;
+		m_nameSpots.clear();
 		QPointF shift;
-		if (mark)
-			shift = shiftTo(m_name, pivot, QPointF(marks.center().x(), marks.bottom() + kNearNameGap * side));
-		enlargeAbout(m_name, pivot, scale / m_nameSceneScale, shift);
+		if (mark) {
+			// The spots in the order they are tried, each a small gap from the dots or the mark.
+			const qreal gap = kNearNameGap * side;
+			const qreal margin = m_name->document()->documentMargin() * scale;
+			const QSizeF size = m_name->boundingRect().size() * scale;
+			m_nameTextRect = QRectF(-size.width() / 2.0 + margin, margin, size.width() - 2.0 * margin,
+				size.height() - 2.0 * margin);
+			m_nameSpots = {QPointF(marks.center().x(), marks.bottom() + gap),
+				QPointF(marks.center().x(), markTop - gap - size.height()),
+				QPointF(marks.right() + gap + size.width() / 2.0, marks.center().y() - size.height() / 2.0),
+				QPointF(marks.left() - gap - size.width() / 2.0, marks.center().y() - size.height() / 2.0)};
+			shift = shiftTo(m_name, pivot, m_nameSpots.first());
+		}
+		m_nameSpotChosen = m_nameSpots.isEmpty();
+		enlargeAbout(m_name, pivot, m_nameFactor, shift);
 	}
+}
+
+void StationOverlayItem::chooseNameSpot(const QList<QPair<const StationOverlayItem*, QRectF>>& pictograms,
+	const QList<QPair<const QGraphicsItem*, QRectF>>& tracks) {
+	m_nameSpotChosen = true;
+	if (m_nameSpots.isEmpty())
+		return;
+	const auto free = [&](const QPointF& spot) {
+		const QRectF text = m_nameTextRect.translated(spot);
+		for (const auto& pictogram : pictograms)
+			if (pictogram.first != this && pictogram.second.intersects(text))
+				return false;
+		QPainterPath area;
+		area.addRect(text);
+		return std::none_of(tracks.cbegin(), tracks.cend(), [&](const QPair<const QGraphicsItem*, QRectF>& track) {
+			return track.second.intersects(text) && track.first->collidesWithPath(track.first->mapFromScene(area));
+		});
+	};
+	const auto spot = std::find_if(m_nameSpots.cbegin(), m_nameSpots.cend(), free);
+	const QPointF pivot = m_nameAnchor * m_nameSceneScale;
+	enlargeAbout(m_name, pivot, m_nameFactor, shiftTo(m_name, pivot, spot == m_nameSpots.cend() ? m_nameSpots.first() : *spot));
+}
+
+QRectF StationOverlayItem::pictogramSceneRect() const {
+	if (!m_markSceneRect.isNull())
+		return m_markSceneRect;
+	return m_picture ? m_picture->sceneBoundingRect() : QRectF();
 }
 
 void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>& stations,
@@ -606,15 +662,30 @@ void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>&
 	const QTransform scaling(sceneToViewport.m11(), sceneToViewport.m12(),
 		sceneToViewport.m21(), sceneToViewport.m22(), 0.0, 0.0);
 	QList<StationOverlayItem*> ordered;
-	QList<QPair<const StationOverlayItem*, QRectF>> pictograms;
+	QList<QPair<const StationOverlayItem*, QRectF>> scenePictograms;
 	for (StationOverlayItem* station : stations) {
 		if (!station)
 			continue;
 		if (station->m_name)
 			ordered.append(station);
 		if (station->m_picture && station->m_picture->isVisible())
-			pictograms.append({station, scaling.mapRect(station->m_picture->sceneBoundingRect())});
+			scenePictograms.append({station, station->pictogramSceneRect()});
 	}
+	QList<QPair<const StationOverlayItem*, QRectF>> pictograms;
+	for (const auto& pictogram : std::as_const(scenePictograms))
+		pictograms.append({pictogram.first, scaling.mapRect(pictogram.second)});
+	// The visible track lines with their scene bounds, collected once for the names that are placed again: a query
+	// of the scene for each spot costs more than the whole test.
+	QList<QPair<const QGraphicsItem*, QRectF>> tracks;
+	const auto waiting = std::find_if(ordered.cbegin(), ordered.cend(),
+		[](const StationOverlayItem* station) { return !station->m_nameSpotChosen; });
+	if (waiting != ordered.cend() && (*waiting)->m_name->scene())
+		for (const QGraphicsItem* item : (*waiting)->m_name->scene()->items())
+			if (qgraphicsitem_cast<const TrackLineItem*>(item) && item->isVisible())
+				tracks.append({item, item->sceneBoundingRect()});
+	for (StationOverlayItem* station : std::as_const(ordered))
+		if (!station->m_nameSpotChosen)
+			station->chooseNameSpot(scenePictograms, tracks);
 	std::stable_sort(ordered.begin(), ordered.end(),
 		[](const StationOverlayItem* left, const StationOverlayItem* right) {
 			return priorityLess(*left, *right, QPointF());

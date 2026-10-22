@@ -224,8 +224,13 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 				++namedStations;
 				const QPointF anchor = nameAnchor(name);
 				if (mark) {
-					// The name of a mark keeps its x under the dots.
-					if (qAbs(anchor.x() - markX(mark)) > 1e-6)
+					// The name of a mark keeps its x under the dots or above the mark, or lies beside the dots at their
+					// height.
+					const QRectF box = centresBox(mark->nodeCentres());
+					const QRectF rect = name->sceneBoundingRect();
+					if (qAbs(anchor.x() - markX(mark)) > 1e-6
+						&& !((rect.left() > box.right() || rect.right() < box.left()) && rect.top() < box.center().y()
+							&& rect.bottom() > box.center().y()))
 						anchorsOk = false;
 				} else if (!nameAnchors.contains(overlay)) {
 					nameAnchors.insert(overlay, anchor);
