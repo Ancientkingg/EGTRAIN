@@ -1779,6 +1779,15 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				failures << "signal context copy action did not preserve position precision";
 			}
 		}
+		// The section of the head by the id that the run uses, not by its label.
+		QAction* copySection = findMenuAction(menu, "Copy section ID");
+		const std::string expectedSection = !visibleSignal->sectionAheadId.empty() ? visibleSignal->sectionAheadId : visibleSignal->sectionBehindId;
+		if (copySection)
+			copySection->trigger();
+		if (!copySection || !QApplication::clipboard() || QApplication::clipboard()->text() != QString::fromStdString(expectedSection)) {
+			ok = false;
+			failures << "signal context menu did not copy the section id of the head";
+		}
 		checkDeferredAction(menu, "Next train approaching this signal", signalApproachExplanation);
 		closeContextMenu();
 	} else {

@@ -3615,6 +3615,15 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 						.arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
 						.arg(reversed ? "reverse" : "forward"));
 		});
+		// The section of the head, as Protected section in the inspector shows it, by the id that the run uses.
+		const QString section = QString::fromStdString(!signal->sectionAheadId.empty() ? signal->sectionAheadId : signal->sectionBehindId);
+		if (!section.isEmpty()) {
+			QAction* copySection = menu->addAction("Copy section ID");
+			connect(copySection, &QAction::triggered, this, [this, track, position, reversed, section]() {
+				if (resolveSignalItem(track, position, reversed) && QApplication::clipboard())
+					QApplication::clipboard()->setText(section);
+			});
+		}
 		menu->addSeparator();
 		addDeferred("Next train approaching this signal",
 			"Requires the signal route association and an approaching-train query.");
