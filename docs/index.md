@@ -62,6 +62,7 @@ development/coding-guidelines
 development/error-handling
 development/documentation-decision
 development/code-documentation-investigation
+development/readable-ids-decision
 architecture/source-layout
 architecture/scene-model
 architecture/scene-editor-flow
