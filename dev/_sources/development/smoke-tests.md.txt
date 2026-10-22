@@ -235,11 +235,17 @@ The script starts the application with the editor smoke hook and a settings
 folder of its own. The first argument is an optional scene directory; the
 default is `Assignment_Gvc_Gdg_Ut`, and `QEGTRAIN_E2E_SCENE_ALT` names the
 second scene, `Copenhagen` by default. The application creates, edits,
-validates, saves and reloads cases through the editors. It then edits a copy of
+validates, saves and reloads cases through the editors. When the first scene has
+no passengers, it turns the passengers on in `Paimpol` and checks that the first
+scene then draws no platform bars and shows the switch off, and that `Paimpol`
+shows it on again. It then edits a copy of
 the first scene in each editor and checks that every edit is one step of the
 history, that Undo and Redo return the scene to the state before and after each
 step (the bytes that Save writes, the editors, the validation, the unsaved mark
-and the run results), that a stop dialog that is accepted is one step and one
+and the run results) and keep the zoom and the centre of the network view, that an
+edit in a replay closes the Train Info dock of a train that is selected in it, that an edit
+after a run replaces the message that the run is complete and gives the focus that was in the
+Run Results dock to the network view, that a stop dialog that is accepted is one step and one
 that is cancelled is none, that Save keeps the history, and that a new edit after
 Undo, a failed open, an open and a new scene change the history as
 [Window flow](../architecture/scene-editor-flow.md#window-flow) describes. It
@@ -251,8 +257,9 @@ to the saved state, Save, an open of the same scene and a new scene each remove 
 replace the copy; that Discard followed by an open that fails and Cancel keep it; that
 closing the window leaves no copy; that Decide Later keeps a copy that an ended
 window left and Discard removes it; that Recover opens the copy as an unsaved scene
-without a file, with Save As starting at the original; and that a folder that cannot
-be made is reported once while the editing goes on. Next
+without a file, with Save As starting at the original; that a folder that cannot
+be made is reported once while the editing goes on; and that a copy that fails during
+a pick of an incident target is reported when the pick ends, not over its hint. Next
 it checks the layout of the editors: the main window does not grow beyond 1280
 by 800 pixels when an editor dock is shown at the normal and at 1.5 times the
 font size, a floated dock stays within 750 by 600 and keeps its scroll area,
