@@ -397,8 +397,10 @@ From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the reposit
 <span class="n">ctest</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> presets make a Debug build. Each preset builds in <code class="docutils literal notranslate"><span class="pre">out\build\&lt;preset&gt;</span></code>. The first configure also
-builds ZeroMQ, cppzmq and nlohmann-json with vcpkg. CI does not use the presets: it installs the same packages with
+<p>The <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> presets make a Debug build. Each preset builds in <code class="docutils literal notranslate"><span class="pre">out\build\&lt;preset&gt;</span></code>. The first configure on a
+machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
+in <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\vcpkg\archives</span></code>. The configure prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">WrapVulkanHeaders</span></code> twice, which does no
+harm. CI does not use the presets: it installs the same packages with
 vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>.</p>
 <p>The Start-menu entry <strong>Developer PowerShell for VS</strong> opens a shell that targets 32-bit Windows, and the configure then
 stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.
@@ -407,7 +409,7 @@ stops with a message that names x64 as the only supported platform. Switch that 
   <span class="n">-DevCmdArguments</span> <span class="s1">'-arch=x64 -host_arch=x64'</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Qt6_DIR</span></code> in <code class="docutils literal notranslate"><span class="pre">build/CMakeCache.txt</span></code> shows which Qt a build folder uses.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Qt6_DIR</span></code> in the <code class="docutils literal notranslate"><span class="pre">CMakeCache.txt</span></code> of a build folder (<code class="docutils literal notranslate"><span class="pre">out\build\&lt;preset&gt;</span></code> with a preset) shows which Qt it uses.</p>
 <p>Without a preset, CMake on Windows uses the Visual Studio generator, which is multi-config: choose the configuration
 when building and testing, as in the next two sections.</p>
 <section id="visual-studio">
@@ -420,9 +422,10 @@ include the C++ CMake tools and the vcpkg package manager.</p></li>
 <li><p>Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts into <code class="docutils literal notranslate"><span class="pre">C:\Qt</span></code>, with
 aqtinstall or the Qt online installer as in <a class="reference internal" href="#requirements">Requirements</a>.</p></li>
 <li><p>Open the repository folder with <strong>File &gt; Open &gt; Folder</strong>. Visual Studio then configures the <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> preset. The
-first configure also builds the vcpkg libraries and takes longer.</p></li>
+first configure on a machine also builds the vcpkg libraries and takes longer.</p></li>
 <li><p>For a Release build, pick <code class="docutils literal notranslate"><span class="pre">x64-release</span></code> in the configuration list of the toolbar.</p></li>
-<li><p>Pick <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> as the startup item and press F5. The default startup item is another program of the build.</p></li>
+<li><p>Pick <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> as the startup item, not <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span> <span class="pre">(Install)</span></code>, and press F5. The default startup item is
+another program of the build.</p></li>
 <li><p>Run the tests from <strong>Test &gt; Test Explorer</strong>.</p></li>
 </ol>
 <p>Visual Studio and <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--preset</span></code> run the programs and tests with the environment of the preset, whose <code class="docutils literal notranslate"><span class="pre">PATH</span></code> has the

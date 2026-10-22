@@ -98,7 +98,7 @@ What exists. The offscreen smokes already save the main window and some dialogs 
 Process:
 
 1. A test program in `EGTRAIN/QEGTRAIN/tests/e2e/` opens a named case, puts the window in a named state and saves each picture with `grab()`.
-2. `tools/docs/capture_screenshots.sh` runs it with `QT_QPA_PLATFORM=offscreen` in a Qt 6 build on macOS arm64 and writes `docs/images/` and `docs/images/captures.json`. Running it again regenerates every capture.
+2. `tools/docs/capture_screenshots.sh` runs it in a Qt 6 build on macOS, on a screen at a device pixel ratio of 1, and writes `docs/images/` and `docs/images/captures.json`. Running it again regenerates every capture. The pictures were first taken on the offscreen platform; since 2026-10-22 they are taken with the macOS platform in a virtual machine, because the offscreen font and widget style do not look like the application.
 3. `captures.json` lists, for each file, its case, state, size and the application version. A picture that cannot be scripted is marked manual there, with the steps to take it.
 4. Names are `<page>-<subject>.png`, lower case with hyphens, for example `getting-started-open-a-case.png`.
 5. Window captures are 1200 by 750 pixels at a device pixel ratio of 1. Dialogs keep their natural size. Nothing is wider than 1200 pixels.
@@ -109,7 +109,7 @@ Process:
 A stale picture is found in two ways:
 
 - `check_docs.py` fails when a PNG under `docs/images/` is not in `captures.json`, an entry has no file, a size differs from the manifest, or the recorded version differs from `EGTRAIN_VERSION` in its major or minor part.
-- `capture_screenshots.sh --check` captures again into a temporary folder and lists pictures where more than 2 percent of the pixels differ. It runs from the release checklist, not on every pull request, because fonts differ between systems.
+- `capture_screenshots.sh --check` captures again into a temporary folder and lists pictures where more than 2 percent of the pixels differ. It runs from the release checklist, not on every pull request, because it needs a macOS screen at a device pixel ratio of 1. On every pull request CTest checks on the offscreen platform that the capture phase still takes every picture.
 
 ## Onboarding path
 

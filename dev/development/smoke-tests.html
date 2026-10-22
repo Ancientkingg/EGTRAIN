@@ -863,16 +863,20 @@ preview but does not compare them with a run.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>tools/docs/capture_screenshots.sh
 </pre></div>
 </div>
-<p>The pictures in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> come from this script. It starts a build made with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_BUILD_TESTS=ON</span></code> on the
-offscreen platform, where the capture phase in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/Captures.cpp</span></code> opens each case, puts the
-window or dialog in the state of the picture and saves it. Windows are 1200 by 750 pixels and dialogs keep their own
-size. The script writes the pictures and <code class="docutils literal notranslate"><span class="pre">docs/images/captures.json</span></code>, which gives the case, state, size and program
-version of each. A picture that cannot be scripted is added to <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> by hand, with <code class="docutils literal notranslate"><span class="pre">&quot;manual&quot;</span></code> holding the
-steps to take it, and the script keeps such entries. <code class="docutils literal notranslate"><span class="pre">--check</span></code> takes the pictures into a temporary folder and lists
-the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel within 32 of
-the reference in each colour channel, at its place or next to it, counts as unchanged. The release checklist
-runs it. <code class="docutils literal notranslate"><span class="pre">--sizes</span></code> checks only the sizes, because fonts differ between systems. CTest registers it on macOS as
-<code class="docutils literal notranslate"><span class="pre">test_capture_screenshots</span></code>, disabled until the pictures, which predate the current dialog style, are taken again. <code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code> fails when a picture in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> and <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> disagree.</p>
+<p>The pictures in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> come from this script. It starts a build made with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_BUILD_TESTS=ON</span></code>, where
+the capture phase in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/e2e/Captures.cpp</span></code> opens each case, puts the window or dialog in the
+state of the picture and saves it. Windows are 1200 by 750 pixels and dialogs keep their own size. The pictures show
+the look of the platform, so take them on macOS with a screen at a device pixel ratio of 1, such as a macOS virtual
+machine with a display that is not HiDPI: on a Retina screen the capture phase stops with a message that names the
+ratio. The window needs a screen on which a 1200 by 750 window fits. The script writes the pictures and
+<code class="docutils literal notranslate"><span class="pre">docs/images/captures.json</span></code>, which gives the case, state, size and program version of each. A picture that cannot be
+scripted, such as the README picture with a run on screen, is added to <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> by hand, with <code class="docutils literal notranslate"><span class="pre">&quot;manual&quot;</span></code>
+holding the steps to take it, and the script keeps such entries. <code class="docutils literal notranslate"><span class="pre">--check</span></code> takes the pictures into a temporary folder
+and lists the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel
+within 32 of the reference in each colour channel, at its place or next to it, counts as unchanged. The release
+checklist runs it. <code class="docutils literal notranslate"><span class="pre">--taken</span></code> takes the pictures on the offscreen platform and lists only the missing ones, because a
+dialog takes its size from the font and style of the platform. CTest runs it on macOS as <code class="docutils literal notranslate"><span class="pre">test_capture_screenshots</span></code>.
+<code class="docutils literal notranslate"><span class="pre">check_docs.py</span></code> fails when a picture in <code class="docutils literal notranslate"><span class="pre">docs/images</span></code> and <code class="docutils literal notranslate"><span class="pre">captures.json</span></code> disagree.</p>
 </section>
 <section id="smoke-artifacts">
 <h2>Smoke artifacts<a class="headerlink" href="#smoke-artifacts" title="Link to this heading">¶</a></h2>

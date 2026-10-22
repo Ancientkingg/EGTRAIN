@@ -18,9 +18,9 @@ The [glossary](glossary.md) defines the other words of the program.
 
 Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). [Installing EGTRAIN](install.md) has the steps for each system, including what to do when macOS or Windows warns before the first start.
 
-- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case Study...**: in column view the file dialog then lists your home folder.
+- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case Study...**: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export or save, because an export dialog starts in your Documents folder, as does a save dialog for an example case or a new case. That dialog does not respond until you answer.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
-- Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64` on Ubuntu 24.04 or `libfuse2` on Ubuntu 22.04, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
+- Linux: make the AppImage executable and run it. It needs glibc 2.38 or later, as on Ubuntu 24.04. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libopengl0`, `libegl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64`, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
 
 The packages contain the example cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the same page.
 
@@ -67,7 +67,7 @@ While the run is active:
 
 - The progress bar under the network shows the clock time and the end time, such as `07:51:31 of 09:40:40`; its tooltip gives the step (`Step n of m`). The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one. The track of the section that a train occupies is red. From a zoom of 3x the speed of each train is written beside it, and that of a selected or followed train at any zoom.
 
-  ![The main window during a run of Paimpol, zoomed in to 25x with Follow on Guin-Paim-EXPRESS-1-1 between its signals. The progress bar reads 07:51:31, step 2,452 of 9,000, and Run is dimmed while Pause and Stop are enabled.](../images/getting-started-run-in-progress.png)
+  ![The main window during a run of Paimpol, zoomed in to 25x with Follow on Guin-Paim-EXPRESS-1-1 between its signals. The progress bar reads 07:51:31 of 09:40:40, and Run is dimmed while Pause and Stop are enabled.](../images/getting-started-run-in-progress.png)
 - Move the speed slider to the right to play faster or to the left to play slower. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
 - The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers**, **Infrastructure** and **Incidents** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling stock units** and **Compositions** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
@@ -89,14 +89,14 @@ To open a result window, click **Open result view...** in the dock and choose an
 
 The other entries are listed in [How-to](how-to.md#results-and-exports). The entries stay disabled until a run has ended.
 
-![The window after a completed run of Paimpol / baseline, with the menu Open result view of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view, Export CSV and Export PNG, Set delay baseline and Compare delays, and the results table.](../images/getting-started-run-results.png)
+![The window after a completed run of Paimpol / baseline, with the menu Open result view of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view, Export CSV and Export PNG, the results table, and at the bottom edge the buttons Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
 
 ## 7. Export one CSV and one PNG
 
 1. In the dock **Run Results**, click **Export CSV...**. The dialog **Export Data** suggests the name `run_summary.csv`. Choose a folder of your own and save. The file has one row for each train and the row **Network total**.
-2. Click **Export PNG...**. The dialog **Export Table** suggests `run_summary.png`. Save it. The picture shows the table as it appears in the dock.
+2. Click **Export PNG...**. The dialog **Export Table** suggests `run_summary.png`. Save it. The picture shows the whole table, with every row and column, also those the dock has to scroll to.
 
-Each result window has its own **Export CSV...** and **Export PNG...** for the data and the chart of that window. Every export writes a second file with the same name plus `.provenance.json`, which records the run that produced it. Keep the two files together.
+Each chart window and the window **Timetable** have their own **Export CSV...** and **Export PNG...** for the data and the picture of that window. **Delay analysis** has only **Export CSV...**, **Capacity** has **Export capacity CSV...** and **Capacity by area** has **Export area capacity CSV...**. Every export writes a second file with the same name plus `.provenance.json`, which records the run that produced it. Keep the two files together.
 
 An export dialog starts in your Documents folder, or in your home folder when there is none. Exports are not written to the output folder below.
 

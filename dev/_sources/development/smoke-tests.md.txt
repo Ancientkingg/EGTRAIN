@@ -487,16 +487,20 @@ preview but does not compare them with a run.
 bash tools/docs/capture_screenshots.sh
 ```
 
-The pictures in `docs/images` come from this script. It starts a build made with `EGTRAIN_BUILD_TESTS=ON` on the
-offscreen platform, where the capture phase in `EGTRAIN/QEGTRAIN/tests/e2e/Captures.cpp` opens each case, puts the
-window or dialog in the state of the picture and saves it. Windows are 1200 by 750 pixels and dialogs keep their own
-size. The script writes the pictures and `docs/images/captures.json`, which gives the case, state, size and program
-version of each. A picture that cannot be scripted is added to `captures.json` by hand, with `"manual"` holding the
-steps to take it, and the script keeps such entries. `--check` takes the pictures into a temporary folder and lists
-the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel within 32 of
-the reference in each colour channel, at its place or next to it, counts as unchanged. The release checklist
-runs it. `--sizes` checks only the sizes, because fonts differ between systems. CTest registers it on macOS as
-`test_capture_screenshots`, disabled until the pictures, which predate the current dialog style, are taken again. `check_docs.py` fails when a picture in `docs/images` and `captures.json` disagree.
+The pictures in `docs/images` come from this script. It starts a build made with `EGTRAIN_BUILD_TESTS=ON`, where
+the capture phase in `EGTRAIN/QEGTRAIN/tests/e2e/Captures.cpp` opens each case, puts the window or dialog in the
+state of the picture and saves it. Windows are 1200 by 750 pixels and dialogs keep their own size. The pictures show
+the look of the platform, so take them on macOS with a screen at a device pixel ratio of 1, such as a macOS virtual
+machine with a display that is not HiDPI: on a Retina screen the capture phase stops with a message that names the
+ratio. The window needs a screen on which a 1200 by 750 window fits. The script writes the pictures and
+`docs/images/captures.json`, which gives the case, state, size and program version of each. A picture that cannot be
+scripted, such as the README picture with a run on screen, is added to `captures.json` by hand, with `"manual"`
+holding the steps to take it, and the script keeps such entries. `--check` takes the pictures into a temporary folder
+and lists the ones that are missing, have another size or differ in more than 2 percent of their pixels; a pixel
+within 32 of the reference in each colour channel, at its place or next to it, counts as unchanged. The release
+checklist runs it. `--taken` takes the pictures on the offscreen platform and lists only the missing ones, because a
+dialog takes its size from the font and style of the platform. CTest runs it on macOS as `test_capture_screenshots`.
+`check_docs.py` fails when a picture in `docs/images` and `captures.json` disagree.
 
 ## Smoke artifacts
 
