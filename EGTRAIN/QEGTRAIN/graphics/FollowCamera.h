@@ -10,21 +10,19 @@
 #include <QTimer>
 #include <functional>
 
-/// Moves the centre of a NetworkView towards a target scene position. It owns neither a
-/// train nor a snapshot: the caller passes positions in and the controller moves the view.
+/// Keeps the centre of a NetworkView on a target scene position. It owns neither a train nor a snapshot: the caller
+/// passes positions in and the controller moves the view.
 ///
-/// A glide follows the target with a timer of its own. The view moves at a constant speed and
-/// reaches the newest target one estimated update interval after that target arrived, and never
-/// sooner than two timer steps. The estimate starts at 500 ms, and each interval between targets of
-/// up to 2000 ms moves it halfway there. It is about one update behind a train that moves at constant
-/// speed, and moves at one speed between updates and across them. The distance to the target is
-/// capped to 30 percent of the smaller side of the visible scene, and the timer stops when the target
-/// is reached or the view cannot get closer to it. A snap moves the view at once.
+/// Every target moves the view to it at once, to a fraction of a pixel. The window passes the position at which a
+/// followed train is drawn at every step of its glide, so the view moves with the train in the same frame. The first
+/// target after stop(), a snap and a target further away than 1.5 times the larger side of the visible scene are a
+/// cut, which also ends a catch-up. Where the edge of the scene holds an axis of the view, the view stays at the edge
+/// on that axis.
 ///
-/// The controller reads the real centre back after every move to detect a clamped axis, and
-/// leaves a clamped axis out of the distance, the step and the lag cap of the free axis. It
-/// adopts the centre after a pan, a zoom or a resize by the user as the new starting point, so
-/// the next glide returns from there.
+/// The controller adopts the centre after a pan, a zoom or a resize by the user. The next target then starts a
+/// catch-up: the view keeps the distance from the target that the user left and closes it over catchUpMs, easing in
+/// and out, with a timer of its own so that a catch-up also ends while the target stands still. Without a new target,
+/// as in a paused run, the view stays where the user left it.
 class FollowCamera : public QObject {
 	Q_OBJECT
 
@@ -32,25 +30,27 @@ public:
 	/// A clock that returns a time in milliseconds.
 	using Clock = std::function<qint64()>;
 
-	/// The interval of the glide timer in milliseconds.
-	static constexpr int tickIntervalMs = 33;
+	/// The interval of the timer of a catch-up in milliseconds.
+	static constexpr int tickIntervalMs = 16;
+	/// How long a catch-up takes in milliseconds.
+	static constexpr int catchUpMs = 400;
 
 	/// Moves view, which the camera does not own. A pan, a zoom or a resize of the view sets a new starting
 	/// point, and the deletion of the view stops the camera.
 	explicit FollowCamera(NetworkView* view, QObject* parent = nullptr);
 
-	/// Sets the position to follow, in scene coordinates. A snap moves the view there at once. The first target
-	/// after stop() and a target further away than 1.5 times the larger side of the visible scene also
-	/// move the view at once.
+	/// Sets the position to follow, in scene coordinates, and moves the view there, part of the way during a
+	/// catch-up. A snap, the first target after stop() and a target further away than 1.5 times the larger side of
+	/// the visible scene cut to the target.
 	void follow(const QPointF& target, bool snap);
-	/// Moves the view to the target at once and stops the timer.
+	/// Moves the view to the target at once and ends a catch-up.
 	void settle();
-	/// Forgets the target and stops the timer.
+	/// Forgets the target and ends a catch-up.
 	void stop();
-	/// One step of the glide. The timer calls it; tests call it with a clock set by setClock().
+	/// One step of a catch-up. The timer calls it; tests call it with a clock set by setClock().
 	void tick();
 
-	/// The glide timer runs.
+	/// A catch-up is under way, and its timer runs.
 	bool running() const { return m_timer.isActive(); }
 	/// A target is set and not forgotten by stop().
 	bool hasTarget() const { return m_hasTarget; }
@@ -61,33 +61,25 @@ public:
 	void setClock(Clock clock);
 
 private:
-	struct Stall {
-		bool x = false;
-		bool y = false;
-	};
-
 	qint64 nowMs() const;
 	QPointF viewCenter() const;
-	qreal pixelSize() const;
-	Stall moveTo(const QPointF& desired);
-	qreal distanceToTarget(const Stall& stall) const;
-	qint64 glideDurationMs() const;
+	QPointF catchUpOffset(qint64 now);
+	void moveTo(const QPointF& desired);
+	void cut();
 	void adoptViewCenter();
 
 	QPointer<NetworkView> m_view;
 	QTimer m_timer;
 	QElapsedTimer m_elapsed;
 	Clock m_clock;
-	QPointF m_position;
 	QPointF m_target;
-	Stall m_stall;
 	bool m_hasTarget = false;
-	bool m_withinLag = true;
 	bool m_moving = false;
-	qreal m_intervalMs;
-	qint64 m_lastTargetMs = 0;
-	qint64 m_lastTickMs = 0;
-	qint64 m_arrivalMs = 0;
+	// The user moved the view, so the next target starts a catch-up from where the view is.
+	bool m_adopted = false;
+	// The distance from the target that a catch-up closes, and when it started.
+	QPointF m_catchUp;
+	qint64 m_catchUpStartMs = 0;
 };
 
 #endif // FOLLOWCAMERA_H

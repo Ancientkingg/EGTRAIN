@@ -68,20 +68,20 @@ view does not move. Follow is also cleared when the run ends, when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 
-In a live run the view glides after the followed train. It moves at an even speed and
-reaches each new position of the train about one update interval after that position
-arrived, so it is about one update behind the train and stays less than a third of the
-visible area behind it. When the run is paused, the view reaches the last position and
-stops. In the replay of a completed
-run the view moves to the train at once at every seek and every step of the playback,
+In a live run a train glides along its track from one update to the next. The glide
+lasts about as long as the time between two updates at the current speed, so the train
+moves all the time and reaches each position as the next one arrives. The followed train
+stays in the middle of the view: the view moves with the train at every step of its glide.
+A train that has just appeared, that runs backwards, or that would glide further than the
+visible area moves to its new position at once. In the replay of a completed
+run the trains and the view move at once at every seek and every step of the playback,
 because the replay holds a frame every five seconds and a glide would show motion that
 was not recorded. Switching Follow on and choosing another train also move the view at
 once. Dragging the canvas, zooming with the wheel and resizing the window do not switch
-Follow off: in a live run the view returns to the train with a glide at the next
-update. The zoom buttons of the toolbar centre the view on the train at once, and
-**Fit** shows the whole network. Stop, switching Follow off and switching the Trains
-layer off stop the view where it is. The train item has its own movement of 120 ms
-between two updates.
+Follow off: in a live run the view returns to the train at the next update, smoothly
+over less than half a second. The zoom buttons of the toolbar centre the view on the
+train at once, and **Fit** shows the whole network. Stop, switching Follow off and
+switching the Trains layer off stop the view where it is.
 
 ## Selecting items
 

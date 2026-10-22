@@ -1,6 +1,7 @@
 #ifndef NETWORKPRESENTER_H
 #define NETWORKPRESENTER_H
 
+#include <QElapsedTimer>
 #include <QGraphicsScene>
 #include <QList>
 #include <QMap>
@@ -12,6 +13,7 @@
 #include <QRectF>
 #include <QString>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <set>
@@ -35,6 +37,7 @@ class QGraphicsItemGroup;
 class QGraphicsPixmapItem;
 class QVariantAnimation;
 class RuntimeGeometrySource;
+class Section;
 class SignalItem;
 class StationOverlayItem;
 class TrackLineItem;
@@ -103,9 +106,12 @@ public:
 		virtual bool isTrainOverlayPromoted(int train) const = 0;
 		/// A train of the snapshot is about to be updated. The frame can be one in which the train has already left.
 		virtual void trainWillUpdate(int train) = 0;
-		/// The train has the shape and the place of the frame; center is the centre of its bodies in scene
-		/// coordinates. Tells whether this moved the camera to the train.
+		/// The train has the shape and the place of the frame; center is trainCenter() of the train: where it is
+		/// drawn at the start of the glide to the new place, or at the new place when the train does not glide.
+		/// Tells whether this moved the camera to the train.
 		virtual bool trainPlaced(int train, const QPointF& center) = 0;
+		/// A step of the glide of a live train moved it; center is trainCenter() of the train as it is drawn now.
+		virtual void trainMoved(int train, const QPointF& center) = 0;
 		/// The train has left the network and is hidden.
 		virtual void trainHidden(int train) = 0;
 		/// The train was added to the canvas; firstLiveTrain is true for the first train of a live run.
@@ -150,7 +156,22 @@ public:
 	/// Adds, moves and hides the trains of the snapshot at step t, in seconds from the start of the run, and sets the
 	/// state of the sections and of the occupied arcs on the track lines. apply() does this; it is public so that the
 	/// trains can be updated alone.
+	///
+	/// A live train glides to its new place along its route: the middle of the train, or a point nearer its head while
+	/// the middle is still before the start of the route, follows the drawn track from where it is drawn, at an even
+	/// speed, and its shape, badge and callouts move with it without being built again. The glide lasts about one update
+	/// interval, the median of the last three intervals between the live updates of the run, so that the next update
+	/// finds the train at its place. A train that has just appeared, has another route or direction, runs backwards,
+	/// or would glide further than the visible view is placed at once, and so is every train of a replay. When the
+	/// event loop was too busy to run the steps of a glide, the next update first moves the train to where its glide
+	/// is by the clock.
 	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
+
+	/// A clock that returns a time in milliseconds.
+	using Clock = std::function<qint64()>;
+	/// Replaces the millisecond clock that measures the time between live updates. An empty function restores the
+	/// real clock.
+	void setClock(Clock clock);
 
 	/// Draws the passenger information of the selected train again, or hides it while the passenger layer is hidden.
 	void updateTrainPaxInfo();
@@ -183,6 +204,14 @@ public:
 	/// Adds a train of the run with its badge and train.wagonCount + 1 bodies of equal length, the first at
 	/// the head. The train is promoted when it is selected or followed.
 	void paintTrain(const GuiTrainState& train, const SceneModel& sceneModel, bool promoted);
+	/// The train group of the run with this index, or null.
+	TrainItemGroup* trainGroup(int train) const;
+	/// The centre of the train as it is drawn, in scene coordinates: on the drawn track, the middle of the part of the
+	/// train that is on its route, so half way between the start of the route and the head while the train enters it,
+	/// or the centre of its bodies when it has no place on its route. A glide moves the train along the track, so this
+	/// point moves on without a jump when the shape of the train is built again at an update, and never back while the
+	/// train runs forward. A null point for a train that is not on the canvas.
+	QPointF trainCenter(int train) const;
 
 	/// Gives each body of the list the shape of its wagon at the present position of the train, and
 	/// tells whether one of them has a shape.
@@ -256,8 +285,6 @@ public:
 	QList<TrainItemGroup*> allTrains;
 	/// The badge of each train by train index.
 	QMap<int, TrainBadgeItem*> m_trainBadges;
-	/// The centre of each train in the scene after its previous update, by train index; its badge sits there.
-	QMap<int, QPointF> m_prevTrainPositions;
 
 	/// The movement of each train between its last two places by train index. The parent of an animation is the scene.
 	QMap<int, QVariantAnimation*> m_trainAnimations;
@@ -398,6 +425,55 @@ private:
 	const SceneModel* m_runModel = nullptr;
 	// Who takes the parts of a frame that are not on the canvas. It is never null.
 	FrameHost* m_host;
+
+	// The drawn track along a route between two positions: the points in the scene, every corner of the drawn lines
+	// between them included, with their positions along the route in metres and the length of the path up to them in
+	// scene units.
+	struct RoutePath {
+		std::vector<QPointF> points;
+		std::vector<double> positions;
+		std::vector<double> lengths;
+		// The point at the length along the path, kept to the path, and its position along the route.
+		QPointF pointAt(double length, double* position = nullptr) const;
+	};
+	// Where a train is drawn on its route after its last update: the route and its direction, the position of the
+	// point of the train that glides and its point in the scene at the end of the glide, the distance in metres from
+	// that point to the head and the length of the train, and the glide, which is null when the train was placed at
+	// once, with the time at which it started.
+	struct TrainRoutePlace {
+		int routeIndex = -1;
+		bool reversedDirection = false;
+		double position = 0.0;
+		QPointF point;
+		double toHead = 0.0;
+		double length = 0.0;
+		std::shared_ptr<const RoutePath> glide;
+		qint64 glideStartMs = 0;
+	};
+	// The place of each train that is drawn on its route, by train index.
+	std::unordered_map<int, TrainRoutePlace> m_trainRoutePlaces;
+	// The last three intervals between two live updates in milliseconds, the oldest first.
+	std::vector<qint64> m_updateIntervals;
+	// The time of the last live update in milliseconds; negative before the first.
+	qint64 m_lastUpdateMs = -1;
+	Clock m_clock;
+	QElapsedTimer m_elapsed;
+	// The index of each section of the source by its id. buildTrackIndexes() fills it for the run.
+	std::unordered_map<std::string, int> m_sectionIndexById;
+
+	qint64 nowMs() const;
+	void noteLiveUpdate();
+	int glideDurationMs() const;
+	qreal longestGlide() const;
+	double glideToHead(const GuiTrainState& train, double drawnHead) const;
+	double middleOnRoute(int routeIndex, double head, double length) const;
+	void offsetTrainCallouts(const TrainItemGroup* trainItem, const QPointF& offset);
+	bool switchSectionEnds(const Section& section, const Section*& first, const Section*& second, double& firstX,
+		double& secondX) const;
+	bool sectionPointAt(const Section& section, double x, QPointF& point) const;
+	void addSectionCorners(const Section& section, double fromX, double toX, std::vector<double>& xs) const;
+	bool routePoint(int routeIndex, bool reversed, double position, QPointF& point) const;
+	bool routePath(int routeIndex, bool reversed, double from, double to, RoutePath& path) const;
 
 	QPointF Coord2ScreenPoint(double x, double y, double factor) const;
 	void calculateStationCoordAndShift();

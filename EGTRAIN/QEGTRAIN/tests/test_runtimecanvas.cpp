@@ -4,6 +4,7 @@
 #include "graphics/NetworkPresenter.h"
 
 #include "app/GuiSimulationSnapshot.h"
+#include "graphics/NetworkView.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
@@ -27,11 +28,13 @@
 #include <QMap>
 #include <QObject>
 #include <QPixmap>
+#include <QVariantAnimation>
 #include <QtMath>
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -79,6 +82,8 @@ public:
 		m_sections[1].length = 5000.0;
 		m_sections[0].total_arcs = 0;
 		m_sections[1].total_arcs = 0;
+		m_sections[0].GeoXBegNode = 0.0;
+		m_sections[1].GeoXBegNode = 5000.0;
 
 		m_route.N_Block_Sections = 2;
 		m_route.sequence_of_block_sections = m_sections;
@@ -154,19 +159,42 @@ static bool bodyAt(const NetworkPresenter& presenter, double headKm) {
 		&& near(polygon[3].x(), head) && near(polygon[3].y(), -half);
 }
 
-// Records what apply() asks of its host, in order.
+// The middle of the first body of a train as it is drawn, in scene coordinates.
+static QPointF drawnMiddle(const TrainItemGroup& train) {
+	const TrainBodyItem* body = train.trainPolygonItemList->at(0);
+	return body->mapToScene(body->polygon().boundingRect().center());
+}
+
+// The distance from a point to the drawn line of a track of the preview.
+static qreal distanceToLine(const TrackPreviewLine& line, const QPointF& point) {
+	qreal nearest = std::numeric_limits<qreal>::max();
+	for (std::size_t i = 1; i < line.points.size(); ++i) {
+		const QPointF from(line.points[i - 1].x, line.points[i - 1].y + line.displayOffset);
+		const QPointF along = QPointF(line.points[i].x, line.points[i].y + line.displayOffset) - from;
+		const qreal squared = QPointF::dotProduct(along, along);
+		const qreal t = squared > 0.0 ? std::clamp(QPointF::dotProduct(point - from, along) / squared, 0.0, 1.0) : 0.0;
+		nearest = std::min(nearest, QLineF(point, from + along * t).length());
+	}
+	return nearest;
+}
+
+// Records what apply() asks of its host, in order, and apart from that where the steps of a glide draw a train.
 class RecordingHost final : public NetworkPresenter::FrameHost {
 public:
 	std::vector<std::string> calls;
+	std::vector<QPointF> moves;
+	QPointF placedAt;
 	bool promoted = false;
 	bool cameraMoves = false;
 
 	bool isTrainOverlayPromoted(int) const override { return promoted; }
 	void trainWillUpdate(int train) override { calls.push_back("willUpdate " + std::to_string(train)); }
-	bool trainPlaced(int train, const QPointF&) override {
+	bool trainPlaced(int train, const QPointF& center) override {
 		calls.push_back("placed " + std::to_string(train));
+		placedAt = center;
 		return cameraMoves;
 	}
+	void trainMoved(int, const QPointF& center) override { moves.push_back(center); }
 	void trainHidden(int train) override { calls.push_back("hidden " + std::to_string(train)); }
 	bool trainAdded(int train, bool firstLiveTrain) override {
 		calls.push_back("added " + std::to_string(train) + (firstLiveTrain ? " first" : ""));
@@ -285,9 +313,9 @@ using Ids = std::vector<std::string>;
 
 // Whether the presenter holds no item and points to none, the way a new presenter does.
 static bool presenterEmpty(const NetworkPresenter& presenter) {
-	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_prevTrainPositions.isEmpty()
-		&& presenter.m_trainAnimations.isEmpty() && presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty()
-		&& presenter.m_signalDecorations.isEmpty() && presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty()
+	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_trainAnimations.isEmpty()
+		&& presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty()
+		&& presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty()
 		&& presenter.m_tracksByOccupiedArc.empty() && presenter.m_activeTrackItems.empty() && presenter.allPlatforms.isEmpty()
 		&& presenter.m_stationOverlays.isEmpty() && presenter.m_stationDecorations.isEmpty() && presenter.m_stationLabels.isEmpty()
 		&& presenter.m_stationPictures.isEmpty() && presenter.m_vcMessageItems.isEmpty() && !presenter.m_inspectedSignal
@@ -467,7 +495,22 @@ int main(int argc, char* argv[]) {
 			"the message of a virtual coupling is stacked over the train and its speed and under the station names");
 		ok &= expect(presenter.m_trainBadges.value(0) && presenter.m_trainBadges.value(0)->isPromoted(),
 			"the host decides whether the badge of a train is promoted");
-		ok &= expect(!presenter.m_trainAnimations.isEmpty(), "a live train glides to its new place");
+		ok &= expect(!presenter.m_trainAnimations.isEmpty() && !presenter.allTrains[0]->pos().isNull(),
+			"a live train glides to its new place, from where it was drawn");
+		// The callouts of a train are drawn at the place of its shape, so they move with its glide.
+		presenter.paintTrainPassengerInfo(presenter.allTrains[0]);
+		const auto calloutsOnTrain = [&presenter]() {
+			const QPointF offset = presenter.allTrains[0]->pos();
+			return presenter.m_vcMessageItems.value(0) && presenter.m_vcMessageItems[0]->pos() == offset
+				&& presenter.trainPaxInfoItem && presenter.trainPaxInfoItem->pos() == offset;
+		};
+		bool calloutsMove = calloutsOnTrain();
+		if (QVariantAnimation* glide = presenter.m_trainAnimations.value(0, nullptr))
+			glide->setCurrentTime(glide->duration() / 2);
+		calloutsMove &= calloutsOnTrain() && !presenter.allTrains[0]->pos().isNull();
+		ok &= expect(calloutsMove, "the message of a virtual coupling and the passengers on board move with the glide of the train");
+		presenter.removeTrainPaxInfoIcon();
+		presenter.trainPaxItem = nullptr;
 
 		snapshot.timestep = 12;
 		snapshot.trains = {trainAt(8.5)};
@@ -614,6 +657,300 @@ int main(int argc, char* argv[]) {
 		ok &= expect(scene.items().isEmpty(), "clear leaves nothing of the run");
 	}
 
+	// A live train glides along the drawn line of its track, around a bend too, from where it is drawn, for about one
+	// update interval, and the host hears where it is drawn at every step of the glide.
+	{
+		QGraphicsScene bentScene;
+		NetworkView bentView;
+		bentView.setScene(&bentScene);
+		bentView.resize(400, 300);
+		NetworkPresenter bent(&bentScene, &bentView);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->track(0).sceneTrackId = "T";
+		bent.setGeometrySource(std::move(geometry));
+		SceneModel bentModel;
+		bentModel.tracks = {{"T"}};
+		bentModel.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.b", "T", 4.8, 2.0}, {"T.c", "T", 10.0, 0.0}};
+		bentModel.arcs = {{"T.arc.1", "T", "T.a", "T.b", 0.0, 0.0, 12.0}, {"T.arc.2", "T", "T.b", "T.c", 0.0, 0.0, 12.0}};
+		bentModel.blocks = {{"s0", "T", 5.0}, {"s1", "T", 5.0}};
+		// The run draws the track with the line of the preview.
+		bent.showPreview(bentModel);
+		bent.showRuntime(bentModel);
+		bentView.fitToBounds(bentScene.itemsBoundingRect());
+		RecordingHost host;
+		bent.setFrameHost(&host);
+		qint64 now = 0;
+		bent.setClock([&now]() { return now; });
+		const TrackPreviewLine* const line = bent.trackLine("T");
+		const auto turn = [line]() {
+			const QLineF first(line->points[0].x, line->points[0].y, line->points[1].x, line->points[1].y);
+			const QLineF second(line->points[1].x, line->points[1].y, line->points[2].x, line->points[2].y);
+			return first.angleTo(second);
+		};
+		ok &= expect(line && line->points.size() == 3 && turn() > 20.0 && turn() < 340.0, "the line of the track bends at its middle node");
+		// a hundredth of half the width of a body
+		const qreal close = 0.001 * bent.track_separation * bent.presentationScale();
+
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		snapshot.trains = {trainAt(4.5)};
+		bent.apply(snapshot, NetworkPresenter::Playback::Live);
+		TrainItemGroup* const train = bent.trainGroup(0);
+		ok &= expect(train && train->isVisible() && line, "the train is drawn on the bent line");
+		if (train && line) {
+			// The glide from 4.45 km to 5.65 km goes around the bend at 4.8 km, inside the first section.
+			const QPointF start = drawnMiddle(*train);
+			now = 250;
+			snapshot.timestep = 11;
+			snapshot.trains = {trainAt(5.7)};
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+			QVariantAnimation* glide = bent.m_trainAnimations.value(0, nullptr);
+			ok &= expect(glide && glide->duration() == 250, "the glide lasts the time since the last update");
+			ok &= expect(QLineF(drawnMiddle(*train), start).length() <= close
+					&& QLineF(host.placedAt, train->sceneBoundingRect().center()).length() <= close,
+				"the glide starts where the train is drawn, and the host hears that place");
+			qreal farthest = 0.0;
+			bool heard = true;
+			for (int ms = 5; glide && ms <= 150; ms += 5) {
+				host.moves.clear();
+				glide->setCurrentTime(ms);
+				farthest = std::max(farthest, distanceToLine(*line, drawnMiddle(*train)));
+				heard &= host.moves.size() == 1 && QLineF(host.moves.back(), train->sceneBoundingRect().center()).length() <= close;
+			}
+			ok &= expect(farthest <= close, "every step of a glide around a bend keeps the train on the drawn line");
+			ok &= expect(heard, "the host hears the centre of the train as it is drawn at every step of the glide");
+
+			// A snapshot that comes during the glide starts the next glide where the train is drawn, on the line.
+			const QPointF during = drawnMiddle(*train);
+			const QPointF corner(line->points[1].x, line->points[1].y + line->displayOffset);
+			ok &= expect(QLineF(during, corner).length() > 10.0 * close && QLineF(during, start).length() > 10.0 * close,
+				"half way through, the glide has passed the bend");
+			// It comes 150 ms after the last one, as far as the glide has gone. Of two intervals the glide takes the
+			// shorter one.
+			now = 400;
+			snapshot.timestep = 12;
+			snapshot.trains = {trainAt(6.3)};
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+			glide = bent.m_trainAnimations.value(0, nullptr);
+			ok &= expect(glide && glide->duration() == 150 && QLineF(drawnMiddle(*train), during).length() <= close,
+				"a new snapshot during a glide continues from where the train is drawn, for the update interval");
+			farthest = 0.0;
+			for (int ms = 10; glide && ms <= 250; ms += 10) {
+				glide->setCurrentTime(ms);
+				farthest = std::max(farthest, distanceToLine(*line, drawnMiddle(*train)));
+			}
+			ok &= expect(farthest <= close && train->pos().isNull(), "the next glide stays on the line and ends at the new place");
+
+			// Updates every 40 ms, as at Fastest: each glide reaches its place before the next update, and the glides
+			// become as short as the interval.
+			double head = 6.3;
+			for (int update = 0; update < 10; ++update) {
+				now += 40;
+				head += 0.2;
+				snapshot.timestep += 1;
+				snapshot.trains = {trainAt(head)};
+				bent.apply(snapshot, NetworkPresenter::Playback::Live);
+				glide = bent.m_trainAnimations.value(0, nullptr);
+				if (update < 9 && glide)
+					glide->setCurrentTime(glide->duration());
+			}
+			ok &= expect(glide && glide->duration() >= 40 && glide->duration() <= 46, "the glide follows a shorter update interval");
+			if (glide)
+				glide->setCurrentTime(glide->duration());
+			const int fastest = glide ? glide->duration() : -1;
+
+			// A pause is not an update interval.
+			now += 3000;
+			head += 0.2;
+			snapshot.timestep += 1;
+			snapshot.trains = {trainAt(head)};
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+			glide = bent.m_trainAnimations.value(0, nullptr);
+			ok &= expect(glide && glide->duration() == fastest, "the update after a pause glides as long as the one before");
+			if (glide)
+				glide->setCurrentTime(glide->duration());
+
+			// An event loop too busy to run the steps of a glide does not hold the train back: the next update first
+			// moves it to where its glide is by the clock, here its end, and the host hears that move.
+			now += 40;
+			head += 0.2;
+			snapshot.timestep += 1;
+			snapshot.trains = {trainAt(head)};
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+			const QPointF held = drawnMiddle(*train);
+			glide = bent.m_trainAnimations.value(0, nullptr);
+			now += glide ? glide->duration() : 0;
+			head += 0.2;
+			snapshot.timestep += 1;
+			snapshot.trains = {trainAt(head)};
+			host.moves.clear();
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+			glide = bent.m_trainAnimations.value(0, nullptr);
+			ok &= expect(glide && glide->currentTime() == 0 && QLineF(drawnMiddle(*train), held).length() > 10.0 * close
+					&& distanceToLine(*line, drawnMiddle(*train)) <= close && !host.moves.empty(),
+				"a glide whose steps did not run goes on by the clock at the next update");
+			if (glide)
+				glide->setCurrentTime(glide->duration());
+
+			// A train that runs backwards, and one that jumps further than the visible view, is placed at once.
+			now += 40;
+			snapshot.timestep += 1;
+			snapshot.trains = {trainAt(head - 0.1)};
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+			ok &= expect(bent.m_trainAnimations.isEmpty() && train->pos().isNull(), "a train that moves backwards is placed at once");
+			bentView.zoomBy(40.0);
+			now += 40;
+			snapshot.timestep += 1;
+			snapshot.trains = {trainAt(head + 0.9)};
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+			ok &= expect(bent.m_trainAnimations.isEmpty() && train->pos().isNull(),
+				"a train that jumps further than the visible view is placed at once");
+		}
+		bent.setFrameHost(nullptr);
+	}
+
+	// The motion of a live train across updates, on the clock of the test, which steps the glides by hand. The track of
+	// this source runs along x in metres.
+	{
+		source->passengers = false;
+		source->track(0).member[0].endNode.stationName.clear();
+		source->track(0).member[0].endNode.stationPlatformId.clear();
+		qint64 now = 0;
+		presenter.setClock([&now]() { return now; });
+		GuiSimulationSnapshot snapshot;
+		const auto restart = [&]() {
+			presenter.clear();
+			presenter.showRuntime(model);
+			now = 0;
+			snapshot.timestep = 0;
+		};
+		// Delivers the train with its head at headKm and returns its glide, or null. The tail of a train that is still
+		// entering its route has no position, as in a run.
+		const auto update = [&](double headKm) {
+			GuiTrainState state = trainAt(headKm);
+			if (headKm < 0.1)
+				state.wagonTailPositions = {-1.0};
+			snapshot.timestep += 1;
+			snapshot.trains = {state};
+			presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+			return presenter.m_trainAnimations.value(0, nullptr);
+		};
+		const auto drawnHead = [&presenter]() {
+			const TrainBodyItem* body = presenter.allTrains[0]->trainPolygonItemList->at(0);
+			return body->mapToScene(body->polygon().first()).x();
+		};
+
+		// A train enters at the start of its route, at 0 km, and runs 20 m in every update of 100 ms. Its middle reaches
+		// the start of the route between the second and the third update, and its tail at the fifth. Until then only
+		// its head is drawn.
+		restart();
+		update(0.0);
+		bool glides = true;
+		bool headSteady = true;
+		bool centreOnward = true;
+		double centre = presenter.trainCenter(0).x();
+		const auto centreMovesOn = [&]() {
+			const double next = presenter.trainCenter(0).x();
+			centreOnward &= next >= centre - 1e-9;
+			centre = next;
+		};
+		double head = drawnHead();
+		for (int step = 1; step <= 8; ++step) {
+			now += 100;
+			QVariantAnimation* glide = update(0.02 * step);
+			glides &= glide != nullptr;
+			headSteady &= std::fabs(drawnHead() - head) < 1e-6;
+			centreMovesOn();
+			for (int ms = 10; glide && ms <= 100; ms += 10) {
+				glide->setCurrentTime(ms);
+				centreMovesOn();
+			}
+			head = drawnHead();
+		}
+		ok &= expect(glides && headSteady, "a train that enters its route glides from where it is drawn at every update");
+		ok &= expect(centreOnward && near(centre, 110.0),
+			"the centre of a train that enters its route never moves back, also when its middle reaches the start");
+
+		// A glide that starts at the end of a section, where the next section begins, starts where the train is drawn
+		// and goes on into the next section.
+		restart();
+		update(5.05);
+		const double boundary = drawnMiddle(*presenter.allTrains[0]).x();
+		now += 100;
+		QVariantAnimation* fromBoundary = update(5.15);
+		bool boundaryGlide = fromBoundary && near(boundary, 5000.0) && near(drawnMiddle(*presenter.allTrains[0]).x(), boundary);
+		if (fromBoundary)
+			fromBoundary->setCurrentTime(50);
+		boundaryGlide &= near(drawnMiddle(*presenter.allTrains[0]).x(), 5050.0);
+		ok &= expect(boundaryGlide, "a glide that starts at the end of a section starts where the train is drawn");
+
+		// At a steady 200 ms between updates, ticks of 10 ms move the drawn middle by the same distance, from one glide
+		// to the next. The steps of the first glide are left out.
+		restart();
+		std::vector<double> steps;
+		double previous = 0.0;
+		qint64 glideStart = 0;
+		for (int tick = 0; tick <= 200; ++tick) {
+			now = tick * 10;
+			QVariantAnimation* glide = presenter.m_trainAnimations.value(0, nullptr);
+			if (tick % 20 == 0) {
+				const int delivery = tick / 20;
+				update(1.0 + 0.04 * delivery);
+				glideStart = now;
+			} else if (glide) {
+				glide->setCurrentTime(static_cast<int>(now - glideStart));
+			}
+			const double middle = drawnMiddle(*presenter.allTrains[0]).x();
+			if (tick > 40)
+				steps.push_back(middle - previous);
+			previous = middle;
+		}
+		const auto [smallest, largest] = std::minmax_element(steps.begin(), steps.end());
+		ok &= expect(!steps.empty() && *smallest > 0.0 && *largest <= 1.25 * *smallest,
+			"at a steady rhythm a gliding train moves at an even speed across the updates");
+
+		// With irregular gaps between the updates the drawn middle never moves back.
+		restart();
+		update(1.0);
+		bool onward = true;
+		previous = drawnMiddle(*presenter.allTrains[0]).x();
+		double headKm = 1.0;
+		for (const int gap : {100, 60, 250, 30, 170, 90, 400, 40, 120, 200, 20, 300}) {
+			for (int ms = 10; ms <= gap; ms += 10) {
+				now += 10;
+				if (ms == gap) {
+					headKm += 0.01;
+					update(headKm);
+					glideStart = now;
+				} else if (QVariantAnimation* glide = presenter.m_trainAnimations.value(0, nullptr)) {
+					glide->setCurrentTime(static_cast<int>(now - glideStart));
+				}
+				const double middle = drawnMiddle(*presenter.allTrains[0]).x();
+				onward &= middle >= previous - 1e-9;
+				previous = middle;
+			}
+		}
+		ok &= expect(onward, "with irregular gaps between the updates a gliding train never moves back");
+
+		// One gap of 900 ms, after a slow frame, in a rhythm of 33 ms leaves the glides at the rhythm.
+		restart();
+		update(1.0);
+		for (int step = 1; step <= 4; ++step) {
+			now += 33;
+			update(1.0 + 0.01 * step);
+		}
+		now += 900;
+		const QVariantAnimation* afterGap = update(1.05);
+		const int afterGapMs = afterGap ? afterGap->duration() : -1;
+		now += 33;
+		const QVariantAnimation* next = update(1.06);
+		ok &= expect(afterGapMs == 33 && next && next->duration() == 33,
+			"one long gap between updates does not slow the glides that follow it");
+
+		presenter.setClock({});
+		presenter.clear();
+	}
+
 	// The trains of a snapshot are found by their index, whatever the order of the snapshot.
 	{
 		source->passengers = false;
@@ -695,7 +1032,6 @@ int main(int argc, char* argv[]) {
 
 			// the replay of the run, forward and back
 			presenter.stopTrainAnimations();
-			presenter.m_prevTrainPositions.clear();
 			for (const int time : {20, 15, 25, 10}) {
 				snapshot.timestep = time;
 				snapshot.trains = {trainAt(7.5 + (time - 10) * 0.1)};
