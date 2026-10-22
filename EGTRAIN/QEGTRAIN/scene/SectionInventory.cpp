@@ -218,7 +218,7 @@ std::string SceneSectionLabels::label(const std::string& reference) const {
 }
 
 std::string SceneSectionLabels::labelWithId(const std::string& reference) const {
-	const std::string text = label(reference);
+	std::string text = label(reference);
 	const std::string suffix = " (" + reference + ")";
 	// A label that two sections share already ends with the id.
 	if (text == reference || (text.size() > suffix.size() && text.compare(text.size() - suffix.size(), suffix.size(), suffix) == 0))
