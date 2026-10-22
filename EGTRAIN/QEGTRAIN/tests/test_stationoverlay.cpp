@@ -773,8 +773,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
-		// A name whose text under the dots crosses a track line goes above the mark, then right of the dots, then left
-		// of them; with no free spot it stays under the dots.
+		// A name whose text under the dots crosses a visible track line goes above the mark, then right of the dots, then
+		// left of them; with no free spot it stays under the dots.
 		QGraphicsScene scene;
 		const QTransform far = QTransform::fromScale(0.1, 0.1);
 		const MarkRig rig = addMarkRig(scene, "Alpha", {QPointF(0.0, 0.0), QPointF(0.0, 40.0)});
@@ -796,6 +796,7 @@ int main(int argc, char* argv[]) {
 		below->setVisible(false);
 		StationOverlayItem::resolveNameCollisions({rig.overlay}, far);
 		ok &= expect(rig.name->sceneBoundingRect() == above, "a name keeps its spot until the mark is placed again");
+		ok &= expect(place() == under, "a hidden track does not move a name");
 		below->setVisible(true);
 		scene.addItem(new TrackLineItem(QLineF(-2000.0, above.center().y(), 2000.0, above.center().y())));
 		const QRectF right = place();
