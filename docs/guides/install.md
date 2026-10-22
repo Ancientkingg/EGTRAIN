@@ -1,6 +1,6 @@
 # Installing EGTRAIN
 
-This page says which file to download for your system, how to install and start EGTRAIN, what macOS and Windows show at the first start, and how to check a download. [Getting started](getting-started.md) continues with a first run.
+This page says which file to download for your system, how to install and start EGTRAIN, what macOS and Windows show at the first start, how to check a download and how to remove EGTRAIN. [Getting started](getting-started.md) continues with a first run.
 
 ## Download and start
 
@@ -19,7 +19,7 @@ This page says which file to download for your system, how to install and start 
 - **Notarized releases.** When the release notes say that the app is signed with a Developer ID and notarized, macOS is expected to ask only for the usual confirmation for an app that was downloaded. [First start of a notarized build](#first-start-of-a-notarized-build) has the details.
 - **Open a case study.** Double-click an `.egscene` file in Finder to open it in EGTRAIN, or Control-click it and choose **Open With** and `QEGTRAIN`. When EGTRAIN is open, the file opens in its window. [Open by double-click](opening-a-case-study.md#open-by-double-click) has the details.
 - **Update.** For a copy outside the image, **Help > Check for Updates...** offers **Update and Restart** when a newer release exists.
-- **Remove.** Quit EGTRAIN and drag `QEGTRAIN.app` to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay.
+- **Remove.** Quit EGTRAIN and drag `QEGTRAIN.app` to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay; [Removing EGTRAIN](#removing-egtrain) has the details.
 - **Inside the app.** The case studies are in `QEGTRAIN.app/Contents/Resources/Scenes` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](command-line.md)). The image shows no other file.
 
 ### First start of an ad hoc build
@@ -71,8 +71,8 @@ The installer and the portable archive hold the same application files. Choose t
 - **Install.** `EGTRAIN-Setup-<version>-x64.exe` installs for the current user and needs no administrator rights. The default folder is `%LOCALAPPDATA%\Programs\EGTRAIN`, and the wizard offers another folder on a first install. It adds the Start Menu entry **EGTRAIN**, an entry in the list of installed apps in Windows Settings and, only if you tick it, a desktop shortcut. It also registers EGTRAIN for `.egscene` files of your user, so a double-click opens them in EGTRAIN unless you chose another program for them with **Open with**.
 - **First start.** The Windows files are not code signed. On Windows 11 in October 2026, with files that carried the download mark, starting the installer showed the dialog `Windows protected your PC` with the text `Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.` Its only buttons are a **More info** link and **Don't run**. **More info** shows `App: EGTRAIN-Setup-<version>-x64.exe` and `Publisher: Unknown publisher`, and adds **Run anyway**, which starts Setup. No administrator prompt follows. The dialog comes back each time you start Setup. The portable `QEGTRAIN.exe`, extracted with **Extract All**, started without a warning in the same test. Other Windows versions may word this differently. Do not turn SmartScreen off. [First start of an unsigned build](#first-start-of-an-unsigned-build) has the details.
 - **Upgrade.** Run the Setup of the newer version over the installed copy. It updates that installation and does not add a second one. Setup offers to close EGTRAIN if it is running. It replaces the `Scenes` folder of the installation, so keep your own cases outside it. **Update and Restart** in an installed copy does the same for you: it downloads the Setup of the newer version, closes EGTRAIN, runs the Setup without windows and starts EGTRAIN again, which then tells you which version runs.
-- **Uninstall.** Remove EGTRAIN from the list of installed apps in Windows Settings. This removes the program files, the shortcuts, the entry in the list and the `.egscene` setting that the installer made. Your case studies, your exported CSV and PNG files, the run output (see the [output folder](command-line.md#output-folder)) and the settings of EGTRAIN stay. A file that you or the program put into the installation folder stays, and so does the folder.
-- **Portable archive.** `EGTRAIN-Portable-<version>-x64.zip` needs no installation and no administrator rights. Unzip it into a new, empty folder and run `QEGTRAIN.exe`. It adds no Start Menu entry, no shortcut, no entry in the list of installed apps and no setting for `.egscene` files. To remove it, close EGTRAIN and delete the folder. To use a newer version, unzip the newer archive into another new folder, or use **Update and Restart** in EGTRAIN. A portable copy of v1.0.3 or earlier cannot update itself to a release that is built with Qt 6, as every release after v1.0.3 is: unzip the archive of the newer release into a new folder instead.
+- **Uninstall.** Remove EGTRAIN from the list of installed apps in Windows Settings. [Removing EGTRAIN](#removing-egtrain) says what this removes and what stays.
+- **Portable archive.** `EGTRAIN-Portable-<version>-x64.zip` needs no installation and no administrator rights. Unzip it into a new, empty folder and run `QEGTRAIN.exe`. It adds no Start Menu entry, no shortcut, no entry in the list of installed apps and no setting for `.egscene` files. To remove it, close EGTRAIN and delete the folder ([Removing EGTRAIN](#removing-egtrain)). To use a newer version, unzip the newer archive into another new folder, or use **Update and Restart** in EGTRAIN, which does not keep files that you added to the folder. A portable copy of v1.0.3 or earlier cannot update itself to a release that is built with Qt 6, as every release after v1.0.3 is: unzip the archive of the newer release into a new folder instead.
 
 ### First start of an unsigned build
 
@@ -124,3 +124,24 @@ and ignore the other lines.
 `Valid` means that the file is unchanged since it was signed and that the chain is trusted on this machine. It does not
 mean that the program is free of defects or that it matches a given source revision. The checks apply once a release is
 signed. Until signing is enabled and a release is built with it, the Windows downloads show `NotSigned`.
+
+## Removing EGTRAIN
+
+Close EGTRAIN first, then remove the copy that you installed:
+
+- **Windows Setup.** In Windows Settings, find EGTRAIN in the list of installed apps (Apps > Installed apps on Windows 11) and choose Uninstall. This removes the program files, the shortcuts, the entry in the list and the `.egscene` setting that the installer made. A file that you or the program put into the installation folder stays, and so does the folder.
+- **Windows portable copy.** Delete the folder that you unzipped the archive into.
+- **macOS.** Drag `QEGTRAIN.app` from the Applications folder to the Trash.
+- **Linux.** Delete the AppImage file.
+
+After an update with **Update and Restart**, the previous version stays next to the installation under the same name followed by `.egtrain-old`, such as `QEGTRAIN.app.egtrain-old`. EGTRAIN removes it about 20 seconds after the new version has started. EGTRAIN 1.0.4 and earlier do not remove it, so a copy that runs one of those versions keeps it until its next update. If it is there, delete it together with the app. A copy installed with Setup has none.
+
+Removing the program leaves the settings of EGTRAIN and the files that it keeps for you, such as the run output in the [output folder](command-line.md#output-folder). To leave nothing behind, delete these as well:
+
+| System | Settings | Data |
+| --- | --- | --- |
+| Windows | The registry key `HKCU\Software\EGTRAIN` | `%APPDATA%\EGTRAIN` (the run output) and `%LOCALAPPDATA%\EGTRAIN` (recovery copies, crash notes and other working files) |
+| macOS | `~/Library/Preferences/com.egtrain.EGTRAIN.plist`, and `~/Library/Preferences/com.egtrain.simulator.plist`, where macOS keeps the state of the open and save dialogs | `~/Library/Application Support/EGTRAIN` (the run output, recovery copies, crash notes and other working files) |
+| Linux | `~/.config/EGTRAIN` | `~/.local/share/EGTRAIN` (the same files as on macOS) |
+
+Case studies and exported files that you saved elsewhere are yours, and they stay where you saved them.

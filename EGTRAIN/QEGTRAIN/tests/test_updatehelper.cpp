@@ -109,8 +109,8 @@ static bool ranIn(const QString& log, const QString& label, const QString& direc
 	return !logged.isEmpty() && logged == QFileInfo(directory).canonicalFilePath();
 }
 
-// The version that the scenarios install, and the file that the helper is asked to leave if the
-// update is rolled back. The file is in the root of the scenario, outside the installation, the
+// The version that the scenarios install, and the file in which the helper is asked to leave the
+// record of the update. The file is in the root of the scenario, outside the installation, the
 // staging folder and the backup.
 static const SemanticVersion kUpdatedVersion{9, 8, 7};
 
@@ -134,7 +134,11 @@ static bool recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateO
 	ok &= expect(record && record->outcome == outcome, "the application reads the outcome of the record");
 	ok &= expect(record && qAbs(record->time.secsTo(QDateTime::currentDateTimeUtc())) <= 300,
 		"the record holds the current UTC time");
-	const QString name = outcome == UpdateOutcome::NotApplied ? "not-applied" : "rolled-back";
+	QString name = QStringLiteral("rolled-back");
+	if (outcome == UpdateOutcome::NotApplied)
+		name = QStringLiteral("not-applied");
+	else if (outcome == UpdateOutcome::Applied)
+		name = QStringLiteral("applied");
 	const QRegularExpression format(QRegularExpression::anchoredPattern(
 		QStringLiteral("outcome=%1\nversion=9\\.8\\.7\ntime=\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\n").arg(name)));
 	ok &= expect(format.match(QString::fromLatin1(bytes)).hasMatch(),
@@ -206,12 +210,14 @@ static bool installationIs(const QString& root, const QString& directory, const 
 	return readFile(QDir(root).filePath(directory + "/behavior.txt")).contains(label);
 }
 
-// A new version that exits with a failure code is replaced by the previous installation.
+// A new version that exits with a failure code is replaced by the previous installation, and the record
+// that the update was applied, which the new version found at its start, by the record of the rollback.
 static bool testEarlyFailureRollsBack(const QString& helper, const QString& program, const QString& root) {
 	const QString log = QDir(root).filePath("log.txt");
 	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log,
 						 QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root))
-			&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=3"),
+			&& writeInstallation(stagePath(root), program, "new", log,
+				QStringLiteral("mode=exit\ncode=3\nrecord=") + recordPath(root)),
 		"early failure fixtures are writable");
 	const HelperRun run = runHelper(helper, root, kFailureObserveMs, recordArguments(root));
 	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version exits with an error");
@@ -223,6 +229,7 @@ static bool testEarlyFailureRollsBack(const QString& helper, const QString& prog
 		"early failure removes the failed installation");
 #endif
 	ok &= expect(waitForLogLine(log, "old started"), "early failure starts the previous version again");
+	ok &= expect(logLines(log).contains("new sees record"), "the new version finds a record at its start");
 	ok &= recordIsWritten(recordPath(root));
 	ok &= expect(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
 	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after a rollback");
@@ -238,12 +245,14 @@ static bool testEarlyFailureRollsBack(const QString& helper, const QString& prog
 	return ok;
 }
 
-// A new version that keeps running is installed, and the helper ends after the observation window.
+// A new version that keeps running is installed, finds the record that the update was applied at its
+// start, and the helper ends after the observation window.
 static bool testRunningVersionIsInstalled(const QString& helper, const QString& program, const QString& root) {
 	const QString log = QDir(root).filePath("log.txt");
 	const int observeMs = 1500;
 	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
-			&& writeInstallation(stagePath(root), program, "new", log, "mode=sleep\nms=6000"),
+			&& writeInstallation(stagePath(root), program, "new", log,
+				QStringLiteral("mode=sleep\nms=6000\nrecord=") + recordPath(root)),
 		"running version fixtures are writable");
 	const HelperRun run = runHelper(helper, root, observeMs, recordArguments(root));
 	ok &= expect(run.exitCode == 0, "helper succeeds while the new version keeps running");
@@ -257,7 +266,8 @@ static bool testRunningVersionIsInstalled(const QString& helper, const QString& 
 	ok &= expect(ranIn(log, "new", QDir(root).filePath("install")), "running version starts in the installation directory");
 	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after the observation window");
 	ok &= expect(!logLines(log).contains("old started"), "previous version is not started again");
-	ok &= expect(!QFileInfo::exists(recordPath(root)), "an update that keeps running leaves no record");
+	ok &= expect(logLines(log).contains("new sees record"), "the record exists before the new version starts");
+	ok &= recordIsWritten(recordPath(root), UpdateOutcome::Applied);
 #if defined(Q_OS_WIN)
 	QThread::msleep(300);
 #endif
@@ -279,7 +289,7 @@ static bool testCleanQuickExitIsInstalled(const QString& helper, const QString& 
 	ok &= expect(installationIs(root, "install", "label=new"), "clean exit stays installed");
 	ok &= expect(installationIs(root, "install.egtrain-old", "label=old"), "clean exit keeps the backup");
 	ok &= expect(!logLines(log).contains("old started"), "previous version is not started after a clean exit");
-	ok &= expect(!QFileInfo::exists(recordPath(root)), "a clean exit leaves no record");
+	ok &= recordIsWritten(recordPath(root), UpdateOutcome::Applied);
 	ok &= expect(ranIn(log, "new", QDir(root).filePath("install")), "clean exit starts in the installation directory");
 	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after a clean exit");
 	return ok;
@@ -308,7 +318,7 @@ static bool testRenameIsRetried(const QString& helper, const QString& program, c
 	ok &= expect(readFile(unavailableBackup(root) + "/behavior.txt").contains("label=old"),
 		"the previous installation is kept as the backup");
 	ok &= expect(!logLines(log).contains("old started"), "the previous version is not started");
-	ok &= expect(!QFileInfo::exists(recordPath(root)), "an update that is applied leaves no record");
+	ok &= recordIsWritten(recordPath(root), UpdateOutcome::Applied);
 	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after the retries");
 	return ok;
 }

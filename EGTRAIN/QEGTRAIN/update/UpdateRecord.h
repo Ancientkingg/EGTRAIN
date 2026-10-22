@@ -9,26 +9,29 @@
 #include <QStringList>
 #include <optional>
 
-/// The record that the update helper leaves when the update was not kept. The helper writes it in
-/// update/UpdateHelper.cpp, which holds the same format. A text file in updateRecordPath() of three lines,
-/// each ended by a line feed:
-///   outcome=rolled-back or not-applied
+/// The record that the update helper leaves after it replaced the installation, or tried to. The helper
+/// writes it in update/UpdateHelper.cpp, which holds the same format. A text file in updateRecordPath() of
+/// three lines, each ended by a line feed:
+///   outcome=applied, rolled-back or not-applied
 ///   version=X.Y.Z
 ///   time=YYYY-MM-DDTHH:MM:SSZ
+/// applied: the new version is in place; the helper writes this before it starts that version.
 /// rolled-back: the new version failed to start and the previous installation was put back.
 /// not-applied: the installation could not be renamed, so the previous installation was never replaced.
-/// The version is the one that was to be installed and the time is the UTC time of the write.
+/// The version is the one that was to be installed and the time is the UTC time of the write. Versions
+/// up to 1.0.4 know no applied record: their takeUpdateRecord removes it and returns nothing.
 /// In installer mode the helper runs the installer of an installer-managed copy instead and leaves
 /// outcome=installer-succeeded (the installer exited with 0) or outcome=installer-failed, with the same
 /// version (the one to install) and time. A failed installer that ended with an exit code adds a fourth
-/// line, exit-code=N. Only the first two records are an UpdateRecord: parseUpdateRecord does not accept the
-/// others, so they never produce the message about a failed update. The others are an InstallerRecord.
+/// line, exit-code=N. Only the first three records are an UpdateRecord: parseUpdateRecord does not accept the
+/// others, so they never produce the message about an update in place. The others are an InstallerRecord.
 enum class UpdateOutcome {
 	RolledBack, ///< outcome=rolled-back.
-	NotApplied	///< outcome=not-applied.
+	NotApplied, ///< outcome=not-applied.
+	Applied		///< outcome=applied.
 };
 
-/// A record of an update that was not kept, as parseUpdateRecord() reads it.
+/// A record of an update in place, as parseUpdateRecord() reads it.
 struct UpdateRecord {
 	SemanticVersion version;						   ///< The version that was to be installed.
 	QDateTime time;									   ///< The UTC time at which the helper wrote the record.
@@ -58,14 +61,14 @@ enum class InstallerCheck {
 
 /// Reads the text of a record. The lines end in LF or CRLF, the keys outcome, version and time must
 /// each occur (the first occurrence counts) and other keys are ignored. The outcome must be
-/// rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z.
+/// applied, rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z.
 std::optional<UpdateRecord> parseUpdateRecord(const QByteArray& contents);
 
 /// What the user is told about the update that the record names: a short sentence, and a second one
 /// on what to do next.
 struct UpdateRecordText {
 	QString text;	///< What happened to the update.
-	QString advice; ///< What the user can do next.
+	QString advice; ///< What the user can do next. Empty for an update that was applied.
 };
 /// The text that tells the user about record.
 UpdateRecordText describeUpdateRecord(const UpdateRecord& record);
@@ -82,7 +85,9 @@ InstallerCheck checkInstallerRecord(const InstallerRecord& record, const Semanti
 QString updateRecordPath();
 
 /// Reads the record at path and removes the file, whether or not it could be read. Returns the record
-/// only when it is valid and its version is newer than the installed one; any other record is stale.
+/// only when it is valid and names the installed version (applied) or a newer one (rolled-back and
+/// not-applied); any other record is stale. The helper replaces an applied record when it puts the
+/// previous version back, so an applied record that names another version is out of date.
 /// Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record.
 /// A file that cannot be removed does not stop the record from being returned.
 std::optional<UpdateRecord> takeUpdateRecord(const QString& path, const SemanticVersion& installed);

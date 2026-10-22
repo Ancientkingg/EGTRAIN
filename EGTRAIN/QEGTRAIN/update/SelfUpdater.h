@@ -56,6 +56,13 @@ public:
 	static SelfUpdateCapability capability();
 	/// Removes staging folders that an earlier update left next to the installation.
 	static void cleanupStaleStaging();
+	/// Removes the backup of the previous installation that an update in place keeps next to the installation:
+	/// the folder or file named like currentPath plus ".egtrain-old", never a symbolic link or a junction. It does nothing
+	/// for a copy that updates with the installer, which has no backup, and while a staging folder is next to
+	/// the installation. Failures are ignored. The update helper needs the backup until its observation window
+	/// ends, so the application calls this kSecondSweepDelayMs after its start (update/UpdateTiming.h), after
+	/// cleanupStaleStaging, and never in the sweep at its start.
+	static void removeUpdateBackup();
 	/// True when this copy can update itself and the release lists the manifest and a package for this copy.
 	bool canSelfUpdate(const StableRelease& release) const;
 	/// True from start() until the download or the preparation ends.
