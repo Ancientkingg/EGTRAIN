@@ -2183,6 +2183,54 @@ static bool runSectionLabelChecks() {
 	return ok;
 }
 
+// At level 3 the two edges of a diverging switch get one blocking time. A train runs over two crossovers, and the end of the
+// first and the start of the second have the same switch name, as two switch nodes at the platform of one station on one
+// block have. The start of the second crossover takes over the times of the end of the first only when it lies at the
+// same position, where the end of one crossover is the start of the next.
+static bool runSwitchBlockingTimeChecks() {
+	struct Edge {
+		const char* id;
+		const char* switchName;
+		const char* connected;
+		double position;
+		double startOcc;
+	};
+	const auto connect = [](double secondStart) {
+		const Edge edges[] = {
+			{"first.start", "@first.start@Point", "first.end", 2145.0, 119.0},
+			{"first.end", "@M-0-T2@Point", "first.start", 2159.0, 124.0},
+			{"second.start", "@M-0-T2@Point", "second.end", secondStart, 120.0},
+			{"second.end", "@second.end@Point", "second.start", 2210.0, 125.0},
+		};
+		Train train;
+		for (const Edge& edge : edges) {
+			BlockingTimes& time = train.BlockTime[train.N_BlockSections++];
+			time.BlockID = edge.id;
+			time.SwitchName = edge.switchName;
+			time.ConnectedBlockingTimeID = edge.connected;
+			time.SignallingLevel = levelValue(SignallingLevel::EtcsLevel3);
+			time.LocationWithSwitch = true;
+			time.GeoPosStart = time.GeoPosEnd = edge.position;
+			time.StartOccTime = edge.startOcc;
+		}
+		train.N_BlockTimeComplete = train.N_BlockSections;
+		train.ConnectBlockTimesOfSwitchesForTrainCentricSignalling();
+		return train;
+	};
+	bool ok = true;
+	const Train apart = connect(2175.0);
+	ok &= expect(apart.BlockTime[1].GeoPosStart == 2159.0 && apart.BlockTime[1].GeoPosEnd == 2159.0,
+		"the end of the first crossover keeps its position");
+	ok &= expect(apart.BlockTime[2].GeoPosStart == 2175.0 && apart.BlockTime[2].StartOccTime == 120.0 && apart.BlockTime[3].StartOccTime == 120.0,
+		"a second crossover elsewhere keeps its own start of occupation");
+	const Train shared = connect(2159.0);
+	ok &= expect(shared.BlockTime[1].GeoPosStart == 2159.0 && shared.BlockTime[2].GeoPosStart == 2159.0,
+		"the shared switch keeps its position");
+	ok &= expect(shared.BlockTime[2].StartOccTime == 119.0 && shared.BlockTime[3].StartOccTime == 119.0,
+		"a second crossover that starts where the first ends takes over its start of occupation");
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runSectionLabelChecks();
@@ -2197,6 +2245,7 @@ int main() {
 	ok &= runSignallingMessageChecks();
 	ok &= runOccupancyListChecks();
 	ok &= runNodeListChecks();
+	ok &= runSwitchBlockingTimeChecks();
 	ok &= runFailedBuildChecks();
 	return ok ? 0 : 1;
 }
