@@ -352,7 +352,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 			continue;
 		std::string authoredIds;
 		for (const SceneSignal& authored : scene.signals)
-			if (authored.protectedSection == section.id)
+			if (sectionInventory.resolve(authored.protectedSection) == &section)
 				authoredIds += (authoredIds.empty() ? "" : ", ") + authored.id;
 		std::string label = sectionLabels.label(section.id);
 		std::string name = authoredIds.empty() ? label : authoredIds + " (" + label + ")";

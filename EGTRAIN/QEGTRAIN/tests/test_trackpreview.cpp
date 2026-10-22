@@ -369,9 +369,10 @@ int main() {
 				&& result.previewSignals[1].sectionLabel == "B1 136.000 to 164.000 km",
 			"a preview signal without an authored signal is named by the label of its section");
 	}
-	// An authored signal that protects the section is named first, with the label in parentheses.
+	// An authored signal that protects the section, by its runtime id or by its block id, is named first, with the
+	// label in parentheses.
 	SceneModel authored = scene;
-	authored.signals = {{"sig1", "@B0.block.2@"}, {"other", "@B1.block.1@"}, {"sig2", "@B0.block.2@"}};
+	authored.signals = {{"sig1", "@B0.block.2@"}, {"other", "@B1.block.1@"}, {"sig2", "B0.block.2"}};
 	const TrackPreviewResult authoredResult = loadTrackPreview(authored);
 	ok &= expect(!authoredResult.previewSignals.empty()
 			&& authoredResult.previewSignals[0].sectionLabel == "B0 28.000 to 64.000 km"
