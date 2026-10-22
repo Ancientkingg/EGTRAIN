@@ -14,6 +14,9 @@ struct SceneSectionLabels {
 	/// The label of the section that the reference names, or the reference itself when it names none or
 	/// more than one.
 	std::string label(const std::string& reference) const;
+	/// The label with the reference in parentheses, "B0 0.000 to 0.230 km (@0-B0@)", or the reference alone when
+	/// it names no section.
+	std::string labelWithId(const std::string& reference) const;
 };
 
 #endif // SCENE_SECTION_LABELS_H

@@ -217,6 +217,15 @@ std::string SceneSectionLabels::label(const std::string& reference) const {
 	return found == byReference.end() ? reference : found->second;
 }
 
+std::string SceneSectionLabels::labelWithId(const std::string& reference) const {
+	const std::string text = label(reference);
+	const std::string suffix = " (" + reference + ")";
+	// A label that two sections share already ends with the id.
+	if (text == reference || (text.size() > suffix.size() && text.compare(text.size() - suffix.size(), suffix.size(), suffix) == 0))
+		return text;
+	return text + suffix;
+}
+
 SceneSectionLabels sceneSectionLabels(const SceneSectionInventory& inventory) {
 	constexpr std::size_t kSeveral = std::numeric_limits<std::size_t>::max();
 	std::vector<std::string> texts;

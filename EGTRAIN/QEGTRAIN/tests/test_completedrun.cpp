@@ -9,6 +9,7 @@
 //   test_completedrun SCENE_DIR...
 
 #include "app/DispatchController.h"
+#include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/CompletedRunData.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramCoordinates.h"
@@ -1382,7 +1383,7 @@ void testScopeDialog() {
 			check(dynamic_cast<const ChoiceComboBox*>(combo), "the scope dialog shows its choices in choice combos");
 		combos[0]->setCurrentIndex(1);
 		check(combos[0]->itemText(1) == "r0  (north)" && combos[0]->itemText(2) == "r1  (no corridor)", "the routes show their corridor");
-		check(combos[1]->count() == 3 && combos[1]->itemText(2) == "3:c" && combos[2]->currentIndex() == 2, "the blocks of the route are listed");
+		check(combos[1]->count() == 3 && combos[1]->itemText(2) == "3: c" && combos[2]->currentIndex() == 2, "the blocks of the route are listed");
 		combos[1]->setCurrentIndex(1);
 		press(dialog, QDialogButtonBox::Ok);
 	});
@@ -1456,6 +1457,62 @@ void forbidMessageBox() {
 	});
 }
 
+// The three choosers of a run of Paimpol name the blocks of route0 by their labels, with the ids as tooltips.
+void checkLabelledChoosers(const CapturedRun& run) {
+	if (run.scene != "Paimpol")
+		return;
+	const CompletedRunData& data = run.data;
+	const auto route0 = std::find_if(data.routes.begin(), data.routes.end(), [](const CompletedRoute& route) { return route.id == "route0"; });
+	check(route0 != data.routes.end() && data.sectionLabels.label("@0-B0@") == "B0 0.000 to 0.230 km",
+		"Paimpol: the run keeps the labels of the sections of its scene");
+	if (route0 == data.routes.end())
+		return;
+	const int routeIndex = static_cast<int>(route0 - data.routes.begin());
+
+	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(data);
+	askScope(blockingTimeScopeChoicesFrom(data), scope, [routeIndex](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		if (combos.size() != 3)
+			return;
+		combos[0]->setCurrentIndex(combos[0]->findData(routeIndex));
+		check(combos[1]->itemText(0) == "1: B0 0.000 to 0.230 km" && combos[1]->itemData(0, Qt::ToolTipRole).toString() == "@0-B0@"
+				&& combos[1]->itemText(71) == "72: B0 21.010 to 21.235, B1 21.252 to 21.450 km"
+				&& combos[1]->itemData(71, Qt::ToolTipRole).toString() == "@71-B0@-21.235000/@0-B1@-21.252000",
+			"Paimpol: the blocking-time chooser names the blocks of route0 by their labels");
+		dialog.reject();
+	});
+
+	CapacityAnalysisScope capacity = firstCapacityScopeWithPairFrom(data);
+	// The window names the blocks by their labels; the export keeps the ids.
+	check(capacityScopeTextFrom(data, capacity).endsWith(" / B0 10.210 to 10.510 km through B0 21.010 to 21.235, B1 21.252 to 21.450 km")
+			&& capacityScopeLabelFrom(data, capacity).endsWith(" / @35-B0@ to @71-B0@-21.235000/@0-B1@-21.252000"),
+		"Paimpol: the capacity window names its section by labels, the export by ids");
+	const std::vector<CapacityHeadwayEvidence> evidence = {{"@35-B0@", "@0-B0@", 12.0, 2.0, 10.0}};
+	check(capacityEvidenceText(evidence, &data.sectionLabels)
+				== "B0 10.210 to 10.510 km / B0 0.000 to 0.230 km (leader=12 s; follower=2 s; candidate=10 s)"
+			&& capacityEvidenceText(evidence) == "@35-B0@/@0-B0@ (leader=12 s; follower=2 s; candidate=10 s)",
+		"Paimpol: the evidence names its blocks by labels in the tooltip and by ids in the table");
+	askCapacityScope(data, capacity, [routeIndex](QDialog& dialog) {
+		QComboBox* routes = dialog.findChildren<QComboBox*>().value(0);
+		const auto* blocks = dialog.findChild<QComboBox*>("capacityBlocks");
+		if (!routes || !blocks)
+			return;
+		routes->setCurrentIndex(routes->findData(routeIndex));
+		check(blocks->currentText() == "36: B0 10.210 to 10.510 km through 72: B0 21.010 to 21.235, B1 21.252 to 21.450 km (37 blocks)"
+				&& blocks->currentData(Qt::ToolTipRole).toString() == "36:@35-B0@ to 72:@71-B0@-21.235000/@0-B1@-21.252000 (37 blocks)",
+			"Paimpol: the capacity chooser names the analysed blocks of route0 by their labels");
+		dialog.reject();
+	});
+
+	AreaCapacityScopeDialog area(data);
+	auto* routes = area.findChild<QComboBox*>("areaCapacityRoute");
+	if (routes)
+		routes->setCurrentIndex(routes->findData(routeIndex));
+	const auto* first = area.findChild<QComboBox*>("areaCapacityFirstBlock");
+	check(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "@0-B0@",
+		"Paimpol: the capacity by area chooser names the blocks of route0 by their labels");
+}
+
 void testCapacityDialog() {
 	CompletedRunData run;
 	// a and b run over B and C, c over B only and e over C only; d has no occupation.
@@ -1482,12 +1539,12 @@ void testCapacityDialog() {
 			"the trains with an occupation on the route are listed with their codes");
 		check(list->item(0)->checkState() == Qt::Checked && list->item(2)->checkState() == Qt::Checked && list->item(3)->checkState() == Qt::Unchecked,
 			"the trains of the first block that two trains occupy are checked");
-		check(blocks->count() == 1 && blocks->currentText() == "1:B (1 block)" && !blocks->isEnabled(),
+		check(blocks->count() == 1 && blocks->currentText() == "1: B (1 block)" && !blocks->isEnabled(),
 			"c runs over B only, so B is the analysed block and there is no other section to choose");
 		check(combos[2]->count() == 5 && combos[2]->itemText(3) == "c | OC-c", "the closing occurrence can be any listed train");
 		list->item(2)->setCheckState(Qt::Unchecked);
-		check(blocks->currentText() == "1:B to 2:C (2 blocks)" && blocks->itemData(0, Qt::ToolTipRole).toString() == blocks->currentText(),
-			"without c the analysed blocks run on over C, and the tooltip has the whole entry");
+		check(blocks->currentText() == "1: B through 2: C (2 blocks)" && blocks->itemData(0, Qt::ToolTipRole).toString() == "1:B to 2:C (2 blocks)",
+			"without c the analysed blocks run on over C, and the tooltip names the blocks by their ids");
 		const auto spin = dialog.findChild<QDoubleSpinBox*>();
 		if (spin)
 			spin->setValue(7200.0);
@@ -1544,7 +1601,7 @@ void testCapacityDialog() {
 		dialog.findChild<QDoubleSpinBox*>()->setValue(900.0);
 		check(!ok->isEnabled() && status->isVisible(), "the message stays while the checked occurrences share no block");
 		list->item(2)->setCheckState(Qt::Unchecked);
-		check(blocks->currentText() == "2:C (1 block)" && ok->isEnabled() && status->isHidden(), "occurrences that share a block enable OK again");
+		check(blocks->currentText() == "2: C (1 block)" && ok->isEnabled() && status->isHidden(), "occurrences that share a block enable OK again");
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
 	});
 	check(!accepted && kept.routeIndex == -1 && kept.blockIds.empty() && kept.occurrenceIds.empty() && kept.cycleEndOccurrenceId.empty(),
@@ -1602,9 +1659,9 @@ void testCapacityDialog() {
 		const auto* blocks = dialog.findChild<QComboBox*>("capacityBlocks");
 		if (combos.size() != 3 || !list || !blocks)
 			return;
-		check(combos[0]->currentIndex() == 1 && list->count() == 2 && blocks->currentText() == "1:X (1 block)", "the dialog opens on the given route");
+		check(combos[0]->currentIndex() == 1 && list->count() == 2 && blocks->currentText() == "1: X (1 block)", "the dialog opens on the given route");
 		combos[0]->setCurrentIndex(0);
-		check(list->count() == 4 && list->item(2)->checkState() == Qt::Checked && blocks->currentText() == "1:B (1 block)",
+		check(list->count() == 4 && list->item(2)->checkState() == Qt::Checked && blocks->currentText() == "1: B (1 block)",
 			"the first route checks the trains of its first shared block");
 		combos[0]->setCurrentIndex(1);
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
@@ -1628,23 +1685,23 @@ void testCapacityDialog() {
 		auto* blocks = dialog.findChild<QComboBox*>("capacityBlocks");
 		if (!list || list->count() != 4 || !blocks)
 			return;
-		check(blocks->count() == 2 && blocks->itemText(0) == "1:A (1 block)" && blocks->currentIndex() == 1
-				&& blocks->currentText() == "3:C to 5:E (3 blocks)" && blocks->isEnabled()
+		check(blocks->count() == 2 && blocks->itemText(0) == "1: A (1 block)" && blocks->currentIndex() == 1
+				&& blocks->currentText() == "3: C through 5: E (3 blocks)" && blocks->isEnabled()
 				&& blocks->itemData(1, Qt::ToolTipRole).toString() == "3:C to 5:E (3 blocks)",
 			"p and q share A and C to E, and the longer section is selected");
 		list->item(2)->setCheckState(Qt::Checked);
-		check(blocks->count() == 2 && blocks->currentText() == "3:C (1 block)", "with s the section from C stays selected");
+		check(blocks->count() == 2 && blocks->currentText() == "3: C (1 block)", "with s the section from C stays selected");
 		blocks->setCurrentIndex(0);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		check(blocks->count() == 2 && blocks->currentText() == "1:A (1 block)", "without s the section from A stays selected");
+		check(blocks->count() == 2 && blocks->currentText() == "1: A (1 block)", "without s the section from A stays selected");
 		list->item(3)->setCheckState(Qt::Checked);
-		check(blocks->count() == 1 && blocks->currentText() == "3:C to 5:E (3 blocks)" && !blocks->isEnabled(),
+		check(blocks->count() == 1 && blocks->currentText() == "3: C through 5: E (3 blocks)" && !blocks->isEnabled(),
 			"t does not run over A, so the only section left is selected");
 		list->item(3)->setCheckState(Qt::Unchecked);
 		blocks->setCurrentIndex(0);
 		check(list->model()->moveRow(QModelIndex(), 1, QModelIndex(), 0) && list->item(0)->text() == "q | OC-q",
 			"q is moved above p");
-		check(blocks->currentText() == "1:A (1 block)", "a move keeps the selected section");
+		check(blocks->currentText() == "1: A (1 block)", "a move keeps the selected section");
 		forbidMessageBox();
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
 	});
@@ -1670,7 +1727,7 @@ void testCapacityDialog() {
 			return;
 		blocks->setCurrentIndex(0);
 		combos[0]->setCurrentIndex(1);
-		check(blocks->count() == 2 && blocks->currentText() == "3:H to 4:I (2 blocks)",
+		check(blocks->count() == 2 && blocks->currentText() == "3: H through 4: I (2 blocks)",
 			"another route selects its longest section");
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
 	});
@@ -1872,6 +1929,7 @@ int main(int argc, char** argv) {
 		checkRouteDiagrams(run);
 		exports.push_back(exportsOf(run.data));
 		windows.push_back(openWindows(run));
+		checkLabelledChoosers(run);
 	}
 	// Every run has been replaced by the next one by now. The data of each must still give what it gave.
 	for (std::size_t k = 0; k < runs.size(); ++k) {

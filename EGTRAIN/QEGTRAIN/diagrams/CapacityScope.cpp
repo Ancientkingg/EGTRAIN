@@ -216,16 +216,32 @@ CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& dat
 	return CapacityAnalysisScope();
 }
 
-QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
+namespace {
+
+// The route, the corridor and the first and last block of the scope. `labels` names the blocks by their labels, joined
+// by "through" since a label holds "to"; without labels the blocks are named by their ids.
+QString capacityScopeText(const CompletedRunData& data, const CapacityAnalysisScope& scope, bool labels) {
 	if (!data.hasRoute(scope.routeIndex))
 		return QStringLiteral("no selected route");
 	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
 	QString label = QString::fromStdString(route.id);
 	if (!route.corridor.empty())
 		label += QString(" / %1").arg(QString::fromStdString(route.corridor));
-	if (!scope.blockIds.empty())
-		label += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
-	return label;
+	if (scope.blockIds.empty())
+		return label;
+	if (!labels)
+		return label + QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
+	return label + QString(" / %1 through %2").arg(QString::fromStdString(data.sectionLabels.label(scope.blockIds.front())), QString::fromStdString(data.sectionLabels.label(scope.blockIds.back())));
+}
+
+} // namespace
+
+QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
+	return capacityScopeText(data, scope, false);
+}
+
+QString capacityScopeTextFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
+	return capacityScopeText(data, scope, true);
 }
 
 bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope) {
@@ -334,9 +350,10 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		else
 			clearError();
 	};
-	// Lists the sections of the checked occurrences, each as "1:B to 2:C (2 blocks)", or "none". The section that starts
-	// at the block where the selected one started stays selected, else the longest is. With fewer than two sections there
-	// is nothing to choose, so the field is disabled.
+	// Lists the sections of the checked occurrences, each as "1: <label of B> through 2: <label of C> (2 blocks)" with
+	// "1:B to 2:C (2 blocks)" as its tooltip, or "none". The section that starts at the block where the selected one
+	// started stays selected, else the longest is. With fewer than two sections there is nothing to choose, so the field
+	// is disabled.
 	const auto refillSections = [&run, &sections, routeCombo, blocks, checkedIds, showScopeStatus]() {
 		const int previous = blocks->currentIndex();
 		const int start = previous >= 0 && previous < static_cast<int>(sections.size())
@@ -350,10 +367,15 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			const auto block = [&section](std::size_t index) {
 				return QString("%1:%2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(section.blockIds[index]));
 			};
-			const QString text = count == 1 ? QString("%1 (1 block)").arg(block(0))
-											: QString("%1 to %2 (%3 blocks)").arg(block(0), block(count - 1)).arg(count);
+			const auto label = [&run, &section](std::size_t index) {
+				return QString("%1: %2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(run.sectionLabels.label(section.blockIds[index])));
+			};
+			const QString text = count == 1 ? QString("%1 (1 block)").arg(label(0))
+											: QString("%1 through %2 (%3 blocks)").arg(label(0), label(count - 1)).arg(count);
+			const QString ids = count == 1 ? QString("%1 (1 block)").arg(block(0))
+										   : QString("%1 to %2 (%3 blocks)").arg(block(0), block(count - 1)).arg(count);
 			blocks->addItem(text);
-			blocks->setItemData(blocks->count() - 1, text, Qt::ToolTipRole);
+			blocks->setItemData(blocks->count() - 1, ids, Qt::ToolTipRole);
 		}
 		if (sections.empty())
 			blocks->addItem("none");

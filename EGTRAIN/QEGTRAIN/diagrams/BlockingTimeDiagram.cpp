@@ -1,5 +1,6 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/CapacityAnalysis.h"
+#include "scene/SectionLabels.h"
 #include "util/CsvWriter.h"
 
 #include <algorithm>
@@ -45,11 +46,17 @@ std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
 	return tokens;
 }
 
-std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count, const char* relation) {
+// A section in a note: its label and id, or its id without labels.
+std::string sectionName(const std::string& id, const SceneSectionLabels* labels) {
+	return labels ? labels->labelWithId(id) : id;
+}
+
+std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count, const char* relation,
+	const SceneSectionLabels* labels) {
 	std::ostringstream text;
 	text.imbue(std::locale::classic());
 	text << std::fixed << std::setprecision(3) << "Reference section: " << extent.order << " of " << count << ", "
-		 << extent.id << ", " << extent.lowerKm() << " to " << extent.upperKm() << " km (" << relation << ")";
+		 << sectionName(extent.id, labels) << ", " << extent.lowerKm() << " to " << extent.upperKm() << " km (" << relation << ")";
 	return text.str();
 }
 
@@ -287,7 +294,7 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 }
 
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId) {
+	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId, const SceneSectionLabels* labels) {
 	for (BlockingTimeDiagramSegment& segment : segments) {
 		segment.referenceSection = 0;
 		segment.referenceNote.clear();
@@ -308,11 +315,15 @@ void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& se
 		if (candidates.size() == 1) {
 			segment.referenceSection = candidates.front()->order;
 			segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size(),
-				exact.empty() ? "shares a block with this envelope's section" : "same section");
+				exact.empty() ? "shares a block with this envelope's section" : "same section", labels);
 		} else if (candidates.size() > 1) {
 			segment.referenceNote = "Ambiguous reference sections on route " + referenceRouteId + ": ";
-			for (const auto* candidate : candidates)
-				segment.referenceNote += (candidate == candidates.front() ? "" : ", ") + std::to_string(candidate->order) + ":" + candidate->id;
+			// A switch label holds a comma, so labelled sections are listed with semicolons.
+			for (const auto* candidate : candidates) {
+				if (candidate != candidates.front())
+					segment.referenceNote += labels ? "; " : ", ";
+				segment.referenceNote += std::to_string(candidate->order) + (labels ? ": " : ":") + sectionName(candidate->id, labels);
+			}
 		} else {
 			segment.referenceNote = "Not a section of the reference route " + referenceRouteId;
 		}
@@ -417,17 +428,18 @@ std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<Bloc
 	return rows;
 }
 
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents) {
+std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents, const SceneSectionLabels* labels) {
 	constexpr std::size_t kListedIds = 3;
 	std::vector<std::string> ids;
 	for (const BlockSectionExtent& extent : extents)
 		if (!extent.geometryValid)
-			ids.push_back(extent.id);
+			ids.push_back(sectionName(extent.id, labels));
 	if (ids.empty())
 		return std::string();
 	std::string note = " Reference sections without a usable extent: ";
+	// A switch label holds a comma, so labelled sections are listed with semicolons.
 	for (std::size_t i = 0; i < ids.size() && i < kListedIds; ++i)
-		note += (i > 0 ? ", " : "") + ids[i];
+		note += (i > 0 ? (labels ? "; " : ", ") : "") + ids[i];
 	if (ids.size() > kListedIds)
 		note += " and " + std::to_string(ids.size() - kListedIds) + " more";
 	return note + ".";

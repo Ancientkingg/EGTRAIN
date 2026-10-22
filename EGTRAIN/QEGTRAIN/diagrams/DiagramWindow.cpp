@@ -1,6 +1,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "app/DialogFolders.h"
 #include "diagrams/TrainFilterButton.h"
+#include "scene/SectionLabels.h"
 #include "util/TimeFormat.h"
 #include "widgets/PlainToolTip.h"
 
@@ -258,16 +259,20 @@ private:
 class BlockSectionOverlay : public QGraphicsObject {
 public:
 	BlockSectionOverlay(QChart* chart, std::vector<BlockSectionExtent> sections,
-		const QString& route, const QFont& font, const QPalette& palette)
+		const QString& route, const SceneSectionLabels* labels, const QFont& font, const QPalette& palette)
 		: QGraphicsObject(chart), m_chart(chart), m_sections(std::move(sections)),
 		  m_route(route), m_font(font), m_palette(palette) {
+		// Only the labels of the shown sections are kept, so the overlay does not hold those of the whole scene.
+		if (labels)
+			for (const BlockSectionExtent& section : m_sections)
+				m_labels.byReference.emplace(section.id, labels->label(section.id));
 		QObject::setParent(chart);
 		setObjectName("blockSectionOverlay");
 		setAcceptedMouseButtons(Qt::NoButton);
 		setZValue(100);
 		setProperty("sectionCount", static_cast<int>(m_sections.size()));
 		m_notice = m_sections.empty() ? "Reference sections unavailable; no physical geometry shown."
-									  : QString::fromStdString(blockSectionGeometryNote(m_sections)).trimmed();
+									  : QString::fromStdString(blockSectionGeometryNote(m_sections, labels ? &m_labels : nullptr)).trimmed();
 		setProperty("geometryNotice", m_notice);
 		connect(chart, &QChart::plotAreaChanged, this, [this] {
 			prepareGeometryChange();
@@ -318,9 +323,9 @@ public:
 				const bool labelMatches = labelHit && section.lowerKm() == labelHit->lowerKm() && section.upperKm() == labelHit->upperKm();
 				if ((inHeader && (labelHit ? labelMatches : point.x() >= std::min(start, end) - 3 && point.x() <= std::max(start, end) + 3))
 					|| (!headerOnly && plot.contains(point) && std::min(std::abs(point.x() - start), std::abs(point.x() - end)) <= 4))
-					details << QString("Physical reference section %1:%2 | Route: %3 | Directed X: %4 to %5 km")
+					details << QString("Physical reference section %1%2 | Route: %3 | Directed X: %4 to %5 km")
 								   .arg(section.order)
-								   .arg(QString::fromStdString(section.id), m_route)
+								   .arg(sectionText(section, true), m_route)
 								   .arg(section.startKm, 0, 'g', 12)
 								   .arg(section.endKm, 0, 'g', 12);
 			}
@@ -328,7 +333,7 @@ public:
 			details << m_notice;
 			for (const auto& section : m_sections)
 				if (!section.geometryValid)
-					details << QString("%1:%2 | Geometry unavailable: %3").arg(section.order).arg(QString::fromStdString(section.id), QString::fromStdString(section.issue));
+					details << QString("%1%2 | Geometry unavailable: %3").arg(section.order).arg(sectionText(section, true), QString::fromStdString(section.issue));
 		}
 		return details.join('\n');
 	}
@@ -382,6 +387,12 @@ private:
 		QRectF rect;
 		QString text;
 	};
+	// What follows the order number of a section: ": label", with " (id)" for the hover, or ":id" without labels.
+	QString sectionText(const BlockSectionExtent& section, bool withId) const {
+		if (m_labels.byReference.empty())
+			return ":" + QString::fromStdString(section.id);
+		return ": " + QString::fromStdString(withId ? m_labels.labelWithId(section.id) : m_labels.label(section.id));
+	}
 	QRectF headerRect() const {
 		const QRectF plot = m_chart->plotArea();
 		return QRectF(plot.left(), plot.top() - headerHeight(), plot.width(), headerHeight());
@@ -398,7 +409,7 @@ private:
 			const double left = std::max(plot.left(), std::min(start, end));
 			const double right = std::min(plot.right(), std::max(start, end));
 			if (right > left) labels.push_back({&section, QRectF(left, headerRect().top(), right - left, stripHeight() - 5),
-				QString("%1:%2").arg(section.order).arg(QString::fromStdString(section.id))});
+				QString("%1%2").arg(section.order).arg(sectionText(section, false))});
 		}
 		std::stable_sort(labels.begin(), labels.end(), [](const auto& a, const auto& b) { return a.rect.left() < b.rect.left(); });
 		const QFontMetricsF metrics(m_font);
@@ -430,6 +441,7 @@ private:
 	}
 	QChart* m_chart;
 	std::vector<BlockSectionExtent> m_sections;
+	SceneSectionLabels m_labels; ///< Of the sections of m_sections; empty without labels
 	QString m_route, m_notice;
 	QFont m_font;
 	QPalette m_palette;
@@ -837,11 +849,12 @@ QString DiagramWindow::elidedAxisTextAt(const QPointF& chartPosition) const {
 	return {};
 }
 
-void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId) {
+void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId,
+	const SceneSectionLabels* labels) {
 	clearTooltip();
 	delete m_sectionOverlay.data();
 	auto* chart = m_view->chart();
-	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), referenceRouteId, font(), palette());
+	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), referenceRouteId, labels, font(), palette());
 	m_sectionOverlay = overlay;
 	// QChart lays a top legend out between its title and the plot area, so an invisible legend as tall as the
 	// strip keeps the title where it is and moves only the plot down. A larger top margin would move both.

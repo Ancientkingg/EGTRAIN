@@ -1,5 +1,6 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TrainFilterButton.h"
+#include "scene/SectionLabels.h"
 #include "widgets/PlainToolTip.h"
 
 #include <QApplication>
@@ -888,6 +889,16 @@ static bool exerciseBlockSections() {
 	hover(expandedLabel);
 	ok &= expect(tooltip->isVisible() && tooltip->text().contains("1:@n0@") && !tooltip->text().contains("2:@n1@"),
 		"expanded visible label reports its full ID rather than the neighbouring physical interval");
+	// With labels the strip shows the label, which is wider than the id, and the hover names the label and the id.
+	SceneSectionLabels crowdedLabels;
+	crowdedLabels.byReference = {{"@n0@", "T 0.000 to 0.250 km"}};
+	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded", &crowdedLabels);
+	QApplication::processEvents();
+	const double labelledWidth = QFontMetricsF(window.font()).horizontalAdvance("1: T 0.000 to 0.250 km");
+	hover(QPointF(plot.left() + labelledWidth - 2, headerPoint(0, 0).y() + 5));
+	ok &= expect(tooltip->isVisible()
+			&& tooltip->text().startsWith("Physical reference section 1: T 0.000 to 0.250 km (@n0@) | Route: crowded"),
+		"the strip names a section by its label, and the hover by its label and id");
 	window.setBlockSections(extents, "reference<&>");
 	overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 	const auto boundaryPainted = [&] {

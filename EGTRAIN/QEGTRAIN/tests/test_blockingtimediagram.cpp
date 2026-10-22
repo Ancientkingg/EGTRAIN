@@ -1,4 +1,5 @@
 #include "diagrams/BlockingTimeDiagram.h"
+#include "scene/SectionLabels.h"
 #include "util/CsvWriter.h"
 
 #include <iostream>
@@ -92,6 +93,12 @@ static bool blockSectionTests() {
 	ok &= expect(same[0].referenceSection == 3
 			&& same[0].referenceNote == "Reference section: 3 of 3, @2-B0@, 4.000 to 6.000 km (same section)",
 		"same id and interval gives the section and its note");
+	SceneSectionLabels routeLabels;
+	routeLabels.byReference = {{"@2-B0@", "B0 4.000 to 6.000 km"}};
+	matchBlockingSegmentsToSections(same, route, "route0", &routeLabels);
+	ok &= expect(same[0].referenceSection == 3
+			&& same[0].referenceNote == "Reference section: 3 of 3, B0 4.000 to 6.000 km (@2-B0@), 4.000 to 6.000 km (same section)",
+		"with labels the note names the section by its label and id");
 
 	std::vector<BlockingTimeDiagramSegment> opposite = {envelope("@1-B0@", 4.0, 2.0)};
 	matchBlockingSegmentsToSections(opposite, route, "route0");
@@ -131,6 +138,13 @@ static bool blockSectionTests() {
 	ok &= expect(first[0].referenceSection == 0 && first[0].referenceNote.find("Ambiguous") != std::string::npos
 			&& duplicated.size() == 2,
 		"coincident occurrences are retained but cannot identify one envelope occurrence");
+	SceneSectionLabels switchLabels;
+	switchLabels.byReference = {{"@d@", "D 0.000 to 0.500, E 2.000 to 2.500 km"}};
+	matchBlockingSegmentsToSections(first, duplicated, "route0", &switchLabels);
+	ok &= expect(first[0].referenceNote
+			== "Ambiguous reference sections on route route0: 1: D 0.000 to 0.500, E 2.000 to 2.500 km (@d@); "
+			   "2: D 0.000 to 0.500, E 2.000 to 2.500 km (@d@)",
+		"with labels the ambiguous sections are named by label and id, apart by semicolons");
 	std::vector<BlockingTimeDiagramSegment> sharedMany = {envelope("@d@", 0.2, 0.8)};
 	matchBlockingSegmentsToSections(sharedMany, duplicated, "route0");
 	ok &= expect(sharedMany[0].referenceSection == 0 && sharedMany[0].referenceNote.find("Ambiguous") != std::string::npos,
@@ -212,6 +226,10 @@ static bool blockSectionTests() {
 	const auto mixed = buildBlockSectionExtents({{"@a@", 0.0, 1.0}, {"@b@", 1.0, 1.0}, {"@c@", 1.0, 2.0}, {"@d@", 2.0, nan}});
 	ok &= expect(blockSectionGeometryNote(mixed) == " Reference sections without a usable extent: @b@, @d@.",
 		"the note lists the sections without geometry in route order and no others");
+	SceneSectionLabels mixedLabels;
+	mixedLabels.byReference = {{"@b@", "T 1.000 km"}};
+	ok &= expect(blockSectionGeometryNote(mixed, &mixedLabels) == " Reference sections without a usable extent: T 1.000 km (@b@); @d@.",
+		"with labels the note names the sections by label and id, apart by semicolons");
 	const auto returning = buildBlockSectionExtents({{"@a@", 2, 8}, {"@b@", 8, -2}, {"@a@", -2, 2}});
 	ok &= expect(blockSectionBounds(returning) == std::make_optional(std::make_pair(-2.0, 8.0)),
 		"returning route includes intermediate endpoints, not only first/last");

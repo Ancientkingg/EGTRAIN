@@ -2157,6 +2157,10 @@ static bool runSectionLabelChecks() {
 
 	ok &= expect(labels.label("no-such-block") == "no-such-block" && labels.label("").empty(),
 		"an unknown or missing reference keeps its id");
+	ok &= expect(labels.labelWithId("@alpha.block@") == "alpha 0.000 to 1.000 km (@alpha.block@)"
+			&& labels.labelWithId("no-such-block") == "no-such-block"
+			&& shortLabels.labelWithId("@short.0@") == "line 0.000 to 0.000 km (@short.0@)",
+		"the label with the id names the id once, and an unknown reference by its id alone");
 	SceneModel sameId = twoLineScene(1);
 	sameId.blocks.back().id = sameId.blocks.front().id;
 	const SceneSectionInventory sameIdInventory = buildSceneSectionInventory(sameId);

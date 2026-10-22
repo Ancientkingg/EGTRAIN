@@ -296,6 +296,7 @@ BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& da
 	BlockingTimeScopeChoices choices;
 	choices.caseEndSeconds = data.settings.horizonSeconds();
 	choices.stepSeconds = data.settings.timestepSeconds;
+	choices.sectionLabels = data.sectionLabels;
 	for (const CompletedRoute& route : data.routes) {
 		BlockingTimeScopeChoices::Route choice;
 		choice.id = route.id;
@@ -387,7 +388,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	result.segments = projectBlockingSegments(scoped, maps.byTrain, result.omitted, &result.unmapped);
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
 	result.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id);
+	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id, &data.sectionLabels);
 	if (!scope.sectionIndices.empty())
 		result.segments.erase(std::remove_if(result.segments.begin(), result.segments.end(),
 								  [&result](const auto& segment) { return !blockingSegmentInSections(segment, result.extents); }),
@@ -413,7 +414,7 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	diagram.segments = projectBlockingSegments(shifted, maps.byTrain, diagram.omitted, &diagram.unmapped);
 	const auto allExtents = buildBlockSectionExtents(route.blocks);
 	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id);
+	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id, &data.sectionLabels);
 	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back.
 	std::map<std::string, double> shifts;
 	for (const CapacityCompressionRow& row : result.compression)
@@ -433,11 +434,12 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	return diagram;
 }
 
-std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence) {
+std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels) {
 	QStringList values;
 	for (const auto& item : evidence)
-		values << QString("%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
-					  .arg(QString::fromStdString(item.leaderBlockId), QString::fromStdString(item.followerBlockId),
+		values << QString(labels ? "%1 / %2 (leader=%3 s; follower=%4 s; candidate=%5 s)" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
+					  .arg(QString::fromStdString(labels ? labels->label(item.leaderBlockId) : item.leaderBlockId),
+						  QString::fromStdString(labels ? labels->label(item.followerBlockId) : item.followerBlockId),
 						  QString::fromStdString(csv::formatDouble(item.leaderOffset)),
 						  QString::fromStdString(csv::formatDouble(item.followerOffset)),
 						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
