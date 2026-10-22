@@ -121,8 +121,8 @@ int main(int argc, char** argv) {
 		ok &= expect(stage({missingCase.removed}, {}) == missingMessage(missingCase.reported),
 			qPrintable(QStringLiteral("staging names the missing %1").arg(missingCase.reported)));
 	}
-	ok &= expect(stage({QStringLiteral("Qt5Gui.dll"), QStringLiteral("Qt5Core.dll")}, {})
-			== missingMessage(QStringLiteral("Qt5Core.dll")),
+	ok &= expect(stage({QStringLiteral("Qt6Gui.dll"), QStringLiteral("Qt6Core.dll")}, {})
+			== missingMessage(QStringLiteral("Qt6Core.dll")),
 		"staging names the first missing file in floor order");
 
 	ok &= expect(stage({libzmq}, {}, {QStringLiteral("libzmq-mt-5_0_0.dll")}).isNull(),
@@ -132,11 +132,11 @@ int main(int argc, char** argv) {
 		"the libzmq pattern needs the libzmq prefix");
 
 	const QStringList listed = {QStringLiteral("QEGTRAIN.exe"), QStringLiteral("d3dcompiler_47.dll"),
-		QStringLiteral("styles/qwindowsvistastyle.dll")};
-	ok &= expect(stage({}, listed, {QStringLiteral("d3dcompiler_47.dll"), QStringLiteral("styles/qwindowsvistastyle.dll")}).isNull(),
+		QStringLiteral("styles/qmodernwindowsstyle.dll")};
+	ok &= expect(stage({}, listed, {QStringLiteral("d3dcompiler_47.dll"), QStringLiteral("styles/qmodernwindowsstyle.dll")}).isNull(),
 		"a manifest list passes when every file is staged");
 	ok &= expect(stage({}, listed, {QStringLiteral("d3dcompiler_47.dll")})
-			== missingMessage(QStringLiteral("styles/qwindowsvistastyle.dll")),
+			== missingMessage(QStringLiteral("styles/qmodernwindowsstyle.dll")),
 		"staging names the first manifest file that is missing");
 	ok &= expect(stage({}, {QStringLiteral("Scenes")}) == missingMessage(QStringLiteral("Scenes")),
 		"a manifest entry must be a file");

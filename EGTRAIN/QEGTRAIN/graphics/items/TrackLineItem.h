@@ -22,42 +22,52 @@
 
 using namespace std;
 
+/// The line of an arc of a track line, in scene coordinates.
 class TrackLineItem : public QGraphicsLineItem {
-	// Q_OBJECT
-
 public:
+	/// A free line without an arc; its click target reaches 20 scene units on each side of it.
 	TrackLineItem(const QLineF& line, QGraphicsItem* parent = nullptr);
 	~TrackLineItem() override;
 
-	void setOperationalState(TrackOperationalState state);
+	/// Sets the state of the track during a run, which the inspector shows, and whether a train occupies it, which
+	/// paint() shows. An Occupied state is occupied whatever occupied says.
+	void setOperationalState(TrackOperationalState state, bool occupied = false);
+	/// The state of the track during a run.
 	TrackOperationalState operationalState() const;
+	/// A train occupies the track, also while a signal failure blocks its section and the state is Blocked.
+	bool isOccupied() const;
 
-	// reimplemented functions
+	/// The click target: the line widened by 20 scene units on each side.
 	QPainterPath shape() const override;
+	/// The bounds of the click target.
 	QRectF boundingRect() const override;
+	/// Draws the line with the pen of the item, in occupiedTrackColor() while a train occupies the track.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-	// track to which Arc belongs
+	/// The index of the track line in the run; -1 in the preview.
 	int track;
 
-	// Arc pointer
+	/// The arc of the run, which belongs to the run; null in the preview.
 	Arc* arc;
 
-	// to allow cast
-	enum { Type = UserType + 1 };
+	enum { Type = UserType + 1 /**< The item type for qgraphicsitem_cast. */ };
+	/// Returns Type.
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
 
 protected:
-	// used to highlight the line when clicked
+	/// The half width in scene units of the click target.
 	const qreal selectionOffset;
+	/// The click target in item coordinates.
 	QPolygonF selectionPolygon;
+	/// Builds selectionPolygon around the line.
 	void createSelectionPolygon();
 
 private:
 	TrackOperationalState m_operationalState;
+	bool m_occupied;
 };
 
 #endif // TRACKLINEITEM_H

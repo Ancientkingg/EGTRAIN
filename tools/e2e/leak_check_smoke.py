@@ -28,7 +28,7 @@ FAILURE_TAIL_CHARS = 3000
 
 def run_scene(app: Path, scene: Path, log: Path) -> str:
     """Run the scene into a temporary output folder, write its output to log and return why it failed, or ''."""
-    command = [str(app), "--scene", str(scene), "-h", HORIZON_SECONDS, "-g", "0", "-TSM", "0", "-RC", "0",
+    command = [str(app), "--scene", str(scene), "-h", HORIZON_SECONDS, "-g", "0",
                "--detailed-trajectories"]
     with tempfile.TemporaryDirectory(prefix="qegtrain-leak-") as output:
         env = os.environ.copy()

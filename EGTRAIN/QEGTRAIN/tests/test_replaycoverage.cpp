@@ -39,16 +39,18 @@ bool mentionsInternals(const std::string& text) {
 }
 
 int main() {
-	// A run that is kept whole: the interval, the cadence and nothing about a missing part.
+	// A run that is kept whole: the interval, the cadence and nothing about a missing part. The selected time is a clock
+	// time after the start of the run, 08:00:00.
 	{
 		const ReplayCoverage whole = coverage(ReplayCoverageKind::WholeRun, 0, 7999);
 		const ReplayBarText idle = replayBarText(whole);
-		require(idle.selected == "Replay" && idle.coverage == "Whole run, 0 to 7999 s, a frame every 5 s." && idle.startTip.empty() && idle.usable,
+		require(idle.selected == "Replay" && idle.coverage == "Whole run, 0 to 7999 s, a frame every 5 s."
+				&& idle.startTip == "Go to the start of the run" && idle.usable,
 			"the row of a whole run was not worded as such");
 		const ReplayBarText shown = replayBarText(whole, 1234);
-		require(shown.selected == "Replay at 1234 s" && shown.coverage == idle.coverage && shown.startTip.empty() && shown.usable,
+		require(shown.selected == "08:20:34" && shown.coverage == idle.coverage && shown.startTip == idle.startTip && shown.usable,
 			"the row of a whole run did not say the selected time");
-		require(replayBarText(whole, 0).selected == "Replay at 0 s", "the first second was not taken for a selected time");
+		require(replayBarText(whole, 0).selected == "08:00:00", "the first second was not taken for a selected time");
 		require(idle.coverage.find("not kept") == std::string::npos, "a whole run said that a part was not kept");
 	}
 
@@ -61,7 +63,7 @@ int main() {
 		require(idle.selected == "Replay" && idle.coverage == "Starts at 10:00:20 (7220 s), ends at 7999 s, a frame every 5 s. " + reason && idle.usable,
 			"the row of a run with a dropped first part was not worded as such");
 		const ReplayBarText shown = replayBarText(later, 7500);
-		require(shown.selected == "Replay at 7500 s" && shown.coverage == idle.coverage,
+		require(shown.selected == "10:05:00" && shown.coverage == idle.coverage,
 			"the row of a run with a dropped first part did not say the selected time");
 		require(idle.startTip == "Go to the first kept time, 10:00:20 (7220 s). The earlier part of the run was not kept."
 				&& shown.startTip == idle.startTip,
@@ -77,7 +79,7 @@ int main() {
 	{
 		const ReplayBarText none = replayBarText(coverage(ReplayCoverageKind::Unavailable, 0, 0));
 		require(none.selected == "No replay" && none.coverage == "One moment of this run needs more than the replay memory (128 MiB)."
-				&& none.startTip.empty() && !none.usable,
+				&& none.startTip == "Go to the start of the run" && !none.usable,
 			"a run that cannot be replayed was not worded as such");
 		const ReplayBarText asked = replayBarText(coverage(ReplayCoverageKind::Unavailable, 0, 0), 500);
 		require(asked.selected == none.selected && asked.coverage == none.coverage, "an unavailable replay said a selected time");
@@ -91,7 +93,7 @@ int main() {
 	{
 		const ReplayBarText one = replayBarText(coverage(ReplayCoverageKind::WholeRun, 0, 0));
 		require(one.coverage == "Whole run, one frame at 0 s." && one.usable, "a whole run of one frame was not worded as such");
-		require(replayBarText(coverage(ReplayCoverageKind::WholeRun, 0, 0), 0).selected == "Replay at 0 s",
+		require(replayBarText(coverage(ReplayCoverageKind::WholeRun, 0, 0), 0).selected == "08:00:00",
 			"a whole run of one frame did not say the selected time");
 		const ReplayBarText last = replayBarText(coverage(ReplayCoverageKind::FromLater, 7999, 7999));
 		require(last.coverage
@@ -103,7 +105,8 @@ int main() {
 		ReplayCoverage wrap = coverage(ReplayCoverageKind::FromLater, 1200, 4000);
 		wrap.clockOffsetSeconds = 23 * 3600 + 50 * 60;
 		require(replayBarText(wrap).coverage.find("Starts at 00:10:00 (1200 s)") != std::string::npos
-				&& replayBarText(wrap).startTip.find("00:10:00 (1200 s)") != std::string::npos,
+				&& replayBarText(wrap).startTip.find("00:10:00 (1200 s)") != std::string::npos
+				&& replayBarText(wrap, 1200).selected == "00:10:00",
 			"the clock did not wrap over midnight");
 		ReplayCoverage start = coverage(ReplayCoverageKind::FromLater, 600, 4000);
 		start.clockOffsetSeconds = 0;
@@ -155,7 +158,7 @@ int main() {
 			"the coverage of a history with a dropped first part was not read from it");
 		const ReplayBarText row = replayBarText(dropped, 40);
 		const std::string start = formatSimTime(small.firstTime(), 3600) + " (" + std::to_string(small.firstTime()) + " s)";
-		require(row.selected == "Replay at 40 s" && row.coverage.find("Starts at " + start + ", ends at 40 s") != std::string::npos
+		require(row.selected == "01:00:40" && row.coverage.find("Starts at " + start + ", ends at 40 s") != std::string::npos
 				&& row.coverage.find("replay memory (" + replayMemoryText(small.budgetBytes()) + ")") != std::string::npos
 				&& row.startTip == "Go to the first kept time, " + start + ". The earlier part of the run was not kept.",
 			"the row of a history with a dropped first part did not say where it starts");

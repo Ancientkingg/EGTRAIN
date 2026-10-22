@@ -749,8 +749,6 @@ int main() {
 		provenance.bufferSeconds = 7.0;
 		provenance.recoveryPercent = 12.5;
 		provenance.paxMode = 1;
-		provenance.tsmMode = 2;
-		provenance.routeChoiceMode = 3;
 		provenance.randomSeed = 123456789;
 		provenance.selectedOccurrences = {{"service-A", 2, "A\\\"2"}, {"service-B", 1, "B1"}};
 		const QString artifactPath = temp.filePath("result.csv");

@@ -525,8 +525,6 @@ bool runFixture(const std::string& fixture, const std::string& outputDir, Fixtur
 	selection.insert({"F2", 1});
 
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.PAX_GUI = false;
 	initial_variables.exportDetailedTrajectories = false;
 	initial_variables.OutputMainFolder = outputDir;

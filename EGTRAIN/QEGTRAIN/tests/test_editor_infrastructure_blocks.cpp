@@ -551,8 +551,8 @@ static bool testRouteSections() {
 
 	// the catalog keeps the section that was chosen
 	f.panel.addRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({b1}) && sectionTexts(f) == QStringList({"base block block-b1 / track track-b"}),
-		"the catalog keeps the section that was chosen, and the list names it by its block and track");
+	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({b1}) && sectionTexts(f) == QStringList({"track-b 0.000 to 1.000 km"}),
+		"the catalog keeps the section that was chosen, and the list names it by its label");
 
 	// the buttons wait for a route
 	f.edit().routes.clear();

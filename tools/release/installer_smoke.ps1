@@ -371,10 +371,17 @@ try {
     Assert-InstalledFiles $defaultDirectory
     $stale = Join-Path $defaultDirectory 'Scenes\RemovedInNewerVersion'
     New-UserFile (Join-Path $stale 'scene.json')
+    # Files that an installation of version 1.0.3 or older holds and that no file of a Qt 6 package replaces.
+    $qt5Files = @('Qt5Core.dll', 'bearer\qgenericbearer.dll', 'styles\qwindowsvistastyle.dll', 'imageformats\qwebp.dll')
+    foreach ($name in $qt5Files) { New-UserFile (Join-Path $defaultDirectory $name) }
     Install-Egtrain $UpgradeInstaller 'upgrade-over'
     Assert-Registered $defaultDirectory $UpgradeVersion
     Assert-Associated $defaultDirectory
     Assert-True (-not (Test-Path -LiteralPath $stale)) 'the Scenes folder of the older version was not replaced'
+    foreach ($name in $qt5Files) {
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $defaultDirectory $name))) "the Qt 5 file $name of the older version was not deleted"
+    }
+    Assert-True (-not (Test-Path -LiteralPath (Join-Path $defaultDirectory 'bearer'))) 'the Qt 5 folder bearer of the older version was not deleted'
     Assert-InstalledFiles $defaultDirectory
     $directories = @(Get-ChildItem -LiteralPath (Split-Path -Parent $defaultDirectory) -Directory -Filter 'EGTRAIN*')
     Assert-True ($directories.Count -eq 1) "expected one installation directory, found $($directories.Count)"

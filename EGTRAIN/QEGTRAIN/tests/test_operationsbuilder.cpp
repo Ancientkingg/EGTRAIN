@@ -3319,6 +3319,14 @@ static bool sameSections(const std::vector<BlockSectionInput>& actual, const std
 
 int main() {
 	bool ok = generatorTests();
+	{
+		BlockingTimes source;
+		source.setupTime = 2.0;
+		source.sightReacTime = 5.0;
+		BlockingTimes copy;
+		copy = source;
+		ok &= expect(copy.setupTime == 2.0 && copy.sightReacTime == 5.0, "a copied blocking time keeps its own sight and reaction time");
+	}
 	SceneModel scene = completeScene();
 	// Exercise native route construction, stop resolution and chart coordinate
 	// extraction together. The second route traverses the same track backwards.
@@ -3611,30 +3619,6 @@ int main() {
 		ok &= expect(unrouted != defaultRun().passengers.front().Journeys.end() && unrouted->N_Trips == 0,
 			"legless canonical journeys remain present");
 	}
-	auto routeChoicePassengers = defaultRun().passengers;
-	Passenger& active = routeChoicePassengers.front();
-	active.IsIntheNetwork = true;
-	active.current_JourneyID = active.Journeys.front().ID;
-	Passenger inactive = active;
-	inactive.ID = "inactive.passenger";
-	inactive.IsIntheNetwork = false;
-	routeChoicePassengers.push_back(inactive);
-	Passenger activeLegless = active;
-	activeLegless.ID = "legless.passenger";
-	const auto leglessJourney = std::next(activeLegless.Journeys.begin());
-	activeLegless.current_JourneyID = leglessJourney->ID;
-	const int leglessDepartureTime = static_cast<int>(leglessJourney->Actual_Planned_Departure_Time);
-	routeChoicePassengers.push_back(activeLegless);
-	const nlohmann::json routeChoice = routeChoicePayload(routeChoicePassengers, 17);
-	ok &= expect(routeChoice == routeChoicePayload(routeChoicePassengers, 17)
-			&& routeChoice["time"] == 17 && routeChoice["passengers"].size() == 2
-			&& routeChoice["passengers"]["passenger.1--1.0"]["origin"] == "Zero"
-			&& routeChoice["passengers"]["passenger.1--1.0"]["destination"] == "Two"
-			&& routeChoice["passengers"]["legless.passenger--1.0"]["origin"] == "Zero"
-			&& routeChoice["passengers"]["legless.passenger--1.0"]["destination"] == "Two"
-			&& routeChoice["passengers"]["legless.passenger--1.0"]["departure_time"] == leglessDepartureTime
-			&& routeChoicePayload({}, 17)["passengers"].empty(),
-		"route-choice sharing deterministically includes routed and legless active journeys");
 	ok &= expect(initial_variables.name == "native-operations-fixture"
 			&& initial_variables.startingSimulationTime == 23400
 			&& initial_variables.times == 90.0

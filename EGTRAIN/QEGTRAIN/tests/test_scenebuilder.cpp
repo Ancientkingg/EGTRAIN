@@ -15,6 +15,7 @@
 #include <cstring>
 #include <iostream>
 #include <list>
+#include <locale>
 #include <map>
 #include <memory>
 #include <set>
@@ -634,15 +635,25 @@ static std::set<std::string> namedUncoveredSections(const SceneModel& scene, boo
 		}
 		std::string list = diagnostic.message.substr(begin + marker.size());
 		complete = list.find(" more") == std::string::npos;
-		const std::size_t end = list.find(" (track");
+		const std::size_t end = list.rfind(" (track");
 		if (end != std::string::npos)
 			list.resize(end);
-		for (std::size_t position = 0; position < list.size();) {
-			std::size_t comma = list.find(", ", position);
-			if (comma == std::string::npos)
-				comma = list.size();
-			names.insert(list.substr(position, comma - position));
-			position = comma + 2;
+		// Each name is an id with its label in parentheses, and the label of a switch section has a comma of its own.
+		std::string item;
+		int depth = 0;
+		for (std::size_t position = 0; position <= list.size(); ++position) {
+			const char character = position < list.size() ? list[position] : ',';
+			if (character == '(')
+				++depth;
+			else if (character == ')')
+				--depth;
+			if (character == ',' && depth == 0) {
+				names.insert(item.substr(0, item.find(" (")));
+				item.clear();
+				++position;
+				continue;
+			}
+			item += character;
 		}
 	}
 	return names;
@@ -2110,8 +2121,71 @@ static bool runFailedBuildChecks() {
 	return ok;
 }
 
+// A locale that writes a decimal comma, as many user locales do.
+struct DecimalComma : std::numpunct<char> {
+	char do_decimal_point() const override { return ','; }
+};
+
+static bool runSectionLabelChecks() {
+	bool ok = true;
+	const std::locale previous = std::locale::global(std::locale(std::locale::classic(), new DecimalComma));
+	const SceneSectionInventory connected = buildSceneSectionInventory(stableConnectionScene());
+	const SceneSectionLabels labels = sceneSectionLabels(connected);
+	ok &= expect(labels.label("@alpha.block@") == "alpha 0.000 to 1.000 km" && labels.label("alpha.block") == "alpha 0.000 to 1.000 km",
+		"a block section reads as its track and kilometres, by runtime id and by block id, with a full stop in every locale");
+	ok &= expect(labels.label("@alpha.block@-1.000000/@beta.block@-2.000000") == "alpha 0.000 to 1.000, beta 2.000 to 3.000 km",
+		"a switch section reads as the piece on each track");
+	std::locale::global(previous);
+
+	// The connection ends at the end of the block of beta, so the piece on beta has one kilometre.
+	SceneModel atBlockEnd = stableConnectionScene();
+	atBlockEnd.connections.front().fromNodeId = "beta.end";
+	const SceneSectionInventory endInventory = buildSceneSectionInventory(atBlockEnd);
+	const auto atEnd = std::find_if(endInventory.sections.begin(), endInventory.sections.end(),
+		[](const SceneSectionDescriptor& section) { return section.connectionDerived; });
+	ok &= expect(atEnd != endInventory.sections.end() && sceneSectionLabel(*atEnd) == "alpha 0.000 to 1.000, beta 3.000 km",
+		"a piece whose ends round to the same kilometre shows it once");
+
+	// Two blocks of 0.2 m round to the same kilometres.
+	SceneModel shortBlocks = lineScene(1);
+	shortBlocks.blocks = {{"short.0", "line", 0.0002}, {"short.1", "line", 0.0002}, {"rest", "line", 0.9996}};
+	const SceneSectionLabels shortLabels = sceneSectionLabels(buildSceneSectionInventory(shortBlocks));
+	ok &= expect(shortLabels.label("short.0") == "line 0.000 to 0.000 km (@short.0@)"
+			&& shortLabels.label("@short.1@") == "line 0.000 to 0.000 km (@short.1@)"
+			&& shortLabels.label("rest") == "line 0.000 to 1.000 km",
+		"a label that two sections share ends with the id");
+
+	ok &= expect(labels.label("no-such-block") == "no-such-block" && labels.label("").empty(),
+		"an unknown or missing reference keeps its id");
+	ok &= expect(labels.labelWithId("@alpha.block@") == "alpha 0.000 to 1.000 km (@alpha.block@)"
+			&& labels.labelWithId("no-such-block") == "no-such-block"
+			&& shortLabels.labelWithId("@short.0@") == "line 0.000 to 0.000 km (@short.0@)",
+		"the label with the id names the id once, and an unknown reference by its id alone");
+	SceneModel sameId = twoLineScene(1);
+	sameId.blocks.back().id = sameId.blocks.front().id;
+	const SceneSectionInventory sameIdInventory = buildSceneSectionInventory(sameId);
+	const SceneSectionLabels sameIdLabels = sceneSectionLabels(sameIdInventory);
+	ok &= expect(sameIdInventory.sections.size() == 2 && sameIdLabels.label("a.b.0") == "a.b.0"
+			&& sameIdLabels.label("@a.b.0@") == "@a.b.0@",
+		"a reference that names two sections keeps its id");
+
+	// A label exists for exactly the references that resolve() accepts, also for a block whose id is a runtime id.
+	SceneModel wrapped = twoLineScene(1);
+	wrapped.blocks.back().id = "@a.b.0@";
+	for (const SceneModel& scene : {stableConnectionScene(), switchChainScene(), shortBlocks, sameId, wrapped}) {
+		const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+		const SceneSectionLabels sceneLabels = sceneSectionLabels(inventory);
+		for (const SceneSectionDescriptor& section : inventory.sections)
+			for (const std::string& reference : {section.id, section.sourceBlockId, section.id.substr(1, section.id.size() - 2)})
+				ok &= expect((sceneLabels.byReference.count(reference) != 0) == (inventory.resolve(reference) != nullptr),
+					"the labels name the sections that resolve() finds: " + scene.name + " " + reference);
+	}
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
+	ok &= runSectionLabelChecks();
 	ok &= runAreaMappingChecks();
 	ok &= runAreaRoundtripChecks();
 	ok &= runLongTrackChecks();

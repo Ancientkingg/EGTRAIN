@@ -1,11 +1,11 @@
 # Updating EGTRAIN
 
-This page says how EGTRAIN checks for a newer release and how it installs one. The [README](../../README.md#quick-start) describes the first install of each system.
+This page says how EGTRAIN checks for a newer release and how it installs one. [Installing EGTRAIN](install.md) describes the first install of each system.
 
 ## Checks and consent
 
 On the first start, after the startup windows (Recover Unsaved Work if it appears, then Open a Case) have closed, EGTRAIN asks whether to check for releases automatically. You
-can disable or re-enable automatic checks from **Help**. **Check for Updates...**
+can disable or re-enable automatic checks from **Help** or in [Settings](how-to.md#change-the-application-settings). **Check for Updates...**
 always performs a manual check, even when automatic checks are disabled. An
 available update is downloaded only after consent; **Update and Restart**
 installs it and relaunches the application. If the install location is not
@@ -14,7 +14,7 @@ permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
 disk image or another read-only location; move it to the Applications folder
 first.
 
-When a newer release exists, the dialog **EGTRAIN <version> is Available** shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
+When a newer release exists, a message reads `EGTRAIN <new version> is available. You are using <your version>.` (on Windows and Linux its title is `EGTRAIN <new version> is Available`) and shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
 
 Production updates are stable versioned releases. With automatic checks enabled,
 EGTRAIN offers newer releases on the next application start; it does not interrupt

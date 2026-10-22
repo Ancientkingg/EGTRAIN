@@ -59,7 +59,7 @@ void sendKey(QWidget* widget, int code) {
 }
 
 void sendMouse(QWidget* widget, QEvent::Type type, const QPoint& point) {
-	QMouseEvent event(type, QPointF(point), Qt::LeftButton,
+	QMouseEvent event(type, QPointF(point), QPointF(widget->mapToGlobal(point)), Qt::LeftButton,
 		type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::LeftButton, Qt::NoModifier);
 	QCoreApplication::sendEvent(widget, &event);
 }
@@ -255,7 +255,7 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 		// Styled widgets have already resolved their fonts before this test seam.
 		for (QWidget* widget : review.findChildren<QWidget*>()) {
 			font = widget->font();
-			font.setPointSizeF(widget->objectName() == "dialogHeading" ? 22.5 : 18);
+			font.setPointSizeF(18);
 			widget->setFont(font);
 		}
 		// A small screen: the dialog keeps this size even when the details grow it.
@@ -263,7 +263,7 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 		review.resize(review.maximumSize());
 	}
 	QTimer::singleShot(0, &review, [&review, body, buttons, runButton, details, detailsToggle, status, factLabels, factValues]() {
-		// Modal show and disclosure changes post LayoutRequest events in Qt 5.
+		// Modal show and disclosure changes post LayoutRequest events.
 		const auto settle = []() {
 			for (int i = 0; i < 3; ++i) {
 				QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);

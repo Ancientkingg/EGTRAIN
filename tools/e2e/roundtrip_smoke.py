@@ -94,7 +94,13 @@ def check_layout(case_id: int, scene_name: str, scene_dir: Path, reimported_dir:
         rows = json.loads((views_dir / "views.json").read_text()).get("tracks", [])
         return sorted(
             (
-                {"track": track_ids.get(row["track"], row["track"]), "level": row["level"], "region": row["region"], "visible": row.get("visible", True)}
+                {
+                    "track": track_ids.get(row["track"], row["track"]),
+                    "level": row["level"],
+                    "region": row["region"],
+                    "visible": row.get("visible", True),
+                    "double_switch": row.get("double_switch", False),
+                }
                 for row in rows
             ),
             key=lambda row: row["track"],
@@ -198,7 +204,7 @@ def main() -> None:
         env = os.environ.copy()
         env["QEGTRAIN_OUTPUT_DIR"] = str(tmp_dir / "run")
         proc = subprocess.run(
-            [str(app), "--scene", str(reimported_dir), "-g", "0", "-TSM", "0", "-RC", "0"],
+            [str(app), "--scene", str(reimported_dir), "-g", "0"],
             cwd=tmp_dir,
             env=env,
             stdout=subprocess.PIPE,

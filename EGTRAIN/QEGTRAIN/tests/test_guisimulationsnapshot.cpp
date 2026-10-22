@@ -13,6 +13,14 @@
 #include <utility>
 #include <vector>
 
+#if defined(__SANITIZE_ADDRESS__)
+#define TEST_ADDRESS_SANITIZER 1
+#elif defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define TEST_ADDRESS_SANITIZER 1
+#endif
+#endif
+
 namespace {
 void require(bool condition, const char* message) {
 	if (!condition) {
@@ -23,10 +31,25 @@ void require(bool condition, const char* message) {
 }
 
 // Counts the bytes requested from the allocator, so that the accounted replay bytes can be
-// compared with what the history really holds.
+// compared with what the history really holds. AddressSanitizer keeps its own count: with it, a
+// system library on macOS frees with the operator delete of the sanitizer what a replaced operator
+// new returned. GCC has no <sanitizer/allocator_interface.h>, so the function is declared here.
+#ifdef TEST_ADDRESS_SANITIZER
+extern "C" std::size_t __sanitizer_get_current_allocated_bytes(); // NOLINT(bugprone-reserved-identifier): the name the runtime exports
+
+namespace {
+std::size_t heapBytes() {
+	return __sanitizer_get_current_allocated_bytes();
+}
+}
+#else
 namespace {
 std::size_t liveHeapBytes = 0;
 constexpr std::size_t headerBytes = 16;
+
+std::size_t heapBytes() {
+	return liveHeapBytes;
+}
 }
 
 void* operator new(std::size_t size) {
@@ -49,6 +72,7 @@ void operator delete(void* pointer) noexcept {
 void operator delete(void* pointer, std::size_t) noexcept {
 	operator delete(pointer);
 }
+#endif
 
 namespace {
 // Every field of every snapshot type is bound by name. A field added to one of the types stops
@@ -527,10 +551,10 @@ int main() {
 
 	// The accounted bytes grow with every frame and are close to what the history holds.
 	history.clear();
-	const std::size_t heapBefore = liveHeapBytes;
+	const std::size_t heapBefore = heapBytes();
 	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> large;
 	for (int t = 0; t < 400; t += 5) large.push_back(shared(sceneSnapshot(t, 40, 1350, 700, 400)));
-	const std::size_t heapWithInput = liveHeapBytes;
+	const std::size_t heapWithInput = heapBytes();
 	std::size_t previous = history.payloadBytes();
 	std::size_t firstStep = 0;
 	std::size_t lastStep = 0;
@@ -544,7 +568,7 @@ int main() {
 		lastStep = now - previous;
 		previous = now;
 	}
-	const std::size_t held = liveHeapBytes - heapWithInput;
+	const std::size_t held = heapBytes() - heapWithInput;
 	const std::size_t accounted = history.payloadBytes();
 	require(grows && history.size() == large.size(), "accounted bytes do not grow with the frames");
 	require(accounted > held - held / 10 && accounted < held + held / 10, "accounted bytes differ from the bytes held by more than 10 percent");

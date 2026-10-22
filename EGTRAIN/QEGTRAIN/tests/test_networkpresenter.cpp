@@ -4,12 +4,14 @@
 #include "graphics/NetworkPresenter.h"
 
 #include "app/GuiSimulationSnapshot.h"
+#include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
 #include "graphics/items/SignalItem.h"
+#include "graphics/items/StationNodeItem.h"
 #include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/TrainBadgeItem.h"
@@ -24,10 +26,14 @@
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include <QGraphicsView>
+#include <QLineF>
 #include <QLoggingCategory>
+#include <QMap>
 #include <QPixmap>
+#include <QtMath>
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -181,6 +187,51 @@ static SceneModel previewModel() {
 	return scene;
 }
 
+// Whether count platform bars are on the scene, each an item of the scene of its own at z 2, over the squares and the
+// station marks they hold, that lies along the line at a station node. A bar is parallel, within half a degree, to the
+// mean of the directions of the segments on both sides of its node, or to the last segment at the end of the line. Its
+// centre is 1.15 square sides from the node on the upper side of the track, or on the left of a vertical track.
+static bool barsAlong(QGraphicsScene& scene, const TrackPreviewLine& line, int count) {
+	const auto pointAt = [&line](std::size_t index) {
+		return QPointF(line.points[index].x, line.points[index].y + line.displayOffset);
+	};
+	const auto unit = [](const QPointF& vector) { return vector / std::hypot(vector.x(), vector.y()); };
+	const auto along = [&](const PlatformItem* bar, const StationNodeItem* square) {
+		const QPointF node = square->rect().center();
+		std::size_t index = 1;
+		while (index < line.points.size() && QLineF(pointAt(index), node).length() > 1e-6)
+			++index;
+		if (index == line.points.size())
+			return false;
+		QPointF direction = unit(node - pointAt(index - 1));
+		if (index + 1 < line.points.size())
+			direction = unit(direction + unit(pointAt(index + 1) - node));
+		if (direction.x() < 0 || (direction.x() == 0 && direction.y() < 0))
+			direction = -direction;
+		const QPointF up = direction.x() == 0 ? QPointF(-1, 0) : QPointF(direction.y(), -direction.x());
+		const QRectF rect = bar->rect();
+		const QLineF axis(bar->mapToScene(QPointF(rect.left(), rect.center().y())),
+			bar->mapToScene(QPointF(rect.right(), rect.center().y())));
+		return std::fabs(axis.dx() * direction.y() - axis.dy() * direction.x()) <= axis.length() * std::sin(qDegreesToRadians(0.5))
+			&& QLineF(bar->mapToScene(rect.center()), node + up * 1.15 * square->rect().width()).length() <= 1e-6;
+	};
+	QList<const StationNodeItem*> squares;
+	for (QGraphicsItem* item : scene.items())
+		if (const auto* square = qgraphicsitem_cast<StationNodeItem*>(item))
+			squares.append(square);
+	int bars = 0;
+	for (QGraphicsItem* item : scene.items()) {
+		const auto* bar = qgraphicsitem_cast<PlatformItem*>(item);
+		if (!bar)
+			continue;
+		if (bar->parentItem() || bar->zValue() != 2.0
+			|| std::none_of(squares.cbegin(), squares.cend(), [&](const StationNodeItem* square) { return along(bar, square); }))
+			return false;
+		++bars;
+	}
+	return bars == count;
+}
+
 static bool registriesEmpty(const NetworkPresenter& presenter) {
 	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_prevTrainPositions.isEmpty()
 		&& presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty()
@@ -198,7 +249,7 @@ static bool pointersNull(const NetworkPresenter& presenter) {
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
-	// The station icons are resources of the application, which this test does not have.
+	// The entity icons are resources of the application, which this test does not have.
 	QLoggingCategory::setFilterRules(QStringLiteral("qt.svg.warning=false"));
 	bool ok = true;
 
@@ -240,7 +291,7 @@ int main(int argc, char* argv[]) {
 		view.setScene(&scene);
 		NetworkPresenter presenter(&scene, &view);
 		const SceneModel model = previewModel();
-		int drawnItems = 0;
+		qsizetype drawnItems = 0;
 		for (int cycle = 0; cycle < 25; ++cycle) {
 			const NetworkPresenter::PreviewOutcome outcome = presenter.showPreview(model);
 			ok &= expect(outcome.available && outcome.trackLines == 2 && outcome.fitted,
@@ -262,15 +313,39 @@ int main(int argc, char* argv[]) {
 		options.selectedId = "B1";
 		presenter.showPreview(model, options);
 		ok &= expect(presenter.m_previewHasSelectedTrack, "a selected track is marked");
-		const int stationDecorations = presenter.m_stationDecorations.size();
+		const auto stationDecorations = presenter.m_stationDecorations.size();
 		presenter.clear();
 		options.platformBars = true;
 		presenter.showPreview(model, options);
 		ok &= expect(presenter.m_stationDecorations.size() > stationDecorations, "platform bars are added to the station decorations");
+		// B0 runs diagonally and bends at Gdg, its station between Gvc and Ut.
+		ok &= expect(barsAlong(scene, *presenter.trackLine("B0"), 2), "a platform bar is a scene item over the station marks and lies along its track, on the upper side");
+		presenter.clear();
+		// With Ut at the longitude of Gdg the track runs straight up from Gdg to Ut.
+		SceneModel vertical = model;
+		vertical.stationViews[2].longitude = 0.28;
+		presenter.showPreview(vertical, options);
+		ok &= expect(barsAlong(scene, *presenter.trackLine("B0"), 2), "the platform bar of a vertical track lies on its left");
+		// Ut ends the line, so its bar follows the vertical segment alone: it stands upright, left of the node.
+		bool upright = false;
+		if (const TrackPreviewLine* verticalLine = presenter.trackLine("B0"); verticalLine && !verticalLine->points.empty()) {
+			const QPointF ut(verticalLine->points.back().x, verticalLine->points.back().y + verticalLine->displayOffset);
+			qreal side = 0.0;
+			for (QGraphicsItem* item : scene.items())
+				if (const auto* square = qgraphicsitem_cast<StationNodeItem*>(item); square && QLineF(square->rect().center(), ut).length() < 1e-6)
+					side = square->rect().width();
+			// The bar of Ut is the one within two square sides of it.
+			for (QGraphicsItem* item : scene.items()) {
+				const auto* bar = qgraphicsitem_cast<PlatformItem*>(item);
+				if (bar && QLineF(bar->mapToScene(bar->rect().center()), ut).length() < 2.0 * side)
+					upright = std::fabs(bar->rotation() - 90.0) < 1e-9 && bar->mapToScene(bar->rect().center()).x() < ut.x();
+			}
+		}
+		ok &= expect(upright, "the platform bar at the vertical end of a line stands upright on its left");
 		presenter.clear();
 
 		options.markSelection = true;
-		int drawnWithOptions = 0;
+		qsizetype drawnWithOptions = 0;
 		for (int cycle = 0; cycle < 25; ++cycle) {
 			presenter.showPreview(model, options);
 			if (cycle == 0)
@@ -282,9 +357,140 @@ int main(int argc, char* argv[]) {
 				"clear after a preview with options leaves the registries empty and the scene as empty as a new scene");
 		}
 
+		// Ut gets three connection ends, and a station placed by position has no platform.
+		SceneModel classes = model;
+		classes.connections.push_back({"switch.8", "B0.Ut", "B1.Gdg", false, 0.0});
+		classes.connections.push_back({"switch.9", "B0.Ut", "B1.Gvc", false, 0.0});
+		// Gdg also has a platform on the other line.
+		classes.stations[1].platforms.push_back({"Gdg.platform.2", {"B1.Gdg"}});
+		SceneStation halt;
+		halt.id = halt.name = "Hlt";
+		halt.hasPosition = true;
+		halt.positionKm = 10.0;
+		classes.stations.push_back(halt);
+		presenter.showPreview(classes);
+		QStringList marks;
+		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
+			const auto* picture = static_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
+			if (picture && picture->stationClass() == overlay->visual().cls)
+				marks << overlay->stationName() + "=" + QString::number(static_cast<int>(overlay->visual().cls));
+		}
+		marks.sort();
+		ok &= expect(marks == QStringList({"Gdg=1", "Gvc=1", "Hlt=0", "Ut=2"}),
+			"a station gets the mark of its class from its connections and platforms");
+		// The mark of a station with platforms gets the centres of their station squares, one without them its anchor.
+		bool centred = !presenter.m_stationOverlays.isEmpty();
+		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
+			const auto* mark = dynamic_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
+			const auto station = std::find_if(classes.stations.cbegin(), classes.stations.cend(), [overlay](const SceneStation& candidate) {
+				return QString::fromStdString(candidate.id) == overlay->data(PreviewGraphics::Id).toString();
+			});
+			if (!mark || station == classes.stations.cend()) {
+				centred = false;
+				continue;
+			}
+			QList<QPointF> expected;
+			for (const auto& platform : station->platforms)
+				for (const auto& nodeId : platform.nodeIds)
+					for (QGraphicsItem* item : scene.items())
+						if (qgraphicsitem_cast<StationNodeItem*>(item)
+							&& item->data(PreviewGraphics::Id).toString() == QString::fromStdString(nodeId)
+							&& !expected.contains(item->sceneBoundingRect().center()))
+							expected.append(item->sceneBoundingRect().center());
+			if (expected.isEmpty())
+				expected.append(overlay->stableAnchor());
+			centred = centred && mark->nodeCentres() == expected && (overlay->stationName() != "Gdg" || expected.size() == 2);
+		}
+		ok &= expect(centred, "the preview gives each station mark the centres of its station squares");
+		presenter.clear();
+
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
 		ok &= expect(!empty.available && !empty.fitted && scene.items().isEmpty() && registriesEmpty(presenter),
 			"a model without track lines draws nothing");
+	}
+
+	// A head of the preview names its section by its label, after the authored signals that protect it, and the
+	// presenter finds the signal of the preview by its track and section.
+	{
+		QGraphicsScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		SceneModel model = previewModel();
+		sceneSignals(model).push_back({"sig1", "@B0.block.2@"});
+		presenter.showPreview(model);
+		QStringList heads;
+		for (QGraphicsItem* item : presenter.m_signalDecorations)
+			if (const auto* head = qgraphicsitem_cast<SignalItem*>(item))
+				heads << head->inspectionIdentity() + " | " + QString::fromStdString(head->sectionAheadId + " | " + head->sectionAheadLabel);
+		heads.removeDuplicates();
+		heads.sort();
+		const QStringList expected{
+			"Track B0 at 28 km; section B0 28.000 to 64.000 km; signal ID sig1 | @B0.block.2@ | B0 28.000 to 64.000 km",
+			"Track B1 at 136 km; section B1 136.000 to 164.000 km | @B1.block.2@ | B1 136.000 to 164.000 km"};
+		ok &= expect(heads == expected, "a head of the preview names its section by its label and keeps its id");
+		const TrackPreviewSignal* head = presenter.previewSignal("B0", "@B0.block.2@");
+		ok &= expect(head && head->label == "sig1 (B0 28.000 to 64.000 km)" && !presenter.previewSignal("B1", "@B0.block.2@"),
+			"the signal of the preview is found by its track and its section");
+		presenter.clear();
+	}
+
+	// On a schematic line the picture and the name of a station count from level 0, whatever level its platform is
+	// on. A named offset counts in the original levels of track_separation units.
+	{
+		SceneModel model;
+		model.tracks = {{"low"}, {"high"}};
+		model.nodes = {{"low.a", "low", 0.0, 0.0}, {"low.b", "low", 10.0, 0.0}, {"high.a", "high", 0.0, 0.0},
+			{"high.b", "high", 10.0, 0.0}};
+		model.arcs = {{"low.arc", "low", "low.a", "low.b", 0.0, 0.0, 12.0},
+			{"high.arc", "high", "high.a", "high.b", 0.0, 0.0, 12.0}};
+		model.blocks = {{"low.block", "low", 10.0}, {"high.block", "high", 10.0}};
+		model.trackViews = {{"low", 0, 0}, {"high", 2, 0}};
+		model.stationViews = {{"A", 1.0, 0.0, {{0, 0.0}}, {}}, {"Koge", 1.0, 0.1, {{0, 10.0}}, {}}};
+		for (const auto& stationData : {
+				 std::pair<const char*, const char*>{"A", "high.a"}, std::pair<const char*, const char*>{"Koge", "high.b"}}) {
+			SceneStation station;
+			station.id = station.name = stationData.first;
+			station.platforms.push_back({std::string(stationData.first) + ".platform", {stationData.second}});
+			model.stations.push_back(std::move(station));
+		}
+		QGraphicsScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		// The bottom centre of the picture of each station, by name.
+		const auto pictureAnchors = [&presenter]() {
+			QMap<QString, QPointF> anchors;
+			for (StationOverlayItem* overlay : presenter.m_stationOverlays)
+				if (const QGraphicsPixmapItem* picture = presenter.m_stationPictures.value(overlay, nullptr))
+					anchors.insert(overlay->stationName(),
+						picture->mapToScene(QPointF(presenter.station_size / 2.0, presenter.station_size)));
+			return anchors;
+		};
+		presenter.showPreview(model);
+		const TrackPreviewLine* low = presenter.trackLine("low");
+		const TrackPreviewLine* high = presenter.trackLine("high");
+		const QMap<QString, QPointF> anchors = pictureAnchors();
+		bool placed = low && high && low->levelSpacing > 0.0 && anchors.size() == 2;
+		if (placed) {
+			const qreal levelZero = low->points.front().y + low->displayOffset;
+			const QPointF plain = anchors.value("A");
+			const QPointF named = anchors.value("Koge");
+			placed = std::fabs(plain.x() - high->points.front().x) < 1e-6
+				&& std::fabs(plain.y() - (levelZero + 1200.0 * presenter.presentationScale())) < 1e-6
+				&& std::fabs(named.x() - high->points.back().x) < 1e-6
+				&& std::fabs(named.y() - (levelZero + (1200.0 + 900.0) / presenter.track_separation * low->levelSpacing))
+					< 1e-6;
+		}
+		ok &= expect(placed, "station pictures on a higher schematic level count from level 0");
+
+		// Without the station views the lines are not schematic, and a picture stays at its station.
+		model.stationViews.clear();
+		presenter.clear();
+		presenter.showPreview(model);
+		const TrackPreviewLine* unmapped = presenter.trackLine("high");
+		const QMap<QString, QPointF> unmappedAnchors = pictureAnchors();
+		QPointF station;
+		ok &= expect(unmapped && unmapped->displayOffset != 0.0 && unmappedAnchors.contains("A")
+				&& previewPointAtNode(*unmapped, "high.a", unmapped->displayOffset, station)
+				&& QLineF(unmappedAnchors.value("A"), station).length() < 1e-6,
+			"a station picture on a higher level of a line that is not schematic stays at its station");
 	}
 
 	// A preview leaves no work queued on the scene, so previews that follow each other without the event loop in
@@ -346,6 +552,8 @@ int main(int argc, char* argv[]) {
 				&& blocked->operationalState() == TrackOperationalState::Blocked
 				&& bothStates->operationalState() == TrackOperationalState::Occupied,
 			"a track line shows the state of its section or of the arc that a train occupies, whichever ranks highest");
+		ok &= expect(occupied->isOccupied() && bothStates->isOccupied() && !prepared->isOccupied() && !blocked->isOccupied(),
+			"the track lines of the arcs that a train occupies are occupied");
 		ok &= expect(presenter.m_activeTrackItems.size() == 4, "the track lines that show a state are the active ones");
 		waitFor([&]() { return paintedCount([](int paints) { return paints > 0; }) == 4; });
 		ok &= expect(paintedCount([](int paints) { return paints > 0; }) == 4, "the view paints the track lines that changed state");
@@ -365,6 +573,7 @@ int main(int argc, char* argv[]) {
 				&& prepared->operationalState() == TrackOperationalState::Blocked
 				&& blocked->operationalState() == TrackOperationalState::Blocked,
 			"a blocked section outranks the other states");
+		ok &= expect(bothStates->isOccupied() && !occupied->isOccupied(), "a blocked track line that a train occupies stays occupied");
 		ok &= expect(presenter.m_activeTrackItems.size() == 3 && !presenter.m_activeTrackItems.count(occupied),
 			"a track line that is free again is no longer active");
 		waitFor([occupied]() { return occupied->paints > 0; });
@@ -376,6 +585,41 @@ int main(int argc, char* argv[]) {
 				&& bothStates->operationalState() == TrackOperationalState::Free,
 			"every track line is free after they are cleared");
 		view.hide();
+		presenter.clear();
+	}
+
+	// A track view with double_switch draws a track of four nodes as the original drew a double switch: the middle arc
+	// and no node dot. Without it the track keeps its three arcs and the dot at its end.
+	{
+		QGraphicsScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		SceneModel model;
+		model.tracks = {{"B0"}};
+		model.nodes = {{"B0.1", "B0", 0.0, 0.0}, {"B0.2", "B0", 1.0, 0.0}, {"B0.3", "B0", 2.0, 0.0}, {"B0.4", "B0", 3.0, 0.0}};
+		model.arcs = {{"B0.arc.1", "B0", "B0.1", "B0.2", 0.0, 0.0, 12.0}, {"B0.arc.2", "B0", "B0.2", "B0.3", 0.0, 0.0, 12.0},
+			{"B0.arc.3", "B0", "B0.3", "B0.4", 0.0, 0.0, 12.0}};
+		model.trackViews = {{"B0", 0, 0}};
+		const auto drawn = [&scene]() {
+			std::vector<std::string> arcs;
+			int dots = 0;
+			for (QGraphicsItem* item : scene.items()) {
+				if (item->data(PreviewGraphics::Kind).toString() == QLatin1String("arc"))
+					arcs.push_back(item->data(PreviewGraphics::Id).toString().toStdString());
+				const auto* node = qgraphicsitem_cast<NodeItem*>(item);
+				if (node && node->rect().width() > 0.0)
+					++dots;
+			}
+			std::sort(arcs.begin(), arcs.end());
+			return std::make_pair(arcs, dots);
+		};
+		presenter.showPreview(model);
+		ok &= expect(drawn() == std::make_pair(std::vector<std::string>{"B0.arc.1", "B0.arc.2", "B0.arc.3"}, 1),
+			"a track of four nodes draws its three arcs and the dot at its end");
+		presenter.clear();
+		model.trackViews[0].doubleSwitch = true;
+		presenter.showPreview(model);
+		ok &= expect(drawn() == std::make_pair(std::vector<std::string>{"B0.arc.2"}, 0),
+			"a double switch draws its middle arc and no node dot");
 		presenter.clear();
 	}
 

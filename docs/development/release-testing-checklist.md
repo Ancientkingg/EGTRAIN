@@ -47,7 +47,7 @@ Before a release, check that the authors in `CITATION.cff` are still correct.
 The release is ready to rehearse only when the version, validation, sanitizer
 and the package jobs of the `Release` workflow (macOS, Windows, Finalize Windows,
 Linux and Rehearse Linux) are green. The release job needs all of them.
-[CI and release branches](build-and-test.md#ci-and-release-branches) describes
+[CI and release branches](ci-and-release.md#ci-and-release-branches) describes
 what the workflow does.
 
 Expected application assets:
@@ -78,7 +78,7 @@ case-study assets above and the update manifest.
 What the jobs prove today:
 
 - The Full validation job builds the project with tests on macOS and runs
-  CTest and the end-to-end smoke tests. The Sanitizers job runs CTest again in
+  CTest, which holds the end-to-end smoke tests. The Sanitizers job runs CTest again in
   a debug build with sanitizers.
 - In the Package macOS job, no Mach-O file of the app names a path under
   `/opt/homebrew` or `/usr/local` in `otool -L`, `otool -D` or `otool -l`, and
@@ -109,12 +109,12 @@ What the jobs prove today:
   `public.data` and so claims no archive type, and that the copy runs Paimpol to
   `End of Simulation`.
 - The Package Windows job checks that these files exist: `QEGTRAIN.exe`,
-  `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
-  `Qt5Charts.dll`, `Qt5Svg.dll`, `Qt5Network.dll`, `platforms/qwindows.dll`,
-  `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
-  `styles/qwindowsvistastyle.dll`, a `libzmq` DLL, `scene_tool.exe` and
-  `Scenes/Paimpol`. It fails when the software
-  OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
+  `egtrain_update_helper.exe`, `Qt6Core.dll`, `Qt6Gui.dll`, `Qt6Widgets.dll`,
+  `Qt6Charts.dll`, `Qt6Svg.dll`, `Qt6Network.dll`, `Qt6Help.dll`, `Qt6Sql.dll`,
+  `platforms/qwindows.dll`, `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
+  `styles/qmodernwindowsstyle.dll`, `sqldrivers/qsqlite.dll`, a `libzmq` DLL,
+  `scene_tool.exe` and `Scenes/Paimpol`. It fails when the software
+  OpenGL, Direct3D or DXC compiler libraries, Qt Quick, QML or virtual
   keyboard files or `vc_redist.x64.exe` are in the package. It copies the Visual
   C++ runtime DLLs that the program files import next to `QEGTRAIN.exe` and
   fails when a program file imports a DLL that is neither in the package nor part
@@ -134,15 +134,17 @@ What the jobs prove today:
   files, and leaves a file beside the folder in place. An install with the desktop
   task creates the desktop shortcut and the uninstall removes it. A second
   installer of the next patch version installed over the first, in the default
-  folder, leaves one entry, one folder and the higher version, and replaces the
-  `Scenes` folder. A copy of the same directory, started as a portable copy is,
+  folder, leaves one entry, one folder and the higher version, replaces the
+  `Scenes` folder and deletes the Qt 5 files that an installation of version
+  1.0.3 or older holds. A copy of the same directory, started as a portable copy is,
   registers no file type. The job then writes the portable archive from that
   directory, extracts it and starts the extracted program with the same start
   script.
 - The Package Linux job extracts the AppImage and checks the executable,
-  the update helper, `Scenes/Paimpol`, the icon, `AppRun` and the Qt libraries.
+  the update helper, `Scenes/Paimpol`, the icon, `AppRun`, the Qt libraries and
+  the SVG icon engine `iconengines/libqsvgicon.so`.
   It then starts the extracted image through its `AppRun` on a virtual display,
-  after it has checked that every Qt 5 and ZeroMQ library of the programs and
+  after it has checked that every Qt and ZeroMQ library of the programs and
   plugins comes from the image and not from the runner.
 - The Rehearse Linux job runs the steps 1 to 9 of the clean-install rehearsal
   on the AppImage that the Package Linux job uploaded. It runs on every package
@@ -365,7 +367,7 @@ Notes on the update rows:
   one source, like R9; record its tag. It shows that the scenes released
   before still open in the candidate. If the candidate changes the scene
   format, add one of its own bundles to the scene fixtures once the release is
-  published, as [Unit Tests](build-and-test.md#unit-tests) says. Mark R12 not
+  published, as [Unit Tests](testing.md#unit-tests) says. Mark R12 not
   applicable, with the reason, when no earlier stable release with bundles
   exists.
 - R9 installs the latest published stable release, not the candidate. It shows
@@ -404,6 +406,7 @@ did, and go on with **Open With**.
 | M4 First start of an ad hoc build | Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page, so that macOS knows it came from the internet. Open it, drag `QEGTRAIN.app` onto `Applications`, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper. | Record every dialog with its title, text and buttons. The first start is refused with the dialog `"QEGTRAIN" Not Opened`, whose buttons are **Move to Trash** and **Done**, and which has no **Open** button. **System Settings > Privacy & Security** shows, in the section **Security**, `"QEGTRAIN" was blocked to protect your Mac.` with the button **Open Anyway**. **Open Anyway** opens the dialog `Open "QEGTRAIN"?` with **Move to Trash**, **Open Anyway** and **Done**, and its **Open Anyway** asks for an administrator's name and password. Record whether EGTRAIN starts after that and which dialog, if any, comes next. Another dialog or another order is a finding: record its text. | macOS |
 | M5 First start of a notarized build | Run it as the first launch of step 1 on a Developer ID candidate. Download, copy and open the disk image as in M4. Before the first launch run `xcrun stapler validate /Applications/QEGTRAIN.app`, which must succeed. | EGTRAIN starts through the normal Finder path. The only dialog before the main window is the confirmation that macOS asks for an app that was downloaded: record its title and text. No **Open Anyway**, no visit to System Settings, no administrator password and no terminal command is needed. If one is, M5 fails, whatever the package job reported. | macOS |
 | M6 Folder access questions | On an account that has never run EGTRAIN, start the app from the Applications folder, close **Open a Case** and choose **File > Open Case Study...**. Cancel, choose **File > New Case Study...** and choose **File > Open Case Study...** again. Last, in the file dialog choose **lume** or your home folder in the sidebar and write down what macOS asks. | The first two file dialogs open in the `Scenes` folder of the app without any question about Desktop, Documents or Downloads. The question `"QEGTRAIN" would like to access files in your Desktop folder.`, and the same for Documents and Downloads, appears only when the file dialog lists your home folder, which it does in the last step. Record each question with its text and the step that caused it. Any question in the first two dialogs is a finding. | macOS |
+| M7 Documentation pictures | This row needs no package. In a checkout of the candidate commit, build with `EGTRAIN_BUILD_TESTS=ON` as in [Documentation pictures](smoke-tests.md#documentation-pictures) and run `bash tools/docs/capture_screenshots.sh --check` on a macOS screen at a device pixel ratio of 1, as that section says. | The script prints `every picture matches docs/images`. Otherwise it lists the pictures that changed. Retake them with `bash tools/docs/capture_screenshots.sh`, look at each, and commit them with the release, or record why the difference is expected. | macOS |
 
 ## Windows installer and portable archive
 
@@ -418,7 +421,7 @@ list of installed apps shows only what the archive itself adds.
 | Row | What to do | What must be seen or recorded | Platforms |
 | --- | --- | --- | --- |
 | W1 Windows assets | Open the release page or the run page of the candidate. For a published release also open `update-manifest.json`. | `EGTRAIN-Setup-<version>-x64.exe` and `EGTRAIN-Portable-<version>-x64.zip` are both there with the version of the candidate in their names. In the manifest of a published release the entry `windows-x64` names the archive and the entry `windows-x64-installer` names the installer, and the `size` of each equals the size of the downloaded file. | Windows |
-| W2 Install | Double-click the Setup. Read the licence page and accept the licence. Keep the default folder and leave the desktop shortcut box unticked. When it has finished, start EGTRAIN from the Start Menu and run the steps 1 to 9 of the clean-install rehearsal on this copy. | No prompt asks for an administrator password or for confirmation to run as administrator. The unsigned Setup shows the SmartScreen dialog `Windows protected your PC` (`Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.`); **More info** shows `Publisher: Unknown publisher` and **Run anyway**, which starts Setup (see [Code signing](code-signing.md#first-start-of-an-unsigned-build)). Record any other warning, and any wording that differs, as shown. The first page shows the GNU General Public License version 3, and Setup goes on only after the licence is accepted. The folder page offers `%LOCALAPPDATA%\Programs\EGTRAIN`. The Start Menu has the entry `EGTRAIN`. The list of installed apps in Windows Settings has `EGTRAIN`: record the version, which must be the one of the candidate, and the publisher. There is no desktop shortcut. Nothing is installed below `Program Files`. The installation folder holds `LICENSE`. | Windows |
+| W2 Install | Double-click the Setup. Read the licence page and accept the licence. Keep the default folder and leave the desktop shortcut box unticked. When it has finished, start EGTRAIN from the Start Menu and run the steps 1 to 9 of the clean-install rehearsal on this copy. | No prompt asks for an administrator password or for confirmation to run as administrator. The unsigned Setup shows the SmartScreen dialog `Windows protected your PC` (`Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.`); **More info** shows `Publisher: Unknown publisher` and **Run anyway**, which starts Setup (see [Installing EGTRAIN](../guides/install.md#first-start-of-an-unsigned-build)). Record any other warning, and any wording that differs, as shown. The first page shows the GNU General Public License version 3, and Setup goes on only after the licence is accepted. The folder page offers `%LOCALAPPDATA%\Programs\EGTRAIN`. The Start Menu has the entry `EGTRAIN`. The list of installed apps in Windows Settings has `EGTRAIN`: record the version, which must be the one of the candidate, and the publisher. There is no desktop shortcut. Nothing is installed below `Program Files`. The installation folder holds `LICENSE`. | Windows |
 | W3 Uninstall | Note the path of the working copy and of the exported CSV and PNG files, which lie outside the installation folder. Remove `EGTRAIN` from the list of installed apps in Windows Settings. | The entry, the Start Menu entry and any desktop shortcut are gone. The installation folder is gone, or holds only files that you or the program created in it. The working copy, the exported files, the downloaded bundles and the run output below the application data folder are unchanged. A `.egscene` file no longer opens in EGTRAIN. | Windows |
 | W4 Reinstall | Run the same Setup again, and this time tick the desktop shortcut box. Start EGTRAIN from the desktop shortcut. | The SmartScreen dialog appears again and is passed with **More info** and **Run anyway**. It installs as in W2, with one entry in the list of installed apps and one Start Menu entry. The shortcut starts EGTRAIN. The question of R7 is not asked again, and the working copy opens: the settings and the files outside the folder survived W3. | Windows |
 | W5 Upgrade | Uninstall as in W3. Install the older Setup, start EGTRAIN and leave it open, then run the Setup of the candidate over it. When it has finished, start EGTRAIN, open **About EGTRAIN**, and uninstall once more as in W3. | The first uninstall removes the desktop shortcut of W4 with the rest. Setup offers to close the running EGTRAIN and finishes when it is closed. Afterwards the list of installed apps has one `EGTRAIN` entry with the version of the candidate, there is one Start Menu entry, the installation folder is the same and no second folder named like it stands beside it, and **About EGTRAIN** shows the version of the candidate. The last uninstall removes everything as in W3. Mark W5 not applicable, with the reason, when no older Setup exists: the Finalize Windows job has installed a second Setup over the first on the runner. | Windows |
@@ -441,14 +444,12 @@ the release provides the asset.
 ## Result record
 
 Copy [the template](release-rehearsal-template.md) to
-`docs/development/release-rehearsal-<date>.md`, with the date of the rehearsal,
+`docs/development/records/release-rehearsal-<date>.md`, with the date of the rehearsal,
 and fill it. Link every failed row to one focused defect issue. The record of
-[2026-08-23](release-rehearsal-2026-08-23.md) is an earlier filled record of a
-macOS rehearsal of an older candidate. The record of
-[2026-10-17](release-rehearsal-2026-10-17.md) covers all three platforms.
+[2026-10-17](records/release-rehearsal-2026-10-17.md) is a filled record that covers all three platforms.
 
 The release gate passes only after every required row passes on all three
 platforms or is marked not applicable with a case-specific reason. The rows W1
-to W9 belong to Windows only and the rows M1 to M6 to macOS only. Open one
+to W9 belong to Windows only and the rows M1 to M7 to macOS only. Open one
 focused defect for each failed root cause instead of adding implementation work
 to issue #74.

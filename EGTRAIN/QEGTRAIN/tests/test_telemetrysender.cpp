@@ -85,10 +85,12 @@ static QJsonArray readDurableEvents(const QString& path) {
 // same time can take seconds to schedule that thread, so the limit is at least the 3 s of the semaphore waits below.
 constexpr int kPollsPerWait = 300;
 
+// tryEnqueue never waits, so it also refuses an event while the worker briefly holds the ingress lock. An event that
+// must be accepted while the worker runs is retried here; one sent while a hook holds the worker needs no retry.
 static bool waitForGate(telemetry::TelemetrySender& sender, const telemetry::TelemetryEventInput& input) {
 	for (int i = 0; i < kPollsPerWait; ++i) {
 		if (sender.tryEnqueue(input)) return true;
-		QThread::msleep(10); // Startup readiness only; interleaving tests use semaphores.
+		QThread::msleep(10); // Interleaving tests use semaphores.
 	}
 	return false;
 }
@@ -100,7 +102,7 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 	QSettings settings(settingsFile, QSettings::IniFormat);
 	TelemetryConsent consent(settings, context);
 	assert(consent.save(false, false));
-	QSemaphore polled, proceed, settled, exited;
+	QSemaphore polled, proceed, settled, exited, pumped;
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
@@ -109,6 +111,7 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 		assert(proceed.tryAcquire(1, 3000));
 		QTimer::singleShot(0, [&] { settled.release(); });
 	};
+	options.beforeFlagsRead = [&] { pumped.release(); };
 	options.onWorkerExit = [&] { exited.release(); };
 	telemetry::TelemetrySender sender(context, metadata, storage, options);
 	assert(polled.tryAcquire(1, 3000));
@@ -180,8 +183,10 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 	assert(!sender.tryEnqueue(usage, token) && !sender.tryEnqueue(diagnostic, token));
 	proceed.release();
 	assert(settled.tryAcquire(1, 3000));
-	for (int i = 0; i < kPollsPerWait && !readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty(); ++i)
-		QThread::msleep(10);
+	// The next pump purges the queue. Reading usage.json while the worker replaces it makes the replacement fail on
+	// Windows. The first pump counted from here may be the purging one, so the file is read once the one after it starts.
+	pumped.tryAcquire(pumped.available());
+	assert(pumped.tryAcquire(2, 3000));
 	assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
 	sender.stop();
 	assert(exited.tryAcquire(1, 3000));
@@ -1095,7 +1100,7 @@ static void testRetirementWithQueuedWork(const telemetry::Application& metadata,
 	assert(waitForGate(sender, {}));
 	*clock = 60001;
 	assert(posted.tryAcquire(1, 3000) && pending);
-	assert(sender.tryEnqueue({})); // A second event arrives while the first request is outstanding.
+	assert(waitForGate(sender, {})); // A second event arrives while the first request is outstanding.
 	QMetaObject::invokeMethod(pending, [pending] { pending->complete(); }, Qt::QueuedConnection);
 	assert(completed.tryAcquire(1, 3000));
 	sender.stop();
@@ -1141,8 +1146,7 @@ static void testSplitRetainsIds(const telemetry::Application& metadata, Telemetr
 		return new ScriptedReply(request, attempts == 1 ? 413 : 202, &manager);
 	};
 	telemetry::TelemetrySender sender(context, metadata, storage, options);
-	assert(waitForGate(sender, {}));
-	assert(sender.tryEnqueue({}));
+	for (int i = 0; i < 2; ++i) assert(waitForGate(sender, {}));
 	for (qint64 moment : {60001LL, 90002LL, 150003LL}) {
 		*clock = moment;
 		assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
@@ -1287,7 +1291,7 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < kPollsPerWait && *posts < 2; ++i) QThread::msleep(20);
 	assert(*posts == 2 && *stableId);
 	QThread::msleep(100);
-	assert(sender.tryEnqueue(input));
+	assert(waitForGate(sender, input));
 	*clock = 240004;
 	for (int i = 0; i < kPollsPerWait && *posts < 3; ++i) QThread::msleep(20);
 	assert(*posts == 3);

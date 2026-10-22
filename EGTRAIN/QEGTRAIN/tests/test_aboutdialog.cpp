@@ -6,6 +6,7 @@
 #include <QDialogButtonBox>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QUrl>
@@ -18,6 +19,19 @@ public:
 	QList<QUrl> opened;
 public slots:
 	void receive(const QUrl& url) { opened.append(url); }
+};
+
+// The order of the footer and the focus policy of its buttons on macOS, where the footer buttons are not auto default.
+class MacFooterStyle : public QProxyStyle {
+public:
+	MacFooterStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		if (hint == SH_DialogButtonLayout)
+			return QDialogButtonBox::MacLayout;
+		if (hint == SH_Button_FocusPolicy)
+			return Qt::TabFocus;
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
 };
 
 static bool check(bool condition, const char* message) {
@@ -108,6 +122,30 @@ int main(int argc, char** argv) {
 		}
 		ok &= check(!dialog.isVisible() && dialog.result() == QDialog::Rejected && receiver.opened.isEmpty(),
 			"Enter must close About without opening a link");
+	}
+	// With the footer of macOS Close is the default when About opens. A link takes the default while it has the focus, and
+	// once the focus leaves it for a widget that is not a button Close is the default again, so Return closes About. The
+	// application style stays changed for the checks after this one.
+	QApplication::setStyle(new MacFooterStyle);
+	{
+		AboutDialog dialog;
+		dialog.show();
+		dialog.activateWindow();
+		app.processEvents();
+		auto* close = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close);
+		ok &= check(close->isDefault(), "Close is not the default when About opens with the footer of macOS");
+		if (QWidget* focus = dialog.focusWidget()) {
+			QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+			app.sendEvent(focus, &tab);
+		}
+		ok &= check(dialog.focusWidget() && dialog.focusWidget()->property("aboutLink").toBool(), "Tab from Close does not reach a link");
+		auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
+		context->setFocus(Qt::MouseFocusReason);
+		ok &= check(context->hasFocus() && close->isDefault(), "Close is not the default after the focus left a link for the text");
+		QKeyEvent enter(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+		app.sendEvent(context, &enter);
+		ok &= check(!dialog.isVisible() && dialog.result() == QDialog::Rejected && receiver.opened.isEmpty(),
+			"Return in the text does not close About with the footer of macOS");
 	}
 	QDesktopServices::unsetUrlHandler(QStringLiteral("https"));
 	// The offscreen platform has no browser launcher. Never exercise the real

@@ -202,8 +202,17 @@ int main() {
 						< 1e-9,
 				"authored track levels separate geographic tracks perpendicular to the route");
 		}
-		ok &= expect(first.displayOffset == 0.0 && second.displayOffset == 0.0,
+		ok &= expect(first.displayOffset == 0.0 && second.displayOffset == 0.0
+				&& first.levelSpacing == 0.0 && second.levelSpacing == 0.0,
 			"geographic track separation is carried by mapped points");
+		if (first.points.size() == 3 && second.points.size() == 3) {
+			const double alongX = second.points[2].x - second.points[1].x;
+			const double alongY = second.points[2].y - second.points[1].y;
+			const double acrossX = second.points[2].x - first.points[0].x;
+			const double acrossY = second.points[2].y - first.points[0].y;
+			ok &= expect(alongX * acrossY - alongY * acrossX < 0.0,
+				"a higher geographic level stays on the left of increasing chainage");
+		}
 	}
 	ok &= expect(result.connections.size() == 1, "preview resolves one canonical connection");
 	if (!result.connections.empty()) {
@@ -224,12 +233,18 @@ int main() {
 			&& schematicResult.lines[0].points[0].y == 0.0
 			&& schematicResult.lines[1].points[0].y == 0.0
 			&& schematicResult.lines[0].displayOffset == 0.0
-			&& std::fabs(schematicResult.lines[1].displayOffset - 0.0012) < 1e-9,
+			&& std::fabs(schematicResult.lines[1].displayOffset + 0.0012) < 1e-9
+			&& std::fabs(schematicResult.lines[1].levelSpacing - 0.0012) < 1e-9,
 		"constant-latitude display anchors scale schematic track levels with mapped x");
 	ok &= expect(normalizedSchematic.lines.size() == 2
 			&& std::fabs(normalizedSchematic.lines[0].points[1].x - 28000.0) < 1e-9
-			&& std::fabs(normalizedSchematic.lines[1].displayOffset - 120.0) < 1e-9,
+			&& std::fabs(normalizedSchematic.lines[1].displayOffset + 120.0) < 1e-9
+			&& std::fabs(normalizedSchematic.lines[0].levelSpacing - 120.0) < 1e-9,
 		"schematic normalization keeps two-level spacing in runtime units");
+	ok &= expect(normalizedSchematic.lines.size() == 2
+			&& normalizedSchematic.lines[1].points[0].y + normalizedSchematic.lines[1].displayOffset
+				< normalizedSchematic.lines[0].points[0].y + normalizedSchematic.lines[0].displayOffset,
+		"a higher schematic level is drawn above the level before it");
 
 	// Constant-latitude Paimpol equivalent: one degree is 100 km.
 	ok &= expect(std::fabs(normalizedSchematic.normalizationScale - 100000.0) < 1e-6
@@ -349,7 +364,20 @@ int main() {
 				&& result.previewSignals[1].nodeId == "B1.Gdg"
 				&& result.previewSignals[1].rawX == 136.0,
 			"preview signal identity uses the base section boundary and source coordinate");
+		ok &= expect(result.previewSignals[0].sectionLabel == "B0 28.000 to 64.000 km"
+				&& result.previewSignals[0].label == "B0 28.000 to 64.000 km"
+				&& result.previewSignals[1].sectionLabel == "B1 136.000 to 164.000 km",
+			"a preview signal without an authored signal is named by the label of its section");
 	}
+	// An authored signal that protects the section, by its runtime id or by its block id, is named first, with the
+	// label in parentheses.
+	SceneModel authored = scene;
+	authored.signals = {{"sig1", "@B0.block.2@"}, {"other", "@B1.block.1@"}, {"sig2", "B0.block.2"}};
+	const TrackPreviewResult authoredResult = loadTrackPreview(authored);
+	ok &= expect(!authoredResult.previewSignals.empty()
+			&& authoredResult.previewSignals[0].sectionLabel == "B0 28.000 to 64.000 km"
+			&& authoredResult.previewSignals[0].label == "sig1, sig2 (B0 28.000 to 64.000 km)",
+		"a preview signal names the authored signals of its section before the label");
 	for (const auto& signal : result.previewSignals)
 		ok &= expect(signal.sectionId.find('/') == std::string::npos,
 			"connection-derived sections do not produce preview signals");

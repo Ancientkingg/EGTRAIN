@@ -254,6 +254,9 @@ static bool testSignalList() {
 		"a signal shows the section that it protects, and none as unbound");
 	// the sections of the scene, one for each block
 	ok &= expect(first->count() == 4 && first->itemData(0).toString().isEmpty(), "the combo offers none and the sections of the scene");
+	ok &= expect(first->currentText() == "track-a 0.000 to 1.000 km"
+			&& first->itemData(first->currentIndex(), Qt::ToolTipRole).toString().toStdString() == sectionOf(f.model(), "block-a1"),
+		"a section is named by its label, with its id as tooltip");
 	ok &= expect(f.untouched() && !f.document.isDirty(), "listing signals edits nothing");
 	return ok;
 }

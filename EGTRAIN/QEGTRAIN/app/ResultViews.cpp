@@ -10,6 +10,7 @@
 #include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
+#include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RouteReferenceChoice.h"
@@ -21,6 +22,7 @@
 #include "util/TimeFormat.h"
 #include "util/TrajectoryUtil.h"
 #include "widgets/DialogLayout.h"
+#include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -30,6 +32,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QToolButton>
@@ -47,8 +50,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-
-QT_CHARTS_USE_NAMESPACE
 
 namespace {
 
@@ -71,7 +72,7 @@ void appendInspectedPoint(QLineSeries* series, double x, double y, const QString
 }
 
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
-	bool useCapacityCriticalStyle) {
+	bool useCapacityCriticalStyle, const SceneSectionLabels& labels) {
 	const auto colorFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
 		if (useCapacityCriticalStyle && segment.capacityCritical)
 			return kBlockingCapacityColor;
@@ -130,7 +131,7 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 			QString("Calculated blocking envelope | Resource: %1 | Type: %2 | "
 					"Directed X: %3 to %4 km | Display: %5 to %6 s | Original: %7 to %8 s | "
 					"Original approach: %9 | Original run start: %10 | Original run end: %11 | Original clearance: %12")
-					.arg(QString::fromStdString(segment.blockId), blockingSegmentTypeName(segment))
+					.arg(QString::fromStdString(labels.labelWithId(segment.blockId)), blockingSegmentTypeName(segment))
 					.arg(segment.startPositionKm)
 					.arg(segment.endPositionKm)
 					.arg(segment.startTime)
@@ -200,6 +201,20 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 
 ResultViews::ResultViews(QWidget* window, RunController* runController, Host& host)
 	: QObject(window), m_window(window), m_runController(runController), m_host(host) {}
+
+void ResultViews::showWindow(QWidget* window) {
+	m_windows.removeAll(QPointer<QWidget>());
+	if (!m_windows.isEmpty()) {
+		const QWidget* last = m_windows.last();
+		const QRect available = last->screen()->availableGeometry();
+		QRect frame(last->pos() + QPoint(32, 32), window->size() + last->frameSize() - last->size());
+		if (!available.contains(frame))
+			frame.moveTopLeft(available.topLeft());
+		window->move(frame.topLeft());
+	}
+	window->show();
+	m_windows.append(window);
+}
 
 // Choose a reference from routes that were actually used in this run.
 int ResultViews::chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const {
@@ -280,6 +295,7 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setProperty("manualSection", QStringLiteral("train-diagram"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setPresentation(heading, QString("Run: %1").arg(completedRunContext(run->provenance)), QString());
@@ -289,11 +305,19 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisX(mode == 1 || mode == 2, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showDelayAnalysis() {
-	m_runController->openDelayAnalysis();
+	if (QWidget* window = m_runController->openDelayAnalysis())
+		showWindow(window);
+}
+
+void ResultViews::showDelayComparison() {
+	if (DelayAnalysisWindow* window = m_runController->openDelayAnalysis()) {
+		showWindow(window);
+		window->showBaselineTab();
+	}
 }
 
 void ResultViews::showTimetableTable() {
@@ -310,7 +334,7 @@ void ResultViews::showTimetableTable() {
 	window->setRunProvenance(run->provenance);
 	window->setWindowTitle(QString("%1 [%2]").arg(ResultViewName::kTimetable, completedRunContext(run->provenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
-	window->show();
+	showWindow(window);
 }
 
 void ResultViews::showDelayDiagram() {
@@ -354,6 +378,7 @@ void ResultViews::showDelayDiagram() {
 	}
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setProperty("manualSection", QStringLiteral("timetable-results"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setPresentation(heading, QString("Run: %1").arg(completedRunContext(run->provenance)), QString());
@@ -363,7 +388,7 @@ void ResultViews::showDelayDiagram() {
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisX(false, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showTimetableGraph() {
@@ -453,6 +478,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setProperty("manualSection", QStringLiteral("train-paths"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	if (stationAxis) win->setStationAxis(stationAxis, std::move(stationTicks));
@@ -473,7 +499,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showBlockingTimeDiagram() {
@@ -489,16 +515,6 @@ void ResultViews::showBlockingTimeDiagram() {
 	const std::optional<BlockingTimeDiagramData> diagram = blockingTimeDiagramData(*run, scope);
 	if (!diagram)
 		return;
-	const RouteDiagramPath& referencePath = diagram->referencePath;
-	const std::vector<BlockingTimeDiagramSegment>& segments = diagram->segments;
-	const std::vector<BlockingTimeDiagramSegment>& unmapped = diagram->unmapped;
-	const std::vector<BlockSectionExtent>& extents = diagram->extents;
-	const std::vector<BlockingTimePlannedReference>& plannedReferences = diagram->plannedReferences;
-	const auto& plottedPlanned = diagram->plannedLines;
-	const auto& trajectoryRows = diagram->trajectoryRows;
-	const int omitted = diagram->omitted;
-
-	QChart* chart = new QChart();
 	QString routeScope = QStringLiteral("all routes");
 	if (scope.routeIndex >= 0 && scope.routeIndex < static_cast<int>(run->routes.size())) {
 		const CompletedRoute& route = run->routes[static_cast<std::size_t>(scope.routeIndex)];
@@ -506,11 +522,33 @@ void ResultViews::showBlockingTimeDiagram() {
 		if (!route.corridor.empty())
 			routeScope += QString(" / %1").arg(QString::fromStdString(route.corridor));
 		if (!scope.blockIds.empty())
-			routeScope += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
+			routeScope += QString(" / %1 through %2")
+							  .arg(QString::fromStdString(run->sectionLabels.label(scope.blockIds.front())),
+								  QString::fromStdString(run->sectionLabels.label(scope.blockIds.back())));
 	}
-	chart->setTitle(ResultViewName::kBlockingTime);
+	showBlockingTimeWindow(run, *diagram, false,
+		QString("%1 | %2 to %3 [%4] | Reference: %5")
+			.arg(routeScope,
+				QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), run->settings.startOffsetSeconds)),
+				QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), run->settings.startOffsetSeconds)),
+				completedRunContext(run->provenance), QString::fromStdString(diagram->referencePath.id)));
+}
 
-	addBlockingTimeSeries(chart, segments, false);
+void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRunData>& run,
+	const BlockingTimeDiagramData& diagram, bool compressed, const QString& context) {
+	const QString title = compressed ? QStringLiteral("Compressed blocking-time diagram") : QString(ResultViewName::kBlockingTime);
+	const RouteDiagramPath& referencePath = diagram.referencePath;
+	const std::vector<BlockingTimeDiagramSegment>& segments = diagram.segments;
+	const std::vector<BlockingTimeDiagramSegment>& unmapped = diagram.unmapped;
+	const std::vector<BlockSectionExtent>& extents = diagram.extents;
+	const std::vector<BlockingTimePlannedReference>& plannedReferences = diagram.plannedReferences;
+	const auto& plottedPlanned = diagram.plannedLines;
+	const auto& trajectoryRows = diagram.trajectoryRows;
+
+	QChart* chart = new QChart();
+	chart->setTitle(title);
+
+	addBlockingTimeSeries(chart, segments, compressed, run->sectionLabels);
 
 	const QColor plannedColors[] = {
 		QColor(36, 117, 181), QColor(205, 92, 92), QColor(46, 139, 87),
@@ -537,12 +575,15 @@ void ResultViews::showBlockingTimeDiagram() {
 			for (QLegendMarker* marker : chart->legend()->markers(series)) marker->setVisible(false);
 	}
 
-	for (const BlockingTimeTrajectory& trajectory : diagram->trajectories) {
+	QString samples = "Recorded simulation samples; no boundary samples inferred";
+	if (compressed)
+		samples = "Recorded simulation samples, moved by the shift of the occupations of the train; no boundary samples inferred";
+	for (const BlockingTimeTrajectory& trajectory : diagram.trajectories) {
 		auto* line = new QLineSeries();
 		line->setName(QString::fromStdString(trajectory.trainId) + " (recorded trajectory)");
 		line->setProperty("trainId", QString::fromStdString(trajectory.trainId));
 		line->setProperty("layer", "recorded trajectory");
-		line->setProperty("inspectionInterval", "Recorded simulation samples; no boundary samples inferred");
+		line->setProperty("inspectionInterval", samples);
 		line->setPen(QPen(QColor(20, 35, 45), 2.5));
 		line->setPointsVisible(trajectory.points.size() == 1);
 		for (const auto& point : trajectory.points)
@@ -571,38 +612,41 @@ void ResultViews::showBlockingTimeDiagram() {
 
 	axisY->setTitleText("Elapsed simulation time (s), downward");
 	axisY->setReverse(true);
-	axisY->setRange(diagram->timeRange.first, diagram->timeRange.second);
+	axisY->setRange(diagram.timeRange.first, diagram.timeRange.second);
 
-	DiagramWindow* win = new DiagramWindow(ResultViewName::kBlockingTime, m_window);
+	DiagramWindow* win = new DiagramWindow(title, m_window);
+	win->setProperty("manualSection", compressed ? QStringLiteral("capacity") : QStringLiteral("blocking-time"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
-	win->setBlockSections(extents, QString::fromStdString(referencePath.id));
+	win->setBlockSections(extents, QString::fromStdString(referencePath.id), &run->sectionLabels);
 	// The envelope colours show the block type, so only the train list takes the service colours.
 	win->setTrainListColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
-	const QString note = QString("Calculated envelopes, not observed occupation; movement only within scope. "
-								 "Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation. "
-								 "Envelope colours: blue blocks/stations, yellow switches, red conflicts. Neutral lines/strip: physical sections.")
-							 .arg(omitted)
-		+ (nothingPlotted ? QString(" No complete envelope could be projected in this scope.") : QString())
-		+ QString::fromStdString(blockSectionGeometryNote(extents));
-	win->setPresentation(ResultViewName::kBlockingTime,
-		QString("%1 | %2 to %3 [%4] | Reference: %5")
-			.arg(routeScope,
-				QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), run->settings.startOffsetSeconds)),
-				QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), run->settings.startOffsetSeconds)),
-				completedRunContext(run->provenance), QString::fromStdString(referencePath.id)),
-		note);
+	QString envelopes = "Calculated envelopes, not observed occupation; movement only within scope. "
+						"Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation. "
+						"Envelope colours: blue blocks/stations, yellow switches, red conflicts.";
+	if (compressed)
+		envelopes = "Calculated envelopes and recorded movement, each train moved by the shift of its occupations; "
+					"movement only within its envelopes. Unmapped endpoints omitted: %1; incomplete/missing-clearance "
+					"blocks omitted. No extrapolation. Envelope colours: blue blocks/stations, yellow switches, red "
+					"conflicts, amber capacity-critical touching blocks.";
+	// Without an envelope that failed to project, no complete envelope of a train lies in the scope.
+	const QString nothing = unmapped.empty() ? QString(" No complete envelope of a train lies in this scope.")
+											 : QString(" No complete envelope could be projected in this scope.");
+	const QString note = envelopes.arg(diagram.omitted) + (nothingPlotted ? nothing : QString())
+		+ QString::fromStdString(blockSectionGeometryNote(extents, &run->sectionLabels));
+	win->setPresentation(title, context, note);
 	const std::function<std::string(const QStringList&)> scopedCsv =
 		[segments, plannedReferences, trajectoryRows, extents, unmapped](const QStringList& visibleTrainIds) {
 			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences, trajectoryRows, extents, unmapped);
 		};
-	win->setCsvProvider(scopedCsv, "blocking_time.csv", blockingTimeTrainIds(segments, plannedReferences, trajectoryRows, unmapped));
+	win->setCsvProvider(scopedCsv, compressed ? "capacity_compressed_blocking_time.csv" : "blocking_time.csv",
+		blockingTimeTrainIds(segments, plannedReferences, trajectoryRows, unmapped));
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
-	win->show();
+	showWindow(win);
 }
 
 void ResultViews::showCapacityAnalysis() {
@@ -615,7 +659,7 @@ void ResultViews::showCapacityAnalysis() {
 	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
 	if (scope.routeIndex < 0) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"No retained native blocking-time section has two occurrences with a common entry block. "
+			"No block of any route has complete blocking times of two or more occurrences. "
 			"Run a scene with explicit signalling data; EGTRAIN does not infer a signalling system or blocking-time parameters.");
 		return;
 	}
@@ -624,7 +668,7 @@ void ResultViews::showCapacityAnalysis() {
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"No route section has two occurrences with a common entry block. Choose a common entry or analyze the route in separate sections.");
+			"No block of the route is shared by the selected occurrences. Choose other occurrences.");
 		return;
 	}
 	const std::string scopeIssue = capacityScopeIssueFrom(*run, scope);
@@ -635,15 +679,17 @@ void ResultViews::showCapacityAnalysis() {
 	const auto trains = capacityInputsFrom(*run, scope);
 	if (trains.size() < 2) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"Fewer than two occurrences share the selected section entry. Choose a common entry or a narrower section.");
+			"Fewer than two occurrences share the analyzed blocks. Choose other occurrences.");
 		return;
 	}
+	// The export names the blocks by their ids, the window by their labels.
 	const QString sectionLabel = capacityScopeLabelFrom(*run, scope);
+	const QString sectionText = capacityScopeTextFrom(*run, scope);
 	const CapacityAnalysisResult result = analyzeCapacity(trains, scope.periodSeconds,
 		scope.cycleEndOccurrenceId);
 	if (!result.analyzable) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"The selected occurrences do not form a valid shared-resource chain. Choose a common entry or analyze the route in separate sections.");
+			"The selected occurrences do not form a valid shared-resource chain. Choose other occurrences or another order.");
 		return;
 	}
 	if (result.cycleEndIdentity.empty() || result.cycleTime < 0.0) {
@@ -656,6 +702,7 @@ void ResultViews::showCapacityAnalysis() {
 	QDialog* dialog = new QDialog(m_window);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	dialog->setWindowTitle(ResultViewName::kCapacity);
+	dialog->setProperty("manualSection", QStringLiteral("capacity"));
 	dialog->setModal(false);
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
@@ -669,10 +716,13 @@ void ResultViews::showCapacityAnalysis() {
 		return QString();
 	};
 	auto* detailsToggle = new QToolButton(body);
+	detailsToggle->setObjectName("capacityDetailsToggle");
 	detailsToggle->setText("Calculation details");
 	detailsToggle->setCheckable(true);
 	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	detailsToggle->setArrowType(Qt::RightArrow);
+	// The text size of the dialog; macOS gives a tool button a smaller font.
+	detailsToggle->setFont(QApplication::font());
 	auto* details = new QLabel(QString("Cycle / occupation time: %1 s; period: %2 s; cycle / period × 100: %3%.\n"
 									   "Cycle start: %4 (%5); cycle end: %6 (%7). Conflict-free compressed occupations. "
 									   "Capacity critical blocks are touching constraints, distinct from overlap/conflict styling.")
@@ -707,10 +757,23 @@ void ResultViews::showCapacityAnalysis() {
 		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		table->setSelectionBehavior(QAbstractItemView::SelectRows);
 		table->setAlternatingRowColors(true);
+		// Tab leaves the table for the buttons below it; the arrow keys move between the cells.
+		table->setTabKeyNavigation(false);
 		table->horizontalHeader()->setStretchLastSection(true);
 		tabs->addTab(table, QString());
 		return table;
 	};
+	// Numbers are aligned to the right, as in the other analysis tables. A cell that names blocks by their ids has
+	// their labels as its tooltip.
+	const auto cell = [](const QString& text, bool number, const QString& tooltip = QString()) {
+		auto* item = new QTableWidgetItem(text);
+		if (number)
+			item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		if (!tooltip.isEmpty())
+			item->setToolTip(tooltip);
+		return item;
+	};
+	const SceneSectionLabels& labels = run->sectionLabels;
 	auto* pairTable = addTable({"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway [s]",
 								   "Minimum headway [s]", "Buffer [s]", "Governing block evidence", "Reference label/source (leader → follower)"},
 		static_cast<int>(result.pairs.size()));
@@ -723,8 +786,9 @@ void ResultViews::showCapacityAnalysis() {
 			QString::fromStdString(pair.leaderOperatingCode), QString::fromStdString(pair.followerOperatingCode),
 			QString::fromStdString(csv::formatDouble(pair.scheduledHeadway)), QString::fromStdString(csv::formatDouble(pair.minimumHeadway)),
 			QString::fromStdString(csv::formatDouble(pair.buffer)), QString::fromStdString(evidence), source};
+		const QString evidenceTip = QString::fromStdString(capacityEvidenceText(pair.governingEvidence, &labels));
 		for (int column = 0; column < values.size(); ++column)
-			pairTable->setItem(row, column, new QTableWidgetItem(values[column]));
+			pairTable->setItem(row, column, cell(values[column], column >= 4 && column <= 6, column == 7 ? evidenceTip : QString()));
 	}
 	tabs->setTabText(0, QString("Pairs (%1)").arg(pairTable->rowCount()));
 
@@ -734,18 +798,19 @@ void ResultViews::showCapacityAnalysis() {
 	for (int row = 0; row < compressionTable->rowCount(); ++row) {
 		const CapacityCompressionRow& compressed = result.compression[static_cast<std::size_t>(row)];
 		QStringList governing;
-		for (const CapacityCompressionEvidence& predecessor : compressed.governingPredecessors)
-			governing << QString("%1 (%2 s): %3")
-							 .arg(QString::fromStdString(predecessor.predecessorIdentity),
-								 QString::fromStdString(csv::formatDouble(predecessor.minimumHeadway)),
-								 QString::fromStdString(capacityEvidenceText(predecessor.governingEvidence)));
+		QStringList governingTips;
+		for (const CapacityCompressionEvidence& predecessor : compressed.governingPredecessors) {
+			const QString start = QString("%1 (%2 s): ").arg(QString::fromStdString(predecessor.predecessorIdentity), QString::fromStdString(csv::formatDouble(predecessor.minimumHeadway)));
+			governing << start + QString::fromStdString(capacityEvidenceText(predecessor.governingEvidence));
+			governingTips << start + QString::fromStdString(capacityEvidenceText(predecessor.governingEvidence, &labels));
+		}
 		const QStringList values = {QString::fromStdString(compressed.identity), QString::fromStdString(compressed.operatingCode),
 			QString::fromStdString(csv::formatDouble(compressed.originalReference)),
 			QString::fromStdString(csv::formatDouble(compressed.scheduledReference)),
 			QString::fromStdString(csv::formatDouble(compressed.compressedReference)),
 			QString::fromStdString(csv::formatDouble(compressed.shift)), governing.join("; ")};
 		for (int column = 0; column < values.size(); ++column)
-			compressionTable->setItem(row, column, new QTableWidgetItem(values[column]));
+			compressionTable->setItem(row, column, cell(values[column], column >= 2 && column <= 5, column == 6 ? governingTips.join("; ") : QString()));
 	}
 	tabs->setTabText(1, QString("Compression (%1)").arg(compressionTable->rowCount()));
 
@@ -756,8 +821,10 @@ void ResultViews::showCapacityAnalysis() {
 		const QStringList values = {QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
 			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId),
 			QString::fromStdString(csv::formatDouble(critical.gap))};
+		const QStringList tips = {QString(), QString(), QString::fromStdString(labels.label(critical.leaderBlockId)),
+			QString::fromStdString(labels.label(critical.followerBlockId)), QString()};
 		for (int column = 0; column < values.size(); ++column)
-			criticalTable->setItem(row, column, new QTableWidgetItem(values[column]));
+			criticalTable->setItem(row, column, cell(values[column], column == 4, tips[column]));
 	}
 	tabs->setTabText(2, QString("Critical blocks (%1)").arg(criticalTable->rowCount()));
 	for (int index = 0; index < tabs->count(); ++index)
@@ -766,47 +833,44 @@ void ResultViews::showCapacityAnalysis() {
 
 	auto* secondaryActions = new QHBoxLayout();
 	QPushButton* exportButton = new QPushButton("Export capacity CSV...", body);
-	connect(exportButton, &QPushButton::clicked, dialog, [this, result, sectionLabel, provenance]() {
+	// The file dialog and its messages belong to the Capacity window, so the focus returns to it.
+	connect(exportButton, &QPushButton::clicked, dialog, [this, dialog, result, sectionLabel, provenance]() {
 		const auto operation = m_host.captureTelemetryOperation();
 		saveCsvInteractive(
-			m_window, "capacity_analysis.csv", operation,
+			dialog, "capacity_analysis.csv", operation,
 			[result, sectionLabel] { return capacityAnalysisCsv(result, sectionLabel); },
 			[provenance](const QString& path, const std::string& bytes) {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
 	});
 	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", body);
-	const CompletedRoute& compressedRoute = run->routes[static_cast<std::size_t>(scope.routeIndex)];
-	const RouteDiagramPath& compressedReference = compressedRoute.path;
-	const auto compressedProjections = routeProjectionsByTrain(*run, compressedReference);
-	int compressedOmitted = 0;
-	auto shiftedSegments = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
-	restoreCompressedOriginalTimes(shiftedSegments, result.compression);
-	std::vector<BlockingTimeDiagramSegment> compressedUnmapped;
-	auto compressedSegments = projectBlockingSegments(shiftedSegments, compressedProjections, compressedOmitted, &compressedUnmapped);
-	const auto allCompressedExtents = buildBlockSectionExtents(compressedRoute.blocks);
-	const auto compressedExtents = scopedBlockSectionExtents(allCompressedExtents, scope.sectionIndices);
-	matchBlockingSegmentsToSections(compressedSegments, allCompressedExtents, compressedReference.id);
-	const auto axisRange = blockSectionAxisRange(compressedExtents, compressedReference);
-	const QString referenceId = QString::fromStdString(compressedReference.id);
-	connect(diagramButton, &QPushButton::clicked, dialog,
-		[this, result, sectionLabel, run, compressedSegments, compressedUnmapped, compressedExtents, axisRange, referenceId]() {
-			showCompressedBlockingTimeDiagram(result, sectionLabel, run, compressedSegments,
-				axisRange.first, axisRange.second, referenceId, compressedExtents, compressedUnmapped);
-		});
+	connect(diagramButton, &QPushButton::clicked, dialog, [this, run, scope, result, sectionText]() {
+		const std::optional<BlockingTimeDiagramData> diagram = compressedBlockingTimeDiagramData(*run, scope, result);
+		if (!diagram)
+			return;
+		showBlockingTimeWindow(run, *diagram, true,
+			QString("%1 | cycle %2 to %3 [%4] | Reference: %5")
+				.arg(sectionText, QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
+					completedRunContext(run->provenance), QString::fromStdString(diagram->referencePath.id)));
+	});
 	secondaryActions->addWidget(exportButton);
 	secondaryActions->addWidget(diagramButton);
 	secondaryActions->addStretch();
 	layout->addLayout(secondaryActions);
 	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
 	connect(closeButtons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
-	DialogLayout::install(*dialog,
-		QString("Selected train chain: cycle %1 s, %2% of period; not network capacity")
-			.arg(QString::number(result.cycleTime, 'f', 1),
-				QString::number(result.cyclePercentage, 'f', 1)),
-		QString("Section: %1\nRun: %2").arg(sectionLabel, completedRunContext(provenance)),
+	// The window title names the view; the result leads the context.
+	DialogLayout::install(*dialog, ResultViewName::kCapacity,
+		QString("Selected train chain: cycle %1 s, %2% of period; not network capacity\nSection: %3\nRun: %4")
+			.arg(QString::number(result.cycleTime, 'f', 1), QString::number(result.cyclePercentage, 'f', 1), sectionText,
+				completedRunContext(provenance)),
 		body, closeButtons);
-	dialog->show();
+	// Room for the tables, as Capacity by area has.
+	dialog->resize(qMin(dialog->maximumWidth(), 960), qMin(dialog->maximumHeight(), 640));
+	// No button of the window is a default button, so Return presses none.
+	for (QPushButton* button : dialog->findChildren<QPushButton*>())
+		button->setAutoDefault(false);
+	showWindow(dialog);
 }
 
 void ResultViews::showAreaCapacity() {
@@ -816,59 +880,6 @@ void ResultViews::showAreaCapacity() {
 	}
 	// The options dialog reads the run until it closes, so this call holds it.
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
-	openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); });
-}
-
-void ResultViews::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
-	const QString& sectionLabel, const std::shared_ptr<const CompletedRunData>& run,
-	const std::vector<BlockingTimeDiagramSegment>& segments, double axisMinKm, double axisMaxKm,
-	const QString& referenceId, const std::vector<BlockSectionExtent>& extents,
-	const std::vector<BlockingTimeDiagramSegment>& unmapped) {
-	QChart* chart = new QChart();
-	chart->setTitle("Compressed blocking-time diagram");
-	addBlockingTimeSeries(chart, segments, true);
-	auto* axisX = new QValueAxis;
-	auto* axisY = new QValueAxis;
-	chart->addAxis(axisX, Qt::AlignBottom);
-	chart->addAxis(axisY, Qt::AlignLeft);
-	double minimumTime = 0, maximumTime = 1;
-	for (const auto& segment : segments) {
-		minimumTime = std::min(minimumTime, segment.startTime);
-		maximumTime = std::max(maximumTime, segment.endTime);
-	}
-	for (auto* series : chart->series()) {
-		series->attachAxis(axisX);
-		series->attachAxis(axisY);
-	}
-	axisX->setTitleText(QString("Reference %1 X (km)").arg(referenceId.toHtmlEscaped()));
-	axisX->setRange(axisMinKm, axisMaxKm);
-
-	axisY->setTitleText("Compressed envelope time (s), downward");
-	axisY->setReverse(true);
-	axisY->setRange(minimumTime, maximumTime);
-	DiagramWindow* window = new DiagramWindow("Compressed blocking-time diagram", m_window);
-	window->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
-	window->setChart(chart);
-	window->setBlockSections(extents, referenceId);
-	window->setTrainListColors(trainColorsForRun(run->results, m_host.sceneModel()));
-	const QString note = "Shifted calculated envelopes, not recorded movement. "
-						 "Unmapped/incomplete blocks omitted; no extrapolation. "
-						 "Envelope colours: blue blocks/stations, yellow switches, red conflicts, amber capacity-critical touching blocks. "
-						 "Neutral lines/strip: physical sections."
-		+ (segments.empty() ? QString(" No complete compressed envelope could be projected in this scope.") : QString());
-	window->setPresentation("Compressed blocking-time diagram",
-		QString("%1 | cycle %2 to %3 [%4] | Reference: %5")
-			.arg(sectionLabel, QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),
-				completedRunContext(run->provenance), referenceId),
-		note);
-	const std::function<std::string(const QStringList&)> csvProvider =
-		[segments, extents, unmapped](const QStringList& visibleTrainIds) {
-			return buildBlockingTimeCsv(visibleTrainIds, segments, {}, {}, extents, unmapped);
-		};
-	window->setCsvProvider(csvProvider, "capacity_compressed_blocking_time.csv", blockingTimeTrainIds(segments, {}, {}, unmapped));
-	attachRunProvenance(window, run->provenance);
-	connect(window, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
-	window->setTimeAxisY(true, run->settings.startOffsetSeconds);
-	window->setAttribute(Qt::WA_DeleteOnClose);
-	window->show();
+	if (QWidget* window = openAreaCapacityWindow(m_window, *run, [this] { return m_host.captureTelemetryOperation(); }))
+		showWindow(window);
 }

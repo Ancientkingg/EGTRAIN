@@ -16,7 +16,10 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QSaveFile>
+#include <QScrollBar>
 #include <QSet>
+#include <QStyle>
+#include <QStyleOptionHeader>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
@@ -66,10 +69,10 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	  m_csvProvider(std::move(csvProvider)) {
 	setModal(false);
 	setProperty("dialogPresentation", true);
+	setProperty("manualSection", QStringLiteral("timetable-results"));
 	setWindowTitle("Timetable");
 	const QRect available = screen() ? screen()->availableGeometry() : QRect(0, 0, 1280, 800);
 	setMaximumSize(available.width() * 9 / 10, available.height() * 4 / 5);
-	resize(qMin(1080, maximumWidth()), qMin(640, maximumHeight()));
 
 	m_trainsButton = new TrainFilterButton(this);
 	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
@@ -100,6 +103,8 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
 	m_table->setAlternatingRowColors(true);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	// Tab leaves the table for the next control; the arrow keys move between the cells.
+	m_table->setTabKeyNavigation(false);
 	m_table->verticalHeader()->setVisible(false);
 
 	m_contextLabel = new QLabel(this);
@@ -125,7 +130,14 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	}
 	fillTrainFilter();
 
+	// The table is measured with the fonts and frames of the style sheet.
+	ensurePolished();
 	fillTable();
+	// The window opens wide enough for the whole table and its vertical scroll bar, as far as the maximum size allows.
+	const QMargins margins = layout->contentsMargins();
+	const int tableWidth = m_table->horizontalHeader()->length() + 2 * m_table->frameWidth()
+		+ m_table->verticalScrollBar()->sizeHint().width();
+	resize(qMin(margins.left() + tableWidth + margins.right(), maximumWidth()), qMin(640, maximumHeight()));
 }
 
 void TimetableTableWindow::setTrainColors(const QHash<QString, QColor>& colors) {
@@ -175,11 +187,11 @@ void TimetableTableWindow::fillTable() {
 		if (!value.available)
 			return;
 		if (value.value > 60.0)
-			item->setForeground(QBrush(Qt::red));
+			item->setForeground(QBrush(QColor(0x81, 0x35, 0x2d)));
 		else if (value.value > 0.0)
-			item->setForeground(QBrush(Qt::darkYellow));
+			item->setForeground(QBrush(QColor(0x74, 0x45, 0x1c)));
 		else
-			item->setForeground(QBrush(Qt::darkGreen));
+			item->setForeground(QBrush(QColor(0, 100, 0)));
 	};
 
 	m_table->setSortingEnabled(false);
@@ -210,12 +222,26 @@ void TimetableTableWindow::fillTable() {
 		setDelayColor(departureDelayItem, result.departureDelaySeconds);
 		m_table->setItem(row, 7, arrivalDelayItem);
 		m_table->setItem(row, 8, departureDelayItem);
+		for (int column = 2; column < m_table->columnCount(); ++column)
+			m_table->item(row, column)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 	}
 	m_table->resizeColumnsToContents();
-	// Content sizing can undercut the header text; keep every title readable.
-	const QFontMetrics metrics(m_table->horizontalHeader()->font());
+	// The header sizes a section for its title in the header font and without the sort arrow, but paints the title in the
+	// font of its viewport, which is larger on macOS. Each column is at least as wide as the style makes a section for its
+	// title in the viewport font, with room for the sort arrow.
+	QHeaderView* header = m_table->horizontalHeader();
+	QStyleOptionHeader option;
+	option.initFrom(header);
+	option.state |= QStyle::State_Horizontal;
+	option.orientation = Qt::Horizontal;
+	option.fontMetrics = QFontMetrics(header->viewport()->font());
+	option.sortIndicator = QStyleOptionHeader::SortDown;
+	option.rect = QRect(0, 0, header->defaultSectionSize(), header->sizeHint().height());
+	const int arrowWidth = header->style()->subElementRect(QStyle::SE_HeaderArrow, &option, header).width();
+	option.sortIndicator = QStyleOptionHeader::None;
 	for (int col = 0; col < m_table->columnCount(); ++col) {
-		const int headerWidth = metrics.horizontalAdvance(m_table->horizontalHeaderItem(col)->text()) + 28;
+		option.text = m_table->horizontalHeaderItem(col)->text();
+		const int headerWidth = header->style()->sizeFromContents(QStyle::CT_HeaderSection, &option, QSize(), header).width() + arrowWidth;
 		if (m_table->columnWidth(col) < headerWidth)
 			m_table->setColumnWidth(col, headerWidth);
 	}

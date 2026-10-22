@@ -3,6 +3,35 @@ QMainWindow, QWidget {
     color: #24313a;
 }
 
+/* A dialog is one surface: the plain widgets, frames, labels and scroll areas inside it take the colour of the dialog,
+   so the body and its scroll viewport show no box of their own. The class selectors (.QWidget, .QFrame) match those
+   classes and not their subclasses, so fields, lists, tables and buttons keep their own faces. The colour is opaque,
+   because a widget style draws the outline of a check box or a frame from the background colour of its widget. */
+QDialog, QDialog .QWidget, QDialog .QFrame, QDialog QLabel, QDialog QScrollArea, QDialog QStackedWidget, QDialog QTabBar,
+QDialog QCheckBox, QDialog QRadioButton, QDialog QDialogButtonBox {
+    background: #f8fafb;
+}
+
+/* A group of settings is a bold title over its fields, without the recessed box that some platforms draw. */
+QDialog QGroupBox {
+    background: transparent;
+    border: 0;
+    font-weight: 600;
+    margin-top: 1.4em;
+}
+
+QDialog QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0;
+}
+
+/* The buttons of a dialog footer and of a message box show only their text. Some desktop themes give OK, Cancel and Close
+   a dark icon, which would be hard to see on the filled default button. */
+QDialogButtonBox {
+    dialogbuttonbox-buttons-have-icons: 0;
+}
+
 QToolBar {
     background: #f8fafb;
     border: 0;
@@ -15,17 +44,16 @@ QToolBar {
 QToolBar::separator {
     background: #c9d3db;
     width: 1px;
-    margin: 5px 7px;
+    margin: 4px 8px;
 }
 
 QToolBar QToolButton#qt_toolbar_ext_button {
     padding: 0;
 }
 
-QLabel#speedSlowerLabel, QLabel#speedFasterLabel {
-    color: #5b6871;
-    font-size: 11px;
-    padding: 0;
+QLabel#speedModeLabel {
+    color: #24313a;
+    font-weight: 600;
 }
 
 QToolButton {
@@ -38,7 +66,7 @@ QToolButton {
     max-height: 32px;
 }
 
-QToolButton#actionZoomInButton, QToolButton#actionZoomOutButton {
+QToolButton#actionZoomInButton, QToolButton#actionZoomOutButton, QToolButton#incidentPickTargetButton {
     padding: 3px;
 }
 
@@ -47,20 +75,7 @@ QToolBar QLabel, QToolBar QSlider {
 }
 
 QToolButton:hover, QToolButton:focus {
-    background: #e4eaee;
-    border-color: #315a70;
-}
-
-QToolButton#openCaseButton {
-    background: #e7edf1;
-    border-color: #c5d0d7;
-    font-weight: 600;
-    padding-left: 9px;
-    padding-right: 9px;
-}
-
-QToolButton#openCaseButton:hover, QToolButton#openCaseButton:focus {
-    background: #dce6eb;
+    background: #e3eaee;
     border-color: #315a70;
 }
 
@@ -68,9 +83,89 @@ QToolButton:disabled {
     color: #64717a;
 }
 
-QToolButton:checked {
+/* Toolbar buttons, the map key toggle, the button that picks the target of an incident and the train, occurrence and
+   station buttons of a result window have the corners, border and states of a push button: a white face, the control
+   border, a darker border under the pointer, the band face while pressed and a 2 px action border with keyboard focus. The
+   padding gives up the extra pixel of the focus border, so the text and the icon do not move. */
+QToolBar QToolButton, QToolButton#mapKeyToggle, QDialog TrainFilterButton, QToolButton#incidentPickTargetButton {
+    background: #ffffff;
+    border-color: #7b8b96;
+    border-radius: 6px;
+}
+
+QToolBar QToolButton:hover, QToolButton#mapKeyToggle:hover, QDialog TrainFilterButton:hover,
+QToolButton#incidentPickTargetButton:hover {
+    background: #ffffff;
+    border-color: #5b6871;
+}
+
+QToolBar QToolButton:focus, QToolButton#mapKeyToggle:focus, QDialog TrainFilterButton:focus,
+QToolButton#incidentPickTargetButton:focus {
+    background: #ffffff;
+    border: 2px solid #2e7491;
+    padding: 2px 5px;
+}
+
+QToolButton#actionZoomInButton:focus, QToolButton#actionZoomOutButton:focus,
+QToolButton#incidentPickTargetButton:focus {
+    padding: 2px;
+}
+
+QToolBar QToolButton:pressed, QToolButton#mapKeyToggle:pressed, QDialog TrainFilterButton:pressed,
+QToolButton#incidentPickTargetButton:pressed {
+    background: #e3eaee;
+}
+
+QToolBar QToolButton:disabled, QDialog TrainFilterButton:disabled, QToolButton#incidentPickTargetButton:disabled {
+    background: #eceeec;
+    border-color: #c9d3db;
+}
+
+/* Open Case keeps its own face and weight. */
+QToolButton#openCaseButton {
+    background: #e3eaee;
+    font-weight: 600;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton#openCaseButton:hover {
+    background: #dce6eb;
+}
+
+QToolButton#openCaseButton:pressed {
+    background: #d8e1e5;
+}
+
+QToolButton#openCaseButton:focus {
+    padding: 2px 7px;
+}
+
+QToolButton:checked, QToolBar QToolButton:checked {
     background: #315a70;
     color: #ffffff;
+}
+
+/* Follow and the button that picks the target of an incident keep a light face while checked, so that their dark icons
+   stay readable. */
+QToolButton#actionFollowButton:checked, QToolButton#incidentPickTargetButton:checked {
+    background: #d3e3ec;
+    border-color: #315a70;
+    color: #24313a;
+}
+
+QToolButton#actionFollowButton:checked:hover, QToolButton#incidentPickTargetButton:checked:hover {
+    background: #bcd2df;
+    border-color: #24313a;
+}
+
+QToolButton#actionFollowButton:checked:focus, QToolButton#incidentPickTargetButton:checked:focus {
+    border-color: #2e7491;
+}
+
+/* The button that picks the target of an incident has no minimum height, so it is as tall as the combo box beside it. */
+QToolButton#incidentPickTargetButton {
+    min-height: 0;
 }
 
 QDockWidget {
@@ -131,7 +226,7 @@ QListView::indicator:checked, QTableView::indicator:checked, QTreeView::indicato
 }
 
 QListView::indicator:disabled, QTableView::indicator:disabled, QTreeView::indicator:disabled {
-    background: #e4e8eb;
+    background: #eceeec;
     border-color: #c9d3db;
 }
 
@@ -151,16 +246,22 @@ QCheckBox:disabled {
 }
 
 QCheckBox:focus {
-    background: #e6ecee;
-    border: 1px solid #315a70;
-    border-radius: 2px;
+    background: #e3eaee;
+    border: 1px solid #2e7491;
+    border-radius: 6px;
 }
 
-QPushButton:focus, QComboBox:focus, QSlider:focus, QLineEdit:focus {
+QSlider:focus {
     outline: 1px solid #315a70;
     outline-offset: 1px;
 }
 
+/* A push button shows keyboard focus with its border, without a rectangle around its text. */
+QPushButton:focus {
+    outline: none;
+}
+
+/* The map key toggle has small grey text; checked, it keeps its face. */
 QToolButton#mapKeyToggle {
     color: #5b6871;
     font-size: 11px;
@@ -169,15 +270,8 @@ QToolButton#mapKeyToggle {
     text-align: left;
 }
 
-QToolButton#mapKeyToggle:checked {
-    background: transparent;
-    border-color: transparent;
-    color: #5b6871;
-}
-
-QToolButton#mapKeyToggle:hover, QToolButton#mapKeyToggle:focus {
-    background: #e6ecee;
-    border-color: #315a70;
+QToolButton#mapKeyToggle:focus {
+    padding: 4px 1px;
 }
 
 QWidget#mapKeyBody QLabel {
@@ -185,33 +279,190 @@ QWidget#mapKeyBody QLabel {
     font-size: 11px;
 }
 
-QPushButton:focus, QComboBox:focus, QLineEdit:focus {
+QTableWidget#runResultsTable:focus {
     border-color: #315a70;
 }
 
-QPushButton, QComboBox, QLineEdit {
+/* Push buttons and fields have a white face, a 1 px border in the control colour, #7b8b96, and a 6 px radius, in dialogs
+   and in the main window alike. The border has a contrast of 3.5:1 with the white face and 3.4:1 with the surface of a
+   dialog. Push buttons, combo boxes and line edits are 28 px tall at a 13 px font. A button in a dialog has 14 px beside
+   its text; one in a dock or a diagram or timetable window keeps 7 px, so that those keep their width. */
+QPushButton, QToolButton#runResultsViewsButton {
     background: #ffffff;
-    border: 1px solid #c8ced2;
-    border-radius: 2px;
+    border: 1px solid #7b8b96;
+    border-radius: 6px;
+    color: #24313a;
     padding: 5px 7px;
 }
 
-QPushButton:hover, QComboBox:hover {
-    border-color: #315a70;
+QDialog QPushButton {
+    padding: 5px 14px;
 }
 
-QPushButton:pressed {
-    background: #d8e1e5;
+QComboBox, QLineEdit, QAbstractSpinBox {
+    background: #ffffff;
+    border: 1px solid #7b8b96;
+    border-radius: 6px;
+    padding: 4px 7px;
 }
 
-QDialog#runReviewDialog, QDialog[dialogPresentation="true"] {
-    background: #f8fafb;
+QPushButton:hover, QComboBox:hover, QLineEdit:hover, QAbstractSpinBox:hover, QToolButton#runResultsViewsButton:hover {
+    border-color: #5b6871;
 }
 
-QLabel#dialogHeading {
+QPushButton:pressed, QToolButton#runResultsViewsButton:pressed {
+    background: #e3eaee;
+}
+
+/* Keyboard focus is a 2 px border in the action colour, #2e7491, which has a contrast of 5.2:1 with the white face. The
+   padding gives up the extra pixel, so the text does not move. */
+QPushButton:focus {
+    border: 2px solid #2e7491;
+    padding: 4px 6px;
+}
+
+QDialog QPushButton:focus {
+    padding: 4px 13px;
+}
+
+/* The diagram and timetable windows keep 7 px beside the text of their push buttons, so that the bar of buttons above the
+   chart or table keeps its width and the window fits within 90 percent of a narrow screen. */
+DiagramWindow QPushButton, TimetableTableWindow QPushButton {
+    padding: 5px 7px;
+}
+
+DiagramWindow QPushButton:focus, TimetableTableWindow QPushButton:focus {
+    padding: 4px 6px;
+}
+
+/* Open result view... is as tall as the push buttons beside it. A tool button is 3 px taller than its text and padding,
+   so it has 4 px above the text and 3 px below it, and no minimum height. */
+QToolButton#runResultsViewsButton {
+    min-height: 0;
+    padding-top: 4px;
+    padding-bottom: 3px;
+}
+
+QToolButton#runResultsViewsButton:focus {
+    border: 2px solid #2e7491;
+    padding: 3px 19px 2px 6px;
+}
+
+/* The buttons that choose the trains, occurrences or stations of a result window are as tall as the push buttons beside
+   them, with 20 px on their right for the arrow. A tool button is 3 px taller than its text and padding, so these have
+   4 px above the text and 3 px below it, which puts the text at the height of the text of a push button. */
+QDialog TrainFilterButton {
+    min-height: 0;
+    padding: 4px 20px 3px 6px;
+}
+
+QDialog TrainFilterButton:focus {
+    padding: 3px 19px 2px 5px;
+}
+
+QComboBox:focus, QLineEdit:focus, QAbstractSpinBox:focus {
+    border: 2px solid #2e7491;
+    padding: 3px 6px;
+}
+
+/* The clear button of a line edit is a tool button. It takes the height that the line edit gives it, not the minimum
+   height of a tool button, so it sits in the middle of the field, inside the focus border. */
+QLineEdit QToolButton {
+    min-height: 0;
+}
+
+/* The line edit inside a spin box draws no field of its own: the spin box is the field. */
+QAbstractSpinBox QLineEdit, QAbstractSpinBox QLineEdit:hover, QAbstractSpinBox QLineEdit:focus,
+QAbstractSpinBox QLineEdit:disabled {
     background: transparent;
-    color: #24313a;
-    font-weight: 600;
+    border: 0;
+    padding: 0;
+}
+
+/* Outside a dialog a spin box has 2 px above and below its text and 4 px before it, so that it fits in a table row and the
+   editor docks stay about as compact as with the Fusion spin box. In a dialog it has the padding of the other fields.
+   The arrows take 16 px at the right inside the border. */
+QAbstractSpinBox {
+    padding: 2px 0 2px 4px;
+}
+
+QAbstractSpinBox:focus {
+    padding: 1px 0 1px 3px;
+}
+
+QDialog QAbstractSpinBox {
+    padding: 4px 0 4px 7px;
+}
+
+QDialog QAbstractSpinBox:focus {
+    padding: 3px 0 3px 6px;
+}
+
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+    subcontrol-origin: border;
+    width: 16px;
+    background: transparent;
+    border: 0;
+}
+
+QAbstractSpinBox::up-button {
+    subcontrol-position: top right;
+}
+
+QAbstractSpinBox::down-button {
+    subcontrol-position: bottom right;
+}
+
+QAbstractSpinBox::up-arrow {
+    image: url(:/icons/spin-up-arrow.svg);
+}
+
+QAbstractSpinBox::down-arrow {
+    image: url(:/icons/drop-down-arrow.svg);
+}
+
+QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
+    image: url(:/icons/spin-up-arrow-disabled.svg);
+}
+
+QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
+    image: url(:/icons/drop-down-arrow-disabled.svg);
+}
+
+/* Lists and tables in the editors, and a list, table or tree that fills a dock, have a 1 px #c9d3db border that becomes a
+   2 px border in the action colour while the view has the keyboard focus: 3.4:1 with #c9d3db and 4.6:1 with the surface.
+   Qt sizes the frame when it polishes the view, before the view has the focus, so the frame stays 1 px, as the editors
+   that size their lists from it expect, and the rows do not move. The inner pixel of the focus border shows where no
+   header, scroll bar or selected row lies over it. The dialog rules below take precedence, and the Run Results table has a
+   border of its own. */
+SceneEditorPanel QListWidget, SceneEditorPanel QTableView, QDockWidget > QAbstractItemView {
+    border: 1px solid #c9d3db;
+}
+
+SceneEditorPanel QListWidget:focus, SceneEditorPanel QTableView:focus, QDockWidget > QAbstractItemView:focus {
+    border: 2px solid #2e7491;
+}
+
+/* Lists and tables in a dialog are fields: a white face inside the same border and radius. The padding keeps the rows and
+   the header inside the rounded corners. */
+QDialog QListWidget, QDialog QTableView {
+    background: #ffffff;
+    border: 1px solid #7b8b96;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+QDialog QListWidget {
+    padding: 4px;
+}
+
+QDialog QListWidget:focus, QDialog QTableView:focus {
+    border: 2px solid #2e7491;
+    padding: 1px;
+}
+
+QDialog QListWidget:focus {
+    padding: 3px;
 }
 
 QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext,
@@ -226,36 +477,60 @@ QLabel#runReviewFactValue {
 }
 
 QLabel[dialogStatus="neutral"], QLabel#runReviewStatus {
-    background: #e7edf1;
-    border: 1px solid #c5d0d7;
-    border-radius: 2px;
+    background: #e3eaee;
+    border: 1px solid #c9d3db;
+    border-radius: 6px;
     color: #3f4d56;
-    padding: 9px;
+    padding: 8px;
 }
 
 QLabel[dialogStatus="warning"], QLabel#runReviewStatus[warning="true"] {
     background: #f5eadc;
     border: 1px solid #d8b98e;
+    border-radius: 6px;
     color: #74451c;
+    padding: 8px;
 }
 
 QLabel[dialogStatus="error"] {
     background: #f7e8e6;
     border: 1px solid #c98f88;
-    border-radius: 2px;
+    border-radius: 6px;
     color: #81352d;
-    padding: 9px;
+    padding: 8px;
 }
 
+/* A link of the About dialog reads as a link: underlined text without the face and border of a button. Its 2 px border
+   shows only with keyboard focus, so the text does not move. */
 QDialog#aboutDialog QPushButton[aboutLink="true"] {
+    background: transparent;
+    border: 2px solid transparent;
     color: #315a70;
     text-decoration: underline;
     text-align: left;
-    padding: 2px 4px;
+    padding: 1px;
 }
 
 QDialog#aboutDialog QPushButton[aboutLink="true"]:focus {
-    border: 2px solid #315a70;
+    border-color: #2e7491;
+}
+
+/* A button that opens a menu, such as Other ways to open..., shows the arrow of a drop-down list at its right. */
+QPushButton::menu-indicator {
+    image: url(:/icons/drop-down-arrow.svg);
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    right: 8px;
+}
+
+QPushButton::menu-indicator:disabled {
+    image: url(:/icons/drop-down-arrow-disabled.svg);
+}
+
+/* Each copy of the recovery prompt is a card with the radius of a field and the border of a status label. */
+QFrame#recoveryRow {
+    border: 1px solid #c9d3db;
+    border-radius: 6px;
 }
 
 QDialog#caseChooserDialog QListWidget::item:disabled {
@@ -268,16 +543,32 @@ QDialog#caseChooserDialog QListWidget::item:selected {
     color: #24313a;
 }
 
+/* The Run details toggle and the Calculation details toggle of the capacity analysis have the corners of a dialog button
+   and show keyboard focus with its 2 px action border. The padding gives up the extra pixel, so the arrow and the text do
+   not move. */
+QToolButton#runReviewDetailsToggle,
+QToolButton#capacityDetailsToggle {
+    border-radius: 6px;
+}
+
+QToolButton#runReviewDetailsToggle:focus,
+QToolButton#capacityDetailsToggle:focus {
+    border: 2px solid #2e7491;
+    padding: 2px 5px;
+}
+
 QLabel#runReviewDetails {
-    background: #eef2f5;
+    background: #ffffff;
     border: 1px solid #c9d3db;
+    border-radius: 6px;
     padding: 8px;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default,
-QMessageBox QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
-    background: #315a70;
-    border-color: #315a70;
+/* The default button of a dialog footer and of a message box is filled with the action colour, #2e7491, on which white
+   text has a contrast of 5.2:1. */
+QDialog QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
+    background: #2e7491;
+    border-color: #2e7491;
     color: #ffffff;
 }
 
@@ -285,31 +576,70 @@ QPushButton#runReviewRunButton {
     min-width: 110px;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:hover,
-QMessageBox QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
-    background: #26495c;
-    border-color: #26495c;
+QDialog QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
+    background: #296882;
+    border-color: #296882;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus,
-QMessageBox QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
-    border-color: #315a70;
-    outline: 2px solid #315a70;
+QDialog QDialogButtonBox QPushButton:default:pressed, QPushButton#runReviewRunButton:pressed {
+    background: #23566c;
+    border-color: #23566c;
+}
+
+/* The filled default button shows keyboard focus as a 2 px dark border, #0b2430, which has a contrast of 3.1:1 with the
+   fill and 15:1 with the dialog. */
+QDialog QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
+    border: 2px solid #0b2430;
+    padding: 4px 13px;
 }
 
 QPushButton:disabled,
 QComboBox:disabled,
-QLineEdit:disabled {
-    background: #e4e8eb;
+QLineEdit:disabled,
+QAbstractSpinBox:disabled,
+QToolButton#runResultsViewsButton:disabled {
+    background: #eceeec;
     border-color: #c9d3db;
     color: #64717a;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:disabled,
-QMessageBox QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
+QDialog QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
     background: #dce3e7;
     border-color: #c9d3db;
     color: #64717a;
+}
+
+QTableView {
+    background: #ffffff;
+    gridline-color: #e3eaee;
+}
+
+/* A selected row is #315a70 with white text, 7.4:1, while its list, table or tree has the keyboard focus, and #d8e1e5 with
+   #24313a text, 10:1, while the focus is elsewhere. A selected row of a disabled view keeps the disabled text colour. A
+   checked box in a focused selected row has a white border, so that it stands out from the row. */
+QListWidget::item:selected:active, QTableView::item:selected:active, QTreeView::item:selected:active {
+    background: #315a70;
+    color: #ffffff;
+}
+
+QListWidget::item:selected:!active, QTableView::item:selected:!active, QTreeView::item:selected:!active {
+    background: #d8e1e5;
+    color: #24313a;
+}
+
+QListWidget::item:selected:disabled, QTableView::item:selected:disabled, QTreeView::item:selected:disabled {
+    color: #64717a;
+}
+
+QListWidget::indicator:checked:selected:active, QTableView::indicator:checked:selected:active,
+QTreeView::indicator:checked:selected:active {
+    border-color: #ffffff;
+}
+
+/* The current cell of a table that Tab reaches has no selection and can be scrolled out of view, so the frame of the table
+   shows the focus. */
+QTableWidget#runResultsTable {
+    border: 1px solid #c9d3db;
 }
 
 QTabWidget::pane {
@@ -320,7 +650,7 @@ QTabWidget::pane {
 QTabBar::tab {
     background: #e3eaee;
     border: 1px solid #c9d3db;
-    padding: 5px 10px;
+    padding: 4px 12px;
 }
 
 QTabBar::tab:selected {
@@ -328,40 +658,123 @@ QTabBar::tab:selected {
     color: #ffffff;
 }
 
+/* The selected tab of a tab bar with the keyboard focus has the action colour inside a 2 px #0b2430 border, which has a
+   contrast of 3.1:1 with that face and more than 10:1 with the tabs and the pane around it; the white text has 5.2:1. The
+   padding gives up the extra pixel, so the text does not move. */
+QTabBar::tab:selected:focus {
+    background: #2e7491;
+    border: 2px solid #0b2430;
+    padding: 3px 11px;
+}
+
+/* A tab of a group of docked tabs shortens its name with an ellipsis when the group is narrow, down to 3 em of name; the
+   bar scrolls when the tabs still do not fit. The tooltip of a tab gives its whole name. */
+QMainWindow > QTabBar::tab {
+    min-width: 3em;
+}
+
+/* The scroll buttons of a group of docked tabs have the face of a tab and the arrows of a drop-down list turned to the side.
+   Each is half the 40 px of the scroller, without the minimum height of the other tool buttons, and has 6 px on either
+   side of its arrow, so that the arrow keeps its size. The padding belongs to the button, as Qt 6 takes the padding of
+   an arrow off twice and then draws no arrow. */
+QMainWindow > QTabBar::scroller {
+    width: 40px;
+}
+
+QMainWindow > QTabBar QToolButton {
+    background: #e3eaee;
+    border-color: #c9d3db;
+    padding: 0 6px;
+    min-height: 0;
+}
+
+QMainWindow > QTabBar QToolButton::left-arrow {
+    image: url(:/icons/scroll-left-arrow.svg);
+}
+
+QMainWindow > QTabBar QToolButton::right-arrow {
+    image: url(:/icons/scroll-right-arrow.svg);
+}
+
+QMainWindow > QTabBar QToolButton::left-arrow:disabled {
+    image: url(:/icons/scroll-left-arrow-disabled.svg);
+}
+
+QMainWindow > QTabBar QToolButton::right-arrow:disabled {
+    image: url(:/icons/scroll-right-arrow-disabled.svg);
+}
+
 QLineEdit[readOnly="true"] {
     background: #eceeec;
     color: #5b6871;
-    border-color: #c8ced2;
+    border-color: #c9d3db;
 }
 
-QDialog[dialogPresentation="true"] QLineEdit[readOnly="true"]:focus {
-    border-color: #315a70;
-    outline: 1px solid #315a70;
+QLineEdit[readOnly="true"]:focus {
+    border: 2px solid #2e7491;
+    padding: 3px 6px;
 }
 
 QSlider::groove:horizontal {
-    height: 4px;
-    background: #c8ced2;
+    height: 6px;
+    border-radius: 3px;
+    background: #7b8b96;
+}
+
+QSlider::sub-page:horizontal {
+    border-radius: 3px;
+    background: #315a70;
 }
 
 QSlider::handle:horizontal {
     width: 12px;
     margin: -5px 0;
-    border: 2px solid #315a70;
-    border-radius: 7px;
-    background: #ffffff;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    background: #315a70;
+}
+
+QSlider::handle:horizontal:hover, QSlider::handle:horizontal:pressed {
+    background: #26495c;
+}
+
+QSlider::handle:horizontal:focus {
+    border-color: #24313a;
+}
+
+QSlider::sub-page:horizontal:disabled, QSlider::handle:horizontal:disabled {
+    background: #9aa5ab;
 }
 
 QProgressBar {
-    border: 1px solid #c8ced2;
+    border: 1px solid #c9d3db;
     border-radius: 2px;
     background: #eceeec;
     color: #24313a;
+    selection-color: #ffffff;
     text-align: right;
 }
 
 QProgressBar::chunk {
     background: #315a70;
+}
+
+/* The weight is on the header widget, so code that measures header text with the header font measures it in this weight. */
+QHeaderView {
+    font-weight: 600;
+}
+
+QHeaderView::section, QTableCornerButton::section {
+    background: #e3eaee;
+    color: #24313a;
+    border: 0;
+    border-right: 1px solid #c9d3db;
+    border-bottom: 1px solid #c9d3db;
+    padding: 4px 8px;
+}
+
+QAbstractItemView {
+    alternate-background-color: #f4f7f9;
 }
 
 QPlainTextEdit {
@@ -388,13 +801,19 @@ QLabel#resultContextText {
     color: #5b6871;
 }
 
+/* The 2 px border of the network view turns from #3a4a54 to #8fbcd4 while the view has the keyboard focus; the two have a
+   contrast of 4.5:1, and #8fbcd4 has 8.6:1 with the canvas. */
 QGraphicsView#networkView {
     background: #12191f;
-    border: 1px solid #3a4a54;
+    border: 2px solid #3a4a54;
+}
+
+QGraphicsView#networkView:focus {
+    border-color: #8fbcd4;
 }
 
 QScrollBar:vertical, QScrollBar:horizontal {
-    background: #e4eaee;
+    background: #e3eaee;
     border: 0;
 }
 
@@ -421,6 +840,12 @@ QScrollBar::add-line, QScrollBar::sub-line {
     border: 0;
 }
 
+/* The track shows the background of the scroll bar on both sides of the handle. Without this rule the widget style draws
+   these areas, and the Windows styles fill them with a dither. */
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}
+
 QStatusBar {
     background: #e3eaee;
     border-top: 1px solid #c9d3db;
@@ -438,7 +863,7 @@ QMenu {
 }
 
 QMenu::item {
-    padding: 5px 24px 5px 8px;
+    padding: 4px 24px 4px 8px;
 }
 
 QMenu::item:selected {
@@ -453,4 +878,54 @@ QMenu::item:disabled {
 QMenu::item:disabled:selected {
     background: transparent;
     color: #64717a;
+}
+
+/* One line in the colour of the menu border; the etched line of the style loses its dark row at fractional scales. */
+QMenu::separator {
+    height: 1px;
+    background: #c9d3db;
+    margin: 4px 0;
+}
+
+/* Outside a macOS footer, Cancel of Run simulation becomes the default while it has the focus; it keeps the plain face,
+   so only the run button is filled. */
+QPushButton#runReviewCancelButton:default {
+    background: #ffffff;
+    border: 2px solid #2e7491;
+    color: #24313a;
+    padding: 4px 13px;
+}
+
+QPushButton#runReviewCancelButton:default:pressed {
+    background: #e3eaee;
+}
+
+/* A button that opens a menu keeps room on its right for the arrow. */
+QToolButton[popupMode="InstantPopup"], QToolButton#runResultsViewsButton {
+    padding-right: 20px;
+}
+
+QToolButton[popupMode="InstantPopup"]::menu-indicator {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    right: 6px;
+}
+
+QLabel#diagramPinLabel {
+    background: transparent;
+}
+
+/* The drop-down of a combo box draws no frame of its own inside the border, so it takes its arrow from an image. */
+QComboBox::drop-down {
+    background: transparent;
+    border: 0;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(:/icons/drop-down-arrow.svg);
+}
+
+QComboBox::down-arrow:disabled {
+    image: url(:/icons/drop-down-arrow-disabled.svg);
 }

@@ -18,16 +18,19 @@
 #include <utility>
 #include <vector>
 
-// A facet over one list of the model whose items have no id and name sections instead, such as the dependencies between
-// blocks. A section is chosen in a combo of the sections of the scene, which writes the model as soon as another
-// section is chosen. The other cells are text. A new item is empty, and a row is named by its first section when it is
-// deleted. Nothing else refers to these items.
+/// A facet over one list of the model whose items have no id and name sections instead, such as the dependencies between
+/// blocks. A section is chosen in a combo of the sections of the scene, which writes the model as soon as another
+/// section is chosen. The other cells are text. A new item is empty, and a row is named by its first section when it is
+/// deleted. Nothing else refers to these items. `Item` is the type of the items.
 template <typename Item>
 class SectionRowsFacet : public InfrastructureFacet {
 public:
+	/// The combo key given to the constructor.
 	QString key() const override { return m_key; }
+	/// The headers given to the constructor.
 	QStringList columns() const override { return m_columns; }
 
+	/// One row for each item, filled by fillRow() with the sections of the scene.
 	void fillRows(InfrastructurePanel& panel) override {
 		const std::vector<Item>& items = panel.model().*m_list;
 		panel.table()->setRowCount(static_cast<int>(items.size()));
@@ -36,6 +39,7 @@ public:
 			fillRow(panel, inventory, row, items[static_cast<std::size_t>(row)]);
 	}
 
+	/// Takes the trimmed text of a text cell into the item through editField().
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
 		std::vector<Item>& items = panel.mutableModel().*m_list;
 		if (row >= static_cast<int>(items.size()))
@@ -48,6 +52,7 @@ public:
 			panel.refuseEdit();
 	}
 
+	/// Appends an empty item and makes its row the current one.
 	void add(InfrastructurePanel& panel) override {
 		std::vector<Item>& items = panel.mutableModel().*m_list;
 		items.push_back(Item());
@@ -58,6 +63,7 @@ public:
 			panel.table()->setCurrentCell(newRow, 0);
 	}
 
+	/// Deletes the selected item when the user confirms it.
 	void remove(InfrastructurePanel& panel) override {
 		std::vector<Item>& items = panel.mutableModel().*m_list;
 		const int row = panel.table()->currentRow();
@@ -73,21 +79,24 @@ public:
 	}
 
 protected:
-	// What a combo does to an item when another section is chosen: stores it, and tells whether that changed the item.
+	/// What a combo does to an item when another section is chosen: stores it, and tells whether that changed the item.
 	using Assign = std::function<bool(Item&, const std::string&)>;
 
-	// `comboKey` is the value of the combo, and `noun` names one item.
+	/// `comboKey` is the value of the combo, `noun` names one item in the label of an edit, `list` is the member of the
+	/// model that holds the items and `headers` are the columns.
 	SectionRowsFacet(const char* comboKey, const char* noun, std::vector<Item> SceneModel::* list, QStringList headers)
 		: m_key(QString::fromLatin1(comboKey)), m_noun(QString::fromLatin1(noun)), m_list(list), m_columns(std::move(headers)) {}
 
-	// Puts the cells of the item in `row`.
+	/// Puts the cells of the item in `row`. `inventory` holds the sections of the scene for the combos.
 	virtual void fillRow(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row, const Item& item) const = 0;
-	// The section that names the item in the question before it is deleted; empty when the item has none yet.
+	/// The section that names the item in the question before it is deleted; empty when the item has none yet.
 	virtual std::string rowTitle(const Item& item) const = 0;
-	// Takes the text of a cell that is no combo into the item. The default has no such cell.
+	/// Takes the text of a cell that is no combo into the item. The default has no such cell.
 	virtual Edit editField(Item&, int, const QString&) const { return Edit::Unchanged; }
 
-	// Puts a combo of the sections in `column` of `row`. `current` is the section that it shows at first.
+	/// Puts a combo of the sections in `column` of `row`; the table owns it. `current` is the section that it shows at first,
+	/// `objectName` names the combo, and `assign` stores a chosen section. `allowNone` adds an item `noneLabel` with no
+	/// section on top (see InfrastructurePanel::populateSectionCombo).
 	QComboBox* addSectionCombo(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row, int column,
 		const std::string& current, const char* objectName, Assign assign, bool allowNone = false,
 		const QString& noneLabel = QString()) const {
@@ -110,7 +119,7 @@ protected:
 		return combo;
 	}
 
-	// An Assign that stores the section in a member of the item.
+	/// An Assign that stores the section in a member of the item.
 	static Assign storeIn(std::string Item::* member) {
 		return [member](Item& item, const std::string& section) {
 			if (item.*member == section)

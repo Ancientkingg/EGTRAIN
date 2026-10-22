@@ -128,9 +128,10 @@ AreaCapacityWindow makeWindow(const AreaCapacityResult& result) {
 	return AreaCapacityWindow(result, "R / main / @0-B0@ to @7-B0@", lineRun().provenance);
 }
 
+// The result line of the window: the first line of its context, below the window title.
 QString heading(const AreaCapacityWindow& window) {
-	const auto* label = window.findChild<QLabel*>("dialogHeading");
-	return label ? label->text() : QString();
+	const auto* label = window.findChild<QLabel*>("dialogContext");
+	return label && window.windowTitle() == "Capacity by area" ? label->text().section('\n', 0, 0) : QString();
 }
 
 QTableWidget* table(const AreaCapacityWindow& window, const char* name) {
@@ -529,6 +530,77 @@ bool exerciseOpen() {
 	return ok;
 }
 
+// The run of lineRun with a label for each block of R.
+CompletedRunData labelledRun() {
+	CompletedRunData data = lineRun();
+	const char* const labels[] = {"B0 0.000 to 0.230 km", "B0 0.230 to 0.460 km", "B0 0.460 to 0.690 km", "B0 0.690 to 0.920 km",
+		"B0 0.920 to 1.150 km", "B0 1.150 to 1.380 km", "B0 1.380 to 1.610 km", "B0 1.610 to 1.840 km"};
+	for (int index = 0; index < 8; ++index)
+		data.sectionLabels.byReference["@" + std::to_string(index) + "-B0@"] = labels[index];
+	return data;
+}
+
+// The options and the window name the resources by their labels. The export and the tooltips keep the ids.
+bool exerciseLabels() {
+	const CompletedRunData data = labelledRun();
+	AreaCapacityScope scope = lineScope({"F1", "F2"});
+	scope.secondRouteIndex = 1;
+	scope.secondBlockIds = {"@7-B0@", "@6-B0@"};
+	bool ok = expect(areaCapacityText(data, scope)
+				== "R / main / B0 0.000 to 0.230 km through B0 1.610 to 1.840 km and S / B0 1.610 to 1.840 km through B0 1.380 to 1.610 km"
+			&& areaCapacityLabel(data, scope) == "R / main / @0-B0@ to @7-B0@ and S / @7-B0@ to @6-B0@",
+		"the window names the area by the labels of its blocks, the export by their ids");
+
+	AreaCapacityScopeDialog dialog(data);
+	const QComboBox* first = combo(dialog, "areaCapacityFirstBlock");
+	ok &= expect(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "@0-B0@"
+			&& combo(dialog, "areaCapacityLastBlock")->currentText() == "8: B0 1.610 to 1.840 km",
+		"the options name the blocks by their labels, with the id as tooltip");
+
+	const AreaCapacityScope one = lineScope({"F1", "F2"});
+	AreaCapacityWindow window(analyze(data, one), areaCapacityLabel(data, one), data.provenance, nullptr, areaCapacityText(data, one),
+		data.sectionLabels);
+	const QString context = window.findChild<QLabel*>("dialogContext") ? window.findChild<QLabel*>("dialogContext")->text() : QString();
+	ok &= expect(context.contains("Area: R / main / B0 0.000 to 0.230 km through B0 1.610 to 1.840 km\n")
+			&& context.contains("Governing resource: B0 0.690 to 0.920 km (28.7% of period)"),
+		"the context names the area and the governing resource by their labels");
+	const QTableWidget* resources = table(window, "areaCapacityResources");
+	const int governing = rowOf(resources, "@3-B0@");
+	ok &= expect(governing >= 0 && resources->item(governing, 0)->toolTip() == "B0 0.690 to 0.920 km",
+		"a resource keeps its id in the table and has its label as tooltip");
+	const QTableWidget* pairs = table(window, "areaCapacityPairs");
+	ok &= expect(pairs && pairs->rowCount() == 1 && cell(pairs, 0, 7).contains("@") && !pairs->item(0, 7)->toolTip().isEmpty()
+			&& !pairs->item(0, 7)->toolTip().contains("@") && pairs->item(0, 7)->toolTip().contains("B0 "),
+		"the evidence names the blocks by their ids and its tooltip by their labels");
+	const QTableWidget* compression = table(window, "areaCapacityCompression");
+	int predecessorRow = -1;
+	for (int row = 0; compression && row < compression->rowCount(); ++row)
+		if (predecessorRow < 0 && cell(compression, row, 6).contains("@"))
+			predecessorRow = row;
+	ok &= expect(predecessorRow >= 0 && compression->item(predecessorRow, 6)->toolTip().contains("B0 ")
+			&& !compression->item(predecessorRow, 6)->toolTip().contains("@"),
+		"the governing predecessor names its blocks by their ids and its tooltip by their labels");
+	const QTableWidget* critical = table(window, "areaCapacityCritical");
+	ok &= expect(critical && critical->rowCount() > 0 && cell(critical, 0, 2).startsWith("@")
+			&& critical->item(0, 2)->toolTip() == QString::fromStdString(data.sectionLabels.label(cell(critical, 0, 2).toStdString()))
+			&& critical->item(0, 3)->toolTip() == QString::fromStdString(data.sectionLabels.label(cell(critical, 0, 3).toStdString()))
+			&& critical->item(0, 2)->toolTip().startsWith("B0 "),
+		"a critical resource keeps its id and has its label as tooltip");
+	AreaCapacityResult noted;
+	noted.notes.push_back({AreaCapacityNoteKind::RepeatedResource, "F1", "", "@7-B0@"});
+	AreaCapacityWindow notedWindow(noted, areaCapacityLabel(data, one), data.provenance, nullptr, QString(), data.sectionLabels);
+	const QTableWidget* notes = table(notedWindow, "areaCapacityNotes");
+	ok &= expect(notes && notes->rowCount() == 1 && cell(notes, 0, 3) == "@7-B0@" && notes->item(0, 3)->toolTip() == "B0 1.610 to 1.840 km",
+		"a note keeps the id of its resource and has its label as tooltip");
+
+	QTemporaryDir directory;
+	const QString path = QDir(directory.path()).filePath("area_capacity.csv");
+	ok &= expect(directory.isValid() && window.exportCsvTo(path) && lines(path).size() > 1
+			&& lines(path)[1].startsWith("summary,R / main / @0-B0@ to @7-B0@,") && !lines(path).join("\n").contains("B0 0."),
+		"the export names the area and the resources by their ids");
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -540,5 +612,6 @@ int main(int argc, char** argv) {
 	ok &= exerciseDialog();
 	ok &= exerciseEdgeCases();
 	ok &= exerciseOpen();
+	ok &= exerciseLabels();
 	return ok ? 0 : 1;
 }

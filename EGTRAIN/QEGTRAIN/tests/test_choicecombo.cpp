@@ -238,8 +238,8 @@ bool exerciseInvalidChoice() {
 			"invalid platform lost its text or data");
 		ok &= check(f.platform->itemData(index, Qt::ToolTipRole).toString() == kExplanation,
 			"invalid platform item lost its explanation");
-		ok &= check(shownTip(f.platform) == shown,
-			"tooltip of the invalid item is not its full text");
+		ok &= check(shownTip(f.platform) == shown + QLatin1Char('\n') + kExplanation,
+			"tooltip of the invalid item is not its full text followed by its explanation");
 		f.platform->showPopup();
 		QApplication::processEvents();
 		ok &= check(f.platform->currentText() == shown && f.platform->currentData().toString() == invalidId,
@@ -248,6 +248,54 @@ bool exerciseInvalidChoice() {
 	}
 	return ok;
 }
+
+// The tip shows the current text, then the tooltip of the current item (the id behind a label), then the tooltip of the
+// field, and a line that is already shown only once.
+bool exerciseItemTip() {
+	ChoiceComboBox combo;
+	combo.addItem(QStringLiteral("B0 0.000 to 0.230 km"), QStringLiteral("@0-B0@"));
+	combo.setItemData(0, QStringLiteral("@0-B0@"), Qt::ToolTipRole);
+	combo.addItem(QStringLiteral("(none)"));
+	combo.addItem(QStringLiteral("route0"));
+	combo.setItemData(2, QStringLiteral("The route of the scope."), Qt::ToolTipRole);
+	combo.setToolTip(QStringLiteral("The route of the scope."));
+	combo.show();
+	QApplication::processEvents();
+	bool ok = check(shownTip(&combo) == QStringLiteral("B0 0.000 to 0.230 km\n@0-B0@\nThe route of the scope."),
+		"the tip does not show the text, the id of the item and the tip of the field");
+	combo.setCurrentIndex(1);
+	ok &= check(shownTip(&combo) == QStringLiteral("(none)\nThe route of the scope."),
+		"an item without a tooltip does not show the text and the tip of the field");
+	combo.setCurrentIndex(2);
+	ok &= check(shownTip(&combo) == QStringLiteral("route0\nThe route of the scope."),
+		"a tooltip that the item and the field share is not shown once");
+	return ok;
+}
+
+// A field with focus opens a list that shows each of its items whole, without scrolling.
+bool exercisePopupHeight() {
+	StopForm f(QRect(0, 0, 1280, 800), 1.0, QStringLiteral("p31"));
+	f.mode->setFocus();
+	QApplication::processEvents();
+	bool ok = check(f.mode->hasFocus(), "the planned time display did not take focus, so the test proves nothing");
+	f.mode->showPopup();
+	QApplication::processEvents();
+	QAbstractItemView* list = f.mode->view();
+	// A list that cuts its last item can scroll, so a list that cannot scroll shows every item whole.
+	const bool whole = list->isVisible() && list->verticalScrollBar()->maximum() == 0;
+	if (!whole) {
+		int rows = 0;
+		for (int row = 0; row < f.mode->count(); ++row)
+			rows += list->visualRect(f.mode->model()->index(row, 0)).height();
+		std::cerr << "the list of a field with focus scrolls: the popup is " << list->window()->height() << " px, its list "
+				  << list->viewport()->height() << " px for " << rows << " px of items, and it scrolls by "
+				  << list->verticalScrollBar()->maximum() << '\n';
+	}
+	ok &= whole;
+	f.mode->hidePopup();
+	return ok;
+}
+
 // Turns the wheel one step down over target. The event goes to the widget under the pointer, which is the line edit
 // of a spin box. A widget that ignores a wheel event passes it on to its parent, so the event goes up the parents
 // until one accepts it.
@@ -324,7 +372,7 @@ struct WheelForm {
 				FocusWheel::watch(body);
 		}
 		dialog.show();
-		QApplication::setActiveWindow(&dialog);
+		dialog.activateWindow();
 		QApplication::processEvents();
 		if (kind == FormKind::Watched) {
 			// Fields inside a widget that is added later, the way a table or a tab page adds its editors.
@@ -367,6 +415,9 @@ bool exerciseWheel(FormKind kind) {
 		: kind == FormKind::Plain					 ? QStringLiteral("plain scroll area: ")
 													 : QStringLiteral("watched form: ");
 	bool ok = check(f.scroll->verticalScrollBar()->maximum() > 0, qPrintable(form + "the wheel form does not scroll, so the test proves nothing"));
+	// An installed form opens with the focus on its first field.
+	if (QWidget* focused = QApplication::focusWidget())
+		focused->clearFocus();
 	for (QWidget* field : f.fields()) {
 		const QString name = form + field->metaObject()->className();
 		const QString before = f.value(field);
@@ -408,8 +459,10 @@ int main(int argc, char** argv) {
 	const bool selection = exerciseSelection();
 	const bool elision = exerciseElision();
 	const bool invalid = exerciseInvalidChoice();
+	const bool itemTip = exerciseItemTip();
+	const bool popupHeight = exercisePopupHeight();
 	const bool wheelInstalled = exerciseWheel(FormKind::Installed);
 	const bool wheelPlain = exerciseWheel(FormKind::Plain);
 	const bool wheelWatched = exerciseWheel(FormKind::Watched);
-	return small && scaledSmall && large && selection && elision && invalid && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
+	return small && scaledSmall && large && selection && elision && invalid && itemTip && popupHeight && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
 }

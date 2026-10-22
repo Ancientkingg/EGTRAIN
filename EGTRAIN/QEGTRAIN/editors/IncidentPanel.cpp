@@ -3,6 +3,8 @@
 #include "editors/ServicePanel.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneIds.h"
+#include "scene/SectionInventory.h"
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/EditorLayout.h"
 
@@ -12,7 +14,10 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QFrame>
+#include <QHBoxLayout>
 #include <QHash>
+#include <QHideEvent>
+#include <QIcon>
 #include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
@@ -20,6 +25,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSignalBlocker>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -46,9 +52,45 @@ std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
 	return targets;
 }
 
+// The text of a signal failure target in the list: a signal by its id and the label of the section it protects, and a
+// block by the label of its section.
+QString signalFailureTargetText(const SceneModel& sceneModel, const SceneSectionLabels& labels, const std::string& target) {
+	for (const auto& signal : sceneSignals(sceneModel)) {
+		if (signal.id != target)
+			continue;
+		if (signal.protectedSection.empty())
+			return QString::fromStdString(target);
+		return QStringLiteral("%1 (%2)").arg(QString::fromStdString(target), QString::fromStdString(labels.label(signal.protectedSection)));
+	}
+	return QString::fromStdString(labels.label(target));
+}
+
 bool hasEditorFocus(QWidget* editor) {
 	QWidget* focus = QApplication::focusWidget();
 	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
+}
+
+// The text of the row of an incident in the list.
+QString rowLabel(const SceneIncident& incident) {
+	QString label = QString::fromStdString(incident.id) + " (" + QString::fromStdString(incident.type) + ")";
+	if (incident.hasOccurrence || incident.occurrence != 1)
+		label += QString(" #%1").arg(incident.occurrence);
+	if (incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0)
+		label += QString(" / %1 km/h").arg(incident.reducedSpeedKmh);
+	return label;
+}
+
+// Gives the incident the target with the occurrence as the target combo holds it: 0 for none, or for all occurrences of a
+// service. False when the incident has that target already.
+bool setTarget(SceneIncident& incident, const std::string& target, int occurrence) {
+	const bool singular = incident.type != "signal_failure" && occurrence > 0;
+	occurrence = std::max(1, occurrence);
+	if (incident.target == target && incident.hasOccurrence == singular && incident.occurrence == occurrence)
+		return false;
+	incident.target = target;
+	incident.hasOccurrence = singular;
+	incident.occurrence = occurrence;
+	return true;
 }
 
 } // namespace
@@ -57,12 +99,14 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("incidentPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 
-	// the list of incidents and the buttons that manage it
+	// the list of incidents and the buttons that manage it, in one row. The list shows about three rows, so that the fields
+	// below keep the height of a short dock.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
 	listLayout->addWidget(new QLabel("Incidents", listPane));
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("incidentListWidget");
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Incident", listPane);
@@ -73,9 +117,9 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_deleteButton->setObjectName("deleteIncidentButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	listLayout->addLayout(buttonLayout);
-	layout->addWidget(listPane, 1);
+	layout->addWidget(listPane);
 
 	// the fields of the selected incident; a check box that switches a field on comes before that field
 	QWidget* detailPane = new QWidget(this);
@@ -85,6 +129,8 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	detailOuter->addWidget(m_emptyStateLabel);
 	QFormLayout* detailLayout = new QFormLayout();
 	detailLayout->setRowWrapPolicy(QFormLayout::WrapAllRows);
+	// The fields take the width of the form also on macOS, where they stay at their size hint by default.
+	detailLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("incidentIdEdit");
 	detailLayout->addRow("Incident Id", m_idEdit);
@@ -93,9 +139,23 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_typeCombo->addItem("signal_failure");
 	m_typeCombo->addItem("train_breakdown");
 	detailLayout->addRow("Type", m_typeCombo);
-	m_targetCombo = new QComboBox(detailPane);
+	// A long train label is cut in the middle.
+	m_targetCombo = new ChoiceComboBox(detailPane);
 	m_targetCombo->setObjectName("incidentTargetCombo");
-	detailLayout->addRow("Target", m_targetCombo);
+	m_pickTargetButton = new QToolButton(detailPane);
+	m_pickTargetButton->setObjectName("incidentPickTargetButton");
+	m_pickTargetButton->setCheckable(true);
+	m_pickTargetButton->setIcon(QIcon(":/icons/pick-target.svg"));
+	m_pickTargetButton->setText("Pick");
+	m_pickTargetButton->setToolTip("Pick the target on the network view (Esc cancels)");
+	m_pickTargetButton->setAccessibleName("Pick target on network view");
+	// The label names the combo, and the pick button follows the combo on its row.
+	QLabel* targetLabel = new QLabel("Target", detailPane);
+	targetLabel->setBuddy(m_targetCombo);
+	QHBoxLayout* targetLayout = new QHBoxLayout();
+	targetLayout->addWidget(m_targetCombo, 1);
+	targetLayout->addWidget(m_pickTargetButton);
+	detailLayout->addRow(targetLabel, targetLayout);
 	m_startSecondsEdit = new QLineEdit(detailPane);
 	m_startSecondsEdit->setObjectName("incidentStartSecondsEdit");
 	m_startSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_startSecondsEdit));
@@ -128,10 +188,15 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	QScrollArea* detailScroll = new QScrollArea(this);
 	detailScroll->setWidgetResizable(true);
 	detailScroll->setFrameShape(QFrame::NoFrame);
+	// Tab reaches the fields inside, and the area scrolls to show them.
+	detailScroll->setFocusPolicy(Qt::NoFocus);
 	detailScroll->setWidget(detailPane);
 	layout->addWidget(detailScroll, 2);
 
-	connect(m_listWidget, &QListWidget::currentRowChanged, this, [this](int) { updateDetail(); });
+	connect(m_listWidget, &QListWidget::currentRowChanged, this, [this](int) {
+		endTargetPick();
+		updateDetail();
+	});
 	connect(m_idEdit, &QLineEdit::editingFinished, this, &IncidentPanel::commitIdEdit);
 	connect(m_typeCombo, &QComboBox::currentTextChanged, this, &IncidentPanel::commitType);
 	connect(m_targetCombo, &QComboBox::currentTextChanged, this, [this] { commitTarget(); });
@@ -141,9 +206,10 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_reducedSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &IncidentPanel::commitReducedSpeed);
 	connect(m_hasEndSecondsCheck, &QCheckBox::toggled, this, &IncidentPanel::commitHasEndSeconds);
 	connect(m_terminateAtDestinationCheck, &QCheckBox::toggled, this, &IncidentPanel::commitTerminateAtDestination);
-	connect(m_addButton, &QPushButton::clicked, this, &IncidentPanel::addIncident);
+	connect(m_addButton, &QPushButton::clicked, this, qOverload<>(&IncidentPanel::addIncident));
 	connect(m_duplicateButton, &QPushButton::clicked, this, &IncidentPanel::duplicateIncident);
 	connect(m_deleteButton, &QPushButton::clicked, this, &IncidentPanel::deleteIncident);
+	connect(m_pickTargetButton, &QToolButton::toggled, this, &IncidentPanel::targetPickToggled);
 	IncidentPanel::refresh();
 }
 
@@ -175,6 +241,10 @@ void IncidentPanel::setOccurrenceDuration(std::function<double()> duration) {
 	m_occurrenceDuration = std::move(duration);
 }
 
+void IncidentPanel::setDefaultTarget(std::function<IncidentTarget()> target) {
+	m_defaultTarget = std::move(target);
+}
+
 bool IncidentPanel::hasScene() const {
 	return m_document && m_document->isLoaded();
 }
@@ -185,6 +255,48 @@ bool IncidentPanel::canEdit() const {
 
 double IncidentPanel::occurrenceDuration() const {
 	return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
+}
+
+bool IncidentPanel::offersTarget(const IncidentTarget& target) const {
+	if (!hasScene())
+		return false;
+	const SceneModel& model = m_document->model();
+	const std::string id = target.id.toStdString();
+	if (target.type == "signal_failure") {
+		const auto targets = signalFailureTargets(model);
+		return std::find(targets.begin(), targets.end(), id) != targets.end();
+	}
+	return target.type == "train_breakdown" && target.occurrence >= 1
+		&& std::any_of(model.services.begin(), model.services.end(), [this, &id, &target](const SceneService& service) {
+			   return service.id == id && target.occurrence <= sceneServiceOccurrenceCount(service, occurrenceDuration());
+		   });
+}
+
+void IncidentPanel::changeType(SceneIncident& incident, const std::string& type) const {
+	incident.type = type;
+	if (type == "signal_failure") {
+		incident.hasOccurrence = false;
+		incident.occurrence = 1;
+		incident.hasReducedSpeed = false;
+		incident.reducedSpeedKmh = 0.0;
+		incident.terminateAtDestination = false;
+	}
+
+	// when the type changes the valid target pool also changes; drop a target
+	// that is no longer valid for the new type
+	bool targetValid = incident.target.empty();
+	if (!targetValid) {
+		const SceneModel& model = m_document->model();
+		if (type == "signal_failure") {
+			const auto targets = signalFailureTargets(model);
+			targetValid = std::find(targets.begin(), targets.end(), incident.target) != targets.end();
+		} else {
+			targetValid = std::any_of(model.services.begin(), model.services.end(),
+				[&incident](const SceneService& service) { return service.id == incident.target; });
+		}
+	}
+	if (!targetValid)
+		incident.target.clear();
 }
 
 const std::vector<SceneIncident>& IncidentPanel::scenarioIncidents() const {
@@ -217,6 +329,7 @@ void IncidentPanel::markEdited(const QString& label) {
 }
 
 void IncidentPanel::refresh() {
+	endTargetPick();
 	const bool loaded = hasScene();
 	const auto& incidents = scenarioIncidents();
 	{
@@ -224,14 +337,8 @@ void IncidentPanel::refresh() {
 		const QSignalBlocker blocker(m_listWidget);
 		m_listWidget->clear();
 		if (loaded) {
-			for (const auto& incident : incidents) {
-				QString label = QString::fromStdString(incident.id) + " (" + QString::fromStdString(incident.type) + ")";
-				if (incident.hasOccurrence || incident.occurrence != 1)
-					label += QString(" #%1").arg(incident.occurrence);
-				if (incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0)
-					label += QString(" / %1 km/h").arg(incident.reducedSpeedKmh);
-				m_listWidget->addItem(label);
-			}
+			for (const auto& incident : incidents)
+				m_listWidget->addItem(rowLabel(incident));
 		}
 		const int rowCount = m_listWidget->count();
 		int rowToSelect = -1;
@@ -328,13 +435,15 @@ void IncidentPanel::refreshTargets() {
 	m_targetCombo->clear();
 	m_targetCombo->addItem(QStringLiteral("Choose target"), QString());
 	int current = 0;
+	const bool signalFailure = incident && incident->type == "signal_failure";
 	if (incident) {
 		const SceneModel& model = m_document->model();
 		const QString target = QString::fromStdString(incident->target);
 		bool found = false;
-		if (incident->type == "signal_failure") {
+		if (signalFailure) {
+			const SceneSectionLabels labels = sceneSectionLabels(buildSceneSectionInventory(model));
 			for (const std::string& value : signalFailureTargets(model))
-				m_targetCombo->addItem(QString::fromStdString(value), QString::fromStdString(value));
+				m_targetCombo->addItem(signalFailureTargetText(model, labels, value), QString::fromStdString(value));
 			current = m_targetCombo->findData(target);
 			if (current < 0 && !target.isEmpty()) {
 				m_targetCombo->addItem(QStringLiteral("Invalid removed target: ") + target, target);
@@ -385,7 +494,7 @@ void IncidentPanel::refreshTargets() {
 				}
 			}
 		}
-		if (incident->type != "signal_failure" && !incident->target.empty()
+		if (!signalFailure && !incident->target.empty()
 			&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
 			m_targetCombo->addItem(
 				QStringLiteral("Invalid removed target [") + target + QStringLiteral(", ") + QString::number(incident->occurrence)
@@ -406,21 +515,50 @@ void IncidentPanel::refreshTargets() {
 									 .arg(m_targetCombo->itemData(index, Qt::UserRole + 1).toInt());
 		if (labelCounts.value(label) > 1)
 			m_targetCombo->setItemText(index, label + identity);
-		m_targetCombo->setItemData(index, label + identity, Qt::ToolTipRole);
+		// A signal or block shows its id, a train its text and stable identity.
+		m_targetCombo->setItemData(index, signalFailure ? m_targetCombo->itemData(index).toString() : label + identity, Qt::ToolTipRole);
 	}
 	m_targetCombo->setCurrentIndex(std::max(0, current));
-	m_targetCombo->setEnabled(incident != nullptr && canEdit());
-	m_targetCombo->setToolTip(QStringLiteral("Service code with route, elapsed scheduled entry and stable identity."));
+	const bool editable = incident != nullptr && canEdit();
+	if (!editable)
+		endTargetPick();
+	m_targetCombo->setEnabled(editable);
+	m_pickTargetButton->setEnabled(editable);
+	// The field shows this tip below the current target.
+	if (!incident)
+		m_targetCombo->setToolTip(QString());
+	else if (signalFailure)
+		m_targetCombo->setToolTip(QStringLiteral("The signal or block that fails."));
+	else
+		m_targetCombo->setToolTip(
+			QStringLiteral("The train that breaks down: service code with route, elapsed scheduled entry and stable identity."));
 }
 
 void IncidentPanel::addIncident() {
-	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
-	if (!incidents)
+	if (!scenarioIncidentsForEdit())
 		return;
+	// Asked before the edit, which can clear what the target comes from.
+	const IncidentTarget target = m_defaultTarget ? m_defaultTarget() : IncidentTarget();
+	appendIncident(offersTarget(target) ? target : IncidentTarget());
+}
+
+bool IncidentPanel::addIncident(const IncidentTarget& target) {
+	if (!offersTarget(target) || !scenarioIncidentsForEdit())
+		return false;
+	appendIncident(target);
+	return true;
+}
+
+void IncidentPanel::appendIncident(const IncidentTarget& target) {
+	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
 	SceneIncident incident;
 	incident.id = sceneUniqueIncidentId(m_document->model(), "new_incident");
 	incident.type = "signal_failure";
 	incident.hasEndSeconds = true;
+	if (!target.type.isEmpty()) {
+		changeType(incident, target.type.toStdString());
+		setTarget(incident, target.id.toStdString(), target.occurrence);
+	}
 	incidents->push_back(incident);
 
 	markEdited("Add incident");
@@ -503,35 +641,12 @@ void IncidentPanel::commitType(const QString& type) {
 	if (newType == incident->type)
 		return;
 
-	incident->type = newType;
-	if (newType == "signal_failure") {
-		incident->hasOccurrence = false;
-		incident->occurrence = 1;
-		incident->hasReducedSpeed = false;
-		incident->reducedSpeedKmh = 0.0;
-		incident->terminateAtDestination = false;
-	}
-
-	// when the type changes the valid target pool also changes; drop a target
-	// that is no longer valid for the new type
-	bool targetValid = incident->target.empty();
-	if (!targetValid) {
-		const SceneModel& model = m_document->model();
-		if (newType == "signal_failure") {
-			const auto targets = signalFailureTargets(model);
-			targetValid = std::find(targets.begin(), targets.end(), incident->target) != targets.end();
-		} else {
-			targetValid = std::any_of(model.services.begin(), model.services.end(),
-				[incident](const SceneService& service) { return service.id == incident->target; });
-		}
-	}
-	if (!targetValid)
-		incident->target.clear();
+	changeType(*incident, newType);
 
 	// update the list row label in place to reflect the new type
 	if (QListWidgetItem* item = m_listWidget->currentItem()) {
 		const QSignalBlocker blocker(m_listWidget);
-		item->setText(QString::fromStdString(incident->id) + " (" + type + ")");
+		item->setText(rowLabel(*incident));
 	}
 
 	markEdited("Change incident type");
@@ -542,20 +657,47 @@ void IncidentPanel::commitType(const QString& type) {
 
 void IncidentPanel::commitTarget() {
 	SceneIncident* incident = selectedIncident();
-	if (!incident)
+	if (!incident
+		|| !setTarget(*incident, m_targetCombo->currentData().toString().toStdString(),
+			m_targetCombo->currentData(Qt::UserRole + 1).toInt()))
 		return;
-	const std::string newTarget = m_targetCombo->currentData().toString().toStdString();
-	int occurrence = m_targetCombo->currentData(Qt::UserRole + 1).toInt();
-	const bool singular = incident->type != "signal_failure" && occurrence > 0;
-	occurrence = std::max(1, occurrence);
-	if (incident->target == newTarget && incident->hasOccurrence == singular && incident->occurrence == occurrence)
-		return;
-	incident->target = newTarget;
-	incident->hasOccurrence = singular;
-	incident->occurrence = occurrence;
 	markEdited("Change incident target");
 	updateDetail();
 	emit changed();
+}
+
+bool IncidentPanel::applyTarget(const IncidentTarget& target) {
+	SceneIncident* incident = selectedIncident();
+	if (!incident || !offersTarget(target))
+		return false;
+	const std::string type = target.type.toStdString();
+	const bool typeChanged = incident->type != type;
+	if (typeChanged)
+		changeType(*incident, type);
+	if (!setTarget(*incident, target.id.toStdString(), target.occurrence) && !typeChanged)
+		return true;
+	if (QListWidgetItem* item = m_listWidget->currentItem()) {
+		const QSignalBlocker blocker(m_listWidget);
+		item->setText(rowLabel(*incident));
+	}
+	markEdited("Change incident target");
+	updateDetail();
+	emit changed();
+	return true;
+}
+
+bool IncidentPanel::isPickingTarget() const {
+	return m_pickTargetButton->isChecked();
+}
+
+void IncidentPanel::endTargetPick() {
+	m_pickTargetButton->setChecked(false);
+}
+
+void IncidentPanel::hideEvent(QHideEvent* event) {
+	if (!event->spontaneous())
+		endTargetPick();
+	SceneEditorPanel::hideEvent(event);
 }
 
 void IncidentPanel::commitStartSeconds() {

@@ -11,7 +11,8 @@ name: Package
 # After the Linux package, the Rehearse Linux job runs the clean-install steps 1 to 9 of the release testing checklist on that
 # AppImage, on a runner with a virtual display. Its screenshots and logs are the artifact linux-rehearsal-evidence, which is
 # for diagnosis and is not a release asset.
-# The release workflow and the package check call this workflow with the version to build.
+# The release workflow and the package check call this workflow with the version to build. Every package is built with
+# Qt 6.8.3 from install-qt-action.
 on:
   workflow_call:
     inputs:
@@ -39,16 +40,32 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: brew install qt@5 zeromq cppzmq nlohmann-json
+      - name: Install the packages of the manual
+        # The build makes the manual EGTRAIN.qch from docs/guides with Sphinx in this environment.
+        run: |
+          python -m venv build/docs-venv
+          build/docs-venv/bin/python -m pip install -r docs/requirements.txt
 
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
+
+      - name: Install dependencies
+        run: brew install zeromq cppzmq nlohmann-json
+
+      # As in cmake.yml: the keg folders of the other libraries, and the OpenGL framework in place of the AGL framework that
+      # Qt 6.8.3 links and that the macOS 26 SDK no longer has.
       - name: Configure
         run: >
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
           -DCMAKE_BUILD_TYPE=Release
           -DEGTRAIN_PACKAGED_BUILD=ON
           -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
-          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
+          -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
 
       - name: Build
         run: cmake --build build --config Release -j
@@ -71,12 +88,12 @@ jobs:
           # also relocates the non-Qt dependencies (libzmq, libsodium)
           # into Contents/Frameworks, rewriting every reference to
           # @executable_path so the app runs without Homebrew.
-          "$(brew --prefix qt@5)/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
+          "$QT_ROOT_DIR/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
           cp build/egtrain_update_helper build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
           chmod +x build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
-          # Some Homebrew libraries name their own dependencies as @rpath/<name> (for example brotli and webp).
-          # macdeployqt copies the library but neither the dependency nor an rpath, so copy each missing
-          # dependency from the Homebrew prefix and point the reference at the copy.
+          # A Homebrew library can name its own dependencies as @rpath/<name>. macdeployqt copies the library but
+          # neither the dependency nor an rpath, so copy each missing dependency from the Homebrew prefix and point
+          # the reference at the copy.
           frameworks=build/QEGTRAIN.app/Contents/Frameworks
           copied=1
           while [ "$copied" = 1 ]; do
@@ -116,20 +133,33 @@ jobs:
           }
           report_size "before trimming"
           # The application is a Widgets program that draws with the raster engine, loads no QML, WebP or TIFF file and takes
-          # keyboard input from the system. macdeployqt deploys the virtual keyboard input plugin with the Quick and QML
-          # frameworks it links, and the WebP and TIFF image plugins with their libraries.
+          # keyboard input from the system. The Qt install of this job has no virtual keyboard, WebP or TIFF plugin, so these
+          # removals only keep them out of the app if a later install has them.
           rm -rf "$APP/Contents/PlugIns/virtualkeyboard" "$APP/Contents/PlugIns/platforminputcontexts"
           rm -rf "$APP/Contents/PlugIns/imageformats/libqwebp.dylib" "$APP/Contents/PlugIns/imageformats/libqtiff.dylib"
           rm -rf "$APP/Contents/Frameworks/QtVirtualKeyboard.framework" "$APP/Contents/Frameworks/QtQuick.framework" \
             "$APP/Contents/Frameworks/QtQml.framework" "$APP/Contents/Frameworks/QtQmlModels.framework"
           rm -f "$APP"/Contents/Frameworks/libwebp*.dylib "$APP"/Contents/Frameworks/libsharpyuv*.dylib "$APP"/Contents/Frameworks/libtiff*.dylib \
             "$APP"/Contents/Frameworks/liblzma*.dylib
+          # The manual reads its help file through the SQLite driver. The other database drivers need client libraries that
+          # the app does not hold.
+          find "$APP/Contents/PlugIns/sqldrivers" -type f ! -name 'libqsqlite.dylib' -delete
           report_size "after trimming"
 
+      # The frameworks of the official Qt 6 hold x86_64 and arm64 code, and the app runs on arm64 only.
+      - name: Keep only the arm64 code of the Qt 6 libraries
+        run: |
+          set -euo pipefail
+          find build/QEGTRAIN.app -type f | while read -r file; do
+            case "$(lipo -archs "$file" 2>/dev/null)" in
+              *x86_64*arm64* | *arm64*x86_64*) lipo -thin arm64 "$file" -output "$file.arm64" && mv "$file.arm64" "$file" ;;
+            esac
+          done
+
       - name: Remove build machine paths
-        # Some Homebrew libraries keep a run path into the Cellar, and the Qt plugins keep their install names under
-        # /opt/homebrew. Nothing loads through them, but they would let the app load a library from a machine that has
-        # Homebrew. The signature below seals the result, and the check after it fails when a path is left.
+        # Some Homebrew libraries keep a run path into the Cellar or an install name under /opt/homebrew. Nothing loads
+        # through them, but they would let the app load a library from a machine that has Homebrew. The signature below
+        # seals the result, and the check after it fails when a path is left.
         run: python3 tools/release/macos_build_paths.py fix build/QEGTRAIN.app
 
       - name: Set the minimum macOS version
@@ -200,7 +230,10 @@ jobs:
           test -d "$APP/Contents/Frameworks/QtCharts.framework"
           test -d "$APP/Contents/Frameworks/QtSvg.framework"
           test -d "$APP/Contents/Frameworks/QtNetwork.framework"
+          test -d "$APP/Contents/Frameworks/QtHelp.framework"
           test -f "$APP/Contents/PlugIns/imageformats/libqsvg.dylib"
+          # The manual reads its help file through Qt's SQLite driver.
+          test -f "$APP/Contents/PlugIns/sqldrivers/libqsqlite.dylib"
           test -f "$APP/Contents/Resources/egtrain.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
           find "$APP" -iname 'libzmq*.dylib' | grep -q . || { echo "ERROR: libzmq not bundled"; exit 1; }
@@ -245,6 +278,7 @@ jobs:
           test -x "$APP/Contents/MacOS/scene_tool"
           test -f "$APP/Contents/Resources/LICENSE"
           test -f "$APP/Contents/Resources/THIRD_PARTY_NOTICES.md"
+          test -f "$APP/Contents/Resources/EGTRAIN.qch"
           test -f "$APP/Contents/Resources/Scenes/Paimpol/stations.json"
           test -f "$APP/Contents/Resources/Scenes/Paimpol/scene.json"
           test -f "$APP/Contents/Resources/Scenes/Paimpol/scenarios.json"
@@ -262,7 +296,7 @@ jobs:
           cd "$RUN_DIR"
           set +e
           QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \
-          "$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          "$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1
           run_status=$?
           set -e
           if [ "$run_status" -ne 0 ]; then
@@ -431,7 +465,7 @@ jobs:
           cd "$RUN_DIR"
           set +e
           QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \
-          "$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          "$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1
           run_status=$?
           set -e
           if [ "$run_status" -ne 0 ]; then
@@ -469,13 +503,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Qt
+      - name: Install Qt 6
         uses: jurplel/install-qt-action@v4
         with:
-          version: '5.15.2'
-          host: windows
-          target: desktop
-          arch: win64_msvc2019_64
+          version: '6.8.3'
           modules: qtcharts
           cache: true
 
@@ -485,6 +516,13 @@ jobs:
       - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
         shell: pwsh
         run: vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
+
+      - name: Install the packages of the manual
+        # The build makes the manual EGTRAIN.qch from docs/guides with Sphinx in this environment.
+        shell: pwsh
+        run: |
+          python -m venv build/docs-venv
+          & build/docs-venv/Scripts/python.exe -m pip install -r docs/requirements.txt
 
       - name: Configure
         shell: pwsh
@@ -516,11 +554,15 @@ jobs:
           # ZeroMQ + libsodium runtime DLLs from vcpkg
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/ -ErrorAction SilentlyContinue
           # Qt runtime: DLLs + platform/imageformat plugins next to the exe
-          # The application draws with the raster engine: no software OpenGL, ANGLE, Direct3D compiler, Qt Quick or virtual keyboard files are deployed.
+          # The application draws with the raster engine: no software OpenGL, Direct3D or DXC compiler or Qt Quick files are deployed.
+          # The windeployqt of Qt 6 has no ANGLE or virtual keyboard option: Qt 6 has no ANGLE, and the virtual keyboard is not installed.
           # The Visual C++ runtime DLLs are copied by the next step, not by windeployqt: it would copy the redistributable installer.
-          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-angle --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"
-          # Canonical scenes ship beside the executable for packaged defaults.
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler --no-quick-import "$dist/QEGTRAIN.exe"
+          # The manual reads its help file through the SQLite driver. The other database drivers need client libraries that the package does not hold.
+          Get-ChildItem "$dist/sqldrivers" -File | Where-Object { $_.Name -ne "qsqlite.dll" } | Remove-Item
+          # Canonical scenes and the manual ship beside the executable for packaged defaults.
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
+          Copy-Item build/manual/EGTRAIN.qch "$dist/EGTRAIN.qch"
           # Presentation package: the command-line tool and the canonical scenes. scene_tool uses
           # header-only JSON and vendored miniz, so it needs no Qt.
           $tool = Get-ChildItem -Path build -Recurse -Filter scene_tool.exe | Select-Object -First 1
@@ -561,23 +603,25 @@ jobs:
           $dist = "dist/QEGTRAIN"
           if (-not (Test-Path "$dist/QEGTRAIN.exe")) { throw "missing QEGTRAIN.exe" }
           if (-not (Test-Path "$dist/egtrain_update_helper.exe")) { throw "missing egtrain_update_helper.exe" }
-          foreach ($dll in @("Qt5Core.dll","Qt5Gui.dll","Qt5Widgets.dll","Qt5Charts.dll","Qt5Svg.dll","Qt5Network.dll")) {
+          foreach ($dll in @("Qt6Core.dll","Qt6Gui.dll","Qt6Widgets.dll","Qt6Charts.dll","Qt6Svg.dll","Qt6Network.dll","Qt6Help.dll","Qt6Sql.dll")) {
             if (-not (Test-Path "$dist/$dll")) { throw "missing $dll" }
           }
           if (-not (Test-Path "$dist/platforms/qwindows.dll")) { throw "missing platforms/qwindows.dll" }
           if (-not (Test-Path "$dist/imageformats/qsvg.dll")) { throw "missing imageformats/qsvg.dll" }
           if (-not (Test-Path "$dist/iconengines/qsvgicon.dll")) { throw "missing iconengines/qsvgicon.dll" }
-          if (-not (Test-Path "$dist/styles/qwindowsvistastyle.dll")) { throw "missing styles/qwindowsvistastyle.dll" }
+          if (-not (Test-Path "$dist/styles/qmodernwindowsstyle.dll")) { throw "missing styles/qmodernwindowsstyle.dll" }
+          if (-not (Test-Path "$dist/sqldrivers/qsqlite.dll")) { throw "missing sqldrivers/qsqlite.dll" }
+          if (-not (Test-Path "$dist/EGTRAIN.qch")) { throw "missing EGTRAIN.qch" }
           if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
           if (-not (Test-Path "$dist/scene_tool.exe")) { throw "missing scene_tool.exe" }
           if (-not (Test-Path "$dist/Scenes/Paimpol/scene.json")) { throw "missing canonical Paimpol scene" }
           if (-not (Test-Path "$dist/LICENSE")) { throw "missing LICENSE" }
           if (-not (Test-Path "$dist/THIRD_PARTY_NOTICES.md")) { throw "missing THIRD_PARTY_NOTICES.md" }
-          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","libEGL.dll","libGLESv2.dll","Qt5Quick*","Qt5Qml*","*VirtualKeyboard*","vc_redist*")) {
+          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")) {
             $found = @(Get-ChildItem "$dist" -Recurse -File -Filter $name)
             if ($found.Count -gt 0) { throw "unexpected $name in the package: $($found[0].FullName)" }
           }
-          Write-Host "OK: exe, Qt runtime, libzmq, canonical scenes, scene_tool, and guide are present; the OpenGL, ANGLE, Direct3D compiler, Qt Quick, QML and virtual keyboard files and the Visual C++ redistributable are absent"
+          Write-Host "OK: exe, Qt 6 runtime, libzmq, canonical scenes, scene_tool, and manual are present; the OpenGL, Direct3D and DXC compiler, Qt Quick, QML and virtual keyboard files and the Visual C++ redistributable are absent"
 
       - name: Check the DLL imports of the package
         # Fails when a program file imports a DLL that is neither in the package nor part of Windows. GitHub's runners have the Visual C++
@@ -923,16 +967,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install the packages of the manual
+        # The build makes the manual EGTRAIN.qch from docs/guides with Sphinx in this environment.
+        run: |
+          python3 -m venv build/docs-venv
+          build/docs-venv/bin/python -m pip install -r docs/requirements.txt
+
+      # The action also installs the X11 libraries that the Qt 6 platform plugin loads, libxcb-cursor0 among them. It puts the
+      # qmake of Qt 6 first on PATH and the Qt library folder on LD_LIBRARY_PATH, where the AppImage step and linuxdeploy find them.
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential cmake patchelf wget file desktop-file-utils \
-            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
             libzmq3-dev cppzmq-dev nlohmann-json3-dev xvfb xauth
 
       - name: Configure
-        run: cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}" -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
+        run: >
+          cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}" -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
 
       - name: Build
         run: cmake --build build --config Release -j"$(nproc)"
@@ -956,8 +1016,9 @@ jobs:
           test -n "$HELPER"
           cp "$HELPER" "$APPDIR/usr/bin/egtrain_update_helper"
 
-          # Canonical scenes live beside the executable for packaged defaults.
+          # Canonical scenes and the manual live beside the executable for packaged defaults.
           cp -R EGTRAIN/QEGTRAIN/Scenes "$APPDIR/usr/bin/Scenes"
+          cp build/manual/EGTRAIN.qch "$APPDIR/usr/bin/EGTRAIN.qch"
 
           # Presentation package: the command-line tool, bundled beside the executable.
           # scene_tool uses header-only JSON and vendored miniz, so it carries no Qt dependency.
@@ -982,9 +1043,17 @@ jobs:
           EOF
           chmod +x "$APPDIR/usr/bin/QEGTRAIN"
 
+      # linuxdeploy deploys every database driver of Qt and stops at one whose client library is missing, such as the
+      # Mimer SQL driver of Qt 6. The manual needs only the SQLite driver.
+      - name: Keep only the SQLite driver of Qt 6
+        run: find "$QT_ROOT_DIR/plugins/sqldrivers" -type f ! -name 'libqsqlite.so' -delete
+
       - name: Build AppImage
         env:
           APPIMAGE_EXTRACT_AND_RUN: "1"
+          # The linker drops Qt Svg from the program, which uses none of its symbols, so linuxdeploy-plugin-qt does not see
+          # the module and leaves out the SVG icon engine, without which the icons are scaled up from one size and blurred.
+          EXTRA_QT_MODULES: svg
         run: |
           set -euxo pipefail
           VERSION="$(tr -d '\r\n' < build/EGTRAIN_VERSION)"
@@ -996,7 +1065,7 @@ jobs:
           chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage appimagetool-x86_64.AppImage
 
           export QMAKE
-          QMAKE="$(command -v qmake || command -v qmake-qt5 || echo /usr/lib/qt5/bin/qmake)"
+          QMAKE="$(command -v qmake)"
           ./linuxdeploy-x86_64.AppImage \
             --appdir AppDir \
             --executable AppDir/usr/bin/QEGTRAIN \
@@ -1019,11 +1088,15 @@ jobs:
           test -f squashfs-root/AppRun
           test -f squashfs-root/usr/share/doc/egtrain/LICENSE
           test -f squashfs-root/usr/share/doc/egtrain/THIRD_PARTY_NOTICES.md
-          find squashfs-root -name 'libQt5Core.so*' -print -quit | grep -q .
-          find squashfs-root -name 'libQt5Svg.so*' -print -quit | grep -q .
-          find squashfs-root -name 'libQt5Network.so*' -print -quit | grep -q .
+          test -f squashfs-root/usr/bin/EGTRAIN.qch
+          find squashfs-root -name 'libQt6Core.so*' -print -quit | grep -q .
+          find squashfs-root -name 'libQt6Svg.so*' -print -quit | grep -q .
+          find squashfs-root -name 'libQt6Network.so*' -print -quit | grep -q .
           find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
-          echo "OK: AppImage contains executable, Qt runtime, and canonical Scenes"
+          find squashfs-root -path '*/iconengines/libqsvgicon.so' -print -quit | grep -q .
+          find squashfs-root -name 'libQt6Help.so*' -print -quit | grep -q .
+          find squashfs-root -path '*/sqldrivers/libqsqlite.so' -print -quit | grep -q .
+          echo "OK: AppImage contains executable, Qt runtime, canonical Scenes and the manual"
 
       # Set up here and not at the top of the job: the action exports a library path, and the image is built without it.
       - uses: actions/setup-python@v5
@@ -1076,12 +1149,13 @@ jobs:
       - name: Install the display, the accessibility bus and the test tools
         # xvfb is the display, dbus-x11 the session bus, at-spi2-core the accessibility bus. python3-gi with gir1.2-atspi-2.0
         # drives the widgets, xdotool types the keys and imagemagick reads the screen. The libraries on the last line are the ones
-        # that the AppImage takes from the system and that every desktop has. No Qt package is installed.
+        # that the AppImage takes from the system and that every desktop has; Qt 6 also needs the OpenGL and EGL libraries of
+        # the system, which an AppImage never holds. No Qt package is installed.
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             xvfb xauth xdotool imagemagick dbus-x11 at-spi2-core python3-gi gir1.2-atspi-2.0 \
-            libgl1 libharfbuzz0b libfontconfig1 libfreetype6 fonts-dejavu-core
+            libgl1 libopengl0 libegl1 libharfbuzz0b libfontconfig1 libfreetype6 fonts-dejavu-core
 
       - name: Extract the AppImage and pack the downloaded bundle
         # The bundle is packed from the Paimpol scene of the image by the scene_tool of the image, so the job does not wait for

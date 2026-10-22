@@ -1,20 +1,38 @@
 #include "editors/IncidentPanel.h"
+#include "scene/RuntimeLimits.h"
+#include "widgets/ChoiceComboBox.h"
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QHelpEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QLoggingCategory>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QString>
 #include <QStringList>
+#include <QToolButton>
+#include <QToolTip>
 
 #include <iostream>
 #include <string>
 #include <vector>
+
+// The macOS style, where a form keeps each field at its size hint.
+class MacFormStyle : public QProxyStyle {
+public:
+	MacFormStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		if (hint == SH_FormLayoutFieldGrowthPolicy)
+			return QFormLayout::FieldsStayAtSizeHint;
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -141,6 +159,15 @@ static QStringList choices(const QComboBox* combo) {
 	return result;
 }
 
+// The text of the tip that the combo shows when the pointer rests on it.
+static QString shownTip(QComboBox* combo) {
+	QHelpEvent help(QEvent::ToolTip, QPoint(4, 4), combo->mapToGlobal(QPoint(4, 4)));
+	QApplication::sendEvent(combo, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	return text;
+}
+
 // The position of the choice of the target `id` and `occurrence`, or -1.
 static int choice(const QComboBox* combo, const char* id, int occurrence) {
 	for (int index = 0; index < combo->count(); ++index) {
@@ -150,10 +177,15 @@ static int choice(const QComboBox* combo, const char* id, int occurrence) {
 	return -1;
 }
 
+static bool addsIncidentWithTarget(const Log& edit);
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
+	// The icon of the pick button is a resource of the application, which this test does not have.
+	QLoggingCategory::setFilterRules(QStringLiteral("qt.svg.warning=false"));
 	bool ok = true;
 	const Log edit({"documentChanged", "panelChanged"});
+	ok &= addsIncidentWithTarget(edit);
 
 	{
 		IncidentPanel panel;
@@ -598,8 +630,259 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.emptyStateLabel()->isHidden(), "without a scenario the empty state does not point to Add Incident");
 	}
 
+	{
+		// the target can be picked on the network view
+		SceneDocument document;
+		IncidentPanel panel;
+		RunSelection selection;
+		panel.setRunSelection(&selection);
+		QToolButton* pick = panel.pickTargetButton();
+		ok &= expect(pick && pick->objectName() == "incidentPickTargetButton" && pick->isCheckable() && !pick->isEnabled()
+				&& pick->accessibleName() == "Pick target on network view"
+				&& pick->toolTip() == "Pick the target on the network view (Esc cancels)" && (pick->focusPolicy() & Qt::TabFocus),
+			"a checkable pick button that Tab reaches stands next to the target combo, disabled without an incident");
+		ok &= expect(pick && pick->parentWidget() == panel.targetCombo()->parentWidget(), "the pick button is in the fields of the incident");
+		panel.setDocument(&document);
+		document.replace(incidentScene(), false);
+		selection.selectScenario("base");
+		panel.refresh();
+		Events events(panel, document);
+		std::vector<bool> toggles;
+		QObject::connect(&panel, &IncidentPanel::targetPickToggled, &panel, [&toggles](bool picking) { toggles.push_back(picking); });
+		ok &= expect(pick->isEnabled() && panel.targetCombo()->isEnabled() && !panel.isPickingTarget(),
+			"the pick button is enabled with the target combo");
+		pick->click();
+		ok &= expect(pick->isChecked() && panel.isPickingTarget() && toggles == std::vector<bool>{true} && events.log.empty(),
+			"clicking the pick button starts picking and edits nothing");
+		pick->click();
+		ok &= expect(!panel.isPickingTarget() && toggles == std::vector<bool>({true, false}), "a second click ends picking");
+		pick->click();
+		panel.endTargetPick();
+		ok &= expect(!pick->isChecked() && toggles == std::vector<bool>({true, false, true, false}), "the window can end picking");
+		panel.endTargetPick();
+		ok &= expect(toggles.size() == 4, "ending picking that has ended does nothing");
+		pick->click();
+		panel.listWidget()->setCurrentRow(1);
+		ok &= expect(!panel.isPickingTarget(), "selecting another incident ends picking");
+		pick->click();
+		panel.refresh();
+		ok &= expect(!panel.isPickingTarget(), "showing the incidents again, as after another scene or scenario, ends picking");
+		panel.show();
+		pick->click();
+		panel.hide();
+		ok &= expect(!panel.isPickingTarget(), "hiding the panel ends picking");
+		pick->click();
+		document.setEditable(false);
+		panel.refreshTargets();
+		ok &= expect(!panel.isPickingTarget() && !pick->isEnabled() && !panel.targetCombo()->isEnabled(),
+			"picking ends, and the button is disabled with the combo, while a run uses the scene");
+		ok &= expect(!panel.applyTarget({"signal_failure", "sig1", 0}) && events.log.empty(), "no target is taken while a run uses the scene");
+		document.setEditable(true);
+		panel.refresh();
+		ok &= expect(pick->isEnabled(), "the pick button is enabled again after the run");
+
+		// a picked target
+		const auto shown = [&document]() -> const SceneIncident& { return document.model().scenarios[0].incidents[0]; };
+		panel.listWidget()->setCurrentRow(0);
+		events.log.clear();
+		ok &= expect(panel.applyTarget({"signal_failure", "blk1", 0}) && shown().target == "blk1" && !shown().hasOccurrence
+				&& events.log == edit && document.lastChangeLabel() == "Change incident target" && panel.targetCombo()->currentText() == "blk1",
+			"a block is taken as the target of a signal failure");
+		events.log.clear();
+		ok &= expect(panel.applyTarget({"signal_failure", "blk1", 0}) && events.log.empty(), "the target that the incident has changes nothing");
+		ok &= expect(!panel.applyTarget({"signal_failure", "@blk1@", 0}) && !panel.applyTarget({"signal_failure", "nope", 0})
+				&& !panel.applyTarget({"signal_failure", "", 0}) && !panel.applyTarget({"train_breakdown", "sig1", 1})
+				&& !panel.applyTarget({"train_breakdown", "s2", 2}) && !panel.applyTarget({"train_breakdown", "s1", 0})
+				&& !panel.applyTarget({"train_breakdown", "s1", 4}) && !panel.applyTarget({"other", "s1", 1}) && !panel.applyTarget({})
+				&& events.log.empty() && shown().type == "signal_failure" && shown().target == "blk1",
+			"a target that the combo does not offer for its type is refused and changes nothing");
+		ok &= expect(panel.applyTarget({"train_breakdown", "s1", 3}) && shown().type == "train_breakdown" && shown().target == "s1"
+				&& shown().hasOccurrence && shown().occurrence == 3 && events.log == edit
+				&& document.lastChangeLabel() == "Change incident target" && panel.typeCombo()->currentText() == "train_breakdown"
+				&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "s1", 3) && panel.hasReducedSpeedCheck()->isEnabled()
+				&& panel.listWidget()->item(0)->text() == "i1 (train_breakdown) #3",
+			"an occurrence of a service makes a signal failure a breakdown of it, in one edit");
+		panel.hasReducedSpeedCheck()->setChecked(true);
+		panel.terminateAtDestinationCheck()->setChecked(true);
+		events.log.clear();
+		ok &= expect(panel.applyTarget({"signal_failure", "sig1", 0}) && shown().type == "signal_failure" && shown().target == "sig1"
+				&& !shown().hasOccurrence && shown().occurrence == 1 && !shown().hasReducedSpeed && shown().reducedSpeedKmh == 0.0
+				&& !shown().terminateAtDestination && events.log == edit && panel.typeCombo()->currentText() == "signal_failure"
+				&& panel.targetCombo()->currentText() == "sig1" && panel.listWidget()->item(0)->text() == "i1 (signal_failure)",
+			"a signal makes a breakdown a signal failure, which loses what only a breakdown has, in one edit");
+
+		// the target of a new incident
+		const std::size_t countBefore = document.model().scenarios[0].incidents.size();
+		std::size_t countAtCall = 0;
+		panel.setDefaultTarget([&document, &countAtCall] {
+			countAtCall = document.model().scenarios[0].incidents.size();
+			return IncidentTarget{"train_breakdown", "s1", 2};
+		});
+		events.log.clear();
+		panel.addIncident();
+		const SceneIncident& added = document.model().scenarios[0].incidents.back();
+		ok &= expect(countAtCall == countBefore && added.id == "new_incident" && added.type == "train_breakdown" && added.target == "s1"
+				&& added.hasOccurrence && added.occurrence == 2 && added.hasEndSeconds && events.log == edit
+				&& document.lastChangeLabel() == "Add incident" && panel.typeCombo()->currentText() == "train_breakdown"
+				&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "s1", 2)
+				&& panel.listWidget()->currentItem()->text() == "new_incident (train_breakdown) #2",
+			"a new incident gets the target that the window gives before the edit, in the same edit");
+		panel.setDefaultTarget([] { return IncidentTarget{"signal_failure", "sig1", 0}; });
+		panel.addIncident();
+		ok &= expect(document.model().scenarios[0].incidents.back().type == "signal_failure"
+				&& document.model().scenarios[0].incidents.back().target == "sig1",
+			"a new incident can be a signal failure of the signal that the window gives");
+		panel.setDefaultTarget([] { return IncidentTarget{"signal_failure", "missing", 0}; });
+		panel.addIncident();
+		ok &= expect(document.model().scenarios[0].incidents.back().type == "signal_failure"
+				&& document.model().scenarios[0].incidents.back().target.empty(),
+			"a target that the combo does not offer leaves the new incident without a target");
+		panel.setDefaultTarget([] { return IncidentTarget(); });
+		panel.addIncident();
+		ok &= expect(document.model().scenarios[0].incidents.back().type == "signal_failure"
+				&& document.model().scenarios[0].incidents.back().target.empty(),
+			"without a target from the window a new incident is a signal failure without a target");
+		panel.setDefaultTarget({});
+		panel.addIncident();
+		ok &= expect(document.model().scenarios[0].incidents.size() == countBefore + 5
+				&& document.model().scenarios[0].incidents.back().target.empty(),
+			"a panel without a target provider adds a signal failure without a target");
+	}
+
+	{
+		// a picked occurrence after the ones that the combo lists
+		SceneDocument document;
+		IncidentPanel panel;
+		RunSelection selection;
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		SceneModel scene = incidentScene();
+		SceneService many = service("many");
+		many.hasRepeat = true;
+		many.hasRepeatCount = true;
+		many.repeatCount = RuntimeLimits::kMaxExpandedTrains + 1;
+		scene.services.push_back(many);
+		document.replace(scene, false);
+		selection.selectScenario("base");
+		panel.refresh();
+		panel.listWidget()->setCurrentRow(1);
+		const int last = many.repeatCount;
+		ok &= expect(choice(panel.targetCombo(), "many", last) < 0, "the combo does not list the last occurrence of a service over the limit");
+		ok &= expect(panel.applyTarget({"train_breakdown", "many", last}) && document.model().scenarios[0].incidents[1].target == "many"
+				&& document.model().scenarios[0].incidents[1].occurrence == last
+				&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "many", last),
+			"an occurrence that the combo does not list is taken and becomes its current choice");
+	}
+
+	{
+		// In the form of macOS the fields grow to the width of the panel, and a long target is cut in the middle.
+		QApplication::setStyle(new MacFormStyle);
+		SceneDocument document;
+		IncidentPanel panel;
+		RunSelection selection;
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		SceneModel scene = incidentScene();
+		scene.services[0].route = std::string(200, 'r');
+		document.replace(scene, false);
+		selection.selectScenario("base");
+		panel.refresh();
+		panel.listWidget()->setCurrentRow(1);
+		panel.resize(320, 700);
+		panel.show();
+		QApplication::processEvents();
+		const QFormLayout* form = panel.idEdit()->parentWidget()->findChild<QFormLayout*>();
+		ok &= expect(form && form->fieldGrowthPolicy() == QFormLayout::AllNonFixedFieldsGrow, "the fields of the incident grow to the width of the form");
+		const auto* target = dynamic_cast<const ChoiceComboBox*>(panel.targetCombo());
+		ok &= expect(target && target->currentText().startsWith("s1-2 | route rrr") && target->displayText().contains(QChar(0x2026)),
+			"a long target is cut with an ellipsis in a narrow panel");
+		// The tip of the target says what the type takes as its target, below the current target.
+		const QString trainTip = panel.targetCombo()->toolTip();
+		ok &= expect(trainTip.contains("train")
+				&& shownTip(panel.targetCombo())
+					== panel.targetCombo()->currentText() + "\n" + panel.targetCombo()->currentData(Qt::ToolTipRole).toString() + "\n" + trainTip,
+			"the tip of the target of a breakdown names a train, below the current target and its identity");
+		panel.listWidget()->setCurrentRow(0);
+		const QString signalTip = panel.targetCombo()->toolTip();
+		ok &= expect(!signalTip.isEmpty() && !signalTip.contains("service", Qt::CaseInsensitive) && !signalTip.contains("train", Qt::CaseInsensitive),
+			"the tip of the target of a signal failure names no service or train");
+	}
+
+	// A signal failure names its targets by the labels of their sections and keeps their ids.
+	{
+		SceneModel scene = incidentScene();
+		scene.tracks = {{"T1"}};
+		scene.nodes = {{"n1", "T1", 0.0, 0.0}, {"n2", "T1", 2.0, 0.0}};
+		scene.arcs = {{"a1", "T1", "n1", "n2", 0.0, 0.0, 20.0}};
+		scene.blocks = {{"blk1", "T1", 1.0}, {"s2", "T1", 1.0}};
+		sceneSignals(scene)[0].protectedSection = "blk1";
+		SceneDocument document;
+		IncidentPanel panel;
+		FakePrompts prompts;
+		RunSelection selection;
+		panel.setPrompts(&prompts);
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		selection.selectScenario("base");
+		panel.refresh();
+		panel.listWidget()->setCurrentRow(0);
+		const QComboBox* target = panel.targetCombo();
+		ok &= expect(choices(target) == QStringList({"Choose target", "sig1 (T1 0.000 to 1.000 km)", "T1 0.000 to 1.000 km", "T1 1.000 to 2.000 km"})
+				&& target->currentIndex() == 1 && target->itemData(1, Qt::ToolTipRole).toString() == "sig1"
+				&& target->itemData(2).toString() == "blk1" && target->itemData(2, Qt::ToolTipRole).toString() == "blk1",
+			"the targets of a signal failure are named by their labels, with the id as data and tooltip");
+		panel.targetCombo()->setCurrentIndex(3);
+		ok &= expect(document.model().scenarios[0].incidents[0].target == "s2" && panel.targetCombo()->currentText() == "T1 1.000 to 2.000 km",
+			"a block chosen by its label is saved by its id");
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all incident panel tests passed\n";
 	return 0;
+}
+
+// The window adds an incident with the target of a signal or a train of the network view: the panel takes that target
+// instead of the default one, in the one edit that adds the incident, and selects the new row.
+static bool addsIncidentWithTarget(const Log& edit) {
+	bool ok = true;
+	SceneDocument document;
+	IncidentPanel panel;
+	RunSelection selection;
+	panel.setRunSelection(&selection);
+	panel.setDocument(&document);
+	document.replace(incidentScene(), false);
+	selection.selectScenario("base");
+	panel.refresh();
+	panel.listWidget()->setCurrentRow(0);
+	int defaultAsked = 0;
+	panel.setDefaultTarget([&defaultAsked] {
+		++defaultAsked;
+		return IncidentTarget{"signal_failure", "sig1", 0};
+	});
+	Events events(panel, document);
+	const std::vector<SceneIncident>& incidents = document.model().scenarios[0].incidents;
+	const std::size_t countBefore = incidents.size();
+	ok &= expect(panel.addIncident(IncidentTarget{"train_breakdown", "s1", 2}) && incidents.size() == countBefore + 1
+			&& incidents.back().id == "new_incident" && incidents.back().type == "train_breakdown" && incidents.back().target == "s1"
+			&& incidents.back().hasOccurrence && incidents.back().occurrence == 2 && incidents.back().hasEndSeconds
+			&& incidents.back().startSeconds == 0.0 && events.log == edit && document.lastChangeLabel() == "Add incident"
+			&& defaultAsked == 0 && panel.listWidget()->currentRow() == static_cast<int>(countBefore)
+			&& panel.selectedIncident() == &document.mutableModel().scenarios[0].incidents.back()
+			&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "s1", 2),
+		"an incident added with a target has that target and its type in one edit, and its row is selected");
+	events.log.clear();
+	ok &= expect(panel.addIncident(IncidentTarget{"signal_failure", "blk1", 0}) && incidents.back().type == "signal_failure"
+			&& incidents.back().target == "blk1" && !incidents.back().hasOccurrence && events.log == edit && defaultAsked == 0
+			&& panel.listWidget()->currentRow() == static_cast<int>(countBefore) + 1,
+		"an incident added with a block is a signal failure of it");
+	events.log.clear();
+	ok &= expect(!panel.addIncident(IncidentTarget{"signal_failure", "missing", 0}) && !panel.addIncident(IncidentTarget{"train_breakdown", "s1", 4})
+			&& !panel.addIncident(IncidentTarget()) && incidents.size() == countBefore + 2 && events.log.empty(),
+		"a target that the combo does not offer adds nothing");
+	document.setEditable(false);
+	ok &= expect(!panel.addIncident(IncidentTarget{"signal_failure", "sig1", 0}) && incidents.size() == countBefore + 2 && events.log.empty(),
+		"nothing is added while a run uses the scene");
+	return ok;
 }

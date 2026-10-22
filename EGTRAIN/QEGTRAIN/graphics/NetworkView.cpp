@@ -111,8 +111,10 @@ QRectF NetworkView::paintedTopologyBounds(bool* hasBounds) const {
 qreal NetworkView::calculateFittedScale() const {
 	if (!m_hasTopologyBounds)
 		return 1.0;
-	const qreal availableWidth = qMax<qreal>(1.0, viewport()->width() - 2.0 * kFitPadding);
-	const qreal availableHeight = qMax<qreal>(1.0, viewport()->height() - 2.0 * kFitPadding);
+	// A short or narrow view keeps most of its extent for the network.
+	const auto available = [](int extent) { return qMax<qreal>(1.0, extent - 2.0 * qMin<qreal>(kFitPadding, extent / 8.0)); };
+	const qreal availableWidth = available(viewport()->width());
+	const qreal availableHeight = available(viewport()->height());
 	const qreal topologyWidth = qMax<qreal>(
 		std::numeric_limits<qreal>::epsilon(), m_topologyBounds.width());
 	const qreal topologyHeight = qMax<qreal>(
@@ -254,7 +256,7 @@ bool NetworkView::viewportEvent(QEvent* event) {
 	if (event->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(event);
 		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
-			zoomBy(1.0 + gesture->value(), gesture->localPos());
+			zoomBy(1.0 + gesture->value(), gesture->position());
 			event->accept();
 			return true;
 		}

@@ -145,7 +145,7 @@ def main() -> None:
 
     command = case_command(3, Path("QEGTRAIN"))
     expected = ["--scene", str(Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
-                "-g", "0", "-TSM", "0", "-RC", "0", "--detailed-trajectories"]
+                "-g", "0", "--detailed-trajectories"]
     if command[1:] != expected:
         raise SystemExit(f"headless case command is not the expected one (no GUI, no integrations, detailed trajectories): {command}")
 

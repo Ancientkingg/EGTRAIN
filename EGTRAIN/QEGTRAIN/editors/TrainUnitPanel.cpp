@@ -19,6 +19,7 @@
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QStringList>
+#include <QStyledItemDelegate>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QVBoxLayout>
@@ -38,6 +39,54 @@ bool hasEditorFocus(const QWidget* editor) {
 	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
 }
 
+// Edits a number of the traction table in a CompactDoubleSpinBox with the range of its column. A cell shows its number as
+// such a field shows it without the focus.
+class TractionCellDelegate : public QStyledItemDelegate {
+public:
+	using QStyledItemDelegate::QStyledItemDelegate;
+
+	// The number that the editor of a cell in the column holds for a value: the value rounded to the decimals of the editor,
+	// as QDoubleSpinBox rounds it, then put at the nearest limit of the range. A cell that holds this number gets the same
+	// number back from an editor that closes unchanged.
+	static double editorValue(int column, double value) {
+		const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
+		return std::clamp(QString::number(value, 'f', kDecimals).toDouble(), range.min, range.max);
+	}
+
+	QString displayText(const QVariant& value, const QLocale&) const override {
+		return CompactDoubleSpinBox::compactText(value.toDouble());
+	}
+
+	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const override {
+		auto* edit = new CompactDoubleSpinBox(parent);
+		const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(index.column())].range;
+		edit->setRange(range.min, range.max);
+		edit->setDecimals(kDecimals);
+		edit->setSingleStep(0.1);
+		// The field shows its full text once it has the focus. Selected then, the number gives way to what is typed.
+		const auto selectWhenFocused = [edit](QWidget*, QWidget* now) {
+			if (now == edit)
+				edit->selectAll();
+		};
+		connect(qApp, &QApplication::focusChanged, edit, selectWhenFocused, Qt::SingleShotConnection);
+		return edit;
+	}
+
+	// An open editor is at least as wide as it asks to be, so that a narrow column does not hide its number, and stays in
+	// the table. It covers the cells beside it.
+	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex&) const override {
+		QRect rect = option.rect;
+		rect.setWidth(std::max(rect.width(), editor->sizeHint().width()));
+		const int overflow = rect.right() - (editor->parentWidget()->width() - 1);
+		if (overflow > 0)
+			rect.translate(-std::min(overflow, std::max(rect.left(), 0)), 0);
+		editor->setGeometry(rect);
+	}
+
+private:
+	static constexpr int kDecimals = std::numeric_limits<double>::max_digits10;
+};
+
 // The path as the person reads it on this system, with a zero-width space after each separator and underscore so
 // that a label can wrap it. The characters are not drawn.
 QString breakablePath(const QString& path) {
@@ -52,13 +101,15 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("trainUnitPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 
-	// top: the list of units and the buttons that manage it
+	// top: the list of units and the buttons that manage it, in one row. The title of the dock names the list, which
+	// shows about three rows, so that the fields below keep the height of a short dock.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
-	listLayout->addWidget(new QLabel("Rolling stock units", listPane));
+	listLayout->setContentsMargins(0, 0, 0, 0);
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("trainUnitList");
-	m_listWidget->setMaximumHeight(fontMetrics().lineSpacing() * 6);
+	m_listWidget->setAccessibleName("Rolling stock units");
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Unit", listPane);
@@ -69,13 +120,14 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_deleteButton->setObjectName("deleteTrainUnitButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	listLayout->addLayout(buttonLayout);
 	layout->addWidget(listPane);
 
 	// below: the id of the selected unit above its traction and physical values
 	QWidget* detailPane = new QWidget(this);
 	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
+	detailLayout->setContentsMargins(0, 0, 0, 0);
 	const auto addHeading = [](QWidget* page, QVBoxLayout* pageLayout, const QString& title) {
 		QLabel* heading = EditorLayout::sectionHeading(title, page);
 		heading->setObjectName("rollingStockSectionHeading");
@@ -126,8 +178,13 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->setObjectName("trainUnitTractionTable");
 	m_tractionTable->setHorizontalHeaderLabels(QStringList()
 		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
-	m_tractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_tractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_tractionTable->setItemDelegate(new TractionCellDelegate(m_tractionTable));
+	// A number changes in an editor that a double click, the edit key or typing opens. Without one the arrow keys move the
+	// current cell, which is the selected one, and Tab leaves the table.
+	m_tractionTable->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed | QAbstractItemView::AnyKeyPressed);
+	m_tractionTable->setTabKeyNavigation(false);
+	m_tractionTable->setSelectionBehavior(QAbstractItemView::SelectItems);
+	m_tractionTable->setSelectionMode(QAbstractItemView::SingleSelection);
 	// size columns to their headers so "Lower speed (m/s)" is never clipped
 	m_tractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	m_tractionTable->horizontalHeader()->setStretchLastSection(true);
@@ -205,6 +262,9 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	});
 	connect(m_tractionTable, &QTableWidget::currentCellChanged, this, [this](int, int, int, int) {
 		m_removeTractionRowButton->setEnabled(m_tractionTable->currentRow() >= 0);
+	});
+	connect(m_tractionTable, &QTableWidget::cellChanged, this, [this](int row, int column) {
+		commitTractionCell(row, column, m_tractionTable->item(row, column)->data(Qt::EditRole).toDouble());
 	});
 	refresh();
 }
@@ -319,22 +379,11 @@ void TrainUnitPanel::refreshTractionTable() {
 	for (int row = 0; row < static_cast<int>(curve.size()); ++row) {
 		m_tractionTable->insertRow(row);
 		for (int column = 0; column < 5; ++column) {
-			auto* edit = new CompactDoubleSpinBox(m_tractionTable);
-			const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
-			edit->setRange(range.min, range.max);
-			edit->setDecimals(std::numeric_limits<double>::max_digits10);
-			edit->setSingleStep(0.1);
-			edit->setKeyboardTracking(false);
-			edit->setValue(curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]);
-			connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-				[this, row, column](double value) { commitTractionCell(row, column, value); });
-			connect(edit, &QDoubleSpinBox::editingFinished, this, [this, row, column, edit]() {
-				if (m_tractionTable->currentRow() != row || m_tractionTable->currentColumn() != column) {
-					const QSignalBlocker blocker(edit);
-					m_tractionTable->setCurrentCell(row, column);
-				}
-			});
-			m_tractionTable->setCellWidget(row, column, edit);
+			// The cell holds the stored value as its editor holds it, so a value outside the range shows at the nearest limit.
+			auto* item = new QTableWidgetItem();
+			item->setData(Qt::EditRole,
+				TractionCellDelegate::editorValue(column, curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]));
+			m_tractionTable->setItem(row, column, item);
 		}
 	}
 	m_tractionTable->setEnabled(true);
@@ -383,15 +432,10 @@ void TrainUnitPanel::commitPendingEditors() {
 			commitPhysical(static_cast<int>(index));
 		}
 	}
-	for (int row = 0; row < m_tractionTable->rowCount(); ++row) {
-		for (int column = 0; column < m_tractionTable->columnCount(); ++column) {
-			auto* edit = qobject_cast<QDoubleSpinBox*>(m_tractionTable->cellWidget(row, column));
-			if (hasEditorFocus(edit)) {
-				edit->interpretText();
-				commitTractionCell(row, column, edit->value());
-			}
-		}
-	}
+	// The open editor of the traction table, which is at the current cell, commits as Return commits it.
+	const QModelIndex current = m_tractionTable->currentIndex();
+	if (QWidget* editor = m_tractionTable->indexWidget(current))
+		m_tractionTable->itemDelegate()->setModelData(editor, m_tractionTable->model(), current);
 	commitSources();
 }
 

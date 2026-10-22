@@ -1,5 +1,6 @@
 #include "app/MainWindow.h"
 #include "app/CannotOpenMessage.h"
+#include "app/CrashNote.h"
 #include "app/DispatchController.h"
 #include "app/FollowAvailability.h"
 #include "app/GuiReplayHistory.h"
@@ -26,6 +27,8 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QColor>
+#include <QCursor>
+#include <QDesktopServices>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
@@ -51,6 +54,7 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QScreen>
+#include <QScrollArea>
 #include <QSet>
 #include <QSizePolicy>
 #include <QSlider>
@@ -73,21 +77,23 @@
 #include <sstream>
 #include <tuple>
 #include <unordered_map>
-QT_CHARTS_USE_NAMESPACE
 #include "util/TimeFormat.h"
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
+#include "widgets/ManualWindow.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/UserPrompts.h"
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/ElidedLabel.h"
+#include "widgets/FindDialog.h"
 #include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
+#include "widgets/SettingsDialog.h"
 #include "widgets/TimeProgressBar.h"
 #include "graphics/FollowCamera.h"
 #include "graphics/NetworkPresenter.h"
@@ -148,14 +154,17 @@ QT_CHARTS_USE_NAMESPACE
 #include "scene/SceneImporter.h"
 #include "scene/SceneReferences.h"
 #include "scene/SceneValidator.h"
+#include "scene/SectionInventory.h"
 #include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
+#include "telemetry/TelemetryConsent.h"
+#include "telemetry/TelemetrySender.h"
 #include "update/UpdateNotices.h"
+#include "update/UpdateSettings.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QDir>
-#include <QFile>
 #include <QFileInfo>
 #include <QSaveFile>
 #include <cfloat>
@@ -185,10 +194,14 @@ QT_CHARTS_USE_NAMESPACE
 #include <QMimeData>
 #include <QTemporaryDir>
 #include <QToolButton>
+#include <QStyleOptionMenuItem>
 #include <QStyleOptionSlider>
+#include <QStylePainter>
+#include <QStyleHints>
 #include <QUrl>
 #include <QTreeWidgetItemIterator>
 #include <QStringList>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QRegularExpression>
 #include <QJsonDocument>
@@ -227,6 +240,88 @@ protected:
 			}
 		}
 		QSlider::mousePressEvent(event);
+	}
+};
+
+// Shows the Play button of the replay row as Pause while the replay plays: the icon, the tooltip and the name.
+void showReplayPlaying(QPushButton* button, bool playing) {
+	button->setIcon(QIcon(playing ? QStringLiteral(":/icons/pause.svg") : QStringLiteral(":/icons/run.svg")));
+	button->setToolTip(playing ? QStringLiteral("Pause the replay") : QStringLiteral("Play the replay"));
+	button->setAccessibleName(playing ? QStringLiteral("Pause") : QStringLiteral("Play"));
+}
+
+// A closed combo box that ends a text wider than its field with an ellipsis. The list shows the whole text.
+class ElidedComboBox : public QComboBox {
+public:
+	explicit ElidedComboBox(QWidget* parent) : QComboBox(parent) {}
+	// As in ChoiceComboBox: the list was made before the field had focus, so it is brought up to date with the padding of
+	// the focused field first; else it opens too short and scrolls. The field is as narrow as the toolbar needs, so the
+	// list is then made as wide as its longest entry, which shows the state and the scheduled time after a long name. A
+	// style that draws the list as a menu, as macOS and Fusion do, puts each entry after room for a check mark and an
+	// icon, so there an entry needs the width of a menu item with its text, measured as the delegate of the list does.
+	void showPopup() override {
+		QAbstractItemView* list = view();
+		QEvent styleChange(QEvent::StyleChange);
+		QCoreApplication::sendEvent(list->window(), &styleChange);
+		QStyleOptionComboBox field;
+		initStyleOption(&field);
+		const bool menu = style()->styleHint(QStyle::SH_ComboBox_Popup, &field, this);
+		const QFontMetrics metrics = list->fontMetrics();
+		int widest = list->sizeHintForColumn(0);
+		for (int row = 0; row < count(); ++row) {
+			QSize entry(metrics.horizontalAdvance(itemText(row)), metrics.height());
+			if (menu) {
+				QStyleOptionMenuItem item;
+				item.initFrom(list);
+				item.font = list->font();
+				item.menuItemType = QStyleOptionMenuItem::Normal;
+				item.checkType = QStyleOptionMenuItem::NonExclusive;
+				item.maxIconWidth = iconSize().width() + 4;
+				item.text = itemText(row);
+				entry = style()->sizeFromContents(QStyle::CT_MenuItem, &item, entry, this);
+			}
+			widest = qMax(widest, entry.width());
+		}
+		list->setMinimumWidth(qMax(width(), widest + 2 * list->frameWidth() + list->verticalScrollBar()->sizeHint().width()));
+		QComboBox::showPopup();
+	}
+protected:
+	void paintEvent(QPaintEvent*) override {
+		QStylePainter painter(this);
+		painter.setPen(palette().color(QPalette::Text));
+		QStyleOptionComboBox option;
+		initStyleOption(&option);
+		painter.drawComplexControl(QStyle::CC_ComboBox, option);
+		const QRect field = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField, this);
+		option.currentText = fontMetrics().elidedText(option.currentText, Qt::ElideRight, field.width());
+		painter.drawControl(QStyle::CE_ComboBoxLabel, option);
+	}
+};
+
+// A status bar that ends a message wider than the room left of its permanent fields with an ellipsis. QStatusBar
+// draws the message from x 6 to 2 px left of the first visible field and cuts it off there; this draws it again elided.
+class ElidingStatusBar : public QStatusBar {
+public:
+	explicit ElidingStatusBar(QWidget* parent) : QStatusBar(parent) {}
+protected:
+	void paintEvent(QPaintEvent* event) override {
+		QStatusBar::paintEvent(event);
+		const QString message = currentMessage();
+		int right = width() - 12;
+		for (QWidget* field : findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+			if (field->isVisible())
+				right = qMin(right, field->x() - 2);
+		const QRect room(6, 0, right - 6, height());
+		const QString shown = fontMetrics().elidedText(message, Qt::ElideRight, room.width());
+		if (shown == message)
+			return;
+		QPainter painter(this);
+		painter.setClipRect(room);
+		QStyleOption option;
+		option.initFrom(this);
+		style()->drawPrimitive(QStyle::PE_PanelStatusBar, &option, &painter, this);
+		painter.setPen(palette().windowText().color());
+		painter.drawText(room, Qt::AlignLeading | Qt::AlignVCenter | Qt::TextSingleLine, shown);
 	}
 };
 
@@ -340,17 +435,23 @@ bool e2eDialogsSuppressed() {
 		|| mainWindowTestHooks().dialogsSuppressed;
 }
 
-// The folder for recovery copies, or an empty string when this run keeps none. A run that has no user to answer a
-// question keeps copies only in the folder that QEGTRAIN_RECOVERY_DIR names, so that it never meets the copies of a user.
-QString recoveryRoot() {
-	const QString named = qEnvironmentVariable("QEGTRAIN_RECOVERY_DIR");
+// The folder that the environment variable names, else the subfolder name of AppLocalDataLocation, or an empty string
+// when this run keeps none. A run that has no user to answer a question keeps files only in the folder that the variable
+// names, so that it never meets the files of a user.
+QString runDataFolder(const char* variable, const char* name) {
+	const QString named = qEnvironmentVariable(variable);
 	if (!named.isEmpty())
 		return QDir(named).absolutePath();
 	const QString platform = QGuiApplication::platformName();
 	if (e2eDialogsSuppressed() || platform == QLatin1String("offscreen") || platform == QLatin1String("minimal"))
 		return {};
 	const QString data = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-	return data.isEmpty() ? QString() : QDir(data).filePath(QStringLiteral("Recovery"));
+	return data.isEmpty() ? QString() : QDir(data).filePath(QLatin1String(name));
+}
+
+// The folder for recovery copies, or an empty string when this run keeps none.
+QString recoveryRoot() {
+	return runDataFolder("QEGTRAIN_RECOVERY_DIR", "Recovery");
 }
 
 // The scene at path as the source of a recovery copy: a bundle file, or a folder that is judged by its scene.json.
@@ -386,6 +487,11 @@ double computeHorizon(const SceneModel& scene) {
 	return horizon < 600.0 ? 600.0 : horizon;
 }
 
+// The text of a tooltip followed by the shortcut of the action as the platform writes it, with the Command key on macOS.
+QString withShortcut(const QString& text, const QAction* action) {
+	return QStringLiteral("%1 (%2)").arg(text, action->shortcut().toString(QKeySequence::NativeText));
+}
+
 int countTrackLineDirs(const QString& inputDir) {
 	QDir trackLinesDir(inputDir + "/TrackLines");
 	if (!trackLinesDir.exists())
@@ -394,7 +500,37 @@ int countTrackLineDirs(const QString& inputDir) {
 	return entries.size();
 }
 
+// A dock floated with its button or a double click opens inside the screen area, as wide and high as its content asks where
+// the screen allows. A dock that the mouse drags out keeps the place where the user drops it.
+void fitFloatingDock(QDockWidget* dock, bool floating) {
+	if (!floating)
+		return;
+	if (QGuiApplication::mouseButtons() != Qt::NoButton) {
+		// A double click floats the dock while the button is still down, and a drag moves the mouse before the button is released.
+		auto* release = new QTimer(dock);
+		QObject::connect(release, &QTimer::timeout, dock, [dock, release, start = QCursor::pos()]() {
+			if (QGuiApplication::mouseButtons() != Qt::NoButton)
+				return;
+			release->deleteLater();
+			if (dock->isFloating() && (QCursor::pos() - start).manhattanLength() < QApplication::startDragDistance())
+				fitFloatingDock(dock, true);
+		});
+		release->start(50);
+		return;
+	}
+	const QRect available = dock->screen()->availableGeometry();
+	const QSize frame = dock->frameGeometry().size() - dock->size();
+	dock->resize(dock->size().expandedTo(dock->sizeHint()).boundedTo(available.size() - frame));
+	const QRect outer = dock->frameGeometry();
+	dock->move(std::clamp(outer.left(), available.left(), available.right() - outer.width() + 1),
+		std::clamp(outer.top(), available.top(), available.bottom() - outer.height() + 1));
+}
+
 } // namespace
+
+QString crashNoteFolder() {
+	return runDataFolder("QEGTRAIN_CRASH_DIR", "Crashes");
+}
 
 bool startupTimingEnabled() {
 	return qEnvironmentVariable("QEGTRAIN_STARTUP_TIMING") == QLatin1String("1");
@@ -447,11 +583,9 @@ void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult&
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 										  ui(std::make_unique<Ui::MainWindow>()) {
-	QFile themeFile(":/styles/egtrain.qss");
-	if (themeFile.open(QIODevice::ReadOnly | QIODevice::Text))
-		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
-
 	ui->setupUi(this);
+	setStatusBar(new ElidingStatusBar(this));
+	setProperty("manualSection", QStringLiteral("main-window"));
 	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
 	m_history = std::make_unique<SceneHistory>();
 	m_document = new SceneDocument(this);
@@ -468,11 +602,61 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		});
 	m_updateTelemetry->setupUpdateActions(ui->menuHelp);
 	if (ui->menuHelp) {
+		// The help key works in every window of the application and opens the section of the widget that has the focus.
+		// F1 also works on macOS, where the system takes Cmd+? to search the Help menu.
+		auto* manual = new QAction(QStringLiteral("EGTRAIN Manual"), this);
+		manual->setObjectName(QStringLiteral("actionManual"));
+		QList<QKeySequence> helpKeys = QKeySequence::keyBindings(QKeySequence::HelpContents);
+		if (!helpKeys.contains(QKeySequence(Qt::Key_F1)))
+			helpKeys << QKeySequence(Qt::Key_F1);
+		manual->setShortcuts(helpKeys);
+		manual->setShortcutContext(Qt::ApplicationShortcut);
+		connect(manual, &QAction::triggered, this, [this] {
+			const QWidget* focus = QApplication::focusWidget() ? QApplication::focusWidget() : QApplication::activeWindow();
+			if (focus && qobject_cast<const ManualWindow*>(focus->window()))
+				return; // keeps the page that is being read
+			ManualWindow::open(this, ManualWindow::sectionOf(focus ? focus : this));
+		});
+		ui->menuHelp->insertAction(ui->actionAbout, manual);
 		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy && diagnostics..."));
 		privacy->setObjectName(QStringLiteral("actionPrivacyDiagnostics"));
-		privacy->setShortcut(QKeySequence::Preferences);
 		connect(privacy, &QAction::triggered, this, [this] { m_updateTelemetry->showPrivacySettings(false); });
 	}
+	// On macOS the role puts the entry in the application menu, under the name that Qt gives it.
+	auto* settingsAction = new QAction(QStringLiteral("Preferences..."), this);
+	settingsAction->setObjectName(QStringLiteral("actionSettings"));
+	settingsAction->setMenuRole(QAction::PreferencesRole);
+	settingsAction->setShortcut(QKeySequence::Preferences);
+	ui->menuEdit->addSeparator();
+	ui->menuEdit->addAction(settingsAction);
+	connect(settingsAction, &QAction::triggered, this, [this] {
+		QSettings settings;
+		TelemetryConsent localConsent(settings, applicationTelemetryContext());
+		// The sender closes at once when the consent it follows is revoked.
+		TelemetryConsent* senderConsent = m_updateTelemetry->consent();
+		SettingsDialog dialog(settings, senderConsent ? *senderConsent : localConsent, this);
+		// The command line can start with a passenger display other than the saved one; OK keeps it unless the saved
+		// value changes.
+		const bool passengersBefore = savedShowPassengers();
+		if (dialog.exec() != QDialog::Accepted)
+			return;
+		// The menu entries take the saved values; their own handlers apply them to the window. A case without passengers
+		// keeps the switch off and the choice for the next case.
+		if (savedShowPassengers() != passengersBefore) {
+			m_passengerChoice = savedShowPassengers();
+			if (m_showPassengersAction->isEnabled())
+				m_showPassengersAction->setChecked(m_passengerChoice);
+		}
+		m_advancedDetailsAction->setChecked(settings.value(kAdvancedDetailsKey, false).toBool());
+		if (auto* updateChecks = findChild<QAction*>(QStringLiteral("actionAutomaticallyCheckForUpdates"))) {
+			const QSignalBlocker blocker(updateChecks);
+			updateChecks->setChecked(readUpdateCheckState(settings) == UpdateCheckState::Enabled);
+		}
+		if (m_updateTelemetry->sender())
+			m_updateTelemetry->sender()->requestConsentRefresh();
+		m_session->rebuildRecentScenesMenu();
+		updateSceneActions();
+	});
 
 	EG_LOG(AppRun, Info) << "\n...PREPARING GUI...\n\n";
 
@@ -501,18 +685,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	auto* replayLayout = new QVBoxLayout(m_replayBar);
 	replayLayout->setContentsMargins(4, 2, 4, 2);
 	auto* replayControls = new QHBoxLayout();
-	m_replayStartButton = new QPushButton("Start", m_replayBar);
-	auto* replayEnd = new QPushButton("End", m_replayBar);
-	m_replayPlayButton = new QPushButton("Play", m_replayBar);
+	// Start, Play and End show icons of one size, so End and the slider do not move when Play turns into Pause.
+	m_replayStartButton = new QPushButton(QIcon(":/icons/skip-start.svg"), QString(), m_replayBar);
+	m_replayStartButton->setAccessibleName("Start");
+	m_replayPlayButton = new QPushButton(m_replayBar);
+	showReplayPlaying(m_replayPlayButton, false);
+	auto* replayEnd = new QPushButton(QIcon(":/icons/skip-end.svg"), QString(), m_replayBar);
+	replayEnd->setObjectName("replayEndButton");
+	replayEnd->setAccessibleName("End");
+	replayEnd->setToolTip("Go to the end of the run");
 	m_replaySlider = new ReplaySlider(m_replayBar);
 	m_replaySlider->setObjectName("completedReplaySlider");
 	m_replaySlider->setAccessibleName("Replay time");
 	m_replaySlider->setFocusPolicy(Qt::StrongFocus);
 	m_replaySlider->setMinimumWidth(fontMetrics().horizontalAdvance(QStringLiteral("000000000000")));
-	// The selected time sits beside the slider on one line. It keeps the width of its longest text, so the
-	// slider does not change its width while the user seeks.
+	// The selected time sits beside the slider on one line as a clock time. It keeps the width of its longest text, so
+	// the slider does not change its width while the user seeks.
 	m_replayLabel = new QLabel(m_replayBar);
-	m_replayLabel->setMinimumWidth(fontMetrics().horizontalAdvance(QStringLiteral("Replay at 000000 s")));
+	m_replayLabel->setMinimumWidth(
+		qMax(fontMetrics().horizontalAdvance(QStringLiteral("No replay")), fontMetrics().horizontalAdvance(QStringLiteral("00:00:00"))));
 	// The coverage has a row of its own and is the same for every selected time.
 	m_replayCoverageLabel = new QLabel(m_replayBar);
 	m_replayCoverageLabel->setWordWrap(true);
@@ -537,13 +728,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			if (m_replayRequestedTime >= m_completedReplay.lastTime()) seekReplay(m_completedReplay.firstTime());
 			m_replayTimer->start();
 		}
-		m_replayPlayButton->setText(m_replayTimer->isActive() ? "Pause" : "Play");
+		showReplayPlaying(m_replayPlayButton, m_replayTimer->isActive());
 	});
 	connect(m_replayTimer, &QTimer::timeout, this, [this]() {
 		seekReplay(m_replayRequestedTime + 1);
 		if (m_replayRequestedTime >= m_completedReplay.lastTime()) {
 			m_replayTimer->stop();
-			m_replayPlayButton->setText("Play");
+			showReplayPlaying(m_replayPlayButton, false);
 		}
 	});
 
@@ -562,11 +753,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedSlider->setRange(0, kMaxStepDelayMs);
 	m_speedSlider->setValue(kMaxStepDelayMs);
 	m_speedSlider->setMaximumWidth(108);
-	m_speedSlider->setToolTip("Simulation speed: fastest");
+	m_speedSlider->setToolTip("Simulation speed: fastest; right is faster");
 	m_speedSlider->setObjectName("speedSlider");
 	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())), this);
 	m_speedLabel->setObjectName("speedModeLabel");
-	m_speedLabel->hide();
 
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
@@ -718,9 +908,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->actionSimulationStop->setProperty("iconResource", ":/icons/stop.svg");
 	ui->actionSimulationPause->setEnabled(false);
 	ui->actionSimulationStop->setEnabled(false);
-	ui->actionSimulationStart->setToolTip("Run simulation (Ctrl+R)");
-	ui->actionSimulationPause->setToolTip("Pause or resume simulation (Ctrl+.)");
-	ui->actionSimulationStop->setToolTip("Stop simulation (Ctrl+Esc)");
+	ui->actionSimulationStart->setToolTip(withShortcut("Run simulation", ui->actionSimulationStart));
+	ui->actionSimulationPause->setToolTip(withShortcut("Pause or resume simulation", ui->actionSimulationPause));
+	ui->actionSimulationStop->setToolTip(withShortcut("Stop simulation", ui->actionSimulationStop));
 
 
 	// Keep the scenario state and the four useful display layers in the primary
@@ -760,7 +950,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainSpeedLabelsCheck->setObjectName("layerTrainSpeedLabels");
 	m_trainSpeedLabelsCheck->setProperty("secondaryLayerToggle", true);
 	m_trainSpeedLabelsCheck->setChecked(true);
-	m_trainSpeedLabelsCheck->setToolTip("Show live speed in detailed train labels; overview markers stay compact.");
+	m_trainSpeedLabelsCheck->setToolTip("Show the speed beside each train when zoomed in, and beside a selected or followed train");
 	m_signalLayerCheck = new QCheckBox("Signals", caseLayersWidget);
 	m_signalLayerCheck->setObjectName("layerSignals");
 	m_signalLayerCheck->setChecked(true);
@@ -771,10 +961,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_showPassengersAction = new QAction("Show Passengers", this);
 	m_showPassengersAction->setObjectName("actionShowPassengers");
 	m_showPassengersAction->setCheckable(true);
-	const bool showPassengers = m_runController->passengerGui();
-	m_passengerLayerCheck->setChecked(showPassengers);
-	m_showPassengersAction->setChecked(showPassengers);
-	m_presenter->m_passengerLayerVisible = showPassengers;
+	m_passengerChoice = m_runController->passengerGui();
+	m_passengerLayerCheck->setChecked(m_passengerChoice);
+	m_showPassengersAction->setChecked(m_passengerChoice);
+	m_presenter->m_passengerLayerVisible = m_passengerChoice;
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, m_showPassengersAction, &QAction::setChecked);
 	connect(m_showPassengersAction, &QAction::toggled, m_passengerLayerCheck, &QCheckBox::setChecked);
 	caseLayersLayout->addWidget(m_stationLayerCheck);
@@ -788,8 +978,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	caseLayersLayout->addStretch();
 	auto* caseLayersScroll = new EditorLayout::VerticalScrollArea(m_caseLayersDock);
 	caseLayersScroll->setObjectName("caseLayersScroll");
+	// Tab reaches the check boxes and the map key inside, and the area scrolls to show them (see the focusChanged connection).
+	caseLayersScroll->setFocusPolicy(Qt::NoFocus);
 	caseLayersScroll->setWidget(caseLayersWidget);
 	m_caseLayersDock->setWidget(caseLayersScroll);
+	// The dock scroll areas take no focus themselves, so they scroll a field into view when Tab reaches it.
+	connect(qApp, &QApplication::focusChanged, this, [](QWidget*, QWidget* now) {
+		for (QWidget* widget = now ? now->parentWidget() : nullptr; widget; widget = widget->parentWidget())
+			if (auto* area = qobject_cast<QScrollArea*>(widget)) {
+				area->ensureWidgetVisible(now);
+				return;
+			}
+	});
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
 	if (ui->menuView) {
 		// zoom actions above, panel toggles below
@@ -857,37 +1057,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateViewportOverlays();
 	});
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
-		m_runController->setPassengerGui(checked);
+		m_passengerChoice = checked;
 		QSettings().setValue(kShowPassengersKey, checked);
-		m_presenter->m_passengerLayerVisible = checked;
-		for (auto* item : m_presenter->m_stationDecorations)
-			if (qgraphicsitem_cast<PlatformItem*>(item))
-				item->setVisible(m_presenter->platformBarsVisible());
-		for (auto* platform : m_presenter->allPlatforms) {
-			if (!platform)
-				continue;
-			if (platform->textIcon)
-				platform->textIcon->setVisible(m_presenter->paxTextVisible());
-			for (auto* icon : platform->passengerIcons)
-				if (icon)
-					icon->setVisible(checked);
-		}
-		if (m_presenter->trainPaxInfoItem)
-			m_presenter->trainPaxInfoItem->setVisible(checked);
-		if (m_presenter->paxIconInfoItem)
-			m_presenter->paxIconInfoItem->setVisible(checked);
-		if (checked) {
-			m_presenter->updateTrainPaxInfo();
-			m_presenter->updatePaxIconInfo(m_snapshot.get(),
-				m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
-			// A run keeps the passengers of the platforms only when it starts with them on.
-			if (m_showingTrackPreview || !passengerGui())
-				statusBar()->showMessage("Passengers show from the next run", 8000);
-		}
+		applyPassengerLayer(checked);
+		// A run keeps the passengers of the platforms only when it starts with them on.
+		if (checked && (m_showingTrackPreview || !passengerGui()))
+			statusBar()->showMessage("Passengers show from the next run", 8000);
 	});
 	updateCaseLayersPanel();
 
-	m_followTrainCombo = new QComboBox(this);
+	m_followTrainCombo = new ElidedComboBox(this);
 	m_followTrainCombo->setObjectName("followTrainCombo");
 	m_followTrainCombo->setMinimumWidth(180);
 	m_followTrainCombo->setMaximumWidth(200);
@@ -896,7 +1075,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_followAction = new QAction("Follow", this);
 	m_followAction->setObjectName("actionFollow");
 	m_followAction->setCheckable(true);
-	// One sentence in the status bar says whether the selected train is followed, and why not.
+	m_followAction->setIcon(QIcon(":/icons/follow.svg"));
+	// One clause in the status bar names the state of the selected train; its tooltip says whether it is followed and why not.
 	m_followStatusLabel = new ElidedLabel(this);
 	m_followStatusLabel->setObjectName("followStatusLabel");
 	m_followStatusLabel->setAccessibleName("Follow status");
@@ -933,10 +1113,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	ui->actionZoomIn->setObjectName("actionZoomIn");
 	ui->actionZoomIn->setIcon(QIcon(":/icons/zoom-in.svg"));
-	ui->actionZoomIn->setToolTip("Zoom in on the network view (Ctrl++)");
+	ui->actionZoomIn->setToolTip(withShortcut("Zoom in on the network view", ui->actionZoomIn));
 	ui->actionZoomOut->setObjectName("actionZoomOut");
 	ui->actionZoomOut->setIcon(QIcon(":/icons/zoom-out.svg"));
-	ui->actionZoomOut->setToolTip("Zoom out on the network view (Ctrl+-)");
+	ui->actionZoomOut->setToolTip(withShortcut("Zoom out on the network view", ui->actionZoomOut));
 	ui->actionFitView->setObjectName("actionFit");
 	ui->actionFitView->setText("Fit");
 	ui->actionFitView->setIcon(QIcon());
@@ -963,20 +1143,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				button->setFixedWidth(34);
 		}
 	};
-	const auto addToolbarLabel = [this](const char* text, const char* objectName) {
-		auto* label = new QLabel(QString::fromLatin1(text), m_toolBar);
-		label->setObjectName(objectName);
-		label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-		label->setFocusPolicy(Qt::NoFocus);
-		label->setFixedHeight(24);
-		label->setAccessibleName(QString::fromLatin1(text));
-		m_toolBar->addWidget(label);
-		return label;
-	};
 	const auto addToolbarGroupSeparator = [this](const char* objectName, const char* description) {
 		QAction* separator = m_toolBar->addSeparator();
 		if (QWidget* widget = m_toolBar->widgetForAction(separator))
-			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 		separator->setObjectName(objectName);
 		separator->setProperty("toolbarGroupBoundary", true);
 		separator->setToolTip(QString::fromLatin1(description));
@@ -1003,23 +1173,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		pauseToolButton->setFixedWidth(widestText);
 	}
 	addToolbarButton(ui->actionSimulationStop, "actionStopButton", Qt::ToolButtonTextBesideIcon);
-	QLabel* slowerLabel = addToolbarLabel("Slower", "speedSlowerLabel");
-	slowerLabel->setProperty("toolbarGroup", "Playback");
 	m_speedSlider->setFixedWidth(80);
-	m_speedSlider->setFixedHeight(24);
+	m_speedSlider->setFixedHeight(32);
 	m_speedSlider->setProperty("toolbarGroup", "Playback");
 	m_speedSlider->setAccessibleName("Simulation speed");
 	m_speedSlider->setAccessibleDescription("Adjust simulation speed; right is faster");
 	m_speedSlider->setFocusPolicy(Qt::StrongFocus);
 	m_toolBar->addWidget(m_speedSlider);
-	QLabel* fasterLabel = addToolbarLabel("Faster", "speedFasterLabel");
-	fasterLabel->setProperty("toolbarGroup", "Playback");
+	// The readout fits its widest text, so the toolbar does not move while the slider is dragged.
+	m_speedLabel->ensurePolished();
+	m_speedLabel->setFixedWidth(qMax(m_speedLabel->fontMetrics().horizontalAdvance("Fastest"),
+		m_speedLabel->fontMetrics().horizontalAdvance("1000x")));
+	m_speedLabel->setProperty("toolbarGroup", "Playback");
+	m_toolBar->addWidget(m_speedLabel);
 	addToolbarGroupSeparator("separatorPlaybackView", "Playback commands / view commands");
 	m_followAction->setProperty("toolbarGroup", "View");
 	ui->actionZoomIn->setProperty("toolbarGroup", "View");
 	ui->actionZoomOut->setProperty("toolbarGroup", "View");
 	ui->actionFitView->setProperty("toolbarGroup", "View");
-	addToolbarButton(m_followAction, "actionFollowButton", Qt::ToolButtonTextOnly);
+	addToolbarButton(m_followAction, "actionFollowButton", Qt::ToolButtonTextBesideIcon);
 	m_followTrainCombo->setFixedWidth(180);
 	m_followTrainCombo->setFixedHeight(32);
 	m_followTrainCombo->setAccessibleName("Train to follow");
@@ -1063,11 +1235,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// The toolbar button exists now, so it can take its description.
 	updateFollowAvailability();
 
-	// file menu: output folder chooser
+	// file menu: output folder chooser, after Load Legacy Case and above the separator before Quit
 	if (ui->menuFile) {
 		m_outputFolderAction = new QAction("Set Output Folder...", this);
 		connect(m_outputFolderAction, &QAction::triggered, m_runController, &RunController::chooseOutputFolder);
-		ui->menuFile->addAction(m_outputFolderAction);
+		const QList<QAction*> fileActions = ui->menuFile->actions();
+		ui->menuFile->insertAction(fileActions.value(fileActions.indexOf(ui->actionQuit) - 1), m_outputFolderAction);
 	}
 
 	// in-app logging pane (ConsoleWidget installs its own streambuf on construction)
@@ -1152,8 +1325,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateDiagramActions();
 	});
 
+	// The editors on the right keep the full height of the window: Run Results and the other docks below the network end where
+	// the editors start, so that a short window still shows several rows of fields.
+	setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 	m_caseSettingsDock = new QDockWidget("Case Settings", this);
 	m_caseSettingsDock->setObjectName("caseSettingsDock");
+	m_caseSettingsDock->setProperty("manualSection", QStringLiteral("case-settings"));
 	m_caseSettingsPanel = new CaseSettingsPanel(m_caseSettingsDock);
 	m_caseNameEdit = m_caseSettingsPanel->nameEdit();
 	m_caseDescriptionEdit = m_caseSettingsPanel->descriptionEdit();
@@ -1198,6 +1375,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructureDock->setWidget(m_infrastructurePanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
 	m_infrastructureDock->hide();
+	// The editor docks share one group of tabs, so each open editor has the full height of the side instead of a share of it.
+	tabifyDockWidget(m_caseSettingsDock, m_infrastructureDock);
 	registerEditorDock(m_infrastructureDock);
 	m_infrastructurePanel->setPrompts(m_userPrompts.get());
 	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
@@ -1243,6 +1422,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_plotTrainUnitTractionButton = m_trainUnitPanel->plotButton();
 	m_trainUnitDock->setWidget(m_trainUnitPanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
+	tabifyDockWidget(m_infrastructureDock, m_trainUnitDock);
 	registerEditorDock(m_trainUnitDock);
 	m_trainUnitPanel->setPrompts(m_userPrompts.get());
 	m_trainUnitSourceLinker = new TrainUnitSourceLinker(this);
@@ -1352,6 +1532,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_selectNoneOccurrencesButton = m_servicePanel->selectNoneButton();
 
 	m_timetableStopsPanel = new TimetableStopsPanel(m_servicePanel);
+	m_timetableStopsPanel->setProperty("manualSection", QStringLiteral("timetable-editor"));
 	m_stopTableWidget = m_timetableStopsPanel->table();
 	m_addStopButton = m_timetableStopsPanel->addButton();
 	m_insertStopAfterButton = m_timetableStopsPanel->insertAfterButton();
@@ -1464,6 +1645,49 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
 	m_incidentPanel->setDocument(m_document);
 	connect(m_incidentPanel, &IncidentPanel::changed, this, &MainWindow::refreshValidationPanel);
+	// The button of the inspector adds an incident for the signal or the train that it shows.
+	connect(m_inspector, &InspectorPanel::incidentRequested, this, [this] {
+		QString selected;
+		addIncidentFromView(selectedIncidentTarget(selected));
+	});
+	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
+	// of the panel waits for the next item that a click or Edit > Find... selects there.
+	m_incidentPanel->setDefaultTarget([this] {
+		QString selected;
+		const IncidentTarget target = selectedIncidentTarget(selected);
+		// The edit that adds the incident can draw the preview again, which writes the status bar, so the message follows.
+		if (!selected.isEmpty() && !m_incidentPanel->offersTarget(target)) {
+			const QString reason = selected == "item" ? QString("The selected item is not a signal or a train")
+													  : QString("The selected %1 cannot be the target of an incident").arg(selected);
+			QTimer::singleShot(0, this, [this, reason] { statusBar()->showMessage(reason + ", so the new incident has no target.", 8000); });
+		}
+		return target;
+	});
+	m_endTargetPickShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
+	m_endTargetPickShortcut->setContext(Qt::WindowShortcut);
+	m_endTargetPickShortcut->setEnabled(false);
+	connect(m_endTargetPickShortcut, &QShortcut::activated, m_incidentPanel, &IncidentPanel::endTargetPick);
+	connect(m_incidentPanel, &IncidentPanel::targetPickToggled, this, &MainWindow::setIncidentTargetPick);
+	// A dock behind another tab of its group stays shown, so the panel does not see it go.
+	connect(m_incidentDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+		if (!visible)
+			m_incidentPanel->endTargetPick();
+	});
+	// The inspector, whose slots were connected first, has taken the new selection when these run.
+	const auto pickTarget = [this] { pickIncidentTarget(); };
+	connect(scene, &NetworkScene::MousePressedOnPreview, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnNode, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnStationNode, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnArc, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnConnection, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnSignal, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnTrain, this, pickTarget);
+	connect(scene, &NetworkScene::MousePressedOnPassenger, this, pickTarget);
+	// The end of a drag gives the view its hand cursor again.
+	connect(networkView, &NetworkView::interactionFinished, this, [this] {
+		if (m_incidentPanel->isPickingTarget())
+			networkView->viewport()->setCursor(Qt::CrossCursor);
+	});
 	m_entranceDelayPanel->setPrompts(m_userPrompts.get());
 	m_entranceDelayPanel->setRunSelection(&m_runSelection);
 	m_entranceDelayPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
@@ -1505,10 +1729,20 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		scroll->setWidgetResizable(true);
 		scroll->setFrameShape(QFrame::NoFrame);
 		scroll->setMinimumSize(0, 0);
+		scroll->setFocusPolicy(Qt::NoFocus);
 		scroll->setWidget(content);
 		dock->setWidget(scroll);
 		// The wheel scrolls the dock over a field and changes the field only once it has focus.
 		FocusWheel::watch(content);
+		// Once any dock has been resized, Qt opens a dock at the width that its side of the window had last. An editor dock
+		// that opens narrower than its size hint is widened to it, once the window has placed the dock.
+		connect(dock->toggleViewAction(), &QAction::toggled, this, [this, dock]() {
+			if (dock->isHidden() || dock->isFloating())
+				return;
+			dock->widget()->updateGeometry();
+			if (dock->width() < dock->sizeHint().width())
+				resizeDocks({dock}, {dock->sizeHint().width()}, Qt::Horizontal); }, Qt::QueuedConnection);
+		connect(dock, &QDockWidget::topLevelChanged, this, [dock](bool floating) { fitFloatingDock(dock, floating); });
 	}
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();
@@ -1558,13 +1792,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
 	connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
 	connect(ui->actionFitView, &QAction::triggered, this, &MainWindow::fitToView);
-	ui->actionFitView->setToolTip("Restore the full network view (Ctrl+0)");
+	ui->actionFitView->setToolTip(withShortcut("Restore the full network view", ui->actionFitView));
 	// Quit closes the window, so it asks about unsaved changes and stops a running simulation
 	// like the close button does. The application exits when its last window has closed.
 	connect(ui->actionQuit, &QAction::triggered, this, &QWidget::close);
 
 	// Diagrams menu
-	m_diagramsMenu = menuBar()->addMenu("Diagrams");
+	m_diagramsMenu = menuBar()->addMenu("&Diagrams");
 	// An entry that asks for more input in a dialog ends in an ellipsis.
 	m_diagramsMenu->addAction(ResultViewName::kSpeedDistance, m_resultViews, &ResultViews::showSpeedDistanceDiagram);
 	m_diagramsMenu->addAction(ResultViewName::kSpeedTime, m_resultViews, &ResultViews::showSpeedTimeDiagram);
@@ -1626,6 +1860,45 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 	if (m_recovery)
 		m_recovery->shutdown();
 	QMainWindow::closeEvent(event);
+}
+
+void MainWindow::childEvent(QChildEvent* event) {
+	QMainWindow::childEvent(event);
+	if (auto* tabBar = qobject_cast<QTabBar*>(event->child()); tabBar && event->polished()) {
+		tabBar->setFocusPolicy(Qt::NoFocus);
+		// The names of tabbed docks end in an ellipsis when the bar is narrow, down to the minimum width that egtrain.qss gives
+		// a tab, and the bar scrolls when the tabs still do not fit. The tooltip of a tab, set by Qt, gives the whole name.
+		tabBar->setElideMode(Qt::ElideRight);
+		tabBar->setUsesScrollButtons(true);
+		for (QToolButton* scrollButton : tabBar->findChildren<QToolButton*>())
+			scrollButton->setFocusPolicy(Qt::NoFocus);
+	}
+}
+
+// Qt moves the docks behind the front tab of a group out of the window but leaves them shown, so Tab would reach their fields
+// out of sight. The scroll buttons of the tab bars in the docks are passed over too: the arrow keys choose a tab of a focused
+// tab bar. The search for the next field is that of QWidget::focusNextPrevChild(). A floating dock has a Tab order of its own.
+bool MainWindow::focusNextPrevChild(bool next) {
+	const int focusFlag = QGuiApplication::styleHints()->tabFocusBehavior() == Qt::TabFocusAllControls ? Qt::TabFocus : Qt::StrongFocus;
+	QWidget* const current = focusWidget() ? focusWidget() : this;
+	for (QWidget* widget = next ? current->nextInFocusChain() : current->previousInFocusChain(); widget && widget != current;
+		widget = next ? widget->nextInFocusChain() : widget->previousInFocusChain()) {
+		QWidget* proxy = widget->focusProxy();
+		while (proxy && proxy->focusProxy())
+			proxy = proxy->focusProxy();
+		const QWidget* taker = proxy ? proxy : widget;
+		const QDockWidget* dock = nullptr;
+		for (const QWidget* ancestor = widget; ancestor && !dock; ancestor = ancestor->parentWidget())
+			dock = qobject_cast<const QDockWidget*>(ancestor);
+		if ((taker->focusPolicy() & focusFlag) == focusFlag && taker->isEnabled() && widget->isEnabled() && widget->isVisibleTo(this)
+			&& proxy != current && !(proxy && (next ? proxy->isAncestorOf(widget) : widget->isAncestorOf(proxy)))
+			&& !(dock && !dock->isFloating() && !rect().intersects(dock->geometry()))
+			&& !(qobject_cast<const QToolButton*>(widget) && qobject_cast<const QTabBar*>(widget->parentWidget()))) {
+			widget->setFocus(next ? Qt::TabFocusReason : Qt::BacktabFocusReason);
+			return true;
+		}
+	}
+	return false;
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
@@ -1940,6 +2213,7 @@ void MainWindow::runPanelsChanged() {
 	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::playbackEnded() {
@@ -2050,7 +2324,21 @@ void MainWindow::startRecovery() {
 		if (m_recoveryFailureShown)
 			return;
 		m_recoveryFailureShown = true;
-		statusBar()->showMessage(QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message));
+		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message);
+		// The hint of a target pick stays until the pick ends, and the message follows it.
+		if (m_incidentPanel->isPickingTarget())
+			m_heldRecoveryFailure = text;
+		else
+			statusBar()->showMessage(text);
+	});
+	// A copy that is written again ends the failure, and a later failure is reported again.
+	connect(m_recovery.get(), &RecoveryController::written, this, [this] {
+		if (!m_recoveryFailureShown)
+			return;
+		m_recoveryFailureShown = false;
+		m_heldRecoveryFailure.clear();
+		if (statusBar()->currentMessage().startsWith(QLatin1String("Autosave unavailable")))
+			statusBar()->clearMessage();
 	});
 }
 
@@ -2069,6 +2357,7 @@ void MainWindow::recoverySceneChanged() {
 void MainWindow::recoverySceneSaved() {
 	m_recoverySource = recoverySourceOf(m_session->sceneDir(), m_session->sceneIsBundle());
 	m_recoveredSourceHint.clear();
+	m_heldRecoveryFailure.clear();
 	if (m_recovery)
 		m_recovery->noteSaved();
 }
@@ -2077,6 +2366,7 @@ void MainWindow::recoverySceneReplaced(const RecoverySource& source) {
 	m_recoverySource = source;
 	m_recoveredSourceHint.clear();
 	m_recoveryFailureShown = false;
+	m_heldRecoveryFailure.clear();
 	if (!m_recovery)
 		return;
 	m_recovery->noteReplaced();
@@ -2085,17 +2375,32 @@ void MainWindow::recoverySceneReplaced(const RecoverySource& source) {
 		recoverySceneChanged();
 }
 
-bool MainWindow::offerRecovery() {
-	if (!m_recovery)
-		return false;
-	RecoveryScan scan = m_recovery->scan();
+bool MainWindow::offerRecovery(const QString& crashNote) {
+	RecoveryScan scan = m_recovery ? m_recovery->scan() : RecoveryScan();
 	const auto openable = [&scan]() {
 		return std::any_of(scan.candidates.begin(), scan.candidates.end(),
 			[](const RecoveryCandidate& candidate) { return candidate.state == RecoveryCandidateState::Openable; });
 	};
+	if (!crashNote.isEmpty()) {
+		EG_LOG(AppUi, Warning) << "EGTRAIN closed unexpectedly the last time it ran. Crash note: " << crashNote.toStdString() << '\n';
+		// Without a copy to offer, the note has a notice of its own.
+		if (!openable()) {
+			QMessageBox notice(QMessageBox::Warning, QStringLiteral("EGTRAIN Closed Unexpectedly"),
+				QStringLiteral("EGTRAIN closed unexpectedly the last time it ran. A crash note was saved to:\n%1")
+					.arg(QDir::toNativeSeparators(crashNote)),
+				QMessageBox::Ok, this);
+			notice.setObjectName(QStringLiteral("crashNotice"));
+			notice.setInformativeText(QStringLiteral("Attach it when you report the problem."));
+			notice.setTextInteractionFlags(Qt::TextSelectableByMouse);
+			const QPushButton* showNote = notice.addButton(QStringLiteral("Show Crash Note"), QMessageBox::ActionRole);
+			notice.exec();
+			if (notice.clickedButton() == showNote)
+				QDesktopServices::openUrl(QUrl::fromLocalFile(crashNote));
+		}
+	}
 	// A copy that this version cannot open is listed with the others and never offered alone.
 	while (openable()) {
-		RecoveryPrompt prompt(scan, this);
+		RecoveryPrompt prompt(scan, this, QRect(), crashNote);
 		if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
 			dialogShown(prompt, "recoveryPrompt");
 		prompt.exec();
@@ -2142,7 +2447,6 @@ void MainWindow::updateSceneActions() {
 	if (ui->actionSimulationStart) {
 		const bool sceneRunnable = m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics());
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
-		ui->actionSimulationStart->setToolTip(QString("Run simulation (Ctrl+R)"));
 	}
 	if (m_serviceDock)
 		m_serviceDock->setEnabled(m_document->isLoaded() && !m_runController->running());
@@ -2245,10 +2549,19 @@ void MainWindow::invalidateAfterSceneChange() {
 		m_validation->refreshLoadedData();
 		updateDiagramActions();
 	} else {
+		// The message that the run is complete would outlast its results. Other messages, such as the hint of a pick, stay.
+		const bool completionShown = m_runController->resultsAvailable()
+			&& statusBar()->currentMessage().startsWith(QLatin1String("Simulation complete"));
 		invalidateRunResults();
+		if (completionShown)
+			statusBar()->showMessage(QStringLiteral("Run results discarded: the case changed."), 8000);
 	}
+	// The first passenger added, or the last one deleted, switches the passengers on or off before the preview redraws.
+	updatePassengerSwitch();
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
+	// The target of the signal or the train that the inspector shows can be gone.
+	updateInspectorIncidentAction();
 }
 
 namespace {
@@ -2274,6 +2587,50 @@ void MainWindow::setupEditMenu() {
 	}
 	connect(m_undoAction, &QAction::triggered, this, &MainWindow::undoScene);
 	connect(m_redoAction, &QAction::triggered, this, &MainWindow::redoScene);
+
+	// Find only reads the canvas, so it stays enabled during a run.
+	ui->menuEdit->addSeparator();
+	m_findAction = new QAction(QStringLiteral("Find..."), this);
+	m_findAction->setObjectName(QStringLiteral("actionFind"));
+	m_findAction->setShortcut(QKeySequence::Find);
+	ui->menuEdit->addAction(m_findAction);
+	connect(m_findAction, &QAction::triggered, this, &MainWindow::showFind);
+}
+
+void MainWindow::showFind() {
+	QStringList labels;
+	QStringList keys;
+	for (const NetworkPresenter::FindTarget& target : m_presenter->findTargets()) {
+		labels.append(target.label);
+		keys.append(target.keys);
+	}
+	if (labels.isEmpty()) {
+		statusBar()->showMessage("Nothing to find: open a case first", 5000);
+		return;
+	}
+	if (!m_findDialog) {
+		m_findDialog = new FindDialog(this);
+		connect(m_findDialog, &FindDialog::chosen, this, &MainWindow::goToFound);
+	}
+	m_findDialog->setLabels(labels, keys);
+	m_findDialog->open();
+}
+
+// The items are looked up again, because the scene can change while the dialog is open.
+void MainWindow::goToFound(const QString& label) {
+	const QList<NetworkPresenter::FindTarget> targets = m_presenter->findTargets();
+	const auto found = std::find_if(targets.cbegin(), targets.cend(),
+		[&label](const NetworkPresenter::FindTarget& target) { return target.label == label; });
+	if (found == targets.cend() || !networkView)
+		return;
+	// The follow camera would pull the view back to the followed train; a train that is found is followed instead.
+	if (!qgraphicsitem_cast<TrainBodyItem*>(found->item))
+		setFollowTrain(-1);
+	const qreal detail = TrainBadgeItem::detailedZoomThreshold();
+	if (networkView->zoomRatio() < detail)
+		networkView->zoomBy(detail / networkView->zoomRatio());
+	networkView->centerOn(found->center);
+	scene->select(found->item);
 }
 
 void MainWindow::updateUndoRedoActions() {
@@ -2311,7 +2668,14 @@ void MainWindow::stepSceneHistory(bool redo) {
 	if (!(redo ? m_history->canRedo() : m_history->canUndo()))
 		return;
 	const QString label = QString::fromStdString(redo ? m_history->redoLabel() : m_history->undoLabel());
+	// The preview of the restored scene is drawn again at Fit, and the view returns to the zoom and the centre that it had,
+	// as after an edit. The centre is the middle of the pixel at the centre, which centerOn puts back on that pixel.
+	const qreal zoom = networkView->zoomRatio();
+	const QPointF centre = networkView->viewportTransform().inverted().map(
+		QPointF(networkView->viewport()->width() + 1, networkView->viewport()->height() + 1) / 2.0);
 	restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo()));
+	networkView->zoomBy(zoom / networkView->zoomRatio());
+	networkView->centerOn(centre);
 	statusBar()->showMessage(QString("%1 %2").arg(redo ? "Redid" : "Undid", label), 8000);
 }
 
@@ -2360,10 +2724,15 @@ void MainWindow::refreshAllEditorPanels() {
 }
 
 void MainWindow::invalidateRunResults() {
+	// The replay row and the Run Results dock hide, and Qt would hand their focus to the next widget of the tab chain, such
+	// as a layer check box. The network view, which showed the results, takes it.
+	if (QWidget* focus = QApplication::focusWidget();
+		focus && ((m_replayBar && m_replayBar->isAncestorOf(focus)) || (m_runResultsDock && m_runResultsDock->isAncestorOf(focus))))
+		networkView->setFocus(Qt::OtherFocusReason);
 	if (!m_runController->running()) {
 		if (m_replayActive && m_document->isLoaded() && scene) {
 			setFollowTrain(-1);
-			m_inspector->handleCloseInfoDockWidget();
+			m_inspector->handleDisableHighlight();
 			renderTrackPreview(m_document->model()); // Teardown clears history and graphics together.
 		}
 		clearReplay();
@@ -2486,6 +2855,182 @@ void MainWindow::refreshIncidentPanel() {
 	m_entranceDelayPanel->refresh();
 }
 
+namespace {
+
+// The status bar shows this while the target of an incident is picked on the network view.
+QString targetPickHint() {
+	return QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
+}
+
+// The message of a pick after a click on something that gives no target, which selectedIncidentTarget names. It is no
+// wider than the hint.
+QString targetPickRetry(const QString& selected) {
+	if (selected == QLatin1String("signal") || selected == QLatin1String("train"))
+		return QStringLiteral("This %1 gives no target. Click another, or press Esc.").arg(selected);
+	return QStringLiteral("Not a signal or a train. Click one, or press Esc.");
+}
+
+// The entry of the context menu of a signal or a train (`what`), and the button of the inspector, that adds an incident
+// with its target.
+QString viewIncidentText(const QString& what) {
+	return what == QLatin1String("signal") ? QStringLiteral("Add signal failure") : QStringLiteral("Add train breakdown");
+}
+
+// The signal failure of the section that a signal head protects, by its runtime or block id, or none with the reason. No
+// head stands at a switch section, so a section without a target is one that the scene does not have, or a block that
+// shares its id with a signal.
+IncidentTarget signalFailureOf(const SceneModel& model, const std::string& section, QString* why) {
+	const std::string target = sceneSignalFailureTarget(model, buildSceneSectionInventory(model), section);
+	if (!target.empty())
+		return {"signal_failure", QString::fromStdString(target), 0};
+	if (why)
+		*why = QStringLiteral("No block or signal to fail here");
+	return {};
+}
+
+} // namespace
+
+IncidentTarget MainWindow::selectedIncidentTarget(QString& selected, QString* why) const {
+	selected.clear();
+	if (!m_document->isLoaded())
+		return {};
+	if (m_showingTrackPreview) {
+		const QString kind = m_inspector->previewSelectionKind();
+		if (!kind.isEmpty())
+			selected = kind == "signal" ? "signal" : "item";
+		return previewIncidentTarget(kind, m_inspector->previewSelectionId(), why);
+	}
+	if (const SignalItem* signal = m_presenter->m_inspectedSignal;
+		signal && m_presenter->m_signalDecorations.contains(m_presenter->m_inspectedSignal)) {
+		selected = "signal";
+		return signalIncidentTarget(*signal, why);
+	}
+	if (const int index = m_inspector->selectedTrainIndex(); index >= 0) {
+		selected = "train";
+		return trainIncidentTarget(index, why);
+	}
+	if (m_presenter->effect)
+		selected = "item";
+	return {};
+}
+
+IncidentTarget MainWindow::previewIncidentTarget(const QString& kind, const QString& id, QString* why) const {
+	if (kind != "signal" || !m_document->isLoaded())
+		return {};
+	return signalFailureOf(m_document->model(), id.toStdString(), why);
+}
+
+IncidentTarget MainWindow::signalIncidentTarget(const SignalItem& signal, QString* why) const {
+	if (!m_document->isLoaded())
+		return {};
+	// The section that the inspector shows as protected: the one ahead, or the one behind at the end of a track.
+	return signalFailureOf(m_document->model(), !signal.sectionAheadId.empty() ? signal.sectionAheadId : signal.sectionBehindId, why);
+}
+
+IncidentTarget MainWindow::trainIncidentTarget(int trainIndex, QString* why) const {
+	const GuiTrainState* train = nullptr;
+	if (m_snapshot)
+		for (const GuiTrainState& state : m_snapshot->trains)
+			if (state.index == trainIndex && !train)
+				train = &state;
+	if (!train) {
+		if (why)
+			*why = QStringLiteral("The run has no data on this train");
+		return {};
+	}
+	if (train->serviceId.empty()) {
+		if (why)
+			*why = QStringLiteral("This train runs no service");
+		return {};
+	}
+	return {"train_breakdown", QString::fromStdString(train->serviceId), train->occurrence};
+}
+
+QString MainWindow::viewIncidentBlocked(const IncidentTarget& target, const QString& what, const QString& why) const {
+	if (m_runController->running())
+		return QStringLiteral("Not available while the case runs");
+	if (target.type.isEmpty())
+		return why;
+	if (!m_incidentPanel->offersTarget(target))
+		return QStringLiteral("This %1 cannot be the target of an incident").arg(what);
+	return {};
+}
+
+void MainWindow::updateInspectorIncidentAction() {
+	// The inspector exists before the incident panel.
+	if (!m_incidentPanel)
+		return;
+	QString selected;
+	QString why;
+	const IncidentTarget target = selectedIncidentTarget(selected, &why);
+	if (selected == "signal" || selected == "train")
+		m_inspector->showIncidentAction(viewIncidentText(selected), viewIncidentBlocked(target, selected, why));
+	else
+		m_inspector->showIncidentAction(QString(), QString());
+}
+
+void MainWindow::addIncidentFromView(const IncidentTarget& target) {
+	// The edit can end a replay and draw the preview again, which deletes the items of the view and closes the menu, so it
+	// waits until the menu or the button has been handled.
+	QTimer::singleShot(0, this, [this, target] {
+		// Read first: a pending value that is committed can discard the results itself.
+		const bool discardsResults = m_runController->resultsAvailable();
+		commitPendingEditorValues();
+		if (!m_incidentPanel->addIncident(target)) {
+			// The target can have gone since the menu or the button was shown.
+			const QString blocked = viewIncidentBlocked(target,
+				target.type == "train_breakdown" ? QStringLiteral("train") : QStringLiteral("signal"), QString());
+			statusBar()->showMessage(blocked.isEmpty() ? QStringLiteral("No incident added.") : blocked + QLatin1Char('.'), 8000);
+			return;
+		}
+		if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
+			tabs->setCurrentWidget(m_incidentPanel);
+		revealEditorDock(m_incidentDock);
+		m_incidentStartSecondsEdit->setFocus(Qt::OtherFocusReason);
+		m_incidentStartSecondsEdit->selectAll();
+		// As short as the hint of a pick.
+		const QString added = target.type == "train_breakdown"
+			? QStringLiteral("Added a breakdown of %1 #%2").arg(target.id).arg(target.occurrence)
+			: QStringLiteral("Added a signal failure of %1").arg(target.id);
+		statusBar()->showMessage(added + (discardsResults ? QStringLiteral("; run results discarded.") : QStringLiteral(".")), 8000);
+	});
+}
+
+void MainWindow::setIncidentTargetPick(bool picking) {
+	m_endTargetPickShortcut->setEnabled(picking);
+	networkView->viewport()->setCursor(picking ? Qt::CrossCursor : Qt::OpenHandCursor);
+	if (picking) {
+		statusBar()->showMessage(targetPickHint());
+	} else if (!m_heldRecoveryFailure.isEmpty()) {
+		statusBar()->showMessage(m_heldRecoveryFailure);
+		m_heldRecoveryFailure.clear();
+	} else if (const QString shown = statusBar()->currentMessage();
+		shown == targetPickHint() || shown.endsWith(QLatin1String(", or press Esc."))) {
+		statusBar()->clearMessage();
+	}
+}
+
+void MainWindow::pickIncidentTarget() {
+	if (!m_incidentPanel->isPickingTarget())
+		return;
+	QString selected;
+	const IncidentTarget target = selectedIncidentTarget(selected);
+	// The edit can end a replay and draw the preview again, which deletes the item of the click, so it waits until the click
+	// has been handled.
+	QTimer::singleShot(0, this, [this, target, selected] {
+		if (!m_incidentPanel->isPickingTarget())
+			return;
+		if (!m_incidentPanel->applyTarget(target)) {
+			statusBar()->showMessage(targetPickRetry(selected));
+			return;
+		}
+		// The end of the pick shows a held autosave failure over this message.
+		statusBar()->showMessage(
+			QString("The target of incident %1 is now %2.").arg(m_incidentIdEdit->text(), m_incidentTargetCombo->currentText()), 8000);
+		m_incidentPanel->endTargetPick();
+	});
+}
+
 void MainWindow::updateCaseLayersPanel() {
 	if (!m_caseNameLabel)
 		return;
@@ -2519,6 +3064,11 @@ void MainWindow::updateCaseLayersPanel() {
 		m_caseReadinessLabel->style()->unpolish(m_caseReadinessLabel);
 		m_caseReadinessLabel->style()->polish(m_caseReadinessLabel);
 	}
+	updatePassengerSwitch();
+	updateNetworkLegend();
+}
+
+void MainWindow::updatePassengerSwitch() {
 	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
 	const QString passengerTip = hasPassengers ? QStringLiteral("Show passenger counts, icons and platform bars")
 											   : QStringLiteral("This case has no passengers");
@@ -2526,14 +3076,49 @@ void MainWindow::updateCaseLayersPanel() {
 	m_passengerLayerCheck->setToolTip(passengerTip);
 	m_showPassengersAction->setEnabled(hasPassengers);
 	m_showPassengersAction->setToolTip(passengerTip);
+	// The switch shows what is drawn; the toggle handler would store it as the choice of the user.
+	const bool shown = hasPassengers && m_passengerChoice;
+	if (m_passengerLayerCheck->isChecked() == shown)
+		return;
+	const QSignalBlocker boxBlocker(m_passengerLayerCheck);
+	const QSignalBlocker actionBlocker(m_showPassengersAction);
+	m_passengerLayerCheck->setChecked(shown);
+	m_showPassengersAction->setChecked(shown);
+	applyPassengerLayer(shown);
+}
+
+void MainWindow::applyPassengerLayer(bool shown) {
+	m_runController->setPassengerGui(shown);
+	m_presenter->m_passengerLayerVisible = shown;
+	for (auto* item : m_presenter->m_stationDecorations)
+		if (qgraphicsitem_cast<PlatformItem*>(item))
+			item->setVisible(m_presenter->platformBarsVisible());
+	for (auto* platform : m_presenter->allPlatforms) {
+		if (!platform)
+			continue;
+		if (platform->textIcon)
+			platform->textIcon->setVisible(m_presenter->paxTextVisible());
+		for (auto* icon : platform->passengerIcons)
+			if (icon)
+				icon->setVisible(shown);
+	}
+	if (m_presenter->trainPaxInfoItem)
+		m_presenter->trainPaxInfoItem->setVisible(shown);
+	if (m_presenter->paxIconInfoItem)
+		m_presenter->paxIconInfoItem->setVisible(shown);
 	updateNetworkLegend();
+	if (shown) {
+		m_presenter->updateTrainPaxInfo();
+		m_presenter->updatePaxIconInfo(m_snapshot.get(),
+			m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
+	}
 }
 
 void MainWindow::updateSpeedModeDisplay(int delayMs) {
 	if (m_speedLabel)
 		m_speedLabel->setText(simulationSpeedLabel(delayMs));
 	if (m_speedSlider) {
-		m_speedSlider->setToolTip(QString("Simulation speed: %1").arg(simulationSpeedMode(delayMs).toLower()));
+		m_speedSlider->setToolTip(QString("Simulation speed: %1; right is faster").arg(simulationSpeedMode(delayMs).toLower()));
 	}
 }
 
@@ -2636,7 +3221,6 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 	if (m_followRowShown.size() != rows)
 		m_followRowShown = QVector<std::optional<std::pair<FollowPhase, bool>>>(rows);
 	const int current = m_followTrainCombo->currentIndex();
-	bool written = false;
 	for (int row = 0; row < rows; ++row) {
 		const FollowAvailabilityInput in = followInput(row);
 		const std::pair<FollowPhase, bool> shown(followPhase(in), in.train != nullptr);
@@ -2649,22 +3233,12 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 		if (changed) {
 			m_followTrainCombo->setItemText(row, QString::fromStdString(availability.entryText));
 			m_followRowShown[row] = shown;
-			written = true;
 		}
 	}
-	if (written) {
-		// The list is as narrow as the toolbar needs, so its popup is as wide as the longest entry,
-		// which shows the state and the scheduled time after a long name.
-		QAbstractItemView* popup = m_followTrainCombo->view();
-		int widest = popup->sizeHintForColumn(0);
-		for (int row = 0; row < rows; ++row)
-			widest = qMax(widest, popup->fontMetrics().horizontalAdvance(m_followTrainCombo->itemText(row)));
-		popup->setMinimumWidth(widest + 2 * popup->frameWidth() + popup->verticalScrollBar()->sizeHint().width());
-	}
-
 	const QString status = QString::fromStdString(selected.statusText);
-	if (m_followStatusLabel && m_followStatusLabel->text() != status) {
-		m_followStatusLabel->setText(status);
+	const QString clause = QString::fromStdString(selected.statusClause);
+	if (m_followStatusLabel && (m_followStatusLabel->text() != clause || m_followStatusLabel->toolTip() != status)) {
+		m_followStatusLabel->setText(clause);
 		m_followStatusLabel->setToolTip(status);
 	}
 	if (m_followAction) {
@@ -2810,7 +3384,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	const FollowAvailability offer = followAvailability(followInput(comboIndex));
 	if (!offer.canArm) {
 		setFollowTrain(-1);
-		statusBar()->showMessage(QString::fromStdString(offer.statusText), 5000);
+		statusBar()->showMessage(QString::fromStdString(offer.statusClause), 5000);
 		return;
 	}
 
@@ -2828,7 +3402,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 
 	const FollowAvailability following = updateFollowAvailability();
 	cutToFollowedTrain(following);
-	statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
+	statusBar()->showMessage(QString::fromStdString(following.statusClause), 5000);
 }
 
 // The menus are shown with popup() and delete themselves when they close, so this function returns while a menu is open.
@@ -2839,6 +3413,18 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		m_sceneContextMenu->close();
 		m_sceneContextMenu.clear();
 	}
+	// The entry that adds an incident with the target of a signal or a train (`what`), in a group of its own after Show
+	// details. A disabled one says why in its tooltip.
+	const auto addIncidentEntry = [this](QMenu* menu, const QString& what, const IncidentTarget& target, const QString& why) {
+		menu->addSeparator();
+		QAction* action = menu->addAction(viewIncidentText(what));
+		const QString blocked = viewIncidentBlocked(target, what, why);
+		action->setEnabled(blocked.isEmpty());
+		action->setToolTip(blocked);
+		action->setStatusTip(blocked);
+		connect(action, &QAction::triggered, this, [this, target] { addIncidentFromView(target); });
+		menu->addSeparator();
+	};
 	if (item && item->data(PreviewGraphics::Kind).isValid()) {
 		const QString kind = item->data(PreviewGraphics::Kind).toString();
 		if (kind == "node" || kind == "connection")
@@ -2849,13 +3435,21 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		const quint64 revision = m_document->revision();
 		QMenu* menu = new QMenu(this);
 		menu->setAttribute(Qt::WA_DeleteOnClose);
-		menu->setTitle("Preview: " + id);
+		menu->setToolTipsVisible(true);
+		// A signal is named by the label of its section, as the inspector names it.
+		const TrackPreviewSignal* head = kind == "signal" ? m_presenter->previewSignal(track.toStdString(), id.toStdString()) : nullptr;
+		menu->setTitle("Preview: " + (head ? QString::fromStdString(head->label) : id));
 		const auto resolve = [this, kind, id, track, reversed, revision]() {
 			return m_inspector->resolvePreviewItem(kind, id, track, reversed, revision);
 		};
 		connect(menu->addAction("Show details"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) m_inspector->displayPreviewInfo(current);
 		});
+		if (kind == "signal") {
+			QString why;
+			const IncidentTarget target = previewIncidentTarget(kind, id, &why);
+			addIncidentEntry(menu, "signal", target, why);
+		}
 		connect(menu->addAction("Center in view"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) centerSceneItem(current);
 		});
@@ -2900,6 +3494,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			if (auto* body = resolveTrainBodyItem(trainIndex))
 				m_inspector->displayTrainDetails(body, false);
 		});
+		QString why;
+		const IncidentTarget target = trainIncidentTarget(trainIndex, &why);
+		addIncidentEntry(menu, "train", target, why);
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, trainIndex]() {
 			if (auto* current = resolveTrainItem(trainIndex))
@@ -2931,7 +3528,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		const int track = station->track;
 		menu->setTitle("Station");
 		QAction* details = menu->addAction("Show details");
-		details->setIcon(QIcon(":/icons/station-dark.svg"));
+		details->setIcon(stationMarkIcon(StationClass::Station));
 		connect(details, &QAction::triggered, this, [this, nodeId, track]() {
 			if (auto* current = resolveStationNodeItem(nodeId, track))
 				m_inspector->displayStationNodeInfo(current);
@@ -3002,6 +3599,9 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			if (auto* current = resolveSignalItem(track, position, reversed))
 				m_inspector->displaySignallingInfo(current);
 		});
+		QString why;
+		const IncidentTarget target = signalIncidentTarget(*signal, &why);
+		addIncidentEntry(menu, "signal", target, why);
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, track, position, reversed]() {
 			if (auto* current = resolveSignalItem(track, position, reversed))
@@ -3015,6 +3615,15 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 						.arg(position, 0, 'g', std::numeric_limits<double>::max_digits10)
 						.arg(reversed ? "reverse" : "forward"));
 		});
+		// The section of the head, as Protected section in the inspector shows it, by the id that the run uses.
+		const QString section = QString::fromStdString(!signal->sectionAheadId.empty() ? signal->sectionAheadId : signal->sectionBehindId);
+		if (!section.isEmpty()) {
+			QAction* copySection = menu->addAction("Copy section ID");
+			connect(copySection, &QAction::triggered, this, [this, track, position, reversed, section]() {
+				if (resolveSignalItem(track, position, reversed) && QApplication::clipboard())
+					QApplication::clipboard()->setText(section);
+			});
+		}
 		menu->addSeparator();
 		addDeferred("Next train approaching this signal",
 			"Requires the signal route association and an approaching-train query.");
@@ -3067,7 +3676,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 
 void MainWindow::clearReplay() {
 	if (m_replayTimer) m_replayTimer->stop();
-	if (m_replayPlayButton) m_replayPlayButton->setText("Play");
+	if (m_replayPlayButton) showReplayPlaying(m_replayPlayButton, false);
 	if (m_replayBar) m_replayBar->hide();
 	m_replayActive = false;
 	if (m_replaySlider) m_replaySlider->setEnabled(true);
@@ -3167,6 +3776,9 @@ void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
 // open GUI
 void MainWindow::openGUI() {
 	// The restored window fits the screen. Eight ninths of it leaves room for the window frame, which is not known yet.
+	// resize() keeps the minimum size that the layout set when it last ran, which can be larger than the screen; the
+	// layout runs first so that the minimum is that of the current contents.
+	layout()->activate();
 	resize(size().boundedTo(screen()->availableSize() * 8 / 9));
 
 	// display window maximized
@@ -3215,7 +3827,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	// Keep update consent behind the startup chooser. Scripted launches have no
 	// chooser, so the same queued callback runs after the initial window shows.
 	const auto startup = [this, relay]() {
-		const bool recovered = offerRecovery();
+		const bool recovered = offerRecovery(takeCrashNote(crashNoteFolder()));
 		if (!recovered && !m_runController->caseNamedAtStartup() && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
 		m_updateTelemetry->showPrivacySettings(true);
@@ -3283,7 +3895,7 @@ void MainWindow::updateDiagramActions() {
 // Lazily created so the menu only appears once an editor dock registers.
 QMenu* MainWindow::editorsMenu() {
 	if (!m_editorsMenu) {
-		m_editorsMenu = new QMenu("Editors", this);
+		m_editorsMenu = new QMenu("Ed&itors", this);
 		menuBar()->insertMenu(ui->menuSimulation->menuAction(), m_editorsMenu);
 	}
 	return m_editorsMenu;
@@ -3365,6 +3977,7 @@ void MainWindow::setupRunResultsDock() {
 	connect(m_resultViews, &ResultViews::trainSelected, this, &MainWindow::focusTrainInScene);
 	m_runResultsPanel.reset(new RunResultsDock(this, m_runController, m_resultViews, *this));
 	m_runResultsDock = m_runResultsPanel->dock();
+	m_runResultsDock->setProperty("manualSection", QStringLiteral("run-results"));
 	m_runResultsTable = m_runResultsPanel->table();
 	m_runResultsSummaryLabel = m_runResultsPanel->summaryLabel();
 	m_delayFeedbackLabel = m_runResultsPanel->delayFeedbackLabel();
@@ -3458,10 +4071,12 @@ void MainWindow::closeSceneContextMenu() {
 
 void MainWindow::inspectionChanged() {
 	updateViewportOverlays();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::signalInspected() {
 	updateSignalCues();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::followTrain(int trainIndex) {
@@ -3606,7 +4221,7 @@ void MainWindow::trainWillUpdate(int trainIndex) {
 	const FollowAvailability following = followAvailabilityOf(trainIndex);
 	if (following.switchOff) {
 		setFollowTrain(-1);
-		statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
+		statusBar()->showMessage(QString::fromStdString(following.statusClause), 5000);
 	}
 }
 
@@ -3654,8 +4269,10 @@ void MainWindow::trainsApplied(bool anyAdded, bool cameraMoved) {
 void MainWindow::zoomIn() {
 	if (!networkView)
 		return;
+	// From Fit the view moves to the track nearest the middle of the network; after a pan it keeps its centre.
+	const bool fromFit = networkView->zoomRatio() <= 1.0 + 1e-6;
 	if (networkView->zoomBy(1.15)) {
-		if (!m_presenter->m_previewFitBounds.isEmpty())
+		if (fromFit && !m_presenter->m_previewFitBounds.isEmpty())
 			networkView->centerOn(m_presenter->m_previewZoomFocus);
 		m_followCamera->settle();
 	}
@@ -3706,7 +4323,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSignals = !preview && !m_presenter->allSignals.isEmpty();
 	if (preview)
 		content.hasSignals = m_presenter->m_previewHasSignals;
-	content.hasPassengers = !preview && passengerGui();
+	content.hasPassengers = !preview && passengerGui() && m_presenter->m_passengerLayerVisible && !m_document->model().passengers.empty();
 	m_networkLegendWidget->setCaseContent(content);
 }
 
@@ -3779,6 +4396,13 @@ void MainWindow::bindStationOverlaySources() {
 			StationNodeItem* target = assigned.isEmpty() ? nullptr : assigned.first();
 			picture->setParentItem(target);
 			picture->setPos(target ? target->mapFromScene(scenePosition) : scenePosition);
+			if (target)
+				target->setZValue(StationMarkItem::HostZValue);
+			// The dots of the near look sit on the assigned station squares.
+			QList<QPointF> centres;
+			for (const auto* station : assigned)
+				centres.append(station->sceneBoundingRect().center());
+			overlay->setNodeCentres(centres);
 		}
 		if (overlay->hasSourceIdentity()) {
 			const double representativeNodeId = overlay->sourceNodeId();
@@ -3795,6 +4419,7 @@ void MainWindow::bindStationOverlaySources() {
 			overlay->setDisplacedClickHandler({});
 		}
 	}
+	m_presenter->measureStationTrackSpacing();
 }
 
 void MainWindow::updateStationOverlayDegrees() {
@@ -3893,9 +4518,11 @@ void MainWindow::updateViewportOverlays() {
 	const qreal viewScale = std::abs(networkView->transform().m11());
 	if (m_presenter->effect)
 		m_presenter->effect->setViewScale(viewScale);
+	// The station marks are dots on the station nodes once the tracks of a station are far enough apart on screen.
+	const bool nearLook = m_presenter->m_stationTrackSpacing * viewScale >= StationOverlayItem::NearTrackSpacingPixels;
 	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
-			overlay->applyViewScale(viewScale);
+			overlay->applyViewScale(viewScale, nearLook);
 	for (TrainItemGroup* train : m_presenter->allTrains)
 		if (train)
 			train->applyViewScale(viewScale);
@@ -3944,5 +4571,5 @@ void MainWindow::updateSignalCues() {
 
 void MainWindow::updateZoomStatus() {
 	if (m_zoomStatusLabel && networkView)
-		m_zoomStatusLabel->setText(networkView->zoomLabel());
+		m_zoomStatusLabel->setText(QStringLiteral("Zoom: %1").arg(networkView->zoomLabel()));
 }

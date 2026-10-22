@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <iomanip>
+#include <locale>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -164,6 +166,33 @@ void addCandidatePlatform(std::vector<std::string>& platforms, const std::string
 		platforms.push_back(platformId);
 }
 
+// A kilometre with three decimals and a full stop, whatever the locale.
+std::string labelKm(double km) {
+	std::ostringstream text;
+	text.imbue(std::locale::classic());
+	text << std::fixed << std::setprecision(3) << km;
+	return text.str();
+}
+
+// "<track> <from> to <to>", or "<track> <from>" when both ends read the same.
+std::string labelPiece(const std::string& trackId, double fromKm, double toKm) {
+	const std::string from = labelKm(fromKm);
+	const std::string to = labelKm(toKm);
+	return trackId + " " + from + (from == to ? std::string() : " to " + to);
+}
+
+// The references that SceneSectionInventory::resolve() matches to this section: its runtime id, its block id
+// and the block id that runtimeBlockId() wraps into its runtime id.
+std::vector<std::string> sectionReferences(const SceneSectionDescriptor& section) {
+	std::vector<std::string> references = {section.id};
+	if (!section.sourceBlockId.empty())
+		references.push_back(section.sourceBlockId);
+	const std::string& id = section.id;
+	if (id.size() > 2 && id.front() == '@' && id.back() == '@' && id[1] != '@' && id.find('/') == std::string::npos)
+		references.push_back(id.substr(1, id.size() - 2));
+	return references;
+}
+
 } // namespace
 
 std::string formatSceneSectionCoordinate(double coordinate) {
@@ -174,6 +203,54 @@ std::string formatSceneSectionCoordinate(double coordinate) {
 	std::snprintf(result.data(), result.size(), "%f", coordinate);
 	result.resize(static_cast<std::size_t>(length));
 	return result;
+}
+
+std::string sceneSectionLabel(const SceneSectionDescriptor& section) {
+	if (!section.connectionDerived)
+		return section.firstTrackId + " " + labelKm(section.startKm) + " to " + labelKm(section.endKm) + " km";
+	return labelPiece(section.firstTrackId, section.startKm, section.firstConnectionKm) + ", "
+		+ labelPiece(section.secondTrackId, section.secondConnectionKm, section.endKm) + " km";
+}
+
+std::string SceneSectionLabels::label(const std::string& reference) const {
+	const auto found = byReference.find(reference);
+	return found == byReference.end() ? reference : found->second;
+}
+
+std::string SceneSectionLabels::labelWithId(const std::string& reference) const {
+	std::string text = label(reference);
+	const std::string suffix = " (" + reference + ")";
+	// A label that two sections share already ends with the id.
+	if (text == reference || (text.size() > suffix.size() && text.compare(text.size() - suffix.size(), suffix.size(), suffix) == 0))
+		return text;
+	return text + suffix;
+}
+
+SceneSectionLabels sceneSectionLabels(const SceneSectionInventory& inventory) {
+	constexpr std::size_t kSeveral = std::numeric_limits<std::size_t>::max();
+	std::vector<std::string> texts;
+	texts.reserve(inventory.sections.size());
+	std::unordered_map<std::string, int> textCounts;
+	// The section that each reference names, or kSeveral when it names more than one.
+	std::unordered_map<std::string, std::size_t> named;
+	for (std::size_t index = 0; index < inventory.sections.size(); ++index) {
+		texts.push_back(sceneSectionLabel(inventory.sections[index]));
+		++textCounts[texts.back()];
+		for (const std::string& reference : sectionReferences(inventory.sections[index])) {
+			const auto inserted = named.emplace(reference, index);
+			if (!inserted.second && inserted.first->second != index)
+				inserted.first->second = kSeveral;
+		}
+	}
+	SceneSectionLabels labels;
+	for (const auto& [reference, index] : named) {
+		if (index == kSeveral)
+			continue;
+		const std::string& text = texts[index];
+		labels.byReference.emplace(reference,
+			textCounts[text] > 1 ? text + " (" + inventory.sections[index].id + ")" : text);
+	}
+	return labels;
 }
 
 const SceneSectionDescriptor* SceneSectionInventory::exact(const std::string& runtimeId) const {
@@ -218,6 +295,28 @@ const SceneSectionDescriptor* SceneSectionInventory::resolve(const std::string& 
 		}
 	}
 	return result;
+}
+
+// The validator refuses a signal failure whose target is both the id of a signal and a reference to a section.
+std::string sceneSignalFailureTarget(const SceneModel& scene, const SceneSectionInventory& inventory,
+	const std::string& sectionReference) {
+	const SceneSectionDescriptor* section = inventory.resolve(sectionReference);
+	if (!section)
+		return {};
+	const SceneSignal* protecting = nullptr;
+	int protectingCount = 0;
+	for (const SceneSignal& signal : scene.signals) {
+		if (!signal.protectedSection.empty() && inventory.resolve(signal.protectedSection) == section) {
+			protecting = &signal;
+			++protectingCount;
+		}
+	}
+	if (protectingCount == 1 && !protecting->id.empty() && !inventory.resolve(protecting->id))
+		return protecting->id;
+	const std::string& block = section->sourceBlockId;
+	const bool signalId = std::any_of(scene.signals.begin(), scene.signals.end(),
+		[&block](const SceneSignal& signal) { return signal.id == block; });
+	return block.empty() || signalId || inventory.resolve(block) != section ? std::string() : block;
 }
 
 SceneSectionTransition classifySceneSectionTransition(const SceneModel& scene,

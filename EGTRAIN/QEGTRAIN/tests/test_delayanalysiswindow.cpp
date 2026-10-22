@@ -223,9 +223,10 @@ bool exerciseCalls() {
 			&& tabWidget->tabText(2) == "Against baseline" && tabWidget->currentIndex() == 0,
 		"the tabs are Calls, Summary and Against baseline, and Calls is open");
 	ok &= expect(window.windowTitle() == "Delay analysis" && !window.isModal(), "the window is not modal");
-	ok &= expect(labelText(window, "dialogHeading") == "Delay analysis: follow-level-0"
-			&& labelText(window, "dialogContext") == "Run: Case A / follow-level-0\nBaseline: none set",
-		"the heading names the scenario and the context names the run");
+	for (const QTableWidget* tableWidget : window.findChildren<QTableWidget*>())
+		ok &= expect(!tableWidget->tabKeyNavigation(), "Tab leaves each table of the window");
+	ok &= expect(!window.findChild<QLabel*>("dialogHeading") && labelText(window, "dialogContext") == "Run: Case A / follow-level-0\nBaseline: none set",
+		"the window title is the only heading and the context names the run and its scenario");
 	const QTableWidget* calls = table(window, "delayCalls");
 	ok &= expect(headerTexts(calls)
 			== QStringList({"Service", "Occurrence", "Train", "Operating code", "Station", "Journey order", "Call", "Event", "Planned [s]",
@@ -236,6 +237,8 @@ bool exerciseCalls() {
 		"an arrival without a plan and without a time has no delay, not 0");
 	ok &= expect(rowTexts(calls, 1) == QStringList({"F1", "1", "F1-1", "", "B", "2", "1", "Arrival", "600", "331", "-269", "Early", "Available"}),
 		"an early arrival");
+	ok &= expect((calls->item(1, 10)->textAlignment() & Qt::AlignRight) && !(calls->item(1, 0)->textAlignment() & Qt::AlignRight),
+		"a delay is aligned to the right and a service to the left");
 	ok &= expect(rowTexts(calls, 4) == QStringList({"F2", "1", "F2-1", "", "B", "2", "1", "Arrival", "660", "817", "+157", "Late", "Available"}),
 		"a late arrival");
 	ok &= expect(rowTexts(calls, 5) == QStringList({"F2", "1", "F2-1", "", "C", "3", "1", "Arrival", "1160", "1150", "-10", "Early", "Available"}),

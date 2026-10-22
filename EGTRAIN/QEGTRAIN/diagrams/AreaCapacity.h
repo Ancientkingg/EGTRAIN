@@ -22,108 +22,113 @@
 // occupation. Occupations are not clipped to a time window: the caller chooses
 // the trains of the period and the period is only the denominator.
 
+/// One train of the run with the direction of its route.
 struct AreaCapacityTrain {
-	CapacityAnalysisTrain train;
-	// Route::reversed_direction of the route of the train. The chain keeps the
-	// trains that have the value of the first selected train.
+	CapacityAnalysisTrain train; ///< Identity, reference and occupations of the train
+	/// Route::reversed_direction of the route of the train. The chain keeps the
+	/// trains that have the value of the first selected train.
 	bool reversedDirection = false;
 };
 
+/// What analyzeAreaCapacity analyses.
 struct AreaCapacityInput {
-	// Empty ids, "None" and ids that repeat an earlier entry are ignored.
+	/// Empty ids, "None" and ids that repeat an earlier entry are ignored.
 	std::vector<std::string> resourceIds;
-	// The trains of the analysis in chain order. The module never reorders them.
+	/// The trains of the analysis in chain order. The module never reorders them.
 	std::vector<AreaCapacityTrain> selected;
-	// Every other train of the run. It may hold trains that touch nothing of the area.
+	/// Every other train of the run. It may hold trains that touch nothing of the area.
 	std::vector<AreaCapacityTrain> otherTraffic;
-	// Valid when it is finite and above 0.
+	/// Analysis period in seconds. Valid when it is finite and above 0.
 	double periodSeconds = -1.0;
-	// The cycle-closing occurrence of the chain, as for analyzeCapacity.
+	/// The cycle-closing occurrence of the chain, as for analyzeCapacity.
 	std::string cycleEndIdentity;
 };
 
-// One row per resource of the area, computed from the usable occupations of
-// the selected trains that belong to the resource.
+/// One row per resource of the area, computed from the usable occupations of
+/// the selected trains that belong to the resource.
 struct AreaCapacityResource {
-	std::string resourceId;
-	// Selected trains with at least one such occupation.
+	std::string resourceId; ///< A resource id of the input
+	/// Selected trains with at least one such occupation.
 	int trainCount = 0;
-	// Such occupations; a repeat on the same resource counts again.
+	/// Such occupations; a repeat on the same resource counts again.
 	int occupationCount = 0;
-	// Sum of endOccTime minus startOccTime over those occupations.
+	/// Sum of endOccTime minus startOccTime over those occupations.
 	double occupationSeconds = 0.0;
-	// Length of the union of those occupations; overlapping or touching ones count once.
+	/// Length of the union of those occupations; overlapping or touching ones count once.
 	double unionSeconds = 0.0;
-	// occupationSeconds / period * 100; -1.0 without a valid period.
+	/// occupationSeconds / period * 100; -1.0 without a valid period.
 	double occupationPercentage = -1.0;
-	// True for the rows whose occupationSeconds is the largest (within
-	// kBlockingTimeToleranceSeconds, ties all count) and above 0.
+	/// True for the rows whose occupationSeconds is the largest (within
+	/// kBlockingTimeToleranceSeconds, ties all count) and above 0.
 	bool governing = false;
 };
 
-// What a note reports. Each kind names the ids that it fills in
-// AreaCapacityNote; the other ids are empty.
+/// What a note reports. Each kind names the ids that it fills in
+/// AreaCapacityNote; the other ids are empty.
 enum class AreaCapacityNoteKind {
-	// No resource id is left. Nothing else is computed.
+	/// No resource id is left. Nothing else is computed.
 	EmptyScope,
-	// The period is not finite or not above 0. Every percentage is -1.0.
+	/// The period is not finite or not above 0. Every percentage is -1.0.
 	InvalidPeriod,
-	// trainId repeats the runtimeId of an earlier entry of selected or
-	// otherTraffic. The repeating entry is ignored.
+	/// trainId repeats the runtimeId of an earlier entry of selected or
+	/// otherTraffic. The repeating entry is ignored.
 	DuplicateIdentity,
-	// No selected train is left.
+	/// No selected train is left.
 	NoSelectedTraffic,
-	// trainId has an occupation on resourceId that fails
-	// validBlockingTimeDiagramInput. It is used nowhere else.
+	/// trainId has an occupation on resourceId that fails
+	/// validBlockingTimeDiagramInput. It is used nowhere else.
 	IncompleteOccupation,
-	// trainId has two or more usable occupations on resourceId.
+	/// trainId has two or more usable occupations on resourceId.
 	RepeatedResource,
-	// trainId has another reversedDirection than the first selected train. It
-	// is left out of the chain and still counts in the rows and the envelope.
+	/// trainId has another reversedDirection than the first selected train. It
+	/// is left out of the chain and still counts in the rows and the envelope.
 	OpposingTrain,
-	// trainId, a train of the chain, has a profile reference that is not
-	// finite or is below 0.
+	/// trainId, a train of the chain, has a profile reference that is not
+	/// finite or is below 0.
 	InvalidReference,
-	// The chain holds exactly one train.
+	/// The chain holds exactly one train.
 	FewerThanTwoTrains,
-	// The adjacent chain trains trainId and otherTrainId share no resource.
-	// Not reported when one of them has an invalid reference.
+	/// The adjacent chain trains trainId and otherTrainId share no resource.
+	/// Not reported when one of them has an invalid reference.
 	NoSharedResource,
-	// The chain holds at least two trains and its compressed occupations overlap.
+	/// The chain holds at least two trains and its compressed occupations overlap.
 	ChainConflict,
-	// trainId is in otherTraffic and has an occupation in the area, usable or not.
+	/// trainId is in otherTraffic and has an occupation in the area, usable or not.
 	UnselectedTraffic
 };
 
+/// One finding of the calculation.
 struct AreaCapacityNote {
+	/// What the note reports.
 	AreaCapacityNoteKind kind = AreaCapacityNoteKind::EmptyScope;
-	std::string trainId;
-	std::string otherTrainId;
-	std::string resourceId;
+	std::string trainId;	  ///< runtimeId of the train, when the kind names one
+	std::string otherTrainId; ///< runtimeId of the second train, NoSharedResource only
+	std::string resourceId;	  ///< The resource, when the kind names one
 };
 
+/// The result of analyzeAreaCapacity.
 struct AreaCapacityResult {
-	// The period of the input when it is valid, else -1.0.
+	/// The period of the input when it is valid, else -1.0.
 	double periodSeconds = -1.0;
-	// In the order of AreaCapacityInput::resourceIds.
+	/// In the order of AreaCapacityInput::resourceIds.
 	std::vector<AreaCapacityResource> resources;
-	// Latest endOccTime minus earliest startOccTime over all usable occupations
-	// of the selected trains, idle gaps included; -1.0 without such an
-	// occupation. This is the formula of the removed area calculation, reported
-	// for comparison only.
+	/// Latest endOccTime minus earliest startOccTime over all usable occupations
+	/// of the selected trains, idle gaps included; -1.0 without such an
+	/// occupation. This legacy envelope is reported for comparison only.
 	double envelopeSeconds = -1.0;
-	// envelopeSeconds / period * 100; -1.0 without a value or a valid period.
+	/// envelopeSeconds / period * 100; -1.0 without a value or a valid period.
 	double envelopePercentage = -1.0;
-	// analyzeCapacity for the selected trains that run in the direction of the first one.
+	/// analyzeCapacity for the selected trains that run in the direction of the first one.
 	CapacityAnalysisResult chain;
-	// True when some row has trainCount above 0 and no note of the kinds
-	// UnselectedTraffic, IncompleteOccupation or DuplicateIdentity exists. It
-	// says only that no train of the supplied lists that touches the area is
-	// missing from the selection and that no occupation in the area is
-	// unusable. When it is false the figures count only the selected traffic.
+	/// True when some row has trainCount above 0 and no note of the kinds
+	/// UnselectedTraffic, IncompleteOccupation or DuplicateIdentity exists. It
+	/// says only that no train of the supplied lists that touches the area is
+	/// missing from the selection and that no occupation in the area is
+	/// unusable. When it is false the figures count only the selected traffic.
 	bool complete = false;
-	// In the order of the steps of the calculation.
+	/// In the order of the steps of the calculation.
 	std::vector<AreaCapacityNote> notes;
 };
 
+/// Occupation rates of the resources, the envelope and the chain of the selected trains.
 AreaCapacityResult analyzeAreaCapacity(const AreaCapacityInput& input);

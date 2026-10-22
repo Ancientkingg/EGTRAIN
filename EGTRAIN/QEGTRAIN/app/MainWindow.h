@@ -45,6 +45,7 @@ class CompositionPanel;
 class ConsoleWidget;
 class ElidedLabel;
 class EntranceDelayPanel;
+class FindDialog;
 class FollowCamera;
 class IncidentPanel;
 class InfrastructurePanel;
@@ -72,6 +73,7 @@ class QPointF;
 class QProgressDialog;
 class QPushButton;
 class QSettings;
+class QShortcut;
 class QShowEvent;
 class QSlider;
 class QSpinBox;
@@ -112,79 +114,119 @@ class OperationObservation;
 struct CompletedRunData;
 struct GuiPassengerState;
 struct GuiSimulationSnapshot;
+struct IncidentTarget;
 struct SceneHistoryEntry;
 struct StableRelease;
 struct UpdateCheckResult;
 
 using namespace std;
 
+/// Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".
+/// The folder for crash notes, or an empty string when this run keeps none. QEGTRAIN_CRASH_DIR names a folder for any
+/// run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the
+/// notes of a user, and a normal run keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
+QString crashNoteFolder();
 bool startupTimingEnabled();
+/// Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off.
 void beginStartupTiming();
+/// Nanoseconds since beginStartupTiming() started the clock.
 qint64 startupTimingNowNanoseconds();
+/// Writes one QEGTRAIN_TIMING line of JSON to standard output when startup timing is on. `elapsedNanoseconds` is
+/// written in milliseconds. `iteration` 0 is the fresh process and higher ones are warm reloads; a negative
+/// `generation` and empty `invocation` and `source` are left out.
 void recordStartupTiming(const QString& phase, int iteration, int generation,
 	qint64 elapsedNanoseconds, const QString& invocation = {}, const QString& source = {},
 	bool identityOk = true, bool canonicalPreloadNested = false);
+/// Records the scene at `path`, as `loaded` read it, as the scene that startup timing expects. Does nothing when
+/// startup timing is off.
 void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult& loaded);
 
 namespace Ui {
 class MainWindow;
 }
 
+/// The main window: the network canvas, the editor and inspection docks, the menus and the toolbar. It owns the scene
+/// document and the controllers that open, run and save the scene (SceneSession, RunController, ResultViews,
+/// RunResultsDock), and serves as the Host of each of them.
 class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host, private InspectorPanel::Host, private ResultViews::Host, private RunResultsDock::Host {
 	Q_OBJECT
 
 public:
+	/// Builds the window with the scene document, its controllers, the recovery of unsaved edits and the update and
+	/// telemetry actions.
 	explicit MainWindow(QWidget* parent = nullptr);
 	~MainWindow() override;
 
-	// setup GUI
+	/// Shows the scene of the document on the canvas, with its station overlays and the trains to follow.
 	void setupGUI();
 
-	// teardown GUI (clears scene + item lists for in-place case study reload)
+	/// Stops a running simulation and empties the canvas, the replay and the selections, ready for another scene.
 	void teardownGUI();
 
-	// Load a canonical scene for the application entry point and scene chooser.
+	/// Opens the scene folder or bundle at `dir` now, for the entry point of the program and the scene chooser.
+	/// Returns false, with the scene unchanged, when it cannot be opened.
 	bool openSceneDirectory(const QString& dir);
 
-	// open GUI
+	/// Shows the window maximized, at most eight ninths of the screen when restored, and fits the view.
 	void openGUI();
 
-	// track ordering
+	/// Declared but not defined; nothing calls it.
 	void orderTracks();
 
-	// loading GIF
+	/// Declared but not defined; nothing calls it.
 	void setLoadingGIF();
+	/// Declared but not defined; nothing calls it.
 	void showLoadingGIF();
+	/// Declared but not defined; nothing calls it.
 	void stopLoadingGIF();
 
 
-	// fit view
+	/// Fits the canvas to the network, or to the preview bounds while a preview shows.
 	void fitView();
 
+	/// Creates the result views and the Run Results dock.
 	void setupRunResultsDock();
+	/// Writes the Run Results table of the completed run and shows the dock.
 	void refreshRunResults();
 
-	// train path diagram
+	/// Results of a completed run exist (RunController::hasRunResults()).
 	bool hasRunResults() const;
+	/// Enables the diagram entries and the Run Results dock while results exist; disabled entries tell how to get them.
 	void updateDiagramActions();
+	/// The Editors menu, which is created and put in the menu bar on the first call.
 	QMenu* editorsMenu();
+	/// Shows the case chooser with the bundled and the recent scenes, and acts on the choice.
 	void showStartupChooser();
 
-	// The last choice of View > Show Passengers, which the start uses when -pax is not given.
+	/// The last choice of View > Show Passengers, which the start uses when -pax is not given.
 	static bool savedShowPassengers();
 
 protected:
+	/// On the first show: offers recovery and the case chooser, then the privacy and update questions.
 	void showEvent(QShowEvent* e) override;
+	/// Asks about unsaved changes and stops a running simulation before the window closes.
 	void closeEvent(QCloseEvent* event) override;
+	/// Accepts the drag of one scene file (SceneSession::dragEnter()).
 	void dragEnterEvent(QDragEnterEvent* event) override;
+	/// Opens the scene file that was dropped (SceneSession::drop()).
 	void dropEvent(QDropEvent* event) override;
+	/// Takes the tab bars of tabbed docks and their scroll buttons out of the Tab order. The menus raise each dock, and Qt
+	/// keeps the bar of a single dock outside the window, where its focus cannot be seen. The bars show whole names and scroll.
+	void childEvent(QChildEvent* event) override;
+	/// Moves the focus as QWidget::focusNextPrevChild() does, but passes over the docks behind the front tab of a group.
+	bool focusNextPrevChild(bool next) override;
 
 public slots:
+	/// Shows the About dialog.
 	void handleHelpAbout();
-	// updates according to simulation
+	/// Takes the latest snapshot of the running simulation and draws it, at most about once every 33 ms. A snapshot that
+	/// arrives after the run stopped is dropped.
 	void waitForUpdates();
+	/// Zooms the canvas in by a factor of 1.15.
 	void zoomIn();
+	/// Zooms the canvas out by a factor of 1.15.
 	void zoomOut();
+	/// fitView() as a slot.
 	void fitToView();
 
 private:
@@ -283,8 +325,12 @@ private:
 	// The file that a recovered scene is a copy of. Save As starts there.
 	QString m_recoveredSourceHint;
 	bool m_recoveryFailureShown = false;
+	// The message about a failed autosave while the target of an incident is picked. It is shown when the pick ends.
+	QString m_heldRecoveryFailure;
 	QAction* m_undoAction = nullptr;
 	QAction* m_redoAction = nullptr;
+	QAction* m_findAction = nullptr;
+	FindDialog* m_findDialog = nullptr;
 	bool m_committingPendingEditorValues = false;
 	// The editor panels, in the order in which commitPendingEditorValues takes their pending edits.
 	std::vector<SceneEditorPanel*> m_editorPanels;
@@ -419,6 +465,8 @@ private:
 	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
 	QCheckBox* m_incidentTerminateAtDestinationCheck = nullptr;
 	QPushButton* m_addIncidentButton = nullptr;
+	// Esc while the target of an incident is picked on the network view; enabled only then.
+	QShortcut* m_endTargetPickShortcut = nullptr;
 	// entrance-delay editor: rows belong to the selected scenario
 	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
 	// Parts of m_entranceDelayPanel, for the scripted runs in tests/e2e
@@ -446,6 +494,8 @@ private:
 	QCheckBox* m_passengerLayerCheck = nullptr;
 	QAction* m_showMapKeyAction = nullptr;
 	QAction* m_showPassengersAction = nullptr;
+	// The passengers that the user chose to show. A case without passengers shows none and keeps the choice.
+	bool m_passengerChoice = false;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 	GuiReplayHistory m_completedReplay;
@@ -543,6 +593,10 @@ private:
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	void renderTrackPreview(const SceneModel& sceneModel);
 	void updateCaseLayersPanel();
+	// Shows the passengers of the case when the user chose them and the case has passengers, and enables the switch.
+	void updatePassengerSwitch();
+	// Shows or hides the passenger counts, icons and platform bars, and sets them for the next run.
+	void applyPassengerLayer(bool shown);
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
@@ -554,6 +608,10 @@ private:
 	void sceneDocumentChanged();
 	void invalidateAfterSceneChange();
 	void setupEditMenu();
+	// Opens Find over the stations, signals and trains on the canvas.
+	void showFind();
+	// Centres the view on the item with this label, zooms in to read it and selects it as a click does.
+	void goToFound(const QString& label);
 	void undoScene();
 	void redoScene();
 	void stepSceneHistory(bool redo);
@@ -565,8 +623,9 @@ private:
 	void recoverySceneChanged();
 	void recoverySceneSaved();
 	void recoverySceneReplaced(const RecoverySource& source);
-	// Offers the copies that an earlier run left behind. Returns whether the user opened one.
-	bool offerRecovery();
+	// Offers the copies that an earlier run left behind. Returns whether the user opened one. A crash note of the last run
+	// is named in the offer, or in a notice of its own when there is no copy to offer.
+	bool offerRecovery(const QString& crashNote = QString());
 	bool openRecoveredScene(const RecoveryCandidate& candidate);
 	std::set<std::string> modifiedScenarioIds() const;
 
@@ -602,6 +661,32 @@ private:
 
 	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
+	// The target that the selection on the network view gives an incident: a signal failure for a signal head, a breakdown
+	// of its occurrence for a train. The type is empty when the selection gives none, and `why` then says why when it is
+	// given. `selected` names what is selected, "signal", "train" or "item", for when it gives no target or the incident
+	// panel does not offer it, and is empty when nothing is selected.
+	IncidentTarget selectedIncidentTarget(QString& selected, QString* why = nullptr) const;
+	// The target that an item of the network view gives an incident, as selectedIncidentTarget does for the selection: a
+	// signal head of the track preview by its kind and id, which give none for another kind, a signal of the run, or a
+	// train of the run by its index. The type is empty when the item gives none, and `why` then says why when it is given.
+	IncidentTarget previewIncidentTarget(const QString& kind, const QString& id, QString* why = nullptr) const;
+	IncidentTarget signalIncidentTarget(const SignalItem& signal, QString* why = nullptr) const;
+	IncidentTarget trainIncidentTarget(int trainIndex, QString* why = nullptr) const;
+	// Why the context menu of a signal or a train (`what`) and the inspector cannot add an incident with the target of the
+	// item now, or empty when they can. `why` says why the item gives no target.
+	QString viewIncidentBlocked(const IncidentTarget& target, const QString& what, const QString& why) const;
+	// Shows the button of the inspector that adds an incident while it shows a signal or a train, enabled as the context
+	// menu of the item is.
+	void updateInspectorIncidentAction();
+	// Adds an incident with the target of a signal or a train of the network view to the selected scenario, as Add
+	// Incident does, and shows it on the Incidents tab with the focus on its start. Nothing happens when the incident
+	// panel does not offer the target or the scene cannot be edited.
+	void addIncidentFromView(const IncidentTarget& target);
+	// Starts or ends picking the target of the selected incident on the network view: the cursor of the view, the hint in
+	// the status bar and the Esc shortcut.
+	void setIncidentTargetPick(bool picking);
+	// While picking, gives the selected incident the target of what was just selected on the network view.
+	void pickIncidentTarget();
 	SceneScenario* selectedScenario();
 	std::vector<SceneIncident>& selectedScenarioIncidents();
 	void refreshRunResultsSummary();

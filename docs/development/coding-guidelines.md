@@ -10,8 +10,9 @@ Formatting follows `.clang-format` and `.editorconfig` in the repository root.
 `python3 tools/format.py --fix` formats every C++ source under `EGTRAIN/QEGTRAIN`, and
 `python3 tools/format.py` checks them and lists the files that differ. The pull request
 checks run the same check. The script needs clang-format 23.1.3, because other releases
-format some constructs differently: `python3 -m pip install clang-format==23.1.3`
-installs it, and the environment variable `CLANG_FORMAT` names the executable when it is
+format some constructs differently: `python3 -m venv ~/fmt-venv && ~/fmt-venv/bin/pip install clang-format==23.1.3`
+installs it in a virtual environment (the Python of Ubuntu 24.04 and of Homebrew takes no packages from `pip`
+directly), and the environment variable `CLANG_FORMAT` names the executable when it is
 not the `clang-format` on `PATH`. The vendored code in `io/third_party/` is listed in
 `.clang-format-ignore` and is not reformatted.
 
@@ -30,11 +31,11 @@ the blame view of GitHub skips them without a setting.
 and lists the findings; it exits with 1 on any finding. The pull request checks run the
 same script. It configures a Ninja build in `build_tidy/` (`--build-dir` changes it), builds
 the files that Qt generates (moc, uic and resources), and analyses the sources of the build
-in parallel. It needs CMake, Ninja, Qt 5 and clang-tidy 23.1, the release that the findings
+in parallel. It needs CMake, Ninja, Qt 6 and clang-tidy 23.1, the release that the findings
 are agreed for: `brew install llvm` on macOS, or the `llvm.sh` script of apt.llvm.org on
 Ubuntu (PyPI has no clang-tidy 23). The environment variable `CLANG_TIDY` names the
-executable when it is not the `clang-tidy` on PATH. The script adds the macOS SDK path
-itself.
+executable when it is not the `clang-tidy` on PATH. Set `CMAKE_PREFIX_PATH` to the Qt 6 folder. The
+script adds the macOS SDK path itself.
 
 - `python3 tools/tidy.py` analyses every source.
 - `python3 tools/tidy.py FILE...` analyses the named sources.
@@ -99,8 +100,8 @@ target that links a library does not get them.
   warning fails the build.
 - `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
   build log come from the simulation headers.
-- These have no flags: the vendored `egtrain_pugixml` and `egtrain_miniz`, the legacy
-  `egtrain_sim` and `egtrain_rttp`, `QEGTRAIN`, and the test executables that use the
+- These have no flags: the vendored `egtrain_miniz`, the legacy
+  `egtrain_sim`, `QEGTRAIN`, and the test executables that use the
   simulation. A comment next to the calls gives the number of warnings.
 - `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp`, `app/UpdateTelemetryController.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
@@ -348,8 +349,7 @@ to the console directly.
   following mode, arrivals, departures and the failure to write an arrival message,
   `sim.step` at `debug`, which is off by default, for messages written once per step by a
   train in the trajectory code, and `sim.pax` for passengers. The application uses `app.run`
-  for the banners and the progress of a run. `io/RttpXml.cpp` uses `io.railml`, and the legacy
-  sender (`io/ExternalState.cpp` and the XML that `app/DispatchController.cpp` sends) uses
+  for the banners and the progress of a run. The live server (`io/LiveServer.cpp`) uses
   `io.zmq`.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
@@ -386,7 +386,7 @@ add_test(NAME test_timeformat COMMAND test_timeformat)
 
 Then add the name to `egtrain_label_tests(unit ...)` or `egtrain_label_tests(integration ...)`
 lower in that block, and to the `gui` and `slow` lists where they apply
-([Test labels](build-and-test.md#test-labels)). Configuration fails when a test has neither
+([Test labels](testing.md#test-labels)). Configuration fails when a test has neither
 `unit` nor `integration`, or both. A test that needs a Qt platform plugin also sets
 `ENVIRONMENT "QT_QPA_PLATFORM=offscreen"`.
 
@@ -399,7 +399,7 @@ lower in that block, and to the `gui` and `slow` lists where they apply
   build a model that breaks the rule and assert the diagnostic code, plus severity or path
   where they matter (`hasCodeAndSeverity` in `tests/test_scenevalidator.cpp`).
 - The gate to run depends on the kind of change (UI or rendering, simulation or scene
-  model, scene format); see [Verification Gates](build-and-test.md#verification-gates).
+  model, scene format); see [Verification Gates](testing.md#verification-gates).
 
 `tests/e2e/CMakeLists.txt` adds the sources of the scripted GUI scenarios to `QEGTRAIN` when
 tests are built. `MainWindowTestAccess` is the friend of `MainWindow` for them, a scenario with its

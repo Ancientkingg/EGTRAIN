@@ -1,6 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include "app/DispatchController.h"
+#include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "ui_MainWindow.h"
@@ -19,6 +20,9 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/PlatformItem.h"
+#include "graphics/items/SignalItem.h"
+#include "graphics/items/TrainBodyItem.h"
 #include "graphics/NetworkScene.h"
 #include "recovery/RecoveryController.h"
 #include "recovery/RecoveryStore.h"
@@ -43,6 +47,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/FocusWheel.h"
+#include "widgets/InfoDockWidget.h"
 #include <QAbstractButton>
 #include <QAbstractItemDelegate>
 #include <QAbstractSpinBox>
@@ -55,6 +60,7 @@
 #include <QColor>
 #include <QComboBox>
 #include <QCoreApplication>
+#include <QCursor>
 #include <QDateTime>
 #include <QDialog>
 #include <QDir>
@@ -72,15 +78,18 @@
 #include <QHeaderView>
 #include <QHelpEvent>
 #include <QIODevice>
+#include <QImage>
 #include <QInputDialog>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QLineF>
 #include <QList>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QMenu>
 #include <QMenuBar>
 #include <QMetaObject>
 #include <QObject>
@@ -93,10 +102,13 @@
 #include <QRectF>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QScopedValueRollback>
+#include <QScreen>
 #include <QScrollArea>
 #include <QSlider>
 #include <QScrollBar>
 #include <QSettings>
+#include <QShortcut>
 #include <QSize>
 #include <QSpinBox>
 #include <QStatusBar>
@@ -104,6 +116,7 @@
 #include <QStringList>
 #include <QStyle>
 #include <QStyleOptionViewItem>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -116,6 +129,7 @@
 #include <QVariant>
 #include <QWheelEvent>
 #include <QWidget>
+#include <QWindow>
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
@@ -135,6 +149,14 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+// QtGui exports this function for Qt Test. It delivers a mouse event as the window system does, so that
+// QGuiApplication::mouseButtons() follows the button and a second press makes a double click.
+Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
+	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
+// Also exported for Qt Test. It offers a key press to the shortcuts as a real one is offered, and is true when one took it.
+Q_GUI_EXPORT bool qt_sendShortcutOverrideEvent(QObject* o, ulong timestamp, int k, Qt::KeyboardModifiers mods,
+	const QString& text = QString(), bool autorep = false, ushort count = 1);
 
 namespace {
 
@@ -866,12 +888,21 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "stations/signalling", "platform table authoring or station move did not apply");
 				if (!addInfrastructureRow("signals") || !setInfrastructureCell("signals", 0, 0, "e2e-signal"))
 					facetFailure(facetOk, "stations/signalling", "signal table authoring did not apply");
+				// The runtime id of the section of a block, or of the first switch section of a connection. The section
+				// choices show labels and keep these ids as their data.
+				const auto sectionIdOf = [&](const std::string& blockId, const std::string& connectionId = std::string()) {
+					for (const SceneSectionDescriptor& section :
+						buildSceneSectionInventory(w.m_document->mutableModel()).sections)
+						if (connectionId.empty() ? section.sourceBlockId == blockId
+												 : section.sourceConnectionId == connectionId)
+							return QString::fromStdString(section.id);
+					return QString();
+				};
 				if (!chooseInfrastructureFacet("signals")) {
 					facetFailure(facetOk, "stations/signalling", "signal section choices were unavailable");
 				} else {
 					auto* protectedSection = qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 1));
-					const int blockChoice = protectedSection ? protectedSection->findText(
-																   QStringLiteral("base block e2e-main-block-inserted / track e2e-main"))
+					const int blockChoice = protectedSection ? protectedSection->findData(sectionIdOf("e2e-main-block-inserted"))
 															 : -1;
 					if (blockChoice < 0) {
 						facetFailure(facetOk, "stations/signalling", "creator-facing signal section choice was missing");
@@ -1043,19 +1074,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					auto* routeRemoveSection = w.findChild<QPushButton*>("routeRemoveSectionButton");
 					auto* routeMoveUp = w.findChild<QPushButton*>("routeMoveUpButton");
 					auto* routeMoveDown = w.findChild<QPushButton*>("routeMoveDownButton");
-					const int mainChoice = routeCatalog ? routeCatalog->findText(
-															  QStringLiteral("base block e2e-main-block-0 / track e2e-main"))
+					const int mainChoice = routeCatalog ? routeCatalog->findData(sectionIdOf("e2e-main-block-0"))
 														: -1;
-					const int yardChoice = routeCatalog ? routeCatalog->findText(
-															  QStringLiteral("base block e2e-yard-block-2 / track e2e-yard"))
+					const int yardChoice = routeCatalog ? routeCatalog->findData(sectionIdOf("e2e-yard-block-2"))
 														: -1;
-					int connectionChoice = -1;
-					if (routeCatalog)
-						for (int index = 0; index < routeCatalog->count(); ++index)
-							if (routeCatalog->itemText(index).startsWith("connection e2e-switch /")) {
-								connectionChoice = index;
-								break;
-							}
+					const int connectionChoice = routeCatalog ? routeCatalog->findData(sectionIdOf({}, "e2e-switch")) : -1;
 					if (!routeCatalog || !routeAddSection || !routeList || !routeRemoveSection
 						|| !routeMoveUp || !routeMoveDown || mainChoice < 0 || connectionChoice < 0
 						|| yardChoice < 0) {
@@ -1091,7 +1114,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 				}
 				const auto selectSectionCell = [&](const char* facet, int row, int column,
-												   const QString& preferredPrefix = QString()) {
+												   const QString& preferredId = QString()) {
 					if (!chooseInfrastructureFacet(facet))
 						return QString();
 					auto* combo = qobject_cast<QComboBox*>(infrastructureTable->cellWidget(row, column));
@@ -1100,7 +1123,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					int choice = -1;
 					for (int index = 0; index < combo->count(); ++index) {
 						if (!combo->itemData(index).toString().isEmpty()
-							&& (preferredPrefix.isEmpty() || combo->itemText(index).startsWith(preferredPrefix))) {
+							&& (preferredId.isEmpty() || combo->itemData(index).toString() == preferredId)) {
 							choice = index;
 							break;
 						}
@@ -1123,9 +1146,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "stations/signalling", "dependency row add/delete cycle failed");
 				}
 				const QString dependencyBlock = selectSectionCell("block_dependencies", 0, 0,
-					"connection e2e-switch /");
+					sectionIdOf({}, "e2e-switch"));
 				const QString dependencyDependsOn = selectSectionCell("block_dependencies", 0, 1,
-					"base block e2e-main-block-inserted / track e2e-main");
+					sectionIdOf("e2e-main-block-inserted"));
 				if (dependencyBlock.isEmpty() || dependencyDependsOn.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "dependency selectors did not expose catalog choices");
 				if (!recreateIncompleteRow("single_track_restrictions",
@@ -1133,22 +1156,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "stations/signalling", "restriction row add/delete cycle failed");
 				}
 				const QString restrictionStart = selectSectionCell("single_track_restrictions", 0, 0,
-					"base block e2e-main-block-inserted / track e2e-main");
+					sectionIdOf("e2e-main-block-inserted"));
 				const QString restrictionEnd = selectSectionCell("single_track_restrictions", 0, 1,
-					"base block e2e-yard-block-2 / track e2e-yard");
+					sectionIdOf("e2e-yard-block-2"));
 				const QString restrictionProtectedStart = selectSectionCell("single_track_restrictions", 0, 2,
-					"connection e2e-switch /");
+					sectionIdOf({}, "e2e-switch"));
 				const QString restrictionProtectedEnd = selectSectionCell("single_track_restrictions", 0, 3,
-					"base block e2e-yard-block-2 / track e2e-yard");
+					sectionIdOf("e2e-yard-block-2"));
 				if (restrictionStart.isEmpty() || restrictionEnd.isEmpty() || restrictionProtectedStart.isEmpty() || restrictionProtectedEnd.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "restriction selectors did not expose catalog choices");
 				if (!recreateIncompleteRow("station_boundaries", w.m_document->mutableModel().stationBoundaries)) {
 					facetFailure(facetOk, "stations/signalling", "boundary row add/delete cycle failed");
 				}
 				const QString boundaryEntrance = selectSectionCell("station_boundaries", 0, 0,
-					"base block e2e-main-block-inserted / track e2e-main");
+					sectionIdOf("e2e-main-block-inserted"));
 				const QString boundaryExit = selectSectionCell("station_boundaries", 0, 1,
-					"base block e2e-yard-block-2 / track e2e-yard");
+					sectionIdOf("e2e-yard-block-2"));
 				if (!setInfrastructureCell("station_boundaries", 0, 2, "false")
 					|| boundaryEntrance.isEmpty() || boundaryExit.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "boundary selectors did not expose entrance and exit choices");
@@ -1264,10 +1287,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (w.m_addIncidentButton && w.m_incidentListWidget && w.m_incidentTargetCombo) {
 					w.m_addIncidentButton->click();
 					QApplication::processEvents();
-					if (w.m_incidentTargetCombo->findText("e2e-signal") < 0)
+					if (w.m_incidentTargetCombo->findData("e2e-signal") < 0)
 						facetFailure(facetOk, "stations/signalling", "signal incident target choices did not refresh immediately");
 					else {
-						w.m_incidentTargetCombo->setCurrentText("e2e-signal");
+						w.m_incidentTargetCombo->setCurrentIndex(w.m_incidentTargetCombo->findData("e2e-signal"));
 						if (w.m_incidentStartSecondsEdit && w.m_incidentEndSecondsEdit) {
 							w.m_incidentStartSecondsEdit->setText("10");
 							w.m_incidentEndSecondsEdit->setText("20");
@@ -1282,11 +1305,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					w.m_addIncidentButton->click();
 					QApplication::processEvents();
 					const bool blockTargetOffered = w.m_incidentTargetCombo
-						&& w.m_incidentTargetCombo->findText(QString::fromStdString(renamedBlockId)) >= 0;
+						&& w.m_incidentTargetCombo->findData(QString::fromStdString(renamedBlockId)) >= 0;
 					if (!blockTargetOffered) {
 						facetFailure(facetOk, "stations/signalling", "block signal_failure target was not offered");
 					} else {
-						w.m_incidentTargetCombo->setCurrentText(QString::fromStdString(renamedBlockId));
+						w.m_incidentTargetCombo->setCurrentIndex(
+							w.m_incidentTargetCombo->findData(QString::fromStdString(renamedBlockId)));
 						w.m_incidentPanel->commitTarget();
 						const SceneIncident* blockIncident = w.m_incidentPanel->selectedIncident();
 						if (!blockIncident || blockIncident->target != renamedBlockId)
@@ -2186,32 +2210,33 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const std::array<double, 5> tractionValues = {{0.123456789012345, 10.1234567890123, 100.1234567890123,
 					2.1234567890123, 0.5000000012345}};
 				for (int column = 0; column < 5; ++column) {
-					auto* edit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->cellWidget(row, column));
-					if (!edit) {
-						facetFailure(facetOk, "train unit", "traction numeric editor unavailable");
+					QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(row, column);
+					if (!tractionCell) {
+						facetFailure(facetOk, "train unit", "traction cell unavailable");
 						continue;
 					}
-					edit->setValue(tractionValues[column]);
+					tractionCell->setData(Qt::EditRole, tractionValues[column]);
 				}
 				w.m_trainUnitPanel->addTractionRow();
 				if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
 					facetFailure(facetOk, "train unit", "second traction row add did not apply");
 				else {
+					// The editor of a cell opens at the current cell, so Delete Traction Row removes the row that is being edited.
 					const int secondRow = w.m_trainUnitTractionTable->rowCount() - 1;
-					auto* secondRowEdit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->cellWidget(secondRow, 0));
+					w.m_trainUnitTractionTable->setCurrentCell(secondRow, 0);
+					w.m_trainUnitTractionTable->editItem(w.m_trainUnitTractionTable->currentItem());
+					auto* secondRowEdit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->indexWidget(w.m_trainUnitTractionTable->currentIndex()));
 					if (!secondRowEdit) {
 						facetFailure(facetOk, "train unit", "second traction numeric editor unavailable");
 					} else {
 						secondRowEdit->setValue(10.9876543210987);
-						w.m_trainUnitTractionTable->setCurrentCell(row, 0);
-						secondRowEdit->setFocus();
-						QMetaObject::invokeMethod(secondRowEdit, "editingFinished", Qt::DirectConnection);
+						w.m_trainUnitPanel->commitPendingEditors();
 					}
 					w.m_trainUnitPanel->removeTractionRow();
 					if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1)
 						facetFailure(facetOk, "train unit", "traction row delete did not apply");
 					else if (w.m_document->mutableModel().trainUnits[originalCount].tractionCurve[initialCurveRows] != tractionValues)
-						facetFailure(facetOk, "train unit", "editing a non-current traction row deleted the wrong row");
+						facetFailure(facetOk, "train unit", "deleting the traction row that is being edited deleted another row");
 				}
 			}
 
@@ -3635,6 +3660,200 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (scenarioTabs->currentWidget() != w.m_incidentPanel || !opened || opened->id != editedIncidentId)
 				facetFailure(facetOk, "incident", "opening an incident from Loaded Data did not show it on the Incidents tab");
 		}
+		// A signal head that is selected on the network view is the target of a new incident. The scene has no authored
+		// signal, so the target is the block of the section of the head.
+		QGraphicsItem* head = nullptr;
+		if (w.scene && w.m_showingTrackPreview)
+			for (QGraphicsItem* item : w.scene->items())
+				if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "signal")
+					head = item;
+		const SceneSectionInventory sections = buildSceneSectionInventory(w.m_document->model());
+		const SceneSectionDescriptor* headSection = head
+			? sections.resolve(head->data(PreviewGraphics::Id).toString().toStdString())
+			: nullptr;
+		if (!headSection || headSection->sourceBlockId.empty() || !sceneSignals(w.m_document->model()).empty()) {
+			facetFailure(facetOk, "incident", "the track preview has no signal head of a block in a scene without authored signals");
+		} else {
+			const QString headId = head->data(PreviewGraphics::Id).toString();
+			const QString blockId = QString::fromStdString(headSection->sourceBlockId);
+			const int countBefore = w.m_incidentListWidget->count();
+			w.scene->select(head);
+			w.m_addIncidentButton->click();
+			QApplication::processEvents();
+			const SceneIncident* added = w.m_incidentListWidget->count() == countBefore + 1 ? w.m_incidentPanel->selectedIncident() : nullptr;
+			if (!added || added->type != "signal_failure" || QString::fromStdString(added->target) != blockId)
+				facetFailure(facetOk, "incident",
+					QString("Add Incident with the signal head of section %1 selected gave the target '%2', not the block %3 (offered: %4)")
+						.arg(headId, added ? QString::fromStdString(added->target) : QString(), blockId,
+							w.m_incidentTargetCombo->findData(blockId) > 0 ? "yes" : "no"));
+			if (added) {
+				// The pick button waits for a signal or a train on the network view, and an arc keeps it waiting. The signal
+				// head makes the incident, a breakdown by then, a signal failure of the block again. Esc ends a pick and clears its
+				// message.
+				w.m_inspector->handleDisableHighlight();
+				w.m_incidentTypeCombo->setCurrentText("train_breakdown");
+				QGraphicsItem* arc = nullptr;
+				for (QGraphicsItem* item : w.scene->items())
+					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
+						arc = item;
+				QToolButton* pick = w.m_incidentPanel->pickTargetButton();
+				pick->click();
+				QApplication::processEvents();
+				const QString hint = "Click a signal or a train for the incident target. Esc cancels.";
+				const bool started = w.m_incidentPanel->isPickingTarget() && w.m_endTargetPickShortcut->isEnabled()
+					&& w.m_endTargetPickShortcut->key() == QKeySequence(Qt::Key_Escape)
+					&& w.networkView->viewport()->cursor().shape() == Qt::CrossCursor && w.statusBar()->currentMessage() == hint;
+				w.scene->select(arc);
+				QApplication::processEvents();
+				// The message fits where the hint fits.
+				const QString retry = w.statusBar()->currentMessage();
+				const bool kept = arc && w.m_incidentPanel->isPickingTarget() && retry == "Not a signal or a train. Click one, or press Esc."
+					&& w.statusBar()->fontMetrics().horizontalAdvance(retry) <= w.statusBar()->fontMetrics().horizontalAdvance(hint);
+				w.scene->select(head);
+				QApplication::processEvents();
+				const SceneIncident* picked = w.m_incidentPanel->selectedIncident();
+				const bool applied = picked && picked->type == "signal_failure" && QString::fromStdString(picked->target) == blockId
+					&& !pick->isChecked() && !w.m_endTargetPickShortcut->isEnabled()
+					&& w.networkView->viewport()->cursor().shape() == Qt::OpenHandCursor;
+				pick->click();
+				w.scene->select(arc);
+				QApplication::processEvents();
+				const bool restarted = w.m_incidentPanel->isPickingTarget() && w.statusBar()->currentMessage() == retry;
+				// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
+				w.activateWindow();
+				QApplication::processEvents();
+				const bool escTaken = qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
+				QApplication::processEvents();
+				const bool ended = restarted && escTaken && !w.m_incidentPanel->isPickingTarget()
+					&& !w.m_endTargetPickShortcut->isEnabled() && w.statusBar()->currentMessage().isEmpty();
+				// Without a pick no shortcut takes Esc, so it reaches the focused widget, such as an open cell.
+				const bool escLeft = !qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
+				const auto yes = [](bool value) { return value ? "yes" : "no"; };
+				if (!started || !kept || !applied || !ended || !escLeft)
+					facetFailure(facetOk, "incident",
+						QString("picking the target on the network view failed (started: %1, kept on an arc: %2, picked: %3, ended by Esc: %4, "
+								"Esc left to the focus without a pick: %5)")
+							.arg(yes(started), yes(kept), yes(applied), yes(ended), yes(escLeft)));
+				acceptConfirmation();
+				w.m_incidentPanel->deleteIncident();
+			}
+			w.m_inspector->handleDisableHighlight();
+			// The menu of a signal head adds a signal failure of the block, from an entry in a group of its own after Show
+			// details. The Incidents tab shows the new incident with the focus on its start, and Undo takes the one edit back.
+			// The entry says why it is disabled when the head gives no target: no head stands at a switch section, but a block
+			// that shares its id with a signal gives none.
+			{
+				const QString hint = "Click a signal or a train for the incident target. Esc cancels.";
+				const QString headTrack = head->data(PreviewGraphics::TrackId).toString();
+				const bool headReversed = head->data(PreviewGraphics::Reversed).toBool();
+				const QPointF centre = head->sceneBoundingRect().center();
+				const auto openMenu = [&]() -> QAction* {
+					w.showSceneContextMenu(head, centre, w.networkView->viewport()->mapToGlobal(w.networkView->mapFromScene(centre)), false);
+					QMenu* menu = w.m_sceneContextMenu.data();
+					const QList<QAction*> entries = menu ? menu->actions() : QList<QAction*>();
+					const bool grouped = menu && menu->toolTipsVisible() && entries.value(0) && entries.value(0)->text() == "Show details"
+						&& entries.value(1) && entries.value(1)->isSeparator() && entries.value(2)
+						&& entries.value(2)->text() == "Add signal failure" && entries.value(3) && entries.value(3)->isSeparator();
+					return grouped ? entries.value(2) : nullptr;
+				};
+				sceneSignals(w.m_document->mutableModel()).push_back(SceneSignal{blockId.toStdString(), {}});
+				QAction* refused = openMenu();
+				const bool explained = refused && !refused->isEnabled() && refused->toolTip() == "No block or signal to fail here";
+				sceneSignals(w.m_document->mutableModel()).pop_back();
+				w.closeSceneContextMenu();
+				w.commitPendingEditorValues();
+				w.m_incidentDock->hide();
+				if (scenarioTabs)
+					scenarioTabs->setCurrentWidget(w.m_scenarioPanel);
+				const std::vector<SceneIncident> before = w.selectedScenarioIncidents();
+				const std::shared_ptr<const SceneModel> stateBefore = w.m_history->head();
+				QAction* entry = openMenu();
+				QMenu* menu = w.m_sceneContextMenu.data();
+				const bool offered = entry && entry->isEnabled();
+				if (offered) {
+					entry->trigger();
+					menu->close();
+				}
+				w.activateWindow();
+				QApplication::processEvents();
+				const std::vector<SceneIncident>& incidents = w.selectedScenarioIncidents();
+				const SceneIncident* added = incidents.size() == before.size() + 1 ? w.m_incidentPanel->selectedIncident() : nullptr;
+				const QString message = w.statusBar()->currentMessage();
+				const bool shown = added && added == &incidents.back() && added->type == "signal_failure"
+					&& QString::fromStdString(added->target) == blockId && w.m_incidentDock->isVisible() && scenarioTabs
+					&& scenarioTabs->currentWidget() == w.m_incidentPanel && QApplication::focusWidget() == w.m_incidentStartSecondsEdit
+					&& message == QString("Added a signal failure of %1.").arg(blockId)
+					&& w.statusBar()->fontMetrics().horizontalAdvance(message) <= w.statusBar()->fontMetrics().horizontalAdvance(hint);
+				// The history keeps a limited number of steps, so one Undo must reach the state before. Undo runs only after an
+				// edit, so that a failed check does not take back an earlier one.
+				const bool changed = w.m_history->head() != stateBefore;
+				const bool oneEdit = changed && w.m_history->undoLabel() == "Add incident";
+				if (changed)
+					w.m_undoAction->trigger();
+				QApplication::processEvents();
+				const bool undone = oneEdit && w.m_history->head() == stateBefore && w.m_history->redoLabel() == "Add incident"
+					&& sameIncidents(before, w.selectedScenarioIncidents());
+				const auto yes = [](bool value) { return value ? "yes" : "no"; };
+				if (!explained || !offered || !shown || !undone)
+					facetFailure(facetOk, "incident",
+						QString("the menu of a signal head did not add a signal failure of block %1 (disabled without a target: %2, "
+								"offered: %3, added and shown: %4, one edit that Undo takes back: %5; status: %6)")
+							.arg(blockId, yes(explained), yes(offered), yes(shown), yes(undone), message));
+				// The inspector of the signal head has the same action as a button under its form, and an arc has none. Undo drew
+				// the preview again, so the head is another item now.
+				head = w.m_inspector->resolvePreviewItem("signal", headId, headTrack, headReversed, w.m_document->revision());
+				QPushButton* button = w.m_inspector->incidentButton;
+				QGraphicsItem* arc = nullptr;
+				for (QGraphicsItem* item : w.scene->items())
+					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
+						arc = item;
+				if (arc)
+					w.scene->select(arc);
+				QApplication::processEvents();
+				const bool hiddenForArc = arc && button && button->objectName() == "inspectorIncidentButton" && button->isHidden();
+				sceneSignals(w.m_document->mutableModel()).push_back(SceneSignal{blockId.toStdString(), {}});
+				w.scene->select(head);
+				QApplication::processEvents();
+				const bool buttonExplained = button && button->isVisible() && !button->isEnabled()
+					&& button->toolTip() == "No block or signal to fail here";
+				sceneSignals(w.m_document->mutableModel()).pop_back();
+				w.m_inspector->handleDisableHighlight();
+				w.m_incidentDock->hide();
+				if (scenarioTabs)
+					scenarioTabs->setCurrentWidget(w.m_scenarioPanel);
+				w.scene->select(head);
+				QApplication::processEvents();
+				const bool buttonOffered = button && button->isVisible() && button->isEnabled() && button->text() == "Add signal failure"
+					&& button->accessibleName() == button->text() && button->toolTip().isEmpty();
+				const std::shared_ptr<const SceneModel> stateBeforeButton = w.m_history->head();
+				if (buttonOffered)
+					button->click();
+				w.activateWindow();
+				QApplication::processEvents();
+				const SceneIncident* fromButton = w.selectedScenarioIncidents().size() == before.size() + 1
+					? w.m_incidentPanel->selectedIncident()
+					: nullptr;
+				const bool buttonAdded = fromButton && fromButton == &w.selectedScenarioIncidents().back()
+					&& fromButton->type == "signal_failure" && QString::fromStdString(fromButton->target) == blockId
+					&& w.m_incidentDock->isVisible() && scenarioTabs && scenarioTabs->currentWidget() == w.m_incidentPanel
+					&& QApplication::focusWidget() == w.m_incidentStartSecondsEdit
+					&& w.statusBar()->currentMessage() == QString("Added a signal failure of %1.").arg(blockId)
+					&& w.m_history->undoLabel() == "Add incident";
+				const bool buttonChanged = w.m_history->head() != stateBeforeButton;
+				if (buttonChanged)
+					w.m_undoAction->trigger();
+				QApplication::processEvents();
+				const bool buttonUndone = buttonChanged && w.m_history->head() == stateBeforeButton
+					&& sameIncidents(before, w.selectedScenarioIncidents());
+				if (!hiddenForArc || !buttonExplained || !buttonOffered || !buttonAdded || !buttonUndone)
+					facetFailure(facetOk, "incident",
+						QString("the inspector of a signal head did not do what its menu does (hidden for an arc: %1, disabled without "
+								"a target: %2, offered: %3, added and shown: %4, undone: %5; status: %6)")
+							.arg(yes(hiddenForArc), yes(buttonExplained), yes(buttonOffered), yes(buttonAdded), yes(buttonUndone),
+								w.statusBar()->currentMessage()));
+				w.m_inspector->handleDisableHighlight();
+			}
+		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
 	}
@@ -4174,7 +4393,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			for (int row = 0; row < w.m_stopTableWidget->rowCount(); ++row) {
 				for (int column = 3; column < 5; ++column) {
 					const QModelIndex cell = w.m_stopTableWidget->model()->index(row, column);
-					if (w.m_stopTableWidget->itemDelegate(cell)->sizeHint(option, cell).width() > w.m_stopTableWidget->columnWidth(column))
+					if (w.m_stopTableWidget->itemDelegate()->sizeHint(option, cell).width() > w.m_stopTableWidget->columnWidth(column))
 						failure = QString("the clock time '%1' is elided on the Timetable tab").arg(cell.data().toString());
 				}
 			}
@@ -4453,6 +4672,24 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			dock->setFont(normalFont);
 		}
+		{
+			// Once a dock has been resized, Qt opens a dock at the width that its side of the window had last. The Rolling stock
+			// dock that opens after a narrow Incidents dock is still as wide as its own size hint.
+			w.m_caseLayersDock->show();
+			w.m_incidentDock->show();
+			QApplication::processEvents();
+			w.resizeDocks({w.m_incidentDock}, {300}, Qt::Horizontal);
+			QApplication::processEvents();
+			w.m_incidentDock->hide();
+			w.m_trainUnitDock->show();
+			QApplication::processEvents();
+			const QString failure = trainUnitButtonFailure();
+			if (!failure.isEmpty())
+				facetFailure(ok, "presentation", failure + " when it opens after a narrower dock at 1280 by 800 pixels");
+			w.m_trainUnitDock->hide();
+			w.m_caseLayersDock->hide();
+			QApplication::processEvents();
+		}
 		if (ok) {
 			// A window of 1280 by 698 pixels with Loaded Data below the network: the Case and Layers rail is too short for its
 			// content and scrolls, and a long case name without spaces and the first layer toggle stay whole.
@@ -4507,6 +4744,52 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const QString timetableFailure = timetableTabFailure();
 			if (!timetableFailure.isEmpty())
 				facetFailure(ok, "presentation", timetableFailure + " at 1280 by 698 pixels");
+
+			// Beside Case and Layers in a window of 819 by 614 pixels (1024 by 768 at 125 percent) the Services dock opens at the
+			// width of its size hint, and its content fits without a horizontal scroll bar. Tabs that do not fit scroll and keep their
+			// whole names. Floated, the dock opens inside the screen, as wide as its content.
+			w.resize(819, 614);
+			w.m_caseLayersDock->show();
+			w.m_serviceDock->widget()->updateGeometry();
+			QApplication::processEvents();
+			w.resizeDocks({w.m_serviceDock}, {w.m_serviceDock->sizeHint().width()}, Qt::Horizontal);
+			QApplication::processEvents();
+			auto* serviceScroll = w.m_serviceDock->findChild<QScrollArea*>("editorContentScroll");
+			const QTabBar* serviceTabs = w.m_servicePanel->pages()->tabBar();
+			const int lastTabRight = serviceTabs->tabRect(serviceTabs->count() - 1).right();
+			if (serviceScroll->horizontalScrollBar()->isVisible() || w.m_servicePanel->width() > serviceScroll->viewport()->width())
+				facetFailure(ok, "presentation", "the Services dock scrolls sideways at 819 by 614 pixels");
+			else if (lastTabRight >= serviceTabs->width() && (!serviceTabs->usesScrollButtons() || serviceTabs->elideMode() != Qt::ElideNone))
+				facetFailure(ok, "presentation",
+					QString("the tabs of the Services dock need %1 of %2 pixels and are cut at 819 by 614 pixels").arg(lastTabRight + 1).arg(serviceTabs->width()));
+			w.m_serviceDock->setFloating(true);
+			QApplication::processEvents();
+			if (!w.m_serviceDock->screen()->availableGeometry().contains(w.m_serviceDock->frameGeometry())
+				|| serviceScroll->horizontalScrollBar()->isVisible())
+				facetFailure(ok, "presentation", "the floated Services dock opens outside the screen or narrower than its content");
+			// A double click on the title of the docked dock floats it inside the screen as well, once the button is released, also
+			// when it last floated past the edge of the screen. Qt keeps the floating geometry of a dock when it is resized.
+			const QRect serviceScreen = w.m_serviceDock->screen()->availableGeometry();
+			w.m_serviceDock->setGeometry(QRect(QPoint(serviceScreen.right() - 100, serviceScreen.top()), w.m_serviceDock->size() - QSize(1, 1)));
+			QApplication::processEvents();
+			w.m_serviceDock->setFloating(false);
+			QApplication::processEvents();
+			const QPoint serviceTitle = w.m_serviceDock->mapTo(&w, QPoint(w.m_serviceDock->width() / 2, w.m_serviceDock->widget()->y() / 2));
+			int clickTime = 1000000;
+			for (const QEvent::Type type : {QEvent::MouseButtonPress, QEvent::MouseButtonRelease, QEvent::MouseButtonPress, QEvent::MouseButtonRelease})
+				qt_handleMouseEvent(w.windowHandle(), serviceTitle, w.mapToGlobal(serviceTitle),
+					type == QEvent::MouseButtonPress ? Qt::LeftButton : Qt::NoButton, Qt::LeftButton, type, Qt::NoModifier, ++clickTime);
+			QElapsedTimer floatWaited;
+			floatWaited.start();
+			while (floatWaited.elapsed() < 2000 && !(w.m_serviceDock->isFloating() && serviceScreen.contains(w.m_serviceDock->frameGeometry()))) {
+				QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+				QThread::msleep(5);
+			}
+			if (!w.m_serviceDock->isFloating() || !serviceScreen.contains(w.m_serviceDock->frameGeometry()))
+				facetFailure(ok, "presentation", "the Services dock floated by a double click opens outside the screen");
+			w.m_serviceDock->setFloating(false);
+			w.m_caseLayersDock->hide();
+			w.resize(1280, 698);
 			w.m_serviceDock->hide();
 
 			// The Compositions dock at the same size: its buttons are inside the dock, docked and floating.
@@ -4620,8 +4903,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			else if (results->minimumSizeHint().width() > shortMinimumWidth || results->minimumSizeHint().width() > w.width() / 2
 				|| results->minimumSizeHint().height() > w.height() / 2)
 				facetFailure(ok, "presentation", "a long run identity raises the minimum size of Run Results");
-			else if (summaryLines.size() != 2 || !summaryLines[0].startsWith("Run: ") || !summaryLines[1].startsWith("Delay baseline: "))
-				facetFailure(ok, "presentation", "the run and the delay baseline are not on lines of their own in Run Results");
+			else if (!summaryLines.first().startsWith("Run: ") || !summaryLines.contains("Status: Completed")
+				|| !summaryLines.last().startsWith("Delay baseline: "))
+				facetFailure(ok, "presentation", "the run, the status and the delay baseline are not on lines of their own in Run Results");
 			else if (captions != QStringList({"Results", "Delay comparison"}))
 				facetFailure(ok, "presentation", "the button rows of Run Results have no captions");
 			else if (w.m_runResultsSummaryLabel->width() > results->width() || w.m_delayFeedbackLabel->width() > results->width())
@@ -4636,9 +4920,302 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_runController->m_lastRunSelectedInPeriodOccurrences = 196;
 			w.refreshRunResultsSummary();
 			const QString insidePeriod = w.m_runResultsSummaryLabel->text();
-			if (!outsidePeriod.contains(" | Occurrences: 196/196 selected, 185 in the run period | Status: Completed")
-				|| !insidePeriod.contains(" | Occurrences: 196/196 selected | Status: Completed"))
+			if (!outsidePeriod.contains("\nOccurrences: 196/196 selected, 185 in the run period\nStatus: Completed")
+				|| !insidePeriod.contains("\nOccurrences: 196/196 selected\nStatus: Completed"))
 				facetFailure(ok, "presentation", "the occurrences line of Run Results does not say how many selected occurrences are in the run period");
+
+			// With a short run identity the dock opens at a third of the window height, or higher only as far as the table needs to
+			// show three rows.
+			completed.provenance.caseName = "Paimpol";
+			w.m_runController->m_completedRun = std::make_shared<const CompletedRunData>(completed);
+			w.m_runController->m_delayBaseline.reset();
+			w.m_runResultsDock->hide();
+			w.refreshRunResults();
+			QApplication::processEvents();
+			const int shownRows = w.m_runResultsTable->viewport()->height() / w.m_runResultsTable->verticalHeader()->defaultSectionSize();
+			if (results->height() > w.height() / 3 && shownRows > 3)
+				facetFailure(ok, "presentation",
+					QString("Run Results opens %1 pixels high with %2 rows in a window %3 pixels high").arg(results->height()).arg(shownRows).arg(w.height()));
+
+			// Four editors opened from the Editors menu while Run Results is open share one group of tabs, and each shows at least
+			// three rows of fields once raised.
+			const QList<QDockWidget*> editorDocks{w.m_caseSettingsDock, w.m_infrastructureDock, w.m_serviceDock, w.m_trainUnitDock};
+			for (QDockWidget* dock : editorDocks)
+				w.m_editorActions.value(dock)->trigger();
+			for (QDockWidget* dock : editorDocks.mid(1))
+				if (!w.tabifiedDockWidgets(w.m_caseSettingsDock).contains(dock))
+					facetFailure(ok, "presentation", QString("%1 is not tabbed with Case Settings").arg(dock->objectName()));
+			const int rowHeight = w.m_caseNameEdit->sizeHint().height();
+			for (QDockWidget* dock : editorDocks) {
+				dock->raise();
+				QApplication::processEvents();
+				const int shown = dock->findChild<QScrollArea*>("editorContentScroll")->viewport()->height();
+				if (shown < 3 * rowHeight)
+					facetFailure(ok, "presentation",
+						QString("%1 shows %2 pixels of its fields with four editors and Run Results open at 1280 by 800 pixels")
+							.arg(dock->objectName())
+							.arg(shown));
+			}
+			// Choosing Case Settings in the Editors menu while it is open behind Rolling stock units brings it to the front.
+			QAction* caseSettingsAction = w.m_editorActions.value(w.m_caseSettingsDock);
+			caseSettingsAction->trigger();
+			QApplication::processEvents();
+			if (!caseSettingsAction->isChecked() || w.m_caseSettingsDock->visibleRegion().isEmpty())
+				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
+
+			// In a window of 1280 by 800 or 1024 by 768 pixels, beside Case and Layers and with Run Results as high as it opens after
+			// a run, Rolling stock units shows its list, its buttons in one row, the ID field, its tabs and three rows of fields on
+			// each tab without a vertical scroll, and Services shows its list, its buttons in one row, its tabs, room for three rows
+			// of fields and on the Timetable tab the table header and two stops. Run Results keeps its buttons and the header and a
+			// row of its table in view. In a window of 819 by 614 pixels (1024 by 768 at 125 percent) the taller controls of this
+			// test leave room for the list, the buttons and the ID field of Rolling stock units and for one row of Services fields.
+			// At each size Run Results is at most as high as the network view, and the Timetable tab leaves the height of the
+			// Services list as it is. How many fields fill that room, and whether the narrower dock scrolls sideways, depends on the
+			// width of the font.
+			w.m_loadedDataDock->hide();
+			w.m_caseLayersDock->show();
+			const auto inView = [](const QWidget* part, const QWidget* view) {
+				const int top = part->mapTo(view, QPoint(0, 0)).y();
+				return part->isVisible() && top >= 0 && top + part->height() <= view->height();
+			};
+			const auto partName = [](const QWidget* part) { return qobject_cast<const QTabBar*>(part) ? QStringLiteral("the tab row") : part->objectName(); };
+			const auto dockView = [](QDockWidget* dock) {
+				auto* scroll = dock->findChild<QScrollArea*>("editorContentScroll");
+				scroll->verticalScrollBar()->setValue(0);
+				return scroll->viewport();
+			};
+			TrainUnitPanel* units = w.m_trainUnitPanel;
+			ServicePanel* services = w.m_servicePanel;
+			for (const QSize size : {QSize(1280, 800), QSize(1024, 768), QSize(819, 614)}) {
+				const bool fullSize = size.width() >= 1024;
+				const QString where = QString(" at %1 by %2 pixels after a run").arg(size.width()).arg(size.height());
+				for (QDockWidget* dock : editorDocks)
+					dock->hide();
+				w.m_runResultsDock->hide();
+				w.resize(size);
+				QApplication::processEvents();
+				w.refreshRunResults();
+				QApplication::processEvents();
+				for (QDockWidget* dock : editorDocks)
+					w.m_editorActions.value(dock)->trigger();
+				QApplication::processEvents();
+				w.m_serviceDock->widget()->updateGeometry();
+				QApplication::processEvents();
+				w.resizeDocks({w.m_serviceDock}, {w.m_serviceDock->sizeHint().width()}, Qt::Horizontal);
+				QApplication::processEvents();
+				auto* resultsScroll = qobject_cast<QScrollArea*>(w.m_runResultsDock->widget());
+				resultsScroll->verticalScrollBar()->setValue(0);
+				const QTableWidget* resultsTable = w.m_runResultsTable;
+				bool resultsShown = resultsTable->rowHeight(0) <= resultsTable->viewport()->height()
+					&& resultsTable->viewport()->mapTo(resultsScroll->viewport(), QPoint(0, resultsTable->rowHeight(0))).y() <= resultsScroll->viewport()->height();
+				for (const char* name : {"runResultsViewsButton", "resultView_ExportCSV", "resultView_ExportPNG"})
+					resultsShown = resultsShown && inView(w.m_runResultsDock->findChild<QWidget*>(name), resultsScroll->viewport());
+				if (w.m_runResultsDock->height() > w.networkView->height() + 2 || (fullSize && !resultsShown))
+					facetFailure(ok, "presentation",
+						QString("Run Results is %1 pixels high below a network view of %2 pixels, or its buttons or first row are not in view%3")
+							.arg(w.m_runResultsDock->height())
+							.arg(w.networkView->height())
+							.arg(where));
+				w.m_trainUnitDock->raise();
+				units->tabs()->setCurrentIndex(0);
+				QApplication::processEvents();
+				const QWidget* unitsView = dockView(w.m_trainUnitDock);
+				QList<const QWidget*> unitParts{units->listWidget(), units->addButton(), units->duplicateButton(), units->deleteButton(), units->idEdit()};
+				if (fullSize)
+					unitParts << units->tabs()->tabBar() << units->sourceTractionEdit() << units->linkButton(true) << units->unlinkButton(true);
+				for (const QWidget* part : unitParts)
+					if (!inView(part, unitsView))
+						facetFailure(ok, "presentation", QString("%1 of Rolling stock units is not in view%2").arg(partName(part), where));
+				if (fullSize) {
+					units->tabs()->setCurrentIndex(1);
+					QApplication::processEvents();
+					dockView(w.m_trainUnitDock);
+					const auto& physical = units->physicalEdits();
+					for (const QDoubleSpinBox* edit : {physical[0], physical[1], physical[2]})
+						if (!inView(edit, unitsView))
+							facetFailure(ok, "presentation", QString("%1 of Rolling stock units is not in view%2").arg(partName(edit), where));
+					units->tabs()->setCurrentIndex(0);
+				}
+				if (units->addButton()->y() != units->deleteButton()->y() || units->duplicateButton()->y() != units->deleteButton()->y())
+					facetFailure(ok, "presentation", "the buttons under the list of Rolling stock units are not in one row");
+
+				w.m_serviceDock->raise();
+				services->pages()->setCurrentIndex(0);
+				QApplication::processEvents();
+				const QWidget* servicesView = dockView(w.m_serviceDock);
+				auto* fieldsScroll = qobject_cast<QScrollArea*>(services->pages()->widget(0));
+				fieldsScroll->verticalScrollBar()->setValue(0);
+				const QList<const QWidget*> serviceParts{services->listWidget(), services->addButton(), services->duplicateButton(),
+					services->deleteButton(), services->pages()->tabBar()};
+				for (const QWidget* part : serviceParts)
+					if (!inView(part, servicesView))
+						facetFailure(ok, "presentation", QString("%1 of Services is not in view%2").arg(partName(part), where));
+				if (services->addButton()->y() != services->deleteButton()->y() || services->duplicateButton()->y() != services->deleteButton()->y())
+					facetFailure(ok, "presentation", "the buttons under the list of Services are not in one row");
+				const int fieldsTop = fieldsScroll->viewport()->mapTo(servicesView, QPoint(0, 0)).y();
+				const int fieldsShown = std::min(servicesView->height(), fieldsTop + fieldsScroll->viewport()->height()) - fieldsTop;
+				if (fieldsShown < (fullSize ? 3 : 1) * rowHeight)
+					facetFailure(ok, "presentation", QString("Services shows %1 pixels of its fields%2").arg(fieldsShown).arg(where));
+				const int listHeight = services->listWidget()->height();
+				services->pages()->setCurrentIndex(1);
+				QApplication::processEvents();
+				if (services->listWidget()->height() != listHeight || !inView(services->pages()->tabBar(), servicesView))
+					facetFailure(ok, "presentation",
+						QString("the Timetable tab changes the list of Services from %1 to %2 pixels high or moves the tab row out of view%3")
+							.arg(listHeight)
+							.arg(services->listWidget()->height())
+							.arg(where));
+				if (fullSize) {
+					dockView(w.m_serviceDock);
+					const QTableWidget* stops = w.m_stopTableWidget;
+					const int secondStopBottom = stops->rowCount() > 1 ? stops->rowViewportPosition(1) + stops->rowHeight(1) : stops->viewport()->height() + 1;
+					if (!inView(stops->horizontalHeader(), servicesView) || secondStopBottom > stops->viewport()->height()
+						|| stops->viewport()->mapTo(servicesView, QPoint(0, secondStopBottom)).y() > servicesView->height())
+						facetFailure(ok, "presentation", QString("the Timetable tab does not show the table header and two stops%1").arg(where));
+				}
+				services->pages()->setCurrentIndex(0);
+			}
+			// With Incidents as a fifth editor the tabs of the group are all in view, and the tooltip of each, which Qt sets, gives
+			// its whole name. A group too narrow for the tabs with 3 em of name each scrolls.
+			w.m_editorActions.value(w.m_incidentDock)->trigger();
+			QApplication::processEvents();
+			const QTabBar* editorTabs = nullptr;
+			for (const QTabBar* bar : w.findChildren<QTabBar*>(QString(), Qt::FindDirectChildrenOnly))
+				for (int index = 0; index < bar->count(); ++index)
+					if (bar->isVisible() && bar->tabText(index) == w.m_caseSettingsDock->windowTitle())
+						editorTabs = bar;
+			const auto allInView = [](const QTabBar* groupBar) {
+				const QList<QToolButton*> scrollButtons = groupBar->findChildren<QToolButton*>();
+				bool allShown = std::none_of(scrollButtons.cbegin(), scrollButtons.cend(), [](const QToolButton* scrollButton) { return scrollButton->isVisible(); });
+				for (int tabIndex = 0; allShown && tabIndex < groupBar->count(); ++tabIndex)
+					allShown = groupBar->tabRect(tabIndex).left() >= 0 && groupBar->tabRect(tabIndex).right() < groupBar->width();
+				return allShown;
+			};
+			bool tabsShown = editorTabs && editorTabs->count() == 5 && editorTabs->elideMode() == Qt::ElideRight && editorTabs->usesScrollButtons()
+				&& allInView(editorTabs);
+			for (int tabIndex = 0; tabsShown && tabIndex < editorTabs->count(); ++tabIndex)
+				tabsShown = !editorTabs->tabText(tabIndex).isEmpty() && editorTabs->tabToolTip(tabIndex) == editorTabs->tabText(tabIndex);
+			if (!tabsShown)
+				facetFailure(ok, "presentation", "the tabs of five editors are not all in view with their names as tooltips");
+			else {
+				const int groupWidth = w.m_incidentDock->width();
+				const int wholeWidth = editorTabs->sizeHint().width();
+				const auto groupTo = [&w](int targetWidth) {
+					w.resizeDocks({w.m_incidentDock}, {targetWidth}, Qt::Horizontal);
+					QApplication::processEvents();
+				};
+				groupTo(wholeWidth);
+				// The room that a tab takes beside its name, which is whole at this width.
+				const int beside = editorTabs->tabRect(0).width() - editorTabs->fontMetrics().horizontalAdvance(editorTabs->tabText(0));
+				groupTo(wholeWidth / 2);
+				bool tabsScroll = !allInView(editorTabs);
+				for (int tabIndex = 0; tabsScroll && tabIndex < editorTabs->count(); ++tabIndex)
+					tabsScroll = editorTabs->tabRect(tabIndex).width() - beside >= 3 * editorTabs->fontMetrics().height() - 1;
+				groupTo(groupWidth);
+				if (!tabsScroll)
+					facetFailure(ok, "presentation", "the tabs of five editors in a narrow group do not scroll with 3 em of name each");
+			}
+			// Keyboard focus shows on a tab bar inside an editor, on the lists and tables of the editors and on the network view:
+			// the edge of each changes by at least 3:1. The name of the selected service has at least 4.5:1 with its row, with the
+			// focus on the list and elsewhere.
+			const auto contrastOf = [](const QColor& oneColour, const QColor& otherColour) {
+				const auto luminanceOf = [](const QColor& tint) {
+					const auto channelOf = [](qreal channelValue) {
+						return channelValue <= 0.03928 ? channelValue / 12.92 : std::pow((channelValue + 0.055) / 1.055, 2.4);
+					};
+					return 0.2126 * channelOf(tint.redF()) + 0.7152 * channelOf(tint.greenF()) + 0.0722 * channelOf(tint.blueF());
+				};
+				const double lumaOne = luminanceOf(oneColour);
+				const double lumaOther = luminanceOf(otherColour);
+				return (std::max(lumaOne, lumaOther) + 0.05) / (std::min(lumaOne, lumaOther) + 0.05);
+			};
+			QListWidget* serviceList = services->listWidget();
+			const auto focusChange = [&w, serviceList, &contrastOf](QWidget* shotView, int edgeX) {
+				(shotView == w.networkView ? static_cast<QWidget*>(serviceList) : w.networkView)->setFocus(Qt::TabFocusReason);
+				QApplication::processEvents();
+				const QImage unfocusedShot = shotView->grab().toImage();
+				shotView->setFocus(Qt::TabFocusReason);
+				QApplication::processEvents();
+				const QImage focusedShot = shotView->grab().toImage();
+				const auto edgeOf = [edgeX](const QImage& shot) { return shot.pixelColor(qRound(edgeX * shot.devicePixelRatio()), shot.height() / 2); };
+				return contrastOf(edgeOf(unfocusedShot), edgeOf(focusedShot));
+			};
+			w.activateWindow();
+			w.m_trainUnitDock->raise();
+			units->tabs()->setCurrentIndex(0);
+			QApplication::processEvents();
+			QTabBar* unitTabBar = units->tabs()->tabBar();
+			const double tabChange = focusChange(unitTabBar, unitTabBar->tabRect(0).left());
+			const double tableChange = focusChange(w.m_trainUnitTractionTable, 0);
+			w.m_serviceDock->raise();
+			QApplication::processEvents();
+			const double listChange = focusChange(serviceList, 0);
+			const double canvasChange = focusChange(w.networkView, 0);
+			if (std::min({tabChange, tableChange, listChange, canvasChange}) < 3.0)
+				facetFailure(ok, "presentation",
+					QString("the focus changes the edge of a tab bar by %1:1, of a table by %2:1, of a list by %3:1 and of the network view by %4:1")
+						.arg(tabChange, 0, 'f', 2)
+						.arg(tableChange, 0, 'f', 2)
+						.arg(listChange, 0, 'f', 2)
+						.arg(canvasChange, 0, 'f', 2));
+			if (serviceList->count() > 0) {
+				const int selectedService = std::max(serviceList->currentRow(), 0);
+				serviceList->setCurrentRow(selectedService);
+				QStringList unreadable;
+				for (QWidget* focusTarget : {static_cast<QWidget*>(serviceList), static_cast<QWidget*>(w.networkView)}) {
+					focusTarget->setFocus(Qt::TabFocusReason);
+					QApplication::processEvents();
+					const QImage serviceRow =
+						serviceList->viewport()->grab(serviceList->visualItemRect(serviceList->item(selectedService)) & serviceList->viewport()->rect()).toImage();
+					const QColor faceColour = serviceRow.pixelColor(serviceRow.width() - 3, 2);
+					double textContrast = 1.0;
+					for (int pixelY = 0; pixelY < serviceRow.height(); ++pixelY)
+						for (int pixelX = 0; pixelX < serviceRow.width(); ++pixelX)
+							textContrast = std::max(textContrast, contrastOf(faceColour, serviceRow.pixelColor(pixelX, pixelY)));
+					if (textContrast < 4.5)
+						unreadable << QString("%1:1 on %2 with the focus %3")
+										  .arg(textContrast, 0, 'f', 2)
+										  .arg(faceColour.name(), focusTarget == serviceList ? QString("on the list") : QString("elsewhere"));
+				}
+				if (!unreadable.isEmpty())
+					facetFailure(ok, "presentation", QString("the name of the selected service has %1").arg(unreadable.join(", ")));
+			}
+			// Tab and Shift+Tab go from the network view round the window and back. They reach the editor in front, also just after
+			// its tab is chosen, and pass over the editors behind it, which Qt keeps out of sight, the scroll buttons of all tab bars
+			// and the scroll areas. They also leave the tables of the editors, whose cells take the arrow keys.
+			const QList<QDockWidget*> fiveEditors = editorDocks + QList<QDockWidget*>{w.m_incidentDock};
+			w.activateWindow();
+			for (QDockWidget* front : fiveEditors) {
+				front->raise();
+				for (const bool forward : {true, false}) {
+					w.networkView->setFocus(Qt::TabFocusReason);
+					QApplication::processEvents();
+					QStringList hiddenStops;
+					bool reachedFront = false;
+					for (int press = 0; press < 150 && QApplication::focusWidget(); ++press) {
+						QKeyEvent key(QEvent::KeyPress, forward ? Qt::Key_Tab : Qt::Key_Backtab, forward ? Qt::NoModifier : Qt::ShiftModifier);
+						QApplication::sendEvent(QApplication::focusWidget(), &key);
+						QApplication::processEvents();
+						QWidget* focused = QApplication::focusWidget();
+						if (!focused || focused == w.networkView)
+							break;
+						reachedFront = reachedFront || front->isAncestorOf(focused);
+						if (qobject_cast<QTabBar*>(focused->parentWidget()) || qobject_cast<QScrollArea*>(focused)
+							|| std::any_of(fiveEditors.cbegin(), fiveEditors.cend(),
+								[front, focused](const QDockWidget* dock) { return dock != front && dock->isAncestorOf(focused); }))
+							hiddenStops << QString("%1(%2)").arg(focused->metaObject()->className(), focused->objectName());
+					}
+					if (QApplication::focusWidget() != w.networkView || !reachedFront || !hiddenStops.isEmpty())
+						facetFailure(ok, "presentation",
+							QString("%1 with %2 in front does not go round the visible controls; hidden or empty stops: %3")
+								.arg(forward ? "Tab" : "Shift+Tab", front->objectName(), hiddenStops.mid(0, 5).join(", ")));
+				}
+			}
+			w.m_incidentDock->hide();
+			w.m_caseLayersDock->hide();
+			w.resize(1280, 800);
+			for (QDockWidget* dock : editorDocks)
+				dock->hide();
 
 			w.m_runController->m_completedRun.reset();
 			w.m_runController->m_delayBaseline.reset();
@@ -4751,9 +5328,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			caseChangeOut = caseChangeTempDir.path();
 		const QString changedPath = QDir(caseChangeOut).filePath("editor_smoke_changed_case");
 		QDir(changedPath).removeRecursively();
-		const auto caseChangeFailure = [&](const char* message) {
+		const auto caseChangeFailure = [&](const QString& message) {
 			ok = false;
-			failures << QString("case change: ") + message;
+			failures << QStringLiteral("case change: ") + message;
 		};
 		if (!w.openSceneDirectory(scenePath) || !w.m_document->isLoaded()) {
 			caseChangeFailure("the scene did not open");
@@ -4815,6 +5392,39 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 			}
 		}
+		// A case without passengers draws no platform bars and shows the switch off, and keeps the choice for a case with
+		// passengers.
+		const QString passengerPath = QFileInfo(scenePath).dir().filePath(QStringLiteral("Paimpol"));
+		if (ok && w.m_document->model().passengers.empty() && QFileInfo(passengerPath).isDir()) {
+			const bool choiceBefore = QSettings().value(kShowPassengersKey).toBool();
+			const auto platformBars = [&w] {
+				const QList<QGraphicsItem*>& items = w.m_presenter->m_stationDecorations;
+				return std::count_if(items.cbegin(), items.cend(),
+					[](QGraphicsItem* item) { return qgraphicsitem_cast<PlatformItem*>(item) != nullptr; });
+			};
+			if (!w.openSceneDirectory(passengerPath) || !w.m_passengerLayerCheck->isEnabled()) {
+				caseChangeFailure("the case with passengers did not open with the passenger switch enabled");
+			} else {
+				w.m_passengerLayerCheck->setChecked(true);
+				if (!w.openSceneDirectory(scenePath)) {
+					caseChangeFailure("the case without passengers did not open");
+				} else if (w.m_passengerLayerCheck->isChecked() || w.m_showPassengersAction->isChecked() || initial_variables.PAX_GUI
+					|| platformBars() != 0 || !QSettings().value(kShowPassengersKey).toBool()) {
+					caseChangeFailure(QString("a case without passengers showed passengers (check box: %1, menu: %2, platform "
+											  "bars: %3, choice kept: %4)")
+							.arg(w.m_passengerLayerCheck->isChecked() ? "on" : "off")
+							.arg(w.m_showPassengersAction->isChecked() ? "on" : "off")
+							.arg(platformBars())
+							.arg(QSettings().value(kShowPassengersKey).toBool() ? "yes" : "no"));
+				}
+				if (!w.openSceneDirectory(passengerPath) || !w.m_passengerLayerCheck->isChecked() || !w.m_showPassengersAction->isChecked()
+					|| !initial_variables.PAX_GUI || platformBars() == 0)
+					caseChangeFailure("the passengers did not show again in a case with passengers");
+				w.m_passengerLayerCheck->setChecked(choiceBefore);
+			}
+			if (!w.openSceneDirectory(scenePath))
+				caseChangeFailure("the original did not open after the passenger switch");
+		}
 		if (ok)
 			std::fprintf(stdout, "E2E_EDITOR_CASE_CHANGE_OK\n");
 	}
@@ -4869,6 +5479,17 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return condition;
 	};
 	const auto process = []() { QApplication::processEvents(); };
+	// Opens the context menu of an item of the network view and returns its entry `text`, which follows Show details in a
+	// group of its own, or null.
+	const auto incidentEntry = [&w](QGraphicsItem* item, const QString& text) -> QAction* {
+		w.showSceneContextMenu(item, item->sceneBoundingRect().center(), QPoint(), false);
+		const QList<QAction*> entries = w.m_sceneContextMenu ? w.m_sceneContextMenu->actions() : QList<QAction*>();
+		const bool grouped = w.m_sceneContextMenu && w.m_sceneContextMenu->toolTipsVisible() && entries.value(0)
+			&& entries.value(0)->text() == "Show details" && entries.value(1) && entries.value(1)->isSeparator() && entries.value(2)
+			&& entries.value(2)->text() == text && entries.value(3) && entries.value(3)->isSeparator();
+		return grouped ? entries.value(2) : nullptr;
+	};
+	const QString pickHint = QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
 	const QString previousScenePath = w.m_session->m_sceneDir;
 	const auto finish = [&]() {
 		simulation.setNextRunOutputFolder({});
@@ -4877,15 +5498,21 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return failures;
 	};
 
-	// The Edit menu stands before View and holds the two actions with the keys of the platform. The editor docks carry the
-	// actions too, for the time that a dock floats as a window of its own.
+	// The Edit menu stands before View and holds the two actions with the keys of the platform, Find after them and
+	// Preferences last, which macOS shows in the application menu. The editor docks carry Undo and Redo too, for the time
+	// that a dock floats as a window of its own.
 	{
 		const QList<QAction*> menus = w.menuBar()->actions();
 		const int editMenuIndex = menus.indexOf(w.ui->menuEdit->menuAction());
 		expect(editMenuIndex >= 0 && menus.value(editMenuIndex + 1) == w.ui->menuView->menuAction(),
 			"the Edit menu is not before View");
-		expect(w.ui->menuEdit->actions() == QList<QAction*>({w.m_undoAction, w.m_redoAction}),
-			"the Edit menu does not hold Undo and Redo");
+		const QList<QAction*> editActions = w.ui->menuEdit->actions();
+		expect(editActions.mid(0, 2) == QList<QAction*>({w.m_undoAction, w.m_redoAction}) && editActions.contains(w.m_findAction),
+			"the Edit menu does not hold Undo, Redo and Find");
+		const QAction* preferences = editActions.last();
+		expect(preferences->objectName() == QStringLiteral("actionSettings") && preferences->menuRole() == QAction::PreferencesRole
+				&& preferences->shortcut() == QKeySequence(QKeySequence::Preferences),
+			"the Edit menu does not end with Preferences");
 		expect(w.m_undoAction->shortcut() == QKeySequence(QKeySequence::Undo)
 				&& w.m_redoAction->shortcuts() == QKeySequence::keyBindings(QKeySequence::Redo)
 				&& w.m_undoAction->shortcutContext() == Qt::WindowShortcut
@@ -5109,17 +5736,131 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		w.redoScene();
 		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_document->revision() == revision,
 			"Undo or Redo worked while a run used the scene");
+		// The menu and the inspector of a signal say why they add no incident while the run goes.
+		SignalItem* runSignal = w.m_presenter->allSignals.value(0);
+		{
+			QAction* entry = runSignal ? incidentEntry(runSignal, "Add signal failure") : nullptr;
+			expect(entry && !entry->isEnabled() && entry->toolTip() == "Not available while the case runs",
+				"the menu of a signal did not say that it adds no incident while a run uses the scene");
+			w.closeSceneContextMenu();
+			w.m_inspector->displaySignallingInfo(runSignal);
+			QPushButton* button = w.m_inspector->incidentButton;
+			expect(button->isVisible() && button->text() == "Add signal failure" && !button->isEnabled()
+					&& button->toolTip() == "Not available while the case runs",
+				"the inspector of a signal did not say that it adds no incident while a run uses the scene");
+		}
 		QElapsedTimer waited;
 		waited.start();
 		while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		if (!expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable, "the run did not complete"))
 			return finish();
+		expect(w.m_inspector->incidentButton->isVisible() && w.m_inspector->incidentButton->isEnabled()
+				&& w.m_inspector->incidentButton->toolTip().isEmpty(),
+			"the inspector of a signal did not offer an incident after the run");
+		w.m_inspector->handleDisableHighlight();
 		expect(w.m_undoAction->isEnabled() && w.m_history->undoCount() == position
 				&& authoredSceneBytes(*w.m_history->head()) == states[position],
 			"a run changed the history");
 		undo();
 		redo();
+	}
+	// Runs of 600 s, in which the first trains run, and an edit after each.
+	{
+		const QScopedValueRollback<double> horizon(initial_variables.times, 600.0);
+		const auto completeRun = [&](const char* folder) {
+			simulation.setNextRunOutputFolder(QDir(outFolder).filePath(folder).toStdString());
+			w.m_runSceneAction->trigger();
+			QElapsedTimer waited;
+			waited.start();
+			while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
+				QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+			return expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable,
+				QStringLiteral("the run in %1 did not complete").arg(folder));
+		};
+		// An edit ends a replay, and the Train Info dock of a train that is selected in it closes.
+		if (!completeRun("replay_run_output"))
+			return finish();
+		w.seekReplay(500);
+		TrainBodyItem* train = nullptr;
+		for (int index = 0; index < simulation.run().numTrains && !train; ++index)
+			train = w.resolveTrainBodyItem(index);
+		w.m_inspector->displayTrainDetails(train, false);
+		if (!expect(w.m_replayActive && train && w.m_inspector->dock()->isVisible(), "no train of the replay was selected"))
+			return finish();
+		if (!step("a case description in a replay", "Edit", [&] {
+				w.m_caseDescriptionEdit->setText("edited in a replay");
+				w.commitPendingCaseSettings();
+			}))
+			return finish();
+		expect(!w.m_replayActive && !w.m_inspector->dock()->isVisible(), "an edit in a replay left the Train Info dock open");
+		// An edit after a run replaces the message that the run is complete. It hides the Run Results dock, and the network
+		// view takes the focus that was in the dock, which the next widget in the tab chain, the first layer check box, would
+		// take otherwise. A save refuses an incident without a target, so Undo takes the new incident away again.
+		if (!completeRun("discard_run_output"))
+			return finish();
+		expect(w.statusBar()->currentMessage().startsWith("Simulation complete"), "the run did not say that it is complete");
+		const bool layersShown = w.m_caseLayersDock->isVisible();
+		w.m_caseLayersDock->show();
+		w.activateWindow();
+		w.m_runResultsPanel->table()->setFocus();
+		process();
+		expect(w.m_runResultsPanel->table()->hasFocus(), "the Run Results table did not take the focus");
+		if (!step("an incident after a run", "Add incident", [&] { w.m_addIncidentButton->click(); }))
+			return finish();
+		expect(w.statusBar()->currentMessage() == "Run results discarded: the case changed.",
+			"an edit after a run left the message " + w.statusBar()->currentMessage());
+		expect(w.networkView->hasFocus(),
+			QStringLiteral("an edit after a run gave the focus to %1")
+				.arg(QApplication::focusWidget() ? QApplication::focusWidget()->objectName() : QStringLiteral("nothing")));
+		w.m_caseLayersDock->setVisible(layersShown);
+		undo();
+		// In a replay, the menu of a train adds a breakdown of its occurrence. The edit discards the results, which the status
+		// bar says, and the Incidents tab shows the new incident with the focus on its start.
+		if (!completeRun("incident_menu_run_output"))
+			return finish();
+		w.seekReplay(500);
+		TrainBodyItem* trainBody = nullptr;
+		GuiTrainState trainState;
+		for (int index = 0; index < simulation.run().numTrains && !trainBody && w.m_snapshot; ++index) {
+			for (const GuiTrainState& state : w.m_snapshot->trains) {
+				TrainBodyItem* body = state.index == index && !state.serviceId.empty() ? w.resolveTrainBodyItem(index) : nullptr;
+				if (body && body->isVisible() && !trainBody) {
+					trainBody = body;
+					trainState = state;
+				}
+			}
+		}
+		if (trainBody)
+			w.m_inspector->displayTrainDetails(trainBody, false);
+		expect(w.m_inspector->incidentButton->isVisible() && w.m_inspector->incidentButton->isEnabled()
+				&& w.m_inspector->incidentButton->text() == "Add train breakdown",
+			"the inspector of a train in a replay offered no breakdown");
+		// The menu acts on the train under the cursor, not on the selection.
+		w.m_inspector->handleDisableHighlight();
+		QAction* breakdown = trainBody ? incidentEntry(trainBody, "Add train breakdown") : nullptr;
+		if (!expect(w.m_replayActive && breakdown && breakdown->isEnabled(), "the menu of a train in a replay offered no breakdown"))
+			return finish();
+		w.activateWindow();
+		if (!step("a breakdown from the menu of a train", "Add incident", [&] {
+				breakdown->trigger();
+				w.closeSceneContextMenu();
+			}))
+			return finish();
+		const SceneIncident* added = w.m_incidentPanel->selectedIncident();
+		const QString message = w.statusBar()->currentMessage();
+		expect(added && added == &w.selectedScenarioIncidents().back() && added->type == "train_breakdown"
+				&& added->target == trainState.serviceId && added->hasOccurrence && added->occurrence == trainState.occurrence,
+			"the menu of a train did not add a breakdown of its occurrence");
+		const QString occurrence = QString("%1 #%2").arg(QString::fromStdString(trainState.serviceId)).arg(trainState.occurrence);
+		expect(!w.m_runController->m_resultsAvailable && !w.m_replayActive && message == "Added a breakdown of " + occurrence + "; run results discarded."
+				&& w.statusBar()->fontMetrics().horizontalAdvance(message) <= w.statusBar()->fontMetrics().horizontalAdvance(pickHint),
+			"a breakdown from the menu of a train did not discard the results with a short message: " + message);
+		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");
+		expect(w.m_incidentDock->isVisible() && scenarioTabs && scenarioTabs->currentWidget() == w.m_incidentPanel
+				&& QApplication::focusWidget() == w.m_incidentStartSecondsEdit,
+			"a breakdown from the menu of a train was not shown on the Incidents tab with the focus on its start");
+		undo();
 	}
 
 	// Edits in the rolling stock, composition, service, timetable, scenario, incident, entrance delay and passenger editors.
@@ -5224,6 +5965,29 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	if (!step("an added incident", "Add incident", [&] { w.m_addIncidentButton->click(); }))
 		return finish();
+	// Undo and Redo keep the zoom and the centre of the network view, as an edit does.
+	{
+		w.networkView->zoomBy(4.0 / w.networkView->zoomRatio());
+		const QPoint viewportCentre = w.networkView->viewport()->rect().center();
+		w.networkView->centerOn(w.networkView->mapToScene(viewportCentre + QPoint(viewportCentre.x() / 2, 0)));
+		const QPointF centre = w.networkView->mapToScene(viewportCentre);
+		const auto viewKept = [&](const char* how) {
+			const qreal moved = QLineF(w.networkView->mapFromScene(centre), viewportCentre).length();
+			expect(qAbs(w.networkView->zoomRatio() - 4.0) < 0.01 && moved <= 2.0,
+				QStringLiteral("%1 changed the view: zoom %2, centre moved %3 px").arg(how).arg(w.networkView->zoomRatio()).arg(moved));
+		};
+		if (!step("an incident start", "Edit", [&] {
+				w.m_incidentStartSecondsEdit->setText("120");
+				w.m_incidentPanel->commitStartSeconds();
+			}))
+			return finish();
+		viewKept("an edit");
+		undo();
+		viewKept("Undo");
+		redo();
+		viewKept("Redo");
+		w.fitView();
+	}
 	if (!step("an added entrance delay", "Add entrance delay", [&] { w.m_addEntranceDelayButton->click(); }))
 		return finish();
 	if (!step("an added passenger", "Add passenger", [&] { w.m_addPassengerButton->click(); }))
@@ -5639,5 +6403,64 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	expect(unavailable == 1, "the window reported the failed autosave " + QString::number(unavailable) + " times");
 	expect(w.m_document->isDirty() && w.m_history->undoCount() == steps + 2 && w.m_document->mutableModel().name == "E2E unwritable two",
 		"a failed autosave stopped the editing");
+
+	// A copy that is written again ends the message.
+	w.m_recovery->shutdown();
+	qputenv("QEGTRAIN_RECOVERY_DIR", QDir(outFolder).filePath("recovery-writable").toUtf8());
+	w.startRecovery();
+	editCase("E2E writable again");
+	settle();
+	expect(!w.m_recoveryFailureShown && !w.statusBar()->currentMessage().startsWith("Autosave unavailable"),
+		"the message about the failed autosave stayed after a copy was written");
+
+	// A failed autosave waits while the target of an incident is picked, so the hint of the pick stays, and shows when the
+	// pick ends. A new incident has no target, so its copy cannot be written.
+	{
+		const QString hint = QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
+		w.m_inspector->handleDisableHighlight();
+		w.revealEditorDock(w.m_incidentDock);
+		if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
+			tabs->setCurrentWidget(w.m_incidentPanel);
+		w.m_addIncidentButton->click();
+		w.m_incidentPanel->pickTargetButton()->click();
+		process();
+		const bool picking = w.m_incidentPanel->isPickingTarget() && w.statusBar()->currentMessage() == hint;
+		settle();
+		expect(picking && w.m_recoveryFailureShown && w.statusBar()->currentMessage() == hint,
+			"the failed autosave replaced the hint of the target pick: " + w.statusBar()->currentMessage());
+		w.activateWindow();
+		process();
+		qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
+		process();
+		expect(!w.m_incidentPanel->isPickingTarget()
+				&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+			"the failed autosave did not show when the pick ended: " + w.statusBar()->currentMessage());
+		// A pick that gives the target also shows the held failure. The first incident gets a target, so a copy is written
+		// and a later failure is reported again; the second keeps the copy failing, and the third is picked.
+		QGraphicsItem* head = nullptr;
+		if (w.scene && w.m_showingTrackPreview)
+			for (QGraphicsItem* item : w.scene->items())
+				if (item->data(PreviewGraphics::Kind).toString() == "signal")
+					head = item;
+		if (expect(head, "the preview has no signal head for a target")) {
+			w.m_incidentPanel->pickTargetButton()->click();
+			w.scene->select(head);
+			process();
+			settle();
+			w.m_inspector->handleDisableHighlight();
+			w.m_addIncidentButton->click();
+			w.m_addIncidentButton->click();
+			w.m_incidentPanel->pickTargetButton()->click();
+			process();
+			settle();
+			const bool held = w.m_recoveryFailureShown && w.statusBar()->currentMessage() == hint;
+			w.scene->select(head);
+			process();
+			settle();
+			expect(held && !w.m_incidentPanel->isPickingTarget()
+					&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+				"the failed autosave did not show after a pick that gave the target: " + w.statusBar()->currentMessage());
+		}
+	}
 	return finish();
 }

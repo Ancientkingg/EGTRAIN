@@ -3,7 +3,11 @@
 
 #include <string>
 
-// Format a speed in km/h as a short label, e.g. "83 km/h". Clamps negatives to 0.
+/// \file
+/// Text form of a speed.
+
+/// Formats a speed \p kmh in km/h as a label such as "83 km/h", rounded to a whole number. A
+/// negative speed gives "0 km/h".
 std::string formatSpeedLabel(double kmh);
 
 #endif // SPEEDFORMAT_H

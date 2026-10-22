@@ -15,10 +15,14 @@ ends with _Exit(137): no destructor runs and no close event reaches the window. 
               opens it and Discard removes it.
   discard     Discard at close leaves no copy and no prompt at the next start.
   unwritable  A folder for the copies that cannot be made does not stop the editing or a run, and the window reports it once.
+  crash note  An uncaught exception after an autosave, and SIGSEGV without a copy, each leave one crash note. The next start names
+              the note in the recovery prompt, or in a notice when there is no copy, and marks it reported, so the start after
+              that does not name it again.
 """
 from __future__ import annotations
 
 import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -27,7 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RUN_DIR = ROOT / "EGTRAIN" / "QEGTRAIN"
 SCENE = RUN_DIR / "Scenes" / "Assignment_Gvc_Gdg_Ut"
-APP_ARGUMENTS = ["-h", "100", "-g", "1", "-pax", "0", "-TSM", "0", "-RC", "0"]
+APP_ARGUMENTS = ["-h", "100", "-g", "1", "-pax", "0"]
 RUN_SECONDS = 300
 CRASH_CODE = 137
 EDITED_NAME = "Recovery smoke case"
@@ -82,6 +86,7 @@ class Smoke:
             "QEGTRAIN_E2E_SETTINGS_DIR": str(self.temp / "settings"),
             "QEGTRAIN_OUTPUT_DIR": str(self.temp / "output"),
             "QEGTRAIN_RECOVERY_DIR": str(recovery_root),
+            "QEGTRAIN_CRASH_DIR": str(recovery_root.parent / "crashes"),
             "QEGTRAIN_RECOVERY_INTERVAL_MS": "100",
         })
         if answer:
@@ -237,6 +242,51 @@ def scenario_unwritable(smoke: Smoke) -> None:
     print("PASS a folder for the copies that cannot be made does not stop the editing or a run")
 
 
+def crash_note(folder: Path, cause: str, output: str) -> Path:
+    """The one unreported crash note in the folder, which has to name the cause, and the path it gets once it is reported."""
+    notes = sorted((folder / "crashes").glob("crash-*.txt"))
+    require(len(notes) == 1, f"the crash left {len(notes)} crash notes, not one", output)
+    text = notes[0].read_text()
+    require(text.startswith("EGTRAIN ") and cause in text, f"the crash note does not name {cause}:\n{text}", output)
+    return notes[0].with_name("reported-" + notes[0].name)
+
+
+def require_reported(folder: Path, reported: Path, output: str) -> None:
+    require(reported.is_file() and not list((folder / "crashes").glob("crash-*.txt")), "the start did not mark the note reported", output)
+
+
+def scenario_crash_note(smoke: Smoke) -> None:
+    folder = smoke.folder("crash_note")
+    root = folder / "recovery"
+    bundle = smoke.bundle(folder)
+    output = smoke.run("edit-then-throw", bundle, root, code=-signal.SIGABRT)
+    require("E2E_RECOVERY_WRITTEN" in output, "the autosave did not report its copy before the exception", output)
+    reported = crash_note(folder, "Uncaught exception: injected crash", output)
+
+    output = smoke.run("start-again", SCENE, root)
+    require(f"E2E_RECOVERY_CRASH_NOTE {reported}" in output.splitlines(), "the recovery prompt does not name the crash note", output)
+    require(len(copies(root)) == 1, "the copy was not kept after Decide Later", output)
+    require_reported(folder, reported, output)
+
+    output = smoke.run("start-again", SCENE, root)
+    require("E2E_RECOVERY_CRASH_NOTE none" in output.splitlines(), "the next prompt named the reported crash note again", output)
+
+    folder = smoke.folder("crash_notice")
+    root = folder / "recovery"
+    output = smoke.run("open-then-segv", SCENE, root, code=-signal.SIGSEGV)
+    reported = crash_note(folder, "Signal: SIGSEGV", output)
+
+    output = smoke.run("start-again", SCENE, root)
+    require(f"E2E_RECOVERY_CRASH_NOTICE {reported}" in output.splitlines(), "the start has no notice that names the crash note", output)
+    require("E2E_RECOVERY_CRASH_NOTE" not in output, "a start without a copy offered one", output)
+    require_reported(folder, reported, output)
+
+    output = smoke.run("start-again", SCENE, root)
+    require("E2E_RECOVERY_CRASH_NOTE" not in output and "E2E_RECOVERY_CRASH_NOTICE" not in output,
+            "a start after the crash was reported told of it again", output)
+    print("PASS a crash leaves one note, and the next start names it in the recovery prompt or a notice, once")
+
+
 def main() -> None:
     if len(sys.argv) != 3:
         raise SystemExit("usage: recovery_smoke.py /path/to/QEGTRAIN /path/to/scene_tool")
@@ -247,7 +297,8 @@ def main() -> None:
             raise SystemExit(f"not found: {tool}")
     with tempfile.TemporaryDirectory(prefix="qegtrain-recovery-smoke-") as temp:
         smoke = Smoke(app, scene_tool, Path(temp))
-        for scenario in (scenario_bundle, scenario_new_case, scenario_original_changes, scenario_discard, scenario_unwritable):
+        for scenario in (scenario_bundle, scenario_new_case, scenario_original_changes, scenario_discard, scenario_unwritable,
+                         scenario_crash_note):
             scenario(smoke)
     print(f"PASS recovery smoke ({smoke.count} runs)")
 

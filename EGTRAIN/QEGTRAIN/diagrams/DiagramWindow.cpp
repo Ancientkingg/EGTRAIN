@@ -1,6 +1,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "app/DialogFolders.h"
 #include "diagrams/TrainFilterButton.h"
+#include "scene/SectionLabels.h"
 #include "util/TimeFormat.h"
 #include "widgets/PlainToolTip.h"
 
@@ -17,14 +18,17 @@
 #include <QGestureEvent>
 #include <QPinchGesture>
 #include <QShortcut>
+#include <QStatusBar>
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QAreaSeries>
 #include <algorithm>
 #include <QColor>
+#include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
@@ -108,27 +112,167 @@ QPen emphasisedPen(const QPen& base) {
 	return pen;
 }
 
-// Planned series are drawn dashed and make the navigation help mention planned
-// lines; both rules use this one test of the series name.
+// Planned series are drawn dashed and have their own legend entry; both rules use
+// this one test of the series name.
 bool isPlannedSeries(const QAbstractSeries* series) {
 	return series->name().contains("planned", Qt::CaseInsensitive);
 }
+
+constexpr QMargins kChartMargins(12, 8, 12, 8);
+
+// Puts the ticks of a numeric axis on round values: the multiples of 1, 2 or 5 times a power of ten that divide its range
+// into at most eight steps, labelled with as many decimals as the step has.
+void roundTicks(QValueAxis* axis) {
+	const double low = axis->min();
+	const double high = axis->max();
+	const double span = high - low;
+	if (!(span > 0.0) || !std::isfinite(span)) return;
+	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
+	double step = power;
+	for (const double factor : {2.0, 5.0, 10.0})
+		if (span / step > 8) step = factor * power;
+	axis->setTickType(QValueAxis::TicksDynamic);
+	// Qt reaches each tick by adding the interval to the one before. The interval is the step cut to 31 significant bits,
+	// a hair shorter, so the sums from an anchor at zero are exact and zero reads "0.0", not "-0.0", and each tick lies a
+	// hair nearer the anchor than its round value, so an end of the range on a round value keeps its tick. The anchor is
+	// zero when the range holds it, else a round value inside the range.
+	const int exponent = std::ilogb(step) - 30;
+	axis->setTickInterval(std::ldexp(std::floor(std::ldexp(step, -exponent)), exponent));
+	axis->setTickAnchor(low <= 0 && high >= 0 ? 0.0 : std::round((low + high) / 2 / step) * step);
+	const int decimals = std::max(0, static_cast<int>(-std::floor(std::log10(step) + 1e-9)));
+	axis->setLabelFormat(QStringLiteral("%.%1f").arg(decimals));
+}
+
+// Widens the range of a numeric axis to round ticks past its ends, so that both ends carry a label and a line at an end
+// keeps clear of the plot edge. Each end moves out to the first tick beyond it; an end within a thousandth of the range of
+// a tick counts as on it. A range that starts at zero keeps zero as its start, also when it starts a little below zero, as
+// a chart builder's margin of 0.01 km does: up to a thousandth of the range or a tenth of the step. The step is the
+// smallest one that keeps the widened range to eight steps, which is the step that roundTicks gives the widened range.
+void widenToRoundTicks(QValueAxis* axis) {
+	const double low = axis->min();
+	const double high = axis->max();
+	const double span = high - low;
+	if (!(span > 0.0) || !std::isfinite(span)) return;
+	const double hair = span / 1000;
+	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
+	for (const double factor : {1.0, 2.0, 5.0, 10.0, 20.0}) {
+		const double step = factor * power;
+		double start = std::floor((low - hair) / step) * step;
+		if (low >= -std::max(hair, step / 10)) start = std::max(start, 0.0);
+		const double end = std::ceil((high + hair) / step) * step;
+		if (std::lround((end - start) / step) <= 8) {
+			axis->setRange(start, end);
+			return;
+		}
+	}
+}
+
+// A legend below the plot with an entry for each kind of line of the chart: a short sample and the name of the kind. The
+// entries wrap into rows that fit the chart, and the chart widens its bottom margin to keep them clear of the axes.
+class LineKindLegend : public QGraphicsObject {
+public:
+	struct Kind {
+		QString name;
+		QPen pen;	 // the sample line, or the outline of a box
+		bool filled; // drawn as a box, like a filled envelope
+	};
+	LineKindLegend(QChart* chart, std::vector<Kind> kinds, const QFont& font, const QColor& textColor)
+		: QGraphicsObject(chart), m_chart(chart), m_kinds(std::move(kinds)), m_font(font), m_textColor(textColor) {
+		QObject::setParent(chart);
+		setObjectName("lineKindLegend");
+		setAcceptedMouseButtons(Qt::NoButton);
+		QStringList names;
+		for (const Kind& kind : m_kinds) names << kind.name;
+		setProperty("kinds", names);
+		connect(chart, &QGraphicsWidget::geometryChanged, this, [this] { reserveSpace(); });
+		reserveSpace();
+	}
+	QRectF boundingRect() const override { return m_area; }
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
+		const QFontMetricsF metrics(m_font);
+		painter->save();
+		painter->setFont(m_font);
+		for (const auto& entry : m_placed) {
+			const Kind& kind = m_kinds[entry.first];
+			const QRectF sample(entry.second, QSizeF(kSample, metrics.height()));
+			painter->setPen(kind.pen);
+			if (kind.filled) {
+				QColor fill = kind.pen.color();
+				fill.setAlpha(40);
+				painter->setBrush(fill);
+				painter->drawRect(sample.adjusted(1, 3, -1, -3));
+				painter->setBrush(Qt::NoBrush);
+			} else {
+				painter->drawLine(QPointF(sample.left(), sample.center().y()), QPointF(sample.right(), sample.center().y()));
+			}
+			painter->setPen(m_textColor);
+			painter->drawText(QPointF(sample.right() + kGap, sample.top() + metrics.ascent()), kind.name);
+		}
+		painter->restore();
+	}
+
+private:
+	static constexpr double kSample = 24, kGap = 6, kSpacing = 16;
+	void reserveSpace() {
+		const QFontMetricsF metrics(m_font);
+		const QRectF chart = m_chart->rect();
+		const double room = chart.width() - kChartMargins.left() - kChartMargins.right();
+		std::vector<std::vector<std::pair<std::size_t, double>>> rows; // (kind, width) from left to right
+		double used = room;
+		for (std::size_t i = 0; i < m_kinds.size(); ++i) {
+			const double width = kSample + kGap + metrics.horizontalAdvance(m_kinds[i].name);
+			if (rows.empty() || used + kSpacing + width > room) {
+				rows.emplace_back();
+				used = -kSpacing;
+			}
+			rows.back().emplace_back(i, width);
+			used += kSpacing + width;
+		}
+		const double height = metrics.height() * static_cast<double>(rows.size());
+		prepareGeometryChange();
+		m_area = QRectF(chart.left(), chart.bottom() - kChartMargins.bottom() - height, chart.width(), height);
+		m_placed.clear();
+		for (std::size_t row = 0; row < rows.size(); ++row) {
+			double width = -kSpacing;
+			for (const auto& entry : rows[row]) width += kSpacing + entry.second;
+			double x = chart.center().x() - width / 2;
+			for (const auto& entry : rows[row]) {
+				m_placed.emplace_back(entry.first, QPointF(x, m_area.top() + metrics.height() * static_cast<double>(row)));
+				x += entry.second + kSpacing;
+			}
+		}
+		QMargins margins = m_chart->margins();
+		margins.setBottom(kChartMargins.bottom() + static_cast<int>(std::ceil(height)));
+		if (margins != m_chart->margins()) m_chart->setMargins(margins);
+		update();
+	}
+	QChart* m_chart;
+	std::vector<Kind> m_kinds;
+	QFont m_font;
+	QColor m_textColor;
+	QRectF m_area;
+	std::vector<std::pair<std::size_t, QPointF>> m_placed; // kind and top left of its sample
+};
 
 // One chart-owned item, outside the train series/filter identity space. Geometry is mapped
 // from the live numeric distance axis; font sizes and the header stay in chart pixels.
 class BlockSectionOverlay : public QGraphicsObject {
 public:
 	BlockSectionOverlay(QChart* chart, std::vector<BlockSectionExtent> sections,
-		const QString& route, const QFont& font, const QPalette& palette)
+		const QString& route, const SceneSectionLabels* labels, const QFont& font, const QPalette& palette)
 		: QGraphicsObject(chart), m_chart(chart), m_sections(std::move(sections)),
 		  m_route(route), m_font(font), m_palette(palette) {
+		// Only the labels of the shown sections are kept, so the overlay does not hold those of the whole scene.
+		if (labels)
+			for (const BlockSectionExtent& section : m_sections)
+				m_labels.byReference.emplace(section.id, labels->label(section.id));
 		QObject::setParent(chart);
 		setObjectName("blockSectionOverlay");
 		setAcceptedMouseButtons(Qt::NoButton);
 		setZValue(100);
 		setProperty("sectionCount", static_cast<int>(m_sections.size()));
 		m_notice = m_sections.empty() ? "Reference sections unavailable; no physical geometry shown."
-									  : QString::fromStdString(blockSectionGeometryNote(m_sections)).trimmed();
+									  : QString::fromStdString(blockSectionGeometryNote(m_sections, labels ? &m_labels : nullptr)).trimmed();
 		setProperty("geometryNotice", m_notice);
 		connect(chart, &QChart::plotAreaChanged, this, [this] {
 			prepareGeometryChange();
@@ -153,6 +297,9 @@ public:
 		update();
 	}
 	double headerHeight() const { return stripHeight() * (m_notice.isEmpty() || m_sections.empty() ? 1 : 2); }
+	bool drawsBoundaries() const {
+		return std::any_of(m_sections.begin(), m_sections.end(), [](const BlockSectionExtent& section) { return section.geometryValid; });
+	}
 	QString inspect(const QPointF& point, bool headerOnly) const {
 		const auto* axis = distanceAxis();
 		const QRectF plot = m_chart->plotArea();
@@ -176,9 +323,9 @@ public:
 				const bool labelMatches = labelHit && section.lowerKm() == labelHit->lowerKm() && section.upperKm() == labelHit->upperKm();
 				if ((inHeader && (labelHit ? labelMatches : point.x() >= std::min(start, end) - 3 && point.x() <= std::max(start, end) + 3))
 					|| (!headerOnly && plot.contains(point) && std::min(std::abs(point.x() - start), std::abs(point.x() - end)) <= 4))
-					details << QString("Physical reference section %1:%2 | Route: %3 | Directed X: %4 to %5 km")
+					details << QString("Physical reference section %1%2 | Route: %3 | Directed X: %4 to %5 km")
 								   .arg(section.order)
-								   .arg(QString::fromStdString(section.id), m_route)
+								   .arg(sectionText(section, true), m_route)
 								   .arg(section.startKm, 0, 'g', 12)
 								   .arg(section.endKm, 0, 'g', 12);
 			}
@@ -186,7 +333,7 @@ public:
 			details << m_notice;
 			for (const auto& section : m_sections)
 				if (!section.geometryValid)
-					details << QString("%1:%2 | Geometry unavailable: %3").arg(section.order).arg(QString::fromStdString(section.id), QString::fromStdString(section.issue));
+					details << QString("%1%2 | Geometry unavailable: %3").arg(section.order).arg(sectionText(section, true), QString::fromStdString(section.issue));
 		}
 		return details.join('\n');
 	}
@@ -240,6 +387,12 @@ private:
 		QRectF rect;
 		QString text;
 	};
+	// What follows the order number of a section: ": label", with " (id)" for the hover, or ":id" without labels.
+	QString sectionText(const BlockSectionExtent& section, bool withId) const {
+		if (m_labels.byReference.empty())
+			return ":" + QString::fromStdString(section.id);
+		return ": " + QString::fromStdString(withId ? m_labels.labelWithId(section.id) : m_labels.label(section.id));
+	}
 	QRectF headerRect() const {
 		const QRectF plot = m_chart->plotArea();
 		return QRectF(plot.left(), plot.top() - headerHeight(), plot.width(), headerHeight());
@@ -256,7 +409,7 @@ private:
 			const double left = std::max(plot.left(), std::min(start, end));
 			const double right = std::min(plot.right(), std::max(start, end));
 			if (right > left) labels.push_back({&section, QRectF(left, headerRect().top(), right - left, stripHeight() - 5),
-				QString("%1:%2").arg(section.order).arg(QString::fromStdString(section.id))});
+				QString("%1%2").arg(section.order).arg(sectionText(section, false))});
 		}
 		std::stable_sort(labels.begin(), labels.end(), [](const auto& a, const auto& b) { return a.rect.left() < b.rect.left(); });
 		const QFontMetricsF metrics(m_font);
@@ -288,6 +441,7 @@ private:
 	}
 	QChart* m_chart;
 	std::vector<BlockSectionExtent> m_sections;
+	SceneSectionLabels m_labels; ///< Of the sections of m_sections; empty without labels
 	QString m_route, m_notice;
 	QFont m_font;
 	QPalette m_palette;
@@ -417,6 +571,9 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_clearPinButton = new QPushButton("Clear selection", this);
 	connect(m_clearPinButton, &QPushButton::clicked, this, &DiagramWindow::clearPin);
 	m_pinLabel = new QLabel("", this);
+	m_pinLabel->setObjectName("diagramPinLabel");
+	// Shown only while a train is selected: an empty label would still take a gap in the top bar.
+	m_pinLabel->hide();
 
 	QPushButton* resetZoomBtn = new QPushButton("Reset zoom", this);
 	resetZoomBtn->setToolTip("Restore full bounds; keep train filters and selection (Home or 0)");
@@ -491,27 +648,57 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 	m_rollingStockSubject = on;
 	m_trainsButton->setVisible(!on);
 	m_clearPinButton->setVisible(!on);
-	m_pinLabel->setVisible(!on);
+	m_pinLabel->setVisible(!on && !m_pinnedTrainId.isEmpty());
 	refreshNavigationHelp();
 }
 
-// The sentence about planned lines is there only when the shown chart has a planned series.
 void DiagramWindow::refreshNavigationHelp() {
 	if (!m_readout) return;
-	const QString navigation = QStringLiteral(
-		"Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
-	if (m_rollingStockSubject) {
-		m_readout->setText(QStringLiteral("Input tractive effort by speed. ") + navigation);
-		return;
+	// The wheel zooms with Control or Command held; the help names the key that the platform uses.
+#ifdef Q_OS_MACOS
+	const QString zoom = QStringLiteral("pinch or Command-scroll to zoom");
+#else
+	const QString zoom = QStringLiteral("pinch or Ctrl+wheel to zoom");
+#endif
+	const QString navigation = "Drag to zoom; two-finger scroll to pan; " + zoom + ". +/- zoom, arrows pan, Home resets.";
+	m_readout->setText((m_rollingStockSubject ? QStringLiteral("Input tractive effort by speed. ")
+											  : QStringLiteral("Hover to inspect; click to select. "))
+		+ navigation);
+}
+
+// A chart with more than one kind of line gets a legend of the kinds. A sample takes the line style and width of the
+// first series of its kind in the text colour, since the colour of a series belongs to its train.
+void DiagramWindow::refreshLegend() {
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!chart) return;
+	delete m_lineLegend.data();
+	chart->setMargins(kChartMargins);
+	const QColor text = palette().color(QPalette::WindowText);
+	std::vector<LineKindLegend::Kind> kinds;
+	for (QAbstractSeries* series : chart->series()) {
+		const auto* xy = qobject_cast<QXYSeries*>(series);
+		if (!xy) continue; // an area series is the fill of an envelope whose outline is a line series
+		const QPen pen = m_basePens.value(series, xy->pen());
+		const bool filled = series->property("inspectionFilled").toBool();
+		// The kind is the layer the chart builder gave the series, else planned or simulated.
+		QString name = series->property("layer").toString();
+		if (name.isEmpty()) name = isPlannedSeries(series) ? QStringLiteral("planned") : QStringLiteral("simulated");
+		name[0] = name[0].toUpper();
+		const auto known = std::find_if(kinds.begin(), kinds.end(), [&name](const LineKindLegend::Kind& kind) { return kind.name == name; });
+		if (known == kinds.end())
+			kinds.push_back({name, QPen(text, pen.widthF(), pen.style()), filled});
+		else
+			known->filled = known->filled || filled;
 	}
-	QString text = QStringLiteral("Hover to inspect; click to select. ") + navigation;
-	const QChart* chart = m_view ? m_view->chart() : nullptr;
-	if (chart) {
-		const auto seriesList = chart->series();
-		if (std::any_of(seriesList.begin(), seriesList.end(), isPlannedSeries))
-			text += QStringLiteral(" Planned: dashed; actual: solid.");
+	// Drawn section boundaries always get an entry, also in a chart with no envelope, as no caption explains them.
+	const auto* overlay = sectionOverlayOf(m_sectionOverlay);
+	const bool sections = overlay && overlay->drawsBoundaries();
+	if (sections) {
+		QColor stroke = palette().color(QPalette::Text);
+		stroke.setAlpha(100); // as the overlay draws the boundaries
+		kinds.push_back({QStringLiteral("Physical section"), QPen(stroke, 1, Qt::DotLine), false});
 	}
-	m_readout->setText(text);
+	if (kinds.size() > 1 || sections) m_lineLegend = new LineKindLegend(chart, std::move(kinds), font(), text);
 }
 
 void DiagramWindow::setTrainColors(const QHash<QString, QColor>& colors) {
@@ -545,6 +732,7 @@ void DiagramWindow::setChart(QChart* chart) {
 	delete m_numericAxis.data(); // detached axis belongs to this window, not the old chart
 	m_numericAxis = nullptr;
 	m_fullBounds.clear();
+	m_builderBounds.clear();
 	m_clockAxis = nullptr;
 	m_stationAxis = nullptr;
 	m_stations.clear();
@@ -562,12 +750,22 @@ void DiagramWindow::setChart(QChart* chart) {
 	// Existing input-traction callers tag their windows before setting the chart.
 	// Keep the explicit API for future callers and avoid a train-only filter here.
 	if (property("inputTrainUnitId").isValid()) setRollingStockSubject(true);
-	refreshNavigationHelp();
 	rebuildFilterGroups();
-	if (chart)
+	refreshLegend();
+	if (chart) {
 		for (auto* axis : chart->axes())
-			if (auto* value = qobject_cast<QValueAxis*>(axis))
-				m_fullBounds.insert(axis, {value->min(), value->max()});
+			if (auto* value = qobject_cast<QValueAxis*>(axis)) {
+				// Round ticks for every numeric axis whose ticks the chart builder left as Qt sets them.
+				if (qobject_cast<QCategoryAxis*>(axis) || value->tickType() != QValueAxis::TicksFixed) continue;
+				m_builderBounds.insert(axis, {value->min(), value->max()});
+				widenToRoundTicks(value);
+				roundTicks(value);
+				connect(value, &QValueAxis::rangeChanged, value, [value] { roundTicks(value); });
+			}
+		// Taken once every axis is widened, since an axis that shares a series with a widened one follows its range.
+		for (auto* axis : chart->axes())
+			if (auto* value = qobject_cast<QValueAxis*>(axis)) m_fullBounds.insert(axis, {value->min(), value->max()});
+	}
 	applyTimeAxis();
 }
 
@@ -651,11 +849,12 @@ QString DiagramWindow::elidedAxisTextAt(const QPointF& chartPosition) const {
 	return {};
 }
 
-void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId) {
+void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId,
+	const SceneSectionLabels* labels) {
 	clearTooltip();
 	delete m_sectionOverlay.data();
 	auto* chart = m_view->chart();
-	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), referenceRouteId, font(), palette());
+	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), referenceRouteId, labels, font(), palette());
 	m_sectionOverlay = overlay;
 	// QChart lays a top legend out between its title and the plot area, so an invisible legend as tall as the
 	// strip keeps the title where it is and moves only the plot down. A larger top margin would move both.
@@ -668,6 +867,7 @@ void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, c
 	legend->setOpacity(0); // markers return whenever a train is shown again
 	legend->setEnabled(false);
 	legend->show();
+	refreshLegend();
 }
 
 std::string DiagramWindow::csvContent() const {
@@ -684,10 +884,10 @@ void DiagramWindow::setProvenanceWriter(
 void DiagramWindow::applyChartStyle(QChart* chart) {
 	chart->setBackgroundRoundness(0);
 	chart->setBackgroundBrush(palette().brush(QPalette::Base));
-	chart->setMargins(QMargins(12, 8, 12, 8));
+	chart->setMargins(kChartMargins);
 
 	QFont titleFont = font();
-	titleFont.setPointSizeF(titleFont.pointSizeF() + 2.0);
+	titleFont.setPointSizeF(titleFont.pointSizeF() * 1.25);
 	titleFont.setBold(true);
 	chart->setTitleFont(titleFont);
 	chart->setTitleBrush(palette().brush(QPalette::WindowText));
@@ -752,6 +952,12 @@ void DiagramWindow::applyTimeAxis() {
 	auto* seconds = qobject_cast<QValueAxis*>(timeAxes.first());
 	if (!seconds)
 		return;
+	// A clock axis keeps the range the chart builder gave it, since round seconds are no round clock times.
+	if (m_builderBounds.contains(seconds)) {
+		const auto range = m_builderBounds.value(seconds);
+		seconds->setRange(range.first, range.second);
+		m_fullBounds.insert(seconds, range);
+	}
 	const double min = seconds->min();
 	const double max = seconds->max();
 	const double span = max - min;
@@ -789,7 +995,10 @@ void DiagramWindow::applyTimeAxis() {
 	for (QAbstractSeries* series : seriesList)
 		series->attachAxis(clock);
 	m_clockAxis = clock;
-	const auto updateLabels = [this, clock](qreal low, qreal high) {
+	const bool vertical = m_timeOrientation == Qt::Vertical;
+	// A queued update can come after a chart replacement has deleted the chart and before the axis goes.
+	const QPointer<QChart> owner(chart);
+	const auto updateLabels = [this, clock, owner, vertical](qreal low, qreal high) {
 		for (const QString& label : clock->categoriesLabels()) clock->remove(label);
 		const double raw = (high - low) / 6;
 		const double power = std::pow(10.0, std::floor(std::log10(std::max(1.0, raw))));
@@ -800,11 +1009,28 @@ void DiagramWindow::applyTimeAxis() {
 				break;
 			}
 		clock->setStartValue(low - interval);
+		// Ticks fall on round clock times. Elapsed zero, the run start, keeps a tick of its own while it is in range, and a
+		// round tick less than a step from it is left out where its label would overlap the label of the run start in the
+		// plot as it is laid out, or while the plot has no size.
+		const bool runStart = low <= 0 && high >= 0;
+		const double offset = static_cast<double>(m_startOffset);
+		const QFontMetricsF metrics(clock->labelsFont());
+		const QRectF plot = owner ? owner->plotArea() : QRectF();
+		const double pixelsPerSecond = (vertical ? plot.height() : plot.width()) / (high - low);
+		std::vector<std::pair<double, QString>> ticks;
+		if (runStart) ticks.emplace_back(0, QString::fromStdString(formatSimTime(0, m_startOffset)));
 		// NOLINTNEXTLINE(bugprone-float-loop-counter,clang-analyzer-security.FloatLoopCounter): ticks are placed at multiples of the interval
-		for (double tick = std::ceil(low / interval) * interval; tick <= high; tick += interval)
-			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
+		for (double tick = std::ceil((low + offset) / interval) * interval - offset; tick <= high; tick += interval) {
+			const QString label = QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset));
+			const double room = vertical ? metrics.height() : metrics.horizontalAdvance(label);
+			if (!runStart || std::abs(tick) >= interval || std::abs(tick) * pixelsPerSecond >= room) ticks.emplace_back(tick, label);
+		}
+		std::sort(ticks.begin(), ticks.end());
+		for (const auto& tick : ticks) clock->append(tick.second, tick.first);
 	};
 	connect(clock, &QValueAxis::rangeChanged, this, updateLabels);
+	// The plot is laid out when it is shown and whenever it changes size, and an axis must not change in the middle of that.
+	connect(chart, &QChart::plotAreaChanged, clock, [clock, updateLabels] { updateLabels(clock->min(), clock->max()); }, Qt::QueuedConnection);
 	updateLabels(min, max);
 	if (auto* overlay = sectionOverlayOf(m_sectionOverlay)) overlay->watchAxes();
 }
@@ -847,7 +1073,7 @@ void DiagramWindow::rebuildFilterGroups() {
 			SeriesGroup group;
 			group.trainId = trainId;
 			m_groups.append(group);
-			groupIndex = m_groups.size() - 1;
+			groupIndex = static_cast<int>(m_groups.size()) - 1;
 			indexByTrain.insert(trainId, groupIndex);
 		} else {
 			groupIndex = it.value();
@@ -857,7 +1083,7 @@ void DiagramWindow::rebuildFilterGroups() {
 
 	for (const QString& trainId : m_csvTrainIds)
 		if (!trainId.isEmpty() && !indexByTrain.contains(trainId)) {
-			indexByTrain.insert(trainId, m_groups.size());
+			indexByTrain.insert(trainId, static_cast<int>(m_groups.size()));
 			m_groups.append({trainId, {}});
 		}
 
@@ -890,16 +1116,20 @@ void DiagramWindow::applyTrainVisibility() {
 
 void DiagramWindow::pinTrain(const QString& trainId) {
 	m_pinnedTrainId = trainId;
-	if (m_pinLabel)
+	if (m_pinLabel) {
 		m_pinLabel->setText(QString("Selected: %1").arg(trainId));
+		m_pinLabel->setVisible(!m_rollingStockSubject);
+	}
 	refreshEmphasis();
 	emit trainSelected(trainId);
 }
 
 void DiagramWindow::clearPin() {
 	m_pinnedTrainId.clear();
-	if (m_pinLabel)
-		m_pinLabel->setText("");
+	if (m_pinLabel) {
+		m_pinLabel->clear();
+		m_pinLabel->hide();
+	}
 	refreshEmphasis();
 }
 
@@ -1021,9 +1251,14 @@ void DiagramWindow::exportCsv() {
 		? m_provenanceWriter(path, "csv", content)
 		: writeArtifact(path, content);
 	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written)
+	if (!written) {
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not export the data and provenance to:\n%1").arg(path));
+		return;
+	}
+	// The window has no status line of its own, so the main window names the saved file.
+	if (auto* mainWindow = qobject_cast<QMainWindow*>(parentWidget()))
+		mainWindow->statusBar()->showMessage(QStringLiteral("Saved %1").arg(QDir::toNativeSeparators(path)), 8000);
 }
 
 void DiagramWindow::clearTooltip() {
@@ -1061,7 +1296,7 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	for (auto* series : chart->series()) {
 		auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy || !xy->isVisible()) continue;
-		const auto points = xy->pointsVector();
+		const auto points = xy->points();
 		bool inside = false;
 		if (xy->property("inspectionFilled").toBool() && points.size() >= 4
 			&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {
@@ -1217,7 +1452,7 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 	} else if (ev->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(ev);
 		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
-			navigate(1 + gesture->value(), chartPosition(gesture->localPos().toPoint()));
+			navigate(1 + gesture->value(), chartPosition(gesture->position().toPoint()));
 			gesture->accept();
 			return true;
 		}

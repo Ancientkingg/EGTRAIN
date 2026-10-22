@@ -32,6 +32,7 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStringList>
@@ -41,6 +42,48 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include <vector>
+
+namespace {
+
+// Shows text in the field, and in its tooltip the text with tip, such as the id behind a label, under it. The other
+// fields get their text as tooltip from the textChanged hook of the constructor; this sets the tooltip after that.
+void setTextWithTip(QLineEdit* field, const QString& text, const QString& tip) {
+	field->setText(text);
+	field->setToolTip(plainToolTip(tip.isEmpty() ? text : text + QLatin1Char('\n') + tip));
+}
+
+// A section by its label, with its id in the tooltip; "None" without one.
+void setSectionText(QLineEdit* field, const std::string& id, const std::string& label) {
+	if (id.empty())
+		setTextWithTip(field, QStringLiteral("None"), QString());
+	else
+		setTextWithTip(field, QString::fromStdString(label.empty() ? id : label), QStringLiteral("Section ID: %1").arg(QString::fromStdString(id)));
+}
+
+// A track line of the run by its id in the scene, or by its number when the run has no id for it.
+QString trackName(const NetworkPresenter& presenter, int track) {
+	const std::string id = presenter.sceneTrackId(track);
+	return id.empty() ? QString::number(track) : QString::fromStdString(id);
+}
+
+// Track lines of the run by their ids in the scene, with their runtime numbers in the tooltip.
+void setTrackText(QLineEdit* field, const NetworkPresenter& presenter, const std::vector<int>& tracks) {
+	if (tracks.empty()) {
+		setTextWithTip(field, QString(), QString());
+		return;
+	}
+	QStringList names;
+	QStringList numbers;
+	for (const int track : tracks) {
+		names << trackName(presenter, track);
+		numbers << QString::number(track);
+	}
+	setTextWithTip(field, names.join(QStringLiteral(", ")),
+		(tracks.size() == 1 ? QStringLiteral("Runtime track number: %1") : QStringLiteral("Runtime track numbers: %1")).arg(numbers.join(QStringLiteral(", "))));
+}
+
+} // namespace
 
 InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, NetworkPresenter& presenter, Host& host)
 	: QObject(window), m_scene(scene), m_presenter(&presenter), m_host(host) {
@@ -161,6 +204,11 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	trainFormLayout->addRow("Number of wagons", trainWagonsText);
 	trainInfoWidget->setLayout(trainFormLayout);
 
+	// The button under the form of a signal or a train that adds an incident for it.
+	incidentButton = new QPushButton(infoWidget);
+	incidentButton->setObjectName("inspectorIncidentButton");
+	connect(incidentButton, &QPushButton::clicked, this, &InspectorPanel::incidentRequested);
+
 	// main layout
 	auto* infoWidgetMainLayout = new QVBoxLayout();
 	infoWidgetMainLayout->addWidget(arcInfoWidget);
@@ -168,6 +216,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	infoWidgetMainLayout->addWidget(connectionInfoWidget);
 	infoWidgetMainLayout->addWidget(signallingInfoWidget);
 	infoWidgetMainLayout->addWidget(trainInfoWidget);
+	infoWidgetMainLayout->addWidget(incidentButton, 0, Qt::AlignLeft);
 	infoWidgetMainLayout->addStretch();
 	infoWidget->setLayout(infoWidgetMainLayout);
 	for (QFormLayout* form : {arcFormLayout, nodeFormLayout, connectionFormLayout,
@@ -189,6 +238,8 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	infoScroll->setWidgetResizable(true);
 	infoScroll->setFrameShape(QFrame::NoFrame);
 	infoScroll->setMinimumSize(300, 0);
+	// Tab reaches the fields inside, and the area scrolls to show them.
+	infoScroll->setFocusPolicy(Qt::NoFocus);
 	infoScroll->setWidget(infoWidget);
 	infoDockWidget->setWidget(infoScroll);
 	infoDockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
@@ -201,6 +252,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	connectionInfoWidget->hide();
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
+	incidentButton->hide();
 
 	connect(infoDockWidget, &InfoDockWidget::closed, this, &InspectorPanel::handleCloseInfoDockWidget);
 }
@@ -243,6 +295,8 @@ void InspectorPanel::refreshInspectedSignal() {
 // removes highlight from last clicked item
 void InspectorPanel::handleCloseInfoDockWidget() {
 	m_previewSelectedStationId.clear();
+	m_previewSelectionKind.clear();
+	m_previewSelectionId.clear();
 	m_presenter->m_inspectedSignal = nullptr;
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
@@ -259,6 +313,7 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	connectionInfoWidget->hide();
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
+	incidentButton->hide();
 	m_presenter->removeTrainPaxInfoIcon();
 	m_presenter->trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
 	m_presenter->removePaxInfoIcon();
@@ -269,6 +324,14 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 		m_presenter->effect = nullptr;
 	}
 	m_host.inspectionChanged();
+}
+
+void InspectorPanel::showIncidentAction(const QString& text, const QString& blocked) {
+	incidentButton->setText(text);
+	incidentButton->setAccessibleName(text);
+	incidentButton->setEnabled(blocked.isEmpty());
+	incidentButton->setToolTip(blocked);
+	incidentButton->setVisible(!text.isEmpty());
 }
 
 void InspectorPanel::clearPreviewInspection() {
@@ -425,16 +488,15 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		connectionInfoWidget->show();
 	} else if (kind == "signal") {
 		const std::string track = item->data(PreviewGraphics::TrackId).toString().toStdString();
-		const auto head = std::find_if(m_presenter->m_cachedTrackPreview.previewSignals.begin(), m_presenter->m_cachedTrackPreview.previewSignals.end(),
-			[&](const TrackPreviewSignal& signal) { return signal.trackId == track && signal.sectionId == id; });
-		if (head == m_presenter->m_cachedTrackPreview.previewSignals.end())
+		const TrackPreviewSignal* head = m_presenter->previewSignal(track, id);
+		if (!head)
 			return;
 		signallingTrackIDText->setText(text(track));
 		signallingXText->setText(number(head->rawX * 1000));
 		signallingAspectText->setText(unavailable);
-		signallingProtectedSectionText->setText(text(id));
+		setSectionText(signallingProtectedSectionText, id, head->sectionLabel);
 		signallingNextTrackText->setText(unavailable);
-		signallingIDSectionAheadText->setText(text(id));
+		setSectionText(signallingIDSectionAheadText, id, head->sectionLabel);
 		signallingLengthSectionAheadText->setText(unavailable);
 		QStringList ids;
 		for (const auto& signal : sceneSignals(model))
@@ -443,13 +505,15 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		signallingGroupDetails->setPlainText(QStringLiteral("Track %1; section %2; %3; authored signal IDs: %4")
 				.arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward",
 					ids.isEmpty() ? "None" : ids.join(", ")));
-		title = "Signal " + text(id);
+		title = "Signal " + text(head->label);
 		signallingInfoWidget->show();
 	} else {
 		return;
 	}
 	infoDockWidget->setWindowTitle("Preview: " + title + " (not running)");
 	infoDockWidget->show();
+	m_previewSelectionKind = kind;
+	m_previewSelectionId = text(id);
 
 	// effect on clicked item
 	if (!m_presenter->effect) {
@@ -470,7 +534,7 @@ void InspectorPanel::displayNodeInfo(NodeItem* el) {
 	nodeIDText->setText(QString::fromStdString(to_string_precision(el->node->ID, 0)));
 	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * el->node->X, 2))); // km to m
 	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * el->node->Y, 2))); // km to m
-	nodeTrackIDText->setText(QString::fromStdString(to_string_precision(el->track, 0)));
+	setTrackText(nodeTrackIDText, *m_presenter, {el->track});
 	nodeStationNameText->clear();
 	nodeRegionText->clear();
 	nodeConnectedTracksText->clear();
@@ -516,23 +580,23 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* re) {
 	nodeIDText->setText(QString::fromStdString(to_string_precision(re->node->ID, 0)));
 	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * re->node->X, 2))); // km to m
 	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * re->node->Y, 2))); // km to m
-	nodeTrackIDText->setText(QString::fromStdString(to_string_precision(re->track, 0)));
+	setTrackText(nodeTrackIDText, *m_presenter, {re->track});
 	nodeStationNameText->setText(QString::fromStdString(re->node->stationName));
 	if (re->track >= 0 && re->track < 268)
 		nodeRegionText->setText(QString::number(m_host.regionOfTrack(re->track)));
 	else
 		nodeRegionText->setText("None");
-	QStringList connectedTracks;
+	std::vector<int> connectedTracks;
 	if (re->track >= 0 && re->track < 268)
-		connectedTracks << QString::number(re->track);
+		connectedTracks.push_back(re->track);
 	const int connectionCount = std::max(0, std::min(re->node->numConnections, 6));
 	for (int i = 0; i < connectionCount; ++i) {
 		const int connectedTrack = re->node->connectIdBlockSet[i];
 		if (connectedTrack >= 0 && connectedTrack < 268
-			&& !connectedTracks.contains(QString::number(connectedTrack)))
-			connectedTracks << QString::number(connectedTrack);
+			&& std::find(connectedTracks.begin(), connectedTracks.end(), connectedTrack) == connectedTracks.end())
+			connectedTracks.push_back(connectedTrack);
 	}
-	nodeConnectedTracksText->setText(connectedTracks.join(", "));
+	setTrackText(nodeConnectedTracksText, *m_presenter, connectedTracks);
 	nodeSignalledText->setText(re->node->isSignalled ? "Yes" : "No");
 
 	// hide other widgets
@@ -565,7 +629,7 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 	arcIDText->setText(QString::fromStdString(to_string_precision(line->arc->ID, 0)));
 	arcFirstNodeIDText->setText(QString::fromStdString(to_string_precision(line->arc->startNode.ID, 0)));
 	arcSecondNodeIDText->setText(QString::fromStdString(to_string_precision(line->arc->endNode.ID, 0)));
-	arcTrackIDText->setText(QString::fromStdString(to_string_precision(line->track, 0)));
+	setTrackText(arcTrackIDText, *m_presenter, {line->track});
 	arcLengthText->setText(QString::fromStdString(to_string_precision(line->arc->length, 2)));
 	arcCurvatureText->setText(QString::fromStdString(to_string_precision(line->arc->curvature, 2)));
 	arcGradientText->setText(QString::fromStdString(to_string_precision(line->arc->gradient, 3)));
@@ -584,12 +648,16 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 		}
 	};
 	arcOperationalStateText->setText(operationalStateName(line->operationalState()));
+	// The sections by their labels, joined by semicolons because a switch label holds a comma, and their ids.
 	QStringList sectionIds;
+	QStringList sectionLabels;
 	const double arcStart = std::min(line->arc->startNode.X, line->arc->endNode.X);
 	const double arcEnd = std::max(line->arc->startNode.X, line->arc->endNode.X);
-	const auto appendSection = [&sectionIds](const std::string& sectionId) {
-		if (!sectionId.empty() && !sectionIds.contains(QString::fromStdString(sectionId)))
-			sectionIds << QString::fromStdString(sectionId);
+	const auto appendSection = [&sectionIds, &sectionLabels](const std::string& sectionId, const std::string& label) {
+		if (sectionId.empty() || sectionIds.contains(QString::fromStdString(sectionId)))
+			return;
+		sectionIds << QString::fromStdString(sectionId);
+		sectionLabels << QString::fromStdString(label.empty() ? sectionId : label);
 	};
 	const std::string startSection = line->arc->startNode.tdsbId;
 	const std::string endSection = line->arc->endNode.tdsbId;
@@ -604,10 +672,14 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 			|| sectionTouchesArc(candidate->sectionBehindId);
 		if (!positionMatches && !sectionMatches)
 			continue;
-		appendSection(candidate->sectionAheadId);
-		appendSection(candidate->sectionBehindId);
+		appendSection(candidate->sectionAheadId, candidate->sectionAheadLabel);
+		appendSection(candidate->sectionBehindId, candidate->sectionBehindLabel);
 	}
-	arcConnectedSignalsText->setText(sectionIds.isEmpty() ? QStringLiteral("None") : sectionIds.join(", "));
+	if (sectionIds.isEmpty())
+		setTextWithTip(arcConnectedSignalsText, QStringLiteral("None"), QString());
+	else
+		setTextWithTip(arcConnectedSignalsText, sectionLabels.join(QStringLiteral("; ")),
+			(sectionIds.size() == 1 ? QStringLiteral("Section ID: %1") : QStringLiteral("Section IDs: %1")).arg(sectionIds.join(QStringLiteral(", "))));
 
 	// hide other widgets
 	nodeInfoWidget->hide();
@@ -636,8 +708,8 @@ void InspectorPanel::displayConnectionInfo(ConnectionItem* line) {
 	handleCloseInfoDockWidget();
 
 	// update connection info displayed on widget
-	connectionFirstTrackIDText->setText(QString::fromStdString(to_string_precision(line->connection->idFirstTrackLine, 0)));
-	connectionSecondTrackIDText->setText(QString::fromStdString(to_string_precision(line->connection->idSecondTrackLine, 0)));
+	setTrackText(connectionFirstTrackIDText, *m_presenter, {line->connection->idFirstTrackLine});
+	setTrackText(connectionSecondTrackIDText, *m_presenter, {line->connection->idSecondTrackLine});
 	connectionXFirstNodeText->setText(QString::fromStdString(to_string_precision(1000 * line->connection->xFirstNode, 2)));	  // km to m
 	connectionXSecondNodeText->setText(QString::fromStdString(to_string_precision(1000 * line->connection->xSecondNode, 2))); // km to m
 
@@ -669,29 +741,26 @@ void InspectorPanel::displaySignallingInfo(SignalItem* signal) {
 	m_presenter->m_inspectedSignal = signal;
 
 	// update signalling info displayed on widget
-	signallingTrackIDText->setText(QString::fromStdString(to_string_precision(signal->trackID, 0)));
+	setTrackText(signallingTrackIDText, *m_presenter, {signal->trackID});
 	signallingXText->setText(QString::fromStdString(to_string_precision(1000 * signal->X, 2))); // km to m
 	signallingAspectText->setText(signalAspectLabel(signal));
 	signallingGroupDetails->setPlainText(signal->toolTip());
-	const std::string protectedSection = !signal->sectionAheadId.empty()
-		? signal->sectionAheadId
-		: signal->sectionBehindId;
+	const bool hasAhead = !signal->sectionAheadId.empty();
 	const int nextTrack = signal->sectionAheadTrackId >= 0
 		? signal->sectionAheadTrackId
 		: signal->sectionBehindTrackId;
-	signallingProtectedSectionText->setText(protectedSection.empty()
-			? QStringLiteral("None")
-			: QString::fromStdString(protectedSection));
-	signallingNextTrackText->setText(nextTrack < 0 ? QStringLiteral("None") : QString::number(nextTrack));
+	setSectionText(signallingProtectedSectionText, hasAhead ? signal->sectionAheadId : signal->sectionBehindId,
+		hasAhead ? signal->sectionAheadLabel : signal->sectionBehindLabel);
+	if (nextTrack < 0)
+		setTextWithTip(signallingNextTrackText, QStringLiteral("None"), QString());
+	else
+		setTrackText(signallingNextTrackText, *m_presenter, {nextTrack});
 
 	// check if section ahead exists
-	if (!signal->sectionAheadId.empty()) {
-		signallingIDSectionAheadText->setText(QString::fromStdString(signal->sectionAheadId));
-		signallingLengthSectionAheadText->setText(QString::fromStdString(to_string_precision(1000 * signal->sectionAheadLength, 2))); // km to m
-	} else {
-		signallingIDSectionAheadText->setText("None");
-		signallingLengthSectionAheadText->setText("None");
-	}
+	setSectionText(signallingIDSectionAheadText, signal->sectionAheadId, signal->sectionAheadLabel);
+	signallingLengthSectionAheadText->setText(hasAhead
+			? QString::fromStdString(to_string_precision(1000 * signal->sectionAheadLength, 2)) // km to m
+			: QStringLiteral("None"));
 
 	// hide other widgets
 	arcInfoWidget->hide();

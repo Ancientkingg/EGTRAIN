@@ -46,7 +46,7 @@ QStringList positionalArguments(const QStringList& arguments, const QStringList&
 }
 
 QString optionValue(const QStringList& arguments, const QString& option) {
-	const int index = arguments.indexOf(option);
+	const auto index = arguments.indexOf(option);
 	if (index < 0 || index + 1 >= arguments.size())
 		return QString();
 	return arguments.at(index + 1);

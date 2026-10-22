@@ -74,8 +74,8 @@ class PeImportsTests(unittest.TestCase):
         self.assertEqual(pe_imports.read_imports(self.package / "a.dll"), [])
 
     def test_system_dlls_and_shipped_dlls_pass(self):
-        make_pe(self.package / "QEGTRAIN.exe", ["KERNEL32.dll", "api-ms-win-crt-runtime-l1-1-0.dll", "Qt5Core.dll", "ucrtbase.dll"])
-        make_pe(self.package / "Qt5Core.dll", ["kernel32.dll"])
+        make_pe(self.package / "QEGTRAIN.exe", ["KERNEL32.dll", "api-ms-win-crt-runtime-l1-1-0.dll", "Qt6Core.dll", "ucrtbase.dll"])
+        make_pe(self.package / "Qt6Core.dll", ["kernel32.dll"])
         code, out, err = run(self.package)
         self.assertEqual((code, err), (0, ""))
         self.assertIn("OK", out)

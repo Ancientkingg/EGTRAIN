@@ -1,6 +1,6 @@
 # Documentation decision
 
-How the documentation is structured, written, built, checked and shipped, and the options that were compared. The place of every existing page is in the [page map](documentation-page-map.md). Decided in #915 on 2026-10-19.
+How the documentation is structured, written, built, checked and shipped, and the options that were compared. Decided in #915 on 2026-10-19.
 
 ## Decision
 
@@ -64,7 +64,7 @@ The cost is four pinned Python packages and Doxygen, against none for plain Mark
 - Only the publish job depends on GitHub Pages. It builds each release tag into `<version>/`, keeps `latest/`, and writes a root page that lists the versions.
 - Moving to another host needs a new publish step and, for each old path, a stub page that redirects with a meta refresh.
 - The app's `.qch` is built from the same tag, so the manual in the app matches its version (`EGTRAIN_VERSION` in `CMakeLists.txt`).
-- If Qt Help cannot be packaged on a platform, #917 falls back to opening the shipped HTML in the system browser. That loses the in-app contents and search.
+- Without the `.qch`, as in a build without Sphinx, the app opens the same section of the published guides in the web browser. That needs a network and loses the in-app contents and search.
 
 ## Local build and preview
 
@@ -89,7 +89,7 @@ The site keeps its table of contents in `docs/index.md`, the only Sphinx directi
 | sphinx-autobuild | 2025.08.25 | `docs/requirements.txt` |
 | Python | 3.12 or newer, which Sphinx 9.1.0 needs | `docs/requirements.txt` comment |
 | Doxygen | 1.18.0 | version check in the `docs` target |
-| `qhelpgenerator` | the Qt 5 of the build | already a build requirement |
+| `qhelpgenerator` | the Qt 6 of the build | already a build requirement |
 
 ## Screenshots
 
@@ -98,18 +98,18 @@ What exists. The offscreen smokes already save the main window and some dialogs 
 Process:
 
 1. A test program in `EGTRAIN/QEGTRAIN/tests/e2e/` opens a named case, puts the window in a named state and saves each picture with `grab()`.
-2. `tools/docs/capture_screenshots.sh` runs it with `QT_QPA_PLATFORM=offscreen` on macOS arm64 and writes `docs/images/` and `docs/images/captures.json`. Running it again regenerates every capture.
+2. `tools/docs/capture_screenshots.sh` runs it in a Qt 6 build on macOS, on a screen at a device pixel ratio of 1, and writes `docs/images/` and `docs/images/captures.json`. Running it again regenerates every capture. The pictures were first taken on the offscreen platform; since 2026-10-22 they are taken with the macOS platform in a virtual machine, because the offscreen font and widget style do not look like the application.
 3. `captures.json` lists, for each file, its case, state, size and the application version. A picture that cannot be scripted is marked manual there, with the steps to take it.
 4. Names are `<page>-<subject>.png`, lower case with hyphens, for example `getting-started-open-a-case.png`.
 5. Window captures are 1200 by 750 pixels at a device pixel ratio of 1. Dialogs keep their natural size. Nothing is wider than 1200 pixels.
 6. Alt text says what the picture shows and in which state.
 7. Light only, until the application has a dark theme.
-8. Dated comparison pictures under `docs/ui/images/` are records and are not regenerated.
+8. Dated comparison pictures under `docs/architecture/images/` and `docs/development/records/images/` are records and are not regenerated.
 
 A stale picture is found in two ways:
 
 - `check_docs.py` fails when a PNG under `docs/images/` is not in `captures.json`, an entry has no file, a size differs from the manifest, or the recorded version differs from `EGTRAIN_VERSION` in its major or minor part.
-- `capture_screenshots.sh --check` captures again into a temporary folder and lists pictures where more than 2 percent of the pixels differ. It runs from the release checklist, not on every pull request, because fonts differ between systems.
+- `capture_screenshots.sh --check` captures again into a temporary folder and lists pictures where more than 2 percent of the pixels differ. It runs from the release checklist, not on every pull request, because it needs a macOS screen at a device pixel ratio of 1. On every pull request CTest checks on the offscreen platform that the capture phase still takes every picture.
 
 ## Onboarding path
 
@@ -157,7 +157,7 @@ It already checks relative links, heading anchors, empty alt text, orphan images
 1. `github-only`: GitHub alerts (`> [!NOTE]`), `<details>`, links that start with `/`, and links to `github.com/Ancientkingg/EGTRAIN/blob/` for files in the repository.
 2. `heading`: one `#` heading, first in the file, and no skipped levels.
 3. `manual-link`: a page in `docs/guides/` links only to pages in `docs/guides/`.
-4. `image`: the name pattern, the width and the `captures.json` rules above.
+4. `capture`: the name pattern, the width and the `captures.json` rules above.
 5. `ui-name`: every bold span in `docs/guides/` is in a list of menu paths, dock, dialog, button and field names that a test writes from the running application. The list is a build output, so the check is skipped without it and runs in the CI job that builds the application.
 
 Each new check gets one case in `tools/docs/test_check_docs.py`. Prose style is not checked by machine beyond the dash rule.
@@ -172,5 +172,5 @@ Each new check gets one case in `tools/docs/test_check_docs.py`. Prose style is 
 
 - How a Markdown page links to a generated C++ reference page. MyST does not resolve `../api/classFoo.html` as a document. To settle in #918.
 - Whether Sphinx search works from `file://`. The index is a script, but result summaries are fetched, which some browsers block from disk. To settle in #918.
-- Whether QtHelp, `qhelpgenerator` and Qt's SQLite plugin are in the Windows Qt install of CI (it installs only `qtcharts` as an extra module) and in the AppImage. To settle in #917.
+- Whether the packages open the manual. The package jobs deploy Qt Help and its SQLite driver and fail when either or the `.qch` is missing, but no package check opens the manual.
 - Furo's last release is from 2025-12-19 and sphinx-autobuild's from 2025-08-25. Both can be replaced: Sphinx's own `alabaster` theme, and a plain web server.

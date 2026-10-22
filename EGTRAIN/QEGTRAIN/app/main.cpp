@@ -1,7 +1,9 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include "app/CannotOpenMessage.h"
+#include "app/CrashNote.h"
 #include "app/DispatchController.h"
+#include "app/GuardedApplication.h"
 #include "app/MainWindow.h"
 #include "app/OpenRequestRelay.h"
 #include "app/SceneOpenRequest.h"
@@ -15,18 +17,27 @@
 #endif
 #include "update/SelfUpdater.h"
 #include "update/UpdateSettings.h"
+#include "util/Log.h"
 #include "widgets/ConsoleWidget.h"
+#include "widgets/LightPalette.h"
+#include "widgets/WidgetStyle.h"
 #include <algorithm>
 #include <climits>
+#include <exception>
 #include <iomanip>
 #include <iterator>
 #include <optional>
 #include "util/portability.h"
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QPalette>
 #include <QStringList>
+#include <QStyle>
+#include <QStyleHints>
 #include <QTimer>
+#include <QToolTip>
 
 using namespace std;
 
@@ -47,6 +58,43 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 		return *std::next(it); // NOLINT(clang-analyzer-security.ArrayBound): the option is followed by its value
 	}
 	return nullptr;
+}
+
+// EGTRAIN has one light look. A dark system palette would show through wherever a colour comes from the palette, such as
+// selected rows, tooltips and charts, so the application then takes the light standard palette of its style. On macOS
+// Info.plist keeps the light Aqua appearance for the native controls, menus and title bars.
+static void keepLightPalette() {
+	const QPalette palette = QApplication::palette();
+	if (palette.color(QPalette::Window).lightness() >= palette.color(QPalette::WindowText).lightness())
+		return;
+	QPalette light = QApplication::style()->standardPalette();
+	// A style can take its standard palette from the desktop as well, Fusion's too from Qt 6.5.
+	if (light.color(QPalette::Window).lightness() < light.color(QPalette::WindowText).lightness())
+		light = lightFusionPalette();
+	QApplication::setPalette(light);
+	QToolTip::setPalette(light);
+}
+
+/// The desktop can hand Qt its palette after start as well, as a dark XDG desktop portal does, so every new application
+/// palette is checked again.
+class LightPaletteKeeper : public QObject {
+public:
+	using QObject::QObject;
+	/// Checks the palette once Qt has handled a change of the application palette, as Qt sets the tooltip palette of a
+	/// new theme last.
+	bool eventFilter(QObject* watched, QEvent* event) override {
+		if (watched == QCoreApplication::instance() && event->type() == QEvent::ApplicationPaletteChange)
+			QTimer::singleShot(0, this, &keepLightPalette);
+		return QObject::eventFilter(watched, event);
+	}
+};
+
+static void keepLightLook() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+	QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
+#endif
+	keepLightPalette();
+	QCoreApplication::instance()->installEventFilter(new LightPaletteKeeper(QCoreApplication::instance()));
 }
 
 // Whether this is the creator acceptance run of a test build, which starts without a case study.
@@ -76,9 +124,7 @@ static const CommandLineOption commandLineOptions[] = {
 	{"-c", "PERCENT", "from the scene", "Recovery time"},
 	{"-g", "0|1", "1", "0 runs without a window and exits when the run ends"},
 	{"-pax", "0|1", "last choice of View > Show Passengers", "1 shows the passengers; read only when -g is 1"},
-	{"-TSM", "0|1", "0", "Deprecated; sends the traffic state to port 5555"},
-	{"-RC", "0|1", "0", "Deprecated; sends route choice requests to port 5556"},
-	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g, -pax, -TSM and -RC when they are left out"},
+	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g and -pax when they are left out"},
 	{"-interactive", nullptr, "off", "Same as --interactive"},
 	{"--detailed-trajectories", nullptr, "off", "Also writes the per-train files"},
 	{"--live", "PORT", "off", "Publishes the run state on a ZeroMQ socket; 0 takes a free port"},
@@ -215,33 +261,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	}
 
-	// Traffic state: send it to tcp://127.0.0.1:5555 if enabled
-	if (cmdOptionEntered(argv, argv + argc, "-TSM")) {
-		char* argument = getCmdOption(argv, argv + argc, "-TSM");
-		if (argument) {
-			initial_variables.TSM = std::atoi(argument);
-		}
-	} else if (promptForMissingOptions) {
-		std::cout << "Do you want EGTRAIN to send the traffic state to an external module that listens on port 5555 (1: send, 0: do not send)?  :";
-		std::cin >> initial_variables.TSM;
-	} else {
-		initial_variables.TSM = 0;
-	}
-	// Route choice: send the passengers' state to tcp://127.0.0.1:5556 if enabled
-	if (cmdOptionEntered(argv, argv + argc, "-RC")) {
-		char* argument = getCmdOption(argv, argv + argc, "-RC");
-		if (argument) {
-			initial_variables.RChoice = std::atoi(argument);
-		}
-	} else if (promptForMissingOptions) {
-		std::cout << "Do you want EGTRAIN to send the passengers' route choice requests to an external module that listens on port 5556 (1: send, 0: do not send)?  :";
-		std::cin >> initial_variables.RChoice;
-	} else {
-		initial_variables.RChoice = 0;
-	}
 	initial_variables.exportDetailedTrajectories = cmdOptionEntered(argv, argv + argc, "--detailed-trajectories");
-	if (initial_variables.TSM || initial_variables.RChoice)
-		std::cerr << "WARNING: -TSM and -RC are legacy options, kept for one release. Use --live <port> for the supported live stream.\n";
 }
 
 // Reads a whole number from low to high from the text of an option. Returns false when the text is none.
@@ -371,7 +391,7 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 	return request;
 }
 
-int main(int argc, char* argv[]) {
+static int runMain(int argc, char* argv[]) {
 	beginStartupTiming();
 	const std::string loggingProblems = installConsoleLogging();
 	if (!loggingProblems.empty())
@@ -380,6 +400,11 @@ int main(int argc, char* argv[]) {
 	if (cmdOptionEntered(argv, argv + argc, "--help")) {
 		printHelp();
 		return 0;
+	}
+	// Before --interactive asks anything and before the value can count as a file name.
+	if (cmdOptionEntered(argv, argv + argc, "-TSM") || cmdOptionEntered(argv, argv + argc, "-RC")) {
+		std::cerr << "ERROR: -TSM and -RC were removed. Use --live <port> for the live stream.\n";
+		return 1;
 	}
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
@@ -432,7 +457,19 @@ int main(int argc, char* argv[]) {
 		std::cout << "Graphical user interface (GUI): 0\n";
 
 	if (gui) {
-		QApplication application(argc, argv);
+		const bool styleChosen = widgetStyleChosen(argc, argv);
+		GuardedApplication application(argc, argv);
+		// Before the palettes, because a new style brings its own.
+		preferWindowsVistaStyle(styleChosen);
+#if EGTRAIN_BUILD_TESTS
+		e2e::configureApplication();
+#endif
+		keepLightLook();
+		// Before the first message box, so that a scene that cannot be opened is reported in the look of the window.
+		QFile theme(QStringLiteral(":/styles/egtrain.qss"));
+		if (theme.open(QIODevice::ReadOnly | QIODevice::Text))
+			application.setStyleSheet(QString::fromUtf8(theme.readAll()));
+		installCrashHandler(crashNoteFolder());
 		if (!onlyKnownOptions(argc, argv))
 			return 1;
 		if (!updatesSuppressedByEnvironment()) {
@@ -555,7 +592,7 @@ int main(int argc, char* argv[]) {
 	// No window reads the snapshots of this run.
 	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
-	if (simulation.run().numTrains <= 0)
+	if (simulation.run().numTrains <= 0 || !simulation.lastRunError().empty())
 		return 1;
 	// The line that scripts read for a completed run, without a newline. It does not go through the logging core,
 	// so no logging rule hides it.
@@ -563,4 +600,16 @@ int main(int argc, char* argv[]) {
 		std::cout << "\n End of Simulation";
 	simulation.printLastTrainServicePathDiagram();
 	return 0;
+}
+
+// An exception that nothing else catches, for example at startup before the event loop runs, is logged and ends the
+// program with exit code 70.
+int main(int argc, char* argv[]) {
+	try {
+		return runMain(argc, argv);
+	} catch (const std::exception& error) {
+		EG_LOG(AppUi, Error) << "EGTRAIN stopped because of an unexpected error: " << error.what() << '\n';
+		eglog::flush();
+		return 70;
+	}
 }

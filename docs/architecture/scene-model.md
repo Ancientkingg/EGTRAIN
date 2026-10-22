@@ -10,7 +10,7 @@ canonical model -> native infrastructure + operations -> simulator
 canonical model -> explicit SceneExporter -> legacy interoperability files
 ```
 
-`DispatchController::prepareScene` is the shared native setup seam. It consumes
+[`DispatchController::prepareScene`] is the shared native setup seam. It consumes
 the loaded model through the infrastructure/signalling and operations builders
 and prepares runtime output directories. Neither builder opens provenance files
 or consults an `Input/` tree.
@@ -33,7 +33,7 @@ every build.
 | `services.json` | services, explicit route/composition links, stops, planned times, dwell, and repetition | required |
 | `scenarios.json` | default scenario, named scenarios, incidents, and entrance delays | optional on load; always written by `SceneWriter` |
 | `passengers.json` | passenger journeys and legs | optional |
-| `views.json` | optional track levels and station display geometry; consumed only by preview/runtime layout | optional |
+| `views.json` | optional track levels, double switch drawing and station display geometry; consumed only by preview/runtime layout | optional |
 
 The six required files are the files needed for structural loading. A scene
 may therefore load without scenarios or passengers; the writer creates a
@@ -53,7 +53,7 @@ Each key of the scene files is written in one place and read in one place.
 `encodeInfrastructure`, `encodeStations`, `encodeSignalling`,
 `encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
 `encodePassengers`), and `loadScene` in `SceneModel.cpp` and
-`SceneFieldReader.cpp` read the files. The importer fills a `SceneModel` and
+`SceneFieldReader.cpp` read the files. The importer fills a [`SceneModel`] and
 writes it with the encoders, so an imported scene has the form of a saved one.
 The exporter writes the items of its area sidecar with `encodeSignallingArea`,
 and the importer reads them with `decodeSignallingArea`.
@@ -72,7 +72,7 @@ and the builders check against, are in `scene/RuntimeLimits.h`.
 ## Model ownership
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy
-incidents. Incidents belong to a `SceneScenario`; the selected scenario is
+incidents. Incidents belong to a [`SceneScenario`]; the selected scenario is
 identified by `default_scenario_id`. Runtime `loadedData` and `sourceFiles` are
 derived, non-serialized summaries. Loaded-data navigation targets point only to
 existing editors and are not part of the canonical schema. `import_report` is
@@ -279,7 +279,7 @@ newer EGTRAIN release is required for newer formats.
 
 The loader accepts historical aliases for existing scenes, while the writer
 emits only preferred V1 keys. The aliases and their exact mappings are listed
-in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases).
+in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-aliases).
 
 `SceneImporter` maps the legacy seven-token train definition, physical and
 traction source files, timetable rows, routes, stations, supported scenarios,
@@ -300,8 +300,9 @@ bundle. The loader has accepted no other value since it was introduced
 older version number exists. The older scenes that exist differ from today's in
 layout, not in number. The format has grown only by optional keys and optional
 files, such as `views.json`, `saved_with_app_version`, `signalling_areas` in
-`signalling.json`, and the service keys `category` and `visualization_color`.
-None of them changed a number.
+`signalling.json`, the service keys `category` and `visualization_color`, and
+`double_switch` in the track views of `views.json`. None of them changed a
+number.
 
 The probe reads `scene.json` (directory) or the bundle manifest, and, only
 when `scene.json` has a `legacy_source` key, `infrastructure.json`. A scene
@@ -330,7 +331,7 @@ window start first shows "Cannot Start EGTRAIN".
 
 | Class | How it is recognised | What the application does |
 | --- | --- | --- |
-| Current layout | Directory: `schema_version` 1 in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no compatibility dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases). |
+| Current layout | Directory: `schema_version` 1 in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](../guides/scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no compatibility dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-aliases). |
 | Draft layout | Saved by builds before the canonical model of 2026-08-08 (main-77.1 and earlier). A `scene.json` with a `legacy_source` key and an `infrastructure.json` with no nodes and no arcs; the simulator read the railway from a `legacy/` text tree. `schema_version` is 1, like today's, so the number does not separate these scenes. Neither sign identifies the layout alone: a current scene may carry a `legacy_source` key, and an empty `infrastructure.json` alone is left to the loader. | Deliberately unsupported: these scenes are not converted and no migration is provided, also when one is registered for the number. The probe classes the scene as unsupported with the diagnostic `scene.compatibility.draft`, which names the draft layout and the date and says to import the original legacy case again. The dialog is "Older Scene Not Supported" with that message, and `--scene` and `scene_tool` exit with code 1 and print it. Use the current case studies, or convert the original legacy input folder again with **File > Load Legacy Case...** or `scene_tool import`. The Paimpol scene of main-77.1 is stored as a fixture. |
 | Number below 1 | `schema_version` below 1 in `scene.json`; in a bundle, `schema_version` or `bundle_version` below 1. | Deliberately unsupported. The scene is not opened and the dialog is titled "Older Scene Not Supported". Its message is the diagnostic `scene.compatibility.older` with the numbers of the scene and of this version. |
 | Newer | `schema_version` above 1 (directory or bundle), or `bundle_version` above 1 (bundle). | Never downgraded. The scene is not opened; the dialog is "Newer Scene" with **Check for Updates...** and **Cancel**. `--scene` and `scene_tool` print the diagnostic `scene.compatibility.newer` with the numbers of the scene and of this version. |
@@ -352,22 +353,17 @@ unsupported.
 
 ## Bundle format (v2)
 
-The transparent `.egscene` transport container packages the existing V1 JSON
-files without changing `SceneModel` or the V1 schema. Here "V2" names the
-container and "V1" the data schema; the container's own number is
-`bundle_version` 1, and the data inside has `schema_version` 1. Its manifest and
-safety rules are documented in [V2 Transparent Scene Bundle](scene-bundle.md).
-Directories remain the editable source of truth; bundle loading extracts to a
-temporary directory and reuses `loadScene`.
+The `.egscene` transport container, its manifest, its safety rules and how it is read and written are described in
+[V2 Transparent Scene Bundle](../guides/scene-bundle.md).
 
 ## Native runtime path
 
 The infrastructure/signalling builder accepts an already loaded and validated
 `SceneModel` and populates the run that it is given. The operations builder
 then creates services, train occurrences, the selected scenario, entrance
-delays, and passengers in memory. Each native `Train` carries operating code,
+delays, and passengers in memory. Each native [`Train`] carries operating code,
 service ID, occurrence, performance, configured cap, composition maximum, and
-applied maximum-speed provenance. `RunResults` copies that provenance to train
+applied maximum-speed provenance. [`RunResults`] copies that provenance to train
 rows and operating code/service identity to timetable rows. `TrackPreview`
 resolves connections and station markers through the same canonical node IDs.
 GUI Run, `--scene`, and the numeric case shortcuts all enter this shared native
@@ -383,4 +379,10 @@ one section are rejected. Missing coverage keeps the native unset value, and
 runnable validation warns about the route sections it leaves unset. Normal
 runtime does not read `TrackLines/AreasCaseStudy.txt` and does not synthesize a
 conventional or ETCS default. The levels and the rule that gives a section its
-level are described in [Signalling levels](signalling-levels.md).
+level are described in [Signalling levels](../guides/signalling-levels.md).
+
+[`DispatchController::prepareScene`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
+[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
+[`SceneScenario`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_scenario.html
+[`Train`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
+[`RunResults`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_run_results.html

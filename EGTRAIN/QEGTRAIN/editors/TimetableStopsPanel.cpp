@@ -109,13 +109,14 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	setObjectName("timetableStopsPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
-	QHBoxLayout* timeModeLayout = new QHBoxLayout();
-	timeModeLayout->addWidget(new QLabel("Planned time display", this));
+	// In a narrow dock the time mode goes below its label.
+	auto* timeModeLayout = new QFormLayout();
+	timeModeLayout->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	m_timeModeCombo = new QComboBox(this);
 	m_timeModeCombo->setObjectName("timetableTimeModeCombo");
 	m_timeModeCombo->addItem("Elapsed offsets (s)", false);
 	m_timeModeCombo->addItem("Clock time", true);
-	timeModeLayout->addWidget(m_timeModeCombo);
+	timeModeLayout->addRow("Planned time display", m_timeModeCombo);
 	m_timeBaseLabel = new QLabel(this);
 	m_timeBaseLabel->setObjectName("timetableTimeBaseLabel");
 	m_timeBaseLabel->setWordWrap(true);
@@ -139,7 +140,7 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->setAlternatingRowColors(true);
-	m_table->setTabKeyNavigation(true);
+	m_table->setTabKeyNavigation(false);
 	m_table->setWordWrap(false);
 	m_table->setTextElideMode(Qt::ElideRight);
 	m_table->verticalHeader()->setVisible(false);
@@ -159,11 +160,13 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_moveUpButton->setObjectName("moveTimetableStopUpButton");
 	m_moveDownButton = new QPushButton("Move Down", this);
 	m_moveDownButton->setObjectName("moveTimetableStopDownButton");
+	// Two columns, so that the buttons fit a narrow dock.
 	buttonLayout->addWidget(m_addButton, 0, 0);
-	buttonLayout->addWidget(m_insertAfterButton, 0, 1, 1, 2);
-	buttonLayout->addWidget(m_removeButton, 1, 0);
-	buttonLayout->addWidget(m_moveUpButton, 1, 1);
-	buttonLayout->addWidget(m_moveDownButton, 1, 2);
+	buttonLayout->addWidget(m_removeButton, 0, 1);
+	buttonLayout->addWidget(m_insertAfterButton, 1, 0, 1, 2);
+	buttonLayout->addWidget(m_moveUpButton, 2, 0);
+	buttonLayout->addWidget(m_moveDownButton, 2, 1);
+	QWidget::setTabOrder(m_addButton, m_removeButton);
 	layout->addLayout(buttonLayout);
 
 	connect(m_table, &QTableWidget::cellClicked, this, [this](int row, int) { editStop(row); });
@@ -320,7 +323,7 @@ void TimetableStopsPanel::fitColumns() {
 		for (int row = 0; row < m_table->rowCount(); ++row) {
 			// The delegate reports what its style needs to draw the text whole, which can be more than the advance of the text.
 			const QModelIndex cell = m_table->model()->index(row, column);
-			widest = std::max(widest, m_table->itemDelegate(cell)->sizeHint(option, cell).width());
+			widest = std::max(widest, m_table->itemDelegate()->sizeHint(option, cell).width());
 		}
 		int& width = widths[static_cast<std::size_t>(column)];
 		width = std::max(header->sectionSizeHint(column), clockTime ? widest : std::min(widest, typicalValue));
@@ -329,23 +332,31 @@ void TimetableStopsPanel::fitColumns() {
 			kept += width;
 	}
 	const int available = m_table->viewport()->width();
-	const int room = std::max(available - minimumStation, 0);
-	// While the kept columns fit, only the others are shortened.
-	const bool keepClockTimes = wanted > room && kept < room;
-	int used = 0;
-	for (int column = 1; column < 5; ++column) {
-		int& width = widths[static_cast<std::size_t>(column)];
-		if (keepClockTimes) {
-			if (!isClockTime(column))
-				width = std::max(width * (room - kept) / (wanted - kept), minimum);
-		} else if (wanted > room) {
-			width = std::max(width * room / wanted, minimum);
+	// The station keeps its whole header where the other columns can give up the room for it and the clock times stay whole,
+	// and six digits otherwise.
+	std::array<int, 5> fitted{};
+	for (const int station : {std::max(minimumStation, header->sectionSizeHint(0)), minimumStation}) {
+		const int room = std::max(available - station, 0);
+		// While the kept columns fit, only the others are shortened.
+		const bool keepClockTimes = wanted > room && kept < room;
+		int used = 0;
+		fitted = widths;
+		for (int column = 1; column < 5; ++column) {
+			int& width = fitted[static_cast<std::size_t>(column)];
+			if (keepClockTimes) {
+				if (!isClockTime(column))
+					width = std::max(width * (room - kept) / (wanted - kept), minimum);
+			} else if (wanted > room) {
+				width = std::max(width * room / wanted, minimum);
+			}
+			used += width;
 		}
-		used += width;
+		fitted[0] = std::max(available - used, station);
+		if (used <= room && kept < room)
+			break;
 	}
-	widths[0] = std::max(available - used, minimumStation);
 	for (int column = 0; column < 5; ++column)
-		m_table->setColumnWidth(column, widths[static_cast<std::size_t>(column)]);
+		m_table->setColumnWidth(column, fitted[static_cast<std::size_t>(column)]);
 }
 
 void TimetableStopsPanel::updateActions() {
@@ -407,6 +418,9 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
+	// The messages of the form ask for no width. A form that keeps its fields at their size hint, as on macOS, would give
+	// them none and leave an empty band in place of their text.
+	form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	ChoiceComboBox* positionCombo = nullptr;
 	if (append) {
 		positionCombo = new ChoiceComboBox(&dialog);

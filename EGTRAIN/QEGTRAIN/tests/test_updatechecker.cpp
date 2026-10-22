@@ -515,7 +515,7 @@ int main(int argc, char** argv) {
 		{"a dot segment", ",\"files\":[" + executable + ",\"./a.dll\"]"},
 		{"a parent segment", ",\"files\":[" + executable + ",\"a/../b.dll\"]"},
 		{"a backslash parent segment", ",\"files\":[" + executable + ",\"..\\\\b.dll\"]"},
-		{"a file list without QEGTRAIN.exe", ",\"files\":[\"Qt5Core.dll\"]"},
+		{"a file list without QEGTRAIN.exe", ",\"files\":[\"Qt6Core.dll\"]"},
 		{"an empty file list", ",\"files\":[]"}};
 	for (const InvalidListCase& invalid : invalidLists) {
 		QString listError;

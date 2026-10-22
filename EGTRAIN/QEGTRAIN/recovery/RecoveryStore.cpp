@@ -11,7 +11,6 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QLockFile>
-#include <QMap>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QUuid>
@@ -48,19 +47,15 @@ RecoveryResult failure(const char* sentence) {
 	return result;
 }
 
-// The entry that a diagnostic path ends in, such as incident 1 for scenarios[0].incidents[0].target_id. The number is the
-// position in its list, counted from 1. An entry of a list that has no name here is called an entry.
+// The entry that a diagnostic path ends in, such as incident 1 for scenarios[0].incidents[0].target_id: the name of its list
+// in the singular, with spaces for underscores, and its position, counted from 1.
 QString entryOfPath(const std::string& path) {
-	static const QRegularExpression indexed(QStringLiteral("(\\w+)\\[(\\d+)\\]"));
-	static const QMap<QString, QString> names = {{QStringLiteral("incidents"), QStringLiteral("incident")},
-		{QStringLiteral("entrance_delays"), QStringLiteral("entrance delay")}, {QStringLiteral("scenarios"), QStringLiteral("scenario")},
-		{QStringLiteral("passengers"), QStringLiteral("passenger")}, {QStringLiteral("journeys"), QStringLiteral("journey")},
-		{QStringLiteral("legs"), QStringLiteral("leg")}};
+	static const QRegularExpression indexed(QStringLiteral("(\\w+)s\\[(\\d+)\\]"));
 	QString entry;
 	QRegularExpressionMatchIterator matches = indexed.globalMatch(QString::fromStdString(path));
 	while (matches.hasNext()) {
 		const QRegularExpressionMatch match = matches.next();
-		entry = names.value(match.captured(1), QStringLiteral("entry")) + QLatin1Char(' ') + QString::number(match.captured(2).toInt() + 1);
+		entry = match.captured(1).replace(QLatin1Char('_'), QLatin1Char(' ')) + QLatin1Char(' ') + QString::number(match.captured(2).toInt() + 1);
 	}
 	return entry;
 }

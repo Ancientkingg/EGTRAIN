@@ -1440,8 +1440,6 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		outputDir = temporaryDir->path().toStdString();
 	}
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.PAX_GUI = spec.paxGui;
 	// --repeat-files compares every file of the kept folders, so these runs write the detailed files too.
 	initial_variables.exportDetailedTrajectories = !keptOutputDir.empty();

@@ -7,6 +7,7 @@
 
 #include <QAbstractItemModel>
 #include <QHeaderView>
+#include <QStyle>
 #include <QTableView>
 
 #include <algorithm>
@@ -181,6 +182,49 @@ std::optional<double> stopPosition(const CompletedTrain& train, int index, const
 	return routeDiagramStopPosition(train.stops[static_cast<std::size_t>(index)], source, projection);
 }
 
+// Adds to the diagram the recorded samples of each train that lie inside one of its envelopes there, each moved in time
+// by the shift of its train in `shifts` (0 s for a train without one).
+void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRunData& data,
+	const std::map<std::string, RouteDiagramProjection>& projections, const std::map<std::string, double>& shifts) {
+	const double timestepSeconds = data.settings.timestepSeconds;
+	for (const CompletedTrain& train : data.trains) {
+		const CompletedTrajectory& trajectory = train.trajectory;
+		const auto projection = projections.find(train.trainId);
+		if (trajectory.segments.empty() || projection == projections.end())
+			continue;
+		const auto shift = shifts.find(train.trainId);
+		const double shiftSeconds = shift == shifts.end() ? 0.0 : shift->second;
+		std::vector<const BlockingTimeDiagramSegment*> own;
+		for (const auto& block : diagram.segments)
+			if (block.trainName == train.trainId)
+				own.push_back(&block);
+		for (const TrajectorySegment& valid : trajectory.segments) {
+			bool open = false;
+			for (int t = valid.first; t <= valid.last; ++t) {
+				const double seconds = t * timestepSeconds + shiftSeconds;
+				const double sourceKm = routeDiagramTrajectoryKm(trajectory.at(trajectory.position, t).value_or(0.0));
+				const auto x = projection->second.map(sourceKm);
+				const bool inside = x && std::any_of(own.begin(), own.end(), [&](const BlockingTimeDiagramSegment* block) {
+					return seconds >= block->startTime && seconds <= block->endTime
+						&& *x >= std::min(block->startPositionKm, block->endPositionKm)
+						&& *x <= std::max(block->startPositionKm, block->endPositionKm);
+				});
+				if (!inside) {
+					open = false;
+					continue;
+				}
+				if (!open) {
+					diagram.trajectories.push_back({train.trainId, {}});
+					open = true;
+				}
+				diagram.trajectories.back().points.emplace_back(*x, seconds);
+				diagram.trajectoryRows.push_back({train.trainId, "", "", "", csv::formatDouble(*x),
+					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
+			}
+		}
+	}
+}
+
 } // namespace
 
 QStringList trainIdsFrom(const CompletedRunData& data) {
@@ -252,6 +296,7 @@ BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& da
 	BlockingTimeScopeChoices choices;
 	choices.caseEndSeconds = data.settings.horizonSeconds();
 	choices.stepSeconds = data.settings.timestepSeconds;
+	choices.sectionLabels = data.sectionLabels;
 	for (const CompletedRoute& route : data.routes) {
 		BlockingTimeScopeChoices::Route choice;
 		choice.id = route.id;
@@ -260,8 +305,6 @@ BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& da
 			choice.blockIds.push_back(block.id);
 		choices.routes.push_back(std::move(choice));
 	}
-	for (const CompletedTrain& train : data.trains)
-		choices.trains.push_back({train.trainId, train.routeIndex, train.routeId});
 	return choices;
 }
 
@@ -269,11 +312,11 @@ std::vector<BlockingTimePlannedReference> plannedReferencesFrom(const CompletedR
 	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
 	const std::map<int, RouteDiagramProjection>& projections, int& omitted) {
 	std::vector<BlockingTimePlannedReference> references;
+	if (scope.routeIndex >= 0 && scope.blockIds.empty() && scope.trainIds.empty())
+		return references; // A route without blocks and no train list has no stop in its scope.
 	const auto selectedSections = data.hasRoute(scope.routeIndex) && !scope.sectionIndices.empty()
 		? scopedBlockSectionExtents(buildBlockSectionExtents(data.routes[static_cast<std::size_t>(scope.routeIndex)].blocks), scope.sectionIndices)
 		: std::vector<BlockSectionExtent>();
-	if (scope.routeIndex >= 0 && scope.trainIds.empty())
-		return references;
 	for (const CompletedTrain& train : data.trains) {
 		if (!scope.trainIds.empty() && std::find(scope.trainIds.begin(), scope.trainIds.end(), train.trainId) == scope.trainIds.end())
 			continue;
@@ -328,10 +371,11 @@ std::string blockingTimeCsvFrom(const CompletedRunData& data, const QStringList&
 
 std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRunData& data,
 	const BlockingTimeScope& scope) {
-	const std::vector<BlockingTimeDiagramSegment> scoped = scope.routeIndex >= 0 && scope.trainIds.empty()
+	// Empty filters keep every envelope, so a route without blocks and no train list keeps none itself.
+	const std::vector<BlockingTimeDiagramSegment> scoped = scope.routeIndex >= 0 && scope.blockIds.empty() && scope.trainIds.empty()
 		? std::vector<BlockingTimeDiagramSegment>()
-		: filterBlockingTimeDiagramSegments(blockTimesFrom(data), scope.trainIds, scope.blockIds,
-			  scope.startTime, scope.endTime);
+		: filterBlockingTimeDiagramSegments(blockTimesFrom(data), scope.trainIds, scope.blockIds, scope.startTime,
+			  scope.endTime);
 	const int referenceIndex = scope.routeIndex >= 0 ? scope.routeIndex : firstRouteOfTrains(data, scope.trainIds);
 	if (!data.hasRoute(referenceIndex))
 		return std::nullopt;
@@ -344,7 +388,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	result.segments = projectBlockingSegments(scoped, maps.byTrain, result.omitted, &result.unmapped);
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
 	result.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id);
+	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id, &data.sectionLabels);
 	if (!scope.sectionIndices.empty())
 		result.segments.erase(std::remove_if(result.segments.begin(), result.segments.end(),
 								  [&result](const auto& segment) { return !blockingSegmentInSections(segment, result.extents); }),
@@ -352,51 +396,50 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	const auto allPlanned = plannedReferencesFrom(data, scope, maps.paths, maps.projections, result.omitted);
 	result.plannedReferences = filterBlockingTimePlannedReferences(allPlanned, scope.startTime, scope.endTime);
 	result.plannedLines = clipBlockingTimePlannedReferences(allPlanned, scope.startTime, scope.endTime);
-
-	const double timestepSeconds = data.settings.timestepSeconds;
-	for (const CompletedTrain& train : data.trains) {
-		const CompletedTrajectory& trajectory = train.trajectory;
-		const auto projection = maps.byTrain.find(train.trainId);
-		if (trajectory.segments.empty() || projection == maps.byTrain.end())
-			continue;
-		std::vector<const BlockingTimeDiagramSegment*> own;
-		for (const auto& block : result.segments)
-			if (block.trainName == train.trainId)
-				own.push_back(&block);
-		for (const TrajectorySegment& valid : trajectory.segments) {
-			bool open = false;
-			for (int t = valid.first; t <= valid.last; ++t) {
-				const double seconds = t * timestepSeconds;
-				const double sourceKm = routeDiagramTrajectoryKm(trajectory.at(trajectory.position, t).value_or(0.0));
-				const auto x = projection->second.map(sourceKm);
-				const bool inScope = x && seconds >= scope.startTime && seconds <= scope.endTime
-					&& std::any_of(own.begin(), own.end(), [&](const BlockingTimeDiagramSegment* block) {
-						   return seconds >= block->startTime && seconds <= block->endTime
-							   && *x >= std::min(block->startPositionKm, block->endPositionKm)
-							   && *x <= std::max(block->startPositionKm, block->endPositionKm);
-					   });
-				if (!inScope) {
-					open = false;
-					continue;
-				}
-				if (!open) {
-					result.trajectories.push_back({train.trainId, {}});
-					open = true;
-				}
-				result.trajectories.back().points.emplace_back(*x, seconds);
-				result.trajectoryRows.push_back({train.trainId, "", "", "", csv::formatDouble(*x),
-					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
-			}
-		}
-	}
+	// The envelopes are clipped to the interval of the scope, so the samples inside them are too.
+	addRecordedTrajectories(result, data, maps.byTrain, {});
 	return result;
 }
 
-std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence) {
+std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const CompletedRunData& data,
+	const CapacityAnalysisScope& scope, const CapacityAnalysisResult& result) {
+	if (!data.hasRoute(scope.routeIndex))
+		return std::nullopt;
+	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
+	BlockingTimeDiagramData diagram;
+	diagram.referencePath = route.path;
+	const RouteProjections maps = projectRoutes(data, diagram.referencePath, true);
+	auto shifted = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
+	restoreCompressedOriginalTimes(shifted, result.compression);
+	diagram.segments = projectBlockingSegments(shifted, maps.byTrain, diagram.omitted, &diagram.unmapped);
+	const auto allExtents = buildBlockSectionExtents(route.blocks);
+	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
+	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id, &data.sectionLabels);
+	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back.
+	std::map<std::string, double> shifts;
+	for (const CapacityCompressionRow& row : result.compression)
+		shifts.emplace(row.identity, row.compressedReference - row.originalReference);
+	addRecordedTrajectories(diagram, data, maps.byTrain, shifts);
+	diagram.timeRange = {0.0, 1.0};
+	if (!diagram.segments.empty()) {
+		double first = diagram.segments.front().startTime;
+		double last = diagram.segments.front().endTime;
+		for (const auto& segment : diagram.segments) {
+			first = std::min(first, segment.startTime);
+			last = std::max(last, segment.endTime);
+		}
+		const double margin = std::max(1.0, 0.05 * (last - first));
+		diagram.timeRange = {first >= 0.0 ? std::max(0.0, first - margin) : first - margin, last + margin};
+	}
+	return diagram;
+}
+
+std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels) {
 	QStringList values;
 	for (const auto& item : evidence)
-		values << QString("%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
-					  .arg(QString::fromStdString(item.leaderBlockId), QString::fromStdString(item.followerBlockId),
+		values << QString(labels ? "%1 / %2 (leader=%3 s; follower=%4 s; candidate=%5 s)" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
+					  .arg(QString::fromStdString(labels ? labels->label(item.leaderBlockId) : item.leaderBlockId),
+						  QString::fromStdString(labels ? labels->label(item.followerBlockId) : item.followerBlockId),
 						  QString::fromStdString(csv::formatDouble(item.leaderOffset)),
 						  QString::fromStdString(csv::formatDouble(item.followerOffset)),
 						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
@@ -513,11 +556,6 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 		rows.push_back(std::move(record));
 	}
 	return csv::makeDocument(header, rows);
-}
-
-std::map<std::string, RouteDiagramProjection> routeProjectionsByTrain(const CompletedRunData& data,
-	const RouteDiagramPath& reference) {
-	return projectRoutes(data, reference, true).byTrain;
 }
 
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
@@ -655,6 +693,14 @@ QImage fullTableImage(const QTableView& table) {
 		full.setColumnWidth(column, table.columnWidth(column));
 	for (int row = 0; row < table.model()->rowCount(); ++row)
 		full.setRowHeight(row, table.rowHeight(row));
+	// A header paints its text in the font of its viewport. Under the application style sheet the first polish leaves that
+	// viewport the application font when headers have a font of their own, such as the smaller one of macOS, and the text
+	// then overflows the widths measured with the header font. Polishing the headers again gives their viewports that font.
+	full.ensurePolished();
+	for (QHeaderView* header : {full.horizontalHeader(), full.verticalHeader()}) {
+		full.style()->unpolish(header);
+		full.style()->polish(header);
+	}
 	const int frame = 2 * full.frameWidth();
 	full.resize(full.verticalHeader()->width() + full.horizontalHeader()->length() + frame,
 		full.horizontalHeader()->height() + full.verticalHeader()->length() + frame);

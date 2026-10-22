@@ -1,6 +1,7 @@
 #include "graphics/NetworkScene.h"
 
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/StationOverlayItem.h"
 
 #include <QApplication>
 #include <QContextMenuEvent>
@@ -100,6 +101,39 @@ int main(int argc, char* argv[]) {
 		sendLeftClick(scene, view, QPointF(0.0, 0.0));
 		ok &= expect(stationClicks == 1, "station click passes through higher-z ignored-transform decoration");
 		ok &= expect(disableHighlight == 0, "station click does not disable highlight");
+	}
+
+	{
+		// The dots of the near look cover the station squares. A click on a square picks that square, also when the
+		// mark belongs to the square of another node, and a click in the dot of a track node under a dot picks the node;
+		// a click on a dot beside the squares and nodes picks the square that holds the mark.
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		scaleView(view);
+		StationNodeItem anchor(QRectF(-2.0, -2.0, 4.0, 4.0));
+		StationNodeItem other(QRectF(-2.0, -2.0, 4.0, 4.0));
+		other.setPos(0.0, 20.0);
+		anchor.setZValue(StationMarkItem::HostZValue);
+		other.setZValue(1.0);
+		scene.addItem(&anchor);
+		scene.addItem(&other);
+		auto* mark = new StationMarkItem(StationClass::Station, 24, &anchor);
+		mark->setNodeCentres({QPointF(0.0, 0.0), QPointF(0.0, 20.0)});
+		mark->setNearLook(24.0, 2.0);
+		StationNodeItem* picked = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem* item) { picked = item; });
+		sendLeftClick(scene, view, QPointF(0.0, 20.0));
+		ok &= expect(picked == &other, "a click on a station square under the dots of another node picks that square");
+		picked = nullptr;
+		sendLeftClick(scene, view, QPointF(4.0, 20.0));
+		ok &= expect(picked == &anchor, "a click on a dot beside the squares picks the square that holds the mark");
+		NodeItem track(QRectF(2.0, -1.0, 2.0, 2.0));
+		scene.addItem(&track);
+		NodeItem* pickedNode = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem* item) { pickedNode = item; });
+		picked = nullptr;
+		sendLeftClick(scene, view, QPointF(3.0, 0.0));
+		ok &= expect(pickedNode == &track && !picked, "a click in the dot of a track node under the dots picks the node");
 	}
 
 	{
@@ -559,19 +593,37 @@ int main(int argc, char* argv[]) {
 		const auto paintTrack = [&track]() {
 			QImage image(48, 40, QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::black);
-			QPainter painter(&image);
-			track.paint(&painter, nullptr, nullptr);
-			return image.pixelColor(24, 20);
+			{
+				QPainter painter(&image);
+				track.paint(&painter, nullptr, nullptr);
+			}
+			return image;
 		};
-		for (const TrackOperationalState state : {TrackOperationalState::Free,
-				 TrackOperationalState::Prepared, TrackOperationalState::Occupied,
-				 TrackOperationalState::Blocked}) {
+		const auto pixelsOf = [](const QImage& image, const QColor& color) {
+			int count = 0;
+			for (int y = 0; y < image.height(); ++y)
+				for (int x = 0; x < image.width(); ++x)
+					count += image.pixelColor(x, y) == color;
+			return count;
+		};
+		const int speedPixels = pixelsOf(paintTrack(), speed.color());
+		ok &= expect(speedPixels > 0 && pixelsOf(paintTrack(), occupiedTrackColor()) == 0, "a free track has its speed colour");
+		for (const TrackOperationalState state : {TrackOperationalState::Prepared, TrackOperationalState::Blocked}) {
 			track.setOperationalState(state);
-			ok &= expect(paintTrack() == speed.color(),
-				"ordinary track keeps historical speed color in every operational state");
+			ok &= expect(pixelsOf(paintTrack(), speed.color()) == speedPixels && pixelsOf(paintTrack(), occupiedTrackColor()) == 0,
+				"a prepared or blocked track keeps its speed colour");
 		}
+		track.setOperationalState(TrackOperationalState::Occupied);
+		ok &= expect(pixelsOf(paintTrack(), occupiedTrackColor()) == speedPixels && pixelsOf(paintTrack(), speed.color()) == 0,
+			"an occupied track is red at the same width");
+		track.setOperationalState(TrackOperationalState::Blocked, true);
+		ok &= expect(pixelsOf(paintTrack(), occupiedTrackColor()) == speedPixels && pixelsOf(paintTrack(), speed.color()) == 0,
+			"a blocked track that a train occupies is red");
+		track.setOperationalState(TrackOperationalState::Free);
+		ok &= expect(pixelsOf(paintTrack(), speed.color()) == speedPixels && pixelsOf(paintTrack(), occupiedTrackColor()) == 0,
+			"a track that is free again has its speed colour");
 		track.setGraphicsEffect(new HighlightEffect(Qt::blue, 1.0));
-		ok &= expect(paintTrack() == speed.color(), "a selected track keeps its speed colour");
+		ok &= expect(paintTrack().pixelColor(24, 20) == speed.color(), "a selected track keeps its speed colour");
 	}
 
 	{

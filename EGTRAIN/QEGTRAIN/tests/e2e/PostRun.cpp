@@ -43,6 +43,8 @@
 #include <QEvent>
 #include <QFile>
 #include <QGraphicsItem>
+#include <QHeaderView>
+#include <QImage>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineF>
@@ -60,12 +62,14 @@
 #include <QPolygonF>
 #include <QPushButton>
 #include <QRectF>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QSize>
 #include <QSlider>
 #include <QStatusBar>
 #include <QString>
 #include <QStringList>
+#include <QTabBar>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QTimer>
@@ -172,7 +176,7 @@ std::string penText(const QPen& pen) {
 		+ std::to_string(static_cast<int>(pen.style()));
 }
 
-std::string pointsText(const QVector<QPointF>& points) {
+std::string pointsText(const QList<QPointF>& points) {
 	std::string text;
 	for (const QPointF& point : points)
 		text += exactNumber(point.x()) + "," + exactNumber(point.y()) + "\n";
@@ -201,13 +205,13 @@ std::string chartDump(const DiagramWindow& window) {
 		for (const QByteArray& name : series->dynamicPropertyNames())
 			text += "  " + name.toStdString() + "=" + propertyText(series->property(name.constData())) + "\n";
 		if (const auto* line = qobject_cast<const QXYSeries*>(series)) {
-			text += "  pen " + penText(line->pen()) + "\n" + pointsText(line->pointsVector());
+			text += "  pen " + penText(line->pen()) + "\n" + pointsText(line->points());
 		} else if (const auto* area = qobject_cast<const QAreaSeries*>(series)) {
 			text += "  pen " + penText(area->pen()) + " fill " + area->brush().color().name(QColor::HexArgb).toStdString() + "\n";
 			if (area->upperSeries())
-				text += "  upper\n" + pointsText(area->upperSeries()->pointsVector());
+				text += "  upper\n" + pointsText(area->upperSeries()->points());
 			if (area->lowerSeries())
-				text += "  lower\n" + pointsText(area->lowerSeries()->pointsVector());
+				text += "  lower\n" + pointsText(area->lowerSeries()->points());
 		}
 	}
 	return text;
@@ -560,13 +564,28 @@ void MainWindowTestAccess::runSettled(MainWindow& w) {
 // first completion reruns the case. The second changes the scenario and then opens the case again, each of which must leave
 // no graphics of the run.
 void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
-	const QStringList timeHeaders{"Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)"};
-	for (int i = 0; i < timeHeaders.size(); ++i) {
+	// The time headers keep their names. The energy headers are short with the full name as their tooltip.
+	const QStringList headers{"Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)", "Energy (kWh)", "Energy with regen (kWh)",
+		"Substation (kWh)", "Substation with regen (kWh)"};
+	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
+		"Substation request with regenerative braking (kWh)"};
+	for (int i = 0; i < headers.size(); ++i) {
 		const auto* header = w.m_runResultsTable ? w.m_runResultsTable->horizontalHeaderItem(4 + i) : nullptr;
-		if (!header || header->text() != timeHeaders[i]) {
-			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results time header\n");
+		if (!header || header->text() != headers[i] || (i >= 3 && header->toolTip() != energyNames[i - 3])) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results header %d\n", 4 + i);
 			QCoreApplication::exit(2);
 			return;
+		}
+	}
+	// Names are left-aligned, numbers and times right-aligned.
+	for (int row = 0; row < w.m_runResultsTable->rowCount(); ++row) {
+		for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column) {
+			const QTableWidgetItem* item = w.m_runResultsTable->item(row, column);
+			if (!item || bool(item->textAlignment() & Qt::AlignRight) != (column >= 2)) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results alignment in row %d, column %d\n", row, column);
+				QCoreApplication::exit(2);
+				return;
+			}
 		}
 	}
 	const bool clean = w.m_runController->m_runtimeStatus == QStringLiteral("Completed") && w.m_snapshot
@@ -715,11 +734,11 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	const bool wheelSeek = w.m_replayRequestedTime != middle + 1;
 	w.seekReplay(first);
 	const QPoint replayClick(w.m_replaySlider->width() - 8, w.m_replaySlider->height() / 2);
-	QMouseEvent click(QEvent::MouseButtonPress, replayClick,
+	QMouseEvent click(QEvent::MouseButtonPress, replayClick, w.m_replaySlider->mapToGlobal(replayClick),
 		Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 	QApplication::sendEvent(w.m_replaySlider, &click);
 	const bool mouseSeek = w.m_replayRequestedTime > first;
-	QMouseEvent release(QEvent::MouseButtonRelease, replayClick,
+	QMouseEvent release(QEvent::MouseButtonRelease, replayClick, w.m_replaySlider->mapToGlobal(replayClick),
 		Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 	QApplication::sendEvent(w.m_replaySlider, &release);
 	w.seekReplay(first);
@@ -803,7 +822,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return w.m_followAction->isChecked() && w.m_followTrainIndex == followedIndex
 				&& w.m_followTrainCombo->currentData().toInt() == followedIndex;
 		};
-		const auto sentence = [&w]() { return w.m_followStatusLabel->text(); };
+		// The status bar shows one clause; its tooltip holds the whole explanation.
+		const auto sentence = [&w]() { return w.m_followStatusLabel->toolTip(); };
 		const auto fail = [](const char* what) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: historical Follow, %s\n", what);
 			QCoreApplication::exit(2);
@@ -823,8 +843,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			|| pixelsBetween(cameraBefore, staleItem->sceneBoundingRect().center()) <= 20.0)
 			return fail("before the entry, the train has no hidden item with the geometry of its run away from the view");
 		w.setFollowTrain(followedIndex);
-		const bool waiting = stillFollowing() && w.statusBar()->currentMessage() == notEntered + "Follow starts when it enters."
-			&& sentence() == w.statusBar()->currentMessage()
+		const bool waiting = stillFollowing() && w.statusBar()->currentMessage() == name + " enters at " + scheduled
+			&& w.m_followStatusLabel->text() == w.statusBar()->currentMessage()
 			&& w.m_followTrainCombo->itemText(followedRow) == name + " (scheduled " + scheduled + ")"
 			&& std::none_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 				[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
@@ -1180,7 +1200,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		const QString runFirst = QStringLiteral("Run the case first, then you can follow a train.");
 		if (w.m_followTrainCombo->count() != 1 || w.m_followTrainCombo->currentData().toInt() != -1
 			|| w.m_followTrainCombo->currentText() != "Run the case to follow trains" || w.m_followAction->isEnabled()
-			|| w.m_followAction->isChecked() || w.m_followStatusLabel->text() != runFirst || w.m_followAction->toolTip() != runFirst) {
+			|| w.m_followAction->isChecked() || w.m_followStatusLabel->toolTip() != runFirst || w.m_followAction->toolTip() != runFirst) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: Follow after the scenario changed\n");
 			QCoreApplication::exit(2);
 			return;
@@ -1219,6 +1239,8 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return false;
 	};
 	const QString whole = QStringLiteral("Whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
+	// The label names the selected time as the clock time of the progress bar.
+	const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 	if (w.m_completedReplay.firstTime() != 0 || w.m_completedReplay.truncated() || !replaySliderCovers(w, 0, last))
 		return fail(QStringLiteral("the slider of a whole run does not cover 0 to %1 s").arg(last));
 	const auto finalFrame = w.m_completedReplay.atOrBefore(last);
@@ -1226,12 +1248,13 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return fail(QStringLiteral("the last kept frame, at %1 s, is not the last timestep of a run of %2 timesteps")
 				.arg(last)
 				.arg(finalFrame ? finalFrame->totalTimesteps : 0));
-	if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != whole || !w.m_replayStartButton->toolTip().isEmpty())
+	if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != whole
+		|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
 		return fail(QStringLiteral("the row of a whole run says '%1' and '%2' with the tooltip '%3'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text(), w.m_replayStartButton->toolTip()));
 	w.m_replaySlider->setValue(middle);
 	const auto shown = w.m_completedReplay.atOrBefore(middle);
-	if (w.m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(shown->timestep) || w.m_replayCoverageLabel->text() != whole)
+	if (w.m_replayLabel->text() != clock(shown->timestep) || w.m_replayCoverageLabel->text() != whole)
 		return fail(QStringLiteral("a whole run says '%1' and '%2' for the frame at %3 s")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text())
 				.arg(shown->timestep));
@@ -1260,7 +1283,7 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 	}
 	w.m_replayStartButton->click();
 	if (w.m_replayRequestedTime != 0 || !w.m_snapshot || w.m_snapshot->timestep != 0 || w.m_replaySlider->value() != 0
-		|| w.m_replayLabel->text() != QStringLiteral("Replay at 0 s") || w.m_replayCoverageLabel->text() != whole)
+		|| w.m_replayLabel->text() != clock(0) || w.m_replayCoverageLabel->text() != whole)
 		return fail(QStringLiteral("Start of a whole run did not go to 0 s, the row says '%1' and '%2'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text()));
 	const QSize size = replayRowSizeAt(w, 0);
@@ -1299,7 +1322,8 @@ QSize MainWindowTestAccess::replayRowSizeAt(MainWindow& w, int time) {
 // that dropped its first part and for one that kept no frame. Those histories are built here, the
 // first from the frames of the run with a budget that holds about half of them, and go through the
 // code that fills the row after a run. The history of the run is put back, and the window shows
-// the frame at the middle again.
+// the frame at the middle again. It also checks the width of Play, the Tab order and the focus frames after a run, and that
+// a second result window does not open on top of the first.
 bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& failure) {
 	if (!checkReplayWholeRun(w, middle, failure))
 		return false;
@@ -1310,6 +1334,129 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		failure = why;
 		return false;
 	};
+
+	// Start, Play and End show an icon and have a tooltip and a name. While the replay plays, Play shows another icon,
+	// tooltip and the name Pause, and keeps its width, so End does not move.
+	auto* endButton = w.m_replayBar->findChild<QPushButton*>("replayEndButton");
+	const auto iconOf = [](const QPushButton* button) { return button->icon().pixmap(16, 16).toImage(); };
+	const auto shows = [&iconOf](const QPushButton* button, const char* name) {
+		return button && !iconOf(button).isNull() && !button->toolTip().isEmpty() && button->accessibleName() == QLatin1String(name);
+	};
+	const bool named = shows(w.m_replayStartButton, "Start") && shows(w.m_replayPlayButton, "Play") && shows(endButton, "End");
+	const QImage playIcon = iconOf(w.m_replayPlayButton);
+	const QString playTip = w.m_replayPlayButton->toolTip();
+	const int endX = endButton ? endButton->x() : -1;
+	w.m_replayPlayButton->click();
+	QApplication::processEvents();
+	QApplication::processEvents();
+	const bool paused = shows(w.m_replayPlayButton, "Pause") && iconOf(w.m_replayPlayButton) != playIcon && w.m_replayPlayButton->toolTip() != playTip;
+	const bool endKept = endButton && endButton->x() == endX;
+	w.m_replayPlayButton->click();
+	QApplication::processEvents();
+	if (!named || !paused || !shows(w.m_replayPlayButton, "Play") || iconOf(w.m_replayPlayButton) != playIcon)
+		return fail(QStringLiteral("Start, Play and End do not show an icon, a tooltip and their name, or Play does not turn into Pause and back"));
+	if (!endKept)
+		return fail(QStringLiteral("End moved when Play turned into Pause"));
+	// Opened in a maximised window on a 1024 by 768 screen, Run Results shows the header and a row of its table without
+	// scrolling. In a window of 819 by 614 pixels (1024 by 768 at 125 percent) it takes at most half of the height that it
+	// shares with the network view, and the window can be lower than a screen of 683 by 464 pixels (1024 by 768 at 150 percent)
+	// less its frame.
+	const QSize sizeBefore = w.size();
+	const auto openResults = [&w](int width, int height) {
+		w.m_runResultsDock->hide();
+		w.resize(width, height);
+		QApplication::processEvents();
+		w.m_runResultsPanel->refresh();
+		QApplication::processEvents();
+	};
+	openResults(1024, 690);
+	const auto* resultsScroll = qobject_cast<QScrollArea*>(w.m_runResultsDock->widget());
+	const int rowBottom = resultsScroll
+		? w.m_runResultsTable->mapTo(resultsScroll->viewport(), QPoint(0, w.m_runResultsTable->viewport()->y() + w.m_runResultsTable->rowHeight(0))).y()
+		: -1;
+	const int shownHeight = resultsScroll ? resultsScroll->viewport()->height() : -1;
+	// A dock on the right, such as the inspector after the signal checks, keeps the window wider than 819 pixels.
+	QList<QDockWidget*> rightDocks;
+	for (QDockWidget* dock : w.findChildren<QDockWidget*>())
+		if (dock->isVisible() && !dock->isFloating() && w.dockWidgetArea(dock) == Qt::RightDockWidgetArea) {
+			rightDocks << dock;
+			dock->hide();
+		}
+	QApplication::processEvents();
+	openResults(819, 614);
+	const QSize smallSize = w.size();
+	const int resultsHeight = w.m_runResultsDock->height();
+	const int canvasHeight = w.networkView->height();
+	const int minimumHeight = w.minimumSizeHint().height();
+	const auto* delayCaption = w.findChild<QLabel*>("delayComparisonCaption");
+	const bool tableApart = delayCaption && delayCaption->y() > w.m_runResultsTable->geometry().bottom();
+	for (QDockWidget* dock : rightDocks)
+		dock->show();
+	std::fprintf(stdout, "E2E_RUN_RESULTS_SMALL_WINDOW size=%dx%d results=%d canvas=%d minimum_height=%d row_bottom_1024=%d shown_1024=%d\n",
+		smallSize.width(), smallSize.height(), resultsHeight, canvasHeight, minimumHeight, rowBottom, shownHeight);
+	w.resize(sizeBefore);
+	QApplication::processEvents();
+	if (rowBottom < 0 || rowBottom > shownHeight)
+		return fail(QStringLiteral("the first row of Run Results ends at %1 px in a dock that shows %2 px at 1024 x 690").arg(rowBottom).arg(shownHeight));
+	if (!tableApart)
+		return fail(QStringLiteral("the delay comparison covers the table of Run Results at 819 x 614"));
+	if (smallSize != QSize(819, 614) || resultsHeight > canvasHeight + 2)
+		return fail(QStringLiteral("Run Results is %1 px high below a network view of %2 px at %3 x %4")
+				.arg(resultsHeight)
+				.arg(canvasHeight)
+				.arg(smallSize.width())
+				.arg(smallSize.height()));
+	if (minimumHeight > 400)
+		return fail(QStringLiteral("the window after a run needs %1 px of height").arg(minimumHeight));
+	// Tab goes Start, Play, End and the slider, reaches the buttons above the table of Run Results before the table, leaves the
+	// table for the buttons after it and comes back to Start through the layer check boxes. No stop is a dock tab bar or the
+	// scroll area of a dock, which show no focus. The table shows the focus with its frame, the network view with a 2 px frame.
+	w.m_replayStartButton->setFocus(Qt::TabFocusReason);
+	QApplication::processEvents();
+	QList<QWidget*> order;
+	QString tableEdge;
+	QString canvasEdge;
+	QWidget* focused = QApplication::focusWidget();
+	while (focused && order.size() < 60 && !order.contains(focused)) {
+		order << focused;
+		if (focused == w.m_runResultsTable || focused == w.networkView) {
+			const QImage shown = focused->grab().toImage();
+			QString& edge = focused == w.networkView ? canvasEdge : tableEdge;
+			edge = shown.pixelColor(0, shown.height() / 2).name() + shown.pixelColor(1, shown.height() / 2).name();
+		}
+		QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+		QApplication::sendEvent(focused, &tab);
+		QApplication::processEvents();
+		focused = QApplication::focusWidget();
+	}
+	const QList<QWidget*> replayRow{w.m_replayStartButton, w.m_replayPlayButton, endButton, w.m_replaySlider};
+	const QList<QWidget*> results{w.findChild<QWidget*>("runResultsViewsButton"), w.findChild<QWidget*>("resultView_ExportCSV"),
+		w.findChild<QWidget*>("resultView_ExportPNG"), w.m_runResultsTable};
+	const int views = order.indexOf(results.first());
+	QStringList names;
+	for (QWidget* widget : order)
+		names << QStringLiteral("%1(%2)").arg(widget->metaObject()->className(), widget->objectName());
+	if (focused != w.m_replayStartButton || order.mid(0, replayRow.size()) != replayRow || views < 0
+		|| order.mid(views, results.size()) != results || !order.contains(w.m_signalLayerCheck)
+		|| std::any_of(order.cbegin(), order.cend(), [](QWidget* widget) { return qobject_cast<QTabBar*>(widget) || qobject_cast<QScrollArea*>(widget); }))
+		return fail(QStringLiteral("the Tab order after a run is %1").arg(names.join(QStringLiteral(", "))));
+	if (!tableEdge.startsWith(QLatin1String("#315a70")) || canvasEdge != QLatin1String("#8fbcd4#8fbcd4"))
+		return fail(QStringLiteral("the focus frame of the Run Results table is %1 and that of the network view %2").arg(tableEdge, canvasEdge));
+	// A second result window does not open on top of the first, which is still open.
+	w.buildPerTrainDiagram(0);
+	DiagramWindow* speedWindow = newestWindow(w);
+	w.showDelayDiagram();
+	DiagramWindow* delayWindow = newestWindow(w);
+	QApplication::processEvents();
+	const bool cascaded = speedWindow && delayWindow && speedWindow != delayWindow && speedWindow->pos() != delayWindow->pos();
+	for (DiagramWindow* resultWindow : {delayWindow, speedWindow})
+		if (resultWindow)
+			resultWindow->close();
+	// The offscreen platform activates no other window when the active one closes.
+	w.activateWindow();
+	QApplication::processEvents();
+	if (!cascaded)
+		return fail(QStringLiteral("a second result window opens at the place of the first"));
 
 	// The same run with its first part dropped.
 	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> frames;
@@ -1342,6 +1489,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 			return std::make_pair(sentence, QStringLiteral("Go to the first kept time, %1. The earlier part of the run was not kept.").arg(start));
 		};
 		const auto [dropped, tip] = words(w.m_runController->m_startOffsetSeconds);
+		const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 		if (!replaySliderCovers(w, from, last))
 			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
 		if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != dropped)
@@ -1351,13 +1499,13 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		const QString row = w.m_replayCoverageLabel->text();
 		w.m_replayStartButton->click();
 		if (w.m_replayRequestedTime != from || !w.m_snapshot || w.m_snapshot->timestep != from || w.m_replaySlider->value() != from
-			|| w.m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(from) || w.m_replayCoverageLabel->text() != dropped)
+			|| w.m_replayLabel->text() != clock(from) || w.m_replayCoverageLabel->text() != dropped)
 			return QStringLiteral("Start did not go to %1 s, the row says '%2' and '%3'").arg(from).arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text());
 		w.seekReplay(0);
 		if (w.m_replayRequestedTime != from || w.m_snapshot->timestep != from)
 			return QStringLiteral("a time before the kept interval did not select %1 s").arg(from);
 		w.m_replaySlider->setValue(last);
-		if (w.m_replayRequestedTime != last || w.m_snapshot->timestep != last || w.m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(last)
+		if (w.m_replayRequestedTime != last || w.m_snapshot->timestep != last || w.m_replayLabel->text() != clock(last)
 			|| w.m_replayCoverageLabel->text() != dropped)
 			return QStringLiteral("the end of the slider did not select %1 s, the row says '%2' and '%3'")
 				.arg(last)
@@ -1374,14 +1522,14 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 				.arg(sizeAtEnd.height())
 				.arg(last);
 		w.seekReplay(last);
-		// A change of the start time moves the clock in the sentence and in the tooltip.
+		// A change of the start time moves the clock in the label, the sentence and the tooltip.
 		const long long offsetBefore = w.m_runController->m_startOffsetSeconds;
 		w.setStartOffset(offsetBefore + 3600);
 		const auto [movedSentence, movedTip] = words(offsetBefore + 3600);
-		const bool moved = w.m_replayLabel->text() == QStringLiteral("Replay at %1 s").arg(last) && w.m_replayCoverageLabel->text() == movedSentence
+		const bool moved = w.m_replayLabel->text() == clock(last) && w.m_replayCoverageLabel->text() == movedSentence
 			&& w.m_replayStartButton->toolTip() == movedTip && movedTip != tip;
 		w.setStartOffset(offsetBefore);
-		if (!moved || w.m_replayCoverageLabel->text() != dropped || w.m_replayStartButton->toolTip() != tip)
+		if (!moved || w.m_replayLabel->text() != clock(last) || w.m_replayCoverageLabel->text() != dropped || w.m_replayStartButton->toolTip() != tip)
 			return QStringLiteral("a change of the start time did not move the clock in the row");
 		std::fprintf(stdout, "E2E_REPLAY_ROW_DROPPED_OK from=%d label=\"%s\" start_tooltip=\"%s\" slider_width=%d row_height=%d\n", from, qPrintable(row),
 			qPrintable(tip), size.width(), size.height());
@@ -1403,7 +1551,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		const QString expected = QStringLiteral("One moment of this run needs more than the replay memory (1 MiB).");
 		if (!w.m_completedReplay.oversize() || !w.m_completedReplay.empty() || !w.m_replayBar->isVisible() || w.m_replayLabel->text() != QStringLiteral("No replay")
 			|| w.m_replayCoverageLabel->text() != expected || w.m_replaySlider->isEnabled() || w.m_replayPlayButton->isEnabled()
-			|| !w.m_replayStartButton->toolTip().isEmpty())
+			|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
 			return QStringLiteral("the row says '%1' and '%2', the slider is %3, Play is %4, Start says '%5'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text(), w.m_replaySlider->isEnabled() ? "enabled" : "disabled",
 					w.m_replayPlayButton->isEnabled() ? "enabled" : "disabled", w.m_replayStartButton->toolTip());

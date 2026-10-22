@@ -7,6 +7,10 @@ namespace e2e {
 // or QEGTRAIN_E2E_OPEN_REQUEST_AT names none of launch, startup, chooser and running.
 bool configureProcess();
 
+// Gives the application a dark palette and dark tooltips, as a dark system setting does, when
+// QEGTRAIN_E2E_DARK_PALETTE is set. main() calls it right after it makes the application object.
+void configureApplication();
+
 // Whether the run is the creator acceptance scenario, which starts without a case study.
 bool wantsCreatorAcceptance();
 

@@ -76,10 +76,6 @@ class TestMeasurementContract(unittest.TestCase):
                     str(scenes / case_name),
                     "-g",
                     "0",
-                    "-TSM",
-                    "0",
-                    "-RC",
-                    "0",
                 ],
             )
 

@@ -62,7 +62,7 @@ void sendKey(QWidget* widget, Qt::Key key) {
 }
 
 void sendMouse(QWidget* widget, QEvent::Type type, const QPoint& point) {
-	QMouseEvent event(type, QPointF(point), Qt::LeftButton,
+	QMouseEvent event(type, QPointF(point), QPointF(widget->mapToGlobal(point)), Qt::LeftButton,
 		type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::LeftButton, Qt::NoModifier);
 	QApplication::sendEvent(widget, &event);
 }
@@ -129,7 +129,7 @@ void checkFits(const QString& scenario, const CaseChooserDialog& dialog, const Q
 	check(buttons && scroll && buttons->isVisible() && dialog.rect().contains(buttons->geometry())
 			&& scroll->geometry().bottom() < buttons->geometry().top(),
 		scenario, "the footer is not visible below the body");
-	// With nothing to open, Open is disabled and Qt hands the default to the focused button.
+	// With nothing to open, Open is disabled and, outside a macOS footer, Qt hands the default to the focused button.
 	if (dialog.openButton()->isEnabled()) {
 		check(dialog.openButton()->isDefault(), scenario, "Open is enabled but not the default button");
 		check(faceGray(dialog.openButton()) + 60 < faceGray(dialog.continueButton()), scenario, "Open does not have the dark face of the default button");
@@ -322,12 +322,12 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 		// open nothing, not the case that was selected before.
 		QListWidget* list = shown.dialog.list();
 		list->setFocus();
-		click(list, list->item(texts.size() - 2));
+		click(list, list->item(static_cast<int>(texts.size()) - 2));
 		check(currentText(list) == QLatin1String("Unavailable: gone case") && !shown.dialog.openButton()->isEnabled()
 				&& shown.dialog.selectedPath().isEmpty() && !statusText(shown.dialog).isEmpty(),
 			scenario, "an unavailable row is not selected with a reason and Open disabled");
 		sendKey(list, Qt::Key_Return);
-		doubleClick(list, list->item(texts.size() - 2));
+		doubleClick(list, list->item(static_cast<int>(texts.size()) - 2));
 		check(shown.dialog.isVisible() && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue
 				&& shown.dialog.chosenPath().isEmpty(),
 			scenario, "Enter or a double click on an unavailable row opened a case");
@@ -612,6 +612,35 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 				&& ((buttons[1] == shown.dialog.openButton() && buttons[2] == shown.dialog.continueButton())
 					|| (buttons[1] == shown.dialog.continueButton() && buttons[2] == shown.dialog.openButton())),
 			scenario, "Tab does not go from the list to the menu button and then to Open and the left button");
+	}
+
+	// With the footer of Windows and Linux, which the offscreen platform gives, a footer button is the default while it has
+	// the focus. At every other stop of Tab, the list and the menu button included, Open is the default, so Return on the
+	// menu button opens the selected case.
+	{
+		const QString scenario = QStringLiteral("default while tabbing");
+		CaseChooserDialog::Options loaded = options;
+		loaded.currentCaseName = QStringLiteral("Loaded case");
+		Shown shown(scenario, loaded, screen);
+		shown.dialog.activateWindow();
+		auto* other = shown.dialog.findChild<QPushButton*>(QStringLiteral("caseChooserOtherButton"));
+		shown.dialog.openButton()->setFocus();
+		bool defaults = true;
+		for (int stop = 0; stop < 4 && shown.dialog.focusWidget(); ++stop) {
+			sendKey(shown.dialog.focusWidget(), Qt::Key_Tab);
+			const bool onContinue = shown.dialog.focusWidget() == shown.dialog.continueButton();
+			defaults = defaults && shown.dialog.openButton()->isDefault() != onContinue && shown.dialog.continueButton()->isDefault() == onContinue
+				&& !other->isDefault();
+		}
+		check(defaults, scenario, "Open is not the default while the list or Other ways to open... has the focus");
+		other->setFocus();
+		// Return on a menu button that took the default would open its menu and wait.
+		if (shown.dialog.openButton()->isDefault() && !other->isDefault()) {
+			sendKey(other, Qt::Key_Return);
+			check(shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected
+					&& shown.dialog.chosenPath() == s.scenes.filePath(QStringLiteral("alpha")),
+				scenario, "Return on Other ways to open... does not open the selected case");
+		}
 	}
 }
 

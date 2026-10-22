@@ -34,6 +34,7 @@
 #include <QLabel>
 #include <QLineF>
 #include <QList>
+#include <QMenu>
 #include <QPointF>
 #include <QRectF>
 #include <QString>
@@ -233,9 +234,9 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		if (!w.m_followTrainCombo || w.m_followTrainCombo->currentText() != "No trains to follow")
 			fail("follow", "empty train selector does not explain that no trains are available");
 		else if (!w.m_document->mutableModel().services.empty() || w.m_followAction->isEnabled()
-			|| w.m_followStatusLabel->text() != "This case has no trains to follow."
-			|| w.m_followAction->toolTip() != w.m_followStatusLabel->text() || w.m_followTrainCombo->toolTip() != w.m_followStatusLabel->text()
-			|| w.m_followTrainCombo->accessibleDescription() != w.m_followStatusLabel->text())
+			|| w.m_followStatusLabel->text() != "No trains to follow" || w.m_followStatusLabel->toolTip() != "This case has no trains to follow."
+			|| w.m_followAction->toolTip() != w.m_followStatusLabel->toolTip() || w.m_followTrainCombo->toolTip() != w.m_followStatusLabel->toolTip()
+			|| w.m_followTrainCombo->accessibleDescription() != w.m_followStatusLabel->toolTip())
 			fail("follow", "a case without services does not disable Follow with the reason");
 		else
 			marker("E2E_FOLLOW_NO_SERVICES_OK");
@@ -289,6 +290,14 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			if (!zoomApplied || qAbs(w.networkView->zoomRatio() - 1.15) > 1e-5
 				|| qAbs(qAbs(w.networkView->transform().m11()) - previewBaseline * 1.15) > 1e-5)
 				fail("viewport", "preview zoom is not relative to the fitted baseline");
+			// After a pan, Zoom In keeps the place in the middle of the view.
+			w.networkView->zoomBy(4.0 / w.networkView->zoomRatio());
+			w.networkView->centerOn(QPointF(previewFitBounds.left() + previewFitBounds.width() * 0.2, previewFitBounds.center().y()));
+			const QPoint viewMiddle = w.networkView->viewport()->rect().center();
+			const QPointF pannedTo = w.networkView->mapToScene(viewMiddle);
+			w.zoomIn();
+			if (QLineF(w.networkView->mapFromScene(pannedTo), viewMiddle).length() > 2.0)
+				fail("viewport", "Zoom In moved the view away from the place it was panned to");
 			w.fitView();
 			if (w.networkView->zoomLabel() != QStringLiteral("Fit")
 				|| w.networkView->topologyBounds() != previewFitBounds)
@@ -499,19 +508,29 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		} else {
 			SceneModel identified = w.m_document->mutableModel();
 			const std::string sectionId = source.previewSignals.front().sectionId;
+			const QString sectionLabel = QString::fromStdString(source.previewSignals.front().sectionLabel);
 			sceneSignals(identified).push_back({"E2E_SIGNAL_PREVIEW_360", sectionId});
 			w.renderTrackPreview(identified);
 			w.updateViewportOverlays();
-			const bool inspectable = std::any_of(w.m_presenter->m_signalDecorations.cbegin(), w.m_presenter->m_signalDecorations.cend(),
+			// The tooltip names the section by its label; the id stays in the details of the inspector.
+			const auto found = std::find_if(w.m_presenter->m_signalDecorations.cbegin(), w.m_presenter->m_signalDecorations.cend(),
 				[&](QGraphicsItem* item) {
 					auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
 					return signal && signal->isVisible()
 						&& signal->inspectionIdentity().contains("E2E_SIGNAL_PREVIEW_360")
 						&& signal->toolTip().contains("E2E_SIGNAL_PREVIEW_360")
-						&& signal->toolTip().contains(QString::fromStdString(sectionId));
+						&& !sectionLabel.isEmpty() && signal->toolTip().contains(QStringLiteral("section ") + sectionLabel);
 				});
-			if (!inspectable)
+			QString menuTitle;
+			if (found != w.m_presenter->m_signalDecorations.cend()) {
+				w.showSceneContextMenu(*found, QPointF(), QPoint(), false);
+				menuTitle = w.m_sceneContextMenu ? w.m_sceneContextMenu->title() : QString();
+				w.closeSceneContextMenu();
+			}
+			if (found == w.m_presenter->m_signalDecorations.cend())
 				fail("signals", "authored preview signal ID and boundary are not inspectable");
+			else if (menuTitle != QStringLiteral("Preview: E2E_SIGNAL_PREVIEW_360 (%1)").arg(sectionLabel))
+				fail("signals", "the menu of an authored preview signal is called " + menuTitle);
 			else
 				marker("E2E_TRACK_PREVIEW_SIGNAL_IDENTITY_OK");
 		}
@@ -568,6 +587,14 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			fail("selection", "the preview has too few kinds of item to click");
 		else if (cuesOk)
 			marker("E2E_SELECTION_CUE_PREVIEW_OK");
+	}
+
+	if (w.networkView) {
+		QString findFailure;
+		if (checkFind(w, false, findFailure))
+			marker("E2E_FIND_PREVIEW_OK");
+		else
+			fail("find", findFailure);
 	}
 
 	if (ok) {

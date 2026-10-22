@@ -2,7 +2,9 @@
 
 #include "widgets/ChoiceComboBox.h"
 
+#include <QAbstractEventDispatcher>
 #include <QAbstractItemDelegate>
+#include <QAbstractItemView>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -10,10 +12,12 @@
 #include <QEventLoop>
 #include <QFont>
 #include <QFontMetrics>
+#include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPoint>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QRect>
 #include <QScreen>
@@ -22,15 +26,34 @@
 #include <QString>
 #include <QStringList>
 #include <QStyle>
+#include <QStyleFactory>
 #include <QStyleOptionViewItem>
 #include <QTableWidget>
 #include <QTimer>
 
+#include <algorithm>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+// QtGui exports this function for Qt Test. It delivers a mouse event as the window system does, so that a click gives the
+// focus as a click of the user does.
+Q_GUI_EXPORT void qt_handleMouseEvent(QWindow* window, const QPointF& local, const QPointF& global, Qt::MouseButtons state,
+	Qt::MouseButton button, QEvent::Type type, Qt::KeyboardModifiers mods, int timestamp);
+
+// The macOS style, where a form keeps each field at its size hint.
+class MacFormStyle : public QProxyStyle {
+public:
+	MacFormStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		if (hint == SH_FormLayoutFieldGrowthPolicy)
+			return QFormLayout::FieldsStayAtSizeHint;
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -185,6 +208,21 @@ static QString role(const QLabel* message) {
 	return message->property("dialogHelp").toBool() ? QStringLiteral("help") : message->property("dialogStatus").toString();
 }
 
+// A combo box that adjusts to its contents resizes itself to its size hint from a 20 ms timer of its popup after its
+// items change, and its layout gives it back its width in the next turn of the event loop. Waits until no combo box of
+// the dialog has that timer running, then lets the layout requests that it queued run.
+static void settleCombos(const QDialog& dialog) {
+	const auto adjusting = [&dialog] {
+		for (const QComboBox* box : dialog.findChildren<QComboBox*>())
+			if (!QAbstractEventDispatcher::instance()->registeredTimers(box->view()->parentWidget()).isEmpty())
+				return true;
+		return false;
+	};
+	while (adjusting())
+		QApplication::processEvents(QEventLoop::WaitForMoreEvents);
+	QApplication::processEvents();
+}
+
 // Lets the events that a change has posted take effect, including the timers that fire at once.
 static void settle() {
 	QEventLoop loop;
@@ -313,6 +351,31 @@ int main(int argc, char** argv) {
 		ok &= expect(wholeTips, qPrintable("every column header has its whole text as a tooltip" + label));
 	}
 
+	{
+		// the Windows style keeps more room around the text of a header than around the text of a cell: where the other columns
+		// leave the station less than its header, they give up room, so that the Station header stays whole
+		const std::unique_ptr<QStyle> windowsStyle(QStyleFactory::create("Windows"));
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		QTableWidget* table = panel.table();
+		QHeaderView* header = table->horizontalHeader();
+		table->setStyle(windowsStyle.get());
+		header->setStyle(windowsStyle.get());
+		panel.setDocument(&document);
+		document.replace(lineScene(), false);
+		panel.setServiceId("service-1");
+		table->setFixedWidth(2000);
+		panel.show();
+		QApplication::processEvents();
+		int others = 0;
+		for (int index = 1; index < table->columnCount(); ++index)
+			others += table->columnWidth(index);
+		table->setFixedWidth(others + header->sectionSizeHint(0) - 1 + table->width() - table->viewport()->width());
+		QApplication::processEvents();
+		ok &= expect(windowsStyle && !table->horizontalScrollBar()->isVisible() && table->columnWidth(0) >= header->sectionSizeHint(0),
+			"the Station header stays whole where the other columns would leave it one pixel short");
+	}
+
 	for (int variant = 0; variant < 4; ++variant) {
 		// clock times, also with a day prefix, are not elided at the width of a docked editor, whatever the platform or the station is;
 		// without a day prefix, the widest time sets the width of the column
@@ -353,7 +416,7 @@ int main(int argc, char** argv) {
 		for (int row = 0; row < table->rowCount(); ++row) {
 			for (int index = 3; index < 5; ++index) {
 				const QModelIndex cell = table->model()->index(row, index);
-				whole = whole && table->itemDelegate(cell)->sizeHint(option, cell).width() <= table->columnWidth(index);
+				whole = whole && table->itemDelegate()->sizeHint(option, cell).width() <= table->columnWidth(index);
 			}
 		}
 		ok &= expect((!dayPrefix || column(table, 3).back().startsWith("+1d ")) && whole,
@@ -588,7 +651,18 @@ int main(int argc, char** argv) {
 		run = runDialog(
 			panel,
 			[&](QDialog& dialog) {
-				ok &= expect(combo(dialog, "stopEditorStationCombo")->currentData().toString() == "station-c", "clicking a row edits that stop");
+				QComboBox* station = combo(dialog, "stopEditorStationCombo");
+				ok &= expect(station->currentData().toString() == "station-c", "clicking a row edits that stop");
+				ok &= expect(dialog.focusWidget() == station, "the stop dialog opened from a row does not focus its first field");
+				// The second click of a double click on the row lands on the dialog that the first click opened, here on its
+				// context line.
+				const QLabel* context = label(dialog, "dialogContext");
+				const QPoint point = context->mapTo(&dialog, context->rect().center());
+				int clickTime = 1000000;
+				for (const QEvent::Type type : {QEvent::MouseButtonPress, QEvent::MouseButtonRelease})
+					qt_handleMouseEvent(dialog.windowHandle(), point, dialog.mapToGlobal(point),
+						type == QEvent::MouseButtonPress ? Qt::LeftButton : Qt::NoButton, Qt::LeftButton, type, Qt::NoModifier, ++clickTime);
+				ok &= expect(dialog.focusWidget() == station, "a click on the body of the stop dialog takes the focus from its first field");
 				click(dialog, "stopEditorCancelButton");
 			},
 			[&] { emit panel.table()->cellClicked(2, 0); });
@@ -748,7 +822,7 @@ int main(int argc, char** argv) {
 		DialogRun run = runDialog(
 			panel,
 			[&](QDialog& dialog) {
-				QApplication::processEvents();
+				settleCombos(dialog);
 				auto* station = static_cast<ChoiceComboBox*>(combo(dialog, "stopEditorStationCombo"));
 				auto* platform = static_cast<ChoiceComboBox*>(combo(dialog, "stopEditorPlatformCombo"));
 				const QRect screen = dialog.screen()->availableGeometry();
@@ -779,6 +853,41 @@ int main(int argc, char** argv) {
 			},
 			[&] { panel.addStop(); });
 		ok &= expect(run.opened, "the dialog opens to add a stop after long names");
+	}
+
+	{
+		// With the form of macOS the messages of the stop dialog still take the width of their column, so that no row of
+		// the form is an empty band. The application style stays changed for the checks after this one.
+		QApplication::setStyle(new MacFormStyle);
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		document.replace(lineScene(), false);
+		panel.setServiceId("service-1");
+		const DialogRun run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				const auto* form = dialog.findChild<QFormLayout*>();
+				int previousBottom = -1;
+				int widestGap = 0;
+				for (int row = 0; form && row < form->rowCount(); ++row) {
+					QRect drawn;
+					for (const auto role : {QFormLayout::LabelRole, QFormLayout::FieldRole}) {
+						const QLayoutItem* item = form->itemAt(row, role);
+						if (item && !item->isEmpty() && !item->geometry().isEmpty())
+							drawn |= item->geometry();
+					}
+					if (drawn.isEmpty())
+						continue;
+					if (previousBottom >= 0)
+						widestGap = std::max(widestGap, drawn.top() - previousBottom - 1);
+					previousBottom = drawn.bottom();
+				}
+				ok &= expect(form && previousBottom >= 0 && widestGap <= dialog.layout()->spacing(),
+					"no empty band taller than the spacing sits between the rows of the stop dialog");
+			},
+			[&] { panel.editStop(1); });
+		ok &= expect(run.opened, "the stop dialog opens with the form of macOS");
 	}
 
 	if (!ok)

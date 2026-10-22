@@ -445,6 +445,14 @@ static std::string normaliseServiceSeparators(std::string value) {
 	return value;
 }
 
+// The Copenhagen case, which the original also read as Input/Input_EGTRAIN_Banedanmark.
+static bool copenhagenCase(const std::string& sceneName, const fs::path& legacyPath) {
+	const std::string name = lowerCopy(sceneName);
+	const std::string folder = lowerCopy(legacyPath.filename().u8string());
+	return name == "copenhagen" || name == "banedanmark" || folder == "input_egtrain_copenhagen"
+		|| folder == "input_egtrain_banedanmark";
+}
+
 static std::string baseTimeForCase(const std::string& sceneName, const fs::path& legacyPath,
 	double& duration, bool& known) {
 	const std::string name = lowerCopy(sceneName);
@@ -459,8 +467,7 @@ static std::string baseTimeForCase(const std::string& sceneName, const fs::path&
 		duration = 9000.0;
 		return "07:10:40";
 	}
-	if (name == "copenhagen" || name == "banedanmark"
-		|| folder == "input_egtrain_copenhagen" || folder == "input_egtrain_banedanmark") {
+	if (copenhagenCase(sceneName, legacyPath)) {
 		duration = 8000.0;
 		return "06:28:20";
 	}
@@ -517,14 +524,16 @@ struct LegacyPassengerParseResult {
 
 static LegacyPassengerSources locateLegacyPassengerSources(const fs::path& root) {
 	LegacyPassengerSources result;
+	// A file or folder that cannot be checked counts as absent.
+	std::error_code ec;
 	result.directory = findChild(root, "Passengers");
-	if (result.directory.empty() || !fs::is_directory(result.directory))
+	if (result.directory.empty() || !fs::is_directory(result.directory, ec))
 		result.directory = root;
 
 	result.das = result.directory / "DAS_FrenchCaseStudy.csv";
 	result.routeChoice = result.directory / "RouteChoiceFC_EQ1.csv";
-	result.hasDas = fs::is_regular_file(result.das);
-	result.hasRouteChoice = fs::is_regular_file(result.routeChoice);
+	result.hasDas = fs::is_regular_file(result.das, ec);
+	result.hasRouteChoice = fs::is_regular_file(result.routeChoice, ec);
 	result.hasPair = result.hasDas && result.hasRouteChoice;
 	return result;
 }
@@ -937,8 +946,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			"Legacy directory and scene destination must be separate, non-overlapping directories", scenePath.u8string());
 		return result;
 	}
-	if (!fs::is_directory(legacyPath)) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Legacy directory missing or invalid", legacyPath.u8string());
+	std::error_code legacyError;
+	const fs::file_type legacyType = fs::status(legacyPath, legacyError).type();
+	if (legacyType != fs::file_type::directory) {
+		const bool unreadable = legacyError && legacyType != fs::file_type::not_found;
+		addDiag(SceneSeverity::Error, "scene.import.missing",
+			unreadable ? "Cannot read the legacy directory: " + legacyError.message() : std::string("Legacy directory missing or invalid"),
+			legacyPath.u8string());
 		return result;
 	}
 
@@ -1452,6 +1466,14 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		scene.trackViews.push_back(SceneTrackView{trackId, 0, 0, false});
 		report.source("views.tracks", hiddenTracksPath.u8string());
 		report.converted("views.tracks", hiddenTracksPath.u8string());
+	}
+	// The original drew every track of four nodes of this case as a double switch.
+	if (copenhagenCase(sceneName, legacyPath)) {
+		std::unordered_map<std::string, int> nodeCounts;
+		for (const auto& node : scene.nodes)
+			++nodeCounts[node.trackId];
+		for (auto& view : scene.trackViews)
+			view.doubleSwitch = nodeCounts[view.trackId] == 4;
 	}
 
 	const fs::path stationViewPath = guiDir.empty() ? fs::path()

@@ -44,10 +44,12 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	setObjectName("entranceDelayPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->addWidget(new QLabel("Entrance delays", this));
+	// The list shows about three rows above its buttons in one row, so that the fields below keep the height of a short dock.
 	m_listWidget = new QListWidget(this);
 	m_listWidget->setObjectName("entranceDelayListWidget");
 	m_listWidget->setAccessibleName("Entrance delay library");
-	layout->addWidget(m_listWidget, 1);
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
+	layout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add", this);
 	m_addButton->setObjectName("entranceDelayAddButton");
@@ -57,7 +59,7 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	m_deleteButton->setObjectName("entranceDelayDeleteButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	layout->addLayout(buttonLayout);
 	m_emptyStateLabel = EditorLayout::emptyStateLabel(this);
 	m_emptyStateLabel->setObjectName("entranceDelayEmptyStateLabel");
@@ -85,6 +87,7 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	m_secondsEdit->setKeyboardTracking(false);
 	detailLayout->addRow("Delay (s)", m_secondsEdit);
 	layout->addLayout(detailLayout);
+	layout->addStretch();
 
 	connect(m_listWidget, &QListWidget::currentRowChanged, this, [this](int) { updateDetail(); });
 	connect(m_addButton, &QPushButton::clicked, this, &EntranceDelayPanel::addEntranceDelay);

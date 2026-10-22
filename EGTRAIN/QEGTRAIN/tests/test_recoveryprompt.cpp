@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLocale>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -24,7 +25,7 @@ bool check(bool condition, const char* message) {
 }
 
 QDateTime writtenTime() {
-	return QDateTime(QDate(2026, 10, 14), QTime(9, 5), Qt::LocalTime).toUTC();
+	return QDateTime(QDate(2026, 10, 14), QTime(9, 5)).toUTC();
 }
 
 RecoveryCandidate makeCandidate(const QString& name, RecoverySourceKind kind, const QString& path, RecoverySourceStatus status,
@@ -386,6 +387,50 @@ bool exerciseConfirmationHeight() {
 	return ok;
 }
 
+// The order of the footer and the focus policy of its buttons on macOS, where Discard comes first.
+class MacFooterStyle : public QProxyStyle {
+public:
+	MacFooterStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		if (hint == SH_DialogButtonLayout)
+			return QDialogButtonBox::MacLayout;
+		if (hint == SH_Button_FocusPolicy)
+			return Qt::TabFocus;
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
+
+// With the footer of macOS the prompt opens with the default of the selected row and the focus on that row. A footer
+// button that gets the focus leaves the default where it is, so Return presses it. Runs last: it changes the
+// application style.
+bool exerciseMacFooter() {
+	QApplication::setStyle(new MacFooterStyle);
+	bool ok = true;
+	for (const RecoverySourceStatus status : {RecoverySourceStatus::Unchanged, RecoverySourceStatus::NewerThanCopy}) {
+		RecoveryScan scan;
+		scan.candidates.append(makeCandidate(QStringLiteral("Same file"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Same.egscene"), status));
+		scan.candidates.append(makeCandidate(QStringLiteral("Newer file"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Newer.egscene"),
+			RecoverySourceStatus::NewerThanCopy));
+		RecoveryPrompt dialog(scan);
+		dialog.show();
+		dialog.activateWindow();
+		QApplication::processEvents();
+		const Parts parts = partsOf(dialog);
+		QPushButton* expected = status == RecoverySourceStatus::Unchanged ? parts.recover : parts.later;
+		ok &= check(dialog.isActiveWindow(), "the prompt is active, so that the focus is real");
+		ok &= check(dialog.focusWidget() == parts.selectors.at(0), "the selected row has the focus when the prompt opens");
+		for (const QPushButton* button : {parts.recover, parts.discard, parts.later})
+			ok &= check(button->isDefault() == (button == expected), "only the default of the row is the default button");
+		parts.discard->setFocus(Qt::TabFocusReason);
+		QApplication::processEvents();
+		ok &= check(parts.discard->hasFocus() && expected->isDefault() && !parts.discard->isDefault(), "Discard gets the focus and leaves the default");
+		pressKey(*parts.discard, Qt::Key_Return);
+		ok &= check(dialog.result() == (expected == parts.recover ? RecoveryPrompt::Recover : RecoveryPrompt::Later),
+			"Return presses the default button while Discard has the focus");
+	}
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -399,5 +444,6 @@ int main(int argc, char** argv) {
 	ok &= exerciseGeometry(QRect(0, 0, 1280, 800), 1.0);
 	ok &= exerciseGeometry(QRect(0, 0, 800, 600), 1.5);
 	ok &= exerciseConfirmationHeight();
+	ok &= exerciseMacFooter();
 	return ok ? 0 : 1;
 }

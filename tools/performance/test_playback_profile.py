@@ -16,8 +16,7 @@ def records(*, paints=1, structural=True):
         "architecture": "arm64", "qt_platform": "offscreen", "build_type": "Debug",
         "case": "Copenhagen", "requested_scenario": "default", "scenario": "baseline",
         "default_scenario": "baseline", "target_zoom": 1.0, "actual_zoom": 1.0,
-        "duration_ms": 50, "delay_ms": 0, "passenger_gui": True, "tsm": False,
-        "route_choice": False, "horizon": 8000, "clock": "steady_clock_ns",
+        "duration_ms": 50, "delay_ms": 0, "passenger_gui": True, "horizon": 8000, "clock": "steady_clock_ns",
         "scope": "post_startup_playback", "mode": "structural" if structural else "recorded",
     }
     totals = {

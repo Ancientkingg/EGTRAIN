@@ -36,10 +36,6 @@ void Train::Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks) {
 				}
 			}
 
-			// occupy single tracks (this function limits teh entrance of two trains cnsecutively on the same single track even if they have the same direction which should not be the case
-			// the entrance should only be limited to trains on the dingle track if they have opposite direction
-			// occupySingleTrack(BS, Blocks, hTail, hHead, i);
-
 			// release double switch when train leaves it (its first half is the section before the one that starts with the virtual signal)
 			if (hTail > 1 && BS[hTail - 1].start_node.virtualSignal) {
 				releaseDoubleSwitch(*run_, BS[hTail - 1], BS[hTail - 2]);

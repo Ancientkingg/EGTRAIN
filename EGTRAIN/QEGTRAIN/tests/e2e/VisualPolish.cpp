@@ -29,6 +29,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/ElidedLabel.h"
+#include "widgets/FindDialog.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include <QAbstractAnimation>
@@ -55,6 +56,7 @@
 #include <QLineEdit>
 #include <QLineF>
 #include <QList>
+#include <QListWidget>
 #include <QMenu>
 #include <QMetaObject>
 #include <QMouseEvent>
@@ -69,6 +71,7 @@
 #include <QScrollArea>
 #include <QSet>
 #include <QSize>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QThread>
@@ -170,6 +173,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		ok = false;
 		failures << "missing speed controls";
 	} else {
+		if (!w.m_speedSlider->toolTip().contains("right is faster")) {
+			ok = false;
+			failures << "speed slider startup tooltip does not name its direction";
+		}
 		w.m_speedSlider->setValue(250);
 		QApplication::processEvents();
 		if (!w.m_speedLabel->text().contains("4.0x")) {
@@ -265,10 +272,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			[&label](const NetworkLegendEntry& entry) { return entry.label == label; });
 	};
 	if (hasOperationalLegendEntry(QStringLiteral("Permissive signalling"))
-		|| hasOperationalLegendEntry(QStringLiteral("Occupied section"))
 		|| hasOperationalLegendEntry(QStringLiteral("Blocked section"))) {
 		ok = false;
 		failures << "runtime key shows operational states absent from canvas paint";
+	}
+	if (!hasOperationalLegendEntry(QStringLiteral("Occupied section"))) {
+		ok = false;
+		failures << "runtime key has no row for the occupied sections";
 	}
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && w.scene && !w.m_presenter->allTrains.isEmpty()) {
@@ -333,7 +343,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	if (w.m_toolBar) {
 		const QStringList expectedToolbarObjects{
 			"openCaseButton", "separatorCasePlayback", "actionRunButton", "actionPauseButton", "actionStopButton",
-			"speedSlowerLabel", "speedSlider", "speedFasterLabel", "separatorPlaybackView", "actionFollowButton",
+			"speedSlider", "speedModeLabel", "separatorPlaybackView", "actionFollowButton",
 			"followTrainCombo", "actionZoomInButton", "actionZoomOutButton", "actionFitButton"};
 		QStringList toolbarObjects;
 		for (QAction* action : w.m_toolBar->actions()) {
@@ -365,10 +375,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const int playbackViewBoundary = boundaryIndex("separatorPlaybackView");
 		const int openCaseIndex = boundaryIndex("openCaseButton");
 		const int runIndex = boundaryIndex("actionRunButton");
-		const int fasterIndex = boundaryIndex("speedFasterLabel");
+		const int readoutIndex = boundaryIndex("speedModeLabel");
 		const int followIndex = boundaryIndex("actionFollowButton");
 		if (casePlaybackBoundary <= openCaseIndex || playbackViewBoundary <= casePlaybackBoundary
-			|| runIndex <= casePlaybackBoundary || fasterIndex >= playbackViewBoundary || followIndex <= playbackViewBoundary) {
+			|| runIndex <= casePlaybackBoundary || readoutIndex >= playbackViewBoundary || followIndex <= playbackViewBoundary) {
 			ok = false;
 			failures << "command-bar Case, Playback, and View ranges are not separated in order";
 		}
@@ -424,11 +434,29 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "the Simulation menu has a Start Time entry";
 		}
 	}
-	QLabel* slowerLabel = w.findChild<QLabel*>("speedSlowerLabel");
-	QLabel* fasterLabel = w.findChild<QLabel*>("speedFasterLabel");
-	if (!w.m_speedSlider || !slowerLabel || !fasterLabel || slowerLabel->text() != "Slower" || fasterLabel->text() != "Faster") {
+	// Set Output Folder... is the last entry above the separator before Quit.
+	const QList<QAction*> fileActions = w.ui->menuFile->actions();
+	const int quitIndex = fileActions.indexOf(w.ui->actionQuit);
+	if (quitIndex < 2 || fileActions.at(quitIndex - 2) != w.m_outputFolderAction || !fileActions.at(quitIndex - 1)->isSeparator()) {
 		ok = false;
-		failures << "speed controls do not expose Slower, slider, and Faster";
+		failures << "File > Set Output Folder... is not above the separator before Quit";
+	}
+	// Each menu of the menu bar has an Alt mnemonic of its own.
+	// QKeySequence::mnemonic() is empty on macOS, so the letter after the & is read here.
+	QString mnemonics;
+	for (QAction* menu : w.menuBar()->actions()) {
+		const QString title = menu->text();
+		const int marker = title.indexOf('&');
+		const QChar key = marker >= 0 && marker + 1 < title.size() ? title.at(marker + 1).toLower() : QChar();
+		if (menu->isVisible() && (key.isNull() || mnemonics.contains(key))) {
+			ok = false;
+			failures << QString("the menu %1 has no mnemonic of its own").arg(title);
+		}
+		mnemonics += key;
+	}
+	if (!w.m_speedSlider || !w.m_speedSlider->accessibleDescription().contains("right is faster")) {
+		ok = false;
+		failures << "speed slider does not describe its direction";
 	} else {
 		w.m_speedSlider->setValue(w.m_speedSlider->minimum());
 		const int slowDelay = stepDelayForSlider(w.m_speedSlider->value());
@@ -437,6 +465,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if (fastDelay >= slowDelay) {
 			ok = false;
 			failures << "speed slider right-is-faster mapping changed";
+		}
+		if (!w.m_speedSlider->toolTip().contains("right is faster")) {
+			ok = false;
+			failures << "speed slider tooltip does not name its direction";
 		}
 	}
 	if (!w.m_followAction || !w.m_followTrainCombo || w.m_followTrainCombo->minimumWidth() != 180
@@ -564,8 +596,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			return;
 		}
 		const QStringList requiredWidgetNames{
-			"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton", "speedSlowerLabel", "speedSlider",
-			"speedFasterLabel", "actionFollowButton", "followTrainCombo",
+			"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton", "speedSlider",
+			"speedModeLabel", "actionFollowButton", "followTrainCombo",
 			"actionZoomInButton", "actionZoomOutButton", "actionFitButton"};
 		if (w.m_toolBar->height() < 44) {
 			ok = false;
@@ -642,8 +674,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	checkCommandBarAtSize(1024, 720, "QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT");
 	checkCommandBarAtSize(1200, 800, "QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT");
 	checkCommandBarAtSize(1440, 900, "QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT");
-	// A little below the toolbar's own width the group separators keep the size of their hint, and what no longer fits stays
-	// reachable through the extension button, which expands the toolbar to a second row.
+	// A little below the toolbar's own width the group separators keep the width of their hint and the height of the buttons,
+	// and what no longer fits stays reachable through the extension button, which expands the toolbar to a second row.
 	if (w.m_toolBar) {
 		const int fullToolbarWidth = w.m_toolBar->sizeHint().width();
 		int narrowestWidth = 0;
@@ -654,7 +686,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			for (const char* boundaryName : {"separatorCasePlayback", "separatorPlaybackView"}) {
 				QAction* boundary = w.findChild<QAction*>(boundaryName);
 				QWidget* separator = boundary ? w.m_toolBar->widgetForAction(boundary) : nullptr;
-				if (!separator || !separator->isVisibleTo(w.m_toolBar) || separator->width() != separator->sizeHint().width()) {
+				if (!separator || !separator->isVisibleTo(w.m_toolBar) || separator->width() != separator->sizeHint().width()
+					|| separator->height() < w.m_toolBar->widgetForAction(openCaseAction)->height()) {
 					ok = false;
 					failures << QString("toolbar separator %1 does not keep its size at a window width of %2px")
 									.arg(QString::fromLatin1(boundaryName))
@@ -699,13 +732,23 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				QApplication::processEvents(QEventLoop::AllEvents, 20);
 		}
 	}
+	// Tooltips and accessible descriptions write a shortcut as the platform does, with the Command key on macOS.
+	for (const char* name : {"actionRunButton", "actionPauseButton", "actionStopButton", "actionZoomInButton", "actionZoomOutButton"}) {
+		const auto* button = w.findChild<QToolButton*>(name);
+		const QAction* action = button ? button->defaultAction() : nullptr;
+		const QString shortcut = action ? QStringLiteral("(%1)").arg(action->shortcut().toString(QKeySequence::NativeText)) : QString();
+		if (!action || !action->toolTip().endsWith(shortcut) || !button->accessibleDescription().endsWith(shortcut)) {
+			ok = false;
+			failures << QString("%1 does not write its shortcut as the platform does: %2").arg(name, button ? button->accessibleDescription() : QString());
+		}
+	}
 	// The Pause button reads Resume while the run is paused. It keeps its width, so the toolbar does not move and the
 	// zoom buttons stay inside it.
 	if (pauseAction && w.m_toolBar) {
 		w.resize(1024, 720);
 		QApplication::processEvents();
 		const QStringList toolbarControlNames{"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton",
-			"speedSlowerLabel", "speedSlider", "speedFasterLabel", "actionFollowButton", "followTrainCombo", "actionZoomInButton",
+			"speedSlider", "speedModeLabel", "actionFollowButton", "followTrainCombo", "actionZoomInButton",
 			"actionZoomOutButton", "actionFitButton"};
 		const QString pauseText = pauseAction->text();
 		const auto controlGeometries = [&w, &toolbarControlNames]() {
@@ -937,6 +980,21 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "signal inspector fields are empty";
 		}
+		// The run names the track by its id in the scene and the section by its label; the tooltips keep the numbers and ids.
+		const QString trackId = QString::fromStdString(w.m_presenter->sceneTrackId(inspectorSignal->trackID));
+		const std::string& aheadLabel = inspectorSignal->sectionAheadLabel;
+		if (trackId.isEmpty() || w.m_inspector->signallingTrackIDText->text() != trackId
+			|| !w.m_inspector->signallingTrackIDText->toolTip().contains(QStringLiteral("Runtime track number: %1").arg(inspectorSignal->trackID))
+			|| (!inspectorSignal->sectionAheadId.empty()
+				&& (aheadLabel.empty() || w.m_inspector->signallingIDSectionAheadText->text() != QString::fromStdString(aheadLabel)
+					|| !w.m_inspector->signallingIDSectionAheadText->toolTip().contains(QString::fromStdString(inspectorSignal->sectionAheadId))))
+			|| !inspectorSignal->toolTip().startsWith(QStringLiteral("Track %1 at ").arg(trackId))) {
+			ok = false;
+			failures << QStringLiteral("signal inspector does not name track %1 and section %2 by id and label: %3 / %4")
+							.arg(inspectorSignal->trackID)
+							.arg(QString::fromStdString(inspectorSignal->sectionAheadId), w.m_inspector->signallingTrackIDText->text(),
+								w.m_inspector->signallingIDSectionAheadText->text());
+		}
 	}
 	w.m_inspector->handleCloseInfoDockWidget();
 	w.m_inspector->dock()->hide();
@@ -1106,6 +1164,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	const QStringList mapKeyEntries = w.m_networkLegendWidget
 		? w.m_networkLegendWidget->entryLabels()
 		: QStringList();
+	// The run shows passengers, but a case without passengers has no passenger row in the map key.
+	if (w.m_document->model().passengers.empty() && mapKeyEntries.contains(QStringLiteral("Passenger count"))) {
+		ok = false;
+		failures << "the map key lists Passenger count for a case without passengers";
+	}
 	if (!stationLayer || !stationNames || !trainLayer || !trainSpeedLabels
 		|| !signalLayer || !passengerLayer) {
 		ok = false;
@@ -1206,12 +1269,16 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				continue;
 			PassengerItem* icon = platform->passengerIcons.first();
 			const QRectF sceneBounds = icon->sceneBoundingRect();
+			// The first icon stands on the long axis of the bar, whatever the direction of the bar.
+			const QRectF bar = platform->rect();
+			const QPointF onAxis = platform->mapToScene(
+				QPointF(bar.left() + bar.width() / platform->passengerIcons.size() / 2, bar.center().y()));
 			const qreal firstWidth = icon->deviceTransform(w.networkView->viewportTransform())
 										 .mapRect(icon->boundingRect())
 										 .width();
 			if (icon->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations)
-				|| !qFuzzyCompare(sceneBounds.center().y() + 1.0,
-					platform->sceneBoundingRect().center().y() + 1.0)) {
+				|| !qFuzzyCompare(sceneBounds.center().x() + 1.0, onAxis.x() + 1.0)
+				|| !qFuzzyCompare(sceneBounds.center().y() + 1.0, onAxis.y() + 1.0)) {
 				ok = false;
 				failures << "passenger glyph lost scene-scale centering";
 			}
@@ -1712,6 +1779,15 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				failures << "signal context copy action did not preserve position precision";
 			}
 		}
+		// The section of the head by the id that the run uses, not by its label.
+		QAction* copySection = findMenuAction(menu, "Copy section ID");
+		const std::string expectedSection = !visibleSignal->sectionAheadId.empty() ? visibleSignal->sectionAheadId : visibleSignal->sectionBehindId;
+		if (copySection)
+			copySection->trigger();
+		if (!copySection || !QApplication::clipboard() || QApplication::clipboard()->text() != QString::fromStdString(expectedSection)) {
+			ok = false;
+			failures << "signal context menu did not copy the section id of the head";
+		}
 		checkDeferredAction(menu, "Next train approaching this signal", signalApproachExplanation);
 		closeContextMenu();
 	} else {
@@ -1744,7 +1820,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const QString clipboardBeforeStaleTrigger = QApplication::clipboard()
 			? QApplication::clipboard()->text()
 			: QString();
-		SignalItem* staleSignal = temporarySignal;
+		// The presenter must not keep the deleted signal: a frame drawn during processEvents() below would update it.
+		w.m_presenter->allSignals.removeOne(temporarySignal);
 		w.scene->removeItem(temporarySignal);
 		delete temporarySignal;
 		if (copy)
@@ -1754,7 +1831,6 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "stale signal context action changed the clipboard";
 		}
-		w.m_presenter->allSignals.removeOne(staleSignal);
 		closeContextMenu();
 	}
 
@@ -1998,22 +2074,22 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				// list says that the time is the schedule. The train has no item yet, so there is nothing for the
 				// view to move to: E2E_FOLLOW_REPLAY_BEFORE_OK checks that the view stays for a train whose item exists.
 				w.m_followTrainCombo->setCurrentIndex(futureComboIndex);
-				const bool offSentence = w.m_followStatusLabel->text()
+				const bool offSentence = w.m_followStatusLabel->toolTip()
 						== notEntered + "Follow can be switched on now and starts when it enters."
 					&& w.m_followAction->isEnabled();
 				w.m_followAction->setChecked(true);
 				QApplication::processEvents();
 				if (!w.m_followAction->isChecked() || w.m_followTrainIndex != futureFollowIndex
-					|| w.statusBar()->currentMessage() != notEntered + "Follow starts when it enters.") {
+					|| w.statusBar()->currentMessage() != futureName + " enters at " + scheduled) {
 					ok = false;
 					failures << "future train follow activation was ignored or did not report waiting";
 				}
-				if (!offSentence || w.m_followStatusLabel->text() != notEntered + "Follow starts when it enters."
-					|| w.m_followStatusLabel->toolTip() != w.m_followStatusLabel->text()
-					|| w.m_followAction->toolTip() != w.m_followStatusLabel->text()
-					|| w.m_followTrainCombo->toolTip() != w.m_followStatusLabel->text()
-					|| w.m_followTrainCombo->accessibleDescription() != w.m_followStatusLabel->text()
-					|| !followButton || followButton->accessibleDescription() != w.m_followStatusLabel->text()
+				if (!offSentence || w.m_followStatusLabel->toolTip() != notEntered + "Follow starts when it enters."
+					|| w.m_followStatusLabel->text() != futureName + " enters at " + scheduled
+					|| w.m_followAction->toolTip() != w.m_followStatusLabel->toolTip()
+					|| w.m_followTrainCombo->toolTip() != w.m_followStatusLabel->toolTip()
+					|| w.m_followTrainCombo->accessibleDescription() != w.m_followStatusLabel->toolTip()
+					|| !followButton || followButton->accessibleDescription() != w.m_followStatusLabel->toolTip()
 					|| w.m_followTrainCombo->itemText(futureComboIndex) != futureName + " (scheduled " + scheduled + ")"
 					|| w.m_followTrainCombo->currentIndex() != futureComboIndex
 					|| w.m_followTrainCombo->itemData(futureComboIndex).toInt() != futureFollowIndex) {
@@ -2042,17 +2118,31 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					std::fprintf(stdout, "E2E_FOLLOW_STATUS_WIDTH_OK\n");
 					std::fflush(stdout);
 				}
-				// At the narrowest window the label still shows the state of the train and its scheduled time,
-				// and the popup of the list is wide enough for the whole entry, which is wider than the list.
+				// At the narrowest window the label shows the whole clause, and the popup of the list is wide enough for the
+				// whole entry, which is wider than the list.
 				w.resize(1024, 720);
 				QApplication::processEvents();
 				const QString shownNarrow = w.m_followStatusLabel->displayText();
-				const int popupWidth = w.m_followTrainCombo->view()->minimumWidth();
+				w.m_followTrainCombo->showPopup();
+				QApplication::processEvents();
+				const int popupWidth = w.m_followTrainCombo->view()->width();
+				w.m_followTrainCombo->hidePopup();
 				const int entryWidth = w.m_followTrainCombo->view()->fontMetrics().horizontalAdvance(w.m_followTrainCombo->itemText(futureComboIndex));
 				const int listWidth = w.m_followTrainCombo->width();
+				// A message wider than the room left of the Follow label looks the same as its text elided to that room.
+				const QString messageBefore = w.statusBar()->currentMessage();
+				const QString longMessage = QStringLiteral("Simulation complete - results in the Diagrams menu. ").repeated(4);
+				w.statusBar()->showMessage(longMessage);
+				const QImage cutMessage = w.statusBar()->grab().toImage();
+				w.statusBar()->showMessage(w.statusBar()->fontMetrics().elidedText(longMessage, Qt::ElideRight, w.m_followStatusLabel->x() - 8));
+				if (w.statusBar()->grab().toImage() != cutMessage) {
+					ok = false;
+					failures << "a status message that does not fit is cut off without an ellipsis";
+				}
+				w.statusBar()->showMessage(messageBefore);
 				w.resize(1200, 800);
 				QApplication::processEvents();
-				if (!shownNarrow.startsWith(futureName + " is scheduled to enter at " + scheduled + ".") || entryWidth <= listWidth
+				if (shownNarrow != futureName + " enters at " + scheduled || entryWidth <= listWidth
 					|| popupWidth < entryWidth) {
 					ok = false;
 					failures << QString("the Follow label or list hides the scheduled time (label=%1 popup=%2 entry=%3 list=%4)")
@@ -2069,7 +2159,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				w.setStartOffset(offsetBefore + 3600);
 				const QString later = QString::fromStdString(formatSimTime(futureDeparture, w.m_runController->m_startOffsetSeconds));
 				const bool laterShown = later != scheduled && w.m_followTrainCombo->itemText(futureComboIndex) == futureName + " (scheduled " + later + ")"
-					&& w.m_followStatusLabel->text() == futureName + " is scheduled to enter at " + later + ". Follow starts when it enters.";
+					&& w.m_followStatusLabel->toolTip() == futureName + " is scheduled to enter at " + later + ". Follow starts when it enters.";
 				w.setStartOffset(offsetBefore);
 				if (!laterShown || w.m_followTrainCombo->itemText(futureComboIndex) != futureName + " (scheduled " + scheduled + ")") {
 					ok = false;
@@ -2095,7 +2185,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				}
 				w.setFollowTrain(futureFollowIndex);
 				if (w.m_followTrainIndex != -1 || w.m_followAction->isChecked()
-					|| w.statusBar()->currentMessage() != futureName + " has left the network. Follow cannot be switched on for it.") {
+					|| w.statusBar()->currentMessage() != futureName + " has left the network") {
 					ok = false;
 					failures << "exited train without graphics could be followed";
 				}
@@ -2165,7 +2255,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					// Entered: the sentence and the list entry say that the train runs and the view follows it.
 					const auto viewCentre = [&w]() { return w.networkView->mapToScene(w.networkView->viewport()->rect().center()); };
 					const QString running = futureName + " is running. The view follows it.";
-					if (w.m_followStatusLabel->text() != running || w.m_followTrainCombo->itemText(futureComboIndex) != futureName + " (running)"
+					if (w.m_followStatusLabel->toolTip() != running || w.m_followTrainCombo->itemText(futureComboIndex) != futureName + " (running)"
 						|| w.m_followTrainCombo->currentIndex() != futureComboIndex || w.m_followTrainIndex != futureFollowIndex) {
 						ok = false;
 						failures << QString("the explanation of a train that has entered is wrong (label=%1 list=%2)")
@@ -2181,12 +2271,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 						toggleButton->click();
 						QApplication::processEvents();
 						const bool offShown = !w.m_followAction->isChecked() && w.m_followTrainIndex == -1 && !toggleButton->isChecked()
-							&& w.m_followStatusLabel->text() == switchedOff && w.m_followAction->toolTip() == switchedOff
+							&& w.m_followStatusLabel->toolTip() == switchedOff && w.m_followAction->toolTip() == switchedOff
 							&& toggleButton->accessibleDescription() == switchedOff;
 						toggleButton->click();
 						QApplication::processEvents();
 						if (!offShown || !w.m_followAction->isChecked() || w.m_followTrainIndex != futureFollowIndex
-							|| w.m_followStatusLabel->text() != running) {
+							|| w.m_followStatusLabel->toolTip() != running) {
 							ok = false;
 							failures << QString("the Follow sentence is not updated by the toolbar button (off shown=%1 label=%2)")
 											.arg(offShown)
@@ -2222,15 +2312,15 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					const QPointF cameraAway = viewCentre();
 					updateTrainPosition(w, futureEntryTime);
 					const QPointF cameraHidden = viewCentre();
-					const bool hiddenShown = w.m_followStatusLabel->text()
+					const bool hiddenShown = w.m_followStatusLabel->toolTip()
 							== futureName + " is running, but the Trains layer is switched off, so the view does not follow it."
-						&& followButton && followButton->accessibleDescription() == w.m_followStatusLabel->text()
+						&& followButton && followButton->accessibleDescription() == w.m_followStatusLabel->toolTip()
 						&& w.m_followTrainCombo->itemText(futureComboIndex) == futureName + " (hidden)"
 						&& w.m_followAction->isChecked() && w.m_followTrainIndex == futureFollowIndex
 						&& QLineF(cameraAway, cameraHidden).length() <= 1.0 && emphasisGone && !stationEmphasised();
 					w.m_trainLayerCheck->setChecked(true);
 					QApplication::processEvents();
-					if (!hiddenShown || w.m_followStatusLabel->text() != running || followButton->accessibleDescription() != running
+					if (!hiddenShown || w.m_followStatusLabel->toolTip() != running || followButton->accessibleDescription() != running
 						|| !stationEmphasised() || w.m_followTrainCombo->itemText(futureComboIndex) != futureName + " (running)"
 						|| QLineF(viewCentre(), clampedCameraCenter(enteredCenter)).length() > 10.0) {
 						ok = false;
@@ -2729,13 +2819,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				const QString exitedName = w.m_followTrainCombo->itemData(exitedComboIndex, kFollowNameRole).toString();
 				const QString exitedSentence = exitedName + " has left the network. Follow cannot be switched on for it.";
 				if (w.m_followAction->isChecked() || w.m_followTrainIndex != -1
-					|| w.statusBar()->currentMessage() != exitedName + " has left the network. Follow is switched off.") {
+					|| w.statusBar()->currentMessage() != exitedName + " has left the network") {
 					ok = false;
 					failures << "follow exit did not disable with explicit status";
 				} else if (glidingBeforeEnd && (w.m_followCamera->running() || w.m_followCamera->hasTarget())) {
 					ok = false;
 					failures << "follow exit did not stop the camera";
-				} else if (w.m_followStatusLabel->text() != exitedSentence || w.m_followTrainCombo->itemText(exitedComboIndex) != exitedName + " (finished)"
+				} else if (w.m_followStatusLabel->toolTip() != exitedSentence || w.m_followTrainCombo->itemText(exitedComboIndex) != exitedName + " (finished)"
 					|| !w.m_followAction->isEnabled() || w.m_followTrainCombo->currentIndex() != exitedComboIndex) {
 					ok = false;
 					failures << "follow exit did not explain itself in the label and the list";
@@ -2752,7 +2842,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				w.m_followAction->setChecked(true);
 				QApplication::processEvents();
 				if (w.m_followAction->isChecked() || w.m_followTrainIndex != -1
-					|| w.statusBar()->currentMessage() != exitedSentence) {
+					|| w.statusBar()->currentMessage() != exitedName + " has left the network") {
 					ok = false;
 					failures << "reselecting an exited train re-enabled Follow";
 				}
@@ -2959,6 +3049,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 
+	if (w.networkView) {
+		QString findFailure;
+		if (checkFind(w, true, findFailure)) {
+			std::fprintf(stdout, "E2E_FIND_OK\n");
+			std::fflush(stdout);
+		} else {
+			ok = false;
+			failures << findFailure;
+		}
+	}
+
 	// Exercise the real Stop/completion lifecycle after the rendering checks.
 	// Keep a selected operational track so clearing transient states cannot
 	// accidentally clear independent graphics selection. Re-enable delivery
@@ -3106,4 +3207,110 @@ void MainWindowTestAccess::updateTrainPosition(MainWindow& w, int t) {
 void MainWindowTestAccess::visualPolishFrame(MainWindow& w, bool historical) {
 	if (!historical && !scenarioStarted && !w.m_presenter->allTrains.isEmpty())
 		runVisualPolish(w);
+}
+
+// Exported by Qt Gui, both versions, and declared by QtTest for its key clicks.
+Q_GUI_EXPORT bool qt_sendShortcutOverrideEvent(QObject* o, ulong timestamp, int k, Qt::KeyboardModifiers mods,
+	const QString& text = QString(), bool autorep = false, ushort count = 1);
+
+// Finds a station, a signal and, with expectTrain, a train: Ctrl+F or the Edit menu action, the kind set in the field,
+// Down to the second match, and Enter in the field or, for the signal, in the result list. The view must then show that
+// item at the detail zoom and the item must carry the selection ring. Esc closes the dialog. The view is fitted and nothing is selected or followed after.
+bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& failure) {
+	const auto key = [](QObject* receiver, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
+		// A shortcut goes first, as with a real key press: Qt 6 no longer looks for one when a key event is sent.
+		if (!qt_sendShortcutOverrideEvent(receiver, 0, code, modifiers)) {
+			QKeyEvent press(QEvent::KeyPress, code, modifiers);
+			QKeyEvent release(QEvent::KeyRelease, code, modifiers);
+			QApplication::sendEvent(receiver, &press);
+			QApplication::sendEvent(receiver, &release);
+		}
+		QApplication::processEvents();
+	};
+	const auto targetLabelled = [&w](const QString& prefix) {
+		const QList<NetworkPresenter::FindTarget> targets = w.m_presenter->findTargets();
+		const auto found = std::find_if(targets.cbegin(), targets.cend(),
+			[&prefix](const NetworkPresenter::FindTarget& target) { return target.label.startsWith(prefix); });
+		return found == targets.cend() ? NetworkPresenter::FindTarget{QString(), nullptr, QPointF(), QString()} : *found;
+	};
+	// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
+	w.activateWindow();
+	QApplication::processEvents();
+	bool viaShortcut = true;
+	for (const QString& kind : {QStringLiteral("Station: "), QStringLiteral("Signal: "), QStringLiteral("Train: ")}) {
+		const NetworkPresenter::FindTarget target = targetLabelled(kind);
+		if (!target.item) {
+			if (kind != QStringLiteral("Train: ") || expectTrain) {
+				failure = QStringLiteral("Find offers no %1").arg(kind.trimmed());
+				return false;
+			}
+			continue;
+		}
+		w.m_inspector->handleDisableHighlight();
+		if (viaShortcut)
+			key(&w, Qt::Key_F, Qt::ControlModifier);
+		else
+			w.m_findAction->trigger();
+		viaShortcut = false;
+		auto* field = w.m_findDialog ? w.m_findDialog->findChild<QLineEdit*>() : nullptr;
+		auto* results = w.m_findDialog ? w.m_findDialog->findChild<QListWidget*>() : nullptr;
+		if (!field || !results || !w.m_findDialog->isVisible()) {
+			failure = QStringLiteral("Find did not open");
+			return false;
+		}
+		field->setText(kind.trimmed());
+		key(field, Qt::Key_Down);
+		if (!results->currentItem() || results->currentRow() != std::min(1, results->count() - 1)) {
+			failure = QStringLiteral("Down left row %1 of %2 current for \"%3\"").arg(results->currentRow()).arg(results->count()).arg(kind.trimmed());
+			return false;
+		}
+		const QString label = results->currentItem()->text();
+		key(kind == QStringLiteral("Signal: ") ? static_cast<QObject*>(results) : field, Qt::Key_Return);
+		const NetworkPresenter::FindTarget shown = targetLabelled(label);
+		const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
+		// The ring of a train is on its group.
+		auto* body = qgraphicsitem_cast<TrainBodyItem*>(shown.item);
+		const QGraphicsItem* ringed = body && body->parentItem() ? body->parentItem() : shown.item;
+		const bool selected = w.m_presenter->effect && ringed && ringed->graphicsEffect() == w.m_presenter->effect
+			&& w.m_inspector->dock()->isVisible() && (!body || w.m_inspector->selectedTrainIndex() == body->index);
+		if (w.m_findDialog->isVisible() || !shown.item || w.networkView->zoomRatio() < TrainBadgeItem::detailedZoomThreshold() - 1e-5
+			|| !visible.contains(shown.center) || !selected) {
+			failure = QStringLiteral("finding \"%1\" left the dialog open %2, zoom %3, centre shown %4, selected %5")
+						  .arg(label)
+						  .arg(w.m_findDialog->isVisible())
+						  .arg(w.networkView->zoomRatio())
+						  .arg(shown.item && visible.contains(shown.center))
+						  .arg(selected);
+			return false;
+		}
+	}
+	w.m_findAction->trigger();
+	// A signal is listed with the labels of its sections, and the label as well as the id of a section finds it.
+	const NetworkPresenter::FindTarget signalTarget = targetLabelled(QStringLiteral("Signal: "));
+	const auto* head = qgraphicsitem_cast<const SignalItem*>(signalTarget.item);
+	if (!head || head->sectionAheadId.empty()) {
+		failure = QStringLiteral("Find lists no signal with a section ahead");
+		return false;
+	}
+	auto* field = w.m_findDialog->findChild<QLineEdit*>();
+	auto* results = w.m_findDialog->findChild<QListWidget*>();
+	const auto lists = [&](const std::string& words) {
+		field->setText(QString::fromStdString(words));
+		return !results->findItems(signalTarget.label, Qt::MatchExactly).isEmpty();
+	};
+	if (!signalTarget.label.contains(QString::fromStdString(head->sectionAheadLabel)) || !lists(head->sectionAheadLabel)
+		|| !lists(head->sectionAheadId)) {
+		failure = QStringLiteral("Find does not list \"%1\" by the label and the id of section %2")
+					  .arg(signalTarget.label, QString::fromStdString(head->sectionAheadId));
+		return false;
+	}
+	key(w.m_findDialog->findChild<QLineEdit*>(), Qt::Key_Escape);
+	const bool closed = !w.m_findDialog->isVisible();
+	w.setFollowTrain(-1);
+	w.networkView->fitToTopology();
+	w.m_inspector->handleDisableHighlight();
+	QApplication::processEvents();
+	if (!closed)
+		failure = QStringLiteral("Esc did not close Find");
+	return closed;
 }

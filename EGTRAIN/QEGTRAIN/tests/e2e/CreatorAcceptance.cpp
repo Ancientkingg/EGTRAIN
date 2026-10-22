@@ -80,6 +80,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStatusBar>
 #include <QString>
 #include <QTabWidget>
 #include <QTableWidget>
@@ -91,12 +92,15 @@
 #include <QWidget>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QXYSeries>
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -305,17 +309,34 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				if (!dialog || !dialog->isVisible() || !dialog->isModal()
 					|| dialog->windowTitle() != QStringLiteral("Capacity"))
 					continue;
+				const QList<QComboBox*> combos = dialog->findChildren<QComboBox*>();
 				QComboBox* cycleEnd = nullptr;
-				for (QComboBox* combo : dialog->findChildren<QComboBox*>())
+				for (QComboBox* combo : combos)
 					if (combo->count() >= 3
 						&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
 						cycleEnd = combo;
 				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
-				if (!cycleEnd || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
+				const auto* blocks = dialog->findChild<QComboBox*>(QStringLiteral("capacityBlocks"));
+				if (combos.size() != 3 || !cycleEnd || !blocks || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
 					fail(QStringLiteral("capacity scope controls are incomplete"));
 					return;
 				}
-				cycleEnd->setCurrentIndex(2);
+				// A long occurrence row is cut with an ellipsis at the edge of its list.
+				const auto* occurrences = dialog->findChild<QListWidget*>();
+				if (!occurrences || occurrences->count() == 0
+					|| occurrences->visualItemRect(occurrences->item(0)).width() > occurrences->viewport()->width()) {
+					dialog->reject();
+					fail(QStringLiteral("the occurrence rows are wider than their list"));
+					return;
+				}
+				// The chooser is accepted as it opens: the two trains of the run are checked, so the second closes the
+				// cycle, and the analysed blocks are those both run over. The smoke script compares their sections with
+				// those of the blocking-time export.
+				if (cycleEnd->currentIndex() != 2) {
+					dialog->reject();
+					fail(QStringLiteral("the second of the two checked occurrences does not close the cycle"));
+					return;
+				}
 				buttons->button(QDialogButtonBox::Ok)->click();
 				// A refusal keeps the dialog open and says why in its status label.
 				if (dialog->isVisible()) {
@@ -664,7 +685,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		const QString mainSection = setSection("signals", 0, 1,
-			QStringLiteral("base block creator-main-block-0 /"));
+			QStringLiteral("creator-main 0.000 to 0.750 km"));
 		if (mainSection.isEmpty()) {
 			fail(QStringLiteral("signal protected-section selector lacked the authored block"));
 			return;
@@ -691,9 +712,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		const std::array<QString, 3> routePrefixes = {
-			QStringLiteral("base block creator-main-block-0 /"),
-			QStringLiteral("connection creator-switch /"),
-			QStringLiteral("base block creator-yard-block-2 /")};
+			QStringLiteral("creator-main 0.000 to 0.750 km"),
+			QStringLiteral("creator-main 0.750 to 1.000, creator-yard 1.500 to 1.750 km"),
+			QStringLiteral("creator-yard 1.750 to 2.000 km")};
 		for (const QString& prefix : routePrefixes) {
 			QString raw;
 			for (int index = 0; index < w.m_routeSectionCatalogCombo->count(); ++index) {
@@ -719,10 +740,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		if (setSection("block_dependencies", 0, 0,
-				QStringLiteral("base block creator-main-block-0 /"))
+				QStringLiteral("creator-main 0.000 to 0.750 km"))
 				.isEmpty()
 			|| setSection("block_dependencies", 0, 1,
-				QStringLiteral("base block creator-yard-block-2 /"))
+				QStringLiteral("creator-yard 1.750 to 2.000 km"))
 				.isEmpty()) {
 			fail(QStringLiteral("dependency typed selectors lacked safe sections"));
 			return;
@@ -732,10 +753,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		const std::array<QString, 4> restrictionPrefixes = {
-			QStringLiteral("base block creator-main-block-0 /"),
-			QStringLiteral("base block creator-yard-block-2 /"),
-			QStringLiteral("connection creator-switch /"),
-			QStringLiteral("base block creator-yard-block-2 /")};
+			QStringLiteral("creator-main 0.000 to 0.750 km"),
+			QStringLiteral("creator-yard 1.750 to 2.000 km"),
+			QStringLiteral("creator-main 0.750 to 1.000, creator-yard 1.500 to 1.750 km"),
+			QStringLiteral("creator-yard 1.750 to 2.000 km")};
 		for (int column = 0; column < 4; ++column)
 			if (setSection("single_track_restrictions", 0, column,
 					restrictionPrefixes[static_cast<std::size_t>(column)])
@@ -745,10 +766,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 		if (!addRow("station_boundaries")
 			|| setSection("station_boundaries", 0, 0,
-				QStringLiteral("base block creator-main-block-0 /"))
+				QStringLiteral("creator-main 0.000 to 0.750 km"))
 				.isEmpty()
 			|| setSection("station_boundaries", 0, 1,
-				QStringLiteral("base block creator-yard-block-2 /"))
+				QStringLiteral("creator-yard 1.750 to 2.000 km"))
 				.isEmpty()) {
 			fail(QStringLiteral("station boundary typed selectors lacked safe sections"));
 			return;
@@ -841,8 +862,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				return false;
 			const std::array<double, 5> traction = {0.0, 30.0, 220000.0, -3500.0, 0.0};
 			for (int column = 0; column < 5; ++column)
-				if (auto* edit = qobject_cast<QDoubleSpinBox*>(w.m_trainUnitTractionTable->cellWidget(0, column)))
-					edit->setValue(traction[static_cast<std::size_t>(column)]);
+				if (QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(0, column))
+					tractionCell->setData(Qt::EditRole, traction[static_cast<std::size_t>(column)]);
 				else
 					return false;
 			process();
@@ -902,7 +923,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		// The first service changes why Follow is off: the case has trains to run but has not run.
 		if (!noServicesBefore || w.m_followTrainCombo->currentText() != "Run the case to follow trains" || w.m_followAction->isEnabled()
-			|| w.m_followStatusLabel->text() != "Run the case first, then you can follow a train.") {
+			|| w.m_followStatusLabel->toolTip() != "Run the case first, then you can follow a train.") {
 			fail(QStringLiteral("Follow does not explain a case that has services and has not run"));
 			return;
 		}
@@ -2084,12 +2105,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (!dialog || !table || !secondary) return false;
 			auto* scroll = dialog->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 			auto* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
-			auto* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
 			auto* buttons = dialog->findChild<QDialogButtonBox*>();
-			if (!scroll || !context || !heading || !buttons || !buttons->button(QDialogButtonBox::Close)
-				|| !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
-				|| scroll->isAncestorOf(buttons) || !context->wordWrap()
-				|| context->textFormat() != Qt::PlainText || heading->textFormat() != Qt::PlainText)
+			if (!scroll || !context || dialog->findChild<QLabel*>(QStringLiteral("dialogHeading")) || !buttons
+				|| !buttons->button(QDialogButtonBox::Close) || !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
+				|| scroll->isAncestorOf(buttons) || !context->wordWrap() || context->textFormat() != Qt::PlainText)
 				return false;
 			QScreen* screen = QGuiApplication::screenAt(dialog->mapToGlobal(QPoint(0, 0)));
 			if (!screen) screen = QGuiApplication::primaryScreen();
@@ -2153,9 +2172,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				if (!dialog->isModal() && dialog->windowTitle() == QStringLiteral("Capacity"))
 					capacity = dialog;
 		QPushButton* capacityExport = nullptr;
+		// Return presses no button of the window.
+		bool capacityAutoDefault = false;
 		if (capacity)
-			for (QPushButton* button : capacity->findChildren<QPushButton*>())
+			for (QPushButton* button : capacity->findChildren<QPushButton*>()) {
+				capacityAutoDefault |= button->autoDefault();
 				if (button->text() == QStringLiteral("Export capacity CSV...")) capacityExport = button;
+			}
 		auto* capacityTabs = capacity ? capacity->findChild<QTabWidget*>() : nullptr;
 		auto* pairTable = capacityTabs ? qobject_cast<QTableWidget*>(capacityTabs->widget(0)) : nullptr;
 		auto* compressionTable = capacityTabs && capacityTabs->count() > 1
@@ -2164,13 +2187,24 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		auto* criticalTable = capacityTabs && capacityTabs->count() > 2
 			? qobject_cast<QTableWidget*>(capacityTabs->widget(2))
 			: nullptr;
+		// The window opens with room for its tables, as Capacity by area does.
+		if (capacity && capacity->width() < qMin(960, capacity->maximumWidth())) {
+			fail(QStringLiteral("the capacity window opens narrower than 960 px within the screen"));
+			return;
+		}
 		if (!capacity || !capacityTabs || capacityTabs->count() != 3 || !pairTable
 			|| pairTable->columnCount() != 9 || pairTable->rowCount() == 0
 			|| !compressionTable || compressionTable->columnCount() != 7
 			|| !criticalTable || criticalTable->columnCount() != 5
 			|| !boundedResultDialog(capacity, pairTable, capacityExport)
+			|| capacityAutoDefault
 			|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
+			return;
+		}
+		// Tab leaves a table for the buttons of the window; the arrow keys move between the cells.
+		if (pairTable->tabKeyNavigation() || compressionTable->tabKeyNavigation() || criticalTable->tabKeyNavigation()) {
+			fail(QStringLiteral("Tab moves between the cells of a capacity table and does not leave it"));
 			return;
 		}
 		const auto capacityLabels = capacity->findChildren<QLabel*>("resultContextText");
@@ -2184,9 +2218,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity calculation details have an invalid percentage unit"));
 			return;
 		}
-		const auto* capacityHeading = capacity->findChild<QLabel*>(QStringLiteral("dialogHeading"));
-		if (!capacityHeading || !capacityHeading->text().startsWith(QStringLiteral("Selected train chain: cycle "))
-			|| !capacityHeading->text().endsWith(QStringLiteral("% of period; not network capacity"))) {
+		// The result leads the context line, below the window title.
+		const auto* capacityContext = capacity->findChild<QLabel*>(QStringLiteral("dialogContext"));
+		const QString capacityResult = capacityContext ? capacityContext->text().section(QLatin1Char('\n'), 0, 0) : QString();
+		if (!capacityResult.startsWith(QStringLiteral("Selected train chain: cycle "))
+			|| !capacityResult.endsWith(QStringLiteral("% of period; not network capacity"))) {
 			fail(QStringLiteral("capacity analysis does not say that it describes the selected train chain"));
 			return;
 		}
@@ -2213,6 +2249,40 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("compressed capacity diagram has no physical section layer"));
 			return;
 		}
+		// The compressed diagram has the distance axis of the blocking-time diagram. Its time axis spans the compressed
+		// envelopes, which start about a minute after the run start in this run, so it does not start at 0 s.
+		const auto axisOf = [](const QChartView* view, Qt::Orientation orientation) -> const QValueAxis* {
+			const auto axes = view ? view->chart()->axes(orientation) : QList<QAbstractAxis*>();
+			return axes.isEmpty() ? nullptr : qobject_cast<const QValueAxis*>(axes.first());
+		};
+		DiagramWindow* blockingAgain = findDiagram(QStringLiteral("Blocking time"));
+		const QValueAxis* blockingX = axisOf(blockingAgain ? blockingAgain->findChild<QChartView*>() : nullptr, Qt::Horizontal);
+		const QValueAxis* compressedX = axisOf(compressedView, Qt::Horizontal);
+		const QValueAxis* compressedTime = axisOf(compressedView, Qt::Vertical);
+		double earliestEnvelope = std::numeric_limits<double>::infinity();
+		double latestEnvelope = -std::numeric_limits<double>::infinity();
+		for (QAbstractSeries* series : compressedView->chart()->series())
+			if (const auto* envelope = qobject_cast<const QXYSeries*>(series);
+				envelope && envelope->property("layer").toString() == QStringLiteral("calculated blocking envelope"))
+				for (const QPointF& point : envelope->points()) {
+					earliestEnvelope = std::min(earliestEnvelope, point.y());
+					latestEnvelope = std::max(latestEnvelope, point.y());
+				}
+		if (!blockingX || !compressedX || compressedX->titleText() != blockingX->titleText()
+			|| !compressedX->titleText().contains(QStringLiteral("origin")) || !compressedX->titleText().contains(QStringLiteral("travel"))) {
+			fail(QStringLiteral("the compressed diagram does not have the distance axis of the blocking-time diagram: ")
+				+ (compressedX ? compressedX->titleText() : QStringLiteral("no axis")));
+			return;
+		}
+		if (!compressedTime || !(earliestEnvelope <= latestEnvelope) || !(compressedTime->min() > 0.0)
+			|| compressedTime->min() > earliestEnvelope || compressedTime->max() < latestEnvelope) {
+			fail(QString("the compressed time axis %1 s to %2 s does not fit the compressed envelopes, %3 s to %4 s")
+					.arg(compressedTime ? compressedTime->min() : -1.0)
+					.arg(compressedTime ? compressedTime->max() : -1.0)
+					.arg(earliestEnvelope)
+					.arg(latestEnvelope));
+			return;
+		}
 		capacity->close();
 		QAction* areaButton = findResultAction(QStringLiteral("Capacity by area"));
 		if (!areaButton) {
@@ -2231,6 +2301,24 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity by area did not open and export through public controls"));
 			return;
 		}
+		for (const QTableWidget* table : area->findChildren<QTableWidget*>())
+			if (table->tabKeyNavigation()) {
+				fail(QStringLiteral("Tab moves between the cells of a capacity by area table and does not leave it"));
+				return;
+			}
+		// A second window of capacity by area does not open on top of the first.
+		acceptAreaCapacityScope();
+		areaButton->trigger();
+		process();
+		AreaCapacityWindow* secondArea = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<AreaCapacityWindow*>(widget); window && window != area && window->isVisible())
+				secondArea = window;
+		if (!secondArea || secondArea->pos() == area->pos()) {
+			fail(QStringLiteral("a second capacity by area window opens at the place of the first"));
+			return;
+		}
+		secondArea->close();
 		area->close();
 		QPushButton* compareButton = w.findChild<QPushButton*>("compareDelayButton");
 		QAction* delayAnalysisResult = findResultAction(QStringLiteral("Delay analysis"));
@@ -2277,6 +2365,20 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the delay analysis did not open on its Calls tab and export through public controls"));
 			return;
 		}
+		// Compare delays opens its window a step below and to the right of the delay analysis that is still open. At the top
+		// left of the screen that step fits, whatever windows opened before.
+		callsWindow->move(callsWindow->screen()->availableGeometry().topLeft());
+		compareButton->click();
+		process();
+		DelayAnalysisWindow* comparisonWindow = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<DelayAnalysisWindow*>(widget); window && window != callsWindow && window->isVisible())
+				comparisonWindow = window;
+		if (!comparisonWindow || comparisonWindow->pos() != callsWindow->pos() + QPoint(32, 32)) {
+			fail(QStringLiteral("Compare delays does not open the delay analysis a step away from the open one"));
+			return;
+		}
+		comparisonWindow->close();
 		callsWindow->close();
 		process();
 
@@ -2340,11 +2442,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		DelayAnalysisWindow* laterWindow = openComparison();
 		QTableWidget* laterOccurrences = delayTable(laterWindow, "delayBaselineOccurrences");
 		QPushButton* laterExport = qobject_cast<QPushButton*>(delayChild(laterWindow, "delayAnalysisExport"));
-		const auto* laterHeading = laterWindow ? laterWindow->findChild<QLabel*>(QStringLiteral("dialogHeading")) : nullptr;
 		const auto* laterContext = laterWindow ? laterWindow->findChild<QLabel*>(QStringLiteral("dialogContext")) : nullptr;
 		const QString laterTotals = delayLabelText(laterWindow, "delayBaselineTotals");
-		const bool laterOk = laterOccurrences && laterOccurrences->rowCount() == 2 && laterHeading
-			&& laterHeading->text().startsWith(QStringLiteral("Delay analysis")) && laterContext
+		const bool laterOk = laterOccurrences && laterOccurrences->rowCount() == 2
+			&& laterWindow->windowTitle() == QStringLiteral("Delay analysis") && laterContext
 			&& laterContext->text().contains("Run:") && laterContext->text().contains("Baseline:")
 			&& laterTotals.contains(QStringLiteral("Positive additional delay: +"))
 			&& boundedResultDialog(laterWindow, laterOccurrences, laterExport);
@@ -2543,22 +2644,63 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			const auto source = std::find_if(w.m_document->mutableModel().stations.begin(), w.m_document->mutableModel().stations.end(),
 				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
 			if (source == w.m_document->mutableModel().stations.end() || !picture || !label) return false;
+			// At the scene size the artwork stands where the rule of the cached line that holds the node of the station
+			// puts it.
+			const auto& cached = w.m_presenter->m_cachedTrackPreview;
+			const auto anchor = std::find_if(cached.stations.begin(), cached.stations.end(),
+				[&](const TrackPreviewStation& station) { return station.id == source->id; });
+			const auto line = std::find_if(cached.lines.begin(), cached.lines.end(), [&](const TrackPreviewLine& candidate) {
+				QPointF point;
+				return anchor != cached.stations.end() && previewPointAtNode(candidate, anchor->nodeId, candidate.displayOffset, point);
+			});
+			if (line == cached.lines.end()) return false;
 			const QPointF textCenter = overlay->stableAnchor()
-				+ stationDecorationOffset(w.m_document->mutableModel().stationViews, source->id, source->name) * expectedScale;
-			// The scene size, without the enlargement that keeps the artwork readable at Fit.
-			const auto sceneSizeRect = [](const QGraphicsItem* item) {
+				+ w.m_presenter->stationArtworkOffset(*line, w.m_document->mutableModel().stationViews, source->id, source->name);
+			// The scene size, without the enlargement and the move that place the artwork readably by the station nodes.
+			const auto sceneSizeRect = [](const QGraphicsItem* item, const QRectF& rect) {
 				// The item transform acts after the item scale, so remove it in scaled coordinates.
 				const QTransform scaled = QTransform::fromScale(item->scale(), item->scale());
 				const QTransform enlargement = scaled * item->transform() * scaled.inverted();
-				return (enlargement.inverted() * item->sceneTransform()).mapRect(item->boundingRect());
+				return (enlargement.inverted() * item->sceneTransform()).mapRect(rect);
 			};
-			const QRectF pictureRect = sceneSizeRect(picture);
-			const QRectF labelRect = sceneSizeRect(label);
+			const QRectF pixmapRect(picture->offset(), QSizeF(picture->pixmap().size()));
+			const QRectF pictureRect = sceneSizeRect(picture, pixmapRect);
+			const QRectF labelRect = sceneSizeRect(label, label->boundingRect());
 			if (!closeTo(pictureRect.width(), w.m_presenter->station_size * expectedScale)
 				|| !closeTo(picture->scale(), expectedScale) || !closeTo(label->scale(), expectedScale)
 				|| label->font().pixelSize() != w.m_presenter->station_size / 5
 				|| QLineF(labelRect.center(), textCenter).length() > 1e-6
 				|| QLineF(pictureRect.center(), textCenter - QPointF(0, w.m_presenter->station_size * expectedScale / 2)).length() > 1e-6)
+				return false;
+			// On the canvas the roundel stands on the top edge of the hull of the station nodes at the middle of the dots,
+			// and the dots of the near look lie on the nodes without an item transform. The name lies under the box or
+			// above the mark, centred on it, or beside the box.
+			const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
+			if (!mark || mark->nodeCentres().isEmpty()) return false;
+			const QList<QPointF> centres = mark->nodeCentres();
+			QRectF box(centres.first(), centres.first());
+			for (const QPointF& centre : centres)
+				box = QRectF(QPointF(std::min(box.left(), centre.x()), std::min(box.top(), centre.y())),
+					QPointF(std::max(box.right(), centre.x()), std::max(box.bottom(), centre.y())));
+			const qreal markX = stationNodeMarkShape(centres, mark->stationClass(), 1.0, 0.0).boundingRect().center().x();
+			// The top edge of the hull at markX: the smallest y over the pairs of nodes around it, where a pair of one x
+			// counts at that x.
+			qreal hullTop = std::numeric_limits<qreal>::infinity();
+			for (const QPointF& a : centres)
+				for (const QPointF& b : centres) {
+					const bool upright = qAbs(a.x() - b.x()) < 1e-9;
+					if (upright ? qAbs(a.x() - markX) < 1e-6 : std::min(a.x(), b.x()) <= markX && markX <= std::max(a.x(), b.x()))
+						hullTop = std::min(hullTop,
+							upright ? std::min(a.y(), b.y()) : a.y() + (b.y() - a.y()) * (markX - a.x()) / (b.x() - a.x()));
+				}
+			const QPointF frameAnchor = picture->mapToScene(pixmapRect.center().x(), pixmapRect.bottom());
+			if (mark->isNearLook() ? !picture->transform().isIdentity() : QLineF(frameAnchor, QPointF(markX, hullTop)).length() > 1e-6)
+				return false;
+			const QRectF name = label->sceneBoundingRect();
+			const bool centred = qAbs(name.center().x() - markX) < 1e-6;
+			if (!(centred && name.top() > box.bottom()) && !(centred && name.bottom() < picture->sceneBoundingRect().top())
+				&& !((name.left() > box.right() || name.right() < box.left()) && name.top() < box.center().y()
+					&& name.bottom() > box.center().y()))
 				return false;
 		}
 		return true;

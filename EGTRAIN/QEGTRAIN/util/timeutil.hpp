@@ -4,12 +4,14 @@
 #include <time.h>
 #include "util/portability.h" // localtime_r shim on MSVC
 
-// 01:01:20 CEST - to use it for the timetables
+/// \file
+/// Text forms of simulation times and of the current local date and time.
+
+/// The local date and time of step \p t as "YYYY-MM-DD HH:MM:SS", without a time zone: midnight of
+/// the current day of the computer plus \p startingSimulationTime plus \p t. \p t is seconds from
+/// the start of the run and \p startingSimulationTime the start of the run in seconds since
+/// midnight.
 inline std::string simulationTime(int t, int startingSimulationTime) {
-	/// <summary>
-	/// Creates the time of the simulation from t(s) to human readable 01:01:20 CEST
-	/// </summary>
-	/// <param name="tm"></param>
 	time_t time0 = time(nullptr);
 
 	struct tm ltm, stime;
@@ -24,7 +26,8 @@ inline std::string simulationTime(int t, int startingSimulationTime) {
 	return simTime;
 }
 
-// Mon 01.01.1900 12:00:00
+/// \p tm as "Mon 01.01.1900 12:00:00": weekday, day, month, year, and the time. The hour has no
+/// leading zero.
 inline std::string formatDateTime(const tm& tm) {
 	std::stringstream ss;
 
@@ -80,7 +83,7 @@ inline std::string formatDateTime(const tm& tm) {
 	return ss.str();
 }
 
-// 1900_01_01_12_00_00
+/// \p tm in a form safe for file names, "1900_01_01_12_00_00". The hour has no leading zero.
 inline std::string formatDateTimeFilename(const tm& tm) {
 	std::stringstream ss;
 
@@ -109,7 +112,7 @@ inline std::string formatDateTimeFilename(const tm& tm) {
 	return ss.str();
 }
 
-// returns the current date and time: // Mon 01.01.1900 12:00:00
+/// The current local date and time in the form of formatDateTime(), "Mon 01.01.1900 12:00:00".
 inline std::string getDateTimeStr() {
 	time_t t = time(nullptr);
 	tm now;
@@ -117,7 +120,7 @@ inline std::string getDateTimeStr() {
 	return formatDateTime(now);
 }
 
-// returns the current date and time in a filename safe format: 1900_01_01_12_00_00
+/// The current local date and time in the form of formatDateTimeFilename(), "1900_01_01_12_00_00".
 inline std::string getDateTimeFilenameStr() {
 	time_t t = time(nullptr);
 	tm now;

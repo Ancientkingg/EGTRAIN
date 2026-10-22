@@ -13,21 +13,41 @@ The kinds of finding are:
   anchor        a link to a heading that the target document does not have
   image-alt     an image with empty alt text
   orphan-image  an image below docs/ that no document links to
-  unreachable   a document below docs/ that docs/README.md does not reach through links
+  unreachable   a document below docs/ that docs/README.md does not reach through links and the entries of
+                {toctree} blocks
   shell         a bash or sh example that does not split into shell words
   json          a json example that is not valid JSON
   dash          a line with an em dash or an en dash
   local-path    a line with an absolute path of a user's machine
+  github-only   a GitHub alert (> [!NOTE]), a <details> element, a link that starts with /, or a link to
+                github.com/Ancientkingg/EGTRAIN/blob/ for a file in the repository
+  heading       a file that does not start with its one # heading, or a heading that skips a level
+  manual-link   a link from a page in docs/guides/, the manual, to a file outside docs/guides/ and docs/images/
+  capture       a PNG under docs/images/ that docs/images/captures.json does not list, an entry of it
+                without its file, a size that differs from the entry, a version whose major or minor part
+                differs from EGTRAIN_VERSION in CMakeLists.txt, a name that is not <page>-<subject>.png in
+                lower case with hyphens, or a picture wider than 1200 pixels
+  ui-name       a bold term (**...**) in docs/guides/ that is not a string of the application: a C++ string literal
+                below EGTRAIN/QEGTRAIN/, outside tests/ and third_party/, or a <string> of a .ui file, compared without
+                the mnemonic &. A menu path A > B > C is checked part by part. A term that ends with a colon or a full
+                stop other than ... is a list heading and a key such as Ctrl+F, Esc or F1 is not a name, so both are skipped. The
+                pages leave out the colon of a label, since a bold term with a colon is a list heading, so a string may
+                add one. They keep the ... of a menu entry, which the source may add to a name as the Diagrams menu
+                does. The script lists the texts that Qt gives its standard buttons and the names of macOS and Windows
+                that the pages use.
+
+The heading check skips .github/, whose issue templates start with front matter.
 
 Each finding is printed as path:line: [kind] message, followed by a summary line. The exit code is
 0 when nothing is found, 1 when there are findings and 2 when the check cannot run (Git fails, or
 a document is not valid UTF-8). A bash or sh example that contains a here-document is not checked.
 
 Only inline links [text](target) and images ![alt](target) are read, outside fenced code blocks and
-inline code spans. Reference-style links, autolinks, HTML and setext headings are not read. Links
-with a scheme (https:, mailto:) are never fetched. Nothing is rendered.
+inline code spans. Reference-style links, autolinks, HTML other than <details> and setext headings
+are not read. Links with a scheme (https:, mailto:) are never fetched. Nothing is rendered.
 """
 import argparse
+import html
 import json
 import posixpath
 import re
@@ -40,6 +60,7 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[2]
 LANDING_PAGE = "docs/README.md"
+MANUAL = ("docs/guides/", "docs/images/")  # the manual and the images it may show
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp")
 SHELL_INFO_WORDS = ("bash", "sh")
 EM_DASH = "\u2014"
@@ -47,7 +68,7 @@ EN_DASH = "\u2013"
 
 FENCE_OPEN = re.compile(r"^ *(`{3,}(?=[^`]*$)|~{3,})[ \t]*(\S*)")
 FENCE_CLOSE = re.compile(r"^ *(`{3,}|~{3,})[ \t]*$")
-HEADING = re.compile(r"^ {0,3}#{1,6} +(.*)$")
+HEADING = re.compile(r"^ {0,3}(#{1,6}) +(.*)$")
 CLOSING_HASHES = re.compile(r"(^|[ \t]+)#+[ \t]*$")
 HEADING_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 CODE_SPAN = re.compile(r"(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)")
@@ -55,9 +76,35 @@ LINK_TITLE = r"""(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?"""
 LINK = re.compile(r"(!?)\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(\s*(<[^>]*>|[^\s)]*)" + LINK_TITLE + r"\s*\)")
 SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
 LOCAL_PATH = re.compile(r"/Users/|/home/[A-Za-z]|[A-Za-z]:[\\/]Users[\\/]")
+ALERT = re.compile(r"^ {0,3}> *\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]", re.IGNORECASE)
+DETAILS = re.compile(r"<details[\s>]", re.IGNORECASE)
+BLOB_LINK = re.compile(r"^https?://github\.com/Ancientkingg/EGTRAIN/blob/[^/]+/([^?#]+)", re.IGNORECASE)
+IMAGES = "docs/images/"
+CAPTURES = IMAGES + "captures.json"
+CAPTURE_NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)+\.png$")
+CAPTURE_MAX_WIDTH = 1200
+BOLD = re.compile(r"\*\*(?=\S)(.+?)(?<=\S)\*\*", re.DOTALL)
+SOURCE = "EGTRAIN/QEGTRAIN/"
+SOURCE_SUFFIXES = (".cpp", ".h", ".hpp", ".ui")
+# A comment, a character literal or a string literal of C++; only the string literal has a group.
+CPP_TOKEN = re.compile(r"//[^\n]*|/\*.*?\*/|'(?:[^'\\\n]|\\.)*'|\"((?:[^\"\\\n]|\\.)*)\"", re.DOTALL)
+UI_STRING = re.compile(r"<string(?:\s[^>]*)?>([^<]*)</string>")
+CPP_ESCAPE = re.compile(r"\\(.)")
+MNEMONIC = re.compile(r"&(.)")
+KEY = re.compile(r"^((Ctrl|Shift|Alt)\+)*(F\d+|Esc|Enter|Return|Tab|Up|Down|Left|Right|.)$|^arrow keys$", re.I)
+# Names that the application shows but its source does not hold. Qt gives the standard buttons their text:
+# QDialogButtonBox::Ok, Close and RestoreDefaults, QMessageBox::Save, and QMessageBox::Discard, which reads Don't Save on macOS.
+QT_BUTTON_NAMES = {"OK", "Close", "Save", "Don't Save", "Restore Defaults"}
+# Names of macOS and Windows that the steps for installing EGTRAIN and opening a case from the desktop use.
+SYSTEM_NAMES = {
+    "Allow applications from", "App Store & Known Developers", "Change All...", "Don't run", "Done", "Extract All",
+    "Get Info", "Kind", "More info", "Move to Trash", "Open Anyway", "Open With", "Open with", "Privacy & Security",
+    "Run anyway", "Security", "System Settings",
+}
+VERSION = re.compile(r'^set\(EGTRAIN_VERSION "(\d+)\.(\d+)\.\d+"', re.MULTILINE)
 
 Finding = namedtuple("Finding", "path line kind message")
-Document = namedtuple("Document", "lines anchors links blocks")
+Document = namedtuple("Document", "lines anchors links blocks headings bold")
 Link = namedtuple("Link", "line image text target")
 Block = namedtuple("Block", "line info body")
 Reference = namedtuple("Reference", "path link target fragment")
@@ -103,7 +150,7 @@ def find_links(text: str, first_line: int):
 
 def parse(text: str) -> Document:
     lines = [line.rstrip("\r") for line in text.split("\n")]
-    anchors, blocks, counts = set(), [], {}
+    anchors, blocks, headings, counts = set(), [], [], {}
     paragraphs, paragraph = [], []  # runs of unfenced, non-blank lines as (number, line)
     fence = None  # marker, line, info word and body lines of the open fenced block
     for number, line in enumerate(lines, 1):
@@ -125,7 +172,8 @@ def parse(text: str) -> Document:
             continue
         heading = HEADING.match(line)
         if heading:
-            title = CLOSING_HASHES.sub("", heading.group(1)).strip()
+            headings.append((number, len(heading.group(1))))
+            title = CLOSING_HASHES.sub("", heading.group(2)).strip()
             if title:
                 base = anchor_of(title)
                 repeats = counts.get(base, 0)
@@ -135,12 +183,15 @@ def parse(text: str) -> Document:
     paragraphs.append(paragraph)
     if fence:
         blocks.append(Block(fence[1], fence[2], fence[3]))
-    links = []
+    links, bold = [], []
     for numbered_lines in paragraphs:
         if numbered_lines:
             prose = CODE_SPAN.sub("_", "\n".join(line for _, line in numbered_lines))
             links.extend(find_links(prose, numbered_lines[0][0]))
-    return Document(lines, anchors, links, blocks)
+            for match in BOLD.finditer(prose):
+                line = numbered_lines[0][0] + prose.count("\n", 0, match.start())
+                bold.append((line, " ".join(match.group(1).split())))
+    return Document(lines, anchors, links, blocks, headings, bold)
 
 
 def read_document(root, path: str) -> Document:
@@ -213,6 +264,14 @@ def check_reachability(refs: list, documents: dict) -> list:
     for path, _, target, _ in refs:
         if target in documents:
             edges.setdefault(path, set()).add(target)
+    for path, document in documents.items():
+        for block in document.blocks:
+            if block.info == "{toctree}":
+                for entry in block.body:
+                    entry = entry.strip()
+                    if entry and not entry.startswith(":"):
+                        target = posixpath.normpath(posixpath.join(posixpath.dirname(path), entry + ".md"))
+                        edges.setdefault(path, set()).add(target)
     reached = {LANDING_PAGE}
     pending = [LANDING_PAGE]
     while pending:
@@ -273,6 +332,135 @@ def check_local_paths(documents: dict) -> list:
     ]
 
 
+def check_github_only(documents: dict, listed: set) -> list:
+    findings = []
+    for path, document in documents.items():
+        fenced = set()
+        for block in document.blocks:
+            fenced.update(range(block.line, block.line + len(block.body) + 2))
+        for number, line in enumerate(document.lines, 1):
+            prose = "" if number in fenced else CODE_SPAN.sub("_", line)
+            if ALERT.match(prose):
+                findings.append(Finding(path, number, "github-only", "GitHub alert"))
+            if DETAILS.search(prose):
+                findings.append(Finding(path, number, "github-only", "<details> element"))
+        for link in document.links:
+            blob = BLOB_LINK.match(link.target)
+            if link.target.startswith("/"):
+                message = f"link from the repository root: {link.target}"
+            elif blob and unquote(blob.group(1)) in listed:
+                message = f"GitHub link to a file in the repository: {link.target}"
+            else:
+                continue
+            findings.append(Finding(path, link.line, "github-only", message))
+    return findings
+
+
+def check_headings(documents: dict) -> list:
+    findings = []
+    for path, document in documents.items():
+        # The issue templates start with front matter.
+        if path.startswith(".github/"):
+            continue
+        first = next((number for number, line in enumerate(document.lines, 1) if line.strip()), 1)
+        tops = [number for number, level in document.headings if level == 1]
+        if not tops or tops[0] != first:
+            findings.append(Finding(path, first, "heading", "the file does not start with a # heading"))
+        findings += [Finding(path, number, "heading", "a second # heading") for number in tops[1:]]
+        previous = 1
+        for number, level in document.headings:
+            if level > previous + 1:
+                findings.append(Finding(path, number, "heading", f"level {level} heading after level {previous}"))
+            previous = level
+    return findings
+
+
+def check_manual_links(refs: list) -> list:
+    return [
+        Finding(path, link.line, "manual-link", f"the manual links outside docs/guides/: {link.target}")
+        for path, link, target, _ in refs
+        if path.startswith(MANUAL[0]) and not target.startswith(MANUAL)
+    ]
+
+
+def png_size(path):
+    """Returns the width and height of a PNG file."""
+    with open(path, "rb") as image:
+        header = image.read(24)
+    return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
+
+
+def check_captures(root, files) -> list:
+    """Checks the pictures under docs/images/ against docs/images/captures.json, which the screenshot script writes."""
+    listed = set(files)
+    root = Path(root)
+    findings = []
+    entries = {}
+    if CAPTURES in listed:
+        try:
+            entries = {entry["file"]: entry for entry in json.loads((root / CAPTURES).read_text("utf-8"))["captures"]}
+        except (ValueError, KeyError, TypeError) as error:
+            return [Finding(CAPTURES, 1, "capture", f"not a list of captures: {error}")]
+    cmake = root / "CMakeLists.txt"
+    version = VERSION.search(cmake.read_text("utf-8")) if cmake.is_file() else None
+    for path in sorted(name for name in listed if name.startswith(IMAGES) and name.lower().endswith(".png")):
+        name = path[len(IMAGES):]
+        size = png_size(root / path)
+        if name not in entries:
+            findings.append(Finding(path, 1, "capture", "not listed in captures.json"))
+        if not CAPTURE_NAME.match(name):
+            findings.append(Finding(path, 1, "capture", "name is not <page>-<subject>.png in lower case with hyphens"))
+        if size[0] > CAPTURE_MAX_WIDTH:
+            findings.append(Finding(path, 1, "capture", f"{size[0]} pixels wide, more than {CAPTURE_MAX_WIDTH}"))
+        elif name in entries and size != (entries[name].get("width"), entries[name].get("height")):
+            listed_size = f"{entries[name].get('width')}x{entries[name].get('height')}"
+            findings.append(Finding(path, 1, "capture", f"{size[0]}x{size[1]} pixels, captures.json says {listed_size}"))
+    for name, entry in sorted(entries.items()):
+        if IMAGES + name not in listed:
+            findings.append(Finding(CAPTURES, 1, "capture", f"no such file: {name}"))
+        taken = str(entry.get("version", "")).split(".")[:2]
+        if version and taken != list(version.groups()):
+            expected = ".".join(version.groups())
+            findings.append(Finding(CAPTURES, 1, "capture", f"{name} was taken with version {entry.get('version')}, not {expected}"))
+    return findings
+
+
+def source_strings(root, listed) -> set:
+    """Returns the C++ string literals and the .ui strings of the application, each also without its mnemonic &."""
+    strings = set()
+    for path in listed:
+        skipped = path.startswith(SOURCE + "tests/") or "/third_party/" in path
+        if not path.startswith(SOURCE) or skipped or not path.endswith(SOURCE_SUFFIXES):
+            continue
+        text = (Path(root) / path).read_text("utf-8", "replace")
+        if path.endswith(".ui"):
+            found = [html.unescape(value) for value in UI_STRING.findall(text)]
+        else:
+            # A header label may break its name with \n.
+            found = [CPP_ESCAPE.sub(r"\1", token.group(1).replace("\\n", " ")) for token in CPP_TOKEN.finditer(text) if token.group(1)]
+        for value in found:
+            value = " ".join(value.split())
+            strings.update((value, MNEMONIC.sub(r"\1", value)))
+    return strings
+
+
+def check_ui_names(root, listed, documents: dict) -> list:
+    strings = source_strings(root, listed) | QT_BUTTON_NAMES | SYSTEM_NAMES
+    findings = []
+    for path, document in documents.items():
+        if not path.startswith(MANUAL[0]):
+            continue
+        for line, term in document.bold:
+            heading = term.endswith(":") or (term.endswith(".") and not term.endswith("..."))
+            if heading or KEY.match(term):
+                continue
+            for part in term.split(" > "):
+                named = part in strings or part + ":" in strings or (part.endswith("...") and part[:-3] in strings)
+                if not named:
+                    findings.append(Finding(path, line, "ui-name", f"not a string of the application: {part}"))
+    return findings
+
+
 def check(root, files) -> list:
     """Returns the findings for the listed files, relative to root, sorted by path, line, kind and message."""
     listed = set(files)
@@ -294,6 +482,10 @@ def check(root, files) -> list:
     findings += check_json(documents)
     findings += check_dashes(documents)
     findings += check_local_paths(documents)
+    findings += check_github_only(documents, listed)
+    findings += check_headings(documents)
+    findings += check_manual_links(refs)
+    findings += check_ui_names(root, listed, documents)
     return sorted(findings)
 
 
@@ -306,7 +498,8 @@ def main(argv=None) -> int:
     )
     arguments = parser.parse_args(argv)
     try:
-        findings = check(arguments.root, tracked_files(arguments.root))
+        files = tracked_files(arguments.root)
+        findings = sorted(check(arguments.root, files) + check_captures(arguments.root, files))
     except ToolError as error:
         print(f"check_docs: {error}", file=sys.stderr)
         return 2

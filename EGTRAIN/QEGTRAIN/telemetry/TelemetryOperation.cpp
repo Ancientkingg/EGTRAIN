@@ -97,10 +97,13 @@ QAction* registerEditor(QDockWidget* dock, QMenu* menu, const CaptureOperation& 
 	action->setChecked(!dock->isHidden());
 	menu->addAction(action);
 	new DockCheckSync(dock, action);
-	QObject::connect(action, &QAction::triggered, dock, [dock, capture](bool checked) {
+	QObject::connect(action, &QAction::triggered, dock, [dock, action, capture](bool checked) {
 		const OperationObservation operation = capture ? capture() : OperationObservation();
-		if (checked) revealEditor(dock, operation);
-		else dock->hide();
+		// A docked editor behind another tab is open but out of sight, so choosing it brings it to the front.
+		if (checked || (dock->isVisible() && dock->visibleRegion().isEmpty())) {
+			action->setChecked(true);
+			revealEditor(dock, operation);
+		} else dock->hide();
 	});
 	return action;
 }

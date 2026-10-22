@@ -57,6 +57,8 @@ ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
 	m_table->setHorizontalHeaderLabels(validationHeaders);
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	// Tab leaves the table; the arrow keys move between its cells.
+	m_table->setTabKeyNavigation(false);
 	m_table->horizontalHeader()->setStretchLastSection(true);
 	m_table->resizeColumnsToContents();
 

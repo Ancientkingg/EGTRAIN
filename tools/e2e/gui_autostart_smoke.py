@@ -109,10 +109,6 @@ def main() -> None:
             "1",
             "-pax",
             "0",
-            "-TSM",
-            "0",
-            "-RC",
-            "0",
         ]
 
         with log_path.open("wb") as output:

@@ -1,6 +1,6 @@
 # How-to
 
-Short recipes for the common tasks. Each says what you need, what to do and what you should see. [Getting started](getting-started.md) is the walk from a download to a first run, and the [glossary](glossary.md) defines the words. On macOS the key Ctrl in a shortcut is the Command key.
+Short recipes for the common tasks. Each says what you need, what to do and what you should see. [Getting started](getting-started.md) is the walk from a download to a first run, and the [glossary](glossary.md) defines the words. On macOS the key Ctrl in a shortcut is the Command key, and [Keyboard shortcuts](keyboard-shortcuts.md) lists every shortcut.
 
 - [Open a case](#open-a-case)
 - [Copy and save a case](#copy-and-save-a-case)
@@ -15,6 +15,8 @@ Short recipes for the common tasks. Each says what you need, what to do and what
 - [Results and exports](#results-and-exports)
 - [Convert a legacy case and write legacy files](#convert-a-legacy-case-and-write-legacy-files)
 - [Close, start a new case or open another during a run](#close-start-a-new-case-or-open-another-during-a-run)
+- [Change the application settings](#change-the-application-settings)
+- [If EGTRAIN closes unexpectedly](#if-egtrain-closes-unexpectedly)
 - [Why a command is disabled](#why-a-command-is-disabled)
 
 ## Open a case
@@ -26,7 +28,7 @@ Use one of these:
 - Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case Study...**, **Open Scene Folder...** and **Import Legacy Case...**.
 - Choose **File > Open Case Study...** (Ctrl+O) and select an `.egscene` file.
 - Choose **File > Open Scene Folder...** and select a folder that holds `scene.json`.
-- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
+- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The example cases of the package are not listed there; **Open a Case** has them under **Bundled cases**. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Drop rejected: <reason>. Scene unchanged.` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 - From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a scene folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
@@ -75,7 +77,7 @@ You need an open case. EGTRAIN checks it when it opens, after every edit and bef
 1. Read the line under **Current case study** in the dock **Case and Layers**. It says **Ready to run**, or it shows the first error.
 2. Choose **View > Scene Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**.
 
-   ![The Scene Validation dock with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns are Severity, Code, Message, File and Path; Suggested Fix is out of view.](../images/guide-scene-validation.png)
+   ![The dock Scene Validation of Paimpol practice, a copy of Paimpol, after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view.](../images/how-to-scene-validation.png)
 3. Fix the first error in the editor that matches its **File** and **Path** (menu **Editors**), and read the table again. It updates after each edit.
 4. Repeat until no error is left. **Run** is then enabled.
 
@@ -85,7 +87,7 @@ You can save a case that has errors. Warnings do not stop a run, but read them: 
 - A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab **Timetable** of **Services**.
 - A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in **Rolling stock units**.
 
-**Run** stays disabled while any error remains. From a terminal, `scene_tool validate --runnable path/to/scene` prints the same findings ([scene_tool](command-line.md#scene_tool)). [Scene editor flow](../architecture/scene-editor-flow.md#window-flow) describes the validation layers.
+**Run** stays disabled while any error remains. From a terminal, `scene_tool validate --runnable path/to/scene` prints the same findings ([scene_tool](command-line.md#scene_tool)).
 
 ## Answer the unsaved changes question
 
@@ -101,12 +103,12 @@ If EGTRAIN closes without an answer, for example after a crash, it offers the ed
 
 You need an open case that you have copied ([Copy and save a case](#copy-and-save-a-case)) and no active run. The contents of the dock **Services** are disabled during a run; the menu entry still opens it.
 
-1. Choose **Editors > Services** and select the service in the list **Services**. The dock has the tabs **Service**, **Timetable** and **Run occurrences**. Open the tab **Timetable**.
+1. Choose **Editors > Services** and select the service in the list at the top of the dock. The dock has the tabs **Service**, **Timetable** and **Run occurrences**. Open the tab **Timetable**.
 2. In the table of stops, click the row of the stop. The dialog **Edit timetable stop** opens with the station, the platform, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**.
 3. Change the field. **Planned time display** switches the dialog between **Elapsed offsets (s)** (seconds from the base time of the case) and **Clock time**. Blank means the time is absent, and `0` is the start of the simulation.
 4. Click **OK** to apply the fields together, or **Cancel** to leave the stop as it was.
 
-The buttons **Add Stop**, **Insert After Selected**, **Remove Stop**, **Move Up** and **Move Down** change the list of stops. After an edit the validation runs again, and the results, the replay and the delay baseline are discarded. Run again to see the effect. **Edit > Undo** reverts the edit. The rules for the times, the platforms and the insert positions are in [Edit and validate](scenes-and-application.md#edit-and-validate).
+The buttons **Add Stop**, **Insert After Selected**, **Remove Stop**, **Move Up** and **Move Down** change the list of stops. After an edit the validation runs again, and the results, the replay and the delay baseline are discarded. Run again to see the effect. **Edit > Undo** reverts the edit. The rules for the times, the platforms and the insert positions are in [Edit and validate](editing-a-case.md).
 
 For the whole exercise of changing a copy, saving it, opening it again, validating it and running it while the original stays as it was, follow the [tutorial](tutorial-modify-a-case.md).
 
@@ -114,57 +116,58 @@ For the whole exercise of changing a copy, saving it, opening it again, validati
 
 You need an open case that you have copied and no active run. The editors **Rolling stock units** and **Compositions** are not disabled during a run, but an edit there discards the results of that run.
 
-1. Choose **Editors > Rolling stock units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Traction Row**, **Delete Traction Row**). **Plot input traction characteristic** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Scene Validation**. The limits are in [V1 scene properties](v1-scene-properties.md#rolling-stock).
+1. Choose **Editors > Rolling stock units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Traction Row**, **Delete Traction Row**). **Plot input traction characteristic** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Scene Validation**. The limits are in [Rolling stock](scene-schema.md#rolling-stock).
 2. Choose **Editors > Compositions** to put units in order for a train: **Add Composition**, **Add Unit**, **Remove Unit**, **Move Up**, **Move Down**.
 3. Choose the composition of a service in **Editors > Services**.
 
-**Link parameter file...** and **Link traction file...** in the editor of a unit read the values of a unit from a text file. The links last for the session: **Unlink** removes one, and reopening or replacing the case clears them. [Review what loaded](scenes-and-application.md#review-what-loaded) gives the file formats and the rules for a changed file.
+**Link parameter file...** and **Link traction file...** in the editor of a unit read the values of a unit from a text file. The links last for the session: **Unlink** removes one, and reopening or replacing the case clears them. [Review what loaded](main-window.md#review-what-loaded) gives the file formats and the rules for a changed file.
 
 ## Compare a scenario with a baseline
 
 A scenario is a named set of incidents and entrance delays. **Set delay baseline** freezes a completed run without them, and **Compare delays** shows how much later or earlier each call of a run with them is. Any edit of the case clears the baseline, so build the scenario before you run the baseline.
 
 1. Choose **Editors > Incidents**. The list **Scenarios** holds each scenario. Click **Blank**, or select a scenario and click **Duplicate**, to create the scenario to test.
-2. In the incident editor of the dock, click **Add Incident** and fill its fields. For an entrance delay, open the tab **Entrance delays** and click **Add**. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change **Service**, **Occurrence**, **Station** and **Delay (s)**; the line in the list follows each change, and **Delay (s)** takes effect when you press Enter or leave the field.
+2. In the incident editor of the dock, click **Add Incident** and fill its fields. A signal head or a train that is selected on the network view becomes the target of the new incident. The icon button **Pick** beside **Target** waits for the next one that you click and takes it as the target; Esc or a second click on **Pick** stops the wait. A signal head gives a signal failure of its block, or of the authored signal when exactly one protects its section, and a train of a completed run gives a breakdown of its occurrence. You can also start on the network view: right-click a signal head and choose **Add signal failure**, or right-click a train after a run and choose **Add train breakdown**. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab **Incidents** with the new incident selected and puts the cursor in **Start (s)**. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so. For an entrance delay, open the tab **Entrance delays** and click **Add**. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change **Service**, **Occurrence**, **Station** and **Delay (s)**; the line in the list follows each change, and **Delay (s)** takes effect when you press Enter or leave the field.
 3. Select the scenario without incidents and entrance delays (the example cases have one, `baseline`). Click **Run**, and **Run simulation**. When the run has ended, click **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** names the baseline.
 4. Select the scenario with the incident in the list **Scenarios**. This keeps the baseline and discards the results. Run it.
 5. Click **Compare delays**. The window **Delay analysis** opens on the tab **Against baseline**.
 
-The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same scene revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenes-and-application.md#scenario-library-and-student-loop) describes the library. **Import JSON...** and **Export JSON...** in the dock move a single scenario between cases.
+The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same scene revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenarios.md) describes the library. **Import JSON...** and **Export JSON...** in the dock move a single scenario between cases.
 
 ## Move around the network view and follow a train
 
 - **Zoom.** Turn the mouse wheel to zoom around the pointer, or use the zoom buttons of the toolbar (Ctrl++ and Ctrl+-). On a trackpad, a pinch zooms. **Fit** (Ctrl+0) shows the whole network. A network that is fitted has no room to move, so zoom in first.
 - **Pan.** Drag the view. On a trackpad, two fingers move it.
-- **Select.** Click a track, connection, node, station, signal, train or passenger. The information panel for it opens and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.
-- **Context menu.** Right-click an item. A train offers **Show details**, **Center in view**, **Follow train** and **Copy train index**. Most other items offer **Show details**, **Center in view** and a copy command. Right-click the empty view for **Fit whole network**, **Clear selection** and **Stop following train**.
+- **Select.** Click a track, connection, node, station, signal, train or passenger. The information panel for it opens, or for a passenger a box of its details above it, and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.
+- **Find.** Choose **Edit > Find...** (Ctrl+F) and type part of the name or ID of a station, signal or train. A signal is listed by its track and the labels of its sections, such as `Signal: Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km, right`, and the id of a section, such as `@1-B0@`, finds it too. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.
+- **Context menu.** Right-click an item. A train offers **Show details**, **Add train breakdown**, **Center in view**, **Follow train**, **Copy train index** and the disabled entry **Planned route and related infrastructure**. Most other items offer **Show details**, **Center in view** and a copy command, and a signal head also offers **Add signal failure** after **Show details** ([compare a scenario](#compare-a-scenario-with-a-baseline)). During a run a signal head offers **Copy signal location** and **Copy section ID**, which copies the id of the section that **Protected section** shows in its information panel. Right-click the empty view for **Fit whole network**, **Clear selection** and **Stop following train**.
 - **Layers.** The check boxes in **Case and Layers** hide stations, station names, trains, speed labels, signals and passengers. **Passengers** is the same switch as **View > Show Passengers**. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.
 - **Follow.** Choose a train in the list next to **Follow** in the toolbar and click **Follow**. The view moves with the train, also while the run is paused. Click **Follow** again, or choose **Stop following train**, to stop.
 
-**Follow** is disabled before a run and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example `Rail-1 (scheduled 08:25:50)`, and Follow starts when it enters. The label at the right of the status bar says in one sentence whether the selected train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. [Scenario library and student loop](scenes-and-application.md#scenario-library-and-student-loop) describes the camera in detail. For the result windows, see [Inspecting diagrams](../ui/diagram-navigation.md).
+**Follow** is disabled before a run and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example `Rail-1 (scheduled 08:25:50)`, and Follow starts when it enters. The label at the right of the status bar names the state of the selected train, and its tooltip says whether the train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. [Scenario library and student loop](scenarios.md) describes the camera in detail. For the result windows, see [Inspecting diagrams](diagram-navigation.md).
 
 ## Replay a completed run
 
 You need a run that reached its end. A stopped or failed run has no replay, and a stopped run keeps no results either.
 
-1. When the run has ended, the **Replay** row appears under the network. Click **Start**, **Play** or **End**, or move the slider. The arrow keys and the mouse wheel move the slider too.
-2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider reads, for example, `Replay at 1230 s`. **Play** advances one simulated second for each second of real time, and the button then reads **Pause**.
+1. When the run has ended, the **Replay** row appears under the network. Click **Start**, **Play** or **End**, the icon buttons left of the slider, or move the slider. The arrow keys and the mouse wheel move the slider too.
+2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider shows the clock time of the frame in the format of the progress bar, for example `08:20:30`. **Play** advances one simulated second for each second of real time, and the button then turns into **Pause**.
 3. The text under the controls says which part of the run the replay holds, and that a frame is recorded every 5 simulated seconds, for example `Whole run, 0 to 7999 s, a frame every 5 s.`
 
-   ![The Replay row under the network after a run, with Start, Play, End and the slider at 3500 s, and the context menu of a train open: Show details, Center in view, Follow train and Copy train index.](../images/guide-replay-menu.png)
+   ![The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 08:09:00, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Add train breakdown, Center in view, Follow train, Copy train index and the dimmed Planned route and related infrastructure.](../images/how-to-replay-menu.png)
 
 The replay has 128 MiB of memory. A run that is larger loses its oldest frames. The text then says from which time the replay starts, for example `Starts at 10:00:20 (7220 s), ends at 7999 s, a frame every 5 s. The earlier part was not kept because the run is larger than the replay memory (128 MiB).` The slider covers only the kept part, and **Start** goes to its first time. The tooltip of **Start** says so. If not even one moment fits, the row says `No replay` with the reason, and the slider and **Play** are disabled.
 
-Train, station and signal selections stay across seeks. A train that has no position at the selected time is not drawn. Passenger journey details are not available in a replay, but the counts and statuses are. A new run, an edit of the case or another scenario clears the replay and returns the view to the preview.
+Train, station and signal selections stay across seeks. A train that has no position at the selected time is not drawn. Passenger journey details are not available in a replay, but the counts and statuses are. A new run, an edit of the case or another scenario clears the replay and returns the view to the preview. An edit or another scenario also closes the info dock of the selection.
 
 ## Results and exports
 
-You need a run that reached its end. Until then the result commands are disabled and read `Run a simulation to enable this diagram`.
+You need a run that reached its end. Until then the result commands are disabled.
 
-1. The dock **Run Results** opens when the run ends. If you closed it, choose **View > Run Results**.
+1. The dock **Run Results** opens when the run ends. If it is closed, choose its entry in the menu **View**, which starts with Run Results.
 2. Click **Open result view...** and choose an entry, or use the menu **Diagrams**. An entry in **Diagrams** that asks for more input ends in an ellipsis.
-3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that share the entry of a section: choose a route and a first block that both trains pass.
-4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](../ui/diagram-navigation.md).
+3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that occupy a common block: choose a route and check the trains, and the analysed blocks follow from them. Where the trains share more than one section of the route, **Analyzed blocks** offers each one in route order and selects the longest.
+4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. After a CSV export, the status bar of the main window names the saved file for a few seconds. Hover, click, zoom and pan are described in [Inspecting diagrams](diagram-navigation.md).
 
 The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message **Export failed** names the path.
 
@@ -185,11 +188,33 @@ scene_tool import path/to/legacy-case path/to/new-scene SceneName
 scene_tool validate path/to/new-scene
 ```
 
-The window cannot write legacy files. `scene_tool export path/to/scene path/to/legacy-output` writes them for another tool, and edits to those files do not flow back into the scene. [Convert a legacy case](scenes-and-application.md#convert-a-legacy-case) lists what the conversion preserves, and the [migration matrix](v1-scene-migration-matrix.md) says what each legacy file becomes.
+The window cannot write legacy files. `scene_tool export path/to/scene path/to/legacy-output` writes them for another tool, and edits to those files do not flow back into the scene. [Convert a legacy case](scene-schema.md#convert-a-legacy-case) lists what the conversion preserves, and the [migration matrix](v1-scene-migration-matrix.md) says what each legacy file becomes.
 
 ## Close, start a new case or open another during a run
 
 Closing the window, **New Case Study...**, the open commands and **Load Legacy Case...** first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows `Stopping simulation...` and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.
+
+## Change the application settings
+
+**Edit > Preferences...** opens the window **Settings**. On macOS the entry is **EGTRAIN > Preferences...** (Command+,). The window holds the settings that apply to every case:
+
+- **General**: the recent cases that **File > Recent Scenes** and **Open a Case** offer, and **Clear Recent Cases**.
+- **Display**: **Show passengers**, the same switch as **View > Show Passengers**, and **Advanced / Developer details**, the same as the View entry.
+- **Updates and privacy**: **Automatically check for updates**, the same as the Help entry, and the two choices of **Help > Privacy & diagnostics...**. A build that collects nothing shows them disabled.
+
+**OK** saves the changes, and the menu entries show them at once. **Restore Defaults** clears the recent cases and turns every switch off; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with **OK**. The settings of the open case, such as its base time and duration, are in **Case Settings**.
+
+## If EGTRAIN closes unexpectedly
+
+When EGTRAIN crashes, it saves a short crash note with the version, the cause and, on macOS and Linux, where in the program it stopped. The system may show its own crash message as well. At the next start EGTRAIN says that it closed unexpectedly and where the note is: in **Recover Unsaved Work** when it has unsaved edits to offer, otherwise in the notice **EGTRAIN Closed Unexpectedly**, whose **Show Crash Note** opens the note. Each note is reported once. Attach it when you report the problem; EGTRAIN does not send it anywhere.
+
+| System | Crash notes folder |
+| --- | --- |
+| macOS | `~/Library/Application Support/EGTRAIN/EGTRAIN/Crashes` |
+| Windows | `%LOCALAPPDATA%\EGTRAIN\EGTRAIN\Crashes` |
+| Linux | `~/.local/share/EGTRAIN/EGTRAIN/Crashes` |
+
+EGTRAIN keeps the 10 newest notes that it has reported.
 
 ## Why a command is disabled
 
@@ -206,4 +231,4 @@ Closing the window, **New Case Study...**, the open commands and **Load Legacy C
 | **Compare delays** | There is no baseline, or the completed run has neither an incident nor an entrance delay | Same |
 | **Follow** | No run has started, or the case has no services | Run the case and choose a train |
 
-When **Run** is enabled but **Cannot Run Scene** appears, the message names the problem: validation errors, or no selected service occurrence. In the tab **Run occurrences** of **Services**, tick **Include** for at least one occurrence.
+When **Run** is enabled but a message refuses the run, it names the problem, for example `Select at least one generated service occurrence before running.` On Windows and Linux the message is titled **Cannot Run Scene**. In the tab **Run occurrences** of **Services**, tick **Include** for at least one occurrence.

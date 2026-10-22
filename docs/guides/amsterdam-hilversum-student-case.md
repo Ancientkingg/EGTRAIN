@@ -24,7 +24,7 @@ The minimum dwell is 60 s at both stops and the running performance is 100 %. Th
 
 ## Open the case and keep your own copy
 
-1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select **Amsterdam_Hilversum_Student** under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case Study...** instead; see [Opening an `.egscene` case study](opening-a-case-study.md).
+1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select `Amsterdam_Hilversum_Student` under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case Study...** instead; see [Opening an `.egscene` case study](opening-a-case-study.md).
 2. Choose **File > Save Case Study As...** and save a `.egscene` file in a folder of your own. For an installed case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Scene saved** and your file is the open case.
 3. From then on **File > Save Scene** saves to your file. If you edit an installed case before making a copy, **Save Scene** asks for a new `.egscene` file instead of overwriting the installed case. Cancelling keeps the edit and the current case.
 
@@ -49,7 +49,7 @@ Run 1 alone at 100 % performance.
 
 1. On **Run occurrences**, click **Select none**, then tick **Include** in the first row, service code `IC_ASD_HVS_DEMO-1`. The text above the table contains "Selected: 1" and "Selected in period: 1". Highlighting a row is not enough; the box must be ticked. **Run** refuses to start while no run is selected.
 2. Click **Run** in the toolbar. The dialog **Run simulation** shows **Selected in period**, **Start clock**, **Duration** and **Active incidents**; **Run details** shows more. Check that **Selected in period** is 1, then click **Run simulation**.
-3. Move the speed slider, which sits between **Slower** and **Faster**, towards **Faster** to shorten the wait. Do not click **Stop**: a run you stop before it ends leaves no results. When the run has ended, the dock **Run Results** appears and the line at its top contains "Status: Completed".
+3. Move the speed slider to the right to shorten the wait. Do not click **Stop**: a run you stop before it ends leaves no results. When the run has ended, the dock **Run Results** appears and the lines at its top include "Status: Completed".
 4. In the dock, click **Open result view...** and choose **Timetable**. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click **Export CSV...** in that window and save `baseline-timetable.csv` in your own folder. Close the window.
 5. Choose **Open result view...** > **Speed / distance**, click **Export PNG...** in that window and save `baseline-speed-distance.png`. Close the window.
 6. Click **Export CSV...** in the dock and save `baseline-run-summary.csv`. The two export buttons of the dock write the summary table only; every result window has its own **Export CSV...** and **Export PNG...**.
@@ -65,7 +65,7 @@ Record the arrival and departure delays at `Asd` and `Hvs`. Separate the time fr
 1. In the panel **Services** (**Editors > Services**, if it is closed), open **Service** and set **Running performance (parameter) %** to 60. Press Tab to finish the edit. Change nothing else.
 2. On **Run occurrences**, check that the text still contains "Selected: 1" and that the column **Running performance (parameter) %** shows 60. If the selection differs, repeat step 1 of task 2.
 3. Run and export as in task 2, with file names that start with `slower`.
-4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy consumed (kWh)** with the baseline. Use the same energy column in every comparison.
+4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy (kWh)** with the baseline. Use the same energy column in every comparison.
 
 The percentage multiplies the tractive effort at every speed and the maximum speed of the train. It does not change the mass or the braking effort. Read the journey time from the results; do not derive it from the percentage.
 
@@ -88,7 +88,7 @@ Explain whether the changed delay comes from faster movement, a changed target o
 
 1. On **Run occurrences**, click **Select all**. The text contains "Selected: 4" and "Selected in period: 4". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
 2. Run as in steps 2 and 3 of task 2. **Selected in period** in **Run simulation** is 4.
-3. Open **Timetable**. Its train filter button reads **Trains (4/4)** while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
+3. Open **Timetable**. Its train filter button reads `Trains (4/4)` while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
 4. Click **Export CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
 
 Report results per run. The **Network total** row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its **Travel time (h:mm:ss)** is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.

@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -76,9 +77,14 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			const QPixmap icon(m_entry.iconResource);
-			if (!icon.isNull())
-				painter.drawPixmap(QRect(15, 1, 16, 16), icon);
+			// The near look on two station nodes, a single dot for a halt, beside the roundel of the far look. Both
+			// with their halo stay inside the swatch.
+			const QColor fill(16, 26, 34);
+			const QList<QPointF> nodes = m_entry.stationClass == StationClass::Halt
+				? QList<QPointF>{QPointF(14.0, 9.0)}
+				: QList<QPointF>{QPointF(14.0, 5.5), QPointF(14.0, 12.5)};
+			paintStationNodeMark(&painter, nodes, m_entry.stationClass, 14.0, fill, Qt::white, 1.0);
+			paintStationMark(&painter, QRectF(27.0, 1.0, 16.0, 16.0), m_entry.stationClass, fill, Qt::white, 1.0);
 			return;
 		}
 
@@ -129,10 +135,6 @@ protected:
 private:
 	NetworkLegendEntry m_entry;
 };
-
-QString stationLabel() {
-	return "Station";
-}
 
 NetworkLegendEntry trackEntry(const QString& label, TrackOperationalState state) {
 	NetworkLegendEntry entry;
@@ -245,12 +247,11 @@ QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trai
 	return entries;
 }
 
-NetworkLegendEntry stationEntry(const StationVisual& visual) {
+NetworkLegendEntry stationEntry(const QString& label, StationClass cls) {
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Station;
-	entry.label = stationLabel();
-	entry.color = visual.fill;
-	entry.iconResource = ":/icons/station-dark.svg";
+	entry.label = label;
+	entry.stationClass = cls;
 	return entry;
 }
 
@@ -321,6 +322,11 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 		main.color = classifyTrackSpeed(120.0 / 3.6).color;
 		main.lineWidth = 3;
 		m_entries << high << main << trackEntry("Local track", TrackOperationalState::Free);
+		if (content.showOperationalTrackStates) {
+			NetworkLegendEntry occupied = trackEntry("Occupied section", TrackOperationalState::Free);
+			occupied.color = occupiedTrackColor();
+			m_entries << occupied;
+		}
 		if (content.hasSelectedTrack) {
 			NetworkLegendEntry selected = trackEntry("Selected track", TrackOperationalState::Free);
 			selected.color = kSelectionCueColor;
@@ -331,8 +337,12 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 
 	m_entries += trainEntries(content.trains);
 
-	if (!content.stationVisuals.isEmpty())
-		m_entries << stationEntry(content.stationVisuals.first());
+	for (const auto& row : {std::make_pair(StationClass::Major, "Major station"), std::make_pair(StationClass::Station, "Station"),
+			 std::make_pair(StationClass::Halt, "Halt")}) {
+		if (std::any_of(content.stationVisuals.cbegin(), content.stationVisuals.cend(),
+				[&row](const StationVisual& visual) { return visual.cls == row.first; }))
+			m_entries << stationEntry(row.second, row.first);
+	}
 
 	if (content.hasSignals) {
 		m_entries << signalEntry("Stop signal", 0)
@@ -387,7 +397,8 @@ void NetworkLegendWidget::rebuildRows() {
 		auto* swatch = new LegendSwatch(entry, row);
 		swatch->setObjectName(QString("mapKeySwatch%1").arg(i));
 		rowLayout->addWidget(swatch);
-		auto* label = new LegendLabel(entry.label, row);
+		// A word joiner after each slash keeps a unit such as km/h on one line; the label still wraps between words.
+		auto* label = new LegendLabel(QString(entry.label).replace(QLatin1Char('/'), QString("/") + QChar(0x2060)), row);
 		label->setObjectName(QString("mapKeyEntry%1").arg(i));
 		label->setMaximumWidth(121);
 		label->setWordWrap(true);

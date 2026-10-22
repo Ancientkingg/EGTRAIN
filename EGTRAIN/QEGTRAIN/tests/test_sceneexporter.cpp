@@ -851,6 +851,13 @@ int main() {
 		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Layout Export"})" << "\n";
 		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && !fs::exists(out / "EGTRAINInitialParameters.json"),
 			"A scene without settings removes a stale sidecar");
+
+		std::ofstream(scene / "views.json") << R"({"tracks":[{"track":"main","level":2,"region":3,"double_switch":true}]})" << "\n";
+		TempDir switchDir;
+		const auto doubleSwitch = exportLegacyScene(sceneDir.dir, switchDir.dir);
+		ok &= expect(doubleSwitch.success() && readText(fs::path(switchDir.dir) / "GUI/caseStudyTrackData.txt") == "0\t2\t3\n"
+				&& hasDiag(doubleSwitch.diagnostics, "scene.export.compatibility", SceneSeverity::Warning),
+			"A double switch that the track data cannot hold is reported");
 	}
 
 	if (!ok)

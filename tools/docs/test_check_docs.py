@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import contextlib
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -9,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from check_docs import Finding, ToolError, check, format_finding, main as run_main, tracked_files
+from check_docs import Finding, ToolError, check, check_captures, format_finding, main as run_main, tracked_files
 
 LANDING = "docs/README.md"
 EM_DASH = "\u2014"
@@ -128,6 +129,78 @@ class KindTests(TreeTestCase):
     def test_dashes_and_local_paths_are_found_inside_fences(self):
         findings = self.landing("```text", f"a {EM_DASH} b", "/Users/someone/project", "```")
         self.assertEqual(findings, [(LANDING, 4, "dash"), (LANDING, 5, "local-path")])
+
+    def test_github_only_markdown_is_reported(self):
+        blob = "https://github.com/Ancientkingg/EGTRAIN/blob/main"
+        files = {
+            LANDING: doc(
+                "# Docs",
+                "",
+                "> [!NOTE]",
+                "> Text.",
+                "",
+                "<details><summary>More</summary>",
+                "",
+                f"[file]({blob}/docs/a.md) [missing]({blob}/docs/gone.md) and `<details>`",
+                "",
+                "[a](a.md)",
+            ),
+            "docs/a.md": doc("# A", "", "```text", "> [!NOTE]", "```"),
+        }
+        self.assertEqual(self.found(files), [(LANDING, line, "github-only") for line in (3, 6, 8)])
+
+    def test_heading_order_is_reported(self):
+        files = {
+            LANDING: doc("Intro", "", "# Docs", "", "### Skipped", "", "# Second", "", "[a](a.md)"),
+            "docs/a.md": doc("## A"),
+        }
+        expected = [(LANDING, 1), (LANDING, 5), (LANDING, 7), ("docs/a.md", 1)]
+        self.assertEqual(self.found(files), [(path, line, "heading") for path, line in expected])
+
+    def test_manual_link_outside_the_manual_is_reported(self):
+        files = {
+            LANDING: doc("# Docs", "", "[guide](guides/g.md)"),
+            "docs/guides/g.md": doc("# G", "", "[a](a.md) ![Shot](../images/p.png)", "[dev](../dev.md) [readme](../../README.md)"),
+            "docs/guides/a.md": doc("# A"),
+            "docs/images/p.png": b"image",
+            "docs/dev.md": doc("# Dev"),
+            "README.md": doc("# Project"),
+        }
+        self.assertEqual(self.found(files), [("docs/guides/g.md", 4, "manual-link")] * 2)
+
+    def manual_names(self, *lines):
+        files = {
+            LANDING: doc("# Docs", "", "[guide](guides/g.md)"),
+            "docs/guides/g.md": doc("# G", "", *lines),
+            "EGTRAIN/QEGTRAIN/app/Window.cpp": 'menu->addMenu("&File")->addAction("Open Case Study..."); // "Rnu"\nname("Blocking time");\n',
+            "EGTRAIN/QEGTRAIN/app/Window.ui": "<string>Run</string> <string>Events:</string>\n",
+            "EGTRAIN/QEGTRAIN/tests/test_window.cpp": 'check("Rnu");\n',
+        }
+        return self.findings(files)
+
+    def test_ui_name_in_the_source_is_accepted(self):
+        self.assertEqual(self.manual_names("Choose **File > Open Case Study...**, **Run**, **Events** or **Blocking time...**."), [])
+
+    def test_ui_name_not_in_the_source_is_reported(self):
+        findings = self.manual_names("Click **Rnu**.")
+        self.assertEqual([(f.path, f.line, f.kind, f.message) for f in findings],
+                         [("docs/guides/g.md", 3, "ui-name", "not a string of the application: Rnu")])
+
+    def test_menu_path_with_one_wrong_part_is_reported(self):
+        findings = self.manual_names("Choose **File > Open Case Study**.")
+        self.assertEqual([f.message for f in findings], ["not a string of the application: Open Case Study"])
+
+    def test_list_heading_and_key_are_not_ui_names(self):
+        self.assertEqual(self.manual_names("- **Not a name.** **Nor this:** text", "", "Press **Ctrl+F** or **Esc**."), [])
+
+    def test_toctree_entries_make_documents_reachable(self):
+        files = {
+            LANDING: doc("# Docs", "", "[contents](index.md)"),
+            "docs/index.md": doc("# Index", "", "```{toctree}", ":caption: Manual", "", "guides/g", "```"),
+            "docs/guides/g.md": doc("# G"),
+            "docs/lost.md": doc("# Lost"),
+        }
+        self.assertEqual(self.found(files), [("docs/lost.md", 1, "unreachable")])
 
     def test_link_message_names_the_target_as_written(self):
         findings = self.findings({LANDING: doc("# Docs", "", "[x](../docs/Missing%20File.md#top)")})
@@ -357,7 +430,8 @@ class ParserTests(TreeTestCase):
 
     def test_target_starting_with_a_slash_is_a_finding(self):
         files = {LANDING: doc("# Docs", "", "[x](/docs/a.md)"), "docs/a.md": doc("# A")}
-        self.assertEqual(self.found(files), [(LANDING, 3, "link"), ("docs/a.md", 1, "unreachable")])
+        expected = [(LANDING, 3, "github-only"), (LANDING, 3, "link"), ("docs/a.md", 1, "unreachable")]
+        self.assertEqual(self.found(files), expected)
 
     def test_link_to_a_directory_that_holds_a_listed_file_is_accepted(self):
         files = {
@@ -448,9 +522,50 @@ class ReferenceTests(TreeTestCase):
             "README.md": doc("# Project"),
             LANDING: doc("# Docs"),
             "notes/todo.md": doc("# Todo"),
-            ".github/ISSUE_TEMPLATE/bug.md": doc("# Bug"),
+            ".github/ISSUE_TEMPLATE/bug.md": doc("---", "name: Bug", "---", "## Steps"),
         }
         self.assertEqual(self.found(files), [])
+
+
+def png(width, height):
+    return b"\x89PNG\r\n\x1a\n" + (13).to_bytes(4, "big") + b"IHDR" + width.to_bytes(4, "big") + height.to_bytes(4, "big")
+
+
+class CaptureTests(TreeTestCase):
+    def test_each_capture_rule_is_reported(self):
+        def entry(name, width, height, version="1.2.0"):
+            return {"file": name, "case": "Paimpol", "state": "loaded", "width": width, "height": height, "version": version}
+
+        manifest = [
+            entry("guide-good.png", 1200, 750),
+            entry("guide-missing.png", 10, 10),
+            entry("guide-size.png", 100, 60),
+            entry("guide-old.png", 10, 10, "1.1.9"),
+            entry("Guide_Shot.png", 10, 10),
+            entry("guide-wide.png", 1201, 10),
+        ]
+        files = {
+            "CMakeLists.txt": 'set(EGTRAIN_VERSION "1.2.3" CACHE STRING "Application version for this build")\n',
+            "docs/images/captures.json": json.dumps({"captures": manifest}),
+            "docs/images/guide-good.png": png(1200, 750),
+            "docs/images/guide-unlisted.png": png(10, 10),
+            "docs/images/guide-size.png": png(100, 50),
+            "docs/images/guide-old.png": png(10, 10),
+            "docs/images/Guide_Shot.png": png(10, 10),
+            "docs/images/guide-wide.png": png(1201, 10),
+        }
+        found = sorted((finding.path, finding.message) for finding in check_captures(self.root, self.write(files)))
+        self.assertEqual(
+            found,
+            [
+                ("docs/images/Guide_Shot.png", "name is not <page>-<subject>.png in lower case with hyphens"),
+                ("docs/images/captures.json", "guide-old.png was taken with version 1.1.9, not 1.2"),
+                ("docs/images/captures.json", "no such file: guide-missing.png"),
+                ("docs/images/guide-size.png", "100x50 pixels, captures.json says 100x60"),
+                ("docs/images/guide-unlisted.png", "not listed in captures.json"),
+                ("docs/images/guide-wide.png", "1201 pixels wide, more than 1200"),
+            ],
+        )
 
 
 class OutputTests(TreeTestCase):
@@ -564,6 +679,12 @@ class GitTests(TreeTestCase):
         self.assertEqual(lines[0], "docs/README.md:3: [link] no such file or directory: gone.md")
         self.assertEqual(lines[1], "docs/README.md:4: [link] no such file or directory: lost.md")
         self.assertEqual(lines[2:], ["2 findings"])
+
+    def test_main_checks_the_pictures_against_captures_json(self):
+        self.write({LANDING: doc("# Docs", "", "![Shot](images/guide-shot.png)"), "docs/images/guide-shot.png": png(10, 10)})
+        code, out, _ = self.call_main(self.root)
+        self.assertEqual(code, 1)
+        self.assertIn("docs/images/guide-shot.png:1: [capture] not listed in captures.json", out)
 
     def test_main_counts_one_finding_in_the_singular(self):
         self.write({LANDING: doc("# Docs", "", "[a](gone.md)")})

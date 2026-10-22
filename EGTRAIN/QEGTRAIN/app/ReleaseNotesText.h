@@ -6,8 +6,8 @@
 #include <QString>
 #include <QStringList>
 
-// Release notes as the Markdown that a message box shows. Markdown joins the lines of a paragraph, so a line that is
-// followed by another line gets a hard break, except inside a fenced block. GitHub gives the notes with CRLF line ends.
+/// Release notes as the Markdown that a message box shows. Markdown joins the lines of a paragraph, so a line that is
+/// followed by another line gets a hard break, except inside a fenced block. GitHub gives the notes with CRLF line ends.
 inline QString releaseNotesMarkdown(QString notes) {
 	notes.replace(QLatin1String("\r\n"), QLatin1String("\n"));
 	notes.replace('\r', '\n');
@@ -26,8 +26,8 @@ inline QString releaseNotesMarkdown(QString notes) {
 	return lines.join('\n');
 }
 
-// Shows Markdown in the informative text of a message box. QMessageBox::setTextFormat reaches only the main text, so the
-// label of the informative text gets the format itself.
+/// Shows Markdown in the informative text of a message box. QMessageBox::setTextFormat reaches only the main text, so the
+/// label of the informative text gets the format itself.
 inline void setMarkdownInformativeText(QMessageBox& box, const QString& markdown) {
 	box.setInformativeText(markdown);
 	if (QLabel* label = box.findChild<QLabel*>(QStringLiteral("qt_msgbox_informativelabel")))

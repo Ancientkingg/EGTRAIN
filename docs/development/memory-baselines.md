@@ -8,12 +8,11 @@ memory ceiling.
 ## Protocol
 
 Configure and build one Release executable, then run the collector while no
-other heavy workload is active:
+other heavy workload is active. Add the macOS prefix path and `WrapOpenGL_AGL`
+of [Configure](build.md#configure) to the first line:
 
 ```bash
-cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 python3 tools/memory/measure_peak_rss.py \
   --app build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN \
@@ -24,7 +23,7 @@ The tool runs Copenhagen first and Milano-Brescia second. Both use the same
 executable and the native full headless scenario:
 
 ```text
-/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0 -TSM 0 -RC 0
+/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0
 ```
 
 The source metric is macOS `/usr/bin/time -l`'s `maximum resident set size`,
@@ -51,7 +50,7 @@ exited with zero before citing a baseline.
 ## Baseline recorded 2026-08-29
 
 The protocol above was run alone on macOS 26.6.2 (Darwin 25.6.0, arm64) using
-a locally built Release executable. The collector invocation was:
+a locally built Release executable, built with Qt 5. The collector invocation was:
 
 ```bash
 python3 tools/memory/measure_peak_rss.py \
@@ -100,7 +99,7 @@ measured by starting the executable with a scene path that does not exist: the
 process initialises, reports the missing scene and exits.
 
 ```text
-/usr/bin/time -l <app> --scene <path-that-does-not-exist> -g 0 -TSM 0 -RC 0
+/usr/bin/time -l <app> --scene <path-that-does-not-exist> -g 0
 ```
 
 Three runs of the same executable gave a `maximum resident set size` of

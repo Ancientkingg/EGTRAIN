@@ -1,7 +1,10 @@
 #include "graphics/NetworkScene.h"
 
+#include "graphics/items/StationOverlayItem.h"
+
 #include <QApplication>
 #include <QGraphicsView>
+#include <algorithm>
 #include <limits>
 
 NetworkScene::NetworkScene(QObject* parent)
@@ -27,7 +30,16 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 	NodeItem* paddedNode = nullptr;
 	const QTransform device = viewTransformFor(widget);
 	const QPointF click = device.map(scenePos);
+	// The dots of the near look lie on the station squares and can cover the dots of track nodes, so a click on a square
+	// or in the painted dot of a node still picks it. A node is hit here only in its painted dot: its click padding is a
+	// child of its own.
+	const bool onNode = std::any_of(hitItems.cbegin(), hitItems.cend(), [](const QGraphicsItem* item) {
+		return qgraphicsitem_cast<const StationNodeItem*>(item) || qgraphicsitem_cast<const NodeItem*>(item);
+	});
 	for (QGraphicsItem* item : hitItems) {
+		const auto* mark = dynamic_cast<const StationMarkItem*>(item);
+		if (onNode && mark && mark->isNearLook())
+			continue;
 		for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
 			// Artwork owns its station identity even when its structural parent
 			// has a different last-wins station membership.
@@ -66,6 +78,25 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 	return paddedNode ? static_cast<QGraphicsItem*>(paddedNode) : nearestSignal;
 }
 
+void NetworkScene::select(QGraphicsItem* item) {
+	if (item && item->data(PreviewGraphics::Kind).isValid())
+		emit MousePressedOnPreview(item);
+	else if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
+		emit MousePressedOnNode(node);
+	else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item))
+		emit MousePressedOnStationNode(stationNode);
+	else if (TrackLineItem* arc = qgraphicsitem_cast<TrackLineItem*>(item))
+		emit MousePressedOnArc(arc);
+	else if (ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(item))
+		emit MousePressedOnConnection(connection);
+	else if (SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item))
+		emit MousePressedOnSignal(signal);
+	else if (TrainBodyItem* train = qgraphicsitem_cast<TrainBodyItem*>(item))
+		emit MousePressedOnTrain(train);
+	else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item))
+		emit MousePressedOnPassenger(passenger);
+}
+
 // handles the click on graphical items
 void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsItem* item = nullptr;
@@ -77,23 +108,7 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 	QGraphicsScene::mousePressEvent(mouseEvent);
 
 	if (mouseEvent->button() == Qt::LeftButton) {
-		if (item && item->data(PreviewGraphics::Kind).isValid())
-			emit MousePressedOnPreview(item);
-		else if (NodeItem* node = qgraphicsitem_cast<NodeItem*>(item))
-			emit MousePressedOnNode(node);
-		else if (StationNodeItem* stationNode = qgraphicsitem_cast<StationNodeItem*>(item))
-			emit MousePressedOnStationNode(stationNode);
-		else if (TrackLineItem* arc = qgraphicsitem_cast<TrackLineItem*>(item))
-			emit MousePressedOnArc(arc);
-		else if (ConnectionItem* connection = qgraphicsitem_cast<ConnectionItem*>(item))
-			emit MousePressedOnConnection(connection);
-		else if (SignalItem* signal = qgraphicsitem_cast<SignalItem*>(item))
-			emit MousePressedOnSignal(signal);
-		else if (TrainBodyItem* train = qgraphicsitem_cast<TrainBodyItem*>(item))
-			emit MousePressedOnTrain(train);
-		else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item))
-			emit MousePressedOnPassenger(passenger);
-
+		select(item);
 		m_pressedOnEmptyCanvas = !item;
 	}
 

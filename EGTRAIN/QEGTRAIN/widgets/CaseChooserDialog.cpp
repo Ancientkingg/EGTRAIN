@@ -1,6 +1,7 @@
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/DisplayPath.h"
+#include "widgets/NarrowRowDelegate.h"
 #include "widgets/PlainToolTip.h"
 
 #include <QAction>
@@ -16,7 +17,6 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSet>
-#include <QStyledItemDelegate>
 #include <QVBoxLayout>
 
 QString sceneListKey(const QString& path) {
@@ -64,16 +64,6 @@ QListWidgetItem* addLabelRow(QListWidget* list, const QString& text, bool headin
 	item->setFont(font);
 	return item;
 }
-
-// Draws the rows as the list style does and asks for no width, so that a row takes the width of the list and elides its text
-// instead of widening the list.
-class NarrowRowDelegate : public QStyledItemDelegate {
-public:
-	using QStyledItemDelegate::QStyledItemDelegate;
-	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override {
-		return QSize(0, QStyledItemDelegate::sizeHint(option, index).height());
-	}
-};
 
 // The tooltip of a row: the whole name and the whole path, because the row itself may show the name elided. The path shows
 // with the separators of this system.
@@ -177,6 +167,9 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 
 	QPushButton* moreButton = new QPushButton("Other ways to open...", body);
 	moreButton->setObjectName("caseChooserOtherButton");
+	// The button opens a menu, so it does not take the default while it has the focus: Return still opens the selected case
+	// and Space opens the menu.
+	moreButton->setAutoDefault(false);
 	m_otherMenu = new QMenu(moreButton);
 	QAction* newCase = m_otherMenu->addAction("New Case Study...");
 	QAction* browseScene = m_otherMenu->addAction("Open Scene Folder...");

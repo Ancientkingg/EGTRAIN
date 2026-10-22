@@ -2,22 +2,29 @@
 
 // adjust value of selectionOffset to control the margin used when clicking on the line item
 TrackLineItem::TrackLineItem(const QLineF& line, QGraphicsItem* parent)
-	: QGraphicsLineItem(line, parent), track(-1), arc(nullptr), selectionOffset(20), m_operationalState(TrackOperationalState::Free) {
+	: QGraphicsLineItem(line, parent), track(-1), arc(nullptr), selectionOffset(20), m_operationalState(TrackOperationalState::Free),
+	  m_occupied(false) {
 	createSelectionPolygon();
 }
 
 TrackLineItem::~TrackLineItem() {
 }
 
-void TrackLineItem::setOperationalState(TrackOperationalState state) {
-	if (m_operationalState == state)
+void TrackLineItem::setOperationalState(TrackOperationalState state, bool occupied) {
+	occupied = occupied || state == TrackOperationalState::Occupied;
+	if (m_operationalState == state && m_occupied == occupied)
 		return;
 	m_operationalState = state;
+	m_occupied = occupied;
 	update();
 }
 
 TrackOperationalState TrackLineItem::operationalState() const {
 	return m_operationalState;
+}
+
+bool TrackLineItem::isOccupied() const {
+	return m_occupied;
 }
 
 void TrackLineItem::createSelectionPolygon() {
@@ -49,6 +56,10 @@ void TrackLineItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 	Q_UNUSED(option);
 	Q_UNUSED(widget);
 
-	painter->setPen(pen());
+	// While a train occupies the track, red takes the place of the speed colour at the same width.
+	QPen stroke = pen();
+	if (m_occupied)
+		stroke.setColor(occupiedTrackColor());
+	painter->setPen(stroke);
 	painter->drawLine(line());
 }

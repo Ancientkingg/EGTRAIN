@@ -6,7 +6,7 @@ You need EGTRAIN running, and you should have done [Getting started](getting-sta
 
 ## What the editors do not do
 
-The editors are tables, lists and dialogs. They are not a drawing tool: there is no drag-and-drop track drawing, route painting or automatic signal placement ([scene editor flow](../architecture/scene-editor-flow.md#explicit-out-of-scope-list)). Numbers are typed into cells. For anything larger than this tutorial, or for many similar rows, the supported route is JSON: save the case as a folder, edit the files, and validate them with `scene_tool` ([V1 scene properties](v1-scene-properties.md), [command-line tools](command-line.md#scene_tool)). The window has no JSON text editor.
+The editors are tables, lists and dialogs. They are not a drawing tool: there is no drag-and-drop track drawing, route painting or automatic signal placement. Numbers are typed into cells. For anything larger than this tutorial, or for many similar rows, the supported route is JSON: save the case as a folder, edit the files, and validate them with `scene_tool` ([editing examples](scene-schema.md#editing-examples), [command-line tools](command-line.md#scene_tool)). The window has no JSON text editor.
 
 ## What you build
 
@@ -23,33 +23,33 @@ Every row below keeps the identifier that the editor proposes (`track`, `node`, 
 
 ## 1. Create the case
 
-1. Choose **File > New Case Study...** (Ctrl+N or Cmd+N). The docks **Case Settings** and **Infrastructure** open. If you have unsaved changes, EGTRAIN asks first.
-2. In **Case Settings**, replace **Name** (`Untitled Case Study`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration / horizon (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
+1. Choose **File > New Case Study...** (Ctrl+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
+2. Click the tab **Case Settings** and replace **Name** (`Untitled Case Study`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration / horizon (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
 
 A new case holds one scenario, `baseline`, and nothing else. **Run** stays disabled while validation reports errors for the railway data that is still missing, such as "Runnable scene has no tracks". The status bar counts them ("Not ready: N validation error(s) must be fixed") and the title bar shows the mark for unsaved changes.
 
 ## 2. Infrastructure, in dependency order
 
-Everything in this part happens in the dock **Infrastructure**. The list **Entity** chooses the table. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. A line of text above the table says what the table lists. While the table is empty, the line says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
+Everything in this part happens in the dock **Infrastructure**; click its tab. The list **Entity** chooses the table. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. While a table is empty, a line of text above it says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
 
 1. **Tracks.** Choose **Add**. The track is `track`.
 2. **Nodes.** Choose **Add** three times. The nodes `node`, `node_2` and `node_3` go on the first track, at **X (km)** 0, 1 and 2 and **Y (km)** 0. The proposed positions are the ones you want.
 
-   ![The Infrastructure dock on Nodes, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0. The canvas shows the selected track with its three nodes.](../images/guide-minimal-nodes.png)
+   ![The dock Infrastructure on Nodes of the new case Minimal line, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0, with node_3 selected. The canvas shows the track with its three nodes, and the status bar says that 9 validation errors must be fixed.](../images/tutorial-minimal-nodes.png)
 3. **Arcs.** Choose **Add** twice. The arcs `arc` (from `node` to `node_2`) and `arc_2` (from `node_2` to `node_3`) join the nodes in order. They get a **Curvature radius (m)** of 0, a **Gradient (rise/length)** of 0 and a **Speed limit (m/s)** of 20, which you keep.
 4. **Blocks.** The blocks have a filter above the table that names a track; choose `track`. Choose **Add** twice. The blocks `block` and `block_2` are 1 km long each, so together they cover the 2 km of the track.
 5. **Stations.** Choose **Add** twice. The stations are `station` and `station_2`, and each is named after its identifier.
 6. **Platforms.** Choose **Add** twice. Both platforms (`platform` and `platform_2`) start at the first station. In the second row, set **Station ID** to `station_2`. Then set **Nodes**, a comma-separated list of nodes: `node` for the first row and `node_3` for the second, so that each platform is at the end node of the track. Leave **Length (m)** and **Width (m)** at their proposed values.
 
-   ![The Infrastructure dock on Platforms, with platform at node in station and platform_2 at node_3 in station_2, each 100 m long. The canvas shows the track with a station symbol at each end.](../images/guide-minimal-platforms.png)
-7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](../architecture/signalling-levels.md), and it is the level that the committed Paimpol case uses.
-8. **Routes.** Choose **Add**. The route is `route`, and it is selected. Below the table, choose `base block block / track track` in **Section catalog** and choose **Add Section**; then choose `base block block_2 / track track` and **Add Section** again. The list of sections shows both in this order. Leave **Has corridor** and **Reversed** as they are.
+   ![The dock Infrastructure on Platforms, with platform at node in station and platform_2 at node_3 in station_2, each 100 m long, and platform_2 selected. The canvas shows the track with a station at each end, and the status bar counts 3 validation errors.](../images/tutorial-minimal-platforms.png)
+7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](signalling-levels.md), and it is the level that the committed Paimpol case uses.
+8. **Routes.** Choose **Add**. The route is `route`, and it is selected. Below the table, choose `track 0.000 to 1.000 km` in **Section catalog** and choose **Add Section**; then choose `track 1.000 to 2.000 km` and **Add Section** again. Each entry names a section by its track and the kilometres of its ends; its tooltip gives the section ID, such as `@block@`. The list of sections shows both in this order. Leave **Has corridor** and **Reversed** as they are.
 
 The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the committed Paimpol case has no signals either.
 
 ## 3. A rolling stock unit
 
-Open **Editors > Rolling stock units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](../product/assignment-corridor.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
+Open **Editors > Rolling stock units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
 
 On the tab **Physical**, enter these values, pressing Enter after each:
 
@@ -65,14 +65,14 @@ On the tab **Physical**, enter these values, pressing Enter after each:
 | Jerk (m/s³) | 0.75 |
 | Length (m) | 70 |
 
-On the tab **Traction**, choose **Add Traction Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**. The force in N at speed v is C0 + C1 v + C2 v².
+On the tab **Traction**, choose **Add Traction Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
 
 | Row | Lower speed | Upper speed | C0 | C1 | C2 |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 0 | 8.611111111111 | 209000 | 0 | 0 |
 | 2 | 8.611111111111 | 36.111111111111 | 324607.2915 | -17671.4923 | 292.9005 |
 
-A field or cell that you are not editing can show a number rounded, for example `36.1111`; the full value is kept, and it shows when you click the field. The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.
+A field or cell that you are not editing can show a number rounded, for example `36.1111`; the full value is kept, and it shows when you click the field or double-click the cell. The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.
 
 ## 4. A composition
 
@@ -84,7 +84,7 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add timetable stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
 3. Choose **Add Stop** again. Leave **Insert position** at the proposed place after stop 1, and set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 
-   ![The Services dock on the tab Timetable for new_service, with two stops: station on platform with departure 120, and station_2 on platform_2 with arrival 250. The case base reads 08:00:00 and the left dock says Ready to run.](../images/guide-minimal-service.png)
+   ![The dock Services on the tab Timetable for new_service, with two stops: station on platform with departure 120, and station_2 on platform_2 with arrival 250. The case base reads 08:00:00 and the dock Case and Layers says Ready to run.](../images/tutorial-minimal-service.png)
 
 The planned times are seconds after the base time of the case, 08:00:00 (**Planned time display** is **Elapsed offsets (s)**). The table shows both stops in order. **Cancel** in the dialog leaves the table unchanged.
 
@@ -98,8 +98,8 @@ Choose **Run**, check the dialog **Run simulation** (**Selected in period** 1, *
 
 ## 8. Save as a folder and as a bundle
 
-1. Choose **File > Save Scene As Folder...**. In the dialog **Save Scene As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a scene](../architecture/scene-schema.md#version-and-files)).
-2. Choose **File > Save Case Study As...**. In the dialog **Save Case Study As**, name the file `minimal-line.egscene` and save it. EGTRAIN adds the extension when you leave it out. After this, **File > Save Scene** writes to this bundle.
+1. Choose **File > Save Scene As Folder...**. In the dialog **Save Scene As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a scene](scene-schema.md#version-and-files)).
+2. Choose **File > Save Case Study As...**. In the dialog **Save Case Study As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save Scene** writes to this bundle.
 
 Both are now listed under **File > Recent Scenes**.
 
@@ -110,7 +110,7 @@ Both are now listed under **File > Recent Scenes**.
 
 ## 10. Check the saved scene outside the window
 
-`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in [Run a local build](../development/build-and-test.md#run-a-local-build). With the macOS app and the folder and bundle in the current folder:
+`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the folder and bundle in the current folder:
 
 ```bash
 APP=/Applications/QEGTRAIN.app/Contents/MacOS
@@ -123,12 +123,12 @@ The two `validate` commands print nothing for a case without diagnostics and exi
 
 ## Limits and the JSON route
 
-- The tutorial case uses no connections, signals, dependencies, restrictions or station boundaries. They are edited in the same dock, and their columns are listed in [V1 scene properties](v1-scene-properties.md).
+- The tutorial case uses no connections, signals, dependencies, restrictions or station boundaries. They are edited in the same dock, and their columns are listed in [editing examples](scene-schema.md#editing-examples).
 - A platform length and width that you do not enter are the defaults of the application (100 m and 2.5 m).
-- The case has no passengers. The dock **Passengers** and the import of the DAS and RouteChoice files are described in [scenes and application](scenes-and-application.md).
-- The unit is a placeholder. For real rolling stock, enter its values, or link a parameter file and a traction file with the buttons on the two tabs. A link lasts for the session; the values that it applies are saved in `rolling_stock.json` ([scenes and application](scenes-and-application.md)).
+- The case has no passengers. The dock **Passengers** and the import of the DAS and RouteChoice files are described in [Editing and validating a case](editing-a-case.md#records-scenarios-and-passengers).
+- The unit is a placeholder. For real rolling stock, enter its values, or link a parameter file and a traction file with the buttons on the two tabs. A link lasts for the session; the values that it applies are saved in `rolling_stock.json` ([main window](main-window.md#review-what-loaded)).
 - The same case as JSON is the folder you saved in step 8. Changing a value there and running `scene_tool validate --runnable` is the way to check a bulk edit before you open it.
-- The creator acceptance smoke test, `tools/e2e/creator_acceptance_smoke.sh`, builds a larger case through the same controls and runs it, which is the automated proof of this path ([build and test guide](../development/build-and-test.md)).
+- The creator acceptance smoke test, `tools/e2e/creator_acceptance_smoke.sh`, builds a larger case through the same controls and runs it, which is the automated proof of this path.
 
 ## If something does not work
 

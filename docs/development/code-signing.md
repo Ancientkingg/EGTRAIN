@@ -17,10 +17,10 @@ of any signing service: every fact that only the owner can give is a field that 
   `EGTRAIN-Portable-<version>-x64.zip`.
 - The macOS app is signed by `tools/release/sign_macos.sh` in the package workflow. The signature is ad hoc unless the
   environment `macos-signing` holds a Developer ID certificate (see the
-  [macOS signing script](build-and-test.md#macos-signing-script)). An ad-hoc signature carries no publisher identity.
+  [macOS signing script](ci-and-release.md#macos-signing-script)). An ad-hoc signature carries no publisher identity.
   With notarization credentials in the same environment, `tools/release/notarize_macos.sh` also notarizes and staples the
   app and the disk image (see the
-  [macOS notarization script](build-and-test.md#macos-notarization-script)); without them nothing is notarized. The two
+  [macOS notarization script](ci-and-release.md#macos-notarization-script)); without them nothing is notarized. The two
   modes, the settings that the owner adds and what a user sees at the first start are in
   [macOS releases](#macos-releases). The Linux AppImage is not signed.
 - The in-app update checks the SHA-256 and the size of the downloaded package against `update-manifest.json`, an asset
@@ -212,7 +212,7 @@ The artifact configuration of the installer lists the one file, whose name `kAss
 ```
 
 `tools/release/verify_signatures.ps1` checks the signatures. Its usage and the rules for a file to pass are in
-[Signature check](build-and-test.md#signature-check). The installer is checked by naming it with `-Name` in the
+[Signature check](ci-and-release.md#signature-check). The installer is checked by naming it with `-Name` in the
 directory that holds it. Every run of the package workflow uses `-Report` on the unsigned package. The job
 `sign-windows` uses `-Require` on the payload, and the job `sign-windows-installer` uses `-Require` on the signed
 installer and again on the payload.
@@ -241,33 +241,7 @@ other certificate is used unless the fallback record is filled first.
 
 ## Checking a download
 
-These checks need a Windows machine with PowerShell. Unpack the ZIP first for the three program files, and check the
-installer as downloaded. Run the commands for each of `QEGTRAIN.exe`, `egtrain_update_helper.exe`, `scene_tool.exe` and
-the installer, with the file name changed.
-
-```powershell
-$sig = Get-AuthenticodeSignature -FilePath .\QEGTRAIN.exe
-$sig.Status
-$sig.StatusMessage
-$sig.SignerCertificate.Subject
-$sig.SignerCertificate.Issuer
-$sig.TimeStamperCertificate.Subject
-```
-
-For a signed release, `Status` is `Valid`, the `Subject` shows the signer name and the `Issuer` shows the issuer name of
-the eligibility record (both rows read Not recorded until the owner fills them), and the time stamper line is not empty.
-`StatusMessage` gives the status in words. For an unsigned file, `Status` is `NotSigned` and the three certificate lines
-are empty. Any other status means the file must not be trusted.
-
-In a shell where `signtool` is available (it comes with the Windows SDK), run `signtool verify /pa /v QEGTRAIN.exe`; use
-the same command for each file. The output shows the signing chain and whether the signature is timestamped. An exit
-code of 0 means that it verified. Compare the Issued to and Issued by lines of the signing certificate with the record
-and ignore the other lines.
-
-`Valid` means that the file is unchanged since it was signed and that the chain is trusted on this machine. It does not
-mean that the program is free of defects or that it matches a given source revision. The checks apply once a release is
-signed. Until signing is enabled and a release is built with it, the Windows downloads show `NotSigned`.
-
+How to check the signature of a Windows download is in [Checking a download](../guides/install.md#checking-a-download) in the manual.
 `tools/release/verify_signatures.ps1 -Directory DIR -Report` prints the same findings for the three program files of an
 unpacked ZIP, together with the digest algorithm and the timestamp (see [Signing in CI](#signing-in-ci)).
 
@@ -295,26 +269,8 @@ To enable signing later, the owner:
 
 ### First start of an unsigned build
 
-This was observed on 2026-10-16 on a clean Windows 11 (build 26300, ARM64, running the x64 files through Windows'
-emulation) as a standard user, for files that carried the download mark that a browser sets (`ZoneId=3`). Double-clicking `EGTRAIN-Setup-1.0.0-x64.exe` shows:
-
-1. A dialog headed `Windows protected your PC`. Its text is
-   `Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.`
-   It has a **More info** link and a **Don't run** button.
-2. After **More info**, the dialog shows `App: EGTRAIN-Setup-1.0.0-x64.exe` and `Publisher: Unknown publisher`, with the
-   buttons **Run anyway** and **Don't run**.
-3. **Run anyway** starts Setup. No prompt for an administrator follows.
-
-The dialog appears at every start of Setup. The portable `QEGTRAIN.exe`, extracted with **Extract All** from the ZIP,
-carried the download mark too and started without any warning. The wording and the options depend on the Windows
-version, and whether a warning appears may depend on other checks of Windows that this project has not observed.
-
-**Run anyway** is the normal Windows override for an app without a publisher. No workflow and no release script removes
-the download mark, and no document tells a user to turn SmartScreen off, because that lowers the protection of the whole
-PC.
-
-A valid signature would show who signed a file. Whether Windows still warns for a signed program is not known, and this
-document makes no promise either way. When a release is signed, its release text must say which Windows files are signed.
+What Windows showed at the first start of an unsigned build is in
+[First start of an unsigned build](../guides/install.md#first-start-of-an-unsigned-build) in the manual.
 
 ## macOS releases
 
@@ -361,8 +317,8 @@ certificate into a keychain of its own and deletes that keychain in its last ste
 Notarization needs all three entries of one group, the API key or the Apple ID. The API key is used when both groups are
 complete. A group that is only partly set, with the other group not complete, fails the job and names what is missing.
 A certificate without its password or without the identity name fails it too. The scripts are described in
-[macOS signing script](build-and-test.md#macos-signing-script) and
-[macOS notarization script](build-and-test.md#macos-notarization-script). The roles in [Ownership](#ownership) and the
+[macOS signing script](ci-and-release.md#macos-signing-script) and
+[macOS notarization script](ci-and-release.md#macos-notarization-script). The roles in [Ownership](#ownership) and the
 rules in [Repository authorization](#repository-authorization) apply to these values.
 
 ### Apple Developer identity record
@@ -386,33 +342,16 @@ settings above the release is built in the ad hoc mode.
 
 ### First start of an ad hoc build
 
-This was observed on 2026-10-16 on a clean macOS 26.6.2 with the setting **Allow applications from** at **App Store &
-Known Developers**, for a disk image that carried the download mark that a browser sets. Opening the image shows a
-Finder window named `EGTRAIN` with `QEGTRAIN` and `Applications`, and no warning. After the app is copied to the
-Applications folder, opening it from there shows:
-
-1. A dialog titled `"QEGTRAIN" Not Opened`. Its text is
-   `Apple could not verify "QEGTRAIN" is free of malware that may harm your Mac or compromise your privacy.`
-   Its buttons are **Move to Trash** and **Done**. It has no **Open** button.
-2. **System Settings > Privacy & Security**, in the section **Security**, shows
-   `"QEGTRAIN" was blocked to protect your Mac.` with the button **Open Anyway**.
-3. **Open Anyway** opens a dialog titled `Open "QEGTRAIN"?` with the buttons **Move to Trash**, **Open Anyway** and
-   **Done**.
-4. **Open Anyway** in that dialog asks for an administrator's name and password:
-   `Enter an administrator's username and password to allow this.` The exception needs an administrator. What follows
-   the password was not observed.
-
-This is the normal macOS override for an app from an unidentified developer, and the only way to open an ad hoc build
-that this project documents. No workflow and no release script removes the download mark (the quarantine attribute) or
-turns Gatekeeper off, and no document tells a user to, because that lowers the protection of the whole Mac.
-`tools/e2e/test_ci_workflow.py` checks the workflows and the release scripts.
+What macOS showed at the first start of an ad hoc build is in
+[First start of an ad hoc build](../guides/install.md#first-start-of-an-ad-hoc-build) in the manual. No workflow and no
+release script removes the download mark or turns Gatekeeper off; `tools/e2e/test_ci_workflow.py` checks the workflows
+and the release scripts.
 
 ### First start of a notarized build
 
-The app and the image carry a Developer ID signature and a ticket from Apple that is stapled to each. A user who opens
-the image, drags the app onto `Applications` and opens it is expected to see no dialog beyond the confirmation that
-macOS asks for an app that was downloaded, and to need no visit to System Settings and no administrator password. No
-release of EGTRAIN has been built in this mode, so this has not been observed. Row M5 of the
+What a user is expected to see is in
+[First start of a notarized build](../guides/install.md#first-start-of-a-notarized-build) in the manual. No release of
+EGTRAIN has been built in this mode, so this has not been observed. Row M5 of the
 [release testing checklist](release-testing-checklist.md#macos-app) records it for the first release that has one.
 
 ### Release text
@@ -425,7 +364,7 @@ with a line `OK: ... is notarized, stapled and accepted by Gatekeeper`. A Develo
 `Notarization skipped` is neither, and needs a sentence of its own.
 
 ```text
-macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the README: https://github.com/Ancientkingg/EGTRAIN#macos-disk-image
+macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the manual: https://ancientkingg.github.io/EGTRAIN/latest/guides/install.html#macos-disk-image
 ```
 
 ```text
@@ -434,14 +373,6 @@ macOS: the app and the disk image are signed with a Developer ID and notarized b
 
 ### Checking a macOS download
 
-Run these on the copy of the app in the Applications folder. They do not start the app.
-
-```bash
-codesign -dvv /Applications/QEGTRAIN.app
-xcrun stapler validate /Applications/QEGTRAIN.app
-```
-
-`codesign` shows `Signature=adhoc` for an ad hoc build. For a Developer ID build it shows a line
-`Authority=Developer ID Application:` with the name of the signer, and a `TeamIdentifier`. `stapler validate` succeeds
-only when the app carries a ticket and fails for an ad hoc build. Before it uploads the image, the package job checks the
-signature in the step **Verify the signature** and, for a notarized build, the ticket in the step **Notarize the app**.
+The commands that check the app on a Mac are in [Checking a macOS download](../guides/install.md#checking-a-macos-download)
+in the manual. Before it uploads the image, the package job checks the signature in the step **Verify the signature**
+and, for a notarized build, the ticket in the step **Notarize the app**.

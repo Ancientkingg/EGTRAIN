@@ -29,10 +29,11 @@ Before the launches it checks that no file of the package is an OpenMP runtime l
 not use OpenMP, and the package ships no such library, so an executable that asks for one would not start
 everywhere. For a package with QEGTRAIN.app it also checks the dependencies of the bundle: everything that a
 Mach-O file loads is a system library or a file of the app, and every Mach-O file of the app is loaded by some
-other file, or is the program or a plugin, which Qt loads by name. For the extracted directory of an AppImage it
-reads the libraries of every ELF file below usr/bin and usr/plugins with ldd and fails unless each Qt 5 and
-ZeroMQ library that such a file loads is a file of the directory, and unless ldd lists at least one: a machine
-that has its own Qt 5 would otherwise start an image that lacks one of its libraries.
+other file, or is the program or a plugin, which Qt loads by name. As dyld does, an @rpath name is looked up in the
+run paths of the file and then in those of the program. For the extracted directory of an AppImage it reads the
+libraries of every ELF file below usr/bin and usr/plugins with ldd and fails unless each Qt and ZeroMQ
+library that such a file loads is a file of the directory, and unless ldd lists at least one: a machine that has
+its own Qt would otherwise start an image that lacks one of its libraries.
 
 --platform sets QT_QPA_PLATFORM for the launches with a window: the window start and, with --exports, both exports. The
 headless run does not get it. Without it the platform plugin of the package is used, which is what a user gets.
@@ -55,7 +56,7 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 CSV_EXPORTS = ("trajectory.csv", "timetable.csv", "run_summary.csv")
 PNG_EXPORTS = ("timetable_graph.png", "train_path_graph.png", "route_reference_chooser.png")
 # Variables that point a process at a developer installation of Qt or vcpkg, or at other libraries.
-DEVELOPER_PREFIXES = ("QT_", "QML", "QT5", "VCPKG", "CMAKE_", "LD_LIBRARY_PATH", "DYLD_")
+DEVELOPER_PREFIXES = ("QT_", "QML", "QT6", "VCPKG", "CMAKE_", "LD_LIBRARY_PATH", "DYLD_")
 # File names of the OpenMP runtime of MSVC, LLVM, Intel and GCC.
 OPENMP_RUNTIME = re.compile(rb"vcomp\d+d?\.dll|lib(?:i?omp|gomp)[\w.]*?\.(?:dll|dylib|so)", re.IGNORECASE)
 # The first four bytes of a 64-bit Mach-O file and of a universal one.
@@ -67,7 +68,7 @@ LOAD_COMMAND = re.compile(r"^\s*cmd (\w+)\s*$")
 LOAD_COMMAND_PATH = re.compile(r"^\s*(?:name|path) (.+) \(offset \d+\)\s*$")
 ELF_MAGIC = b"\x7fELF"
 # The libraries that an AppImage has to bring even when the machine has its own copy.
-BUNDLED_LIBRARY_PREFIXES = ("libQt5", "libzmq")
+BUNDLED_LIBRARY_PREFIXES = ("libQt6", "libzmq")
 LDD_ADDRESS = re.compile(r"\s*\(0x[0-9a-fA-F]+\)\s*$")
 LDD_NOT_DYNAMIC = "not a dynamic executable"
 
@@ -154,10 +155,13 @@ def expand_path(name: str, holder: Path, root: Path) -> Path:
     return Path(name)
 
 
-def find_dependency(name: str, holder: Path, rpaths, root: Path):
-    """Returns the file inside the app that a load command names, and the reason when there is none."""
+def find_dependency(name: str, holder: Path, rpaths, root: Path, program_directories=()):
+    """Returns the file inside the app that a load command names, and the reason when there is none. An @rpath name
+    is looked up in the run paths of the file and then in the run path directories of the program, which is how a
+    Qt 6 plugin finds the Qt frameworks."""
     if name.startswith("@rpath/"):
-        candidates = [expand_path(entry, holder, root) / name[len("@rpath/"):] for entry in rpaths]
+        directories = [expand_path(entry, holder, root) for entry in rpaths] + list(program_directories)
+        candidates = [directory / name[len("@rpath/"):] for directory in directories]
     elif name.startswith(("@executable_path/", "@loader_path/")):
         candidates = [expand_path(name, holder, root)]
     else:
@@ -183,6 +187,8 @@ def check_bundle_closure(app: Path, load_info=otool_load_info) -> None:
     starts = (root / "Contents/MacOS", root / "Contents/PlugIns")
     queue = [path for path in sorted(macho) if any(top in path.parents for top in starts)]
     reached = set(queue)
+    program = root / "Contents/MacOS/QEGTRAIN"
+    program_directories = [expand_path(entry, program, root) for entry in load_info(program)[1]] if program in known else []
     problems = []
     while queue:
         holder = queue.pop(0)
@@ -191,7 +197,7 @@ def check_bundle_closure(app: Path, load_info=otool_load_info) -> None:
         for name in dependencies:
             if name.startswith(SYSTEM_LIBRARY_PREFIXES):
                 continue
-            target, problem = find_dependency(name, holder, rpaths, root)
+            target, problem = find_dependency(name, holder, rpaths, root, program_directories)
             if problem:
                 problems.append(f"{label}: {name} {problem}")
             elif target in known and target not in reached:
@@ -235,7 +241,7 @@ def is_elf_file(path: Path) -> bool:
 
 
 def check_linux_libraries(app_dir: Path, run_ldd=ldd_output) -> None:
-    """Fails unless every Qt 5 and ZeroMQ library that an ELF file below usr/bin or usr/plugins loads is a file of
+    """Fails unless every Qt and ZeroMQ library that an ELF file below usr/bin or usr/plugins loads is a file of
     the directory, and ldd lists at least one such library. The plugins are read as well, because a platform plugin
     loads libraries that the program does not."""
     root = app_dir.resolve()
@@ -335,7 +341,7 @@ def run_export(what: str, hook: str, marker: str, check, executable: Path, scene
     env["QEGTRAIN_AUTOSTART"] = "1"
     env[hook] = str(files)
     text = launch([str(executable), "--scene", str(scene), "-h", EXPORT_HORIZON_SECONDS, "-g", "1",
-                   "-pax", "0", "-TSM", "0", "-RC", "0"], executable.parent, env, what, timeout=EXPORT_TIMEOUT_SECONDS)
+                   "-pax", "0"], executable.parent, env, what, timeout=EXPORT_TIMEOUT_SECONDS)
     if marker not in text:
         raise SystemExit(f"{what} printed no {marker}\n{text[-4000:]}")
     try:
@@ -368,7 +374,7 @@ def main() -> None:
         env = clean_environment()
         env["QEGTRAIN_OUTPUT_DIR"] = str(Path(temp) / "headless")
         text = launch([str(executable), "--scene", str(scene), "-h", HORIZON_SECONDS, "-g", "0",
-                       "-pax", "0", "-TSM", "0", "-RC", "0"], executable.parent, env, "headless run")
+                       "-pax", "0"], executable.parent, env, "headless run")
         if "End of Simulation" not in text:
             raise SystemExit(f"headless run printed no 'End of Simulation'\n{text[-4000:]}")
         energy = list((Path(temp) / "headless" / "Output").glob("*/EnergyConsumptionPerTrain.txt"))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static checks of installer/egtrain.iss, the Inno Setup script of the Windows installer.
 
-The test reads the script, installer/installed-by-setup.ini, installer/README.md, the icon file, the licence file, the
+The test reads the script, installer/installed-by-setup.ini, docs/development/windows-installer.md, the icon file, the licence file, the
 Windows package job in .github/workflows/package.yml and the asset names in update/ReleaseInfo.cpp, and holds them to the rules of check_script. It does not compile the script
 and does not run an installer. A green run therefore shows nothing about Inno Setup accepting the file, or
 about an install, an upgrade or an uninstall on Windows.
@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 INSTALLER = "installer"
 SCRIPT = INSTALLER + "/egtrain.iss"
-README = INSTALLER + "/README.md"
+README = "docs/development/windows-installer.md"
 MARKER = "installed-by-setup.ini"
 RELEASE_INFO = "EGTRAIN/QEGTRAIN/update/ReleaseInfo.cpp"
 LICENSE = "LICENSE"
@@ -24,6 +24,17 @@ APP_ID = "{{16796959-230D-4A37-879B-D3963171F664}"
 PROGRAM = "{app}\\QEGTRAIN.exe"
 PAYLOAD_SOURCE = "{#Payload}\\*"
 SCENES = "{app}\\Scenes"
+# The files of a Qt 5 installation (1.0.3 and older) that no file of a Qt 6 package replaces.
+QT5_FILES = (
+    "{app}\\Qt5*.dll",
+    "{app}\\bearer",
+    "{app}\\styles\\qwindowsvistastyle.dll",
+    "{app}\\imageformats\\qicns.dll",
+    "{app}\\imageformats\\qtga.dll",
+    "{app}\\imageformats\\qtiff.dll",
+    "{app}\\imageformats\\qwbmp.dll",
+    "{app}\\imageformats\\qwebp.dll",
+)
 CLASSES = "Software\\Classes\\"
 PROG_ID = "EGTRAIN.Scene"
 # The entries of the file type by Subkey: the ValueData (None for free text) and the Flags, which are compared as a set.
@@ -293,10 +304,13 @@ def check_files(entries, read, problems):
 
 def check_install_delete(entries, problems):
     for number, params in entries:
-        if params.get("name") != SCENES:
-            problems.append(f"install-delete: line {number}: only {SCENES} may be deleted, not {params.get('name')}")
-    if SCENES not in [params.get("name") for _, params in entries]:
+        if params.get("name") not in (SCENES, *QT5_FILES):
+            problems.append(f"install-delete: line {number}: only {SCENES} and the Qt 5 files may be deleted, not {params.get('name')}")
+    names = [params.get("name") for _, params in entries]
+    if SCENES not in names:
         problems.append(f"install-delete: {SCENES} must be deleted before an install")
+    for name in sorted(set(QT5_FILES) - set(names)):
+        problems.append(f"install-delete: {name} of a Qt 5 installation must be deleted")
 
 
 def check_icons(entries, problems):
@@ -496,7 +510,7 @@ class MutationTests(unittest.TestCase):
             ("parent-path", "", PROGRAMS_LINE, PROGRAMS_LINE.replace("{app}\\QEGTRAIN.exe", "{app}\\..\\QEGTRAIN.exe")),
             ("parent-path", "", PAYLOAD_LINE, PAYLOAD_LINE.replace('"{app}"', '"{app}\\.."')),
             ("parent-path", "", "SetupIconFile=..\\EGTRAIN", "SetupIconFile=..\\..\\EGTRAIN"),
-            ("parent-path", "", "; installer\\README.md", "; installer\\..\\README.md"),
+            ("parent-path", "", "; docs\\development\\windows-installer.md", "; docs\\..\\development\\windows-installer.md"),
         ])
 
     def test_sections(self):
@@ -607,9 +621,9 @@ class MutationTests(unittest.TestCase):
         copy = LICENSE_COPY.search(workflow).group(0).strip()
         check = LICENSE_CHECK.search(workflow).group(0).strip()
         cases = (
-            ("copy", workflow.replace(copy, "", 1), "copy"),
-            ("copy", workflow.replace(copy, copy.replace("LICENSE", "README.md"), 1), "copy"),
-            ("check", workflow.replace(check, "", 1), "check"),
+            ("copy", workflow.replace(copy, ""), "copy"),
+            ("copy", workflow.replace(copy, copy.replace("LICENSE", "README.md")), "copy"),
+            ("check", workflow.replace(check, ""), "check"),
             ("job", workflow.replace("  package-windows:", "  package-other:", 1), "not found"),
         )
         for name, changed, part in cases:
@@ -617,7 +631,7 @@ class MutationTests(unittest.TestCase):
                 self.assertReported("license", self.text, part, stand_in({PACKAGE_WORKFLOW: changed.encode("utf-8")}))
         self.assertReported("license", self.text, "not found", stand_in({PACKAGE_WORKFLOW: None}))
         # A copy in another job does not count.
-        macos = workflow.replace(copy, "", 1).replace("  package-macos:\n", "  package-macos:\n      " + copy + "\n", 1)
+        macos = workflow.replace(copy, "").replace("  package-macos:\n", "  package-macos:\n      " + copy + "\n", 1)
         self.assertReported("license", self.text, "copy", stand_in({PACKAGE_WORKFLOW: macos.encode("utf-8")}))
 
     def test_payload_entry(self):
@@ -650,6 +664,14 @@ class MutationTests(unittest.TestCase):
             ("files", "DestDir", MARKER_LINE, MARKER_LINE.replace('"{app}"', '"{appx}"')),
             ("files", "Source", MARKER_LINE, MARKER_LINE.replace('"installed', '"..\\installed')),
             ("files", "Source", MARKER_LINE, MARKER_LINE.replace('"installed', '"{tmp}\\installed')),
+        ])
+
+    def test_the_qt5_files_of_an_older_installation_are_deleted(self):
+        library_line = 'Type: files; Name: "{app}\\Qt5*.dll"\n'
+        self.check_cases([
+            ("install-delete", "Qt5*.dll", library_line, ""),
+            ("install-delete", "not {app}\\imageformats\\qgif.dll", library_line,
+             library_line + 'Type: files; Name: "{app}\\imageformats\\qgif.dll"\n'),
         ])
 
     def test_only_the_scenes_folder_is_deleted_before_an_install(self):
@@ -776,8 +798,8 @@ class AcceptedChangeTests(unittest.TestCase):
         self.assertFine(mutate(self.text, ICON_LINE, ICON_LINE.replace('ValueName: ""; ', "")))
 
     def test_another_file_of_the_installer_directory_can_be_installed(self):
-        readme = MARKER_LINE.replace("installed-by-setup.ini", "README.md").replace('"{app}"', '"{app}\\docs"')
-        self.assertFine(mutate(self.text, MARKER_LINE, MARKER_LINE + readme))
+        script = MARKER_LINE.replace("installed-by-setup.ini", "egtrain.iss").replace('"{app}"', '"{app}\\docs"')
+        self.assertFine(mutate(self.text, MARKER_LINE, MARKER_LINE + script))
 
     def test_the_updater_entry_may_be_written_with_other_spacing(self):
         source = b'{ "windows-x64-installer" ,\n\t"EGTRAIN-Setup-%1-x64.exe" }'

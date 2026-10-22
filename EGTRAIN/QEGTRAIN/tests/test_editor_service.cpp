@@ -4,11 +4,13 @@
 
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
+#include "widgets/ElidedLabel.h"
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFontMetricsF>
 #include <QFormLayout>
 #include <QHelpEvent>
 #include <QLabel>
@@ -227,6 +229,8 @@ int main(int argc, char** argv) {
 				&& panel.routeCombo()->currentData().toString() == "r1" && panel.routeCombo()->count() == 2
 				&& panel.categoryCombo()->currentIndex() == 0 && panel.categoryCombo()->count() == 7,
 			"the selected service shows its id, code, composition and route");
+		ok &= expect(panel.idEdit()->cursorPosition() == 0 && panel.operatingCodeEdit()->cursorPosition() == 0,
+			"the id and code fields show the start of their text");
 		ok &= expect(!panel.hasEntryTimeCheck()->isChecked() && !panel.entryTimeSecondsEdit()->isEnabled()
 				&& !panel.hasRepeatCheck()->isChecked() && !panel.headwaySecondsEdit()->isEnabled()
 				&& !panel.hasRepeatCountCheck()->isEnabled() && !panel.repeatCountEdit()->isEnabled()
@@ -595,6 +599,36 @@ int main(int argc, char** argv) {
 		auto* form = panel.pages()->widget(0)->findChild<QFormLayout*>();
 		ok &= expect(form && form->hasHeightForWidth() && form->heightForWidth(form->minimumSize().width()) > form->heightForWidth(4000),
 			"the fields are taller in a narrow panel, because their rows wrap");
+	}
+
+	{
+		// in a short panel, where the fields scroll, the buttons of the colour field stay whole at every width, also where the
+		// field just fits beside its label
+		SceneDocument document;
+		ServicePanel panel;
+		panel.setDocument(&document);
+		document.replace(serviceScene(), false);
+		panel.show();
+		const auto* choose = panel.colorButton()->findChild<QPushButton*>("serviceColorChooseButton");
+		const auto* reset = panel.colorButton()->findChild<QPushButton*>("serviceColorDefaultButton");
+		const auto* colorValue = panel.colorButton()->findChild<QLabel*>("serviceColorValue");
+		const qreal defaultWidth = QFontMetricsF(colorValue->font()).horizontalAdvance(QStringLiteral("Default"));
+		QStringList cut;
+		for (int width = 200; width <= 900; ++width) {
+			panel.resize(width, 300);
+			QApplication::processEvents();
+			if (choose->width() < choose->sizeHint().width() || reset->width() < reset->sizeHint().width() || colorValue->width() < defaultWidth)
+				cut << QString::number(panel.width());
+		}
+		if (!cut.isEmpty())
+			std::cerr << "cut at panel widths " << cut.join(' ').toStdString() << "\n";
+		ok &= expect(choose && reset && cut.isEmpty(), "the Choose and Default buttons and the Default text of the colour field are whole at every width");
+		panel.resize(300, 300);
+		panel.colorButton()->setColor("not a colour, and longer than the field");
+		QApplication::processEvents();
+		const auto* shown = dynamic_cast<const ElidedLabel*>(colorValue);
+		ok &= expect(shown && shown->displayText().endsWith(QChar(0x2026)) && colorValue->toolTip() == colorValue->text(),
+			"a colour text that does not fit ends with an ellipsis and is whole in the tooltip");
 	}
 
 	{

@@ -97,7 +97,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(occupiedTrack.style == Qt::SolidLine && occupiedTrack.width == 6, "occupied track underlay");
 	ok &= expect(blockedTrack.style == Qt::DashLine && blockedTrack.width == 5, "blocked track has non-color cue");
 	ok &= expect(permissiveTrack.color == QColor("#4C8DAE"), "permissive signalling color");
-	ok &= expect(occupiedTrack.color == QColor("#D05A47"), "occupied track color");
+	ok &= expect(occupiedTrackColor() == QColor(255, 0, 0) && occupiedTrack.color == occupiedTrackColor(),
+		"occupied track color");
 	ok &= expect(blockedTrack.color == QColor("#D6A13A"), "blocked track color");
 	const QByteArray permissiveMask = renderStrokeMask(permissiveTrack.width, permissiveTrack.style);
 	const QByteArray occupiedMask = renderStrokeMask(occupiedTrack.width, occupiedTrack.style);
@@ -170,14 +171,85 @@ int main(int argc, char* argv[]) {
 	ok &= expect(intercity.shape != sprinter.shape && intercity.shape != freight.shape && sprinter.shape != freight.shape,
 		"train category silhouettes");
 
-	const StationVisual station = classifyStation();
-	ok &= expect(station.iconResource == ":/icons/station.svg", "station uses the shared building pictogram");
+	ok &= expect(classifyStation(false, 3).cls == StationClass::Major && classifyStation(true, 0).cls == StationClass::Station
+			&& classifyStation(false, 0).cls == StationClass::Halt,
+		"three connections make a major station, a platform a station, neither a halt");
+	// The colour class of a pixel of a mark painted white with a black halo: W white, B the blue of the bar, D the
+	// halo, T transparent, ? anything else such as an edge that antialiasing blends.
+	const auto pixelClass = [](const QImage& image, int x, int y) {
+		const QColor colour = image.pixelColor(x, y);
+		if (colour.alpha() == 0)
+			return 'T';
+		if (colour.alpha() < 255)
+			return '?';
+		if (colour.lightness() > 200)
+			return 'W';
+		if (colour.lightness() < 50)
+			return 'D';
+		return colour.blue() > colour.red() + 80 ? 'B' : '?';
+	};
+	const auto probeRow = [&pixelClass](const QImage& image, const QList<QPoint>& points) {
+		QByteArray row;
+		for (const QPoint& point : points)
+			row.append(pixelClass(image, point.x(), point.y()));
+		return row;
+	};
+	// The roundel in the frame (8, 8, 24, 24): ring radius 8.6 and width 2.9, bar 24.5 by 5.0 and its edge 0.75 of
+	// the halo of 2. The probes: the centre, the ring, inside the ring, the bar past the ring, the halo past the end of
+	// the bar and the halo outside the ring.
+	const QList<QPoint> roundelPoints{{20, 20}, {20, 12}, {20, 15}, {31, 20}, {33, 20}, {20, 10}};
+	for (const auto& [cls, expected] : {std::pair<StationClass, QByteArray>{StationClass::Major, "BWWBDD"},
+			 std::pair<StationClass, QByteArray>{StationClass::Station, "BWDBDD"},
+			 std::pair<StationClass, QByteArray>{StationClass::Halt, "TWDTTD"}}) {
+		QImage mark(40, 40, QImage::Format_ARGB32_Premultiplied);
+		mark.fill(Qt::transparent);
+		{
+			QPainter painter(&mark);
+			paintStationMark(&painter, QRectF(8.0, 8.0, 24.0, 24.0), cls, Qt::white, Qt::black, 2.0);
+		}
+		ok &= expect(probeRow(mark, roundelPoints) == expected,
+			"the far mark is a roundel: a disc and a bar for a major station, a ring and a bar for a station, a ring for a "
+			"halt, with a dark halo");
+	}
+	// The near mark for a frame of 24 on nodes at (20, 14) and (20, 26): dots of radius 5.3 with an edge of 1.7 for a
+	// station, the hull of the nodes widened by 5.5 for a major station, one dot of radius 3.6 on the first node for a
+	// halt. The probes: both nodes and the point between them, the halo beside the first node and the canvas past it.
+	const QList<QPoint> nearPoints{{20, 14}, {20, 20}, {20, 26}, {27, 14}, {31, 20}};
+	for (const auto& [cls, expected] : {std::pair<StationClass, QByteArray>{StationClass::Major, "WWWDT"},
+			 std::pair<StationClass, QByteArray>{StationClass::Station, "WDWDT"},
+			 std::pair<StationClass, QByteArray>{StationClass::Halt, "WTTTT"}}) {
+		QImage mark(40, 40, QImage::Format_ARGB32_Premultiplied);
+		mark.fill(Qt::transparent);
+		{
+			QPainter painter(&mark);
+			paintStationNodeMark(&painter, {QPointF(20.0, 14.0), QPointF(20.0, 26.0)}, cls, 24.0, Qt::white, Qt::black, 2.0);
+		}
+		ok &= expect(probeRow(mark, nearPoints) == expected,
+			"the near mark is a dot on each node of a station, a capsule over the nodes of a major station and one small "
+			"dot for a halt");
+	}
+	// The menu icon fits the roundel with the halo of the bar: the bar shows and ends inside the outer columns.
+	for (const StationClass cls : {StationClass::Major, StationClass::Station, StationClass::Halt}) {
+		for (const int size : {16, 32}) {
+			const QImage icon = stationMarkIcon(cls).pixmap(QSize(size, size)).toImage();
+			const QColor accent(80, 120, 210);
+			bool barInside = icon.width() == size;
+			bool blue = false;
+			for (int y = 0; y < icon.height(); ++y) {
+				barInside = barInside && icon.pixelColor(0, y) != accent && icon.pixelColor(icon.width() - 1, y) != accent;
+				for (int x = 0; x < icon.width(); ++x)
+					blue = blue || icon.pixelColor(x, y) == accent;
+			}
+			ok &= expect(barInside && blue == (cls != StationClass::Halt),
+				"the menu icon shows the whole roundel, with the bar of a station or a major station");
+		}
+	}
 	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
 	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
 
-	ok &= expect(simulationSpeedLabel(0) == "Speed: fastest", "fastest speed label");
-	ok &= expect(simulationSpeedLabel(250) == "Speed: 4.0x", "delayed speed label");
-	ok &= expect(simulationSpeedLabel(10) == "Speed: 100x", "fast factor speed label");
+	ok &= expect(simulationSpeedLabel(0) == "Fastest", "fastest speed label");
+	ok &= expect(simulationSpeedLabel(250) == "4.0x", "delayed speed label");
+	ok &= expect(simulationSpeedLabel(10) == "100x", "fast factor speed label");
 	ok &= expect(simulationSpeedMode(0) == "Fastest", "fastest speed mode");
 	ok &= expect(simulationSpeedMode(500) == "2.0x real time", "slowed speed mode");
 
@@ -185,8 +257,43 @@ int main(int argc, char* argv[]) {
 	badge.setIdentifier("1725");
 	badge.setTooltipDetails("Intercity 1725 northbound", "1725", "Intercity");
 	badge.setSpeedText("102 km/h");
-	ok &= expect(badge.shape().isEmpty() && badge.toolTip().isEmpty(),
-		"unpainted tracking badge has no ghost shape or tooltip");
+	ok &= expect(badge.shape().isEmpty() && badge.toolTip().isEmpty(), "the badge has no shape and no tooltip");
+	// The badge four times as large on a mainline track, with its position in the middle of the image.
+	const QColor mainline = classifyTrackSpeed(120.0 / 3.6).color;
+	const QTransform badgeScale = QTransform::fromTranslate(240.0, 120.0).scale(4.0, 4.0);
+	const auto renderBadge = [&badge, &mainline, &badgeScale]() {
+		QImage image(480, 240, QImage::Format_ARGB32_Premultiplied);
+		image.fill(mainline);
+		{
+			QPainter painter(&image);
+			painter.setTransform(badgeScale);
+			badge.paint(&painter, nullptr, nullptr);
+		}
+		return image;
+	};
+	const auto drawsNothing = [&]() {
+		return badge.boundingRect().isEmpty() && pixelsOfColor(renderBadge(), mainline) == 480 * 240;
+	};
+	ok &= expect(drawsNothing(), "an Overview badge draws nothing");
+	badge.setPresentation(TrainBadgeItem::Presentation::Identity);
+	ok &= expect(drawsNothing(), "an Identity badge draws nothing");
+	badge.setPresentation(TrainBadgeItem::Presentation::Detailed);
+	const QImage speedImage = renderBadge();
+	ok &= expect(pixelsOfColor(speedImage, Qt::white) > 100 && pixelsOfColor(speedImage, QColor(16, 26, 34)) > 100,
+		"a Detailed badge draws the speed in white with a dark outline");
+	const QRectF speedBounds = badge.boundingRect();
+	const QRect drawnBounds = badgeScale.mapRect(speedBounds).toAlignedRect();
+	int outside = 0;
+	for (int y = 0; y < speedImage.height(); ++y)
+		for (int x = 0; x < speedImage.width(); ++x)
+			outside += !drawnBounds.contains(x, y) && speedImage.pixelColor(x, y) != mainline;
+	ok &= expect(outside == 0, "the speed stays inside the bounds of the badge");
+	ok &= expect(speedBounds.left() > 0.0 && speedBounds.bottom() < 0.0, "the speed is drawn above and right of the train");
+	badge.setSpeedVisible(false);
+	ok &= expect(drawsNothing(), "a badge with the speed hidden draws nothing");
+	badge.setSpeedVisible(true);
+	badge.setSpeedText(QString());
+	ok &= expect(drawsNothing(), "a badge without a speed draws nothing");
 
 	const SignalGeometry horizontal = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150);

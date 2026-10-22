@@ -89,6 +89,8 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setObjectName("infrastructureTable");
 	m_table->setAccessibleName("Infrastructure fields");
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
+	// Tab leaves the table and the arrow keys move between the cells.
+	m_table->setTabKeyNavigation(false);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->horizontalHeader()->setStretchLastSection(true);
@@ -264,13 +266,17 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	const QStringList headers = current ? current->columns() : QStringList();
 
 	const QSignalBlocker blocker(m_table);
+	// Clearing the table hides a field in a cell that has the focus, and the focus goes to the table. The table would
+	// then open an editor on its first cell and lose track of it, so no editor opens while the rows are filled again.
+	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->clearContents();
-	m_table->setColumnCount(headers.size());
+	m_table->setColumnCount(static_cast<int>(headers.size()));
 	m_table->setHorizontalHeaderLabels(headers);
 	if (current)
 		current->fillRows(*this);
 	else
 		m_table->setRowCount(0);
+	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	const bool editable = canEdit();
 	m_table->setEnabled(editable);
 
@@ -386,13 +392,17 @@ void InfrastructurePanel::refreshRouteSectionPanel() {
 	const int routeRow = m_table->currentRow();
 	const bool hasRoute = routeRow >= 0 && routeRow < static_cast<int>(scene.routes.size());
 	const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+	const SceneSectionLabels labels = sceneSectionLabels(inventory);
 	const QString previousCatalog = m_routeSectionCatalogCombo->currentData().toString();
 	const int previousListRow = m_routeSectionListWidget->currentRow();
 	{
 		const QSignalBlocker blocker(m_routeSectionCatalogCombo);
 		m_routeSectionCatalogCombo->clear();
-		for (const SceneSectionDescriptor& section : inventory.sections)
-			m_routeSectionCatalogCombo->addItem(sectionLabel(section), QString::fromStdString(section.id));
+		for (const SceneSectionDescriptor& section : inventory.sections) {
+			m_routeSectionCatalogCombo->addItem(sectionLabel(labels, section), QString::fromStdString(section.id));
+			m_routeSectionCatalogCombo->setItemData(m_routeSectionCatalogCombo->count() - 1, QString::fromStdString(section.id),
+				Qt::ToolTipRole);
+		}
 		int selected = m_routeSectionCatalogCombo->findData(previousCatalog);
 		if (selected < 0 && m_routeSectionCatalogCombo->count() > 0)
 			selected = 0;
@@ -407,10 +417,11 @@ void InfrastructurePanel::refreshRouteSectionPanel() {
 			for (const std::string& raw : route.blocks) {
 				auto* item = new QListWidgetItem(m_routeSectionListWidget);
 				item->setData(Qt::UserRole, QString::fromStdString(raw));
+				item->setToolTip(QString::fromStdString(raw));
 				if (const SceneSectionDescriptor* exact = inventory.exact(raw)) {
-					item->setText(sectionLabel(*exact));
+					item->setText(sectionLabel(labels, *exact));
 				} else if (const SceneSectionDescriptor* resolved = inventory.resolve(raw)) {
-					item->setText(QStringLiteral("%1 (legacy: %2)").arg(sectionLabel(*resolved), QString::fromStdString(raw)));
+					item->setText(QStringLiteral("%1 (legacy: %2)").arg(sectionLabel(labels, *resolved), QString::fromStdString(raw)));
 				} else {
 					item->setText(QStringLiteral("Invalid: %1").arg(QString::fromStdString(raw)));
 				}
@@ -530,13 +541,16 @@ void InfrastructurePanel::populateSectionCombo(QComboBox* combo, const SceneSect
 	combo->clear();
 	if (allowNone)
 		combo->addItem(noneLabel, QString());
-	for (const SceneSectionDescriptor& section : inventory.sections)
-		combo->addItem(sectionLabel(section), QString::fromStdString(section.id));
+	const SceneSectionLabels labels = sceneSectionLabels(inventory);
+	for (const SceneSectionDescriptor& section : inventory.sections) {
+		combo->addItem(sectionLabel(labels, section), QString::fromStdString(section.id));
+		combo->setItemData(combo->count() - 1, QString::fromStdString(section.id), Qt::ToolTipRole);
+	}
 
 	int selected = combo->findData(QString::fromStdString(current));
 	if (selected < 0 && !current.empty()) {
 		if (const SceneSectionDescriptor* resolved = inventory.resolve(current)) {
-			combo->addItem(QStringLiteral("%1 (legacy: %2)").arg(sectionLabel(*resolved), QString::fromStdString(current)),
+			combo->addItem(QStringLiteral("%1 (legacy: %2)").arg(sectionLabel(labels, *resolved), QString::fromStdString(current)),
 				QString::fromStdString(current));
 		} else {
 			combo->addItem(QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)), QString::fromStdString(current));
@@ -549,12 +563,6 @@ void InfrastructurePanel::populateSectionCombo(QComboBox* combo, const SceneSect
 	combo->setCurrentIndex(selected >= 0 ? selected : (combo->count() > 0 ? 0 : -1));
 }
 
-QString InfrastructurePanel::sectionLabel(const SceneSectionDescriptor& section) {
-	if (section.connectionDerived) {
-		return QStringLiteral("connection %1 / %2 -> %3")
-			.arg(QString::fromStdString(section.sourceConnectionId), QString::fromStdString(section.firstBlockId),
-				QString::fromStdString(section.secondBlockId));
-	}
-	return QStringLiteral("base block %1 / track %2")
-		.arg(QString::fromStdString(section.sourceBlockId), QString::fromStdString(section.firstTrackId));
+QString InfrastructurePanel::sectionLabel(const SceneSectionLabels& labels, const SceneSectionDescriptor& section) {
+	return QString::fromStdString(labels.label(section.id));
 }

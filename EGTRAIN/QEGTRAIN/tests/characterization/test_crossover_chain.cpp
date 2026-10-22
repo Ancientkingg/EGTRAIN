@@ -152,8 +152,6 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 		return outcome;
 	}
 	initial_variables.GUI = 0;
-	initial_variables.TSM = 0;
-	initial_variables.RChoice = 0;
 	initial_variables.OutputMainFolder = outputDir.path().toStdString();
 	initial_variables.InputMainFolder.clear();
 
@@ -447,7 +445,7 @@ void checkLateAdmission(const std::string& fixture, int level, std::vector<std::
 	area.level = level;
 	loaded.scene.signallingAreas = {area};
 	QTemporaryDir outputDir;
-	initial_variables.GUI = initial_variables.TSM = initial_variables.RChoice = 0;
+	initial_variables.GUI = 0;
 	initial_variables.OutputMainFolder = outputDir.path().toStdString();
 	initial_variables.InputMainFolder.clear();
 	const auto diagnostics = simulation.prepareScene(loaded.scene, "baseline", {{"F1", 1}, {"R1", 1}});

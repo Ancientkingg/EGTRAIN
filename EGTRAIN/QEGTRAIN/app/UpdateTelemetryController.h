@@ -23,42 +23,48 @@ class UpdateChecker;
 struct StableRelease;
 struct UpdateCheckResult;
 
-// The telemetry error that the error diagnostics of a scene stand for, or none when no error has a code that maps to one.
-// The most serious error wins.
+/// The telemetry error that the error diagnostics of a scene stand for, or none when no error has a code that maps to one.
+/// The most serious error wins.
 std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<SceneDiagnostic>& diagnostics);
 
-// The update checks and the self update, the consent and privacy dialogs, and the telemetry sender of the window. The
-// dialogs open over the window.
+/// The update checks and the self update, the consent and privacy dialogs, and the telemetry sender of the window. The
+/// dialogs open over the window.
 class UpdateTelemetryController : public QObject {
 	Q_OBJECT
 
 public:
-	// askToSaveScene asks about unsaved changes before an update starts and returns false when the user cancels.
-	// beforeQuit runs when an installed update ends the application.
+	/// askToSaveScene asks about unsaved changes before an update starts and returns false when the user cancels.
+	/// beforeQuit runs when an installed update ends the application.
 	UpdateTelemetryController(QWidget* window, std::function<bool()> askToSaveScene, std::function<void()> beforeQuit);
+	/// Deletes the settings, the consent and the sender that the controller owns.
 	~UpdateTelemetryController() override;
 
-	// The window that the dialogs open over.
+	/// The window that the dialogs open over.
 	QWidget* window() const { return m_window; }
 
-	// Adds the update entries to the Help menu. Without a menu, or when the environment suppresses updates, there are none.
+	/// Adds the update entries to the Help menu. Without a menu, or when the environment suppresses updates, there are none.
 	void setupUpdateActions(QMenu* helpMenu);
-	// Opens the privacy dialog. The first prompt opens only when the consent is still to be given.
+	/// Opens the privacy dialog. The first prompt opens only when the consent is still to be given.
 	void showPrivacySettings(bool initialPrompt);
-	// Makes the consent and the sender when this build can send telemetry. Does nothing when there is a sender already.
+	/// Makes the consent and the sender when this build can send telemetry. Does nothing when there is a sender already.
 	void startTelemetryAfterInitialConsent();
-	// Asks once whether to check for updates automatically, and checks when the answer or the setting is yes.
+	/// Asks once whether to check for updates automatically, and checks when the answer or the setting is yes.
 	void maybePromptForUpdateChecks();
-	// A manual check always runs. An automatic one runs only when the setting is on and no check is going. Nothing runs
-	// without update entries.
+	/// A manual check always runs. An automatic one runs only when the setting is on and no check is going. Nothing runs
+	/// without update entries.
 	void startUpdateCheck(bool manual);
 
-	// The sender, or null while telemetry is off.
+	/// The consent that the sender follows, or null while telemetry is off.
+	TelemetryConsent* consent() const { return m_telemetryConsent.get(); }
+	/// The sender, or null while telemetry is off.
 	telemetry::TelemetrySender* sender() const { return m_telemetrySender.get(); }
-	// The observation of an operation that starts now.
+	/// The observation of an operation that starts now. Its events are dropped while telemetry is off.
 	telemetry::OperationObservation captureOperation() const noexcept;
-	// Stops the sender, if there is one.
+	/// Stops the sender, if there is one.
 	void stopTelemetry();
+	/// Ends the application for an installed update: runs beforeQuit and leaves the event loop with exit code 0. No window
+	/// gets a close event, so none can ask about unsaved changes again or keep the application open.
+	void quitForUpdate();
 
 private:
 	// The scripted runs in tests/e2e replace the telemetry.

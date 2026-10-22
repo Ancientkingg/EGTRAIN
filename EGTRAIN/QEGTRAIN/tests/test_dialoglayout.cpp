@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QToolBar>
 #include <QToolButton>
 #include <QFile>
@@ -16,14 +17,18 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
+#include <QProxyStyle>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QStyleFactory>
 #include <QTableWidget>
 
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <set>
 #include <string>
 #include <utility>
 
@@ -138,12 +143,12 @@ bool exercise(const QRect& screen, qreal scale) {
 	scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());
 	ok &= check(buttons->isVisible() && buttons->geometry().bottom() <= dialog.height() && scroll->geometry().bottom() <= buttons->geometry().top(),
 		"footer must remain reachable outside the scrolling body");
-	auto* heading = dialog.findChild<QLabel*>(QStringLiteral("dialogHeading"));
 	auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-	ok &= check(
-		heading && heading->font().pointSizeF() > font.pointSizeF() && heading->textFormat() == Qt::PlainText && context
-			&& context->textFormat() == Qt::PlainText && context->parentWidget() == scroll->widget(),
-		"heading scales, authored labels remain plain and context scrolls");
+	ok &= check(dialog.windowTitle() == QStringLiteral("Review <simulation> & ") + longName.left(120)
+			&& !dialog.findChild<QLabel*>(QStringLiteral("dialogHeading")),
+		"the heading is the window title and is not repeated in the dialog");
+	ok &= check(context && context->textFormat() == Qt::PlainText && context->parentWidget() == scroll->widget(),
+		"the context remains plain text and scrolls");
 	buttons->button(QDialogButtonBox::Ok)->setFocus();
 	scroll->verticalScrollBar()->setValue(0);
 	QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);
@@ -175,6 +180,31 @@ bool exercise(const QRect& screen, qreal scale) {
 	QApplication::sendEvent(&cancelDialog, &escape);
 	ok &= check(cancelDialog.result() == QDialog::Rejected && !cancelDialog.isVisible(),
 		"Escape must reject without accepting");
+	return ok;
+}
+
+// Without a field in the body the default button has the focus. Tab moves it to the next footer button and Space presses
+// that button.
+bool exerciseFooterKeys() {
+	QDialog dialog;
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	DialogLayout::install(dialog, QStringLiteral("Choose case"), QString(), new QWidget, buttons, QRect(0, 0, 1280, 800));
+	dialog.show();
+	dialog.activateWindow();
+	QApplication::processEvents();
+	QPushButton* okButton = buttons->button(QDialogButtonBox::Ok);
+	QPushButton* cancelButton = buttons->button(QDialogButtonBox::Cancel);
+	bool ok = check(okButton->hasFocus() && okButton->isDefault() && !cancelButton->isDefault(), "OK does not have the focus and the default");
+	QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+	QApplication::sendEvent(okButton, &tab);
+	ok &= check(cancelButton->hasFocus(), "Tab does not move from OK to Cancel");
+	QKeyEvent spacePress(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier, QStringLiteral(" "));
+	QKeyEvent spaceRelease(QEvent::KeyRelease, Qt::Key_Space, Qt::NoModifier, QStringLiteral(" "));
+	QApplication::sendEvent(cancelButton, &spacePress);
+	QApplication::sendEvent(cancelButton, &spaceRelease);
+	ok &= check(dialog.result() == QDialog::Rejected && !dialog.isVisible(), "Space does not press the focused Cancel");
 	return ok;
 }
 
@@ -732,10 +762,6 @@ bool exerciseDisabledControls() {
 // A question box with Yes and No, No the default, built and styled without running its event loop. Its default button
 // looks like the default button of a dialog footer and the other button keeps the plain look.
 bool exerciseMessageBoxDefault() {
-#ifdef Q_OS_WIN
-	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
-	return true;
-#else
 	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
 		QMessageBox::Yes | QMessageBox::No);
 	box.setDefaultButton(QMessageBox::No);
@@ -761,11 +787,11 @@ bool exerciseMessageBoxDefault() {
 	ok &= checkLooks(sameLook(disabledLook, dialogDefault.second),
 		"a disabled default button of a message box does not look like a disabled default button of a dialog", disabledLook, dialogDefault.second);
 	return ok;
-#endif
 }
 
 // The width of the drawn text of a button, from the pixels that differ strongly from its face. The button is widened first,
-// so that no text is clipped, and the grab is taken at its natural position within it.
+// so that no text is clipped, and the grab is taken at its natural position within it. The rows within 6 px of the top
+// and the bottom are left out, because the dialog shows through the rounded corners there.
 int drawnTextWidth(QPushButton* button) {
 	button->setFixedWidth(button->width() + 300);
 	const QPixmap grab = button->grab();
@@ -774,7 +800,7 @@ int drawnTextWidth(QPushButton* button) {
 	const qreal ratio = grab.devicePixelRatio();
 	int left = image.width();
 	int right = -1;
-	for (int y = qRound(3 * ratio); y < image.height() - qRound(3 * ratio); ++y)
+	for (int y = qRound(6 * ratio); y < image.height() - qRound(6 * ratio); ++y)
 		for (int x = qRound(3 * ratio); x < image.width() - qRound(3 * ratio); ++x)
 			if (colorDifference(image.pixel(x, y), face) >= 200) {
 				left = std::min(left, x);
@@ -783,11 +809,11 @@ int drawnTextWidth(QPushButton* button) {
 	return right < left ? 0 : qRound((right - left + 1) / ratio);
 }
 
-// A button shows its whole text when its width holds the text as it is drawn plus the border and the padding of the style
-// sheet (1 px and 7 px on each side). The drawn text can be bolder than the font of the widget.
+// A button shows its whole text when its width holds the text as it is drawn plus the border and the padding that the style
+// sheet gives a button in a dialog (1 px and 14 px on each side). The drawn text can be bolder than the font of the widget.
 bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
 	const int width = button->width();
-	const int needed = drawnTextWidth(button) + 2 * (1 + 7);
+	const int needed = drawnTextWidth(button) + 2 * (1 + 14);
 	const bool ok = width >= needed;
 	if (!ok)
 		std::cerr << where << ": the button '" << button->text().toStdString() << "' is " << width << " px wide at " << scale
@@ -797,11 +823,6 @@ bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
 
 // The default button of an update prompt and of a dialog footer with long texts is not narrower than its text.
 bool exerciseDefaultButtonWidth(qreal scale) {
-#ifdef Q_OS_WIN
-	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
-	Q_UNUSED(scale);
-	return true;
-#else
 	const QFont appFont = qApp->font();
 	QFont font = appFont;
 	font.setPointSizeF(12 * scale);
@@ -842,7 +863,145 @@ bool exerciseDefaultButtonWidth(qreal scale) {
 	ok &= buttonShowsText(primary, "dialog footer", scale);
 	QApplication::setFont(appFont);
 	return ok;
-#endif
+}
+
+// Fusion with the icons that the GNOME and KDE themes give the standard buttons of a dialog footer.
+class FooterIconStyle : public QProxyStyle {
+public:
+	FooterIconStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		return hint == SH_DialogButtonBox_ButtonsHaveIcons ? 1 : QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
+
+// OK, Cancel and Close of a dialog footer and of a message box show no icon, also under a theme that gives them one.
+bool exerciseFooterWithoutIcons() {
+	FooterIconStyle style;
+	QDialog dialog;
+	dialog.setStyle(&style);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Close, &dialog);
+	DialogLayout::install(dialog, QStringLiteral("Icons"), QString(), new QWidget, buttons, QRect(0, 0, 1280, 800));
+	QList<QAbstractButton*> shown = buttons->buttons();
+	QMessageBox box;
+	box.setStyle(&style);
+	box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel | QMessageBox::Close);
+	shown += box.buttons();
+	bool ok = check(shown.size() >= 3, "the footers have no standard buttons");
+	for (const QAbstractButton* button : shown)
+		ok &= check(button->icon().isNull(), "a standard button of a dialog footer or a message box shows an icon");
+	return ok;
+}
+
+// Fusion with the footer layout of one platform.
+class FooterLayoutStyle : public QProxyStyle {
+public:
+	explicit FooterLayoutStyle(QDialogButtonBox::ButtonLayout layout) : QProxyStyle(QStringLiteral("Fusion")), m_layout(layout) {}
+	int styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override {
+		return hint == SH_DialogButtonLayout ? m_layout : QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+
+private:
+	QDialogButtonBox::ButtonLayout m_layout;
+};
+
+// Under the footer layout of each platform, Tab and Shift+Tab from the field of the body visit each footer button once, in
+// the order the footer shows them, and then the field again. The buttons are added in another order than the footer shows
+// them, as the case chooser and the run review add theirs. No stop is the body scroll area or another widget without a
+// focus look.
+bool exerciseFooterTabOrder() {
+	bool ok = true;
+	for (const auto layout : {QDialogButtonBox::WinLayout, QDialogButtonBox::MacLayout, QDialogButtonBox::KdeLayout, QDialogButtonBox::GnomeLayout}) {
+		FooterLayoutStyle style(layout);
+		QDialog dialog;
+		dialog.setStyle(&style);
+		auto* body = new QWidget;
+		auto* field = new QLineEdit(body);
+		(new QVBoxLayout(body))->addWidget(field);
+		auto* buttons = new QDialogButtonBox(&dialog);
+		QPushButton* cancel = buttons->addButton(QDialogButtonBox::Cancel);
+		buttons->addButton(QDialogButtonBox::RestoreDefaults);
+		QPushButton* accept = buttons->addButton(QDialogButtonBox::Ok);
+		accept->setDefault(true);
+		DialogLayout::install(dialog, QStringLiteral("Tab order"), QString(), body, buttons, QRect(0, 0, 1280, 800));
+		dialog.show();
+		dialog.activateWindow();
+		QApplication::processEvents();
+		QList<QWidget*> footer;
+		for (int i = 0; i < buttons->layout()->count(); ++i)
+			if (QWidget* button = buttons->layout()->itemAt(i)->widget())
+				footer.append(button);
+		const bool acceptFirst = layout == QDialogButtonBox::WinLayout || layout == QDialogButtonBox::KdeLayout;
+		ok &= check(footer.size() == 3 && (footer.indexOf(accept) < footer.indexOf(cancel)) == acceptFirst,
+			"the footer does not have the three buttons in the order of its layout");
+		ok &= check(field->hasFocus(), "the field of the body does not have the first focus");
+		for (const bool forward : {true, false}) {
+			QList<QWidget*> expected = footer;
+			if (!forward)
+				std::reverse(expected.begin(), expected.end());
+			expected.append(field);
+			field->setFocus();
+			QList<QWidget*> stops;
+			while (stops.size() < expected.size() && dialog.focusWidget()) {
+				QKeyEvent key(QEvent::KeyPress, forward ? Qt::Key_Tab : Qt::Key_Backtab, forward ? Qt::NoModifier : Qt::ShiftModifier);
+				QApplication::sendEvent(dialog.focusWidget(), &key);
+				stops.append(dialog.focusWidget());
+			}
+			if (stops != expected) {
+				std::cerr << "footer layout " << static_cast<int>(layout) << (forward ? ": Tab" : ": Shift+Tab") << " from the field stops at";
+				for (const QWidget* stop : stops) {
+					const auto* button = qobject_cast<const QAbstractButton*>(stop);
+					std::cerr << ' ' << (button ? button->text().toStdString() : std::string(stop ? stop->metaObject()->className() : "nothing"));
+				}
+				std::cerr << '\n';
+				ok = false;
+			}
+		}
+	}
+	return ok;
+}
+
+// A spin box outside a dialog, such as one in a cell of the traction table of Rolling stock units, gets the height it
+// asks for in a table cell, so that its text is not cut. It asks for 6 px more width and 2 px more height than a Fusion
+// spin box at the offscreen font whatever its padding, so the columns of the traction table are a little wider than
+// with Fusion; test_editor_smoke checks that the Rolling stock dock still holds its buttons. The spin box uses Fusion,
+// so the widget style of the platform does not matter.
+bool exerciseCellSpinBoxSize() {
+	QProxyStyle fusion(QStringLiteral("Fusion"));
+	QTableWidget table(1, 1);
+	auto* spinBox = new QDoubleSpinBox;
+	spinBox->setStyle(&fusion);
+	table.setCellWidget(0, 0, spinBox);
+	table.show();
+	QApplication::processEvents();
+	const int height = spinBox->sizeHint().height();
+	const bool ok = height <= spinBox->height();
+	if (!ok)
+		std::cerr << "a spin box in a table asks for " << height << " px, its cell gives it " << spinBox->height() << " px\n";
+	return ok;
+}
+
+// A button that opens a menu, such as Trains and Open result view..., keeps room beside its text for the arrow. Open result
+// view... is as tall as the push buttons beside it in Run Results.
+bool exerciseMenuButtonRoom() {
+	QToolButton plain;
+	plain.setText(QStringLiteral("Trains (2/2)"));
+	bool ok = true;
+	for (const char* name : {"", "runResultsViewsButton"}) {
+		QToolButton menuButton;
+		menuButton.setObjectName(QString::fromLatin1(name));
+		menuButton.setText(plain.text());
+		menuButton.setPopupMode(QToolButton::InstantPopup);
+		menuButton.setMenu(new QMenu(&menuButton));
+		ok &= check(menuButton.sizeHint().width() >= plain.sizeHint().width() + 12, "a menu button has no room for its arrow");
+	}
+	QToolButton views;
+	views.setObjectName(QStringLiteral("runResultsViewsButton"));
+	views.setText(QStringLiteral("Open result view..."));
+	views.setPopupMode(QToolButton::InstantPopup);
+	views.setMenu(new QMenu(&views));
+	ok &= check(views.sizeHint().height() == QPushButton(QStringLiteral("Export CSV...")).sizeHint().height(),
+		"Open result view... is not as tall as the push buttons beside it");
+	return ok;
 }
 
 // The footer of the Run simulation review is built as the review builds it: the buttons exist and are named before the
@@ -853,7 +1012,7 @@ bool exerciseRunReviewDefault() {
 	review.setObjectName(QStringLiteral("runReviewDialog"));
 	auto* buttons = new QDialogButtonBox(&review);
 	buttons->setObjectName(QStringLiteral("runReviewButtons"));
-	buttons->addButton(QDialogButtonBox::Cancel);
+	buttons->addButton(QDialogButtonBox::Cancel)->setObjectName(QStringLiteral("runReviewCancelButton"));
 	auto* runButton = buttons->addButton(QStringLiteral("MMMM MMMM"), QDialogButtonBox::AcceptRole);
 	runButton->setObjectName(QStringLiteral("runReviewRunButton"));
 	runButton->setDefault(true);
@@ -867,8 +1026,28 @@ bool exerciseRunReviewDefault() {
 	bool ok = check(runButton->isDefault(), "the Run simulation button is not the default button");
 	ok &= checkLooks(sameLook(reviewLook, dialogDefault),
 		"the Run simulation button does not look like the default button of a dialog", reviewLook, dialogDefault);
-#ifndef Q_OS_WIN
-	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	// The run button shows its focus on its fill, as the dialog draws it. Cancel becomes the default while it has the focus,
+	// but keeps the face of a plain button, so the footer never shows two default buttons.
+	auto* cancel = buttons->button(QDialogButtonBox::Cancel);
+	cancel->setFixedSize(150, 48);
+	review.activateWindow();
+	QApplication::processEvents();
+	if (QWidget* focused = QApplication::focusWidget())
+		focused->clearFocus();
+	QApplication::processEvents();
+	const auto drawnRunButton = [&review, runButton] {
+		return review.grab(QRect(runButton->mapTo(&review, QPoint()), runButton->size())).toImage();
+	};
+	const QImage unfocused = drawnRunButton();
+	runButton->setFocus();
+	QApplication::processEvents();
+	ok &= check(runButton->hasFocus() && drawnRunButton() != unfocused, "the focused Run simulation button looks the same as without focus");
+	cancel->setFocus();
+	QApplication::processEvents();
+	ok &= check(cancel->hasFocus() && cancel->isDefault(), "Cancel does not take the focus and the default");
+	const ControlLook cancelLook = controlLook(cancel);
+	const ControlLook plainLook = controlLooks(ControlKind::PushButton, true, false).first;
+	ok &= checkLooks(cancelLook.face == plainLook.face, "the focused Cancel button looks like a default button", cancelLook, plainLook);
 	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
 		QMessageBox::Yes | QMessageBox::No);
 	box.setDefaultButton(QMessageBox::No);
@@ -881,7 +1060,85 @@ bool exerciseRunReviewDefault() {
 	const ControlLook boxLook = controlLook(boxDefault);
 	ok &= checkLooks(reviewLook.face == boxLook.face,
 		"the Run simulation button does not have the face of the default button of a message box", reviewLook, boxLook);
-#endif
+	return ok;
+}
+
+// The width in pixels and the colour of the left border of widget, half way down.
+std::pair<int, QRgb> leftBorder(QWidget* widget) {
+	const QImage image = widget->grab().toImage();
+	const int y = image.height() / 2;
+	const QRgb color = image.pixel(0, y);
+	int width = 0;
+	while (width < image.width() && image.pixel(width, y) == color)
+		++width;
+	return {qRound(width / image.devicePixelRatio()), color};
+}
+
+// The Run details toggle of the run review and the Calculation details toggle of the capacity analysis, built as their
+// dialogs build them, show keyboard focus with a border as wide and in the same colour as a push button of the dialog,
+// such as Loaded Data beside the first.
+bool exerciseDetailsToggleFocus(const QString& name, const QString& text) {
+	QDialog review;
+	auto* body = new QWidget;
+	auto* layout = new QVBoxLayout(body);
+	auto* toggle = new QToolButton(body);
+	toggle->setText(text);
+	toggle->setObjectName(name);
+	toggle->setCheckable(true);
+	toggle->setArrowType(Qt::RightArrow);
+	toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	auto* button = new QPushButton(QStringLiteral("Loaded Data"), body);
+	layout->addWidget(toggle);
+	layout->addWidget(button);
+	DialogLayout::install(review, QStringLiteral("Run simulation"), QString(), body, new QDialogButtonBox(QDialogButtonBox::Cancel),
+		QRect(0, 0, 1280, 800));
+	review.show();
+	review.activateWindow();
+	QApplication::processEvents();
+	toggle->setFocus();
+	QApplication::processEvents();
+	const bool toggleFocused = toggle->hasFocus();
+	const std::pair<int, QRgb> toggleBorder = leftBorder(toggle);
+	button->setFocus();
+	QApplication::processEvents();
+	const std::pair<int, QRgb> buttonBorder = leftBorder(button);
+	const bool ok = toggleFocused && button->hasFocus() && toggleBorder == buttonBorder && buttonBorder.first == 2;
+	if (!ok)
+		std::cerr << "the focused " << text.toStdString() << " toggle has a " << toggleBorder.first << " px border of " << std::hex << toggleBorder.second
+				  << ", a focused dialog button a " << std::dec << buttonBorder.first << " px border of " << std::hex << buttonBorder.second
+				  << std::dec << '\n';
+	return ok;
+}
+
+// The Windows styles fill the page areas of a scroll bar, above and below the handle, with a dither of two colours unless
+// the style sheet styles them. Under the classic Windows style, which every platform has and which draws that dither, the
+// track of a vertical scroll bar is one plain colour, the band colour, on both sides of the handle. The native Windows
+// styles are left out: on the offscreen platform of Windows the check crashed under the Windows 11 style.
+bool exerciseScrollBarTrack() {
+	std::unique_ptr<QStyle> style(QStyleFactory::create(QStringLiteral("Windows")));
+	QScrollBar bar(Qt::Vertical);
+	bar.setStyle(style.get());
+	bar.setRange(0, 100);
+	bar.setPageStep(20);
+	bar.setValue(50);
+	bar.resize(bar.sizeHint().width(), 200);
+	bar.show();
+	QApplication::processEvents();
+	const QImage image = bar.grab().toImage();
+	std::set<QRgb> track;
+	for (int y = 0; y < image.height(); ++y)
+		if (y < image.height() / 4 || y >= image.height() * 3 / 4)
+			for (int x = 0; x < image.width(); ++x)
+				track.insert(image.pixel(x, y));
+	const QRgb handle = image.pixel(image.width() / 2, image.height() / 2);
+	const bool ok = handle == qRgb(0x9a, 0xa5, 0xab) && track.size() == 1 && *track.begin() == qRgb(0xe3, 0xea, 0xee);
+	if (!ok) {
+		std::cerr << "the scroll bar under " << style->objectName().toStdString() << " has a handle of " << std::hex << handle
+				  << " and a track of";
+		for (const QRgb color : track)
+			std::cerr << ' ' << color;
+		std::cerr << std::dec << '\n';
+	}
 	return ok;
 }
 } // namespace
@@ -901,6 +1158,8 @@ int main(int argc, char** argv) {
 	const bool small = exercise(QRect(0, 0, 1280, 800), 1.0);
 	const bool scaledSmall = exercise(QRect(0, 0, 1280, 800), 1.5);
 	const bool large = exercise(QRect(0, 0, 1920, 1080), 1.5);
+	const bool footerKeys = exerciseFooterKeys();
+	const bool footerTabOrder = exerciseFooterTabOrder();
 	const bool contentHeight = exerciseContentHeight(1.0) && exerciseContentHeight(1.5);
 	const bool contextHeight = exerciseContextHeight(1.0) && exerciseContextHeight(1.5);
 	const bool statusAfterOpen = exerciseStatusAfterOpen(1.0) && exerciseStatusAfterOpen(1.5);
@@ -913,10 +1172,16 @@ int main(int argc, char** argv) {
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
 	const bool runReview = exerciseRunReviewDefault();
+	const bool detailsToggle = exerciseDetailsToggleFocus(QStringLiteral("runReviewDetailsToggle"), QStringLiteral("Run details"))
+		&& exerciseDetailsToggleFocus(QStringLiteral("capacityDetailsToggle"), QStringLiteral("Calculation details"));
+	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
-	return small && scaledSmall && large && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && defaultWidth
-			&& scaledDefaultWidth
+	const bool footerIcons = exerciseFooterWithoutIcons();
+	const bool cellSpinBox = exerciseCellSpinBoxSize();
+	const bool scrollBarTrack = exerciseScrollBarTrack();
+	return small && scaledSmall && large && footerKeys && footerTabOrder && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && detailsToggle && menuButtons && defaultWidth
+			&& scaledDefaultWidth && footerIcons && cellSpinBox && scrollBarTrack
 		? 0
 		: 1;
 }

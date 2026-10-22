@@ -47,6 +47,8 @@
 	<string></string>
 	<key>LSUIElement</key>
 	<false/>
+	<key>NSRequiresAquaSystemAppearance</key>
+	<true/>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

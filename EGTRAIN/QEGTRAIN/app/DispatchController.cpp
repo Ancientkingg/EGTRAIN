@@ -1,9 +1,7 @@
 #include <QElapsedTimer>
 #include "app/DispatchController.h"
-#include "io/ExternalState.h"
 #include "io/LiveFrame.h"
 #include "io/LiveServer.h"
-#include "io/RttpXml.h"
 #include "scene/SceneValidator.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
@@ -25,6 +23,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
 
 using namespace std;
 
@@ -32,10 +31,11 @@ namespace {
 // The step loop reports its progress once in this many steps.
 constexpr int ProgressEverySteps = 100;
 
-void ensureDirectory(const string& path) {
-	if (!path.empty()) {
-		std::filesystem::create_directories(path);
-	}
+// Makes the folder and the folders above it. Returns the reason when that fails.
+std::error_code ensureDirectory(const string& path) {
+	std::error_code error;
+	std::filesystem::create_directories(path, error);
+	return error;
 }
 
 // Remove an existing file without reporting a failure.
@@ -300,21 +300,6 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		reportDetail("operations_failure");
 		return diagnostics;
 	}
-	if (initial_variables.RChoice) {
-		const bool hasUsablePassengerJourney = std::any_of(staged->passengers.begin(), staged->passengers.end(),
-			[](const Passenger& passenger) { return !passenger.Journeys.empty(); });
-		if (!hasUsablePassengerJourney) {
-			diagnostics.push_back({SceneSeverity::Error, "scene.route_choice.passengers.none",
-				"Route choice requires at least one usable passenger journey in the prepared run",
-				"passengers.json", "passenger", {}, "passengers", {},
-				"Add a passenger journey within the selected run"});
-			resetState();
-			next = now();
-			operationsTime = elapsed(checkpoint, next);
-			reportDetail("operations_failure");
-			return diagnostics;
-		}
-	}
 	next = now();
 	operationsTime = elapsed(checkpoint, next);
 	checkpoint = next;
@@ -323,11 +308,18 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		initial_variables.OutputMainFolder = nextRunOutputFolder_;
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
-	ensureDirectory(initial_variables.OutputMainFolder);
-	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories");
-	ensureDirectory(initial_variables.OutputMainFolder + "/PassengerStatus");
-	ensureDirectory(initial_variables.OutputMainFolder + "/Rescheduling");
-	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories/RoutesGenerated");
+	for (const char* subfolder : {"", "/TrainTrajectories", "/PassengerStatus", "/Rescheduling", "/TrainTrajectories/RoutesGenerated"}) {
+		const std::string folder = initial_variables.OutputMainFolder + subfolder;
+		if (const std::error_code error = ensureDirectory(folder)) {
+			SceneDiagnostic diagnostic;
+			diagnostic.code = "run.output.folder";
+			diagnostic.message = "Cannot create the output folder " + folder + ": " + error.message();
+			diagnostics.push_back(std::move(diagnostic));
+			resetState();
+			reportDetail("output_directory_failure");
+			return diagnostics;
+		}
+	}
 	// Train::printTrainServicePathDiagram and Train::printTrainArrDepMsg append, so each run starts without their files.
 	removeRunOutput(initial_variables.OutputMainFolder + "/TrainTrajectories/TrainServicePathDiagram.txt");
 	removeRunOutput(initial_variables.OutputMainFolder + "/Rescheduling/EGTRAINOutput.txt");
@@ -530,7 +522,25 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 }
 
 void DispatchController::runSimulation() {
+	runError_.clear();
+	QElapsedTimer timer;
+	timer.start();
+	try {
+		runSimulationStages();
+		return;
+	} catch (const std::exception& error) {
+		runError_ = error.what();
+	} catch (...) {
+		runError_ = "unknown error";
+	}
+	EG_LOG(AppRun, Error) << "The run stopped because of an error: " << runError_ << '\n';
+	// The live stream has no event for a failed run.
+	if (live_)
+		pushLiveEvent(*live_, LiveEvent::RunCancelled);
+	emit executionFailed(timer.elapsed());
+}
 
+void DispatchController::runSimulationStages() {
 	runCompleted_ = false;
 
 	SimulationRun& run = mutableRun();
@@ -643,7 +653,9 @@ void DispatchController::runSimulation() {
 		return;
 	// The per-train files and their folder are part of the detailed trajectories.
 	if (settings.exportDetailedTrajectories) {
-		ensureDirectory(settings.OutputMainFolder + "/TEMP");
+		const std::string temporaryFolder = settings.OutputMainFolder + "/TEMP";
+		if (const std::error_code error = ensureDirectory(temporaryFolder))
+			throw std::runtime_error("Cannot create the folder " + temporaryFolder + ": " + error.message());
 		for (int i = 0; i < run.numTrains; i++) {
 			if (stoppedHere())
 				return;
@@ -663,7 +675,6 @@ void DispatchController::runSimulation() {
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
 	SimulationRun& run = mutableRun();
 	const InitialParameters& settings = run.settings;
-	nlohmann::json jsmsg;
 
 	// The trains by departure time; trains due at the same time stay in the order of the trains of the run.
 	std::vector<int> dueOrder(run.numTrains);
@@ -736,54 +747,9 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			{
 				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
 					"worker/playback_step/compute");
-				// Here we prepare the Traffic State data
-				for (int n = 0; n < run.numTrains; n++) {
-
-					// The interaction Trains and passengers and corresponding dwell time dependency at platform is simulated here in a non multi-thread fashion
-					// Simulating interaction with the passengers and changing dwell times according to the chosen passenger-dependent dwell time function
+				// The interaction of trains and passengers, with the passenger-dependent dwell times at the platforms
+				for (int n = 0; n < run.numTrains; n++)
 					Simulate_Train_Passenger_Interactions(run, t, settings.startingSimulationTime, run.trains[n], run.passengers, run.platforms);
-
-					// round to 2 decimals
-					double xPosition = std::ceil(run.trains[n].trainXPosition(t) * 100.0) / 100.0;
-
-					// The traffic-state payload is only built when it is shared (-TSM 1)
-					if (settings.TSM) {
-						double trainSpeed = std::ceil((run.trains[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
-						jsmsg["trains"][run.trains[n].trainDescription]["km-point"] = xPosition;
-						jsmsg["trains"][run.trains[n].trainDescription]["speed"] = trainSpeed;
-
-						jsmsg["trains"][run.trains[n].trainDescription]["BlockOccupied"] = run.trains[n].Bs.ID;
-						jsmsg["trains"][run.trains[n].trainDescription]["lastOccTime"] = run.trains[n].ComputeLastOccupationTime_real_time(t, run.trains[n].Bs.ID, 10);
-						jsmsg["trains"][run.trains[n].trainDescription]["direction"] = run.infra.routes[run.trains[n].indexOfRoute].reversed_direction;
-
-						jsmsg["trains"][run.trains[n].trainDescription]["depTime"] = run.trains[n].departure_time;
-						if (run.trains[n].departure_time <= t) {
-							char c = '-';
-							int index = run.trains[n].Bs.ID.find(c);
-
-							jsmsg["trains"][run.trains[n].trainDescription]["trackID"] = run.trains[n].Bs.ID.substr(index + 1, run.trains[n].Bs.ID.length() - index - 2);
-							jsmsg["trains"][run.trains[n].trainDescription]["inArea"] = 1;
-						} else
-							jsmsg["trains"][run.trains[n].trainDescription]["inArea"] = 0;
-					}
-				}
-			}
-
-			// for the ZeroMQbroker
-			if (settings.TSM) {
-				jsmsg["time"] = t;
-				const std::string xml = trafficStateMonitoring_xml(jsmsg);
-				EG_LOG(IoZmq, Debug) << "\n\n Sending the following Traffic State XML file\n"
-									 << xml;
-				send_external_state(jsmsg, xml, "tcp://127.0.0.1:5555");
-			}
-
-			if (settings.RChoice) {
-				const nlohmann::json route_choice_json = routeChoicePayload(run.passengers, t);
-				const std::string xml = routeChoice_xml(route_choice_json);
-				EG_LOG(IoZmq, Debug) << "\n\n Sending the following Route Choice XML file\n"
-									 << xml;
-				send_external_state(route_choice_json, xml, "tcp://127.0.0.1:5556");
 			}
 
 			{

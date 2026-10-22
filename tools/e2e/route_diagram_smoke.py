@@ -42,7 +42,7 @@ if not app.is_file():
 with tempfile.TemporaryDirectory(prefix="route-diagram-") as directory:
     env.update(QEGTRAIN_AUTOSTART="1", QEGTRAIN_E2E_ROUTE_DIAGRAM=directory)
     result = subprocess.run([str(app), "--scene", str(scene), "-h", "8000", "-g", "1",
-                             "-pax", "0", "-TSM", "0", "-RC", "0"],
+                             "-pax", "0"],
                             cwd=root / "EGTRAIN/QEGTRAIN", env=env, text=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
     if result.returncode or "E2E_ROUTE_DIAGRAM_OK" not in result.stdout:

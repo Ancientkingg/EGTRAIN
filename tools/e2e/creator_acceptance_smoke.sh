@@ -59,7 +59,7 @@ environment.update({
     "QEGTRAIN_E2E_SETTINGS_DIR": str(log.parent / "settings"),
     "QT_QPA_PLATFORM": "offscreen",
 })
-command = [str(app), "-g", "1", "-pax", "1", "-TSM", "0", "-RC", "0"]
+command = [str(app), "-g", "1", "-pax", "1"]
 
 
 def stop_group(process: subprocess.Popen[bytes]) -> None:
@@ -417,8 +417,7 @@ def check_input(run, scenario, bundle_path):
            f"provenance scenario mismatch: expected {scenario}")
     expect(run["case_name"] == "creator_acceptance_case", "provenance case name mismatch")
     expect(run["scene_schema_version"] == 1, "provenance scene schema mismatch")
-    expect(run["duration_seconds"] == 900 and run["pax_mode"] == 1
-           and run["tsm_mode"] == 0 and run["route_choice_mode"] == 0,
+    expect(run["duration_seconds"] == 900 and run["pax_mode"] == 1,
            "provenance run settings mismatch")
     input_data = run["input"]
     expect(input_data["kind"] == "bundle", "provenance input is not the saved bundle")
@@ -529,9 +528,25 @@ def check_exports(bundle_path):
     section_layers = {"block section extent", "block section extent (geometry missing)"}
     compressed_rows = [row for row in compressed_all if row["Layer"] not in section_layers]
     compressed_sections = [row for row in compressed_all if row["Layer"] in section_layers]
-    expect(compressed_rows and all(row["Layer"] == "calculated blocking envelope"
-               and row["Start X[km]"] and row["End X[km]"] for row in compressed_rows),
-           "compressed diagram must have projected envelopes and no recorded movement")
+    compressed_envelopes = [row for row in compressed_rows if row["Layer"] == "calculated blocking envelope"]
+    compressed_recorded = [row for row in compressed_rows if row["Layer"] == "recorded trajectory"]
+    expect(compressed_envelopes and compressed_recorded
+           and len(compressed_envelopes) + len(compressed_recorded) == len(compressed_rows)
+           and all(row["Start X[km]"] and row["End X[km]"] for row in compressed_envelopes),
+           "compressed diagram must have projected envelopes and recorded movement, and nothing else")
+    # The recorded samples of a train move as its envelopes do, by its occupation start minus its original start, so
+    # each is a sample of the ordinary diagram moved by that shift.
+    shift_by_train = {row["Train"]: float(row["Occupation start[s]"]) - float(row["Original start[s]"])
+                      for row in compressed_envelopes}
+    ordinary_by_train = {}
+    for row in recorded:
+        ordinary_by_train.setdefault(row["Train"], []).append(
+            (float(row["Position[km]"]), float(row["Planned time[s]"])))
+    expect(all(row["Train"] in shift_by_train and any(
+        abs(x - float(row["Position[km]"])) < 1e-6
+        and abs(t + shift_by_train[row["Train"]] - float(row["Planned time[s]"])) < 1e-6
+        for x, t in ordinary_by_train.get(row["Train"], [])) for row in compressed_recorded),
+        "compressed recorded samples must be ordinary samples moved by the shift of their train")
     # The physical sections of the reference route are listed once, in route order, without a train.
     ordinary_sections = [row for row in blocking_rows if row["Layer"] in section_layers]
     section_key = lambda rows: [(row["Block"], row["Start X[km]"], row["End X[km]"], row["Reference section"])

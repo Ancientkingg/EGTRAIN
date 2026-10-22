@@ -13,13 +13,11 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
-#include <QEvent>
 #include <QFormLayout>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
-#include <QHelpEvent>
 #include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
@@ -28,9 +26,9 @@
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QStringList>
+#include <QStyle>
 #include <QTabWidget>
 #include <QTableWidget>
-#include <QToolTip>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -57,19 +55,21 @@ public:
 	}
 };
 
-// The route choice. Over the closed field the tip adds the stations of the selected route to the text of the field.
-class RouteComboBox : public ChoiceComboBox {
+// The colour field of the form. A form that wraps long rows keeps a row beside its label while the field gets its minimum
+// width, but then leaves the field that width less the spacing after the label, which cuts the Choose button. The field
+// asks for that spacing as well.
+class ServiceColorField : public ColorChoiceButton {
 public:
-	using ChoiceComboBox::ChoiceComboBox;
-
-protected:
-	bool event(QEvent* event) override {
-		if (event->type() == QEvent::ToolTip && !toolTip().isEmpty()) {
-			QToolTip::showText(static_cast<QHelpEvent*>(event)->globalPos(), currentText() + QLatin1Char('\n') + toolTip(), this);
-			return true;
-		}
-		return ChoiceComboBox::event(event);
+	ServiceColorField(const QFormLayout* form, QWidget* parent) : ColorChoiceButton(parent), m_form(form) {}
+	QSize minimumSizeHint() const override {
+		int spacing = m_form->horizontalSpacing();
+		if (spacing < 0)
+			spacing = style()->combinedLayoutSpacing(QSizePolicy::Label, sizePolicy().controlType(), Qt::Horizontal, nullptr, parentWidget());
+		return ColorChoiceButton::minimumSizeHint() + QSize(std::max(spacing, 0), 0);
 	}
+
+private:
+	const QFormLayout* m_form;
 };
 
 // One entry of the route choice: where the route goes and in which direction, with the stations it traverses as tooltip.
@@ -103,14 +103,18 @@ void addRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute&
 
 ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("servicePanel");
-	QHBoxLayout* serviceLayout = new QHBoxLayout(this);
+	// The list sits above the tabs, so that a narrow dock keeps the fields, the tab names and the stop table whole.
+	QVBoxLayout* serviceLayout = new QVBoxLayout(this);
 
-	// left: the list of services and the buttons that manage it
+	// top: the list of services and the buttons that manage it, in one row. The title of the dock names the list, which
+	// shows about three rows, so that the tabs keep the height of a short dock, also when the Timetable tab is shown.
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
-	listLayout->addWidget(new QLabel("Services", listPane));
+	listLayout->setContentsMargins(0, 0, 0, 0);
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("serviceList");
+	m_listWidget->setAccessibleName("Services");
+	m_listWidget->setFixedHeight(m_listWidget->fontMetrics().lineSpacing() * 3 + 2 * m_listWidget->frameWidth());
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Service", listPane);
@@ -121,12 +125,11 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_deleteButton->setObjectName("deleteServiceButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
-	buttonLayout->addWidget(m_deleteButton, 1, 0);
+	buttonLayout->addWidget(m_deleteButton, 0, 2);
 	listLayout->addLayout(buttonLayout);
-	listPane->setMaximumWidth(listPane->fontMetrics().averageCharWidth() * 32);
 	serviceLayout->addWidget(listPane);
 
-	// right: the fields of the selected service, its timetable and its occurrences on three tabs
+	// below: the fields of the selected service, its timetable and its occurrences on three tabs
 	QWidget* detailPane = new QWidget(this);
 	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
 	m_emptyLabel = EditorLayout::emptyStateLabel(detailPane);
@@ -148,13 +151,14 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_categoryCombo = new ChoiceComboBox(detailPane);
 	m_categoryCombo->setObjectName("serviceCategoryCombo");
 	form->addRow("Category", m_categoryCombo);
-	m_colorButton = new ColorChoiceButton(detailPane);
+	m_colorButton = new ServiceColorField(form, detailPane);
 	m_colorButton->setObjectName("serviceColorButton");
 	form->addRow("Service visualization colour", m_colorButton);
 	m_compositionCombo = new ChoiceComboBox(detailPane);
 	m_compositionCombo->setObjectName("serviceCompositionCombo");
 	form->addRow("Composition", m_compositionCombo);
-	m_routeCombo = new RouteComboBox(detailPane);
+	// Over the closed field the tip adds the stations of the selected route to the text of the field.
+	m_routeCombo = new ChoiceComboBox(detailPane);
 	m_routeCombo->setObjectName("serviceRouteCombo");
 	form->addRow("Route", m_routeCombo);
 
@@ -208,10 +212,15 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	QScrollArea* detailScroll = new QScrollArea(this);
 	detailScroll->setWidgetResizable(true);
 	detailScroll->setFrameShape(QFrame::NoFrame);
+	// Tab reaches the fields inside, and the area scrolls to show them.
+	detailScroll->setFocusPolicy(Qt::NoFocus);
 	detailScroll->setWidget(detailPane);
 	m_pages = new QTabWidget(this);
 	m_pages->setObjectName("serviceEditorPages");
 	m_pages->setMinimumSize(0, 0);
+	// Tabs that do not fit keep their whole names and scroll.
+	m_pages->setUsesScrollButtons(true);
+	m_pages->setElideMode(Qt::ElideNone);
 	m_pages->addTab(detailScroll, "Service");
 
 	QWidget* timetablePane = new QWidget(this);
@@ -230,6 +239,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_occurrenceTable->setHorizontalHeaderLabels({"Include", "Service code (number)", "Generated service", "Scheduled entry",
 		"Running performance (parameter) %", "Maximum speed restriction (km/h)"});
 	m_occurrenceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	m_occurrenceTable->setTabKeyNavigation(false);
 	m_occurrenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_occurrenceTable->setAlternatingRowColors(true);
 	m_occurrenceTable->horizontalHeader()->setStretchLastSection(true);
@@ -368,12 +378,15 @@ void ServicePanel::updateDetail() {
 	{
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(service ? QString::fromStdString(service->id) : QString());
+		// A long id shows its start.
+		m_idEdit->setCursorPosition(0);
 		m_idEdit->setEnabled(editorAvailable);
 	}
 
 	{
 		const QSignalBlocker blocker(m_operatingCodeEdit);
 		m_operatingCodeEdit->setText(service ? QString::fromStdString(service->operatingCode) : QString());
+		m_operatingCodeEdit->setCursorPosition(0);
 		m_operatingCodeEdit->setEnabled(editorAvailable);
 	}
 

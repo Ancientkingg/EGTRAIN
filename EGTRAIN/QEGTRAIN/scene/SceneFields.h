@@ -5,26 +5,26 @@
 
 #include <array>
 
-// The range of a number of a train unit. The editor refuses a number outside [min, max]. Validation warns about a
-// number outside [plausibleMin, plausibleMax], which lies inside the first range. Both are guards against input that
-// no rail vehicle has, not data of a vehicle.
+/// The range of a number of a train unit, in the unit of that number. The editor refuses a number outside [min, max].
+/// Validation warns about a number outside [plausibleMin, plausibleMax], which lies inside the first range. Both are
+/// guards against input that no rail vehicle has, not data of a vehicle.
 struct SceneValueRange {
-	double min;
-	double max;
-	double plausibleMin;
-	double plausibleMax;
+	double min;			 ///< Lowest number the editor accepts.
+	double max;			 ///< Highest number the editor accepts.
+	double plausibleMin; ///< Lowest number validation accepts without a warning.
+	double plausibleMax; ///< Highest number validation accepts without a warning.
 };
 
-// A physical field of a train unit: its key in rolling_stock.json, its member
-// in SceneTrainPhysical and its range.
+/// A physical field of a train unit: its key in rolling_stock.json, its member
+/// in SceneTrainPhysical and its range.
 struct SceneTrainPhysicalField {
-	const char* key;
-	double SceneTrainPhysical::* member;
-	SceneValueRange range;
+	const char* key;					 ///< Key in rolling_stock.json, which states the unit.
+	double SceneTrainPhysical::* member; ///< The member of SceneTrainPhysical that holds it.
+	SceneValueRange range;				 ///< Its range.
 };
 
-// The nine physical fields in the order of the legacy vehicle data file, so the
-// position of a value in that file is its index here.
+/// The nine physical fields in the order of the legacy vehicle data file, so the
+/// position of a value in that file is its index here.
 inline constexpr std::array<SceneTrainPhysicalField, 9> kSceneTrainPhysicalFields{{
 	// locomotives weigh up to about 250 t
 	{"mass_of_traction_unit_kg", &SceneTrainPhysical::mass_of_traction_unit_kg, {0.0, 5e6, 0.0, 5e5}},
@@ -46,13 +46,14 @@ inline constexpr std::array<SceneTrainPhysicalField, 9> kSceneTrainPhysicalField
 	{"length_m", &SceneTrainPhysical::length_m, {0.0, 3000.0, 0.0, 1500.0}},
 }};
 
-// A column of a row of the traction curve: its name in rolling_stock.json and its range. The force in N at speed v is
-// C0 + C1 v + C2 v².
+/// A column of a row of the traction curve: its name in rolling_stock.json and its range. The force in N at speed v is
+/// C0 + C1 v + C2 v².
 struct SceneTractionColumn {
-	const char* key;
-	SceneValueRange range;
+	const char* key;	   ///< Name of the column in rolling_stock.json.
+	SceneValueRange range; ///< Its range.
 };
 
+/// The five columns of a traction curve row, in order. The speed bounds get the range of max_speed_ms, which is in m/s.
 inline constexpr std::array<SceneTractionColumn, 5> kSceneTractionColumns{{
 	// the speeds are limited like the maximum speed
 	{"v_lower", {0.0, 200.0, 0.0, 120.0}},

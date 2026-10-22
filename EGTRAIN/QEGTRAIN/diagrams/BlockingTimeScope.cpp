@@ -88,8 +88,11 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 		const std::vector<std::string>& blockIds = choices.routes[static_cast<std::size_t>(routeIndex)].blockIds;
 		for (std::size_t blockIndex = 0; blockIndex < blockIds.size(); ++blockIndex) {
 			const QString blockId = QString::fromStdString(blockIds[blockIndex]);
-			firstBlock->addItem(QString("%1:%2").arg(blockIndex + 1).arg(blockId));
-			lastBlock->addItem(QString("%1:%2").arg(blockIndex + 1).arg(blockId));
+			const QString text = QString("%1: %2").arg(blockIndex + 1).arg(QString::fromStdString(choices.sectionLabels.label(blockIds[blockIndex])));
+			for (QComboBox* combo : {firstBlock, lastBlock}) {
+				combo->addItem(text);
+				combo->setItemData(combo->count() - 1, blockId, Qt::ToolTipRole);
+			}
 		}
 		const bool hasBlocks = firstBlock->count() > 0;
 		firstBlock->setEnabled(hasBlocks);
@@ -143,9 +146,6 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 	scope.sectionIndices = blockSectionRangeIndices(firstBlock->currentIndex(), lastBlock->currentIndex(), static_cast<int>(route.blockIds.size()));
 	for (int blockIndex : scope.sectionIndices)
 		scope.blockIds.push_back(route.blockIds[static_cast<std::size_t>(blockIndex)]);
-	for (const BlockingTimeScopeChoices::Train& train : choices.trains)
-		if (train.routeIndex == scope.routeIndex || train.routeId == route.id)
-			scope.trainIds.push_back(train.id);
 	return true;
 }
 

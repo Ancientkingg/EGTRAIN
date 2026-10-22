@@ -1,5 +1,6 @@
 #include "graphics/items/SelectionCueItem.h"
 
+#include "graphics/NetworkScene.h"
 #include "graphics/items/StationNodeItem.h"
 #include "graphics/items/StationOverlayItem.h"
 #include "graphics/items/TrainBodyItem.h"
@@ -33,8 +34,9 @@ QRectF ownRect(const QGraphicsItem* item) {
 	return item->sceneBoundingRect(); // NOLINT(clang-analyzer-core.CallAndMessage): the item is never null
 }
 
-// The pictogram of a station node: a child in the preview, a scene item that the overlay of the
-// station owns when a run is shown.
+// The pictogram of a station node: a child of the anchor square in the preview, else the mark of the overlay of the
+// station, found by the station id of the square in the preview and by its node of the run, when the square is at the
+// place of the mark: its centre is one of the node centres of the mark.
 const QGraphicsItem* pictogramOf(const QGraphicsItem* item) {
 	if (item->type() != StationNodeItem::Type)
 		return nullptr;
@@ -42,14 +44,18 @@ const QGraphicsItem* pictogramOf(const QGraphicsItem* item) {
 		if (child->type() == QGraphicsPixmapItem::Type)
 			return child;
 	const auto* station = static_cast<const StationNodeItem*>(item);
-	if (!station->node || !item->scene())
+	const QVariant stationId = item->data(PreviewGraphics::StationId);
+	if ((!station->node && !stationId.isValid()) || !item->scene())
 		return nullptr;
 	for (const QGraphicsItem* other : item->scene()->items()) {
 		if (other->type() != StationOverlayItem::Type)
 			continue;
 		const auto* overlay = static_cast<const StationOverlayItem*>(other);
-		if (overlay->hasSourceIdentity() && overlay->matchesSourceIdentity(station->node->ID, station->track))
-			return overlay->pictureItem();
+		if (station->node ? overlay->hasSourceIdentity() && overlay->matchesSourceIdentity(station->node->ID, station->track)
+						  : overlay->data(PreviewGraphics::Id) == stationId) {
+			const auto* mark = dynamic_cast<const StationMarkItem*>(overlay->pictureItem());
+			return mark && mark->nodeCentres().contains(item->sceneBoundingRect().center()) ? mark : nullptr;
+		}
 	}
 	return nullptr;
 }

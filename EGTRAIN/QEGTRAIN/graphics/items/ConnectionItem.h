@@ -15,30 +15,32 @@
 
 #include "simulation/Infrastructure.h"
 
+/// The line of a connection between two track lines, in scene coordinates.
 class ConnectionItem : public QGraphicsLineItem {
-	// Q_OBJECT
-
 public:
+	/// A line without a connection; its click target reaches 20 scene units on each side of it.
 	ConnectionItem(const QLineF& line, QGraphicsItem* parent = nullptr);
 	~ConnectionItem() override;
 
-	// reimplemented functions
+	/// The click target: the line widened by 20 scene units on each side.
 	QPainterPath shape() const override;
+	/// The bounds of the click target.
 	QRectF boundingRect() const override;
+	/// Draws the line with the pen of the item.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-	// connection pointer
+	/// The connection of the run, which belongs to the run; null in the preview.
 	Connections* connection;
 
-	// to allow cast
-	enum { Type = UserType + 4 };
+	enum { Type = UserType + 4 /**< The item type for qgraphicsitem_cast. */ };
+	/// Returns Type.
 	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
 
 private:
-	// used to highlight the line when clicked
+	// The half width in scene units of the click target.
 	const qreal selectionOffset;
 	QPolygonF selectionPolygon;
 	void createSelectionPolygon();

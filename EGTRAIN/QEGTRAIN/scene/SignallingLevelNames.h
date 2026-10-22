@@ -8,7 +8,8 @@
 // The names follow the routine names in the simulation code; they are labels, not claims about real systems.
 // The level numbers are defined in scene/SignallingLevel.h; this header holds the text shown for them.
 
-// The label of a signalling level: its number and name, so the stored number stays readable.
+/// The label of a signalling level: its number and name, so the stored number stays readable. A number that is
+/// not a level gives "Invalid level" and the number.
 inline std::string signallingLevelName(int level) {
 	switch (level) {
 		case kSignallingLevelUnset: return "No signalling";
@@ -22,7 +23,7 @@ inline std::string signallingLevelName(int level) {
 	}
 }
 
-// One line that says what the level does in the simulation, for tooltips.
+/// One line that says what the level does in the simulation, for tooltips.
 inline std::string signallingLevelDescription(int level) {
 	switch (level) {
 		case kSignallingLevelUnset: return "Trains in this area are not separated.";

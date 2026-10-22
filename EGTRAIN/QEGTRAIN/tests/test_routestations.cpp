@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -133,6 +134,28 @@ int main(int argc, char** argv) {
 		const SceneRoute* route7 = findRoute(netherlands, "route7");
 		ok &= expect(route7 && stationsOf(netherlands, *route7).direction < 0,
 			"netherlands route7 runs against the native direction");
+	}
+
+	// Every section of the converted case studies has a label of its own.
+	for (const char* name : {"Paimpol", "Netherlands", "Copenhagen", "Milano_Brescia"}) {
+		SceneModel scene;
+		if (!loadCommitted(scenes, name, scene))
+			continue;
+		const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+		const SceneSectionLabels labels = sceneSectionLabels(inventory);
+		std::set<std::string> distinct;
+		for (const SceneSectionDescriptor& section : inventory.sections)
+			distinct.insert(sceneSectionLabel(section));
+		ok &= expect(!inventory.sections.empty() && distinct.size() == inventory.sections.size()
+				&& labels.byReference.size() >= inventory.sections.size(),
+			name);
+		if (std::string(name) == "Paimpol")
+			ok &= expect(labels.label("@0-B0@") == "B0 0.000 to 0.230 km" && labels.label("70-B0") == "B0 20.710 to 21.010 km"
+					&& labels.label("@71-B0@-21.235000/@0-B1@-21.252000") == "B0 21.010 to 21.235, B1 21.252 to 21.450 km",
+				"paimpol labels");
+		if (std::string(name) == "Netherlands")
+			ok &= expect(labels.label("@15-B104@-58.099000/@16-B100@-58.152000") == "B104 58.000 to 58.099, B100 58.152 km",
+				"netherlands label with a piece of one kilometre");
 	}
 
 	// Block order decides the travel direction, so the reversed route lists the far station first.

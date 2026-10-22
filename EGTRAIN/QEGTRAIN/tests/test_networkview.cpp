@@ -137,6 +137,17 @@ int main(int argc, char** argv) {
 		gridView.zoomBy(20.0 / 3.0);
 		ok &= checkBackgroundGrid(gridView, "20x");
 	}
+	{
+		// The fit box of the Paimpol preview in a view of 55 pixels: the padding leaves most of the height for the line.
+		NetworkView shortView;
+		QGraphicsScene shortScene;
+		shortView.setScene(&shortScene);
+		shortView.setFrameShape(QFrame::NoFrame);
+		shortView.resize(423, 55);
+		shortView.show();
+		shortView.fitToBounds(QRectF(-1853.1, -4507.4, 40768.2, 8894.9));
+		ok &= expect(37062.0 * shortView.fittedScale() >= 150.0, "Fit in a short view draws the line of the box at least 150 pixels wide");
+	}
 	view.fitToTopology();
 	const QRectF topology = view.topologyBounds();
 	const qreal fittedScale = view.fittedScale();
@@ -214,8 +225,8 @@ int main(int argc, char** argv) {
 
 	view.fitToTopology();
 	updates = 0;
-	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, nullptr, wheelPos, wheelPos,
-		view.viewport()->mapToGlobal(wheelPos), 0.05, 1, 0);
+	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, QPointingDevice::primaryPointingDevice(), 2, wheelPos, wheelPos,
+		view.viewport()->mapToGlobal(wheelPos), 0.05, QPointF(), 1);
 	QApplication::sendEvent(view.viewport(), &pinch);
 	ok &= expect(near(view.zoomRatio(), 1.05, 1e-5), "native trackpad pinch zooms continuously");
 	ok &= expect(updates == 1, "one pinch event emits one viewport update");

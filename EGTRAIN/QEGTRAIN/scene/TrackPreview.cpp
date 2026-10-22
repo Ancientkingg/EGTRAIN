@@ -157,7 +157,9 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 		const auto view = std::find_if(scene.trackViews.begin(), scene.trackViews.end(),
 			[&line](const SceneTrackView& candidate) { return candidate.trackId == line.id; });
 		if (view != scene.trackViews.end()) {
-			line.displayOffset = static_cast<double>(view->level) * 0.015;
+			// The y of the scene runs downwards, so a higher level is drawn above the level before it.
+			line.levelSpacing = 0.015;
+			line.displayOffset = -static_cast<double>(view->level) * line.levelSpacing;
 
 			std::vector<std::pair<double, double>> xAnchors;
 			std::vector<std::pair<double, double>> yAnchors;
@@ -226,9 +228,11 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					for (std::size_t index = 0; index < line.points.size(); ++index)
 						line.points[index].x = displayXs[index];
 					line.authoredStationProjection = true;
-					line.displayOffset *= 8.0
+					const double levelScale = 8.0
 						* std::fabs((uniqueXAnchors.back().second - uniqueXAnchors.front().second)
 							/ (uniqueXAnchors.back().first - uniqueXAnchors.front().first));
+					line.displayOffset *= levelScale;
+					line.levelSpacing *= levelScale;
 				}
 				continue;
 			}
@@ -265,6 +269,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 				}
 				if (valid) {
 					line.displayOffset = 0.0;
+					line.levelSpacing = 0.0;
 					line.authoredStationProjection = true;
 					for (std::size_t index = 0; index < line.points.size(); ++index) {
 						line.points[index].x = displayPoints[index].first;
@@ -319,6 +324,7 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 	}
 
 	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
+	const SceneSectionLabels sectionLabels = sceneSectionLabels(sectionInventory);
 	std::unordered_set<std::string> seenTracks;
 	std::unordered_map<std::string, std::pair<double, double>> virtualSwitches;
 	for (const auto& section : sectionInventory.sections) {
@@ -344,8 +350,14 @@ TrackPreviewResult loadTrackPreview(const SceneModel& scene) {
 					   / 2.0)
 				< kVirtualSwitchToleranceKm)
 			continue;
+		std::string authoredIds;
+		for (const SceneSignal& authored : scene.signals)
+			if (sectionInventory.resolve(authored.protectedSection) == &section)
+				authoredIds += (authoredIds.empty() ? "" : ", ") + authored.id;
+		std::string label = sectionLabels.label(section.id);
+		std::string name = authoredIds.empty() ? label : authoredIds + " (" + label + ")";
 		result.previewSignals.push_back({section.firstTrackId, section.id,
-			section.startNodeId, section.startKm});
+			section.startNodeId, section.startKm, std::move(label), std::move(name)});
 	}
 
 	if (result.lines.empty())
@@ -441,6 +453,7 @@ TrackPreviewResult normalizeTrackPreview(const TrackPreviewResult& preview) {
 		normalized.presentationScale = scale / kHistoricalDegreeUnits;
 	for (auto& line : normalized.lines) {
 		line.displayOffset *= scale;
+		line.levelSpacing *= scale;
 		if (!std::isfinite(line.displayOffset))
 			normalized.presentationScale = 1.0;
 		for (auto& point : line.points) {

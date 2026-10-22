@@ -772,8 +772,13 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	};
 
 	const fs::path directory = pathFromUtf8(sceneDir);
-	if (!fs::is_directory(directory)) {
-		addError("scene.dir.missing", "", "Scene directory missing or invalid");
+	std::error_code directoryError;
+	const fs::file_type directoryType = fs::status(directory, directoryError).type();
+	if (directoryType != fs::file_type::directory) {
+		if (directoryError && directoryType != fs::file_type::not_found)
+			addError("scene.dir.unreadable", "", "Cannot read the scene folder: " + directoryError.message());
+		else
+			addError("scene.dir.missing", "", "Scene directory missing or invalid");
 		return result;
 	}
 
@@ -836,12 +841,14 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	const bool signallingOk = parseObject("signalling.json", signallingJson, true);
 	const bool rollingStockOk = parseObject("rolling_stock.json", rollingStockJson, true);
 	const bool servicesOk = parseObject("services.json", servicesJson, true);
-	const bool scenariosPresent = fs::exists(directory / "scenarios.json");
-	const bool incidentsPresent = fs::exists(directory / "incidents.json");
+	// A file that cannot be checked counts as absent.
+	std::error_code presenceError;
+	const bool scenariosPresent = fs::exists(directory / "scenarios.json", presenceError);
+	const bool incidentsPresent = fs::exists(directory / "incidents.json", presenceError);
 	const bool scenariosOk = parseObject("scenarios.json", scenariosJson, scenariosPresent);
 	const bool incidentsOk = parseObject("incidents.json", incidentsJson, incidentsPresent, !scenariosPresent);
 	const bool passengersOk = parseObject("passengers.json", passengersJson,
-		fs::exists(directory / "passengers.json"));
+		fs::exists(directory / "passengers.json", presenceError));
 	const bool viewsOk = parseObject("views.json", viewsJson, false);
 
 	if (sceneOk) {
@@ -1067,6 +1074,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					try {
 						if (value.contains("visible"))
 							view.visible = value["visible"].get<bool>();
+						if (value.contains("double_switch"))
+							view.doubleSwitch = value["double_switch"].get<bool>();
 					} catch (const json::exception&) {
 						viewWarning(path, "Invalid track display row; row skipped");
 						continue;
