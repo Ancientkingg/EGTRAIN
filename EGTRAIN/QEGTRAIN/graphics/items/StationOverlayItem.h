@@ -276,11 +276,12 @@ public:
 	/// with platform nodes on another line has its mark, dots, area and name at the place of its anchor only.
 	void setNodeCentres(const QList<QPointF>& centres);
 	/// Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the
-	/// bottom centre of its frame on the top edge of the box of its node centres, centred over its dots, and shows as
-	/// the dots in the near look. Its name sits under the dots in both looks, so that mark and name share their x. In
-	/// the far look the area of the station is the hull of its node centres widened by AreaMarginPixels on screen; it
-	/// is shown while the mark is visible and hidden in the near look. A plain picture keeps the far look and, like its
-	/// name, its artwork point.
+	/// bottom centre of its frame on the top edge of the convex hull of its node centres, at the x of the centre of its
+	/// dots: on the top centre of their box for a single centre, a row or a stack, and on its own area for a diagonal
+	/// station. It shows as the dots in the near look. Its name sits under the dots in both looks, so that mark and name
+	/// share their x. In the far look the area of the station is the hull of its node centres widened by
+	/// AreaMarginPixels on screen; it is shown while the mark is visible and hidden in the near look. A plain picture
+	/// keeps the far look and, like its name, its artwork point.
 	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }

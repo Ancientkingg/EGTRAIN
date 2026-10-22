@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <utility>
 
 namespace {
@@ -556,10 +557,32 @@ void StationOverlayItem::applyViewScale(qreal viewScale, bool nearLook) {
 		m_area->setVisible(!m_appliedNearLook && m_picture && m_picture->isVisible());
 }
 
+namespace {
+// The top edge at x of the convex hull of centres: the smallest y over the pairs of centres whose x range holds x, where a
+// pair of one x, a centre with itself included, counts at that x. x is first kept in the x range of the centres, which a
+// rounded x can leave by a little.
+qreal hullTopAt(const QList<QPointF>& centres, qreal x) {
+	const auto [left, right] = std::minmax_element(centres.cbegin(), centres.cend(),
+		[](const QPointF& a, const QPointF& b) { return a.x() < b.x(); });
+	x = std::clamp(x, left->x(), right->x());
+	qreal top = std::numeric_limits<qreal>::infinity();
+	for (qsizetype first = 0; first < centres.size(); ++first)
+		for (qsizetype second = first; second < centres.size(); ++second) {
+			const QPointF& a = centres.at(first);
+			const QPointF& b = centres.at(second);
+			if (x < std::min(a.x(), b.x()) || x > std::max(a.x(), b.x()))
+				continue;
+			top = std::min(top, a.x() == b.x() ? std::min(a.y(), b.y()) : a.y() + (b.y() - a.y()) * (x - a.x()) / (b.x() - a.x()));
+		}
+	return top;
+}
+} // namespace
+
 // A station mark and its name are placed by the node centres of the mark, or by the anchor without them, in both
-// looks: the frame of the far look stands on the top edge of the box of the centres, centred over the dots, and the
-// name sits a small gap under the dots, centred under them, so that it keeps its place when the look switches. A plain
-// picture and its name stay at their artwork point.
+// looks: the frame of the far look stands on the top edge of the hull of the centres at the x of the centre of the dots,
+// and the name sits a small gap under the dots, centred under them, so that it keeps its place when the look switches.
+// A single centre, a row and a stack put the frame on the top centre of their box. A plain picture and its name stay at
+// their artwork point.
 void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
 	QList<QPointF> centres;
@@ -567,7 +590,7 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 		centres = mark->nodeCentres().isEmpty() ? QList<QPointF>{m_stableAnchor} : mark->nodeCentres();
 	qreal side = 0.0;
 	QRectF marks;
-	qreal top = 0.0;
+	QPointF foot;
 	qreal markTop = 0.0;
 	m_markSceneRect = QRectF();
 	if (m_picture) {
@@ -576,12 +599,10 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 		if (mark) {
 			const qreal halo = kMarkHaloPixels / viewScale;
 			marks = stationNodeMarkShape(centres, mark->stationClass(), side, 0.0).boundingRect();
-			top = std::min_element(centres.cbegin(), centres.cend(), [](const QPointF& a, const QPointF& b) {
-				return a.y() < b.y();
-			})->y();
-			// The far bounds scaled from the pixmap to the frame that stands on the box of the centres.
+			foot = QPointF(marks.center().x(), hullTopAt(centres, marks.center().x()));
+			// The far bounds scaled from the pixmap to the frame that stands on the hull of the centres.
 			const QRectF pixmapRect(m_picture->offset(), QSizeF(m_picture->pixmap().size()));
-			const QRectF frame(marks.center().x() - side / 2.0, top - side, side, side);
+			const QRectF frame(foot.x() - side / 2.0, foot.y() - side, side, side);
 			const QRectF far = mark->farBoundingRect();
 			const qreal k = side / pixmapRect.height();
 			m_markSceneRect = QRectF(frame.topLeft() + (far.topLeft() - pixmapRect.topLeft()) * k, far.size() * k);
@@ -597,7 +618,7 @@ void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
 			QPointF shift;
 			if (mark) {
 				mark->setFarLook();
-				shift = shiftTo(m_picture, pivot, QPointF(marks.center().x(), top));
+				shift = shiftTo(m_picture, pivot, foot);
 				if (m_area)
 					m_area->setPath(stationAreaShape(centres, 2.0 * AreaMarginPixels / viewScale));
 			}

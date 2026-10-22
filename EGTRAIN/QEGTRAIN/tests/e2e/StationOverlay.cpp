@@ -39,6 +39,7 @@
 #include <QWindow>
 #include <algorithm>
 #include <cstdio>
+#include <limits>
 #include <utility>
 
 
@@ -133,6 +134,18 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 					QPointF(std::max(box.right(), centre.x()), std::max(box.bottom(), centre.y())));
 			return box;
 		};
+		// The top edge at x of the convex hull of the node centres of a station mark: the smallest y over the pairs of
+		// centres around x, where a pair of one x counts at that x.
+		const auto hullTop = [](const QList<QPointF>& centres, qreal x) {
+			qreal top = std::numeric_limits<qreal>::infinity();
+			for (const QPointF& a : centres)
+				for (const QPointF& b : centres) {
+					const bool upright = qAbs(a.x() - b.x()) < 1e-9;
+					if (upright ? qAbs(a.x() - x) < 1e-6 : std::min(a.x(), b.x()) <= x && x <= std::max(a.x(), b.x()))
+						top = std::min(top, upright ? std::min(a.y(), b.y()) : a.y() + (b.y() - a.y()) * (x - a.x()) / (b.x() - a.x()));
+				}
+			return top;
+		};
 		// The side in scene units of the frame of a station mark in either look.
 		const auto markSide = [&](const StationMarkItem* mark) {
 			return mark->isNearLook() ? mark->nearSide() : mark->mapRectToScene(QRectF(mark->offset(), pictureNativeSize(mark))).height();
@@ -201,8 +214,9 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 							|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
 							failures << QString("%1 artwork lost its station identity").arg(zoom.second);
 					}
-					// Within each look the mark keeps its place: the far frame stands on the top centre of the box of the
-					// station nodes and the dots, whose halo grows with the zoom, are centred on the nodes.
+					// Within each look the mark keeps its place: the far frame stands on the top edge of the hull of the
+					// station nodes at the middle of the dots, and the dots, whose halo grows with the zoom, are centred on
+					// the nodes.
 					QHash<const StationOverlayItem*, QPointF>& anchors = nearLook ? nearAnchors : pictureAnchors;
 					const QPointF anchor = nearLook ? picture->sceneBoundingRect().center() : pictureAnchor(picture);
 					const qreal tolerance = nearLook ? 0.01 * mark->nearSide() : 1e-6;
@@ -213,7 +227,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 					if (mark) {
 						const QPointF expected = nearLook
 							? stationNodeMarkShape(mark->nodeCentres(), mark->stationClass(), mark->nearSide(), 0.0).boundingRect().center()
-							: QPointF(markX(mark), centresBox(mark->nodeCentres()).top());
+							: QPointF(markX(mark), hullTop(mark->nodeCentres(), markX(mark)));
 						if (QLineF(anchor, expected).length() > tolerance)
 							anchorsOk = false;
 					}

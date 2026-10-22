@@ -676,16 +676,16 @@ int main(int argc, char* argv[]) {
 		ok &= expect(rig.mark->nodeCentres() == QList<QPointF>({first}), "a station with no node at its place keeps its anchor");
 		rig.overlay->setNodeCentres({first, second, elsewhere});
 
-		// Far look: tracks 4 pixels apart. The frame of 24 pixels (240 scene units) stands on the top centre of the
-		// box of the nodes and the name is a quarter frame under the dots, which the far look does not draw.
+		// Far look: tracks 4 pixels apart. The frame of 24 pixels (240 scene units) stands on the line between the two
+		// nodes, halfway along it, and the name is a quarter frame under the dots, which the far look does not draw.
 		QGraphicsView view(&scene);
 		view.setTransform(QTransform::fromScale(0.1, 0.1));
 		rig.overlay->applyViewScale(0.1, false);
 		const QRectF farDots = stationNodeMarkShape({first, second}, StationClass::Station, 240.0, 0.0).boundingRect();
 		const qreal frameHeight = view.viewportTransform().mapRect(rig.mark->mapRectToScene(QRectF(0.0, 0.0, 30.0, 30.0))).height();
-		ok &= expect(!rig.mark->isNearLook() && samePoint(frameAnchorInScene(rig), QPointF(farDots.center().x(), first.y()))
+		ok &= expect(!rig.mark->isNearLook() && samePoint(frameAnchorInScene(rig), (first + second) / 2.0)
 				&& std::abs(frameHeight - 24.0) < 0.01,
-			"the far mark stands on the top centre of the box of the station nodes, 24 pixels high");
+			"the far mark stands on the line between two diagonal station nodes, 24 pixels high");
 		ok &= expect(samePoint(nameAnchorInScene(rig), QPointF(farDots.center().x(), farDots.bottom() + 60.0)),
 			"the name is centred under the dots in the far look, at the x of the mark");
 		const QGraphicsPathItem* area = rig.overlay->areaItem();
@@ -734,7 +734,7 @@ int main(int argc, char* argv[]) {
 		// Back to the far look: the mark and the name return to their places and the area shows again.
 		view.setTransform(QTransform::fromScale(0.1, 0.1));
 		rig.overlay->applyViewScale(0.1, false);
-		ok &= expect(samePoint(frameAnchorInScene(rig), QPointF(farDots.center().x(), first.y()))
+		ok &= expect(samePoint(frameAnchorInScene(rig), (first + second) / 2.0)
 				&& samePoint(nameAnchorInScene(rig), QPointF(farDots.center().x(), farDots.bottom() + 60.0))
 				&& area && area->isVisible(),
 			"the far mark, its name and the area return after the near look");
@@ -744,6 +744,32 @@ int main(int argc, char* argv[]) {
 		rig.node->setVisible(true);
 		rig.overlay->applyViewScale(0.1, false);
 		ok &= expect(area && area->isVisible(), "the area shows again with the mark");
+	}
+
+	{
+		// The far frame stands on the top edge of the hull of the node centres at the x of the middle of the dots: on the
+		// top centre of their box for one node, a row and a stack, and on the area of a diagonal or triangular station.
+		QGraphicsScene scene;
+		struct Shape {
+			QList<QPointF> centres;
+			QPointF foot;
+			const char* message;
+		};
+		const QList<Shape> shapes{
+			{{QPointF(0.0, 0.0)}, QPointF(0.0, 0.0), "the far mark of one node stands on it"},
+			{{QPointF(0.0, 0.0), QPointF(40.0, 0.0), QPointF(80.0, 0.0)}, QPointF(40.0, 0.0),
+				"the far mark of a row of nodes stands on its middle"},
+			{{QPointF(0.0, 40.0), QPointF(0.0, 0.0)}, QPointF(0.0, 0.0), "the far mark of a stack of nodes stands on its top"},
+			{{QPointF(0.0, 0.0), QPointF(0.0, 40.0), QPointF(40.0, 40.0)}, QPointF(20.0, 20.0),
+				"the far mark of a triangle of nodes stands on its upper edge, under the top of their box"},
+			{{QPointF(0.0, 40.0), QPointF(20.0, 0.0), QPointF(80.0, 40.0)}, QPointF(40.0, 40.0 / 3.0),
+				"the far mark stands on the edge of the hull that passes the middle of the box"},
+		};
+		for (const Shape& shape : shapes) {
+			const MarkRig rig = addMarkRig(scene, "Shape", shape.centres);
+			rig.overlay->applyViewScale(0.1, false);
+			ok &= expect(samePoint(frameAnchorInScene(rig), shape.foot), shape.message);
+		}
 	}
 
 	{
