@@ -187,21 +187,16 @@ static SceneModel previewModel() {
 	return scene;
 }
 
-// Whether count platform bars are on the scene and each lies along the line at the station node whose square holds it.
-// A bar is parallel, within half a degree, to the mean of the directions of the segments on both sides of its node, or to
-// the last segment at the end of the line. Its centre is 1.15 square sides from the node on the upper side of the track,
-// or on the left of a vertical track.
+// Whether count platform bars are on the scene, each an item of the scene of its own at z 2, over the squares and the
+// station marks they hold, that lies along the line at a station node. A bar is parallel, within half a degree, to the
+// mean of the directions of the segments on both sides of its node, or to the last segment at the end of the line. Its
+// centre is 1.15 square sides from the node on the upper side of the track, or on the left of a vertical track.
 static bool barsAlong(QGraphicsScene& scene, const TrackPreviewLine& line, int count) {
 	const auto pointAt = [&line](std::size_t index) {
 		return QPointF(line.points[index].x, line.points[index].y + line.displayOffset);
 	};
 	const auto unit = [](const QPointF& vector) { return vector / std::hypot(vector.x(), vector.y()); };
-	int bars = 0;
-	for (QGraphicsItem* item : scene.items()) {
-		const auto* bar = qgraphicsitem_cast<PlatformItem*>(item);
-		const auto* square = bar ? qgraphicsitem_cast<StationNodeItem*>(bar->parentItem()) : nullptr;
-		if (!square)
-			continue;
+	const auto along = [&](const PlatformItem* bar, const StationNodeItem* square) {
 		const QPointF node = square->rect().center();
 		std::size_t index = 1;
 		while (index < line.points.size() && QLineF(pointAt(index), node).length() > 1e-6)
@@ -217,8 +212,20 @@ static bool barsAlong(QGraphicsScene& scene, const TrackPreviewLine& line, int c
 		const QRectF rect = bar->rect();
 		const QLineF axis(bar->mapToScene(QPointF(rect.left(), rect.center().y())),
 			bar->mapToScene(QPointF(rect.right(), rect.center().y())));
-		if (std::fabs(axis.dx() * direction.y() - axis.dy() * direction.x()) > axis.length() * std::sin(qDegreesToRadians(0.5))
-			|| QLineF(bar->mapToScene(rect.center()), node + up * 1.15 * square->rect().width()).length() > 1e-6)
+		return std::fabs(axis.dx() * direction.y() - axis.dy() * direction.x()) <= axis.length() * std::sin(qDegreesToRadians(0.5))
+			&& QLineF(bar->mapToScene(rect.center()), node + up * 1.15 * square->rect().width()).length() <= 1e-6;
+	};
+	QList<const StationNodeItem*> squares;
+	for (QGraphicsItem* item : scene.items())
+		if (const auto* square = qgraphicsitem_cast<StationNodeItem*>(item))
+			squares.append(square);
+	int bars = 0;
+	for (QGraphicsItem* item : scene.items()) {
+		const auto* bar = qgraphicsitem_cast<PlatformItem*>(item);
+		if (!bar)
+			continue;
+		if (bar->parentItem() || bar->zValue() != 2.0
+			|| std::none_of(squares.cbegin(), squares.cend(), [&](const StationNodeItem* square) { return along(bar, square); }))
 			return false;
 		++bars;
 	}
@@ -312,7 +319,7 @@ int main(int argc, char* argv[]) {
 		presenter.showPreview(model, options);
 		ok &= expect(presenter.m_stationDecorations.size() > stationDecorations, "platform bars are added to the station decorations");
 		// B0 runs diagonally and bends at Gdg, its station between Gvc and Ut.
-		ok &= expect(barsAlong(scene, *presenter.trackLine("B0"), 2), "a platform bar lies along its track, on the upper side");
+		ok &= expect(barsAlong(scene, *presenter.trackLine("B0"), 2), "a platform bar is a scene item over the station marks and lies along its track, on the upper side");
 		presenter.clear();
 		// With Ut at the longitude of Gdg the track runs straight up from Gdg to Ut.
 		SceneModel vertical = model;
@@ -323,10 +330,14 @@ int main(int argc, char* argv[]) {
 		bool upright = false;
 		if (const TrackPreviewLine* verticalLine = presenter.trackLine("B0"); verticalLine && !verticalLine->points.empty()) {
 			const QPointF ut(verticalLine->points.back().x, verticalLine->points.back().y + verticalLine->displayOffset);
+			qreal side = 0.0;
+			for (QGraphicsItem* item : scene.items())
+				if (const auto* square = qgraphicsitem_cast<StationNodeItem*>(item); square && QLineF(square->rect().center(), ut).length() < 1e-6)
+					side = square->rect().width();
+			// The bar of Ut is the one within two square sides of it.
 			for (QGraphicsItem* item : scene.items()) {
 				const auto* bar = qgraphicsitem_cast<PlatformItem*>(item);
-				const auto* square = bar ? qgraphicsitem_cast<StationNodeItem*>(bar->parentItem()) : nullptr;
-				if (square && QLineF(square->rect().center(), ut).length() < 1e-6)
+				if (bar && QLineF(bar->mapToScene(bar->rect().center()), ut).length() < 2.0 * side)
 					upright = std::fabs(bar->rotation() - 90.0) < 1e-9 && bar->mapToScene(bar->rect().center()).x() < ut.x();
 			}
 		}

@@ -488,14 +488,16 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				item->setData(PreviewGraphics::StationId, QString::fromStdString(value.stationId));
 				item->setData(PreviewGraphics::PlatformId, QString::fromStdString(value.platformId));
 				if (options.platformBars) {
-					// The square has no position or transform of its own, so the bar is placed by points of the scene.
+					// The bar is placed by points of the scene and, as in the run, is an item of the scene at z 2, so that
+					// it draws over the station mark that a square holds.
 					const auto pointAt = [&line](std::size_t at) {
 						return QPointF(line.points[at].x, line.points[at].y + line.displayOffset);
 					};
-					auto* bar = new PlatformItem(QRectF(-2.5 * size, -0.45 * size, 5 * size, 0.9 * size), square);
+					auto* bar = new PlatformItem(QRectF(-2.5 * size, -0.45 * size, 5 * size, 0.9 * size));
 					placePlatformBar(bar, pointAt(index - 1), pointAt(index), lineEnd ? pointAt(index) : pointAt(index + 1), size);
 					bar->setPen(QPen(Qt::white, 0));
 					bar->setBrush(Qt::white);
+					scene->addItem(bar);
 					m_stationDecorations.push_back(bar);
 					bar->setVisible(m_stationLayerVisible);
 				}
