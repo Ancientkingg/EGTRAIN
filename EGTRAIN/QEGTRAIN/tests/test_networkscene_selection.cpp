@@ -105,8 +105,8 @@ int main(int argc, char* argv[]) {
 
 	{
 		// The dots of the near look cover the station squares. A click on a square picks that square, also when the
-		// mark belongs to the square of another node; a click on a dot beside the squares picks the square that holds
-		// the mark.
+		// mark belongs to the square of another node, and a click in the dot of a track node under a dot picks the node;
+		// a click on a dot beside the squares and nodes picks the square that holds the mark.
 		NetworkScene scene(nullptr);
 		QGraphicsView view(&scene);
 		scaleView(view);
@@ -127,6 +127,13 @@ int main(int argc, char* argv[]) {
 		picked = nullptr;
 		sendLeftClick(scene, view, QPointF(4.0, 20.0));
 		ok &= expect(picked == &anchor, "a click on a dot beside the squares picks the square that holds the mark");
+		NodeItem track(QRectF(2.0, -1.0, 2.0, 2.0));
+		scene.addItem(&track);
+		NodeItem* pickedNode = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem* item) { pickedNode = item; });
+		picked = nullptr;
+		sendLeftClick(scene, view, QPointF(3.0, 0.0));
+		ok &= expect(pickedNode == &track && !picked, "a click in the dot of a track node under the dots picks the node");
 	}
 
 	{
