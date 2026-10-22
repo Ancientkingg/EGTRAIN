@@ -884,12 +884,21 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "stations/signalling", "platform table authoring or station move did not apply");
 				if (!addInfrastructureRow("signals") || !setInfrastructureCell("signals", 0, 0, "e2e-signal"))
 					facetFailure(facetOk, "stations/signalling", "signal table authoring did not apply");
+				// The runtime id of the section of a block, or of the first switch section of a connection. The section
+				// choices show labels and keep these ids as their data.
+				const auto sectionIdOf = [&](const std::string& blockId, const std::string& connectionId = std::string()) {
+					for (const SceneSectionDescriptor& section :
+						buildSceneSectionInventory(w.m_document->mutableModel()).sections)
+						if (connectionId.empty() ? section.sourceBlockId == blockId
+												 : section.sourceConnectionId == connectionId)
+							return QString::fromStdString(section.id);
+					return QString();
+				};
 				if (!chooseInfrastructureFacet("signals")) {
 					facetFailure(facetOk, "stations/signalling", "signal section choices were unavailable");
 				} else {
 					auto* protectedSection = qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 1));
-					const int blockChoice = protectedSection ? protectedSection->findText(
-																   QStringLiteral("base block e2e-main-block-inserted / track e2e-main"))
+					const int blockChoice = protectedSection ? protectedSection->findData(sectionIdOf("e2e-main-block-inserted"))
 															 : -1;
 					if (blockChoice < 0) {
 						facetFailure(facetOk, "stations/signalling", "creator-facing signal section choice was missing");
@@ -1061,19 +1070,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					auto* routeRemoveSection = w.findChild<QPushButton*>("routeRemoveSectionButton");
 					auto* routeMoveUp = w.findChild<QPushButton*>("routeMoveUpButton");
 					auto* routeMoveDown = w.findChild<QPushButton*>("routeMoveDownButton");
-					const int mainChoice = routeCatalog ? routeCatalog->findText(
-															  QStringLiteral("base block e2e-main-block-0 / track e2e-main"))
+					const int mainChoice = routeCatalog ? routeCatalog->findData(sectionIdOf("e2e-main-block-0"))
 														: -1;
-					const int yardChoice = routeCatalog ? routeCatalog->findText(
-															  QStringLiteral("base block e2e-yard-block-2 / track e2e-yard"))
+					const int yardChoice = routeCatalog ? routeCatalog->findData(sectionIdOf("e2e-yard-block-2"))
 														: -1;
-					int connectionChoice = -1;
-					if (routeCatalog)
-						for (int index = 0; index < routeCatalog->count(); ++index)
-							if (routeCatalog->itemText(index).startsWith("connection e2e-switch /")) {
-								connectionChoice = index;
-								break;
-							}
+					const int connectionChoice = routeCatalog ? routeCatalog->findData(sectionIdOf({}, "e2e-switch")) : -1;
 					if (!routeCatalog || !routeAddSection || !routeList || !routeRemoveSection
 						|| !routeMoveUp || !routeMoveDown || mainChoice < 0 || connectionChoice < 0
 						|| yardChoice < 0) {
@@ -1109,7 +1110,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 				}
 				const auto selectSectionCell = [&](const char* facet, int row, int column,
-												   const QString& preferredPrefix = QString()) {
+												   const QString& preferredId = QString()) {
 					if (!chooseInfrastructureFacet(facet))
 						return QString();
 					auto* combo = qobject_cast<QComboBox*>(infrastructureTable->cellWidget(row, column));
@@ -1118,7 +1119,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					int choice = -1;
 					for (int index = 0; index < combo->count(); ++index) {
 						if (!combo->itemData(index).toString().isEmpty()
-							&& (preferredPrefix.isEmpty() || combo->itemText(index).startsWith(preferredPrefix))) {
+							&& (preferredId.isEmpty() || combo->itemData(index).toString() == preferredId)) {
 							choice = index;
 							break;
 						}
@@ -1141,9 +1142,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "stations/signalling", "dependency row add/delete cycle failed");
 				}
 				const QString dependencyBlock = selectSectionCell("block_dependencies", 0, 0,
-					"connection e2e-switch /");
+					sectionIdOf({}, "e2e-switch"));
 				const QString dependencyDependsOn = selectSectionCell("block_dependencies", 0, 1,
-					"base block e2e-main-block-inserted / track e2e-main");
+					sectionIdOf("e2e-main-block-inserted"));
 				if (dependencyBlock.isEmpty() || dependencyDependsOn.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "dependency selectors did not expose catalog choices");
 				if (!recreateIncompleteRow("single_track_restrictions",
@@ -1151,22 +1152,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "stations/signalling", "restriction row add/delete cycle failed");
 				}
 				const QString restrictionStart = selectSectionCell("single_track_restrictions", 0, 0,
-					"base block e2e-main-block-inserted / track e2e-main");
+					sectionIdOf("e2e-main-block-inserted"));
 				const QString restrictionEnd = selectSectionCell("single_track_restrictions", 0, 1,
-					"base block e2e-yard-block-2 / track e2e-yard");
+					sectionIdOf("e2e-yard-block-2"));
 				const QString restrictionProtectedStart = selectSectionCell("single_track_restrictions", 0, 2,
-					"connection e2e-switch /");
+					sectionIdOf({}, "e2e-switch"));
 				const QString restrictionProtectedEnd = selectSectionCell("single_track_restrictions", 0, 3,
-					"base block e2e-yard-block-2 / track e2e-yard");
+					sectionIdOf("e2e-yard-block-2"));
 				if (restrictionStart.isEmpty() || restrictionEnd.isEmpty() || restrictionProtectedStart.isEmpty() || restrictionProtectedEnd.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "restriction selectors did not expose catalog choices");
 				if (!recreateIncompleteRow("station_boundaries", w.m_document->mutableModel().stationBoundaries)) {
 					facetFailure(facetOk, "stations/signalling", "boundary row add/delete cycle failed");
 				}
 				const QString boundaryEntrance = selectSectionCell("station_boundaries", 0, 0,
-					"base block e2e-main-block-inserted / track e2e-main");
+					sectionIdOf("e2e-main-block-inserted"));
 				const QString boundaryExit = selectSectionCell("station_boundaries", 0, 1,
-					"base block e2e-yard-block-2 / track e2e-yard");
+					sectionIdOf("e2e-yard-block-2"));
 				if (!setInfrastructureCell("station_boundaries", 0, 2, "false")
 					|| boundaryEntrance.isEmpty() || boundaryExit.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "boundary selectors did not expose entrance and exit choices");
@@ -1282,10 +1283,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (w.m_addIncidentButton && w.m_incidentListWidget && w.m_incidentTargetCombo) {
 					w.m_addIncidentButton->click();
 					QApplication::processEvents();
-					if (w.m_incidentTargetCombo->findText("e2e-signal") < 0)
+					if (w.m_incidentTargetCombo->findData("e2e-signal") < 0)
 						facetFailure(facetOk, "stations/signalling", "signal incident target choices did not refresh immediately");
 					else {
-						w.m_incidentTargetCombo->setCurrentText("e2e-signal");
+						w.m_incidentTargetCombo->setCurrentIndex(w.m_incidentTargetCombo->findData("e2e-signal"));
 						if (w.m_incidentStartSecondsEdit && w.m_incidentEndSecondsEdit) {
 							w.m_incidentStartSecondsEdit->setText("10");
 							w.m_incidentEndSecondsEdit->setText("20");
@@ -1300,11 +1301,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					w.m_addIncidentButton->click();
 					QApplication::processEvents();
 					const bool blockTargetOffered = w.m_incidentTargetCombo
-						&& w.m_incidentTargetCombo->findText(QString::fromStdString(renamedBlockId)) >= 0;
+						&& w.m_incidentTargetCombo->findData(QString::fromStdString(renamedBlockId)) >= 0;
 					if (!blockTargetOffered) {
 						facetFailure(facetOk, "stations/signalling", "block signal_failure target was not offered");
 					} else {
-						w.m_incidentTargetCombo->setCurrentText(QString::fromStdString(renamedBlockId));
+						w.m_incidentTargetCombo->setCurrentIndex(
+							w.m_incidentTargetCombo->findData(QString::fromStdString(renamedBlockId)));
 						w.m_incidentPanel->commitTarget();
 						const SceneIncident* blockIncident = w.m_incidentPanel->selectedIncident();
 						if (!blockIncident || blockIncident->target != renamedBlockId)

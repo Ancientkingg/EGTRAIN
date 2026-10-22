@@ -3,6 +3,7 @@
 
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "scene/SectionLabels.h"
 
 #include <map>
 #include <string>
@@ -29,6 +30,7 @@ struct BlockingTimeScopeChoices {
 	std::vector<Route> routes;
 	double caseEndSeconds = 0.0;
 	double stepSeconds = 1.0;
+	SceneSectionLabels sectionLabels; ///< Names the blocks in the lists; the id is the tooltip of each entry
 };
 
 const char* blockingSegmentTypeName(BlockingTimeSegmentStyle style);

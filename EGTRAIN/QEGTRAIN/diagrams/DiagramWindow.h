@@ -94,8 +94,9 @@ public:
 		const QString& suggestedFileName, const QStringList& trainIds = {});
 	/// Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A
 	/// chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears
-	/// it.
-	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId);
+	/// it. `labels` names the sections in the strip, with the id in the hover text; without it the strip shows the ids.
+	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId,
+		const SceneSectionLabels* labels = nullptr);
 	/// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
 	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
 	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a

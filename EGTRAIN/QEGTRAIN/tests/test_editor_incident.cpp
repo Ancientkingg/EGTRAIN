@@ -795,12 +795,43 @@ int main(int argc, char** argv) {
 			"a long target is cut with an ellipsis in a narrow panel");
 		// The tip of the target says what the type takes as its target, below the current target.
 		const QString trainTip = panel.targetCombo()->toolTip();
-		ok &= expect(trainTip.contains("train") && shownTip(panel.targetCombo()) == panel.targetCombo()->currentText() + "\n" + trainTip,
-			"the tip of the target of a breakdown names a train, below the current target");
+		ok &= expect(trainTip.contains("train")
+				&& shownTip(panel.targetCombo())
+					== panel.targetCombo()->currentText() + "\n" + panel.targetCombo()->currentData(Qt::ToolTipRole).toString() + "\n" + trainTip,
+			"the tip of the target of a breakdown names a train, below the current target and its identity");
 		panel.listWidget()->setCurrentRow(0);
 		const QString signalTip = panel.targetCombo()->toolTip();
 		ok &= expect(!signalTip.isEmpty() && !signalTip.contains("service", Qt::CaseInsensitive) && !signalTip.contains("train", Qt::CaseInsensitive),
 			"the tip of the target of a signal failure names no service or train");
+	}
+
+	// A signal failure names its targets by the labels of their sections and keeps their ids.
+	{
+		SceneModel scene = incidentScene();
+		scene.tracks = {{"T1"}};
+		scene.nodes = {{"n1", "T1", 0.0, 0.0}, {"n2", "T1", 2.0, 0.0}};
+		scene.arcs = {{"a1", "T1", "n1", "n2", 0.0, 0.0, 20.0}};
+		scene.blocks = {{"blk1", "T1", 1.0}, {"s2", "T1", 1.0}};
+		sceneSignals(scene)[0].protectedSection = "blk1";
+		SceneDocument document;
+		IncidentPanel panel;
+		FakePrompts prompts;
+		RunSelection selection;
+		panel.setPrompts(&prompts);
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		selection.selectScenario("base");
+		panel.refresh();
+		panel.listWidget()->setCurrentRow(0);
+		const QComboBox* target = panel.targetCombo();
+		ok &= expect(choices(target) == QStringList({"Choose target", "sig1 (T1 0.000 to 1.000 km)", "T1 0.000 to 1.000 km", "T1 1.000 to 2.000 km"})
+				&& target->currentIndex() == 1 && target->itemData(1, Qt::ToolTipRole).toString() == "sig1"
+				&& target->itemData(2).toString() == "blk1" && target->itemData(2, Qt::ToolTipRole).toString() == "blk1",
+			"the targets of a signal failure are named by their labels, with the id as data and tooltip");
+		panel.targetCombo()->setCurrentIndex(3);
+		ok &= expect(document.model().scenarios[0].incidents[0].target == "s2" && panel.targetCombo()->currentText() == "T1 1.000 to 2.000 km",
+			"a block chosen by its label is saved by its id");
 	}
 
 	if (!ok)

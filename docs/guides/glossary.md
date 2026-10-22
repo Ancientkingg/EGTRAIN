@@ -164,6 +164,21 @@ The dock **Infrastructure** (**Editors > Infrastructure**) has a chooser **Entit
 
 A section is the unit of signalling at run time: a block of one track, or a switch section that a connection builds from two blocks. It is not stored in the case, because the program derives it from tracks, blocks, arcs and connections. A section has a signalling level or none, a code and a state, and the validation warning `scene.signalling.level.missing` names route sections that have no level ([what a signalling level is](signalling-levels.md#what-a-signalling-level-is), [block sections](signalling-levels.md#signalling-areas-block-sections-and-capacity-areas)).
 
+### Ids and labels
+
+The scene names tracks, blocks and sections by ids. Where the program lists or names a section, it shows a label that it derives from the layout instead.
+
+| Name | Example | What it is |
+| --- | --- | --- |
+| Track id | `B0` | The `id` of a track in `infrastructure.json`. An imported case calls its tracks `B` and the number of the legacy folder. |
+| Block id | `0-B0` | The `id` of a block. An imported block is named by its row in the legacy file, counted from 0, and its track. A block that the editor adds is called `block`, `block_2` and so on. |
+| Block section id | `@0-B0@` | The block id between `@` signs. The run and the exports name a block section by this id; routes and incident targets may name it by its block id. |
+| Switch section id | `@71-B0@-21.235000/@0-B1@-21.252000` | The two blocks that hold the nodes of a connection, each followed by `-` and the kilometre of its node. The `-` is a separator, not a minus sign: this is block 71 of track B0 up to the node at 21.235 km, then block 0 of track B1 from the node at 21.252 km. |
+| Label | `B0 0.000 to 0.230 km`, `B0 21.010 to 21.235, B1 21.252 to 21.450 km` | The track and the kilometres of the two ends of a block section, or the piece on each track of a switch section, with three decimals. |
+| Runtime track number | `0` | The number that a run gives a track: its place in the list of track ids sorted as text. **Signalling Info** shows it as **Track ID** and **Next track**. It matches the digits of the track id only in scenes with at most ten tracks: in Netherlands, B10 is track 2. |
+
+The section choices of the dock **Infrastructure**, the **Target** list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.
+
 ### Signalling area
 
 A signalling area is a range along a track that gives the sections inside it their signalling level: `signalling_areas[]` in `signalling.json` with `id`, `start_km`, `end_km`, `level` and an optional `track`. A section belongs to an area only when it lies wholly inside; an area without a track applies to every track, an area with a track applies to that track and takes precedence, and a section that no area contains has no level. The positions are chainage, the `x_km` values along the track of the section, and are not converted between tracks. You meet it in the dock **Infrastructure**, entity **Signalling area** ([how an area gives sections their level](signalling-levels.md#how-an-area-gives-sections-their-level)).

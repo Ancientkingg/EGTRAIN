@@ -113,8 +113,10 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const CompletedRunData& data,
 	const CapacityAnalysisScope& scope, const CapacityAnalysisResult& result);
 
-/// The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ".
-std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence);
+/// The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ". With `labels`
+/// the blocks are named by their labels, "leader / follower", for the tooltips of the window; the export names them by
+/// their ids.
+std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels = nullptr);
 /// The capacity CSV of the result, with times in seconds and the cycle share in percent. Empty when the result cannot
 /// be analysed or has no cycle time or no cycle share.
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel);

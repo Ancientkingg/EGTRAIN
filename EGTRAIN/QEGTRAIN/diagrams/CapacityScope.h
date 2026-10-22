@@ -43,8 +43,11 @@ CapacityAnalysisScope capacityStretchFrom(const CompletedRunData& data, int rout
 /// The trains, in run order, that occupy the first block, in route and block order, that at least two trains occupy,
 /// and the section of its route that capacityStretchFrom gives for them. A scope without a route when there is none.
 CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& data);
-/// "route / corridor / first block to last block" without the parts the scope lacks, or "no selected route".
+/// "route / corridor / first block to last block" without the parts the scope lacks, or "no selected route". The blocks
+/// are named by their ids, as the Section column of the capacity export holds them.
 QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+/// As capacityScopeLabelFrom, for the windows: the blocks are named by their labels, "first through last".
+QString capacityScopeTextFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
 
 /// Asks for a route, a period, the occurrences to analyse in order, the occurrence that closes the cycle and one of the
 /// sections that capacityStretchesFrom gives for the checked occurrences. The longest section is selected; after a

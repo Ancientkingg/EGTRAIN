@@ -4,6 +4,7 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RunResults.h"
+#include "scene/SectionLabels.h"
 #include "util/TrajectoryUtil.h"
 
 #include <algorithm>
@@ -113,6 +114,7 @@ struct CompletedRunData {
 	RunResults results;						   ///< Run Results table
 	std::vector<TimetableResultRow> timetable; ///< Planned and simulated times of every stop
 	RunProvenance provenance;				   ///< Inputs and settings of the run, for the export sidecars
+	SceneSectionLabels sectionLabels;		   ///< Labels of the sections of the scene that was run, for the windows
 
 	/// True when routeIndex indexes routes.
 	bool hasRoute(int routeIndex) const { return routeIndex >= 0 && routeIndex < static_cast<int>(routes.size()); }
@@ -123,7 +125,8 @@ RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene);
 /// The block sections of the route in route order, with their ends in km.
 std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route);
 
-/// Copies the finished run out of the simulation. The scene gives the route nodes their station names and may be null.
+/// Copies the finished run out of the simulation. The scene gives the route nodes their station names and the sections
+/// their labels, and may be null.
 /// `startOffsetSeconds` is the clock time of second 0, in seconds since midnight.
 CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel* scene, long long startOffsetSeconds,
 	const RunProvenance& provenance);

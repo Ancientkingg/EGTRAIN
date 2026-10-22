@@ -634,9 +634,10 @@ int main(int argc, char** argv) {
 				&& panel.guidanceLabel()->text() == "Select a route to edit its ordered sections below.",
 			"routes are listed with their guidance, and the sections are shown");
 		const QStringList catalog = choices(panel.routeSectionCatalogCombo());
-		ok &= expect(catalog.size() == 3 && catalog[0] == "base block b1 / track T1" && catalog[2] == "base block b3 / track T2"
-				&& panel.routeSectionCatalogCombo()->itemData(0).toString() == "@b1@",
-			"the catalog names every section of the scene by its block");
+		ok &= expect(catalog.size() == 3 && catalog[0] == "T1 0.000 to 1.000 km" && catalog[2] == "T2 0.000 to 1.000 km"
+				&& panel.routeSectionCatalogCombo()->itemData(0).toString() == "@b1@"
+				&& panel.routeSectionCatalogCombo()->itemData(0, Qt::ToolTipRole).toString() == "@b1@",
+			"the catalog names every section of the scene by its label, with its id as data and tooltip");
 		ok &= expect(panel.routeSectionListWidget()->count() == 0 && !panel.routeSectionListWidget()->isEnabled()
 				&& !panel.addRouteSectionButton()->isEnabled() && !panel.removeRouteSectionButton()->isEnabled()
 				&& !panel.routeSectionCatalogCombo()->isEnabled(),
@@ -644,7 +645,8 @@ int main(int argc, char** argv) {
 
 		panel.table()->setCurrentCell(0, 0);
 		ok &= expect(items(panel.routeSectionListWidget())
-					== QStringList({"base block b1 / track T1 (legacy: b1)", "base block b2 / track T1 (legacy: b2)"})
+					== QStringList({"T1 0.000 to 1.000 km (legacy: b1)", "T1 1.000 to 2.000 km (legacy: b2)"})
+				&& panel.routeSectionListWidget()->item(1)->toolTip() == "b2"
 				&& panel.routeSectionListWidget()->currentRow() == 0 && panel.routeSectionListWidget()->isEnabled()
 				&& panel.routeSectionCatalogCombo()->isEnabled() && panel.addRouteSectionButton()->isEnabled()
 				&& panel.removeRouteSectionButton()->isEnabled() && !panel.moveRouteSectionUpButton()->isEnabled()
@@ -656,18 +658,20 @@ int main(int argc, char** argv) {
 
 		panel.table()->setCurrentCell(1, 0);
 		ok &= expect(items(panel.routeSectionListWidget())
-				== QStringList({"base block b1 / track T1 (legacy: b1)", "Invalid: missing"}),
+					== QStringList({"T1 0.000 to 1.000 km (legacy: b1)", "Invalid: missing"})
+				&& panel.routeSectionListWidget()->item(1)->toolTip() == "missing",
 			"a section that the scene does not have is listed as invalid");
 
 		chooseFacet(panel, "tracks");
 		ok &= expect(panel.routeSectionDetailWidget()->isHidden(), "the sections of a route go with routes");
 
 		SceneSectionDescriptor connection;
+		connection.id = "@b1@-1.000000/@b3@-0.000000";
 		connection.connectionDerived = true;
-		connection.sourceConnectionId = "c1";
-		connection.firstBlockId = "b1";
-		connection.secondBlockId = "b3";
-		ok &= expect(InfrastructurePanel::sectionLabel(connection) == "connection c1 / b1 -> b3", "a section of a connection is named by its blocks");
+		SceneSectionLabels labels;
+		labels.byReference[connection.id] = "T1 1.000, T2 0.000 km";
+		ok &= expect(InfrastructurePanel::sectionLabel(labels, connection) == "T1 1.000, T2 0.000 km",
+			"a section of a connection is named by its label");
 	}
 
 	// The layout: the combo on top, the buttons under the table, and the sections of a route below it in a splitter

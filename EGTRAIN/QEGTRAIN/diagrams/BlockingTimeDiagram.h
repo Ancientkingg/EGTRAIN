@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+struct SceneSectionLabels;
+
 constexpr double kBlockingTimeToleranceSeconds = 1e-7;
 
 enum class BlockingTimeSegmentStyle {
@@ -130,8 +132,10 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 
 // Exact id/interval matches take precedence over overlapping shared resources. Several candidates
 // are ambiguous, never first-match. Every call clears stale fields, including locations/empty routes.
+// The notes name a section by its label and id when `labels` is given, else by its id.
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId);
+	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId,
+	const SceneSectionLabels* labels = nullptr);
 
 // Scope uses zero-based route indices, not ids; selected extents keep their original route order.
 std::vector<BlockSectionExtent> scopedBlockSectionExtents(const std::vector<BlockSectionExtent>& extents,
@@ -164,7 +168,7 @@ inline constexpr char kUnmappedEnvelopeLayer[] = "unmapped blocking envelope";
 std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<BlockSectionExtent>& extents);
 
 // Sentence for the chart note that lists the sections without a usable extent, starting with a
-// space; empty when every extent is usable.
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents);
+// space; empty when every extent is usable. A section is named by its label and id when `labels` is given.
+std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents, const SceneSectionLabels* labels = nullptr);
 
 #endif // BLOCKINGTIMEDIAGRAM_H

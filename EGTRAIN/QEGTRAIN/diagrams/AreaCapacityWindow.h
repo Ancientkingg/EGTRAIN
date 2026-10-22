@@ -39,8 +39,10 @@ struct AreaCapacityScope {
 /// other train of the run as other traffic. Occupations are passed as the run holds them, so that the
 /// analysis reports the unusable ones.
 AreaCapacityInput areaCapacityInputFrom(const CompletedRunData& data, const AreaCapacityScope& scope);
-/// The route and block range of the scope, as the window and the export name the area.
+/// The route and block range of the scope by block ids, as the export names the area.
 QString areaCapacityLabel(const CompletedRunData& data, const AreaCapacityScope& scope);
+/// The route and block range of the scope by the labels of the blocks, as the window names the area.
+QString areaCapacityText(const CompletedRunData& data, const AreaCapacityScope& scope);
 
 /// The words of the window and of area_capacity.csv for a note: a short name of the kind, such as "Invalid period".
 QString areaCapacityStatusName(AreaCapacityNoteKind kind);
@@ -85,9 +87,10 @@ private:
 /// The result window. Not modal. It holds the result and the run identity, not the run, so it can outlive the run.
 class AreaCapacityWindow : public QDialog {
 public:
-	/// Shows `result` for the area named `areaLabel`. `provenance` goes into the export sidecar.
+	/// Shows `result` for the area named `areaLabel` in the export. `provenance` goes into the export sidecar. The window
+	/// names the area `areaText`, or `areaLabel` when it is empty, and gives the resources their labels in `labels`.
 	AreaCapacityWindow(AreaCapacityResult result, const QString& areaLabel, RunProvenance provenance,
-		QWidget* parent = nullptr);
+		QWidget* parent = nullptr, const QString& areaText = QString(), const SceneSectionLabels& labels = SceneSectionLabels());
 	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
 	/// Writes area_capacity.csv and the provenance sidecar. False when the result has no resource row or a write fails.

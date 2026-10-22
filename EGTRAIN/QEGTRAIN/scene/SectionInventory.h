@@ -2,6 +2,7 @@
 #define SCENE_SECTION_INVENTORY_H
 
 #include "scene/SceneModel.h"
+#include "scene/SectionLabels.h"
 #include "scene/SignallingLevelNames.h"
 
 #include <cstddef>
@@ -199,5 +200,14 @@ std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scen
 	const SceneService& service, const SceneRouteTraversal& traversal);
 /// A chainage in kilometres as printf "%f" writes it, the form used in switch section ids.
 std::string formatSceneSectionCoordinate(double coordinate);
+
+/// What a person reads for a section: "B0 21.010 to 21.310 km" for a block section, or the piece on each
+/// track, "B0 21.010 to 21.235, B1 21.252 to 21.450 km", for a switch section. A piece of a switch section
+/// whose two ends round to the same value shows that value once. Kilometres have three decimals and a full
+/// stop in every locale.
+std::string sceneSectionLabel(const SceneSectionDescriptor& section);
+
+/// The labels of the sections of the inventory (see SceneSectionLabels).
+SceneSectionLabels sceneSectionLabels(const SceneSectionInventory& inventory);
 
 #endif // SCENE_SECTION_INVENTORY_H

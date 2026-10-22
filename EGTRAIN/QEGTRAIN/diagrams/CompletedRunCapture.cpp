@@ -3,6 +3,7 @@
 #include "diagrams/SimulationHeaders.h"
 #include "simulation/SimulationRun.h"
 #include "scene/SceneModel.h"
+#include "scene/SectionInventory.h"
 
 #include <algorithm>
 #include <cmath>
@@ -231,6 +232,8 @@ CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel*
 	data.settings.startOffsetSeconds = startOffsetSeconds;
 	data.settings.caseName = provenance.caseName;
 	data.provenance = provenance;
+	if (scene)
+		data.sectionLabels = sceneSectionLabels(buildSceneSectionInventory(*scene));
 
 	const std::vector<const Train*> trains = runResultTrainPointers(run);
 	data.results = buildRunResults(trains, timestep);
