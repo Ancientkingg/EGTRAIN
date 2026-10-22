@@ -150,6 +150,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a860d558ebb39a1e5ec74067f697786ec" id="r_a860d558ebb39a1e5ec74067f697786ec"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a860d558ebb39a1e5ec74067f697786ec">refreshTargets</a> ()</td></tr>
 <tr class="memdesc:a860d558ebb39a1e5ec74067f697786ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the choices of targets of the selected incident again.  <br /></td></tr>
 <tr class="memitem:ad708b037b2f86f3a7531006321b1e9a8" id="r_ad708b037b2f86f3a7531006321b1e9a8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad708b037b2f86f3a7531006321b1e9a8">addIncident</a> ()</td></tr>
+<tr class="memitem:aa9752164dab9dce2fdc97e660a2369c4" id="r_aa9752164dab9dce2fdc97e660a2369c4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa9752164dab9dce2fdc97e660a2369c4">addIncident</a> (const <a class="el" href="struct_incident_target.html">IncidentTarget</a> &amp;target)</td></tr>
 <tr class="memitem:af82ac9717826363be48b353e3a0a04c4" id="r_af82ac9717826363be48b353e3a0a04c4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af82ac9717826363be48b353e3a0a04c4">duplicateIncident</a> ()</td></tr>
 <tr class="memdesc:af82ac9717826363be48b353e3a0a04c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a copy of the selected incident, with a new unique id, after it.  <br /></td></tr>
 <tr class="memitem:a1917aff18f1a9554c46c66e2315b2d82" id="r_a1917aff18f1a9554c46c66e2315b2d82"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1917aff18f1a9554c46c66e2315b2d82">deleteIncident</a> ()</td></tr>
@@ -240,7 +241,7 @@ Protected Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_incident_panel_aa7d1f51043cdf8360b017cdf025af07e_cgraph.svg" width="2106" height="1168"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_incident_panel_aa7d1f51043cdf8360b017cdf025af07e_cgraph.svg" width="2106" height="1131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -274,7 +275,7 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a id="ad708b037b2f86f3a7531006321b1e9a8" name="ad708b037b2f86f3a7531006321b1e9a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad708b037b2f86f3a7531006321b1e9a8">&#9670;&#160;</a></span>addIncident()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad708b037b2f86f3a7531006321b1e9a8">&#9670;&#160;</a></span>addIncident() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -291,7 +292,30 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_incident_panel_ad708b037b2f86f3a7531006321b1e9a8_cgraph.svg" width="1760" height="424"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_incident_panel_ad708b037b2f86f3a7531006321b1e9a8_cgraph.svg" width="447" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aa9752164dab9dce2fdc97e660a2369c4" name="aa9752164dab9dce2fdc97e660a2369c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9752164dab9dce2fdc97e660a2369c4">&#9670;&#160;</a></span>addIncident() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool IncidentPanel::addIncident </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_incident_target.html">IncidentTarget</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>target</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Appends and selects an incident as <a class="el" href="#ad708b037b2f86f3a7531006321b1e9a8">addIncident()</a> does, with this target and its type instead of the one of <a class="el" href="#a1d2520d416c463986a2c2079f37608ee">setDefaultTarget()</a>. False, and nothing changes, when no incident can be added or the combo does not offer the target. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_incident_panel_aa9752164dab9dce2fdc97e660a2369c4_cgraph.svg" width="447" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

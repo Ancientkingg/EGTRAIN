@@ -3,6 +3,7 @@ var class_incident_panel =
     [ "IncidentPanel", "class_incident_panel.html#aa7d1f51043cdf8360b017cdf025af07e", null ],
     [ "addButton", "class_incident_panel.html#a686bf6d1cd8048e65495ff1e53789fb2", null ],
     [ "addIncident", "class_incident_panel.html#ad708b037b2f86f3a7531006321b1e9a8", null ],
+    [ "addIncident", "class_incident_panel.html#aa9752164dab9dce2fdc97e660a2369c4", null ],
     [ "applyTarget", "class_incident_panel.html#aa2dc8652aa7e706ff94668987c3a600f", null ],
     [ "commitEndSeconds", "class_incident_panel.html#a2df1e4fda22d62d9d2be2f4e8e4c73b6", null ],
     [ "commitHasEndSeconds", "class_incident_panel.html#a3d91cb4fc9226ec4427c46c8a432fb15", null ],

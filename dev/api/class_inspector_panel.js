@@ -17,12 +17,14 @@ var class_inspector_panel =
     [ "dock", "class_inspector_panel.html#aabe6e0307ce74101ed993b16c0d454e8", null ],
     [ "handleCloseInfoDockWidget", "class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df", null ],
     [ "handleDisableHighlight", "class_inspector_panel.html#adaa566081ff6821ac1fb51c12e265d3a", null ],
+    [ "incidentRequested", "class_inspector_panel.html#aa80fff5a89b2adde1c73122ce6611a88", null ],
     [ "previewSelectionId", "class_inspector_panel.html#a6971d4b3836c29633e0238df4fe481f5", null ],
     [ "previewSelectionKind", "class_inspector_panel.html#a79032debffa74de514c2523e5ca0b295", null ],
     [ "refreshInspectedSignal", "class_inspector_panel.html#a1c228f1b0177d21df567b8a2e07bf0e1", null ],
     [ "resolvePreviewItem", "class_inspector_panel.html#a67a007ec5ee5574d0fed91f11e9f71f5", null ],
     [ "selectedTrainIndex", "class_inspector_panel.html#a02bd5bbe9b096cf801424032ea1219fc", null ],
     [ "selectsStationOverlay", "class_inspector_panel.html#aa7ee083994ac6f6cd244f6cfd9789bd4", null ],
+    [ "showIncidentAction", "class_inspector_panel.html#a415535aadc494175b5e7d5d35f660e04", null ],
     [ "to_string_precision", "class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b", null ],
     [ "MainWindowTestAccess", "class_inspector_panel.html#a07d58747d59f49d1ff6b222687ecbf39", null ]
 ];

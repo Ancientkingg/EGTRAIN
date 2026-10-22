@@ -150,6 +150,11 @@ Public Slots</h2></td></tr>
 <tr class="memitem:adaa566081ff6821ac1fb51c12e265d3a" id="r_adaa566081ff6821ac1fb51c12e265d3a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adaa566081ff6821ac1fb51c12e265d3a">handleDisableHighlight</a> ()</td></tr>
 <tr class="memdesc:adaa566081ff6821ac1fb51c12e265d3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does what handleCloseInfoDockWidget does and hides the dock.  <br /></td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
+Signals</h2></td></tr>
+<tr class="memitem:aa80fff5a89b2adde1c73122ce6611a88" id="r_aa80fff5a89b2adde1c73122ce6611a88"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa80fff5a89b2adde1c73122ce6611a88">incidentRequested</a> ()</td></tr>
+<tr class="memdesc:aa80fff5a89b2adde1c73122ce6611a88"><td class="mdescLeft">&#160;</td><td class="mdescRight">The button that adds an incident was clicked.  <br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a213e1873baec2f8501fe85ac610f69d2" id="r_a213e1873baec2f8501fe85ac610f69d2"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a213e1873baec2f8501fe85ac610f69d2">InspectorPanel</a> (QMainWindow *window, QGraphicsScene *scene, <a class="el" href="class_network_presenter.html">NetworkPresenter</a> &amp;presenter, <a class="el" href="class_inspector_panel_1_1_host.html">Host</a> &amp;host)</td></tr>
@@ -171,6 +176,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a67a007ec5ee5574d0fed91f11e9f71f5" id="r_a67a007ec5ee5574d0fed91f11e9f71f5"><td class="memItemLeft">QGraphicsItem *&#160;</td><td class="memItemRight"><a class="el" href="#a67a007ec5ee5574d0fed91f11e9f71f5">resolvePreviewItem</a> (const QString &amp;kind, const QString &amp;id, const QString &amp;track, bool reversed, quint64 revision) const</td></tr>
 <tr class="memitem:a7a5fe31a4b6297e89acad9fe507f0e30" id="r_a7a5fe31a4b6297e89acad9fe507f0e30"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7a5fe31a4b6297e89acad9fe507f0e30">displayTrainDetails</a> (<a class="el" href="class_train_body_item.html">TrainBodyItem</a> *trainItem, bool changeFollowMode)</td></tr>
 <tr class="memdesc:a7a5fe31a4b6297e89acad9fe507f0e30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the train and, when changeFollowMode is set, follows it.  <br /></td></tr>
+<tr class="memitem:a415535aadc494175b5e7d5d35f660e04" id="r_a415535aadc494175b5e7d5d35f660e04"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a415535aadc494175b5e7d5d35f660e04">showIncidentAction</a> (const QString &amp;text, const QString &amp;blocked)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -182,7 +188,7 @@ Friends</h2></td></tr>
 <tr class="memitem:a07d58747d59f49d1ff6b222687ecbf39" id="r_a07d58747d59f49d1ff6b222687ecbf39"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a07d58747d59f49d1ff6b222687ecbf39">MainWindowTestAccess</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The inspector dock, titled after the selected item. It has one form for each kind of item that the user can select on the canvas: a node, an arc, a connection, a signal and a train. Selecting an item shows its form, fills it in and puts a highlight on the item. Before a run the items are the ones of the track preview, which the form fills in from the scene. During and after a run the items belong to the run and the form fills in from them. The panel keeps what is selected, so that the window can mark the station overlay and the train of the selection. </p>
+<div class="textblock"><p>The inspector dock, titled after the selected item. It has one form for each kind of item that the user can select on the canvas: a node, an arc, a connection, a signal and a train. Selecting an item shows its form, fills it in and puts a highlight on the item. Under the form of a signal or a train the window can show a button that adds an incident for it. Before a run the items are the ones of the track preview, which the form fills in from the scene. During and after a run the items belong to the run and the form fills in from them. The panel keeps what is selected, so that the window can mark the station overlay and the train of the selection. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a213e1873baec2f8501fe85ac610f69d2" name="a213e1873baec2f8501fe85ac610f69d2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a213e1873baec2f8501fe85ac610f69d2">&#9670;&#160;</a></span>InspectorPanel()</h2>
@@ -216,7 +222,7 @@ Friends</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_a213e1873baec2f8501fe85ac610f69d2_cgraph.svg" width="674" height="239"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_a213e1873baec2f8501fe85ac610f69d2_cgraph.svg" width="1530" height="830"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -650,6 +656,38 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="aa80fff5a89b2adde1c73122ce6611a88" name="aa80fff5a89b2adde1c73122ce6611a88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa80fff5a89b2adde1c73122ce6611a88">&#9670;&#160;</a></span>incidentRequested</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InspectorPanel::incidentRequested </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The button that adds an incident was clicked. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_aa80fff5a89b2adde1c73122ce6611a88_cgraph.svg" width="1282" height="807"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a6971d4b3836c29633e0238df4fe481f5" name="a6971d4b3836c29633e0238df4fe481f5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6971d4b3836c29633e0238df4fe481f5">&#9670;&#160;</a></span>previewSelectionId()</h2>
 
@@ -811,6 +849,28 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_aa7ee083994ac6f6cd244f6cfd9789bd4_cgraph.svg" width="456" height="179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a415535aadc494175b5e7d5d35f660e04" name="a415535aadc494175b5e7d5d35f660e04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a415535aadc494175b5e7d5d35f660e04">&#9670;&#160;</a></span>showIncidentAction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InspectorPanel::showIncidentAction </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>blocked</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Shows the button under the form that adds an incident for the selected signal or train, with this text, or hides it for an empty text. A reason that is not empty disables the button and is its tooltip. Closing the form hides it. </p>
 
 </div>
 </div>

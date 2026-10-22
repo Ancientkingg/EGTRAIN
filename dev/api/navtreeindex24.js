@@ -1,5 +1,8 @@
 var NAVTREEINDEX24 =
 {
+"struct_train_run_result.html#a5c170b6edece66e9f1502f0de7976307":[2,0,305,20],
+"struct_train_run_result.html#a620ff54a239879f1eda7a3f8c56b6724":[2,0,305,4],
+"struct_train_run_result.html#a63f56cb37bac7978a4c44be6b062ff83":[2,0,305,0],
 "struct_train_run_result.html#a654e09478cae49bb9bcbb3ba56268052":[2,0,305,3],
 "struct_train_run_result.html#a6a1d1c08ab0c89debdcbb96b85111c29":[2,0,305,18],
 "struct_train_run_result.html#a933be1ebf1be095e2e6973848e6aa963":[2,0,305,11],

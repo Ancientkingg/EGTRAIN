@@ -21,7 +21,7 @@ var searchData=
   ['addendofauthoritybeforesection_18',['addEndOfAuthorityBeforeSection',['../_signalling_8cpp.html#affa856d1d9c57c41d8ea849a67decbf2',1,'Signalling.cpp']]],
   ['addentity_19',['addEntity',['../class_infrastructure_panel.html#a2fc2a40afe25a35c94491af27737d87a',1,'InfrastructurePanel']]],
   ['addentrancedelay_20',['addEntranceDelay',['../class_entrance_delay_panel.html#a27df63699c7d44ab41f4d5f85febbda5',1,'EntranceDelayPanel']]],
-  ['addincident_21',['addIncident',['../class_incident_panel.html#ad708b037b2f86f3a7531006321b1e9a8',1,'IncidentPanel']]],
+  ['addincident_21',['addIncident',['../class_incident_panel.html#ad708b037b2f86f3a7531006321b1e9a8',1,'IncidentPanel::addIncident()'],['../class_incident_panel.html#aa9752164dab9dce2fdc97e660a2369c4',1,'IncidentPanel::addIncident(const IncidentTarget &amp;target)']]],
   ['addjourneybutton_22',['addJourneyButton',['../class_passenger_panel.html#a80764b88a8a828b3d180cb0f26343e10',1,'PassengerPanel']]],
   ['addlegbutton_23',['addLegButton',['../class_passenger_panel.html#ae0000d24565e301c231ffd45c7f271c9',1,'PassengerPanel']]],
   ['addpassengerbutton_24',['addPassengerButton',['../class_passenger_panel.html#a48fbf2d203d00c6387b896d6be96fd0c',1,'PassengerPanel']]],
