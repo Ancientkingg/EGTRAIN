@@ -3833,7 +3833,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 		m_updateTelemetry->showPrivacySettings(true);
 		m_updateTelemetry->startTelemetryAfterInitialConsent();
 		reportInstallerUpdate(this);
-		reportRolledBackUpdate(this);
+		reportInPlaceUpdate(this);
 		m_updateTelemetry->maybePromptForUpdateChecks();
 	};
 #ifdef Q_OS_MACOS

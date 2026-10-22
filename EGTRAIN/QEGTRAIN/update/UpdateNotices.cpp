@@ -7,7 +7,7 @@
 #include <QMessageBox>
 #include <QSettings>
 
-void reportRolledBackUpdate(QWidget* parent) {
+void reportInPlaceUpdate(QWidget* parent) {
 	if (updatesSuppressedByEnvironment())
 		return;
 	const std::optional<SemanticVersion> installed =
@@ -26,7 +26,9 @@ void reportRolledBackUpdate(QWidget* parent) {
 		settings.sync();
 	}
 	const UpdateRecordText message = describeUpdateRecord(*record);
-	QMessageBox dialog(QMessageBox::Warning, QStringLiteral("EGTRAIN Update"), message.text, QMessageBox::Ok, parent);
+	const QMessageBox::Icon icon =
+		record->outcome == UpdateOutcome::Applied ? QMessageBox::Information : QMessageBox::Warning;
+	QMessageBox dialog(icon, QStringLiteral("EGTRAIN Update"), message.text, QMessageBox::Ok, parent);
 	dialog.setInformativeText(message.advice);
 	dialog.exec();
 }

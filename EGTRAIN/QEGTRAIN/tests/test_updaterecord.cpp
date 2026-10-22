@@ -23,6 +23,7 @@ static bool writeFile(const QString& path, const QByteArray& contents) {
 
 static const QByteArray kValidRecord("outcome=rolled-back\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n");
 static const QByteArray kNotAppliedRecord("outcome=not-applied\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n");
+static const QByteArray kAppliedRecord("outcome=applied\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n");
 
 // A valid record followed by an unknown key that makes the whole file the given size.
 static QByteArray recordOfSize(int size) {
@@ -44,6 +45,10 @@ static bool testParse() {
 			&& notApplied->version == SemanticVersion{9, 8, 7}
 			&& notApplied->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), QTimeZone::utc()),
 		"a not-applied record gives that outcome, its version and its time");
+	const std::optional<UpdateRecord> applied = parseUpdateRecord(kAppliedRecord);
+	ok &= expect(applied && applied->outcome == UpdateOutcome::Applied && applied->version == SemanticVersion{9, 8, 7}
+			&& applied->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), QTimeZone::utc()),
+		"an applied record gives that outcome, its version and its time");
 
 	const std::optional<UpdateRecord> crlf =
 		parseUpdateRecord("outcome=rolled-back\r\nversion=9.8.7\r\ntime=2026-10-09T12:00:00Z\r\n");
@@ -105,6 +110,18 @@ static bool testTake(const QString& directory) {
 	ok &= expect(!takeUpdateRecord(path, SemanticVersion{9, 9, 0}), "a record for an older version is stale");
 	ok &= expect(!QFileInfo::exists(path), "a record for an older version is removed");
 
+	// An applied record is reported by the version that it names, and only by that version.
+	ok &= expect(writeFile(path, kAppliedRecord), "applied fixture is writable");
+	const std::optional<UpdateRecord> applied = takeUpdateRecord(path, SemanticVersion{9, 8, 7});
+	ok &= expect(applied && applied->outcome == UpdateOutcome::Applied && applied->version == SemanticVersion{9, 8, 7},
+		"an applied record for the installed version is returned");
+	ok &= expect(!QFileInfo::exists(path), "a returned applied record is removed");
+	for (const SemanticVersion& other : {installed, SemanticVersion{9, 9, 0}}) {
+		ok &= expect(writeFile(path, kAppliedRecord), "applied fixture is writable again");
+		ok &= expect(!takeUpdateRecord(path, other), "an applied record for another version gives no notice");
+		ok &= expect(!QFileInfo::exists(path), "an applied record for another version is removed");
+	}
+
 	ok &= expect(writeFile(path, "outcome=rolled-back\nversion=9.8.7\n"), "malformed fixture is writable");
 	ok &= expect(!takeUpdateRecord(path, installed), "a malformed record gives no record");
 	ok &= expect(!QFileInfo::exists(path), "a malformed record is removed");
@@ -156,6 +173,7 @@ static bool testParseInstaller() {
 		{"an empty installer record", ""},
 		{"a rolled-back record", kValidRecord},
 		{"a not-applied record", kNotAppliedRecord},
+		{"an applied record", kAppliedRecord},
 		{"another outcome", "outcome=installer-unknown\nversion=9.8.7\n"},
 		{"an installer record without a version", "outcome=installer-succeeded\ntime=2026-10-09T12:00:00Z\n"},
 		{"an installer record with a version of two parts", "outcome=installer-succeeded\nversion=1.2\n"},
@@ -203,6 +221,9 @@ static bool testTakeInstaller(const QString& directory) {
 	ok &= expect(QFileInfo::exists(path), "a rolled-back record is left for its own reader");
 	const std::optional<UpdateRecord> rolledBack = takeUpdateRecord(path, SemanticVersion{9, 8, 6});
 	ok &= expect(rolledBack && rolledBack->version == SemanticVersion{9, 8, 7}, "the rolled-back reader still gets it");
+	ok &= expect(writeFile(path, kAppliedRecord) && !takeInstallerRecord(path) && QFileInfo::exists(path),
+		"an applied record is no installer record and is left for its own reader");
+	ok &= expect(takeUpdateRecord(path, SemanticVersion{9, 8, 7}).has_value(), "the reader of an update in place gets it");
 
 	// takeUpdateRecord removes any record it finds, so an installer record that it reads first is lost unseen.
 	ok &= expect(writeFile(path, kInstallerSucceeded), "installer fixture is writable again");
@@ -232,6 +253,8 @@ static bool testDescribe() {
 		describeUpdateRecord(UpdateRecord{SemanticVersion{9, 8, 7}, time, UpdateOutcome::RolledBack});
 	const UpdateRecordText notApplied =
 		describeUpdateRecord(UpdateRecord{SemanticVersion{9, 8, 7}, time, UpdateOutcome::NotApplied});
+	const UpdateRecordText applied =
+		describeUpdateRecord(UpdateRecord{SemanticVersion{9, 8, 7}, time, UpdateOutcome::Applied});
 	bool ok = expect(rolledBack.text.contains("9.8.7") && rolledBack.text.contains("could not be started")
 			&& rolledBack.text.contains("restored"),
 		"a rolled-back update says that it did not start and that the previous version was restored");
@@ -240,6 +263,8 @@ static bool testDescribe() {
 		"a not-applied update says that it failed and that the previous version is still installed");
 	ok &= expect(!notApplied.advice.isEmpty() && notApplied.advice != rolledBack.advice,
 		"the advice differs for the two outcomes");
+	ok &= expect(applied.text == QStringLiteral("EGTRAIN was updated to version 9.8.7.") && applied.advice.isEmpty(),
+		"an applied update says which version EGTRAIN was updated to, as after an installer update");
 	return ok;
 }
 

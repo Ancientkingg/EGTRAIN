@@ -1,3 +1,5 @@
+#include "update/UpdateTiming.h"
+
 #include <cerrno>
 #include <chrono>
 #include <cstdlib>
@@ -28,12 +30,6 @@ using ArgumentString = std::string;
 
 namespace {
 
-// How long a launched application is watched for an early failure.
-#if defined(_WIN32)
-constexpr unsigned kDefaultObserveMs = 3000;
-#else
-constexpr unsigned kDefaultObserveMs = 500;
-#endif
 constexpr unsigned long kMaxObserveMs = 10 * 60 * 1000;
 // Name prefix of the folder that SelfUpdater stages an update in; it holds the staged installation and this helper.
 constexpr char kStagingPrefix[] = ".qegtrain-update-";
@@ -41,7 +37,7 @@ constexpr std::size_t kMaxVersionLength = 32;
 
 struct Arguments {
 	unsigned long long parentPid = 0;
-	unsigned observeMs = kDefaultObserveMs;
+	unsigned observeMs = kUpdateObserveMs;
 	std::filesystem::path current;
 	std::filesystem::path staged;
 	std::filesystem::path backup;
@@ -362,11 +358,11 @@ std::string utcTimestamp() {
 
 // Leaves the record that the application reads at its next start (see update/UpdateRecord.h, which
 // holds the same format). Three lines, each ended by a line feed, and then the lines of details:
-//   outcome=rolled-back, not-applied, installer-succeeded or installer-failed
+//   outcome=applied, rolled-back, not-applied, installer-succeeded or installer-failed
 //   version=X.Y.Z
 //   time=YYYY-MM-DDTHH:MM:SSZ
-// The version is the one that failed to start, that could not be put in place or that the installer
-// was to install, and the time is the UTC time of this write. Best effort: nothing here throws, and a record that cannot be written
+// The version is the one that was put in place, that failed to start, that could not be put in place or
+// that the installer was to install, and the time is the UTC time of this write. Best effort: nothing here throws, and a record that cannot be written
 // changes nothing else. The application is started after this returns, so it never sees a
 // half-written record.
 void writeRecord(const Arguments& arguments, const char* outcome, const std::string& details = std::string()) {
@@ -389,8 +385,9 @@ void writeRecord(const Arguments& arguments, const char* outcome, const std::str
 
 // Replaces the installation that failed to start with the backup. The failed one is
 // renamed aside first, so a file that is still locked cannot leave a half-deleted
-// installation. If the backup cannot be renamed back, the failed one is put back. The staging
-// folder is removed once the backup is in place, as after any other end of the update.
+// installation. If the backup cannot be renamed back, the failed one is put back. The record that the
+// update was applied is replaced only once the backup is in place: until then it is still true. The
+// staging folder is removed once the backup is in place, as after any other end of the update.
 void restoreBackup(const Arguments& arguments) {
 	std::filesystem::path failed = arguments.backup;
 	failed += ".failed";
@@ -437,12 +434,15 @@ bool transactionalInstall(const Arguments& arguments) {
 			launch(arguments.launch, 0);
 		return false;
 	}
+	// The new version finds the record at its start. If it fails to start, restoreBackup replaces the record.
+	writeRecord(arguments, "applied");
 	if (!launch(arguments.launch, arguments.observeMs)) {
 		restoreBackup(arguments);
 		return false;
 	}
 	removeStaging(arguments.staged.parent_path());
-	// Keep one recoverable installation until a later update proves this one usable.
+	// The backup stays until the new version removes it, kSecondSweepDelayMs after its start and so after the
+	// observation window (update/UpdateTiming.h).
 	return true;
 }
 

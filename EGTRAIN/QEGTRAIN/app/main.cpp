@@ -17,11 +17,13 @@
 #endif
 #include "update/SelfUpdater.h"
 #include "update/UpdateSettings.h"
+#include "update/UpdateTiming.h"
 #include "util/Log.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/LightPalette.h"
 #include "widgets/WidgetStyle.h"
 #include <algorithm>
+#include <chrono>
 #include <climits>
 #include <exception>
 #include <iomanip>
@@ -473,9 +475,14 @@ static int runMain(int argc, char* argv[]) {
 		if (!onlyKnownOptions(argc, argv))
 			return 1;
 		if (!updatesSuppressedByEnvironment()) {
-			// The second sweep also removes the staging folder that a Windows update helper keeps while it runs.
+			// The second sweep also removes the staging folder that a Windows update helper keeps while it runs,
+			// and the backup of the previous installation. The first sweep leaves the backup: the helper may still
+			// need it while it watches this start (update/UpdateTiming.h).
 			SelfUpdater::cleanupStaleStaging();
-			QTimer::singleShot(20000, &application, []() { SelfUpdater::cleanupStaleStaging(); });
+			QTimer::singleShot(std::chrono::milliseconds(kSecondSweepDelayMs), &application, []() {
+				SelfUpdater::cleanupStaleStaging();
+				SelfUpdater::removeUpdateBackup();
+			});
 		}
 #if EGTRAIN_BUILD_TESTS
 		if (creatorAcceptance)

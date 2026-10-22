@@ -50,6 +50,20 @@ interrupted update are removed at a start of the application once they are older
 than an hour, and when the next update starts once nothing in them changed for five
 minutes.
 
+A copy that replaces its own files (the macOS app, the Linux AppImage and a
+portable Windows copy) keeps the previous version next to the installation while
+the new one starts, under the same name followed by `.egtrain-old`, so that the
+update helper can put it back. At its start the new version tells you once
+`EGTRAIN was updated to version <version>.`, as an installed Windows copy does
+after the Setup. About 20 seconds after that start it removes the previous
+version, or about 20 seconds after a later start when it was closed sooner. The
+new version holds only the files of the release, so files that you added to the
+folder of a portable copy are removed with the previous version. Close other
+EGTRAIN windows of the same copy before you update: one that keeps running would
+run from the removed version. EGTRAIN 1.0.4 and earlier keep the previous version
+until the next update, and an update from one of those versions ends without the
+message, because the version that is replaced runs the update.
+
 When the new version cannot be started, the update helper puts the previous
 version back, removes the staging folder and starts it again. That version then tells you once which version
 could not be started. Automatic checks do not offer that version again, a newer

@@ -649,6 +649,54 @@ static bool testKeyChoosesPackage(const QString& base, const QString& helper) {
 	return ok;
 }
 
+// The second sweep after the start removes the backup that an update in place kept: the folder or the file
+// named like the installation plus .egtrain-old. The sweep at the start leaves it, because the update helper
+// may still need it. A symbolic link of that name stays, and so does the backup while a staging folder is next
+// to the installation. A copy that updates with the installer has no backup, so nothing is removed for it.
+static bool testBackupRemoved(const QString& base, const QString& helper) {
+	Scenario scenario(base, QStringLiteral("backup"), helper);
+	const SelfUpdateCapability installed = scenario.capability;
+	SelfUpdateCapability portable = scenario.capability;
+	portable.usesInstaller = false;
+	portable.manifestKey = QStringLiteral("windows-x64");
+	scenario.useCapability(portable);
+	const QString backup = scenario.install + QStringLiteral(".egtrain-old");
+	bool ok = expect(scenario.prepared && QDir().mkpath(backup) && writeFile(backup + QStringLiteral("/QEGTRAIN.exe"), "old"),
+		"the backup folder is written");
+	SelfUpdater::cleanupStaleStaging();
+	ok &= expect(QFileInfo::exists(backup + QStringLiteral("/QEGTRAIN.exe")), "the sweep of stale staging folders keeps the backup");
+	SelfUpdater::removeUpdateBackup();
+	ok &= expect(!QFileInfo::exists(backup), "a backup folder is removed");
+	ok &= expect(scenario.installationUnchanged(), "the installation is not touched");
+
+	ok &= expect(writeFile(backup, "old"), "the backup file is written");
+	SelfUpdater::removeUpdateBackup();
+	ok &= expect(!QFileInfo::exists(backup), "a backup file is removed");
+
+	const QString staging = QDir(scenario.root).filePath(QStringLiteral(".qegtrain-update-running"));
+	ok &= expect(QDir().mkpath(staging) && writeFile(backup, "old"), "a staging folder and the backup are written");
+	SelfUpdater::removeUpdateBackup();
+	ok &= expect(QFileInfo::exists(backup), "the backup stays while a staging folder is next to the installation");
+	ok &= expect(QDir(staging).removeRecursively(), "the staging folder is removed");
+
+	scenario.useCapability(installed);
+	SelfUpdater::removeUpdateBackup();
+	ok &= expect(QFileInfo::exists(backup), "nothing is removed for a copy that updates with the installer");
+	ok &= expect(QFile::remove(backup), "the backup file of the installed copy is removed");
+	scenario.useCapability(portable);
+
+// QFile::link makes a shortcut file on Windows, so a symbolic link is only covered elsewhere.
+#if !defined(Q_OS_WIN)
+	const QString target = QDir(scenario.root).filePath(QStringLiteral("elsewhere"));
+	ok &= expect(QDir().mkpath(target) && writeFile(target + QStringLiteral("/kept"), "kept") && QFile::link(target, backup),
+		"a symbolic link named like the backup is made");
+	SelfUpdater::removeUpdateBackup();
+	ok &= expect(QFileInfo(backup).isSymLink() && QFileInfo::exists(target + QStringLiteral("/kept")),
+		"a symbolic link named like the backup and its target stay");
+#endif
+	return ok;
+}
+
 // The kind of copy decides whether the installer or the archive of the platform is its package.
 static bool testPackageForDistribution() {
 	const QString platform = QStringLiteral("windows-x64");
@@ -689,6 +737,7 @@ int main(int argc, char** argv) {
 	ok &= testCancel(temp.path(), probe);
 	ok &= testNotPossible(temp.path(), probe);
 	ok &= testKeyChoosesPackage(temp.path(), probe);
+	ok &= testBackupRemoved(temp.path(), probe);
 	ok &= testPackageForDistribution();
 	return ok ? 0 : 1;
 }
