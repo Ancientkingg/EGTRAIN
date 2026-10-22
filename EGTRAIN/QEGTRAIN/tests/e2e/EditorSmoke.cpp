@@ -5836,6 +5836,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		expect(w.m_inspector->incidentButton->isVisible() && w.m_inspector->incidentButton->isEnabled()
 				&& w.m_inspector->incidentButton->text() == "Add train breakdown",
 			"the inspector of a train in a replay offered no breakdown");
+		// The menu acts on the train under the cursor, not on the selection.
+		w.m_inspector->handleDisableHighlight();
 		QAction* breakdown = trainBody ? incidentEntry(trainBody, "Add train breakdown") : nullptr;
 		if (!expect(w.m_replayActive && breakdown && breakdown->isEnabled(), "the menu of a train in a replay offered no breakdown"))
 			return finish();
