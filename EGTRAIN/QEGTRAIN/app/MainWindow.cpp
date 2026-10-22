@@ -2970,10 +2970,16 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 	// The edit can end a replay and draw the preview again, which deletes the items of the view and closes the menu, so it
 	// waits until the menu or the button has been handled.
 	QTimer::singleShot(0, this, [this, target] {
-		commitPendingEditorValues();
+		// Read first: a pending value that is committed can discard the results itself.
 		const bool discardsResults = m_runController->resultsAvailable();
-		if (!m_incidentPanel->addIncident(target))
+		commitPendingEditorValues();
+		if (!m_incidentPanel->addIncident(target)) {
+			// The target can have gone since the menu or the button was shown.
+			const QString blocked = viewIncidentBlocked(target,
+				target.type == "train_breakdown" ? QStringLiteral("train") : QStringLiteral("signal"), QString());
+			statusBar()->showMessage(blocked.isEmpty() ? QStringLiteral("No incident added.") : blocked + QLatin1Char('.'), 8000);
 			return;
+		}
 		if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
 			tabs->setCurrentWidget(m_incidentPanel);
 		revealEditorDock(m_incidentDock);
