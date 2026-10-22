@@ -5,8 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iomanip>
-#include <locale>
 #include <sstream>
 
 namespace {
@@ -51,13 +49,9 @@ std::string sectionName(const std::string& id, const SceneSectionLabels* labels)
 	return labels ? labels->labelWithId(id) : id;
 }
 
-std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count, const char* relation,
-	const SceneSectionLabels* labels) {
-	std::ostringstream text;
-	text.imbue(std::locale::classic());
-	text << std::fixed << std::setprecision(3) << "Reference section: " << extent.order << " of " << count << ", "
-		 << sectionName(extent.id, labels) << ", " << extent.lowerKm() << " to " << extent.upperKm() << " km (" << relation << ")";
-	return text.str();
+// The section of the reference route that shares a block with the envelope of another section.
+std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count, const SceneSectionLabels* labels) {
+	return "Section " + std::to_string(extent.order) + " of " + std::to_string(count) + ": " + sectionName(extent.id, labels);
 }
 
 bool overlaps(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramInput& b) {
@@ -284,7 +278,7 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 		extent.startKm = inputs[i].startKm;
 		extent.endKm = inputs[i].endKm;
 		if (!std::isfinite(extent.startKm) || !std::isfinite(extent.endKm))
-			extent.issue = "coordinate is not finite";
+			extent.issue = "no valid position";
 		else if (std::abs(extent.endKm - extent.startKm) <= kBlockSectionMinimumLengthKm)
 			extent.issue = "zero length";
 		extent.geometryValid = extent.issue.empty();
@@ -314,10 +308,10 @@ void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& se
 		const auto& candidates = exact.empty() ? shared : exact;
 		if (candidates.size() == 1) {
 			segment.referenceSection = candidates.front()->order;
-			segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size(),
-				exact.empty() ? "shares a block with this envelope's section" : "same section", labels);
+			// The hover names the block, so a block that is the section needs no note.
+			if (exact.empty()) segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size(), labels);
 		} else if (candidates.size() > 1) {
-			segment.referenceNote = "Ambiguous reference sections on route " + referenceRouteId + ": ";
+			segment.referenceNote = "Matches several sections of " + referenceRouteId + ": ";
 			// A switch label holds a comma, so labelled sections are listed with semicolons.
 			for (const auto* candidate : candidates) {
 				if (candidate != candidates.front())
@@ -325,7 +319,7 @@ void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& se
 				segment.referenceNote += std::to_string(candidate->order) + (labels ? ": " : ":") + sectionName(candidate->id, labels);
 			}
 		} else {
-			segment.referenceNote = "Not a section of the reference route " + referenceRouteId;
+			segment.referenceNote = "Not on " + referenceRouteId;
 		}
 	}
 }
@@ -384,10 +378,10 @@ std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>
 		for (std::size_t index = 0; index < extents.size(); ++index)
 			if (std::find(indices.begin(), indices.end(), static_cast<int>(index)) == indices.end()
 				&& shareBlockingTimeResource(section.id, extents[index].id))
-				return "Selected section resources also occur outside this scope; the capacity analysis cannot distinguish those occurrences.";
+				return "A selected block is also used outside the chosen blocks, so the passes cannot be told apart. Choose other blocks.";
 	for (std::size_t index = 1; index < selected.size(); ++index)
 		if (shareBlockingTimeResource(selected.front().id, selected[index].id))
-			return "Selected entry resource occurs more than once; the capacity analysis cannot identify a unique entry occurrence.";
+			return "The first block occurs more than once in the selection. Choose another first block.";
 	return {};
 }
 
@@ -436,11 +430,25 @@ std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& exte
 			ids.push_back(sectionName(extent.id, labels));
 	if (ids.empty())
 		return std::string();
-	std::string note = " Reference sections without a usable extent: ";
+	std::string note = "Sections not drawn (no valid length): ";
 	// A switch label holds a comma, so labelled sections are listed with semicolons.
 	for (std::size_t i = 0; i < ids.size() && i < kListedIds; ++i)
 		note += (i > 0 ? (labels ? "; " : ", ") : "") + ids[i];
 	if (ids.size() > kListedIds)
 		note += " and " + std::to_string(ids.size() - kListedIds) + " more";
-	return note + ".";
+	return note;
+}
+
+std::string blockingTimeNote(int omitted, bool nothingPlotted, bool unplaced, const std::string& routeId) {
+	std::vector<std::string> parts;
+	if (omitted == 1)
+		parts.push_back("1 block or stop could not be placed on " + routeId + " and is not shown.");
+	else if (omitted > 1)
+		parts.push_back(std::to_string(omitted) + " blocks or stops could not be placed on " + routeId + " and are not shown.");
+	if (nothingPlotted)
+		parts.push_back(unplaced ? "No blocking times could be placed on " + routeId + "."
+								 : std::string("No complete blocking times in this section and period."));
+	std::string note;
+	for (const std::string& part : parts) note += (note.empty() ? "" : " ") + part;
+	return note;
 }

@@ -115,7 +115,7 @@ struct CreatorAcceptanceState {
 	int polls = 0;
 	QPointer<DiagramWindow> baselineDiagram;
 	std::string baselineCsv; // What the baseline diagram exported when it opened
-	QString baselineContext; // What the context line of the baseline diagram said when it opened
+	QString baselineTitle;	 // What the chart title of the baseline diagram said when it opened
 };
 
 CreatorAcceptanceState creatorAcceptance;
@@ -174,10 +174,21 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		return accepted;
 	};
 	auto process = []() { QApplication::processEvents(); };
-	// The context line that the charts of a run show under their toolbar. Every creator run applies a scenario (baseline,
-	// entrance or incident), so the line has both parts.
-	auto chartContextLine = [](const RunProvenance& run) {
-		return QStringLiteral("Run: %1 / %2").arg(QString::fromStdString(run.caseName), QString::fromStdString(run.appliedScenario));
+	// The chart title of a result chart names its run in brackets. Every creator run applies a scenario (baseline,
+	// entrance or incident), so the run has both parts.
+	auto chartRunTitle = [](const QString& view, const RunProvenance& run) {
+		return QStringLiteral("%1 [%2 / %3]").arg(view, QString::fromStdString(run.caseName), QString::fromStdString(run.appliedScenario));
+	};
+	// The chart title of a diagram window, or "no chart" when it has none. A chart that names its run in the title has no
+	// context line, so this also says "context line shown" when the context label is visible.
+	auto chartTitleOf = [](const DiagramWindow* diagram) {
+		const auto* view = diagram ? diagram->findChild<QChartView*>() : nullptr;
+		const auto* context = diagram ? diagram->findChild<QLabel*>("diagramContext") : nullptr;
+		if (!view || !view->chart())
+			return QStringLiteral("no chart");
+		if (context && !context->isHidden())
+			return QStringLiteral("context line shown: ") + context->text();
+		return view->chart()->title();
 	};
 	auto editLine = [process](QLineEdit* edit, const QString& value) {
 		if (!edit)
@@ -1710,12 +1721,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("baseline result diagram did not open"));
 			return;
 		}
-		// The title names the chart. The context line names the run.
-		creatorAcceptance.baselineContext = chartContextLine(w.m_runController->m_completedRun->provenance);
-		const auto* baselineContext = creatorAcceptance.baselineDiagram->findChild<QLabel*>("diagramContext");
-		if (!baselineContext || !baselineContext->isVisible() || baselineContext->text() != creatorAcceptance.baselineContext) {
-			fail(QStringLiteral("baseline result diagram does not name its run in the context line: ")
-				+ (baselineContext ? baselineContext->text() : QStringLiteral("no context label")));
+		// The window title names the view. The chart title names the run, and there is no context line.
+		creatorAcceptance.baselineTitle = chartRunTitle(QStringLiteral("Time / distance"), w.m_runController->m_completedRun->provenance);
+		if (chartTitleOf(creatorAcceptance.baselineDiagram) != creatorAcceptance.baselineTitle) {
+			fail(QStringLiteral("baseline result diagram does not name its run in the chart title: ")
+				+ chartTitleOf(creatorAcceptance.baselineDiagram));
 			return;
 		}
 		creatorAcceptance.baselineCsv = creatorAcceptance.baselineDiagram->csvContent();
@@ -1892,7 +1902,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_advancedDetailsAction->setChecked(true);
 		const QString evidenceSummary = w.m_runResultsSummaryLabel->text();
 		w.m_advancedDetailsAction->setChecked(false);
-		if (!evidenceSummary.contains(QString("Direct incident evidence recorded for %1 of %2 train")
+		if (!evidenceSummary.contains(QString("Incidents acted on %1 of %2 train")
 					.arg(trainsWithEvidence)
 					.arg(static_cast<int>(w.m_runController->m_completedRun->results.trains.size())))) {
 			fail(QStringLiteral("the run summary does not say for how many trains direct incident evidence was recorded: ") + evidenceSummary);
@@ -1953,12 +1963,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the baseline diagram did not keep exporting the baseline run after later runs"));
 			return;
 		}
-		const auto* baselineContext = creatorAcceptance.baselineDiagram->findChild<QLabel*>("diagramContext");
-		const QString currentContext = chartContextLine(w.m_runController->m_completedRun->provenance);
-		if (!baselineContext || baselineContext->text() != creatorAcceptance.baselineContext
-			|| currentContext == creatorAcceptance.baselineContext) {
+		const RunProvenance& currentRun = w.m_runController->m_completedRun->provenance;
+		if (chartTitleOf(creatorAcceptance.baselineDiagram) != creatorAcceptance.baselineTitle
+			|| chartRunTitle(QStringLiteral("Time / distance"), currentRun) == creatorAcceptance.baselineTitle) {
 			fail(QStringLiteral("the baseline diagram did not keep naming the baseline run after later runs: ")
-				+ (baselineContext ? baselineContext->text() : QStringLiteral("no context label")));
+				+ chartTitleOf(creatorAcceptance.baselineDiagram));
 			return;
 		}
 		QAction* speedButton = findResultAction(QStringLiteral("Speed / distance"));
@@ -1975,10 +1984,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("current trajectory/speed exports were not driven through the diagram"));
 			return;
 		}
-		const auto* speedContext = speedDiagram->findChild<QLabel*>("diagramContext");
-		if (!speedContext || !speedContext->isVisible() || speedContext->text() != currentContext) {
-			fail(QStringLiteral("the speed diagram does not name the current run in its context line: ")
-				+ (speedContext ? speedContext->text() : QStringLiteral("no context label")));
+		if (chartTitleOf(speedDiagram) != chartRunTitle(QStringLiteral("Speed / distance"), currentRun)) {
+			fail(QStringLiteral("the speed diagram does not name the current run in its chart title: ") + chartTitleOf(speedDiagram));
 			return;
 		}
 		QAction* tractiveButton = findResultAction(QStringLiteral("Tractive effort / distance"));
@@ -1995,14 +2002,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("simulated tractive-effort exports were not driven through the diagram"));
 			return;
 		}
-		const auto* tractiveContext = tractiveDiagram->findChild<QLabel*>("diagramContext");
-		if (!tractiveContext || !tractiveContext->isVisible() || tractiveContext->text() != currentContext) {
-			fail(QStringLiteral("the tractive-effort diagram does not name the current run in its context line: ")
-				+ (tractiveContext ? tractiveContext->text() : QStringLiteral("no context label")));
+		if (chartTitleOf(tractiveDiagram) != chartRunTitle(QStringLiteral("Tractive effort / distance"), currentRun)) {
+			fail(QStringLiteral("the tractive-effort diagram does not name the current run in its chart title: ")
+				+ chartTitleOf(tractiveDiagram));
 			return;
 		}
-		// A run with 300-character names: the title stays the name of the chart, the context line holds the run and stays
-		// within three lines, and the chart title that a PNG shows still has the run in brackets.
+		// A run with 300-character names: the window title stays the name of the chart, the window keeps its size, and the
+		// chart title that a PNG shows has the run in brackets, with no context line.
 		{
 			const std::shared_ptr<const CompletedRunData> kept = w.m_runController->m_completedRun;
 			auto longRun = std::make_shared<CompletedRunData>(*kept);
@@ -2028,11 +2034,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					problem = title + QStringLiteral(" did not open");
 				else if (window->windowTitle() != title)
 					problem = title + QStringLiteral(" has the window title ") + window->windowTitle();
-				else if (!context->isVisible() || context->text() != QStringLiteral("Run: ") + run
-					|| !QString(context->toolTip()).remove(QChar(0x200B)).contains(run))
-					problem = title + QStringLiteral(" does not show the run in its context line");
-				else if (context->height() > context->fontMetrics().height() * 3
-					|| window->width() > window->screen()->availableGeometry().width() * 9 / 10)
+				else if (!context->isHidden())
+					problem = title + QStringLiteral(" shows a context line: ") + context->text();
+				else if (window->width() > window->screen()->availableGeometry().width() * 9 / 10)
 					problem = title + QStringLiteral(" does not keep its size with a long run");
 				else if (view->chart()->title() != title + QStringLiteral(" [") + run + QStringLiteral("]"))
 					problem = title + QStringLiteral(" has the chart title ") + view->chart()->title();
@@ -2177,7 +2181,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		if (capacity)
 			for (QPushButton* button : capacity->findChildren<QPushButton*>()) {
 				capacityAutoDefault |= button->autoDefault();
-				if (button->text() == QStringLiteral("Export capacity CSV...")) capacityExport = button;
+				if (button->text() == QStringLiteral("Export CSV...")) capacityExport = button;
 			}
 		auto* capacityTabs = capacity ? capacity->findChild<QTabWidget*>() : nullptr;
 		auto* pairTable = capacityTabs ? qobject_cast<QTableWidget*>(capacityTabs->widget(0)) : nullptr;
@@ -2193,12 +2197,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		if (!capacity || !capacityTabs || capacityTabs->count() != 3 || !pairTable
-			|| pairTable->columnCount() != 9 || pairTable->rowCount() == 0
+			|| pairTable->columnCount() != 8 || pairTable->rowCount() == 0
 			|| !compressionTable || compressionTable->columnCount() != 7
 			|| !criticalTable || criticalTable->columnCount() != 5
 			|| !boundedResultDialog(capacity, pairTable, capacityExport)
 			|| capacityAutoDefault
-			|| !exportButton(capacity, QStringLiteral("Export capacity CSV..."), path("capacity_analysis.csv"))) {
+			|| !exportButton(capacity, QStringLiteral("Export CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
 			return;
 		}
@@ -2207,28 +2211,29 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("Tab moves between the cells of a capacity table and does not leave it"));
 			return;
 		}
+		// The calculation details give the percentage with one decimal, as the context line does.
 		const auto capacityLabels = capacity->findChildren<QLabel*>("resultContextText");
 		const bool validCapacityPercentage = std::any_of(capacityLabels.cbegin(), capacityLabels.cend(),
 			[](const QLabel* label) {
-				return label->text().startsWith(QStringLiteral("Cycle / occupation time:"))
-					&& label->text().contains(QStringLiteral("%."))
+				const QString percentage = label->text().section(QStringLiteral(" = "), 1).section(QLatin1Char('%'), 0, 0);
+				return label->text().startsWith(QStringLiteral("Cycle time "))
+					&& percentage.section(QLatin1Char('.'), 1).size() == 1
 					&& !label->text().contains(QStringLiteral("%%"));
 			});
 		if (!validCapacityPercentage) {
-			fail(QStringLiteral("capacity calculation details have an invalid percentage unit"));
+			fail(QStringLiteral("capacity calculation details do not have a rounded percentage"));
 			return;
 		}
 		// The result leads the context line, below the window title.
 		const auto* capacityContext = capacity->findChild<QLabel*>(QStringLiteral("dialogContext"));
 		const QString capacityResult = capacityContext ? capacityContext->text().section(QLatin1Char('\n'), 0, 0) : QString();
-		if (!capacityResult.startsWith(QStringLiteral("Selected train chain: cycle "))
-			|| !capacityResult.endsWith(QStringLiteral("% of period; not network capacity"))) {
-			fail(QStringLiteral("capacity analysis does not say that it describes the selected train chain"));
+		if (!capacityResult.startsWith(QStringLiteral("Cycle ")) || !capacityResult.endsWith(QStringLiteral(" s period"))) {
+			fail(QStringLiteral("capacity analysis does not lead with the cycle of the chosen trains: ") + capacityResult);
 			return;
 		}
 		QPushButton* compressedButton = nullptr;
 		for (QPushButton* candidate : capacity->findChildren<QPushButton*>())
-			if (candidate->text().contains(QStringLiteral("compressed blocking-time")))
+			if (candidate->text() == QStringLiteral("Open Compressed Blocking Time"))
 				compressedButton = candidate;
 		if (!compressedButton || !capacity->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"))->isAncestorOf(compressedButton)) {
 			fail(QStringLiteral("compressed blocking-time control is unavailable"));
@@ -2236,7 +2241,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		compressedButton->click();
 		process();
-		DiagramWindow* compressed = findDiagram(QStringLiteral("Compressed blocking-time diagram"));
+		DiagramWindow* compressed = findDiagram(QStringLiteral("Compressed blocking time"));
 		if (!compressed
 			|| !exportButton(compressed, QStringLiteral("Export CSV..."), path("capacity_compressed_blocking_time.csv"))
 			|| !exportButton(compressed, QStringLiteral("Export PNG..."), path("capacity_compressed_blocking_time.png"))) {
@@ -2246,11 +2251,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const auto* compressedView = compressed->findChild<QChartView*>();
 		const auto* compressedSections = compressedView ? compressedView->chart()->findChild<QObject*>("blockSectionOverlay") : nullptr;
 		if (!compressedSections || compressedSections->property("sectionCount").toInt() <= 0) {
-			fail(QStringLiteral("compressed capacity diagram has no physical section layer"));
+			fail(QStringLiteral("compressed capacity diagram has no section boundaries"));
 			return;
 		}
 		// The compressed diagram has the distance axis of the blocking-time diagram. Its time axis spans the compressed
-		// envelopes, which start about a minute after the run start in this run, so it does not start at 0 s.
+		// blocking times, which start about a minute after the run start in this run, so it does not start at 0 s.
 		const auto axisOf = [](const QChartView* view, Qt::Orientation orientation) -> const QValueAxis* {
 			const auto axes = view ? view->chart()->axes(orientation) : QList<QAbstractAxis*>();
 			return axes.isEmpty() ? nullptr : qobject_cast<const QValueAxis*>(axes.first());
@@ -2263,24 +2268,55 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		double latestEnvelope = -std::numeric_limits<double>::infinity();
 		for (QAbstractSeries* series : compressedView->chart()->series())
 			if (const auto* envelope = qobject_cast<const QXYSeries*>(series);
-				envelope && envelope->property("layer").toString() == QStringLiteral("calculated blocking envelope"))
+				envelope && envelope->property("layer").toString() == QStringLiteral("blocking time"))
 				for (const QPointF& point : envelope->points()) {
 					earliestEnvelope = std::min(earliestEnvelope, point.y());
 					latestEnvelope = std::max(latestEnvelope, point.y());
 				}
 		if (!blockingX || !compressedX || compressedX->titleText() != blockingX->titleText()
-			|| !compressedX->titleText().contains(QStringLiteral("origin")) || !compressedX->titleText().contains(QStringLiteral("travel"))) {
+			|| !compressedX->titleText().startsWith(QStringLiteral("Distance along ")) || !compressedX->titleText().contains(QStringLiteral("(km)"))) {
 			fail(QStringLiteral("the compressed diagram does not have the distance axis of the blocking-time diagram: ")
 				+ (compressedX ? compressedX->titleText() : QStringLiteral("no axis")));
 			return;
 		}
 		if (!compressedTime || !(earliestEnvelope <= latestEnvelope) || !(compressedTime->min() > 0.0)
 			|| compressedTime->min() > earliestEnvelope || compressedTime->max() < latestEnvelope) {
-			fail(QString("the compressed time axis %1 s to %2 s does not fit the compressed envelopes, %3 s to %4 s")
+			fail(QString("the compressed time axis %1 s to %2 s does not fit the compressed blocking times, %3 s to %4 s")
 					.arg(compressedTime ? compressedTime->min() : -1.0)
 					.arg(compressedTime ? compressedTime->max() : -1.0)
 					.arg(earliestEnvelope)
 					.arg(latestEnvelope));
+			return;
+		}
+		// A moved block keeps its simulated approach, run and clearance times, so its hover says so.
+		int simulatedTimeLines = 0;
+		for (QAbstractSeries* series : compressedView->chart()->series())
+			for (const QString& line : series->property("inspectionInterval").toString().split('\n')) {
+				if (!line.contains(QStringLiteral("clearance to "))) continue;
+				if (!line.startsWith(QStringLiteral("As simulated: "))) {
+					fail(QStringLiteral("a compressed block gives its times without saying they are simulated: ") + line);
+					return;
+				}
+				++simulatedTimeLines;
+			}
+		if (simulatedTimeLines == 0) {
+			fail(QStringLiteral("no compressed block hover gives the simulated times"));
+			return;
+		}
+		// The legend under the plot explains the block colours: conflicts on the blocking-time chart, capacity-critical
+		// blocks on the compressed chart, which moves its trains apart until their blocks only touch and so has no conflict.
+		const auto legendKindsOf = [](const QChartView* view) {
+			const QObject* legend = view ? view->chart()->findChild<QObject*>(QStringLiteral("lineKindLegend")) : nullptr;
+			return legend ? legend->property("kinds").toStringList() : QStringList();
+		};
+		const QStringList blockingKinds = legendKindsOf(blockingAgain ? blockingAgain->findChild<QChartView*>() : nullptr);
+		const QStringList compressedKinds = legendKindsOf(compressedView);
+		const QStringList sharedKey = {QStringLiteral("Block or station"), QStringLiteral("Switch")};
+		if (blockingKinds.mid(0, 3) != sharedKey + QStringList({QStringLiteral("Conflict")})
+			|| compressedKinds.mid(0, 3) != sharedKey + QStringList({QStringLiteral("Capacity critical")})
+			|| blockingKinds.contains(QStringLiteral("Capacity critical")) || compressedKinds.contains(QStringLiteral("Conflict"))) {
+			fail(QStringLiteral("the legends do not explain the block colours of each chart: ") + blockingKinds.join(QStringLiteral(", "))
+				+ QStringLiteral(" / ") + compressedKinds.join(QStringLiteral(", ")));
 			return;
 		}
 		capacity->close();
@@ -2297,7 +2333,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (auto* window = dynamic_cast<AreaCapacityWindow*>(widget); window && window->isVisible())
 				area = window;
 		if (!area || area->isModal()
-			|| !exportButton(area, QStringLiteral("Export area capacity CSV..."), path("area_capacity.csv"))) {
+			|| !exportButton(area, QStringLiteral("Export CSV..."), path("area_capacity.csv"))) {
 			fail(QStringLiteral("capacity by area did not open and export through public controls"));
 			return;
 		}
@@ -2447,7 +2483,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const bool laterOk = laterOccurrences && laterOccurrences->rowCount() == 2
 			&& laterWindow->windowTitle() == QStringLiteral("Delay analysis") && laterContext
 			&& laterContext->text().contains("Run:") && laterContext->text().contains("Baseline:")
-			&& laterTotals.contains(QStringLiteral("Positive additional delay: +"))
+			&& laterTotals.contains(QStringLiteral("Added delay +"))
 			&& boundedResultDialog(laterWindow, laterOccurrences, laterExport);
 		if (!laterOk || !exportButton(laterWindow, QStringLiteral("Export CSV..."), path("delay_comparison.csv"))) {
 			restoreRun();
@@ -2463,8 +2499,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const QString sameTotals = delayLabelText(sameWindow, "delayBaselineTotals");
 		const QTableWidget* sameOccurrences = delayTable(sameWindow, "delayBaselineOccurrences");
 		const bool sameOk = sameOccurrences && sameOccurrences->rowCount() == 2
-			&& sameTotals.contains(QStringLiteral("Final arrival later: 0, same: 2, earlier: 0, not available: 0"))
-			&& sameTotals.contains(QStringLiteral("Positive additional delay: 0 s"));
+			&& sameTotals == QStringLiteral("2 trains. At the final arrival: 2 same. Added delay 0 s, net 0 s.");
 		if (sameWindow)
 			sameWindow->close();
 		process();
@@ -2474,7 +2509,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 
-		// A run without recorded direct evidence is still compared. Its evidence column says none was recorded.
+		// A run without recorded direct evidence is still compared. Its evidence column says none was recorded, and no note
+		// above the totals explains the columns.
 		alterRun([](CompletedRunData& run) {
 			for (TrainRunResult& train : run.results.trains)
 				train.directIncidentIds.clear();
@@ -2482,7 +2518,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.refreshRunResults();
 		DelayAnalysisWindow* noEvidenceWindow = openComparison();
 		const bool noEvidenceOk = delayEvidenceShown(noEvidenceWindow, QStringLiteral("None recorded"))
-			&& delayLabelText(noEvidenceWindow, "delayBaselineNote").contains(QStringLiteral("not shown to be propagated"));
+			&& delayChild(noEvidenceWindow, "delayBaselineNote") && delayLabelText(noEvidenceWindow, "delayBaselineNote").isEmpty();
 		if (noEvidenceWindow)
 			noEvidenceWindow->close();
 		process();
@@ -2492,13 +2528,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 
-		// A baseline that does not fit is explained with each reason, and nothing is exported.
+		// A baseline that does not fit is explained with each reason, without its code, and nothing is exported.
 		alterRun([](CompletedRunData& run) { run.settings.horizonSteps += 1.0; });
 		w.refreshRunResults();
 		DelayAnalysisWindow* mismatchWindow = openComparison();
 		const QTableWidget* reasons = delayTable(mismatchWindow, "delayBaselineDiagnostics");
 		const QPushButton* mismatchExport = qobject_cast<QPushButton*>(delayChild(mismatchWindow, "delayAnalysisExport"));
-		const bool mismatchOk = reasons && reasons->isVisible() && reasons->rowCount() == 1 && reasons->item(0, 0)->text() == QStringLiteral("duration_differs")
+		const bool mismatchOk = reasons && reasons->isVisible() && reasons->rowCount() == 1 && reasons->columnCount() == 1
+			&& reasons->item(0, 0)->text() == QStringLiteral("The two runs have different durations.")
 			&& !delayChild(mismatchWindow, "delayBaselineOccurrences")->isVisible() && mismatchExport && !mismatchExport->isEnabled();
 		if (mismatchWindow)
 			mismatchWindow->close();

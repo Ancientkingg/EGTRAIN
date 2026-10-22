@@ -84,13 +84,7 @@ QString runText(const RunProvenance& provenance) {
 
 // With `labels` the resources are named by their labels, for the tooltips of the window; the export names them by id.
 QString evidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels = nullptr) {
-	QStringList values;
-	for (const CapacityHeadwayEvidence& item : evidence)
-		values << QString(labels ? "%1 / %2 (leader=%3 s; follower=%4 s; candidate=%5 s)" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
-					  .arg(QString::fromStdString(labels ? labels->label(item.leaderBlockId) : item.leaderBlockId),
-						  QString::fromStdString(labels ? labels->label(item.followerBlockId) : item.followerBlockId),
-						  secondsText(item.leaderOffset), secondsText(item.followerOffset), secondsText(item.candidateHeadway));
-	return values.join("; ");
+	return QString::fromStdString(capacityEvidenceText(evidence, labels));
 }
 
 // Gives each cell of `column`, which names a resource by its id, the label of the resource as its tooltip.
@@ -100,14 +94,15 @@ void setLabelTips(QTableWidget* table, int column, const SceneSectionLabels& lab
 			item->setToolTip(QString::fromStdString(labels.label(item->text().toStdString())));
 }
 
-// The reference label and source of a train of the chain.
-QString referenceText(const CapacityAnalysisResult& chain, const std::string& identity) {
-	for (std::size_t index = 0; index < chain.trainIdentities.size(); ++index) {
-		if (chain.trainIdentities[index] != identity || index >= chain.referenceLabels.size() || index >= chain.referenceSources.size())
-			continue;
-		return QString("%1 [%2]").arg(QString::fromStdString(chain.referenceLabels[index]), QString::fromStdString(chain.referenceSources[index]));
-	}
-	return QString();
+// "Reference time: planned departure at Guingamp" for the tooltip of a cell that names a train; empty without one.
+QString referenceTip(const CapacityAnalysisResult& chain, const std::string& identity) {
+	const QString reference = capacityReferenceOf(chain, identity);
+	return reference.isEmpty() ? QString() : "Reference time: " + reference;
+}
+
+// A tab or section title with its count, which it leaves out when it is 0.
+QString countedTitle(const QString& title, std::size_t count) {
+	return count == 0 ? title : QString("%1 (%2)").arg(title).arg(count);
 }
 
 QTableWidget* makeTable(QWidget* parent, const QStringList& headers, const std::vector<QStringList>& rows, const QList<int>& numericColumns = {}) {
@@ -150,8 +145,11 @@ QWidget* resourcesTab(const AreaCapacityResult& result, const SceneSectionLabels
 			secondsText(resource.unionSeconds)});
 	}
 	QTableWidget* table = makeTable(page,
-		{"Resource", "Rate [% of period]", "Status", "Trains", "Occupations", "Occupation [s]", "Union [s]"}, rows, {1, 3, 4, 5, 6});
+		{"Resource", "Rate (% of period)", "Status", "Trains", "Occupations", "Occupation (s)", "Union (s)"}, rows, {1, 3, 4, 5, 6});
 	table->setObjectName("areaCapacityResources");
+	table->horizontalHeaderItem(1)->setToolTip("Occupation time of the checked trains on the resource, divided by the period\n"
+											   "The governing resource has the largest rate");
+	table->horizontalHeaderItem(6)->setToolTip("The same occupations, with overlapping time counted once");
 	setLabelTips(table, 0, labels);
 	for (int row = 0; row < table->rowCount(); ++row) {
 		if (!result.resources[static_cast<std::size_t>(row)].governing)
@@ -163,18 +161,6 @@ QWidget* resourcesTab(const AreaCapacityResult& result, const SceneSectionLabels
 		}
 	}
 	layout->addWidget(table, 1);
-
-	QString envelope = QStringLiteral("Legacy envelope (comparison only): not available.");
-	if (result.envelopeSeconds >= 0.0)
-		envelope = QString("Legacy envelope (comparison only): %1 s, %2% of period.")
-					   .arg(secondsText(result.envelopeSeconds), percentText(result.envelopePercentage));
-	auto* envelopeLabel = makeHelp(page, envelope);
-	envelopeLabel->setObjectName("areaCapacityEnvelope");
-	layout->addWidget(envelopeLabel);
-	layout->addWidget(makeHelp(page,
-		"Rate: the occupation time of the selected trains on the resource divided by the period. Union: the same occupations with "
-		"overlapping time counted once. The governing resource has the largest occupation time. The envelope is the latest release "
-		"minus the earliest occupation of all selected trains, idle gaps included."));
 	return page;
 }
 
@@ -184,21 +170,27 @@ QWidget* chainTab(const AreaCapacityResult& result, const SceneSectionLabels& la
 	auto* layout = new QVBoxLayout(page);
 
 	QString summary;
+	QStringList references;
 	if (chainHasCycle(chain)) {
 		const QString cycle = chain.cyclePercentage >= 0.0
-			? QString("Cycle %1 s of a period of %2 s: %3% of period.")
+			? QString("Cycle %1 s of a %2 s period (%3%)")
 				  .arg(secondsText(chain.cycleTime), secondsText(chain.periodSeconds), percentText(chain.cyclePercentage))
-			: QString("Cycle %1 s, no valid period.").arg(secondsText(chain.cycleTime));
-		summary = QString("%1 Cycle start: %2. Cycle end: %3.")
-					  .arg(cycle, QString::fromStdString(chain.firstIdentity) + " " + referenceText(chain, chain.firstIdentity),
-						  QString::fromStdString(chain.cycleEndIdentity) + " " + referenceText(chain, chain.cycleEndIdentity));
+			: QString("Cycle %1 s, no valid period").arg(secondsText(chain.cycleTime));
+		summary = QString("%1, from %2 to %3")
+					  .arg(cycle, QString::fromStdString(chain.firstIdentity), QString::fromStdString(chain.cycleEndIdentity));
+		for (const std::string& identity : {chain.firstIdentity, chain.cycleEndIdentity}) {
+			const QString reference = capacityReferenceOf(chain, identity);
+			if (!reference.isEmpty())
+				references << QString::fromStdString(identity) + ": " + reference;
+		}
 	} else if (chain.analyzable) {
-		summary = QStringLiteral("The chain can be analysed, but it has no cycle-closing train after the first one.");
+		summary = QStringLiteral("No cycle-closing train was chosen.");
 	} else {
-		summary = QStringLiteral("The selected chain cannot be analysed. The notes say why.");
+		summary = QStringLiteral("The chain cannot be analysed. See Notes.");
 	}
 	auto* summaryLabel = makeHelp(page, summary);
 	summaryLabel->setObjectName("areaCapacityChainSummary");
+	summaryLabel->setToolTip(references.join('\n'));
 	layout->addWidget(summaryLabel);
 
 	std::vector<QStringList> pairRows;
@@ -206,16 +198,19 @@ QWidget* chainTab(const AreaCapacityResult& result, const SceneSectionLabels& la
 		pairRows.push_back({QString::fromStdString(pair.leaderIdentity), QString::fromStdString(pair.followerIdentity),
 			QString::fromStdString(pair.leaderOperatingCode), QString::fromStdString(pair.followerOperatingCode),
 			secondsText(pair.scheduledHeadway), secondsText(pair.minimumHeadway), secondsText(pair.buffer),
-			evidenceText(pair.governingEvidence),
-			referenceText(chain, pair.leaderIdentity) + " -> " + referenceText(chain, pair.followerIdentity)});
-	layout->addWidget(EditorLayout::sectionHeading(QString("Pairs (%1)").arg(pairRows.size()), page));
+			QString::fromStdString(capacityEvidenceBlocks(pair.governingEvidence))});
+	layout->addWidget(EditorLayout::sectionHeading(countedTitle("Pairs", pairRows.size()), page));
 	QTableWidget* pairs = makeTable(page,
-		{"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway [s]", "Minimum headway [s]", "Buffer [s]",
-			"Governing resource evidence", "Reference (leader -> follower)"},
+		{"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway (s)", "Minimum headway (s)", "Buffer (s)",
+			"Governing resource"},
 		pairRows, {4, 5, 6});
 	pairs->setObjectName("areaCapacityPairs");
-	for (int row = 0; row < pairs->rowCount(); ++row)
-		pairs->item(row, 7)->setToolTip(evidenceText(chain.pairs[static_cast<std::size_t>(row)].governingEvidence, &labels));
+	for (int row = 0; row < pairs->rowCount(); ++row) {
+		const CapacityPairRow& pair = chain.pairs[static_cast<std::size_t>(row)];
+		pairs->item(row, 0)->setToolTip(referenceTip(chain, pair.leaderIdentity));
+		pairs->item(row, 1)->setToolTip(referenceTip(chain, pair.followerIdentity));
+		pairs->item(row, 7)->setToolTip(evidenceText(pair.governingEvidence, &labels));
+	}
 	layout->addWidget(pairs, 1);
 
 	std::vector<QStringList> compressionRows;
@@ -224,24 +219,25 @@ QWidget* chainTab(const AreaCapacityResult& result, const SceneSectionLabels& la
 		for (const CapacityCompressionEvidence& predecessor : row.governingPredecessors)
 			governing << QString("%1 (%2 s): %3")
 							 .arg(QString::fromStdString(predecessor.predecessorIdentity), secondsText(predecessor.minimumHeadway),
-								 evidenceText(predecessor.governingEvidence));
+								 QString::fromStdString(capacityEvidenceBlocks(predecessor.governingEvidence)));
 		compressionRows.push_back({QString::fromStdString(row.identity), QString::fromStdString(row.operatingCode),
 			secondsText(row.originalReference), secondsText(row.scheduledReference), secondsText(row.compressedReference),
-			secondsText(row.shift), governing.join("; ")});
+			secondsText(row.shift), governing.join(", ")});
 	}
-	layout->addWidget(EditorLayout::sectionHeading(QString("Compression (%1)").arg(compressionRows.size()), page));
+	layout->addWidget(EditorLayout::sectionHeading(countedTitle("Compression", compressionRows.size()), page));
 	QTableWidget* compression = makeTable(page,
-		{"Identity", "Operating code", "Original reference [s]", "Scheduled reference [s]", "Compressed reference [s]", "Shift [s]",
-			"Governing predecessor / resource evidence"},
+		{"Train", "Operating code", "Original reference (s)", "Scheduled reference (s)", "Compressed reference (s)", "Shift (s)",
+			"Governing predecessor"},
 		compressionRows, {2, 3, 4, 5});
 	compression->setObjectName("areaCapacityCompression");
 	for (int row = 0; row < compression->rowCount(); ++row) {
 		QStringList governing;
 		for (const CapacityCompressionEvidence& predecessor : chain.compression[static_cast<std::size_t>(row)].governingPredecessors)
-			governing << QString("%1 (%2 s): %3")
+			governing << QString("%1 (%2 s)\n%3")
 							 .arg(QString::fromStdString(predecessor.predecessorIdentity), secondsText(predecessor.minimumHeadway),
 								 evidenceText(predecessor.governingEvidence, &labels));
-		compression->item(row, 6)->setToolTip(governing.join("; "));
+		compression->item(row, 0)->setToolTip(referenceTip(chain, chain.compression[static_cast<std::size_t>(row)].identity));
+		compression->item(row, 6)->setToolTip(governing.join('\n'));
 	}
 	layout->addWidget(compression, 1);
 
@@ -249,8 +245,8 @@ QWidget* chainTab(const AreaCapacityResult& result, const SceneSectionLabels& la
 	for (const CapacityCriticalBlock& critical : chain.criticalBlocks)
 		criticalRows.push_back({QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
 			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId), secondsText(critical.gap)});
-	layout->addWidget(EditorLayout::sectionHeading(QString("Critical resources (%1)").arg(criticalRows.size()), page));
-	QTableWidget* critical = makeTable(page, {"Leader", "Follower", "Leader resource", "Follower resource", "Gap [s]"}, criticalRows, {4});
+	layout->addWidget(EditorLayout::sectionHeading(countedTitle("Critical resources", criticalRows.size()), page));
+	QTableWidget* critical = makeTable(page, {"Leader", "Follower", "Leader resource", "Follower resource", "Gap (s)"}, criticalRows, {4});
 	critical->setObjectName("areaCapacityCritical");
 	setLabelTips(critical, 2, labels);
 	setLabelTips(critical, 3, labels);
@@ -269,19 +265,17 @@ std::vector<QStringList> noteRows(const AreaCapacityResult& result, bool exclude
 	return rows;
 }
 
-QWidget* notesTab(const std::vector<QStringList>& rows, const QString& help, const QString& tableName, const SceneSectionLabels& labels,
-	QWidget* parent) {
+QWidget* notesTab(const std::vector<QStringList>& rows, const QString& tableName, const SceneSectionLabels& labels, QWidget* parent) {
 	auto* page = new QWidget(parent);
 	auto* layout = new QVBoxLayout(page);
-	layout->addWidget(makeHelp(page, help));
-	QTableWidget* table = makeTable(page, {"Status", "Train", "Other train", "Resource", "Meaning"}, rows);
+	QTableWidget* table = makeTable(page, {"Status", "Train", "Other train", "Resource", "Details"}, rows);
 	table->setObjectName(tableName);
 	setLabelTips(table, 3, labels);
 	layout->addWidget(table, 1);
 	return page;
 }
 
-// "Opposing train (2), Unselected traffic (1)": every status that occurs, with its count.
+// "Statuses: Opposing train (2), Unselected traffic (1)": every status that occurs, with its count; empty for none.
 QString statusLine(const AreaCapacityResult& result) {
 	QStringList parts;
 	for (const AreaCapacityNoteKind kind : kNoteKinds) {
@@ -289,7 +283,7 @@ QString statusLine(const AreaCapacityResult& result) {
 		if (count > 0)
 			parts << QString("%1 (%2)").arg(areaCapacityStatusName(kind)).arg(count);
 	}
-	return parts.isEmpty() ? QStringLiteral("Statuses: none") : "Statuses: " + parts.join(", ");
+	return parts.isEmpty() ? QString() : "Statuses: " + parts.join(", ");
 }
 
 // The resources with the largest occupation, by their labels, with their rate. A switch label holds a comma, so the
@@ -330,13 +324,17 @@ bool knownRoute(const CompletedRunData& data, int routeIndex) {
 	return routeIndex >= 0 && routeIndex < static_cast<int>(data.routes.size());
 }
 
+// The positions of the blocks from `first` to `last` in the route, from 0.
+std::vector<int> blockRangeIndices(const CompletedRunData& data, int routeIndex, int first, int last) {
+	if (!knownRoute(data, routeIndex))
+		return {};
+	return blockSectionRangeIndices(first, last, static_cast<int>(data.routes[static_cast<std::size_t>(routeIndex)].blocks.size()));
+}
+
 std::vector<std::string> blockRange(const CompletedRunData& data, int routeIndex, int first, int last) {
 	std::vector<std::string> ids;
-	if (!knownRoute(data, routeIndex))
-		return ids;
-	const std::vector<BlockSectionInput>& blocks = data.routes[static_cast<std::size_t>(routeIndex)].blocks;
-	for (const int index : blockSectionRangeIndices(first, last, static_cast<int>(blocks.size())))
-		ids.push_back(blocks[static_cast<std::size_t>(index)].id);
+	for (const int index : blockRangeIndices(data, routeIndex, first, last))
+		ids.push_back(data.routes[static_cast<std::size_t>(routeIndex)].blocks[static_cast<std::size_t>(index)].id);
 	return ids;
 }
 
@@ -344,6 +342,7 @@ CapacityAnalysisScope referenceScope(const AreaCapacityScope& scope) {
 	CapacityAnalysisScope reference;
 	reference.routeIndex = scope.routeIndex;
 	reference.blockIds = scope.blockIds;
+	reference.sectionIndices = scope.sectionIndices;
 	return reference;
 }
 
@@ -372,8 +371,8 @@ AreaCapacityTrain areaTrainFor(const CompletedRunData& data, const CompletedTrai
 }
 
 QString routeText(const CompletedRoute& route) {
-	const QString corridor = route.corridor.empty() ? QStringLiteral("no corridor") : QString::fromStdString(route.corridor);
-	return QString("%1  (%2)").arg(QString::fromStdString(route.id), corridor);
+	const QString id = QString::fromStdString(route.id);
+	return route.corridor.empty() ? id : QString("%1  (%2)").arg(id, QString::fromStdString(route.corridor));
 }
 
 } // namespace
@@ -405,6 +404,7 @@ QString areaText(const CompletedRunData& data, const AreaCapacityScope& scope,
 		CapacityAnalysisScope second;
 		second.routeIndex = scope.secondRouteIndex;
 		second.blockIds = scope.secondBlockIds;
+		second.sectionIndices = scope.secondSectionIndices;
 		label += " and " + scopeText(data, second);
 	}
 	return label;
@@ -608,21 +608,18 @@ AreaCapacityScopeDialog::AreaCapacityScopeDialog(const CompletedRunData& data, Q
 	m_occurrences->setDefaultDropAction(Qt::MoveAction);
 	m_occurrences->setMinimumHeight(180);
 	form->addRow("Route / corridor:", m_route);
-	form->addRow("First resource:", m_firstBlock);
-	form->addRow("Last resource:", m_lastBlock);
-	form->addRow("Second route (optional):", m_secondRoute);
-	form->addRow("First resource of the second route:", m_secondFirstBlock);
-	form->addRow("Last resource of the second route:", m_secondLastBlock);
+	form->addRow("First block:", m_firstBlock);
+	form->addRow("Last block:", m_lastBlock);
+	form->addRow("Second route:", m_secondRoute);
+	form->addRow("Second route, first block:", m_secondFirstBlock);
+	form->addRow("Second route, last block:", m_secondLastBlock);
 	form->addRow("Analysis period:", m_period);
-	form->addRow("Cycle-closing occurrence:", m_cycleEnd);
+	form->addRow("Cycle-closing train:", m_cycleEnd);
 	layout->addLayout(form);
 	auto* note = new QLabel(body);
-	DialogLayout::setHelp(note,
-		"The area is the block range of the first route and, when chosen, of a second route. Checked occurrences are the selected traffic "
-		"and form the chain in the displayed order, by reference time at first; drag a row to change the order. Trains that use the area "
-		"and are not checked are reported as unselected traffic.");
+	DialogLayout::setHelp(note, "Checked trains are analysed in list order. Drag a row to change the order.");
 	layout->addWidget(note);
-	layout->addWidget(new QLabel("Occurrences that use the area:", body));
+	layout->addWidget(new QLabel("Trains in the area:", body));
 	layout->addWidget(m_occurrences);
 	m_status = new QLabel(body);
 	m_status->setObjectName("areaCapacityScopeStatus");
@@ -649,7 +646,7 @@ AreaCapacityScopeDialog::AreaCapacityScopeDialog(const CompletedRunData& data, Q
 	refillBlocks(m_route, m_firstBlock, m_lastBlock);
 	refillBlocks(m_secondRoute, m_secondFirstBlock, m_secondLastBlock);
 	refillOccurrences();
-	DialogLayout::install(*this, "Capacity by area", "Choose the area, the period and the traffic.", body, m_buttons);
+	DialogLayout::install(*this, "Capacity by area", QString(), body, m_buttons);
 }
 
 void AreaCapacityScopeDialog::refillBlocks(QComboBox* routes, QComboBox* first, QComboBox* last) {
@@ -678,8 +675,11 @@ AreaCapacityScope AreaCapacityScopeDialog::scope() const {
 	AreaCapacityScope chosen;
 	chosen.routeIndex = m_route->count() > 0 ? m_route->currentData().toInt() : -1;
 	chosen.blockIds = blockRange(m_data, chosen.routeIndex, m_firstBlock->currentIndex(), m_lastBlock->currentIndex());
+	chosen.sectionIndices = blockRangeIndices(m_data, chosen.routeIndex, m_firstBlock->currentIndex(), m_lastBlock->currentIndex());
 	chosen.secondRouteIndex = m_secondRoute->currentData().toInt();
 	chosen.secondBlockIds = blockRange(m_data, chosen.secondRouteIndex, m_secondFirstBlock->currentIndex(), m_secondLastBlock->currentIndex());
+	chosen.secondSectionIndices = blockRangeIndices(m_data, chosen.secondRouteIndex, m_secondFirstBlock->currentIndex(),
+		m_secondLastBlock->currentIndex());
 	chosen.periodSeconds = m_period->value();
 	for (int row = 0; row < m_occurrences->count(); ++row) {
 		const QListWidgetItem* item = m_occurrences->item(row);
@@ -713,17 +713,19 @@ void AreaCapacityScopeDialog::refillOccurrences() {
 	const QSignalBlocker blockCycleEnd(m_cycleEnd);
 	m_occurrences->clear();
 	m_cycleEnd->clear();
-	m_cycleEnd->addItem("No cycle-closing occurrence", QString());
+	m_cycleEnd->addItem("No cycle-closing train", QString());
 	for (const Candidate& candidate : candidates) {
 		const QString identity = QString::fromStdString(candidate.input.runtimeId);
 		const QString code = QString::fromStdString(candidate.input.operatingCode);
-		const QString source = candidate.input.referenceSource.empty() ? QStringLiteral("no reference at the first resource")
-																	   : QString::fromStdString(candidate.input.referenceSource);
-		auto* item = new QListWidgetItem(QString("%1 | %2 | %3").arg(identity, code, source), m_occurrences);
+		const QString name = code.isEmpty() || code == identity ? identity : QString("%1 (%2)").arg(identity, code);
+		const QString referenceTime = capacityReferenceText(candidate.input.referenceSource, candidate.input.referenceLabel);
+		auto* item = new QListWidgetItem(referenceTime.isEmpty() ? name + ", no reference time" : name, m_occurrences);
 		item->setData(Qt::UserRole, identity);
 		item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
 		item->setCheckState(Qt::Checked);
-		m_cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
+		if (!referenceTime.isEmpty())
+			item->setToolTip("Reference time: " + referenceTime);
+		m_cycleEnd->addItem(name, identity);
 	}
 	validate();
 }
@@ -737,12 +739,12 @@ void AreaCapacityScopeDialog::validate() {
 	} else if (!current.cycleEndOccurrenceId.empty()) {
 		const auto position = std::find(current.occurrenceIds.begin(), current.occurrenceIds.end(), current.cycleEndOccurrenceId);
 		if (position == current.occurrenceIds.end() || position == current.occurrenceIds.begin())
-			error = QStringLiteral("The cycle-closing occurrence must be a checked occurrence after the first checked one.");
+			error = QStringLiteral("The cycle-closing train must be a checked row below the first.");
 		else if (runsReversed(m_data, *position) != runsReversed(m_data, current.occurrenceIds.front()))
-			warning = QStringLiteral("The cycle-closing occurrence runs in the other direction than the first checked one. The chain leaves it out.");
+			warning = QStringLiteral("The cycle-closing train runs in the other direction and is left out of the chain.");
 	}
 	if (error.isEmpty() && current.occurrenceIds.empty())
-		warning = QStringLiteral("No occurrence is checked. The window will report no selected traffic.");
+		warning = QStringLiteral("No train is checked.");
 	DialogLayout::setStatus(m_status, error.isEmpty() ? DialogLayout::Severity::Warning : DialogLayout::Severity::Error,
 		error.isEmpty() ? warning : error);
 	m_buttons->button(QDialogButtonBox::Ok)->setEnabled(error.isEmpty());
@@ -771,14 +773,11 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	tabs->addTab(resourcesTab(m_result, labels, tabs), "Resources");
 	tabs->addTab(chainTab(m_result, labels, tabs), "Chain");
 	const std::vector<QStringList> excluded = noteRows(m_result, true);
-	tabs->addTab(notesTab(excluded,
-					 "Trains and occupations that the figures leave out or count only in part.", "areaCapacityExcluded", labels, tabs),
-		QString("Excluded traffic (%1)").arg(excluded.size()));
-	tabs->addTab(notesTab(noteRows(m_result, false), "Every status of this analysis.", "areaCapacityNotes", labels, tabs),
-		QString("Notes (%1)").arg(m_result.notes.size()));
+	tabs->addTab(notesTab(excluded, "areaCapacityExcluded", labels, tabs), countedTitle("Excluded traffic", excluded.size()));
+	tabs->addTab(notesTab(noteRows(m_result, false), "areaCapacityNotes", labels, tabs), countedTitle("Notes", m_result.notes.size()));
 	layout->addWidget(tabs, 1);
 
-	auto* exportButton = new QPushButton("Export area capacity CSV...", body);
+	auto* exportButton = new QPushButton("Export CSV...", body);
 	exportButton->setObjectName("areaCapacityExport");
 	exportButton->setAutoDefault(false);
 	exportButton->setEnabled(!m_result.resources.empty());
@@ -792,23 +791,21 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	connect(closeButtons, &QDialogButtonBox::rejected, this, &QDialog::close);
 
 	const CapacityAnalysisResult& chain = m_result.chain;
-	QString summary = QStringLiteral("Selected chain: not available");
+	QString summary = QStringLiteral("Chain cannot be analysed");
 	if (chainHasCycle(chain)) {
 		const QString cycle = QString::number(chain.cycleTime, 'f', 1);
 		summary = chain.cyclePercentage >= 0.0
-			? QString("Selected chain: cycle %1 s, %2% of period").arg(cycle, percentText(chain.cyclePercentage))
-			: QString("Selected chain: cycle %1 s, no valid period").arg(cycle);
+			? QString("Cycle %1 s, %2% of period").arg(cycle, percentText(chain.cyclePercentage))
+			: QString("Cycle %1 s, no valid period").arg(cycle);
 	} else if (chain.analyzable) {
-		summary = QStringLiteral("Selected chain: no cycle-closing train");
+		summary = QStringLiteral("No cycle-closing train");
 	}
-	summary += " | " + trafficName(m_result);
-	const QString traffic = m_result.complete
-		? QStringLiteral("every train of the run that uses the area is selected and none of its occupations is unusable")
-		: QStringLiteral("rates count only the selected traffic and are lower bounds");
+	if (!m_result.complete)
+		summary += QStringLiteral("\nPartial traffic: rates count only the checked trains");
 	// The window title names the view; the result leads the context.
 	DialogLayout::install(*this, QStringLiteral("Capacity by area"),
-		QString("%1\nArea: %2\nGoverning resource: %3\nTraffic: %4\nRun: %5")
-			.arg(summary, areaText.isEmpty() ? m_areaLabel : areaText, governingText(m_result, labels), traffic, runText(m_provenance)),
+		QString("%1\nArea: %2\nGoverning resource: %3\nRun: %4")
+			.arg(summary, areaText.isEmpty() ? m_areaLabel : areaText, governingText(m_result, labels), runText(m_provenance)),
 		body, closeButtons);
 	resize(qMin(maximumWidth(), 960), qMin(maximumHeight(), 640));
 }
@@ -828,7 +825,7 @@ void AreaCapacityWindow::exportCsv() {
 	const bool written = exportCsvTo(path);
 	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written)
-		QMessageBox::warning(this, "Export failed", QString("Could not export the data and provenance to:\n%1").arg(path));
+		QMessageBox::warning(this, "Export failed", QString("Could not save the data to:\n%1").arg(path));
 }
 
 AreaCapacityWindow* openAreaCapacityWindow(QWidget* parent, const CompletedRunData& data, telemetry::CaptureOperation capture) {

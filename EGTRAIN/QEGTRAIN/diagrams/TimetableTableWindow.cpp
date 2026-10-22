@@ -79,7 +79,7 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 		this, &TimetableTableWindow::applyTrainVisibility);
 
 	QPushButton* csvButton = new QPushButton("Export CSV...", this);
-	csvButton->setToolTip("Write the rows of the visible trains to a CSV file");
+	csvButton->setToolTip("Save the rows of the visible trains as CSV");
 	csvButton->setVisible(static_cast<bool>(m_csvProvider));
 	connect(csvButton, &QPushButton::clicked, this, &TimetableTableWindow::exportCsv);
 
@@ -99,7 +99,7 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 
 	m_table = new QTableWidget(this);
 	m_table->setColumnCount(9);
-	m_table->setHorizontalHeaderLabels({"Train/service", "Station", "Journey order", "Planned arrival", "Planned departure",
+	m_table->setHorizontalHeaderLabels({"Train", "Station", "Journey order", "Planned arrival", "Planned departure",
 		"Simulated arrival", "Simulated departure", "Arrival delay", "Departure delay"});
 	m_table->setAlternatingRowColors(true);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -156,10 +156,9 @@ void TimetableTableWindow::fillTrainFilter() {
 void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {
 	m_runProvenance = std::move(provenance);
 	m_hasRunProvenance = true;
-	setPresentation(QStringLiteral("Timetable"),
-		QStringLiteral("Case: %1 | Scenario: %2")
-			.arg(QString::fromStdString(m_runProvenance.caseName),
-				QString::fromStdString(m_runProvenance.appliedScenario)));
+	const QString scenario = QString::fromStdString(m_runProvenance.appliedScenario);
+	const QString run = QString::fromStdString(m_runProvenance.caseName) + (scenario.isEmpty() ? QString() : " / " + scenario);
+	setPresentation(QStringLiteral("Timetable"), "Run: " + run);
 }
 
 void TimetableTableWindow::setPresentation(const QString& heading, const QString& context) {
@@ -282,7 +281,7 @@ void TimetableTableWindow::exportCsv() {
 	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
-			QString("Could not export the data and provenance to:\n%1").arg(path));
+			QString("Could not save the data to:\n%1").arg(path));
 }
 
 void TimetableTableWindow::exportPng() {
@@ -298,7 +297,7 @@ void TimetableTableWindow::exportPng() {
 	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
-			QString("Could not write the image to:\n%1").arg(path));
+			QString("Could not save the image to:\n%1").arg(path));
 		return;
 	}
 	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
@@ -308,5 +307,5 @@ void TimetableTableWindow::exportPng() {
 	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 	if (!written)
 		QMessageBox::warning(this, "Export failed",
-			QString("Could not export the image and provenance to:\n%1").arg(path));
+			QString("Could not save the image to:\n%1").arg(path));
 }

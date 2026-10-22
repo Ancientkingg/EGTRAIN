@@ -174,8 +174,8 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 /// One row for each stop of each train, in run and stop order. At most Train::kMaxTimetableStations stops of a
 /// train are kept; a null train is skipped.
 std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains);
-/// For the Run Results summary: "Direct incident evidence recorded for 1 of 3 trains". A train counts when the
-/// run recorded at least one direct incident effect on it.
+/// For the Run Results summary: "Incidents acted on 1 of 3 trains". A train counts when the run recorded at least one
+/// direct incident effect on it.
 std::string directIncidentEvidenceText(const RunResults& results);
 /// For the Run Results summary: "196/196 selected" when every ticked occurrence enters the simulation inside the
 /// run period, and "196/196 selected, 185 in the run period" when some of them do not.

@@ -25,6 +25,7 @@
 #include <QVBoxLayout>
 
 #include <iterator>
+#include <utility>
 
 namespace {
 
@@ -172,10 +173,11 @@ void fillTable(QTableWidget* table, const std::vector<QStringList>& rows, const 
 	table->resizeColumnsToContents();
 }
 
-QLabel* makeHelp(QWidget* parent, const QString& help) {
-	auto* label = new QLabel(parent);
-	DialogLayout::setHelp(label, help);
-	return label;
+// Gives every column whose header ends with `header` the tooltip `tip`.
+void setHeaderTip(QTableWidget* table, const QString& header, const QString& tip) {
+	for (int column = 0; column < table->columnCount(); ++column)
+		if (QTableWidgetItem* item = table->horizontalHeaderItem(column); item && item->text().endsWith(header))
+			item->setToolTip(tip);
 }
 
 QStringList callRow(const DelayEvent& event) {
@@ -220,38 +222,24 @@ QStringList baselineCallRow(const BaselineCall& call) {
 	return row;
 }
 
+// "3 trains. At the final arrival: 2 later, 1 same. Added delay +60 s, net +45 s.", with the counts that are not 0.
 QString totalsText(const BaselineTotals& totals) {
 	if (totals.occurrences == 0)
-		return QStringLiteral("No occurrence is selected.");
-	QString line = QString("Occurrences: %1. Final arrival later: %2, same: %3, earlier: %4, not available: %5. Positive additional delay: %6. "
-						   "Net additional delay: %7.")
+		return QStringLiteral("No train is selected.");
+	QStringList counts;
+	const std::pair<int, const char*> parts[] = {
+		{totals.later, "later"}, {totals.same, "same"}, {totals.earlier, "earlier"}, {totals.notAvailable, "not available"}};
+	for (const auto& part : parts)
+		if (part.first > 0)
+			counts << QString("%1 %2").arg(part.first).arg(part.second);
+	QString line = QString(totals.occurrences == 1 ? "%1 train. At the final arrival: %2. Added delay %3, net %4."
+												   : "%1 trains. At the final arrival: %2. Added delay %3, net %4.")
 					   .arg(totals.occurrences)
-					   .arg(totals.later)
-					   .arg(totals.same)
-					   .arg(totals.earlier)
-					   .arg(totals.notAvailable)
-					   .arg(figureText(totals.positiveSeconds), figureText(totals.netSeconds));
+					   .arg(counts.join(", "), figureText(totals.positiveSeconds), figureText(totals.netSeconds));
 	if (!totals.complete)
-		line += QStringLiteral(" The sums leave out the occurrences that have no final arrival difference.");
+		line += QStringLiteral(" Sums leave out trains without a final arrival.");
 	return line;
 }
-
-const char* const kCallsHelp =
-	"Delay is the simulated time minus the planned time of the authored plan, in seconds since the start of the run. Negative is early, 0 is "
-	"on time and positive is late. An entrance delay shows as the delay of the departure that it moves. A missing plan or time gives no "
-	"delay. It is shown as - and Status says which is missing.";
-
-const char* const kSummaryHelp =
-	"One row for each station and one for all selected stations. Sum, mean, minimum, maximum and the shares count the Available events only, "
-	"so a missing event is not counted as 0. Later than a threshold means strictly later: a delay equal to the threshold is not later. "
-	"The thresholds are 0 s, 60 s, 180 s and 300 s.";
-
-const char* const kBaselineHelp =
-	"The additional delay of a call is its simulated time in this run minus the simulated time of the same call in the baseline run. The "
-	"input delay is the entrance delay of this run. It is the primary delay, an input and not a measurement. The secondary delay is the "
-	"additional delay at the final arrival minus the input delay, when the delayed stop comes before the final call. It states a "
-	"difference and no cause. A delay without recorded direct incident evidence is not shown to be propagated. The station choice applies "
-	"to the calls only.";
 
 } // namespace
 
@@ -305,11 +293,11 @@ QString delayDiagnosticText(const DelayDiagnostic& diagnostic) {
 		case DelayDiagnosticKind::BaselineHasEntranceDelays:
 			return QStringLiteral("The baseline run has entrance delays. A baseline must be a run without entrance delays.");
 		case DelayDiagnosticKind::OccurrenceOnlyInBaseline:
-			return QString("Occurrence %1 is in the baseline run only.").arg(occurrence);
+			return QString("Train %1 is in the baseline run only.").arg(occurrence);
 		case DelayDiagnosticKind::OccurrenceOnlyInScenario:
-			return QString("Occurrence %1 is in this run only.").arg(occurrence);
+			return QString("Train %1 is in this run only.").arg(occurrence);
 		case DelayDiagnosticKind::CallsDiffer:
-			return QString("Occurrence %1 has other calls in the two runs: other stations, another journey order or another call number.")
+			return QString("Train %1 has other calls in the two runs: other stations, another journey order or another call number.")
 				.arg(occurrence);
 	}
 	return QString();
@@ -502,7 +490,6 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_kind->setObjectName("delayAnalysisEvents");
 	m_kind->addItem("Arrivals", static_cast<int>(DelayEventKind::Arrival));
 	m_kind->addItem("Departures", static_cast<int>(DelayEventKind::Departure));
-	m_kind->setToolTip("The events of the Calls and Summary tabs");
 	auto* filters = new QHBoxLayout();
 	filters->addWidget(m_occurrences);
 	filters->addWidget(m_stations);
@@ -516,24 +503,26 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 
 	auto* callsPage = new QWidget(m_tabs);
 	auto* callsLayout = new QVBoxLayout(callsPage);
-	callsLayout->addWidget(makeHelp(callsPage, kCallsHelp));
 	m_callsTable = makeTable(callsPage, "delayCalls",
-		{"Service", "Occurrence", "Train", "Operating code", "Station", "Journey order", "Call", "Event", "Planned [s]", "Simulated [s]",
-			"Delay [s]", "Class", "Status"});
+		{"Service", "Occurrence", "Train", "Operating code", "Station", "Journey order", "Call", "Event", "Planned (s)", "Simulated (s)",
+			"Delay (s)", "Class", "Status"});
+	setHeaderTip(m_callsTable, "Delay (s)", "Simulated minus planned time\nNegative is early");
 	callsLayout->addWidget(m_callsTable, 1);
 	m_tabs->addTab(callsPage, "Calls");
 
 	auto* summaryPage = new QWidget(m_tabs);
 	auto* summaryLayout = new QVBoxLayout(summaryPage);
-	summaryLayout->addWidget(makeHelp(summaryPage, kSummaryHelp));
 	QStringList summaryHeaders = {"Station", "Calls", "Available", "No plan", "Not reached", "No plan, not reached", "Early", "On time", "Late",
-		"Sum [s]", "Mean [s]", "Minimum [s]", "Maximum [s]"};
+		"Sum (s)", "Mean (s)", "Minimum (s)", "Maximum (s)"};
 	for (const double threshold : defaultDelayThresholdsSeconds()) {
 		DelayShare share;
 		share.thresholdSeconds = threshold;
 		summaryHeaders << thresholdText(share);
 	}
 	m_summaryTable = makeTable(summaryPage, "delaySummary", summaryHeaders);
+	for (int column = 0; column < m_summaryTable->columnCount(); ++column)
+		if (QTableWidgetItem* item = m_summaryTable->horizontalHeaderItem(column); item && item->text().startsWith("Later than"))
+			item->setToolTip("Strictly later\nCounts available events only");
 	summaryLayout->addWidget(m_summaryTable, 1);
 	m_tabs->addTab(summaryPage, "Summary");
 
@@ -542,7 +531,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_baselineNote = new QLabel(baselinePage);
 	m_baselineNote->setObjectName("delayBaselineNote");
 	baselineLayout->addWidget(m_baselineNote);
-	m_baselineDiagnostics = makeTable(baselinePage, "delayBaselineDiagnostics", {"Code", "Meaning"});
+	m_baselineDiagnostics = makeTable(baselinePage, "delayBaselineDiagnostics", {"Reason"});
 	baselineLayout->addWidget(m_baselineDiagnostics, 1);
 	m_baselineResults = new QWidget(baselinePage);
 	auto* resultsLayout = new QVBoxLayout(m_baselineResults);
@@ -552,19 +541,23 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_baselineTotals->setTextFormat(Qt::PlainText);
 	m_baselineTotals->setWordWrap(true);
 	resultsLayout->addWidget(m_baselineTotals);
-	resultsLayout->addWidget(EditorLayout::sectionHeading("Occurrences", m_baselineResults));
+	resultsLayout->addWidget(EditorLayout::sectionHeading("Trains", m_baselineResults));
 	m_baselineOccurrences = makeTable(m_baselineResults, "delayBaselineOccurrences",
-		{"Service", "Occurrence", "Train", "Operating code", "Input delay (primary) [s]", "Input delay at", "Direct incident evidence",
-			"Final station", "Baseline final arrival [s]", "Scenario final arrival [s]", "Additional delay [s]", "Change", "Secondary delay [s]"});
+		{"Service", "Occurrence", "Train", "Operating code", "Input delay (s)", "Input delay station", "Direct incident evidence",
+			"Final station", "Baseline final arrival (s)", "Scenario final arrival (s)", "Additional delay (s)", "Change", "Secondary delay (s)"});
+	setHeaderTip(m_baselineOccurrences, "Input delay (s)", "Entrance delay set in this scenario");
+	setHeaderTip(m_baselineOccurrences, "Secondary delay (s)", "Additional delay at the final arrival minus the input delay");
 	resultsLayout->addWidget(m_baselineOccurrences, 1);
 	resultsLayout->addWidget(EditorLayout::sectionHeading("Calls", m_baselineResults));
-	const QStringList differenceHeaders = {"Baseline [s]", "Scenario [s]", "Additional delay [s]", "Change"};
+	const QStringList differenceHeaders = {"Baseline (s)", "Scenario (s)", "Additional delay (s)", "Change"};
 	QStringList callHeaders = {"Service", "Occurrence", "Station", "Journey order", "Call", "Final call"};
 	for (const QString& header : differenceHeaders)
 		callHeaders << "Arrival: " + header;
 	for (const QString& header : differenceHeaders)
 		callHeaders << "Departure: " + header;
 	m_baselineCalls = makeTable(m_baselineResults, "delayBaselineCalls", callHeaders);
+	for (QTableWidget* table : {m_baselineOccurrences, m_baselineCalls})
+		setHeaderTip(table, "Additional delay (s)", "This run minus the baseline, same call");
 	resultsLayout->addWidget(m_baselineCalls, 1);
 	baselineLayout->addWidget(m_baselineResults, 1);
 	m_tabs->addTab(baselinePage, "Against baseline");
@@ -572,7 +565,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 
 	m_exportButton = new QPushButton("Export CSV...", body);
 	m_exportButton->setObjectName("delayAnalysisExport");
-	m_exportButton->setToolTip("Write the visible tab to a CSV file");
+	m_exportButton->setToolTip("Save the visible tab as CSV");
 	m_exportButton->setAutoDefault(false);
 	auto* buttonRow = new QHBoxLayout();
 	buttonRow->addWidget(m_exportButton);
@@ -590,7 +583,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 		updateExport();
 	});
 
-	const QString baselineContext = m_baseline ? runText(m_baseline->provenance) : QStringLiteral("none set");
+	const QString baselineContext = m_baseline ? runText(m_baseline->provenance) : QStringLiteral("none");
 	// The run line names the scenario, so the window title is the name of the view.
 	DialogLayout::install(*this, QStringLiteral("Delay analysis"),
 		QString("Run: %1\nBaseline: %2").arg(runText(m_scenario.provenance), baselineContext), body, closeButtons);
@@ -599,7 +592,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 }
 
 void DelayAnalysisWindow::refresh() {
-	relabel(m_occurrences, "Occurrences", m_occurrenceCount);
+	relabel(m_occurrences, "Trains", m_occurrenceCount);
 	relabel(m_stations, "Stations", m_stationCount);
 	const Selection chosen = selectionOf(*m_occurrences, *m_stations);
 	m_shownKind = static_cast<DelayEventKind>(m_kind->currentData().toInt());
@@ -656,19 +649,18 @@ void DelayAnalysisWindow::fillBaseline() {
 	m_baselineDiagnostics->setVisible(m_baseline && !m_shownBaseline.compatible);
 	if (!m_baseline) {
 		DialogLayout::setStatus(m_baselineNote, DialogLayout::Severity::Neutral,
-			"No delay baseline is set. Set a baseline from a completed run with no incidents and no entrance delays, then compare a scenario run with it.");
+			"No baseline is set. In Run Results, click Set delay baseline after a run without incidents or entrance delays.");
 		return;
 	}
 	if (!compatible) {
-		DialogLayout::setStatus(m_baselineNote, DialogLayout::Severity::Warning,
-			"The baseline cannot be compared with this run, so there is no difference to show. Each row below is one reason.");
+		DialogLayout::setStatus(m_baselineNote, DialogLayout::Severity::Warning, "This run cannot be compared with the baseline:");
 		std::vector<QStringList> rows;
 		for (const DelayDiagnostic& diagnostic : m_shownBaseline.diagnostics)
-			rows.push_back({QString::fromLatin1(delayDiagnosticCode(diagnostic.kind)), delayDiagnosticText(diagnostic)});
+			rows.push_back({delayDiagnosticText(diagnostic)});
 		fillTable(m_baselineDiagnostics, rows);
 		return;
 	}
-	DialogLayout::setHelp(m_baselineNote, kBaselineHelp);
+	DialogLayout::setHelp(m_baselineNote, QString());
 	m_baselineTotals->setText(totalsText(m_shownBaseline.totals));
 	std::vector<QStringList> occurrenceRows;
 	for (const BaselineOccurrence& occurrence : m_shownBaseline.occurrences)
@@ -721,5 +713,5 @@ void DelayAnalysisWindow::exportCsv() {
 	const bool written = exportCsvTo(path);
 	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written)
-		QMessageBox::warning(this, "Export failed", QString("Could not export the data and provenance to:\n%1").arg(path));
+		QMessageBox::warning(this, "Export failed", QString("Could not save the data to:\n%1").arg(path));
 }

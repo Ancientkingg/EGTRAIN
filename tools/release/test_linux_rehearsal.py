@@ -105,7 +105,7 @@ class ReadingTests(unittest.TestCase):
         self.assertEqual(linux_rehearsal.loaded_data_problems(rows, "Paimpol"), ["the count and the status of Stations"])
 
     def test_timetable_needs_planned_and_simulated_values(self):
-        headers = ["Train/service", "Planned arrival", "Planned departure", "Simulated arrival", "Simulated departure"]
+        headers = ["Train", "Planned arrival", "Planned departure", "Simulated arrival", "Simulated departure"]
         cells = ["T1", "-", "07:38:05", "07:36:56", "07:38:05", "T1", "07:41:03", "07:41:33", "07:40:42", "07:41:33"]
         self.assertEqual(linux_rehearsal.timetable_problems(headers, cells), [])
         self.assertEqual(linux_rehearsal.timetable_problems(headers[:3] + headers[4:], cells), ["the column Simulated arrival"])

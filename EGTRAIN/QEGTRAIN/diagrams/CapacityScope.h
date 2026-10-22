@@ -46,8 +46,21 @@ CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& dat
 /// "route / corridor / first block to last block" without the parts the scope lacks, or "no selected route". The blocks
 /// are named by their ids, as the Section column of the capacity export holds them.
 QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
-/// As capacityScopeLabelFrom, for the windows: the blocks are named by their labels, "first through last".
+/// For the windows: "route (corridor), blocks 36 to 72" without the parts the scope lacks, or "no selected route". The
+/// blocks are named by their numbers in the route, from 1, or by their count when the scope has no numbers.
 QString capacityScopeTextFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+/// The first and last block of the scope with their numbers and labels, one per line, for the tooltip of
+/// capacityScopeTextFrom; empty without blocks.
+QString capacityScopeBlocksText(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+/// The reference time of a train as a window names it, from the referenceSource and referenceLabel of
+/// CapacityAnalysisTrain: "planned departure at <station>", "planned arrival at <station>", "planned entry time" or
+/// "simulated entry time"; empty without a source.
+QString capacityReferenceText(const std::string& source, const std::string& label);
+/// capacityReferenceText for the train `identity` of the result; empty when the result does not have it.
+QString capacityReferenceOf(const CapacityAnalysisResult& result, const std::string& identity);
+/// The Calculation details of the Capacity window: "Cycle time 155.5 s / period 3600 s × 100 = 4.3%" and on a second
+/// line "From <first train> to <cycle-closing train>". The percentage has one decimal, as the context line has it.
+QString capacityDetailsText(const CapacityAnalysisResult& result);
 
 /// Asks for a route, a period, the occurrences to analyse in order, the occurrence that closes the cycle and one of the
 /// sections that capacityStretchesFrom gives for the checked occurrences. The longest section is selected; after a

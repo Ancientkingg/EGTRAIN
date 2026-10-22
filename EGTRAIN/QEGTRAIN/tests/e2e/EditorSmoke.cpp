@@ -4906,8 +4906,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			else if (!summaryLines.first().startsWith("Run: ") || !summaryLines.contains("Status: Completed")
 				|| !summaryLines.last().startsWith("Delay baseline: "))
 				facetFailure(ok, "presentation", "the run, the status and the delay baseline are not on lines of their own in Run Results");
-			else if (captions != QStringList({"Results", "Delay comparison"}))
-				facetFailure(ok, "presentation", "the button rows of Run Results have no captions");
+			else if (captions != QStringList({"Delay comparison"}))
+				facetFailure(ok, "presentation", "the delay row of Run Results has no caption, or the result views row has one");
 			else if (w.m_runResultsSummaryLabel->width() > results->width() || w.m_delayFeedbackLabel->width() > results->width())
 				facetFailure(ok, "presentation", "a long run identity widens the labels of Run Results");
 

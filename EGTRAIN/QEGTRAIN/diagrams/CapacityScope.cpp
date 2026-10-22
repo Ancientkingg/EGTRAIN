@@ -1,5 +1,6 @@
 #include "diagrams/CapacityScope.h"
 
+#include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
 
@@ -127,7 +128,7 @@ std::string capacityScopeIssueFrom(const CompletedRunData& data, const CapacityA
 		if (!scope.occurrenceIds.empty() && std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(), train.trainId) == scope.occurrenceIds.end())
 			continue;
 		if (blockingTimeEntryAmbiguous(train.blockTimes, scope.blockIds.front()))
-			return "Occurrence " + train.trainId + " has several records for the selected entry resource; capacity analysis cannot identify one entry.";
+			return "Train " + train.trainId + " enters the first block more than once. Choose another first block.";
 	}
 	return {};
 }
@@ -218,9 +219,14 @@ CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& dat
 
 namespace {
 
-// The route, the corridor and the first and last block of the scope. `labels` names the blocks by their labels, joined
-// by "through" since a label holds "to"; without labels the blocks are named by their ids.
-QString capacityScopeText(const CompletedRunData& data, const CapacityAnalysisScope& scope, bool labels) {
+// True when the scope numbers each of its blocks.
+bool numbered(const CapacityAnalysisScope& scope) {
+	return !scope.blockIds.empty() && scope.sectionIndices.size() == scope.blockIds.size();
+}
+
+} // namespace
+
+QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
 	if (!data.hasRoute(scope.routeIndex))
 		return QStringLiteral("no selected route");
 	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
@@ -229,19 +235,64 @@ QString capacityScopeText(const CompletedRunData& data, const CapacityAnalysisSc
 		label += QString(" / %1").arg(QString::fromStdString(route.corridor));
 	if (scope.blockIds.empty())
 		return label;
-	if (!labels)
-		return label + QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
-	return label + QString(" / %1 through %2").arg(QString::fromStdString(data.sectionLabels.label(scope.blockIds.front())), QString::fromStdString(data.sectionLabels.label(scope.blockIds.back())));
-}
-
-} // namespace
-
-QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
-	return capacityScopeText(data, scope, false);
+	return label + QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
 }
 
 QString capacityScopeTextFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
-	return capacityScopeText(data, scope, true);
+	if (!data.hasRoute(scope.routeIndex))
+		return QStringLiteral("no selected route");
+	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
+	QString text = QString::fromStdString(route.id);
+	if (!route.corridor.empty())
+		text += QString(" (%1)").arg(QString::fromStdString(route.corridor));
+	const std::size_t count = scope.blockIds.size();
+	if (count == 0)
+		return text;
+	if (!numbered(scope))
+		return text + (count == 1 ? QString(", 1 block") : QString(", %1 blocks").arg(count));
+	if (count == 1)
+		return text + QString(", block %1").arg(scope.sectionIndices.front() + 1);
+	return text + QString(", blocks %1 to %2").arg(scope.sectionIndices.front() + 1).arg(scope.sectionIndices.back() + 1);
+}
+
+QString capacityScopeBlocksText(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
+	if (scope.blockIds.empty())
+		return {};
+	const auto block = [&data, &scope](std::size_t index) {
+		const QString label = QString::fromStdString(data.sectionLabels.label(scope.blockIds[index]));
+		return numbered(scope) ? QString("%1: %2").arg(scope.sectionIndices[index] + 1).arg(label) : label;
+	};
+	if (scope.blockIds.size() == 1)
+		return "Block " + block(0);
+	return "First block " + block(0) + "\nLast block " + block(scope.blockIds.size() - 1);
+}
+
+QString capacityReferenceText(const std::string& source, const std::string& label) {
+	// A boundary station is the reference of the label "<station> boundary".
+	const std::string suffix = " boundary";
+	const bool boundary = label.size() > suffix.size() && label.compare(label.size() - suffix.size(), suffix.size(), suffix) == 0;
+	const QString station = QString::fromStdString(boundary ? label.substr(0, label.size() - suffix.size()) : label);
+	if (source == "authored ScheduledDeparture at boundary station")
+		return "planned departure at " + station;
+	if (source == "authored ScheduledArrival at boundary station (departure absent)")
+		return "planned arrival at " + station;
+	if (source == "canonical scheduled entry + elapsed from RunStartTime")
+		return QStringLiteral("planned entry time");
+	return source.empty() ? QString() : QStringLiteral("simulated entry time");
+}
+
+QString capacityReferenceOf(const CapacityAnalysisResult& result, const std::string& identity) {
+	for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
+		if (result.trainIdentities[index] == identity && index < result.referenceSources.size() && index < result.referenceLabels.size())
+			return capacityReferenceText(result.referenceSources[index], result.referenceLabels[index]);
+	return {};
+}
+
+QString capacityDetailsText(const CapacityAnalysisResult& result) {
+	return QString("Cycle time %1 s / period %2 s × 100 = %3%\nFrom %4 to %5")
+		.arg(QString::fromStdString(csv::formatDouble(result.cycleTime)), QString::fromStdString(csv::formatDouble(result.periodSeconds)),
+			QString::number(result.cyclePercentage, 'f', 1), QString::fromStdString(result.firstIdentity),
+			QString::fromStdString(result.cycleEndIdentity));
 }
 
 bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope) {
@@ -256,10 +307,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	auto* routeCombo = new ChoiceComboBox(&dialog);
 	for (std::size_t routeIndex = 0; routeIndex < run.routes.size(); ++routeIndex) {
 		const CompletedRoute& route = run.routes[routeIndex];
-		const QString corridor = route.corridor.empty()
-			? QStringLiteral("no corridor")
-			: QString::fromStdString(route.corridor);
-		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.id), corridor),
+		const QString id = QString::fromStdString(route.id);
+		routeCombo->addItem(route.corridor.empty() ? id : QString("%1  (%2)").arg(id, QString::fromStdString(route.corridor)),
 			static_cast<int>(routeIndex));
 	}
 	// One entry for each section that the checked occurrences share. A long entry is cut in the middle; the tooltip has
@@ -280,19 +329,14 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	occurrences->setDefaultDropAction(Qt::MoveAction);
 	occurrences->setMinimumHeight(180);
 	form->addRow("Route / corridor:", routeCombo);
-	form->addRow("Analyzed blocks:", blocks);
+	form->addRow("Blocks:", blocks);
 	form->addRow("Analysis period:", period);
-	form->addRow("Cycle-closing occurrence:", cycleEnd);
+	form->addRow("Cycle-closing train:", cycleEnd);
 	layout->addLayout(form);
 	auto* note = new QLabel(body);
-	DialogLayout::setHelp(note,
-		"Checked occurrences are analyzed in the displayed order (A → B) on every analyzed block; selecting exactly two enables "
-		"the pair workflow. The analyzed blocks are one section of the route: consecutive blocks that all checked occurrences "
-		"occupy, up to a block that one of them does not occupy. Analyzed blocks lists each such section in route order and "
-		"selects the longest. Select the occurrence of the first service in the next period that closes the capacity cycle; "
-		"EGTRAIN does not infer it from the last row.");
+	DialogLayout::setHelp(note, "Checked trains are analysed in list order. Drag a row to change the order.");
 	layout->addWidget(note);
-	auto* occurrencesCaption = new QLabel("Occurrences with complete occupations on the route:", body);
+	auto* occurrencesCaption = new QLabel("Trains on this route:", body);
 	occurrencesCaption->setWordWrap(true);
 	layout->addWidget(occurrencesCaption);
 	layout->addWidget(occurrences);
@@ -344,9 +388,9 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		const bool unshared = !tooFew && sections.empty();
 		ok->setEnabled(!tooFew && !unshared);
 		if (tooFew)
-			showError("Check at least two occurrences.");
+			showError("Check at least two trains.");
 		else if (unshared)
-			showError("No block of the route is shared by all checked occurrences.");
+			showError("No block of the route is shared by all checked trains.");
 		else
 			clearError();
 	};
@@ -430,14 +474,15 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		for (const CompletedTrain* train : listed) {
 			const QString identity = QString::fromStdString(train->trainId);
 			const QString code = QString::fromStdString(train->operatingCode);
-			auto* item = new QListWidgetItem(QString("%1 | %2").arg(identity, code), occurrences);
+			const QString text = code.isEmpty() || code == identity ? identity : QString("%1 (%2)").arg(identity, code);
+			auto* item = new QListWidgetItem(text, occurrences);
 			item->setData(Qt::UserRole, identity);
 			item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
 			item->setCheckState(rank(train) < static_cast<std::ptrdiff_t>(checked.size()) ? Qt::Checked : Qt::Unchecked);
 			// A row as wide as the list cuts a long text with an ellipsis; the tooltip has all of it.
 			item->setToolTip(item->text());
 			item->setSizeHint(QSize(1, occurrences->sizeHintForRow(occurrences->row(item))));
-			cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
+			cycleEnd->addItem(text, identity);
 		}
 		refillSections();
 		chooseOnlyCycleEnd();
@@ -481,15 +526,14 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		const auto selectedCycleEnd = std::find(chosen.occurrenceIds.begin(), chosen.occurrenceIds.end(),
 			chosen.cycleEndOccurrenceId);
 		if (selectedCycleEnd == chosen.occurrenceIds.end() || selectedCycleEnd == chosen.occurrenceIds.begin()) {
-			showError("Choose a checked cycle-closing occurrence after the first row, normally the first train in the next period.");
+			showError("The cycle-closing train must be a checked row below the first.");
 			return;
 		}
 		scope = std::move(chosen);
 		dialog.accept();
 	});
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	bodyScroll = DialogLayout::install(dialog, "Capacity",
-		"Choose a route and ordered service occurrences.", body, buttons);
+	bodyScroll = DialogLayout::install(dialog, "Capacity", QString(), body, buttons);
 	DialogLayout::fitWidthToContent(dialog);
 	return dialog.exec() == QDialog::Accepted;
 }

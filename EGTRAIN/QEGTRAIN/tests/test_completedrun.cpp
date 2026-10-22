@@ -869,6 +869,13 @@ void testMissingValues() {
 		train.stops[1].scheduledDeparture = 50.0;
 		result = capacityInputFrom(train, scope);
 		check(result.scheduledReferenceTime == 50.0 && result.referenceSource == "authored ScheduledDeparture at boundary station", "the departure wins over the arrival");
+		// The windows name the reference time in plain words; the export keeps the source as it is.
+		check(capacityReferenceText(result.referenceSource, result.referenceLabel) == "planned departure at Near"
+				&& capacityReferenceText("authored ScheduledArrival at boundary station (departure absent)", "Near boundary") == "planned arrival at Near"
+				&& capacityReferenceText("canonical scheduled entry + elapsed from RunStartTime", "block B entry") == "planned entry time"
+				&& capacityReferenceText("profile reference fallback (scheduled entry unavailable)", "block B entry") == "simulated entry time"
+				&& capacityReferenceText("", "").isEmpty(),
+			"the windows name each reference source in plain words");
 		train.stops[1].scheduledDeparture = -1.0;
 		train.stops[1].scheduledArrival = nan;
 		result = capacityInputFrom(train, scope);
@@ -1060,15 +1067,33 @@ void testCapacityOrder() {
 	scope.occurrenceIds = {"a", "b"};
 	check(capacityScopeIssueFrom(data, scope).empty(), "a unique entry has no issue");
 	check(capacityScopeLabelFrom(data, scope).toStdString() == "r / B to B", "label of the scope");
+	check(capacityScopeTextFrom(data, scope) == "r, block 1", "a scope of one block names its number");
+	CapacityAnalysisScope unnumbered = scope;
+	unnumbered.sectionIndices.clear();
+	check(capacityScopeTextFrom(data, unnumbered) == "r, 1 block", "a scope without block numbers names its block count");
 	data.routes[0].corridor = "north";
 	check(capacityScopeLabelFrom(data, scope).toStdString() == "r / north / B to B", "label with a corridor");
+	scope.sectionIndices = {0};
+	check(capacityScopeTextFrom(data, scope) == "r (north), block 1" && capacityScopeBlocksText(data, scope) == "Block 1: B",
+		"the window names a scope by its route, corridor and block number");
+	scope.sectionIndices.clear();
+	// The Calculation details round the percentage as the context line does.
+	CapacityAnalysisResult cycle;
+	cycle.cycleTime = 155.5;
+	cycle.periodSeconds = 3600.0;
+	cycle.cyclePercentage = cycle.cycleTime / cycle.periodSeconds * 100.0;
+	cycle.firstIdentity = "a";
+	cycle.cycleEndIdentity = "b";
+	check(capacityDetailsText(cycle) == QString("Cycle time 155.5 s / period 3600 s × 100 = 4.3%\nFrom a to b"),
+		"the calculation details give the percentage with one decimal");
 	scope.routeIndex = 7;
 	check(capacityScopeLabelFrom(data, scope).toStdString() == "no selected route" && capacityScopeIssueFrom(data, scope).empty(), "a route that does not exist");
 
 	// Two records of the entry resource in one train cannot be told apart.
 	data.trains[1].blockTimes.push_back(occupation("B", 150.0, 160.0, 0.0, 100.0, 150.0));
 	scope.routeIndex = 0;
-	check(capacityScopeIssueFrom(data, scope).find("Occurrence b has several records") == 0, "an ambiguous entry is named");
+	check(capacityScopeIssueFrom(data, scope) == "Train b enters the first block more than once. Choose another first block.",
+		"an ambiguous entry is named");
 	scope.occurrenceIds = {"a"};
 	check(capacityScopeIssueFrom(data, scope).empty(), "the ambiguity matters only for the selected occurrences");
 
@@ -1151,7 +1176,7 @@ void testCapacitySections() {
 	looped.trains = {trainOver("a", 0.0, {"X", "Y"}), trainOver("b", 100.0, {"X", "Y"})};
 	const CapacityAnalysisScope loop = firstCapacityScopeWithPairFrom(looped);
 	check(capacityStretchesFrom(looped, 0, {"a", "b"}).size() == 2 && loop.sectionIndices == std::vector<int>({0, 1})
-			&& capacityScopeIssueFrom(looped, loop).find("also occur outside this scope") != std::string::npos,
+			&& capacityScopeIssueFrom(looped, loop).find("also used outside the chosen blocks") != std::string::npos,
 		"a section with a resource that occurs again outside it cannot be analysed");
 }
 
@@ -1333,7 +1358,7 @@ void testFullTableImage() {
 bool askScope(const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope, const std::function<void(QDialog&)>& answer) {
 	QTimer::singleShot(0, [&answer]() {
 		auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
-		check(dialog && dialog->windowTitle() == "Blocking-time scope", "the scope dialog opens");
+		check(dialog && dialog->windowTitle() == "Blocking time", "the scope dialog opens");
 		if (!dialog)
 			return;
 		answer(*dialog);
@@ -1382,7 +1407,8 @@ void testScopeDialog() {
 		for (const QComboBox* combo : combos)
 			check(dynamic_cast<const ChoiceComboBox*>(combo), "the scope dialog shows its choices in choice combos");
 		combos[0]->setCurrentIndex(1);
-		check(combos[0]->itemText(1) == "r0  (north)" && combos[0]->itemText(2) == "r1  (no corridor)", "the routes show their corridor");
+		check(combos[0]->itemText(0) == "All routes" && combos[0]->itemText(1) == "r0  (north)" && combos[0]->itemText(2) == "r1",
+			"the routes show their corridor when they have one");
 		check(combos[1]->count() == 3 && combos[1]->itemText(2) == "3: c" && combos[2]->currentIndex() == 2, "the blocks of the route are listed");
 		combos[1]->setCurrentIndex(1);
 		press(dialog, QDialogButtonBox::Ok);
@@ -1484,14 +1510,17 @@ void checkLabelledChoosers(const CapturedRun& run) {
 
 	CapacityAnalysisScope capacity = firstCapacityScopeWithPairFrom(data);
 	// The window names the blocks by their labels; the export keeps the ids.
-	check(capacityScopeTextFrom(data, capacity).endsWith(" / B0 10.210 to 10.510 km through B0 21.010 to 21.235, B1 21.252 to 21.450 km")
+	check(capacityScopeTextFrom(data, capacity).startsWith("route0") && capacityScopeTextFrom(data, capacity).endsWith(", blocks 36 to 72")
+			&& capacityScopeBlocksText(data, capacity)
+				== "First block 36: B0 10.210 to 10.510 km\nLast block 72: B0 21.010 to 21.235, B1 21.252 to 21.450 km"
 			&& capacityScopeLabelFrom(data, capacity).endsWith(" / @35-B0@ to @71-B0@-21.235000/@0-B1@-21.252000"),
-		"Paimpol: the capacity window names its section by labels, the export by ids");
+		"Paimpol: the capacity window names its section by block numbers with the labels in the tooltip, the export by ids");
 	const std::vector<CapacityHeadwayEvidence> evidence = {{"@35-B0@", "@0-B0@", 12.0, 2.0, 10.0}};
 	check(capacityEvidenceText(evidence, &data.sectionLabels)
-				== "B0 10.210 to 10.510 km / B0 0.000 to 0.230 km (leader=12 s; follower=2 s; candidate=10 s)"
-			&& capacityEvidenceText(evidence) == "@35-B0@/@0-B0@ (leader=12 s; follower=2 s; candidate=10 s)",
-		"Paimpol: the evidence names its blocks by labels in the tooltip and by ids in the table");
+				== "B0 10.210 to 10.510 km / B0 0.000 to 0.230 km: leader offset 12 s, follower offset 2 s, headway 10 s"
+			&& capacityEvidenceText(evidence) == "@35-B0@/@0-B0@ (leader=12 s; follower=2 s; candidate=10 s)"
+			&& capacityEvidenceBlocks(evidence) == "@35-B0@/@0-B0@",
+		"Paimpol: the evidence names its blocks by labels in the tooltip, by ids in the table and with its figures in the export");
 	askCapacityScope(data, capacity, [routeIndex](QDialog& dialog) {
 		QComboBox* routes = dialog.findChildren<QComboBox*>().value(0);
 		const auto* blocks = dialog.findChild<QComboBox*>("capacityBlocks");
@@ -1532,16 +1561,16 @@ void testCapacityDialog() {
 		check(combos.size() == 3 && blocks == combos.value(1) && list, "the dialog has the route, the analysed blocks, the closing occurrence and the occurrences");
 		if (combos.size() != 3 || !blocks || !list)
 			return;
-		check(combos[0]->count() == 2 && combos[0]->itemText(0) == "r  (north)" && combos[0]->itemText(1) == "s  (no corridor)", "the routes are listed");
+		check(combos[0]->count() == 2 && combos[0]->itemText(0) == "r  (north)" && combos[0]->itemText(1) == "s", "the routes are listed");
 		for (const QLabel* label : dialog.findChildren<QLabel*>())
 			check(!label->text().contains("Gdg"), "the capacity dialog names no station of one case");
-		check(list->count() == 4 && list->item(0)->text() == "a | OC-a" && list->item(3)->text() == "e | OC-e",
+		check(list->count() == 4 && list->item(0)->text() == "a (OC-a)" && list->item(3)->text() == "e (OC-e)",
 			"the trains with an occupation on the route are listed with their codes");
 		check(list->item(0)->checkState() == Qt::Checked && list->item(2)->checkState() == Qt::Checked && list->item(3)->checkState() == Qt::Unchecked,
 			"the trains of the first block that two trains occupy are checked");
 		check(blocks->count() == 1 && blocks->currentText() == "1: B (1 block)" && !blocks->isEnabled(),
 			"c runs over B only, so B is the analysed block and there is no other section to choose");
-		check(combos[2]->count() == 5 && combos[2]->itemText(3) == "c | OC-c", "the closing occurrence can be any listed train");
+		check(combos[2]->count() == 5 && combos[2]->itemText(3) == "c (OC-c)", "the closing occurrence can be any listed train");
 		list->item(2)->setCheckState(Qt::Unchecked);
 		check(blocks->currentText() == "1: B through 2: C (2 blocks)" && blocks->itemData(0, Qt::ToolTipRole).toString() == "1:B to 2:C (2 blocks)",
 			"without c the analysed blocks run on over C, and the tooltip names the blocks by their ids");
@@ -1570,12 +1599,13 @@ void testCapacityDialog() {
 		check(status->isHidden(), "the dialog opens without a message");
 		bool noteIsHelp = false;
 		for (const QLabel* label : dialog.findChildren<QLabel*>())
-			noteIsHelp |= label->text().startsWith("Checked occurrences are analyzed") && label->property("dialogHelp").toBool();
+			noteIsHelp |= label->text() == "Checked trains are analysed in list order. Drag a row to change the order."
+				&& label->property("dialogHelp").toBool();
 		check(noteIsHelp, "the note of the dialog is a help note");
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
 		check(!ok->isEnabled() && status->isVisible() && status->property("dialogStatus").toString() == "error"
-				&& status->text() == "Check at least two occurrences.",
+				&& status->text() == "Check at least two trains.",
 			"one checked occurrence disables OK and says why before OK is pressed");
 		list->item(1)->setCheckState(Qt::Checked);
 		check(ok->isEnabled() && status->isHidden(), "a second checked occurrence enables OK and takes the message away");
@@ -1583,20 +1613,20 @@ void testCapacityDialog() {
 		forbidMessageBox();
 		ok->click();
 		check(dialog.isVisible() && status->isVisible() && status->property("dialogStatus").toString() == "error"
-				&& status->text().startsWith("Choose a checked cycle-closing occurrence"),
+				&& status->text() == "The cycle-closing train must be a checked row below the first.",
 			"a closing occurrence that is the first row is refused in the dialog");
 		combos[2]->setCurrentIndex(2);
 		check(status->isHidden(), "choosing another closing occurrence takes the message away");
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		check(!ok->isEnabled() && status->text() == "Check at least two occurrences.", "one checked occurrence disables OK again");
+		check(!ok->isEnabled() && status->text() == "Check at least two trains.", "one checked occurrence disables OK again");
 		dialog.findChild<QDoubleSpinBox*>()->setValue(1800.0);
 		check(!ok->isEnabled() && status->isVisible(), "the message stays while fewer than two are checked");
 		list->item(2)->setCheckState(Qt::Checked);
 		list->item(3)->setCheckState(Qt::Checked);
 		check(blocks->currentText() == "none" && !blocks->isEnabled() && !ok->isEnabled() && status->isVisible()
 				&& status->property("dialogStatus").toString() == "error"
-				&& status->text() == "No block of the route is shared by all checked occurrences.",
+				&& status->text() == "No block of the route is shared by all checked trains.",
 			"occurrences that share no block disable OK and say why");
 		dialog.findChild<QDoubleSpinBox*>()->setValue(900.0);
 		check(!ok->isEnabled() && status->isVisible(), "the message stays while the checked occurrences share no block");
@@ -1635,7 +1665,7 @@ void testCapacityDialog() {
 	given.occurrenceIds = {"b", "a"};
 	accepted = askCapacityScope(run, given, [](QDialog& dialog) {
 		const auto list = dialog.findChild<QListWidget*>();
-		check(list && list->count() == 4 && list->item(0)->text() == "b | OC-b" && list->item(1)->text() == "a | OC-a"
+		check(list && list->count() == 4 && list->item(0)->text() == "b (OC-b)" && list->item(1)->text() == "a (OC-a)"
 				&& list->item(2)->checkState() == Qt::Unchecked,
 			"the occurrences of the given scope come first, in their order");
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
@@ -1699,7 +1729,7 @@ void testCapacityDialog() {
 			"t does not run over A, so the only section left is selected");
 		list->item(3)->setCheckState(Qt::Unchecked);
 		blocks->setCurrentIndex(0);
-		check(list->model()->moveRow(QModelIndex(), 1, QModelIndex(), 0) && list->item(0)->text() == "q | OC-q",
+		check(list->model()->moveRow(QModelIndex(), 1, QModelIndex(), 0) && list->item(0)->text() == "q (OC-q)",
 			"q is moved above p");
 		check(blocks->currentText() == "1: A (1 block)", "a move keeps the selected section");
 		forbidMessageBox();

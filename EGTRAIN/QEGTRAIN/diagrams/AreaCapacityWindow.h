@@ -28,8 +28,10 @@ class QListWidget;
 struct AreaCapacityScope {
 	int routeIndex = -1;					 ///< Index into CompletedRunData::routes
 	std::vector<std::string> blockIds;		 ///< Range of the first route; its first block is the reference of each train
+	std::vector<int> sectionIndices;		 ///< Positions of those blocks in the route, from 0; empty when unknown
 	int secondRouteIndex = -1;				 ///< -1 for no second route
 	std::vector<std::string> secondBlockIds; ///< The range of the second route, empty for none
+	std::vector<int> secondSectionIndices;	 ///< Positions of those blocks in the second route, from 0
 	double periodSeconds = 3600.0;			 ///< Analysis period in seconds
 	std::vector<std::string> occurrenceIds;	 ///< The selected trains in chain order
 	std::string cycleEndOccurrenceId;		 ///< Empty for no cycle-closing train
@@ -41,7 +43,7 @@ struct AreaCapacityScope {
 AreaCapacityInput areaCapacityInputFrom(const CompletedRunData& data, const AreaCapacityScope& scope);
 /// The route and block range of the scope by block ids, as the export names the area.
 QString areaCapacityLabel(const CompletedRunData& data, const AreaCapacityScope& scope);
-/// The route and block range of the scope by the labels of the blocks, as the window names the area.
+/// The route and block range of the scope by the numbers of the blocks, as the window names the area.
 QString areaCapacityText(const CompletedRunData& data, const AreaCapacityScope& scope);
 
 /// The words of the window and of area_capacity.csv for a note: a short name of the kind, such as "Invalid period".

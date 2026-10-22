@@ -864,9 +864,14 @@ class Rehearsal:
             opened.append(name_of(self.wait_window(pattern=pattern)))
             self.screenshot(label)
         self.choose("Blocking time...", modal=True)
-        scope = self.wait_window("Blocking-time scope")
+        # The choice of blocks and the chart are both titled Blocking time; only the choice has an OK button.
+        scope = self.wait_window("Blocking time")
         self.press(self.button(scope, "OK"))
-        opened.append(name_of(self.wait_window(pattern=r"^Blocking time")))
+
+        def chart():
+            window = self.window("Blocking time")
+            return window if window is not None and find_first(window, "push button", "OK", max_depth=10) is None else None
+        opened.append(name_of(wait_until(chart, UI_TIMEOUT_SECONDS, "the Blocking time chart")))
         self.screenshot("blocking-time")
         return ("opened " + "; ".join(opened)
                 + f"; the timetable has {len(headers)} columns and {len(cells) // len(headers)} rows")

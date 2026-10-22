@@ -80,15 +80,15 @@ An unavailable value in a CSV is an empty field.
 
 ## The Delay analysis window
 
-**Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Its title is Delay analysis, and the two context lines under it name the run and the baseline ("Baseline: none set" when there is none).
+**Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Its title is Delay analysis, and the two context lines under it name the run and the baseline ("Baseline: none" when there is none). The window explains no column in a paragraph: the headers of the delay columns have the definitions of [Definitions](#definitions) as their tooltips.
 
-Three choices sit above the tabs. **Occurrences** and **Stations** list what the run has; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls and Summary between arrivals and departures. The choice of occurrences applies to all three tabs, the choice of stations to Calls, Summary and the call rows of Against baseline, and the choice of events to Calls and Summary only.
+Three choices sit above the tabs. **Trains** and **Stations** list what the run has, each with its count, such as "Trains (2/2)"; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls and Summary between arrivals and departures. The choice of trains applies to all three tabs, the choice of stations to Calls, Summary and the call rows of Against baseline, and the choice of events to Calls and Summary only.
 
 ### Calls
 
 One row per event. Read a row from the left: the service, occurrence, train and operating code; the station; the journey order (the position of the stop in the journey of the train) and the call (the n-th stop at that station name); the event; the planned and the simulated time; the delay; the class; and the status. The planned and the simulated time are those of the timetable results ([arrival and departure](#arrival-and-departure-of-a-call)), except that the planned departure of a stop that an entrance delay moved is the authored one, so that departure shows the entrance delay.
 
-The delay is simulated minus planned, signed. The class is Early, On time (exactly 0) or Late. The status is Available, No plan, Not reached, or No plan, not reached. For any other status the delay is "-" and the class is Not available. A train that begins its route at a stop often has no simulated time there: in the line fixture the first stop of both trains is Not reached for the departure.
+The delay is simulated minus planned, signed; the tooltip of the header Delay (s) says so. The class is Early, On time (exactly 0) or Late. The status is Available, No plan, Not reached, or No plan, not reached. For any other status the delay is "-" and the class is Not available. A train that begins its route at a stop often has no simulated time there: in the line fixture the first stop of both trains is Not reached for the departure.
 
 ### Summary
 
@@ -97,7 +97,7 @@ One row for each station, in the order in which the stations first appear, and o
 - the selected events (Calls), which are the Available events, the events with No plan, those Not reached and those with both missing;
 - the Available events by class, Early, On time and Late, which add up to Available;
 - for the Available events only, the sum, mean, minimum and maximum of the delays;
-- for each of the thresholds 0, 60, 180 and 300 s, the share of the Available events that are strictly later, as a percentage with the count, such as "50.0% (1 of 2)".
+- for each of the thresholds 0, 60, 180 and 300 s, the share of the Available events that are strictly later, as a percentage with the count, such as "50.0% (1 of 2)". The tooltip of each header Later than N s reads "Strictly later" and "Counts available events only".
 
 The Available events are the denominator of every mean and share. A figure without an Available event is "-", not 0. The line fixture without incidents (`follow-level-0`) gives for arrivals:
 
@@ -112,9 +112,9 @@ Station A has no planned arrival, and the trains begin their route there, so bot
 
 ### Against baseline
 
-The tab shows the comparison of the run with the baseline ([rules](#delay-comparison-against-a-baseline)). Without a baseline it says so. When the baseline does not fit the run, it lists each reason, with a code, and shows no difference. Otherwise it shows a line of totals and two tables.
+The tab shows the comparison of the run with the baseline ([rules](#delay-comparison-against-a-baseline)). Without a baseline it says "No baseline is set. In Run Results, click Set delay baseline after a run without incidents or entrance delays." When the baseline does not fit the run, it says "This run cannot be compared with the baseline:", lists each reason as a sentence in the column Reason, such as "The two runs have different durations.", and shows no difference. Otherwise it shows a line of totals and two tables.
 
-The Occurrences table has one row for each occurrence: the input delay (the entrance delay, marked primary) and the station that it moved; whether direct incident evidence was recorded, and the incident ids; the final station; the baseline and the scenario arrival there; the additional delay and the change (Later, Same, Earlier or Not available); and the secondary delay. The Calls table has one row for each call with the baseline time, the scenario time, the additional delay and the change, for the arrival and for the departure.
+The Trains table has one row for each occurrence: the input delay (the entrance delay) and the station that it moved; whether direct incident evidence was recorded (Direct incident evidence), and the incident ids; the final station; the baseline and the scenario arrival there; the additional delay and the change (Later, Same, Earlier or Not available); and the secondary delay. The Calls table has one row for each call with the baseline time, the scenario time, the additional delay and the change, for the arrival and for the departure. The headers Input delay (s), Additional delay (s) and Secondary delay (s) have their definitions as tooltips.
 
 Two cases of the line fixture show how to read it. In both, the baseline is `follow-level-0` and the occurrences are the services F1 and F2.
 
@@ -125,18 +125,18 @@ A signal failure (`sf-forward-level-0`, the incident `inc.fwd` from 400 s to 100
 | F1 | 0 | Yes: inc.fwd | C | 933 | 1218 | +285 | Later | +285 |
 | F2 | 0 | None recorded | C | 1150 | 1373 | +223 | Later | +223 |
 
-The totals are two occurrences later, a positive additional delay of 508 s and a net additional delay of 508 s. F1 arrived 285 s later and the run recorded that the failure held it. F2 arrived 223 s later, at B its arrival was 49 s later and its departure 136 s later, and the run recorded no direct effect on it. The window shows both numbers and does not call the 223 s propagated: the number is a difference and the evidence column says only what the run recorded.
+The line of totals reads "2 trains. At the final arrival: 2 later. Added delay +508 s, net +508 s." F1 arrived 285 s later and the run recorded that the failure held it. F2 arrived 223 s later, at B its arrival was 49 s later and its departure 136 s later, and the run recorded no direct effect on it. The window shows both numbers and does not call the 223 s propagated: the number is a difference and the evidence column says only what the run recorded.
 
 An entrance delay (`entrance-delay-f2-level-0`, 120 s for F2 at A):
 
-| Service | Input delay | Input delay at | Final station | Baseline final arrival | Scenario final arrival | Additional delay | Change | Secondary delay |
+| Service | Input delay | Input delay station | Final station | Baseline final arrival | Scenario final arrival | Additional delay | Change | Secondary delay |
 | --- | ---: | --- | --- | ---: | ---: | ---: | --- | ---: |
 | F1 | 0 | | C | 933 | 933 | 0 | Same | 0 |
 | F2 | 120 | A | C | 1150 | 1150 | 0 | Same | -120 |
 
 In the line fixture a train is not held at the stop where it begins its route, so the 120 s do not change any simulated time. The additional delay is 0 and the secondary delay is 0 minus 120. That shows the arithmetic and not an effect on the train.
 
-When an occurrence has no arrival at its final call in the scenario run, its additional delay, change and secondary delay are "-" and the line of totals says that its sums leave the occurrence out. In `breakdown-f1-level-0` the second train does not reach C, and the totals count one occurrence later and one not available, with a positive and net sum of 461 s over the first.
+When an occurrence has no arrival at its final call in the scenario run, its additional delay, change and secondary delay are "-" and the line of totals ends with "Sums leave out trains without a final arrival." In `breakdown-f1-level-0` the second train does not reach C, and the totals count one occurrence later and one not available, with a positive and net sum of 461 s over the first: "2 trains. At the final arrival: 1 later, 1 not available. Added delay +461 s, net +461 s. Sums leave out trains without a final arrival."
 
 ### Export
 
@@ -206,9 +206,9 @@ When a check fails, the tab lists every reason that applies and shows no differe
 
 For each call the comparison takes the simulated arrival and the simulated departure in both runs and reports the [additional delay](#definitions), scenario minus baseline, with the change Later, Same, Earlier or Not available. The final call of an occurrence is its last authored call. For each occurrence it also reports the entrance delay as the input delay, the direct incident evidence and the [secondary delay](#definitions). The comparison uses simulated times only, no planned times, so it works for a scene without planned arrivals.
 
-The totals count the occurrences that are later, the same, earlier or not available at their final arrival, and give the sum of the positive additional delays and the net sum. An occurrence whose final arrival is missing in either run has no difference. It is counted as not available, the sums leave it out, and the tab says so. A difference that cannot be computed is never 0.
+The totals count the occurrences that are later, the same, earlier or not available at their final arrival, and give the sum of the positive additional delays and the net sum. An occurrence whose final arrival is missing in either run has no difference. It is counted as not available, the sums leave it out, and the tab says so. A difference that cannot be computed is never 0. In the line of totals, "Added delay" is the sum of the positive additional delays and "net" the sum of all of them; a count of 0 is left out.
 
-An occurrence has direct evidence when the scenario run recorded a speed cap, a breakdown hold, a stop at the end of authority of a signal failure, or a stop at the red aspect before a failed section ([which cases](#limits), item 7). The tab shows "None recorded" or "Yes" with the incident ids. An occurrence without recorded evidence is not shown to be delayed by propagation, and no part of a difference is attributed to a cause. The line "Direct incident evidence recorded for k of n trains" of the Run Results dock counts the trains with at least one recorded incident id. It shows only when View > Advanced / Developer details is checked.
+An occurrence has direct evidence when the scenario run recorded a speed cap, a breakdown hold, a stop at the end of authority of a signal failure, or a stop at the red aspect before a failed section ([which cases](#limits), item 7). The tab shows "None recorded" or "Yes" with the incident ids. An occurrence without recorded evidence is not shown to be delayed by propagation, and no part of a difference is attributed to a cause. The line "Incidents acted on k of n trains" of the Run Results dock counts the trains with at least one recorded incident id. It shows only when View > Advanced / Developer details is checked.
 
 The tab exports `delay_comparison.csv` ([export](#export)).
 
@@ -281,7 +281,7 @@ The window does not support:
    | 5 | No train |
    | Any | No train in `sf-first` at any level, in `sf-late` at the levels none, 0 and 3, or in `sf-entered-level-none` |
 
-   For a run in which no train has evidence, with advanced details on, the Run Results line says "Direct incident evidence recorded for 0 of n trains" and the tab Against baseline shows "None recorded" for every occurrence. A train that is delayed because the train ahead was held shows its difference and no evidence. This describes the current behaviour of the program and is not a statement about the railway.
+   For a run in which no train has evidence, with advanced details on, the Run Results line says "Incidents acted on 0 of n trains" and the tab Against baseline shows "None recorded" for every occurrence. A train that is delayed because the train ahead was held shows its difference and no evidence. This describes the current behaviour of the program and is not a statement about the railway.
 8. The **Export CSV...** button of the Delays chart writes the timetable file for the selected trains, not a delay file.
 9. The passenger journey delay is another quantity: it is measured against a planned arrival drawn from a window, not against the timetable of the train.
 10. None of the committed scenes has an incident or an entrance delay; each has only the baseline scenario, so the baseline comparison cannot be tried on a committed scene.
