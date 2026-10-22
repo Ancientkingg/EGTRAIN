@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4" target="_top" xlink:title="The largest square frame centred in area in which paintStationMark() paints inside area,...">
+<g id="a_Node000004"><a xlink:href="_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="263,-19 148,-19 148,0 263,0 263,-19"/>
 <text text-anchor="middle" x="205.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkFrameIn</text>
 </a>
@@ -94,7 +94,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" target="_top" xlink:title="The area that paintStationMark() paints, its halo included. The bar reaches past frame.">
+<g id="a_Node000005"><a xlink:href="_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="410,-19 299,-19 299,0 410,0 410,-19"/>
 <text text-anchor="middle" x="354.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkBounds</text>
 </a>

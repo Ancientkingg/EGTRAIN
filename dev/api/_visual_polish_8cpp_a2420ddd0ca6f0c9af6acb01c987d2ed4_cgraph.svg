@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="The largest square frame centred in area in which paintStationMark() paints inside area,...">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="115,-19 0,-19 0,0 115,0 115,-19"/>
 <text text-anchor="middle" x="57.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkFrameIn</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" target="_top" xlink:title="The area that paintStationMark() paints, its halo included. The bar reaches past frame.">
+<g id="a_Node000002"><a xlink:href="_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="262,-19 151,-19 151,0 262,0 262,-19"/>
 <text text-anchor="middle" x="206.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">stationMarkBounds</text>
 </a>

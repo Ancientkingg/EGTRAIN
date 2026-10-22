@@ -1,5 +1,9 @@
 var NAVTREEINDEX20 =
 {
+"struct_dispatch_live.html#a98314b5c9bf522fccdff0bd053cd1159":[2,0,68,0],
+"struct_dispatch_live.html#aae60ed923834aae3c5bdb9e582a186f1":[2,0,68,3],
+"struct_dispatch_live.html#adf8f3f04e7724c5141586ca51947dacf":[2,0,68,4],
+"struct_dispatch_live.html#ae69acd53952fdb8fa2c82196541f70d1":[2,0,68,2],
 "struct_follow_availability.html":[2,0,72],
 "struct_follow_availability.html#a33ac27566169b089f684515cf96317b5":[2,0,72,2],
 "struct_follow_availability.html#a530c83da5707d667134c8bbabb63eab6":[2,0,72,0],
@@ -205,9 +209,8 @@ var NAVTREEINDEX20 =
 "struct_network_presenter_1_1_find_target.html#a6fdcd5a755d7eed4a1b4d02a3b15b7b6":[2,0,126,3,2],
 "struct_network_presenter_1_1_find_target.html#a798a3707595e732e3eddd91ff91dc4ca":[2,0,126,3,0],
 "struct_network_presenter_1_1_preview_options.html":[2,0,126,0],
-"struct_network_presenter_1_1_preview_options.html#a29bcd6d88e787c27bfa644a412620ce7":[2,0,126,0,1],
-"struct_network_presenter_1_1_preview_options.html#a6d2412b2a73da97ccbffc555829b0645":[2,0,126,0,3],
-"struct_network_presenter_1_1_preview_options.html#a8c7b476491da05d2e61a10043c421cad":[2,0,126,0,2],
+"struct_network_presenter_1_1_preview_options.html#a6d2412b2a73da97ccbffc555829b0645":[2,0,126,0,2],
+"struct_network_presenter_1_1_preview_options.html#a8c7b476491da05d2e61a10043c421cad":[2,0,126,0,1],
 "struct_network_presenter_1_1_preview_options.html#aa983aa6e83fff6a211760fe8137111f1":[2,0,126,0,0],
 "struct_network_presenter_1_1_preview_outcome.html":[2,0,126,1],
 "struct_network_presenter_1_1_preview_outcome.html#a3bda914708cd767335cf546b413a2a76":[2,0,126,1,2],
@@ -246,8 +249,5 @@ var NAVTREEINDEX20 =
 "struct_recovery_result.html#a6dc586d2c9b2e490dacc6b97f027ae78":[2,0,144,0],
 "struct_recovery_result.html#a9998c5ddbe86951b42eff9d38ba50780":[2,0,144,2],
 "struct_recovery_result.html#ade59a8ff21ce9e0f0572487e52b199fc":[2,0,144,1],
-"struct_recovery_scan.html":[2,0,145],
-"struct_recovery_scan.html#a4e2dcdeb71309cb7e66fa8f13efd4f51":[2,0,145,0],
-"struct_recovery_scan.html#ae20e7237336e68231c4f642bc38ed40d":[2,0,145,1],
-"struct_recovery_source.html":[2,0,146]
+"struct_recovery_scan.html":[2,0,145]
 };

@@ -1,0 +1,11 @@
+<map id="NetworkPresenter::applyPlatformVisibility" name="NetworkPresenter::applyPlatformVisibility">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,244,103"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a4ce72c602c2c616cdd0d5dad701b3171" title=" " alt="" coords="292,5,491,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,60,284,46,285,51,219,65"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#a25054ca92ca10e3228c384769e6fcf90" title="The passengers on a platform show where its bar shows, with the passenger layer." alt="" coords="539,56,741,96"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="244,78,525,75,525,80,244,84"/>
+<area shape="rect" id="Node000004" href="$class_network_presenter.html#acd9ae8da79343e2686907d5f71fb86f0" title="A platform bar shows with the stations in the near look." alt="" coords="789,85,992,125"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="244,89,539,105,640,107,741,105,775,105,776,110,741,111,640,112,539,111,244,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="490,43,529,51,528,56,489,48"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="742,85,776,89,776,95,741,90"/>
+</map>
