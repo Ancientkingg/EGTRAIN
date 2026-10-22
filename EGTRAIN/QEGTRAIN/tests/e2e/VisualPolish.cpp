@@ -3287,19 +3287,22 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 	w.m_findAction->trigger();
 	// A signal is listed with the labels of its sections, and the label as well as the id of a section finds it.
 	const NetworkPresenter::FindTarget signalTarget = targetLabelled(QStringLiteral("Signal: "));
-	if (const auto* head = qgraphicsitem_cast<const SignalItem*>(signalTarget.item); head && !head->sectionAheadId.empty()) {
-		auto* field = w.m_findDialog->findChild<QLineEdit*>();
-		auto* results = w.m_findDialog->findChild<QListWidget*>();
-		const auto lists = [&](const std::string& words) {
-			field->setText(QString::fromStdString(words));
-			return !results->findItems(signalTarget.label, Qt::MatchExactly).isEmpty();
-		};
-		if (!signalTarget.label.contains(QString::fromStdString(head->sectionAheadLabel)) || !lists(head->sectionAheadLabel)
-			|| !lists(head->sectionAheadId)) {
-			failure = QStringLiteral("Find does not list \"%1\" by the label and the id of section %2")
-						  .arg(signalTarget.label, QString::fromStdString(head->sectionAheadId));
-			return false;
-		}
+	const auto* head = qgraphicsitem_cast<const SignalItem*>(signalTarget.item);
+	if (!head || head->sectionAheadId.empty()) {
+		failure = QStringLiteral("Find lists no signal with a section ahead");
+		return false;
+	}
+	auto* field = w.m_findDialog->findChild<QLineEdit*>();
+	auto* results = w.m_findDialog->findChild<QListWidget*>();
+	const auto lists = [&](const std::string& words) {
+		field->setText(QString::fromStdString(words));
+		return !results->findItems(signalTarget.label, Qt::MatchExactly).isEmpty();
+	};
+	if (!signalTarget.label.contains(QString::fromStdString(head->sectionAheadLabel)) || !lists(head->sectionAheadLabel)
+		|| !lists(head->sectionAheadId)) {
+		failure = QStringLiteral("Find does not list \"%1\" by the label and the id of section %2")
+					  .arg(signalTarget.label, QString::fromStdString(head->sectionAheadId));
+		return false;
 	}
 	key(w.m_findDialog->findChild<QLineEdit*>(), Qt::Key_Escape);
 	const bool closed = !w.m_findDialog->isVisible();
