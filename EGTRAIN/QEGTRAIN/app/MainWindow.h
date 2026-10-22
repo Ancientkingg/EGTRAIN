@@ -325,6 +325,8 @@ private:
 	// The file that a recovered scene is a copy of. Save As starts there.
 	QString m_recoveredSourceHint;
 	bool m_recoveryFailureShown = false;
+	// The message about a failed autosave while the target of an incident is picked. It is shown when the pick ends.
+	QString m_heldRecoveryFailure;
 	QAction* m_undoAction = nullptr;
 	QAction* m_redoAction = nullptr;
 	QAction* m_findAction = nullptr;
@@ -492,6 +494,8 @@ private:
 	QCheckBox* m_passengerLayerCheck = nullptr;
 	QAction* m_showMapKeyAction = nullptr;
 	QAction* m_showPassengersAction = nullptr;
+	// The passengers that the user chose to show. A case without passengers shows none and keeps the choice.
+	bool m_passengerChoice = false;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 	GuiReplayHistory m_completedReplay;
@@ -589,6 +593,10 @@ private:
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	void renderTrackPreview(const SceneModel& sceneModel);
 	void updateCaseLayersPanel();
+	// Shows the passengers of the case when the user chose them and the case has passengers, and enables the switch.
+	void updatePassengerSwitch();
+	// Shows or hides the passenger counts, icons and platform bars, and sets them for the next run.
+	void applyPassengerLayer(bool shown);
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
@@ -654,9 +662,10 @@ private:
 	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
 	// The target that the selection on the network view gives an incident: a signal failure for a signal head, a breakdown
-	// of its occurrence for a train. The type is empty when the selection gives none. `reason` says why the selection is no
-	// target, for when it gives none or the incident panel does not offer it, and is empty when nothing is selected.
-	IncidentTarget selectedIncidentTarget(QString& reason) const;
+	// of its occurrence for a train. The type is empty when the selection gives none. `selected` names what is selected,
+	// "signal", "train" or "item", for when it gives no target or the incident panel does not offer it, and is empty when
+	// nothing is selected.
+	IncidentTarget selectedIncidentTarget(QString& selected) const;
 	// Starts or ends picking the target of the selected incident on the network view: the cursor of the view, the hint in
 	// the status bar and the Esc shortcut.
 	void setIncidentTargetPick(bool picking);

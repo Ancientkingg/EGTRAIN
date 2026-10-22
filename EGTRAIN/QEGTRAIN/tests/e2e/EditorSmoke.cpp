@@ -19,6 +19,7 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/PlatformItem.h"
 #include "graphics/NetworkScene.h"
 #include "recovery/RecoveryController.h"
 #include "recovery/RecoveryStore.h"
@@ -43,6 +44,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/FocusWheel.h"
+#include "widgets/InfoDockWidget.h"
 #include <QAbstractButton>
 #include <QAbstractItemDelegate>
 #include <QAbstractSpinBox>
@@ -80,6 +82,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QLineF>
 #include <QList>
 #include <QListWidget>
 #include <QMessageBox>
@@ -95,6 +98,7 @@
 #include <QRectF>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QScopedValueRollback>
 #include <QScreen>
 #include <QScrollArea>
 #include <QSlider>
@@ -3678,7 +3682,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							w.m_incidentTargetCombo->findData(blockId) > 0 ? "yes" : "no"));
 			if (added) {
 				// The pick button waits for a signal or a train on the network view, and an arc keeps it waiting. The signal
-				// head makes the incident, a breakdown by then, a signal failure of the block again. Esc ends a pick.
+				// head makes the incident, a breakdown by then, a signal failure of the block again. Esc ends a pick and clears its
+				// message.
 				w.m_inspector->handleDisableHighlight();
 				w.m_incidentTypeCombo->setCurrentText("train_breakdown");
 				QGraphicsItem* arc = nullptr;
@@ -3694,8 +3699,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					&& w.networkView->viewport()->cursor().shape() == Qt::CrossCursor && w.statusBar()->currentMessage() == hint;
 				w.scene->select(arc);
 				QApplication::processEvents();
-				const bool kept = arc && w.m_incidentPanel->isPickingTarget()
-					&& w.statusBar()->currentMessage() == "The selected item is not a signal or a train. " + hint;
+				// The message fits where the hint fits.
+				const QString retry = w.statusBar()->currentMessage();
+				const bool kept = arc && w.m_incidentPanel->isPickingTarget() && retry == "Not a signal or a train. Click one, or press Esc."
+					&& w.statusBar()->fontMetrics().horizontalAdvance(retry) <= w.statusBar()->fontMetrics().horizontalAdvance(hint);
 				w.scene->select(head);
 				QApplication::processEvents();
 				const SceneIncident* picked = w.m_incidentPanel->selectedIncident();
@@ -3703,14 +3710,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					&& !pick->isChecked() && !w.m_endTargetPickShortcut->isEnabled()
 					&& w.networkView->viewport()->cursor().shape() == Qt::OpenHandCursor;
 				pick->click();
-				const bool restarted = w.m_incidentPanel->isPickingTarget();
+				w.scene->select(arc);
+				QApplication::processEvents();
+				const bool restarted = w.m_incidentPanel->isPickingTarget() && w.statusBar()->currentMessage() == retry;
 				// A window shortcut needs an active window, which the offscreen platform of Qt 6 does not give a window by itself.
 				w.activateWindow();
 				QApplication::processEvents();
 				const bool escTaken = qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
 				QApplication::processEvents();
 				const bool ended = restarted && escTaken && !w.m_incidentPanel->isPickingTarget()
-					&& !w.m_endTargetPickShortcut->isEnabled() && w.statusBar()->currentMessage() != hint;
+					&& !w.m_endTargetPickShortcut->isEnabled() && w.statusBar()->currentMessage().isEmpty();
 				// Without a pick no shortcut takes Esc, so it reaches the focused widget, such as an open cell.
 				const bool escLeft = !qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
 				const auto yes = [](bool value) { return value ? "yes" : "no"; };
@@ -5198,9 +5207,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			caseChangeOut = caseChangeTempDir.path();
 		const QString changedPath = QDir(caseChangeOut).filePath("editor_smoke_changed_case");
 		QDir(changedPath).removeRecursively();
-		const auto caseChangeFailure = [&](const char* message) {
+		const auto caseChangeFailure = [&](const QString& message) {
 			ok = false;
-			failures << QString("case change: ") + message;
+			failures << QStringLiteral("case change: ") + message;
 		};
 		if (!w.openSceneDirectory(scenePath) || !w.m_document->isLoaded()) {
 			caseChangeFailure("the scene did not open");
@@ -5261,6 +5270,39 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 				}
 			}
+		}
+		// A case without passengers draws no platform bars and shows the switch off, and keeps the choice for a case with
+		// passengers.
+		const QString passengerPath = QFileInfo(scenePath).dir().filePath(QStringLiteral("Paimpol"));
+		if (ok && w.m_document->model().passengers.empty() && QFileInfo(passengerPath).isDir()) {
+			const bool choiceBefore = QSettings().value(kShowPassengersKey).toBool();
+			const auto platformBars = [&w] {
+				const QList<QGraphicsItem*>& items = w.m_presenter->m_stationDecorations;
+				return std::count_if(items.cbegin(), items.cend(),
+					[](QGraphicsItem* item) { return qgraphicsitem_cast<PlatformItem*>(item) != nullptr; });
+			};
+			if (!w.openSceneDirectory(passengerPath) || !w.m_passengerLayerCheck->isEnabled()) {
+				caseChangeFailure("the case with passengers did not open with the passenger switch enabled");
+			} else {
+				w.m_passengerLayerCheck->setChecked(true);
+				if (!w.openSceneDirectory(scenePath)) {
+					caseChangeFailure("the case without passengers did not open");
+				} else if (w.m_passengerLayerCheck->isChecked() || w.m_showPassengersAction->isChecked() || initial_variables.PAX_GUI
+					|| platformBars() != 0 || !QSettings().value(kShowPassengersKey).toBool()) {
+					caseChangeFailure(QString("a case without passengers showed passengers (check box: %1, menu: %2, platform "
+											  "bars: %3, choice kept: %4)")
+							.arg(w.m_passengerLayerCheck->isChecked() ? "on" : "off")
+							.arg(w.m_showPassengersAction->isChecked() ? "on" : "off")
+							.arg(platformBars())
+							.arg(QSettings().value(kShowPassengersKey).toBool() ? "yes" : "no"));
+				}
+				if (!w.openSceneDirectory(passengerPath) || !w.m_passengerLayerCheck->isChecked() || !w.m_showPassengersAction->isChecked()
+					|| !initial_variables.PAX_GUI || platformBars() == 0)
+					caseChangeFailure("the passengers did not show again in a case with passengers");
+				w.m_passengerLayerCheck->setChecked(choiceBefore);
+			}
+			if (!w.openSceneDirectory(scenePath))
+				caseChangeFailure("the original did not open after the passenger switch");
 		}
 		if (ok)
 			std::fprintf(stdout, "E2E_EDITOR_CASE_CHANGE_OK\n");
@@ -5574,6 +5616,57 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		undo();
 		redo();
 	}
+	// Runs of 600 s, in which the first trains run, and an edit after each.
+	{
+		const QScopedValueRollback<double> horizon(initial_variables.times, 600.0);
+		const auto completeRun = [&](const char* folder) {
+			simulation.setNextRunOutputFolder(QDir(outFolder).filePath(folder).toStdString());
+			w.m_runSceneAction->trigger();
+			QElapsedTimer waited;
+			waited.start();
+			while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
+				QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+			return expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable,
+				QStringLiteral("the run in %1 did not complete").arg(folder));
+		};
+		// An edit ends a replay, and the Train Info dock of a train that is selected in it closes.
+		if (!completeRun("replay_run_output"))
+			return finish();
+		w.seekReplay(500);
+		TrainBodyItem* train = nullptr;
+		for (int index = 0; index < simulation.run().numTrains && !train; ++index)
+			train = w.resolveTrainBodyItem(index);
+		w.m_inspector->displayTrainDetails(train, false);
+		if (!expect(w.m_replayActive && train && w.m_inspector->dock()->isVisible(), "no train of the replay was selected"))
+			return finish();
+		if (!step("a case description in a replay", "Edit", [&] {
+				w.m_caseDescriptionEdit->setText("edited in a replay");
+				w.commitPendingCaseSettings();
+			}))
+			return finish();
+		expect(!w.m_replayActive && !w.m_inspector->dock()->isVisible(), "an edit in a replay left the Train Info dock open");
+		// An edit after a run replaces the message that the run is complete. It hides the Run Results dock, and the network
+		// view takes the focus that was in the dock, which the next widget in the tab chain, the first layer check box, would
+		// take otherwise. A save refuses an incident without a target, so Undo takes the new incident away again.
+		if (!completeRun("discard_run_output"))
+			return finish();
+		expect(w.statusBar()->currentMessage().startsWith("Simulation complete"), "the run did not say that it is complete");
+		const bool layersShown = w.m_caseLayersDock->isVisible();
+		w.m_caseLayersDock->show();
+		w.activateWindow();
+		w.m_runResultsPanel->table()->setFocus();
+		process();
+		expect(w.m_runResultsPanel->table()->hasFocus(), "the Run Results table did not take the focus");
+		if (!step("an incident after a run", "Add incident", [&] { w.m_addIncidentButton->click(); }))
+			return finish();
+		expect(w.statusBar()->currentMessage() == "Run results discarded: the case changed.",
+			"an edit after a run left the message " + w.statusBar()->currentMessage());
+		expect(w.networkView->hasFocus(),
+			QStringLiteral("an edit after a run gave the focus to %1")
+				.arg(QApplication::focusWidget() ? QApplication::focusWidget()->objectName() : QStringLiteral("nothing")));
+		w.m_caseLayersDock->setVisible(layersShown);
+		undo();
+	}
 
 	// Edits in the rolling stock, composition, service, timetable, scenario, incident, entrance delay and passenger editors.
 	if (!step("an added rolling stock unit", "Add rolling stock unit", [&] { w.m_trainUnitPanel->addUnit(); }))
@@ -5677,6 +5770,29 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	if (!step("an added incident", "Add incident", [&] { w.m_addIncidentButton->click(); }))
 		return finish();
+	// Undo and Redo keep the zoom and the centre of the network view, as an edit does.
+	{
+		w.networkView->zoomBy(4.0 / w.networkView->zoomRatio());
+		const QPoint viewportCentre = w.networkView->viewport()->rect().center();
+		w.networkView->centerOn(w.networkView->mapToScene(viewportCentre + QPoint(viewportCentre.x() / 2, 0)));
+		const QPointF centre = w.networkView->mapToScene(viewportCentre);
+		const auto viewKept = [&](const char* how) {
+			const qreal moved = QLineF(w.networkView->mapFromScene(centre), viewportCentre).length();
+			expect(qAbs(w.networkView->zoomRatio() - 4.0) < 0.01 && moved <= 2.0,
+				QStringLiteral("%1 changed the view: zoom %2, centre moved %3 px").arg(how).arg(w.networkView->zoomRatio()).arg(moved));
+		};
+		if (!step("an incident start", "Edit", [&] {
+				w.m_incidentStartSecondsEdit->setText("120");
+				w.m_incidentPanel->commitStartSeconds();
+			}))
+			return finish();
+		viewKept("an edit");
+		undo();
+		viewKept("Undo");
+		redo();
+		viewKept("Redo");
+		w.fitView();
+	}
 	if (!step("an added entrance delay", "Add entrance delay", [&] { w.m_addEntranceDelayButton->click(); }))
 		return finish();
 	if (!step("an added passenger", "Add passenger", [&] { w.m_addPassengerButton->click(); }))
@@ -6101,5 +6217,55 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	settle();
 	expect(!w.m_recoveryFailureShown && !w.statusBar()->currentMessage().startsWith("Autosave unavailable"),
 		"the message about the failed autosave stayed after a copy was written");
+
+	// A failed autosave waits while the target of an incident is picked, so the hint of the pick stays, and shows when the
+	// pick ends. A new incident has no target, so its copy cannot be written.
+	{
+		const QString hint = QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
+		w.m_inspector->handleDisableHighlight();
+		w.revealEditorDock(w.m_incidentDock);
+		if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
+			tabs->setCurrentWidget(w.m_incidentPanel);
+		w.m_addIncidentButton->click();
+		w.m_incidentPanel->pickTargetButton()->click();
+		process();
+		const bool picking = w.m_incidentPanel->isPickingTarget() && w.statusBar()->currentMessage() == hint;
+		settle();
+		expect(picking && w.m_recoveryFailureShown && w.statusBar()->currentMessage() == hint,
+			"the failed autosave replaced the hint of the target pick: " + w.statusBar()->currentMessage());
+		w.activateWindow();
+		process();
+		qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
+		process();
+		expect(!w.m_incidentPanel->isPickingTarget()
+				&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+			"the failed autosave did not show when the pick ended: " + w.statusBar()->currentMessage());
+		// A pick that gives the target also shows the held failure. The first incident gets a target, so a copy is written
+		// and a later failure is reported again; the second keeps the copy failing, and the third is picked.
+		QGraphicsItem* head = nullptr;
+		if (w.scene && w.m_showingTrackPreview)
+			for (QGraphicsItem* item : w.scene->items())
+				if (item->data(PreviewGraphics::Kind).toString() == "signal")
+					head = item;
+		if (expect(head, "the preview has no signal head for a target")) {
+			w.m_incidentPanel->pickTargetButton()->click();
+			w.scene->select(head);
+			process();
+			settle();
+			w.m_inspector->handleDisableHighlight();
+			w.m_addIncidentButton->click();
+			w.m_addIncidentButton->click();
+			w.m_incidentPanel->pickTargetButton()->click();
+			process();
+			settle();
+			const bool held = w.m_recoveryFailureShown && w.statusBar()->currentMessage() == hint;
+			w.scene->select(head);
+			process();
+			settle();
+			expect(held && !w.m_incidentPanel->isPickingTarget()
+					&& w.statusBar()->currentMessage().startsWith("Autosave unavailable: Cannot write the recovery copy because incident"),
+				"the failed autosave did not show after a pick that gave the target: " + w.statusBar()->currentMessage());
+		}
+	}
 	return finish();
 }

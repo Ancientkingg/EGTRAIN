@@ -640,9 +640,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		const bool passengersBefore = savedShowPassengers();
 		if (dialog.exec() != QDialog::Accepted)
 			return;
-		// The menu entries take the saved values; their own handlers apply them to the window.
-		if (savedShowPassengers() != passengersBefore)
-			m_showPassengersAction->setChecked(savedShowPassengers());
+		// The menu entries take the saved values; their own handlers apply them to the window. A case without passengers
+		// keeps the switch off and the choice for the next case.
+		if (savedShowPassengers() != passengersBefore) {
+			m_passengerChoice = savedShowPassengers();
+			if (m_showPassengersAction->isEnabled())
+				m_showPassengersAction->setChecked(m_passengerChoice);
+		}
 		m_advancedDetailsAction->setChecked(settings.value(kAdvancedDetailsKey, false).toBool());
 		if (auto* updateChecks = findChild<QAction*>(QStringLiteral("actionAutomaticallyCheckForUpdates"))) {
 			const QSignalBlocker blocker(updateChecks);
@@ -957,10 +961,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_showPassengersAction = new QAction("Show Passengers", this);
 	m_showPassengersAction->setObjectName("actionShowPassengers");
 	m_showPassengersAction->setCheckable(true);
-	const bool showPassengers = m_runController->passengerGui();
-	m_passengerLayerCheck->setChecked(showPassengers);
-	m_showPassengersAction->setChecked(showPassengers);
-	m_presenter->m_passengerLayerVisible = showPassengers;
+	m_passengerChoice = m_runController->passengerGui();
+	m_passengerLayerCheck->setChecked(m_passengerChoice);
+	m_showPassengersAction->setChecked(m_passengerChoice);
+	m_presenter->m_passengerLayerVisible = m_passengerChoice;
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, m_showPassengersAction, &QAction::setChecked);
 	connect(m_showPassengersAction, &QAction::toggled, m_passengerLayerCheck, &QCheckBox::setChecked);
 	caseLayersLayout->addWidget(m_stationLayerCheck);
@@ -1053,34 +1057,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateViewportOverlays();
 	});
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
-		m_runController->setPassengerGui(checked);
+		m_passengerChoice = checked;
 		QSettings().setValue(kShowPassengersKey, checked);
-		m_presenter->m_passengerLayerVisible = checked;
-		for (auto* item : m_presenter->m_stationDecorations)
-			if (qgraphicsitem_cast<PlatformItem*>(item))
-				item->setVisible(m_presenter->platformBarsVisible());
-		for (auto* platform : m_presenter->allPlatforms) {
-			if (!platform)
-				continue;
-			if (platform->textIcon)
-				platform->textIcon->setVisible(m_presenter->paxTextVisible());
-			for (auto* icon : platform->passengerIcons)
-				if (icon)
-					icon->setVisible(checked);
-		}
-		if (m_presenter->trainPaxInfoItem)
-			m_presenter->trainPaxInfoItem->setVisible(checked);
-		if (m_presenter->paxIconInfoItem)
-			m_presenter->paxIconInfoItem->setVisible(checked);
-		updateNetworkLegend();
-		if (checked) {
-			m_presenter->updateTrainPaxInfo();
-			m_presenter->updatePaxIconInfo(m_snapshot.get(),
-				m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
-			// A run keeps the passengers of the platforms only when it starts with them on.
-			if (m_showingTrackPreview || !passengerGui())
-				statusBar()->showMessage("Passengers show from the next run", 8000);
-		}
+		applyPassengerLayer(checked);
+		// A run keeps the passengers of the platforms only when it starts with them on.
+		if (checked && (m_showingTrackPreview || !passengerGui()))
+			statusBar()->showMessage("Passengers show from the next run", 8000);
 	});
 	updateCaseLayersPanel();
 
@@ -1666,11 +1648,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
 	// of the panel waits for the next item that a click or Edit > Find... selects there.
 	m_incidentPanel->setDefaultTarget([this] {
-		QString reason;
-		const IncidentTarget target = selectedIncidentTarget(reason);
+		QString selected;
+		const IncidentTarget target = selectedIncidentTarget(selected);
 		// The edit that adds the incident can draw the preview again, which writes the status bar, so the message follows.
-		if (!reason.isEmpty() && !m_incidentPanel->offersTarget(target))
+		if (!selected.isEmpty() && !m_incidentPanel->offersTarget(target)) {
+			const QString reason = selected == "item" ? QString("The selected item is not a signal or a train")
+													  : QString("The selected %1 cannot be the target of an incident").arg(selected);
 			QTimer::singleShot(0, this, [this, reason] { statusBar()->showMessage(reason + ", so the new incident has no target.", 8000); });
+		}
 		return target;
 	});
 	m_endTargetPickShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
@@ -2333,13 +2318,19 @@ void MainWindow::startRecovery() {
 		if (m_recoveryFailureShown)
 			return;
 		m_recoveryFailureShown = true;
-		statusBar()->showMessage(QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message));
+		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message);
+		// The hint of a target pick stays until the pick ends, and the message follows it.
+		if (m_incidentPanel->isPickingTarget())
+			m_heldRecoveryFailure = text;
+		else
+			statusBar()->showMessage(text);
 	});
 	// A copy that is written again ends the failure, and a later failure is reported again.
 	connect(m_recovery.get(), &RecoveryController::written, this, [this] {
 		if (!m_recoveryFailureShown)
 			return;
 		m_recoveryFailureShown = false;
+		m_heldRecoveryFailure.clear();
 		if (statusBar()->currentMessage().startsWith(QLatin1String("Autosave unavailable")))
 			statusBar()->clearMessage();
 	});
@@ -2360,6 +2351,7 @@ void MainWindow::recoverySceneChanged() {
 void MainWindow::recoverySceneSaved() {
 	m_recoverySource = recoverySourceOf(m_session->sceneDir(), m_session->sceneIsBundle());
 	m_recoveredSourceHint.clear();
+	m_heldRecoveryFailure.clear();
 	if (m_recovery)
 		m_recovery->noteSaved();
 }
@@ -2368,6 +2360,7 @@ void MainWindow::recoverySceneReplaced(const RecoverySource& source) {
 	m_recoverySource = source;
 	m_recoveredSourceHint.clear();
 	m_recoveryFailureShown = false;
+	m_heldRecoveryFailure.clear();
 	if (!m_recovery)
 		return;
 	m_recovery->noteReplaced();
@@ -2550,8 +2543,15 @@ void MainWindow::invalidateAfterSceneChange() {
 		m_validation->refreshLoadedData();
 		updateDiagramActions();
 	} else {
+		// The message that the run is complete would outlast its results. Other messages, such as the hint of a pick, stay.
+		const bool completionShown = m_runController->resultsAvailable()
+			&& statusBar()->currentMessage().startsWith(QLatin1String("Simulation complete"));
 		invalidateRunResults();
+		if (completionShown)
+			statusBar()->showMessage(QStringLiteral("Run results discarded: the case changed."), 8000);
 	}
+	// The first passenger added, or the last one deleted, switches the passengers on or off before the preview redraws.
+	updatePassengerSwitch();
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
 }
@@ -2657,7 +2657,14 @@ void MainWindow::stepSceneHistory(bool redo) {
 	if (!(redo ? m_history->canRedo() : m_history->canUndo()))
 		return;
 	const QString label = QString::fromStdString(redo ? m_history->redoLabel() : m_history->undoLabel());
+	// The preview of the restored scene is drawn again at Fit, and the view returns to the zoom and the centre that it had,
+	// as after an edit. The centre is the middle of the pixel at the centre, which centerOn puts back on that pixel.
+	const qreal zoom = networkView->zoomRatio();
+	const QPointF centre = networkView->viewportTransform().inverted().map(
+		QPointF(networkView->viewport()->width() + 1, networkView->viewport()->height() + 1) / 2.0);
 	restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo()));
+	networkView->zoomBy(zoom / networkView->zoomRatio());
+	networkView->centerOn(centre);
 	statusBar()->showMessage(QString("%1 %2").arg(redo ? "Redid" : "Undid", label), 8000);
 }
 
@@ -2706,10 +2713,15 @@ void MainWindow::refreshAllEditorPanels() {
 }
 
 void MainWindow::invalidateRunResults() {
+	// The replay row and the Run Results dock hide, and Qt would hand their focus to the next widget of the tab chain, such
+	// as a layer check box. The network view, which showed the results, takes it.
+	if (QWidget* focus = QApplication::focusWidget();
+		focus && ((m_replayBar && m_replayBar->isAncestorOf(focus)) || (m_runResultsDock && m_runResultsDock->isAncestorOf(focus))))
+		networkView->setFocus(Qt::OtherFocusReason);
 	if (!m_runController->running()) {
 		if (m_replayActive && m_document->isLoaded() && scene) {
 			setFollowTrain(-1);
-			m_inspector->handleCloseInfoDockWidget();
+			m_inspector->handleDisableHighlight();
 			renderTrackPreview(m_document->model()); // Teardown clears history and graphics together.
 		}
 		clearReplay();
@@ -2834,15 +2846,23 @@ void MainWindow::refreshIncidentPanel() {
 
 namespace {
 
-// The status bar ends with this while the target of an incident is picked on the network view.
+// The status bar shows this while the target of an incident is picked on the network view.
 QString targetPickHint() {
 	return QStringLiteral("Click a signal or a train for the incident target. Esc cancels.");
 }
 
+// The message of a pick after a click on something that gives no target, which selectedIncidentTarget names. It is no
+// wider than the hint.
+QString targetPickRetry(const QString& selected) {
+	if (selected == QLatin1String("signal") || selected == QLatin1String("train"))
+		return QStringLiteral("This %1 gives no target. Click another, or press Esc.").arg(selected);
+	return QStringLiteral("Not a signal or a train. Click one, or press Esc.");
+}
+
 } // namespace
 
-IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
-	reason.clear();
+IncidentTarget MainWindow::selectedIncidentTarget(QString& selected) const {
+	selected.clear();
 	if (!m_document->isLoaded())
 		return {};
 	const SceneModel& model = m_document->model();
@@ -2851,7 +2871,6 @@ IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
 		return target.empty() ? IncidentTarget() : IncidentTarget{"signal_failure", QString::fromStdString(target), 0};
 	};
 	IncidentTarget target;
-	QString selected;
 	if (m_showingTrackPreview) {
 		const QString kind = m_inspector->previewSelectionKind();
 		if (kind == "signal") {
@@ -2876,40 +2895,41 @@ IncidentTarget MainWindow::selectedIncidentTarget(QString& reason) const {
 	} else if (m_presenter->effect) {
 		selected = "item";
 	}
-	if (selected == "item")
-		reason = "The selected item is not a signal or a train";
-	else if (!selected.isEmpty())
-		reason = QString("The selected %1 cannot be the target of an incident").arg(selected);
 	return target;
 }
 
 void MainWindow::setIncidentTargetPick(bool picking) {
 	m_endTargetPickShortcut->setEnabled(picking);
 	networkView->viewport()->setCursor(picking ? Qt::CrossCursor : Qt::OpenHandCursor);
-	if (picking)
+	if (picking) {
 		statusBar()->showMessage(targetPickHint());
-	else if (statusBar()->currentMessage().endsWith(targetPickHint()))
+	} else if (!m_heldRecoveryFailure.isEmpty()) {
+		statusBar()->showMessage(m_heldRecoveryFailure);
+		m_heldRecoveryFailure.clear();
+	} else if (const QString shown = statusBar()->currentMessage();
+		shown == targetPickHint() || shown.endsWith(QLatin1String(", or press Esc."))) {
 		statusBar()->clearMessage();
+	}
 }
 
 void MainWindow::pickIncidentTarget() {
 	if (!m_incidentPanel->isPickingTarget())
 		return;
-	QString reason;
-	const IncidentTarget target = selectedIncidentTarget(reason);
+	QString selected;
+	const IncidentTarget target = selectedIncidentTarget(selected);
 	// The edit can end a replay and draw the preview again, which deletes the item of the click, so it waits until the click
 	// has been handled.
-	QTimer::singleShot(0, this, [this, target, reason] {
+	QTimer::singleShot(0, this, [this, target, selected] {
 		if (!m_incidentPanel->isPickingTarget())
 			return;
 		if (!m_incidentPanel->applyTarget(target)) {
-			statusBar()->showMessage((reason.isEmpty() ? QString("The selected item is not a signal or a train") : reason) + ". "
-				+ targetPickHint());
+			statusBar()->showMessage(targetPickRetry(selected));
 			return;
 		}
-		m_incidentPanel->endTargetPick();
+		// The end of the pick shows a held autosave failure over this message.
 		statusBar()->showMessage(
 			QString("The target of incident %1 is now %2.").arg(m_incidentIdEdit->text(), m_incidentTargetCombo->currentText()), 8000);
+		m_incidentPanel->endTargetPick();
 	});
 }
 
@@ -2946,6 +2966,11 @@ void MainWindow::updateCaseLayersPanel() {
 		m_caseReadinessLabel->style()->unpolish(m_caseReadinessLabel);
 		m_caseReadinessLabel->style()->polish(m_caseReadinessLabel);
 	}
+	updatePassengerSwitch();
+	updateNetworkLegend();
+}
+
+void MainWindow::updatePassengerSwitch() {
 	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
 	const QString passengerTip = hasPassengers ? QStringLiteral("Show passenger counts, icons and platform bars")
 											   : QStringLiteral("This case has no passengers");
@@ -2953,7 +2978,42 @@ void MainWindow::updateCaseLayersPanel() {
 	m_passengerLayerCheck->setToolTip(passengerTip);
 	m_showPassengersAction->setEnabled(hasPassengers);
 	m_showPassengersAction->setToolTip(passengerTip);
+	// The switch shows what is drawn; the toggle handler would store it as the choice of the user.
+	const bool shown = hasPassengers && m_passengerChoice;
+	if (m_passengerLayerCheck->isChecked() == shown)
+		return;
+	const QSignalBlocker boxBlocker(m_passengerLayerCheck);
+	const QSignalBlocker actionBlocker(m_showPassengersAction);
+	m_passengerLayerCheck->setChecked(shown);
+	m_showPassengersAction->setChecked(shown);
+	applyPassengerLayer(shown);
+}
+
+void MainWindow::applyPassengerLayer(bool shown) {
+	m_runController->setPassengerGui(shown);
+	m_presenter->m_passengerLayerVisible = shown;
+	for (auto* item : m_presenter->m_stationDecorations)
+		if (qgraphicsitem_cast<PlatformItem*>(item))
+			item->setVisible(m_presenter->platformBarsVisible());
+	for (auto* platform : m_presenter->allPlatforms) {
+		if (!platform)
+			continue;
+		if (platform->textIcon)
+			platform->textIcon->setVisible(m_presenter->paxTextVisible());
+		for (auto* icon : platform->passengerIcons)
+			if (icon)
+				icon->setVisible(shown);
+	}
+	if (m_presenter->trainPaxInfoItem)
+		m_presenter->trainPaxInfoItem->setVisible(shown);
+	if (m_presenter->paxIconInfoItem)
+		m_presenter->paxIconInfoItem->setVisible(shown);
 	updateNetworkLegend();
+	if (shown) {
+		m_presenter->updateTrainPaxInfo();
+		m_presenter->updatePaxIconInfo(m_snapshot.get(),
+			m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
+	}
 }
 
 void MainWindow::updateSpeedModeDisplay(int delayMs) {

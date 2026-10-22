@@ -157,7 +157,7 @@ You need a run that reached its end. A stopped or failed run has no replay, and 
 
 The replay has 128 MiB of memory. A run that is larger loses its oldest frames. The text then says from which time the replay starts, for example `Starts at 10:00:20 (7220 s), ends at 7999 s, a frame every 5 s. The earlier part was not kept because the run is larger than the replay memory (128 MiB).` The slider covers only the kept part, and **Start** goes to its first time. The tooltip of **Start** says so. If not even one moment fits, the row says `No replay` with the reason, and the slider and **Play** are disabled.
 
-Train, station and signal selections stay across seeks. A train that has no position at the selected time is not drawn. Passenger journey details are not available in a replay, but the counts and statuses are. A new run, an edit of the case or another scenario clears the replay and returns the view to the preview.
+Train, station and signal selections stay across seeks. A train that has no position at the selected time is not drawn. Passenger journey details are not available in a replay, but the counts and statuses are. A new run, an edit of the case or another scenario clears the replay and returns the view to the preview. An edit or another scenario also closes the info dock of the selection.
 
 ## Results and exports
 
