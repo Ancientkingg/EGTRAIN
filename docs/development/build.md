@@ -107,8 +107,10 @@ cmake --build --preset x64-release
 ctest --preset x64-release
 ```
 
-The `x64-debug` presets make a Debug build. Each preset builds in `out\build\<preset>`. The first configure also
-builds ZeroMQ, cppzmq and nlohmann-json with vcpkg. CI does not use the presets: it installs the same packages with
+The `x64-debug` presets make a Debug build. Each preset builds in `out\build\<preset>`. The first configure on a
+machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
+in `%LOCALAPPDATA%\vcpkg\archives`. The configure prints `Could NOT find WrapVulkanHeaders` twice, which does no
+harm. CI does not use the presets: it installs the same packages with
 vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in `.github/workflows/cmake.yml`.
 
 The Start-menu entry **Developer PowerShell for VS** opens a shell that targets 32-bit Windows, and the configure then
@@ -120,7 +122,7 @@ Enter-VsDevShell -VsInstallPath 'C:\Program Files\Microsoft Visual Studio\18\Com
   -DevCmdArguments '-arch=x64 -host_arch=x64'
 ```
 
-`Qt6_DIR` in `build/CMakeCache.txt` shows which Qt a build folder uses.
+`Qt6_DIR` in the `CMakeCache.txt` of a build folder (`out\build\<preset>` with a preset) shows which Qt it uses.
 
 Without a preset, CMake on Windows uses the Visual Studio generator, which is multi-config: choose the configuration
 when building and testing, as in the next two sections.
@@ -135,9 +137,10 @@ uses the presets:
 2. Install Git for Windows and Python 3.9 or newer. Install Qt 6.8.3 `msvc2022_64` with Qt Charts into `C:\Qt`, with
    aqtinstall or the Qt online installer as in [Requirements](#requirements).
 3. Open the repository folder with **File > Open > Folder**. Visual Studio then configures the `x64-debug` preset. The
-   first configure also builds the vcpkg libraries and takes longer.
+   first configure on a machine also builds the vcpkg libraries and takes longer.
 4. For a Release build, pick `x64-release` in the configuration list of the toolbar.
-5. Pick `QEGTRAIN.exe` as the startup item and press F5. The default startup item is another program of the build.
+5. Pick `QEGTRAIN.exe` as the startup item, not `QEGTRAIN.exe (Install)`, and press F5. The default startup item is
+   another program of the build.
 6. Run the tests from **Test > Test Explorer**.
 
 Visual Studio and `ctest --preset` run the programs and tests with the environment of the preset, whose `PATH` has the

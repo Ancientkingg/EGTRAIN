@@ -9,9 +9,14 @@ Qt 6.8.3 on 2026-10-20. On Linux the page was followed from a clean clone in a n
 10 CPUs on 2026-10-20, with the Qt 6.4.2 packages of Ubuntu: installing the packages took 36 s, configuring under
 1 s, the build with four jobs 4 min 7 s, CTest 3 min 8 s (325 of 325 passed), the headless run of all six cases
 1 min 49 s, the round-trip smoke 7 s, the visual polish smoke 4 min 13 s and the test walkthrough below under a
-minute. The build with warnings as errors passed as well. The Windows commands on this page were not run. CI installs the same packages as
+minute. The build with warnings as errors passed as well. On Windows the [presets](build.md#configure) were followed
+on 2026-10-21 in a Windows 11 Arm64 VM with Visual Studio Community 2026, from an x64 Developer PowerShell: the
+configure took 94 s with the vcpkg packages restored from its cache (148 s the day before, when vcpkg built them), the
+build 13 min 11 s and CTest 21 min 33 s. 317 of 319 tests passed; the other two create symbolic links and need
+Developer Mode, as [Common setup failures](build.md#common-setup-failures) says. Visual Studio opened the folder,
+built with the same presets and started EGTRAIN. CI installs the same packages as
 [Configure](build.md#configure) lists, but it configures with more options; see
-[Which checks to run](#which-checks-to-run). The Visual Studio generator path in the build guide
+[Which checks to run](#which-checks-to-run). The Visual Studio generator path without a preset in the build guide
 is not what CI uses and was not checked for this page.
 
 ## What you need
