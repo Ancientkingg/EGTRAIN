@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874":[2,0,149,0],
 "struct_release_asset.html#ab061af10347e21e83985b417c15eb9f4":[2,0,149,1],
 "struct_replay_bar_text.html":[2,0,150],
 "struct_replay_bar_text.html#a12940b26428ce59196bf857cf55a7a65":[2,0,150,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "struct_scene_input_snapshot.html":[2,0,201],
 "struct_scene_input_snapshot.html#a0c4ef227c925c1c3cc61e8c4a34ad011":[2,0,201,0],
 "struct_scene_input_snapshot.html#ac487ce02bb7d2d10840c026ca62f6572":[2,0,201,1],
-"struct_scene_load_result.html":[2,0,203],
-"struct_scene_load_result.html#a11593734a799f852018297658cde0cea":[2,0,203,3]
+"struct_scene_load_result.html":[2,0,203]
 };

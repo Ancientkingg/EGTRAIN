@@ -1,5 +1,6 @@
 var NAVTREEINDEX24 =
 {
+"struct_track_preview_result.html#ae386374c7beea789cfc6d0285e82e712":[2,0,294,3],
 "struct_track_preview_result.html#aefab11d3318d02f2bd6852abdc42f201":[2,0,294,2],
 "struct_track_preview_signal.html":[2,0,295],
 "struct_track_preview_signal.html#a0d087215adbc1d544332687196f30caa":[2,0,295,4],

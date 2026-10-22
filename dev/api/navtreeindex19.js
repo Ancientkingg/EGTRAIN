@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"struct_blocking_time_diagram_segment.html#a8eda344fab1c68e008a4b13b2bf46e85":[2,0,20,3],
 "struct_blocking_time_diagram_segment.html#a90cf5dcd3a3e897c13c9a46178695f31":[2,0,20,6],
 "struct_blocking_time_diagram_segment.html#a9bd43b44ae30902f63b4c5e019a7d15f":[2,0,20,16],
 "struct_blocking_time_diagram_segment.html#ab1fe6358019d4c6c18c2cdac6de0f056":[2,0,20,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "struct_follow_availability.html#a530c83da5707d667134c8bbabb63eab6":[2,0,72,0],
 "struct_follow_availability.html#a6901590da1e71a88182b727b9ecd89fb":[2,0,72,6],
 "struct_follow_availability.html#a6d1604b580cb30e93ca874ad9b9c9169":[2,0,72,7],
-"struct_follow_availability.html#a812fd7ea89db709d24a28311ba26eade":[2,0,72,3],
-"struct_follow_availability.html#a871539ea556a1f5c8e3d0235991cc051":[2,0,72,4]
+"struct_follow_availability.html#a812fd7ea89db709d24a28311ba26eade":[2,0,72,3]
 };

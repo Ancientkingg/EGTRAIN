@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"struct_follow_availability.html#a871539ea556a1f5c8e3d0235991cc051":[2,0,72,4],
 "struct_follow_availability.html#a8717cd01239daff5f8d51e266cfd980e":[2,0,72,1],
 "struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9":[2,0,72,8],
 "struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9":[2,0,72,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "struct_recovery_source.html#a91f5483f32f816e0632fd0f8e8950200":[2,0,146,2],
 "struct_recovery_source.html#aaef56fe2cadd461c6a6607151a937f27":[2,0,146,3],
 "struct_recovery_source.html#ad1757f2ab119513e389f1572b2b78650":[2,0,146,0],
-"struct_release_asset.html":[2,0,149],
-"struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874":[2,0,149,0]
+"struct_release_asset.html":[2,0,149]
 };

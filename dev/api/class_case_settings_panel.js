@@ -1,6 +1,7 @@
 var class_case_settings_panel =
 [
     [ "CaseSettingsPanel", "class_case_settings_panel.html#ab626149c6737ccedf70c13e9e5a2722a", null ],
+    [ "~CaseSettingsPanel", "class_case_settings_panel.html#ae31fed717086048ee10cb6a42cab286e", null ],
     [ "baseTimeChanged", "class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64", null ],
     [ "baseTimeEdit", "class_case_settings_panel.html#af84b8ae72f2c266f736e2601f4244083", null ],
     [ "bufferSecondsEdit", "class_case_settings_panel.html#a0f0584a419b0399016fe1804c9813a2c", null ],
