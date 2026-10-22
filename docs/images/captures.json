@@ -19,10 +19,10 @@
     {
       "case": "Netherlands",
       "file": "getting-started-open-a-case.png",
-      "height": 395,
+      "height": 350,
       "state": "Open a Case over the loaded case, with Paimpol selected",
       "version": "1.0.0",
-      "width": 640
+      "width": 512
     },
     {
       "case": "Paimpol",
@@ -43,10 +43,10 @@
     {
       "case": "Paimpol",
       "file": "getting-started-run-simulation.png",
-      "height": 358,
+      "height": 289,
       "state": "Run simulation of baseline, Run details closed",
       "version": "1.0.0",
-      "width": 640
+      "width": 512
     },
     {
       "case": "Paimpol",
@@ -68,7 +68,8 @@
       "case": "Milano_Brescia",
       "file": "readme-main-window.png",
       "height": 750,
-      "state": "loaded and not run, whole network in view",
+      "manual": "Taken by hand on macOS with a screen at a device pixel ratio of 1: open Milano_Brescia, give the window 1200 by 750 points of content, choose Run at 100x and Pause at 06:45:40, zoom in on Treviglio to 6.2x, and save the window without its title bar.",
+      "state": "run paused at 06:45:40 at 100x, zoomed in on Treviglio, dock Case and Layers with its map key on the left",
       "version": "1.0.0",
       "width": 1200
     },
@@ -99,10 +100,10 @@
     {
       "case": "Paimpol",
       "file": "tutorial-modify-edit-timetable-stop.png",
-      "height": 471,
+      "height": 412,
       "state": "Edit timetable stop for Pontrieaux of Guin-Paim-EXPRESS-1, as committed",
       "version": "1.0.0",
-      "width": 640
+      "width": 512
     },
     {
       "case": "Paimpol",

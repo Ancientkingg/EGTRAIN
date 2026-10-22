@@ -583,13 +583,11 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		return w.openSceneDirectory(QDir(scenes).filePath(QStringLiteral("Milano_Brescia"))) || failCaptures(QStringLiteral("cannot open Milano_Brescia"));
 	});
 	steps.push_back([caseIs] { return caseIs("Milano_Brescia"); });
-	steps.push_back([&w, showOnly, windowShot] {
+	// The picture of the README is taken by hand, with a run on screen.
+	steps.push_back([&w, showOnly] {
 		showOnly({});
-		w.fitView();
-		const bool saved = saveCapture(windowShot(), QStringLiteral("readme-main-window.png"), QStringLiteral("Milano_Brescia"),
-			QStringLiteral("loaded and not run, whole network in view"));
 		w.m_runController->runCurrent();
-		return saved;
+		return true;
 	});
 	steps.push_back(runEnded);
 	steps.push_back([&w] {

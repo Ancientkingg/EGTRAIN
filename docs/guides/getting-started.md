@@ -67,7 +67,7 @@ While the run is active:
 
 - The progress bar under the network shows the clock time and the end time, such as `07:51:31 of 09:40:40`; its tooltip gives the step (`Step n of m`). The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one. The track of the section that a train occupies is red. From a zoom of 3x the speed of each train is written beside it, and that of a selected or followed train at any zoom.
 
-  ![The main window during a run of Paimpol, zoomed in to 25x with Follow on Guin-Paim-EXPRESS-1-1 between its signals. The progress bar reads 07:51:31, step 2,452 of 9,000, and Run is dimmed while Pause and Stop are enabled.](../images/getting-started-run-in-progress.png)
+  ![The main window during a run of Paimpol, zoomed in to 25x with Follow on Guin-Paim-EXPRESS-1-1 between its signals. The progress bar reads 07:51:31 of 09:40:40, and Run is dimmed while Pause and Stop are enabled.](../images/getting-started-run-in-progress.png)
 - Move the speed slider to the right to play faster or to the left to play slower. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
 - The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers**, **Infrastructure** and **Incidents** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling stock units** and **Compositions** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
@@ -89,7 +89,7 @@ To open a result window, click **Open result view...** in the dock and choose an
 
 The other entries are listed in [How-to](how-to.md#results-and-exports). The entries stay disabled until a run has ended.
 
-![The window after a completed run of Paimpol / baseline, with the menu Open result view of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view, Export CSV and Export PNG, Set delay baseline and Compare delays, and the results table.](../images/getting-started-run-results.png)
+![The window after a completed run of Paimpol / baseline, with the menu Open result view of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view, Export CSV and Export PNG, the results table, and at the bottom edge the buttons Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
 
 ## 7. Export one CSV and one PNG
 
