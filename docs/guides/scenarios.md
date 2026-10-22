@@ -87,7 +87,13 @@ Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
 inspector opens and a light blue ring marks the item. Its title reads
 `Preview: <kind> <id> (not running)` in the preview and Node Info, Station Node
-Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. The ring keeps its size at
+Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. A
+signal of the preview is named by the label of its section, as in
+`Preview: Signal B0 0.230 to 0.310 km (not running)` in Paimpol. A signal that
+`signalling.json` lists for the section comes first: `sig1 (B0 0.230 to 0.310 km)`.
+During a run the inspector names tracks by their scene ids and sections by their
+labels, and the tooltip of a field gives the runtime track number or the section
+id ([ids and labels](glossary.md#ids-and-labels)). The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
 disappears with the layer of its item. Clicking another item moves the ring;
 clicking an empty part of the canvas or closing the inspector removes it. The
@@ -105,7 +111,9 @@ section for as long as a signal failure incident is active. The marks appear whe
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
 canvas shows the last snapshot the simulation delivered, and after the run the
 replay slider shows the heads of the selected time. The tooltip and the signalling
-inspector name the state, and the Map key lists all five.
+inspector name the state, and the Map key lists all five. The tooltip also names
+the track and the sections ahead of and behind the head, as in
+`Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km`.
 
 ## Delay baseline
 

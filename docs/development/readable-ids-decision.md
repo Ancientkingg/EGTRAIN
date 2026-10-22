@@ -225,7 +225,20 @@ Part 1 of the change made steps 1 and 4, step 2 without the preview, and the doc
 - Where labels are listed together, in the note on ambiguous reference sections, the note on sections without a usable extent and the governing resources of **Capacity by area**, they are joined with semicolons, since a switch label holds a comma. The id forms keep their commas.
 - The tooltip of a choice field leaves out a line that repeats an earlier one, so a field whose item and field tooltips are equal shows that text once.
 
-Part 2, the preview, the run inspector, the signal tooltips, **Find** and **Copy section ID**, is still to come.
+## Part 2
+
+Part 2 made the preview item of step 2 and all of step 3. On Paimpol:
+
+- A signal of the preview keeps the label of its section and its name by rule 7 (`TrackPreviewSignal` in `scene/TrackPreview.h`). The first signal of B0 has the inspector title "Preview: Signal B0 0.230 to 0.310 km (not running)". **Protected section** and **ID of Block Section** show "B0 0.230 to 0.310 km", their tooltips add "Section ID: @1-B0@", and the details keep "Track B0; section @1-B0@; forward; authored signal IDs: None". The tooltip of the head starts with "Track B0 at 0.23 km; section B0 0.230 to 0.310 km", and its context menu is called "Preview: B0 0.230 to 0.310 km".
+- `showRuntime` builds the labels from the scene of the run and gives each signal head the scene track id and the labels of its sections (`graphics/items/SignalItem.h`). The tooltip of the forward head at 0.23 km starts with "Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km".
+- **Signalling Info**, Node Info, Station Node Info, Arc Info and Connection Info show scene track ids and labels. A field that shows one has the text as its tooltip and, below it, "Runtime track number: 0" or "Section ID: @1-B0@". **Connected signals** of an arc joins its labels with semicolons and lists the ids in the tooltip.
+- **Find** lists a signal with the labels and finds it by the ids of its sections too, which it does not show. It names the track of a station node by its scene id: "Station: Brelidy-Plouec (track B0)".
+- The signal menu of a run has **Copy section ID**. It copies the id of the section ahead of the head, or of the section behind it when there is none ahead: the section that **Protected section** shows.
+
+Where part 2 differs from the plan:
+
+- The examples in [The problem](#the-problem) and in the table name the signal at 0.23 km by `@0-B0@`. A signal of the preview stands at the start of the section it names, and the first section of a track has no signal, so that signal names `@1-B0@`. In a run the reversed head at 0.23 km has `@0-B0@` ahead and `@1-B0@` behind, not "behind none".
+- The table keeps the id of a signal only in the inspector. **Find** also matches the ids, so a search for `@1-B0@` still finds the heads of that section.
 
 ## Open questions
 
