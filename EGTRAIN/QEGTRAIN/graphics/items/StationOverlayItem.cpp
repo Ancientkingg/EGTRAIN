@@ -1,6 +1,7 @@
 #include "graphics/items/StationOverlayItem.h"
 
 #include <QGraphicsSceneHoverEvent>
+#include <QLineF>
 #include <QPainter>
 #include <QPainterPath>
 #include <QStyleOptionGraphicsItem>
@@ -22,11 +23,25 @@ constexpr qreal kPictogramOverlapPixels = 2.0;
 const QColor kMarkFill(232, 238, 242);
 const QColor kMarkHalo(16, 26, 34);
 constexpr qreal kMarkHaloPixels = 2.0;
+// The top of the name is this many mark frames below the dots, also in the far look, which does not draw them.
+constexpr qreal kNearNameGap = 0.25;
+// A station node farther than this many mark frames at scene size from the anchor is at another place of the
+// station, such as a platform node on another line, and gets no dot and no say in where the mark and the name go.
+constexpr qreal kStationPlaceFrames = 32.0;
 
-// Enlarges item by factor about pivot in one change. The item transform acts after the
-// item scale, so pivot is in the coordinates of the scaled item (its parent without pos).
-void enlargeAbout(QGraphicsItem* item, const QPointF& pivot, qreal factor) {
-	item->setTransform(QTransform().translate(pivot.x(), pivot.y()).scale(factor, factor).translate(-pivot.x(), -pivot.y()));
+// Enlarges item by factor about pivot in one change and moves pivot by shift. The item transform acts
+// after the item scale, so pivot and shift are in the coordinates of the scaled item (its parent without pos).
+void enlargeAbout(QGraphicsItem* item, const QPointF& pivot, qreal factor, const QPointF& shift = QPointF()) {
+	item->setTransform(QTransform()
+			.translate(pivot.x() + shift.x(), pivot.y() + shift.y())
+			.scale(factor, factor)
+			.translate(-pivot.x(), -pivot.y()));
+}
+
+// The shift for enlargeAbout() that puts pivot of item at scenePoint.
+QPointF shiftTo(const QGraphicsItem* item, const QPointF& pivot, const QPointF& scenePoint) {
+	const QPointF target = item->parentItem() ? item->parentItem()->mapFromScene(scenePoint) : scenePoint;
+	return target - item->pos() - pivot;
 }
 
 QList<QPointF> fitCollisionCandidates() {
@@ -55,14 +70,70 @@ StationMarkItem::StationMarkItem(StationClass cls, int size, QGraphicsItem* pare
 	setPixmap(frame);
 	// The default shape follows opaque pixels, and the pixmap has none.
 	setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
+	// The far mark can reach past the pixmap. Its halo is widest when the frame has its smallest size on screen.
+	const QRectF pixmapRect(offset(), QSizeF(size, size));
+	m_farBounds = pixmapRect.united(stationMarkBounds(pixmapRect, m_class,
+		kMarkHaloPixels * size / StationOverlayItem::MinPictogramPixels));
+}
+
+QRectF StationMarkItem::boundingRect() const {
+	return m_nearLook ? m_nearShape.boundingRect() : m_farBounds;
+}
+
+QPainterPath StationMarkItem::shape() const {
+	return m_nearLook ? m_nearShape : QGraphicsPixmapItem::shape();
 }
 
 void StationMarkItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
 	const qreal pixelsPerUnit = QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform());
 	if (pixelsPerUnit <= 0.0)
 		return;
-	paintStationMark(painter, QRectF(offset(), QSizeF(pixmap().size())), m_class, kMarkFill, kMarkHalo,
-		kMarkHaloPixels / pixelsPerUnit);
+	if (m_nearLook)
+		paintStationNodeMark(painter, m_itemCentres, m_class, m_itemSide, kMarkFill, kMarkHalo,
+			kMarkHaloPixels / pixelsPerUnit);
+	else
+		paintStationMark(painter, QRectF(offset(), QSizeF(pixmap().size())), m_class, kMarkFill, kMarkHalo,
+			kMarkHaloPixels / pixelsPerUnit);
+}
+
+void StationMarkItem::setNodeCentres(const QList<QPointF>& centres) {
+	if (m_nearLook)
+		prepareGeometryChange();
+	m_nodeCentres = centres;
+	if (m_nearLook) {
+		updateNearGeometry();
+		update();
+	}
+}
+
+void StationMarkItem::setNearLook(qreal side, qreal viewScale) {
+	prepareGeometryChange();
+	m_nearLook = true;
+	m_nearSide = side;
+	m_nearViewScale = viewScale;
+	updateNearGeometry();
+	update();
+}
+
+void StationMarkItem::setFarLook() {
+	if (!m_nearLook)
+		return;
+	prepareGeometryChange();
+	m_nearLook = false;
+	update();
+}
+
+// The dots are drawn in item coordinates: the centres are mapped from the scene with the transform that
+// the item has now, and the frame and the halo are scaled with it.
+void StationMarkItem::updateNearGeometry() {
+	const QTransform sceneToItem = sceneTransform().inverted();
+	const qreal unitsPerSceneUnit = std::sqrt(std::abs(sceneToItem.determinant()));
+	m_itemCentres.clear();
+	for (const QPointF& centre : std::as_const(m_nodeCentres))
+		m_itemCentres.append(sceneToItem.map(centre));
+	m_itemSide = m_nearSide * unitsPerSceneUnit;
+	const qreal halo = m_nearViewScale > 0.0 ? kMarkHaloPixels / m_nearViewScale * unitsPerSceneUnit : 0.0;
+	m_nearShape = stationNodeMarkShape(m_itemCentres, m_class, m_itemSide, halo);
 }
 
 StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF& stableAnchor,
@@ -318,9 +389,11 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 		return;
 	painter->save();
 	painter->translate(m_viewportOffset);
+	// The bar of the roundel is wider than its ring, so the roundel is fitted to the symbol.
 	if (m_fitSymbolVisible)
-		paintStationMark(painter, m_symbolRect.translated(m_fitCollisionOffset), m_visual.cls, kMarkFill, kMarkHalo,
-			kMarkHaloPixels);
+		paintStationMark(painter,
+			stationMarkFrameIn(m_symbolRect.translated(m_fitCollisionOffset), m_visual.cls, kMarkHaloPixels),
+			m_visual.cls, kMarkFill, kMarkHalo, kMarkHaloPixels);
 	if (isLabelVisible()) {
 		painter->setPen(Qt::white);
 		painter->setFont(m_labelFont);
@@ -439,18 +512,74 @@ void StationOverlayItem::attachArtwork(QGraphicsPixmapItem* picture, QGraphicsTe
 	}
 }
 
-void StationOverlayItem::applyViewScale(qreal viewScale) {
-	viewScale = std::abs(viewScale);
-	if (viewScale <= 0.0 || viewScale == m_appliedViewScale)
+void StationOverlayItem::setNodeCentres(const QList<QPointF>& centres) {
+	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
+	if (!mark)
 		return;
-	m_appliedViewScale = viewScale;
+	const qreal reach = kStationPlaceFrames * m_pictureNativePixels * m_pictureSceneScale;
+	QList<QPointF> place;
+	for (const QPointF& centre : centres)
+		if (QLineF(centre, m_stableAnchor).length() <= reach)
+			place.append(centre);
+	mark->setNodeCentres(place.isEmpty() ? QList<QPointF>{m_stableAnchor} : place);
+	// The mark and the name are placed again by the next applyViewScale().
+	m_appliedViewScale = 0.0;
+}
+
+void StationOverlayItem::applyViewScale(qreal viewScale, bool nearLook) {
+	// The dots of the near look are sized by the frame that the mark has in the far look. A plain picture
+	// and a mark without station nodes keep the far look.
+	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
+	const bool dots = nearLook && mark && !mark->nodeCentres().isEmpty();
+	viewScale = std::abs(viewScale);
+	if (viewScale > 0.0 && (viewScale != m_appliedViewScale || dots != m_appliedNearLook)) {
+		m_appliedViewScale = viewScale;
+		m_appliedNearLook = dots;
+		placeArtwork(viewScale, dots);
+	}
+}
+
+// A station mark and its name are placed by the node centres of the mark, or by the anchor without them, in both
+// looks: the frame of the far look stands on the top edge of the box of the centres, centred over the dots, and the
+// name sits a small gap under the dots, centred under them, so that it keeps its place when the look switches. A plain
+// picture and its name stay at their artwork point.
+void StationOverlayItem::placeArtwork(qreal viewScale, bool dots) {
+	auto* mark = dynamic_cast<StationMarkItem*>(m_picture);
+	QList<QPointF> centres;
+	if (mark)
+		centres = mark->nodeCentres().isEmpty() ? QList<QPointF>{m_stableAnchor} : mark->nodeCentres();
+	qreal side = 0.0;
+	QRectF marks;
+	qreal top = 0.0;
 	if (m_picture) {
 		const qreal scale = readableItemScale(m_pictureNativePixels, m_pictureSceneScale, viewScale, MinPictogramPixels);
-		enlargeAbout(m_picture, m_pictureAnchor * m_pictureSceneScale, scale / m_pictureSceneScale);
+		side = m_pictureNativePixels * scale;
+		if (mark) {
+			marks = stationNodeMarkShape(centres, mark->stationClass(), side, 0.0).boundingRect();
+			top = std::min_element(centres.cbegin(), centres.cend(), [](const QPointF& a, const QPointF& b) {
+				return a.y() < b.y();
+			})->y();
+		}
+		if (dots) {
+			m_picture->setTransform(QTransform());
+			mark->setNearLook(side, viewScale);
+		} else {
+			const QPointF pivot = m_pictureAnchor * m_pictureSceneScale;
+			QPointF shift;
+			if (mark) {
+				mark->setFarLook();
+				shift = shiftTo(m_picture, pivot, QPointF(marks.center().x(), top));
+			}
+			enlargeAbout(m_picture, pivot, scale / m_pictureSceneScale, shift);
+		}
 	}
 	if (m_name) {
 		const qreal scale = readableItemScale(m_nameNativePixels, m_nameSceneScale, viewScale, MinNamePixels);
-		enlargeAbout(m_name, m_nameAnchor * m_nameSceneScale, scale / m_nameSceneScale);
+		const QPointF pivot = m_nameAnchor * m_nameSceneScale;
+		QPointF shift;
+		if (mark)
+			shift = shiftTo(m_name, pivot, QPointF(marks.center().x(), marks.bottom() + kNearNameGap * side));
+		enlargeAbout(m_name, pivot, scale / m_nameSceneScale, shift);
 	}
 }
 

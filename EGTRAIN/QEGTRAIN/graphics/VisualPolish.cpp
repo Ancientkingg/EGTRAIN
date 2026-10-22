@@ -2,7 +2,9 @@
 
 #include <QPainter>
 #include <QPainterPath>
+#include <QPainterPathStroker>
 #include <QPixmap>
+#include <QPolygonF>
 
 #include <algorithm>
 #include <cctype>
@@ -21,6 +23,133 @@ bool containsAny(const std::string& text, std::initializer_list<const char*> nee
 			return true;
 	}
 	return false;
+}
+
+// The blue of the bar of the roundel: the fill of the square of a major station.
+const QColor kStationMarkAccent(80, 120, 210);
+
+// One part of a station mark: path filled with fill and an edge of edgeWidth in edgeColor, painted over the fill, or
+// under it when edgeUnder is set, so that only its outer half shows.
+struct MarkPart {
+	MarkPart(const QPainterPath& area, const QColor& colour, const QColor& edge = QColor(), qreal width = 0.0,
+		bool under = false)
+		: path(area), fill(colour), edgeColor(edge), edgeWidth(width), edgeUnder(under) {}
+	QPainterPath path;
+	QColor fill;
+	QColor edgeColor;
+	qreal edgeWidth;
+	bool edgeUnder;
+};
+
+// Paints the parts in order over a halo of haloWidth around all of them and their edges.
+void paintMarkParts(QPainter* painter, const QList<MarkPart>& parts, const QColor& halo, qreal haloWidth) {
+	painter->save();
+	painter->setRenderHint(QPainter::Antialiasing);
+	for (const MarkPart& part : parts)
+		painter->strokePath(part.path, QPen(halo, 2.0 * haloWidth + part.edgeWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+	for (const MarkPart& part : parts) {
+		const QPen edge(part.edgeColor, part.edgeWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+		if (part.edgeWidth > 0.0 && part.edgeUnder)
+			painter->strokePath(part.path, edge);
+		painter->fillPath(part.path, part.fill);
+		if (part.edgeWidth > 0.0 && !part.edgeUnder)
+			painter->strokePath(part.path, edge);
+	}
+	painter->restore();
+}
+
+QPainterPath disc(const QPointF& centre, qreal radius) {
+	QPainterPath path;
+	path.addEllipse(centre, radius, radius);
+	return path;
+}
+
+// The parts of the roundel in frame. The edge of the bar is 1.5 logical pixels, taking haloWidth as two of them.
+QList<MarkPart> stationMarkParts(const QRectF& frame, StationClass cls, const QColor& fill, const QColor& halo,
+	qreal haloWidth) {
+	const qreal side = std::min(frame.width(), frame.height());
+	const QPointF centre = frame.center();
+	const qreal outer = 0.36 * side;
+	QPainterPath ring = disc(centre, outer);
+	if (cls != StationClass::Major)
+		ring.addEllipse(centre, outer - 0.12 * side, outer - 0.12 * side);
+	QList<MarkPart> parts{{ring, fill}};
+	if (cls != StationClass::Halt) {
+		QRectF bar(0.0, 0.0, 1.02 * side, 0.21 * side);
+		bar.moveCenter(centre);
+		QPainterPath path;
+		path.addRect(bar);
+		parts.append({path, kStationMarkAccent, halo, 0.75 * haloWidth, true});
+	}
+	return parts;
+}
+
+// The convex hull of points in order around it (Andrew's monotone chain); fewer than three distinct points stay as they are.
+QPolygonF convexHull(QList<QPointF> points) {
+	std::sort(points.begin(), points.end(), [](const QPointF& left, const QPointF& right) {
+		return left.x() < right.x() || (left.x() == right.x() && left.y() < right.y());
+	});
+	points.erase(std::unique(points.begin(), points.end()), points.end());
+	if (points.size() < 3)
+		return QPolygonF(points);
+	const auto turn = [](const QPointF& origin, const QPointF& a, const QPointF& b) {
+		return (a.x() - origin.x()) * (b.y() - origin.y()) - (a.y() - origin.y()) * (b.x() - origin.x());
+	};
+	QPolygonF hull;
+	for (int pass = 0; pass < 2; ++pass) {
+		const qsizetype start = hull.size();
+		for (qsizetype index = 0; index < points.size(); ++index) {
+			const QPointF& point = points.at(pass == 0 ? index : points.size() - 1 - index);
+			while (hull.size() >= start + 2 && turn(hull.at(hull.size() - 2), hull.last(), point) <= 0.0)
+				hull.removeLast();
+			hull.append(point);
+		}
+		hull.removeLast();
+	}
+	return hull;
+}
+
+// The convex hull of points widened by width / 2 on every side: a dot for one point, a capsule for two.
+QPainterPath widenedHull(const QList<QPointF>& points, qreal width) {
+	const QPolygonF hull = convexHull(points);
+	if (hull.size() == 1)
+		return disc(hull.first(), width / 2.0);
+	QPainterPath outline;
+	outline.addPolygon(hull);
+	if (hull.size() > 2)
+		outline.closeSubpath();
+	QPainterPathStroker stroker;
+	stroker.setWidth(width);
+	stroker.setCapStyle(Qt::RoundCap);
+	stroker.setJoinStyle(Qt::RoundJoin);
+	// The stroke of two points is the capsule. Around more it is a ring that the hull fills; the line between two points
+	// has no inside, and as a path of its own it would get an edge across the capsule.
+	if (hull.size() == 2)
+		return stroker.createStroke(outline).simplified();
+	QPainterPath area;
+	area.addPolygon(hull);
+	return stroker.createStroke(outline).united(area);
+}
+
+// The dots of the near mark, each widened by grow on every side.
+QList<QPainterPath> nodeMarkPaths(const QList<QPointF>& centres, StationClass cls, qreal side, qreal grow) {
+	QList<QPainterPath> paths;
+	if (centres.isEmpty())
+		return paths;
+	if (cls == StationClass::Halt) {
+		paths.append(disc(centres.first(), 0.15 * side + grow));
+	} else if (cls == StationClass::Station) {
+		for (const QPointF& centre : centres)
+			paths.append(disc(centre, 0.22 * side + grow));
+	} else {
+		paths.append(widenedHull(centres, 0.46 * side + 2.0 * grow));
+	}
+	return paths;
+}
+
+// The edge of the dots of the near mark; the dot of a halt has none.
+qreal nodeMarkEdge(StationClass cls, qreal side) {
+	return cls == StationClass::Halt ? 0.0 : 0.07 * side;
 }
 
 } // namespace
@@ -159,26 +288,45 @@ StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
 
 void paintStationMark(QPainter* painter, const QRectF& frame, StationClass cls, const QColor& fill,
 	const QColor& halo, qreal haloWidth) {
-	const qreal side = std::min(frame.width(), frame.height());
-	const QPointF centre = frame.center();
-	QPainterPath mark;
-	if (cls == StationClass::Major) {
-		QRectF bar(0.0, 0.0, 0.32 * side, 0.8 * side);
-		bar.moveCenter(centre);
-		mark.addRoundedRect(bar, bar.width() / 3.0, bar.width() / 3.0);
-	} else {
-		const qreal radius = 0.35 * side;
-		mark.addEllipse(centre, radius, radius);
-		if (cls == StationClass::Halt) {
-			const qreal hole = radius - std::max(0.16 * side, haloWidth);
-			mark.addEllipse(centre, hole, hole);
-		}
+	paintMarkParts(painter, stationMarkParts(frame, cls, fill, halo, haloWidth), halo, haloWidth);
+}
+
+QRectF stationMarkBounds(const QRectF& frame, StationClass cls, qreal haloWidth) {
+	QRectF bounds;
+	for (const MarkPart& part : stationMarkParts(frame, cls, Qt::white, Qt::black, haloWidth)) {
+		const qreal grow = haloWidth + part.edgeWidth / 2.0;
+		bounds |= part.path.boundingRect().adjusted(-grow, -grow, grow, grow);
 	}
-	painter->save();
-	painter->setRenderHint(QPainter::Antialiasing);
-	painter->strokePath(mark, QPen(halo, 2.0 * haloWidth));
-	painter->fillPath(mark, fill);
-	painter->restore();
+	return bounds;
+}
+
+QRectF stationMarkFrameIn(const QRectF& area, StationClass cls, qreal haloWidth) {
+	// The mark grows with the frame and its halo does not, measured on a frame of about the size that fits.
+	const QRectF reference(0.0, 0.0, std::min(area.width(), area.height()), std::min(area.width(), area.height()));
+	const QRectF mark = stationMarkBounds(reference, cls, 0.0);
+	const QRectF painted = stationMarkBounds(reference, cls, haloWidth);
+	const qreal side = reference.width()
+		* std::min((area.width() - (painted.width() - mark.width())) / mark.width(),
+			(area.height() - (painted.height() - mark.height())) / mark.height());
+	QRectF frame(0.0, 0.0, side, side);
+	frame.moveCenter(area.center());
+	return frame;
+}
+
+void paintStationNodeMark(QPainter* painter, const QList<QPointF>& centres, StationClass cls, qreal side,
+	const QColor& fill, const QColor& halo, qreal haloWidth) {
+	QList<MarkPart> parts;
+	for (const QPainterPath& path : nodeMarkPaths(centres, cls, side, 0.0))
+		parts.append({path, fill, halo, nodeMarkEdge(cls, side)});
+	paintMarkParts(painter, parts, halo, haloWidth);
+}
+
+QPainterPath stationNodeMarkShape(const QList<QPointF>& centres, StationClass cls, qreal side, qreal haloWidth) {
+	QPainterPath shape;
+	shape.setFillRule(Qt::WindingFill);
+	for (const QPainterPath& path : nodeMarkPaths(centres, cls, side, nodeMarkEdge(cls, side) / 2.0 + haloWidth))
+		shape.addPath(path);
+	return shape;
 }
 
 QIcon stationMarkIcon(StationClass cls) {
@@ -187,7 +335,10 @@ QIcon stationMarkIcon(StationClass cls) {
 		QPixmap pixmap(size, size);
 		pixmap.fill(Qt::transparent);
 		QPainter painter(&pixmap);
-		paintStationMark(&painter, QRectF(0.0, 0.0, size, size), cls, QColor(16, 26, 34), Qt::white, size / 16.0);
+		// The bar is wider than the ring, so the roundel is fitted to the pixmap.
+		const qreal halo = size / 16.0;
+		paintStationMark(&painter, stationMarkFrameIn(QRectF(0.0, 0.0, size, size), cls, halo), cls, QColor(16, 26, 34),
+			Qt::white, halo);
 		painter.end();
 		icon.addPixmap(pixmap);
 	}

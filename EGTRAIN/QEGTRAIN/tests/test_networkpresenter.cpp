@@ -350,6 +350,8 @@ int main(int argc, char* argv[]) {
 		SceneModel classes = model;
 		classes.connections.push_back({"switch.8", "B0.Ut", "B1.Gdg", false, 0.0});
 		classes.connections.push_back({"switch.9", "B0.Ut", "B1.Gvc", false, 0.0});
+		// Gdg also has a platform on the other line.
+		classes.stations[1].platforms.push_back({"Gdg.platform.2", {"B1.Gdg"}});
 		SceneStation halt;
 		halt.id = halt.name = "Hlt";
 		halt.hasPosition = true;
@@ -365,6 +367,30 @@ int main(int argc, char* argv[]) {
 		marks.sort();
 		ok &= expect(marks == QStringList({"Gdg=1", "Gvc=1", "Hlt=0", "Ut=2"}),
 			"a station gets the mark of its class from its connections and platforms");
+		// The mark of a station with platforms gets the centres of their station squares, one without them its anchor.
+		bool centred = !presenter.m_stationOverlays.isEmpty();
+		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
+			const auto* mark = dynamic_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
+			const auto station = std::find_if(classes.stations.cbegin(), classes.stations.cend(), [overlay](const SceneStation& candidate) {
+				return QString::fromStdString(candidate.id) == overlay->data(PreviewGraphics::Id).toString();
+			});
+			if (!mark || station == classes.stations.cend()) {
+				centred = false;
+				continue;
+			}
+			QList<QPointF> expected;
+			for (const auto& platform : station->platforms)
+				for (const auto& nodeId : platform.nodeIds)
+					for (QGraphicsItem* item : scene.items())
+						if (qgraphicsitem_cast<StationNodeItem*>(item)
+							&& item->data(PreviewGraphics::Id).toString() == QString::fromStdString(nodeId)
+							&& !expected.contains(item->sceneBoundingRect().center()))
+							expected.append(item->sceneBoundingRect().center());
+			if (expected.isEmpty())
+				expected.append(overlay->stableAnchor());
+			centred = centred && mark->nodeCentres() == expected && (overlay->stationName() != "Gdg" || expected.size() == 2);
+		}
+		ok &= expect(centred, "the preview gives each station mark the centres of its station squares");
 		presenter.clear();
 
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());

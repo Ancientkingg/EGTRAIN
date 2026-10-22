@@ -2644,7 +2644,8 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			const auto source = std::find_if(w.m_document->mutableModel().stations.begin(), w.m_document->mutableModel().stations.end(),
 				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
 			if (source == w.m_document->mutableModel().stations.end() || !picture || !label) return false;
-			// The artwork moves by the rule of the cached line that holds the node of the station.
+			// At the scene size the artwork stands where the rule of the cached line that holds the node of the station
+			// puts it.
 			const auto& cached = w.m_presenter->m_cachedTrackPreview;
 			const auto anchor = std::find_if(cached.stations.begin(), cached.stations.end(),
 				[&](const TrackPreviewStation& station) { return station.id == source->id; });
@@ -2655,20 +2656,37 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			if (line == cached.lines.end()) return false;
 			const QPointF textCenter = overlay->stableAnchor()
 				+ w.m_presenter->stationArtworkOffset(*line, w.m_document->mutableModel().stationViews, source->id, source->name);
-			// The scene size, without the enlargement that keeps the artwork readable at Fit.
-			const auto sceneSizeRect = [](const QGraphicsItem* item) {
+			// The scene size, without the enlargement and the move that place the artwork readably by the station nodes.
+			const auto sceneSizeRect = [](const QGraphicsItem* item, const QRectF& rect) {
 				// The item transform acts after the item scale, so remove it in scaled coordinates.
 				const QTransform scaled = QTransform::fromScale(item->scale(), item->scale());
 				const QTransform enlargement = scaled * item->transform() * scaled.inverted();
-				return (enlargement.inverted() * item->sceneTransform()).mapRect(item->boundingRect());
+				return (enlargement.inverted() * item->sceneTransform()).mapRect(rect);
 			};
-			const QRectF pictureRect = sceneSizeRect(picture);
-			const QRectF labelRect = sceneSizeRect(label);
+			const QRectF pixmapRect(picture->offset(), QSizeF(picture->pixmap().size()));
+			const QRectF pictureRect = sceneSizeRect(picture, pixmapRect);
+			const QRectF labelRect = sceneSizeRect(label, label->boundingRect());
 			if (!closeTo(pictureRect.width(), w.m_presenter->station_size * expectedScale)
 				|| !closeTo(picture->scale(), expectedScale) || !closeTo(label->scale(), expectedScale)
 				|| label->font().pixelSize() != w.m_presenter->station_size / 5
 				|| QLineF(labelRect.center(), textCenter).length() > 1e-6
 				|| QLineF(pictureRect.center(), textCenter - QPointF(0, w.m_presenter->station_size * expectedScale / 2)).length() > 1e-6)
+				return false;
+			// On the canvas the roundel stands on the top centre of the box of the station nodes, and the dots of the near
+			// look lie on the nodes without an item transform. The name lies under the box, centred on the mark.
+			const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
+			if (!mark || mark->nodeCentres().isEmpty()) return false;
+			const QList<QPointF> centres = mark->nodeCentres();
+			QRectF box(centres.first(), centres.first());
+			for (const QPointF& centre : centres)
+				box = QRectF(QPointF(std::min(box.left(), centre.x()), std::min(box.top(), centre.y())),
+					QPointF(std::max(box.right(), centre.x()), std::max(box.bottom(), centre.y())));
+			const qreal markX = stationNodeMarkShape(centres, mark->stationClass(), 1.0, 0.0).boundingRect().center().x();
+			const QPointF frameAnchor = picture->mapToScene(pixmapRect.center().x(), pixmapRect.bottom());
+			if (mark->isNearLook() ? !picture->transform().isIdentity() : QLineF(frameAnchor, QPointF(markX, box.top())).length() > 1e-6)
+				return false;
+			const QRectF name = label->sceneBoundingRect();
+			if (qAbs(name.center().x() - markX) > 1e-6 || name.top() <= box.bottom())
 				return false;
 		}
 		return true;

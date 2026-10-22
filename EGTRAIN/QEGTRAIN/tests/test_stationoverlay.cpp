@@ -1,8 +1,10 @@
 #include "graphics/items/StationOverlayItem.h"
 
 #include "graphics/NetworkScene.h"
-#include "graphics/items/StationNodeItem.h"
+#include "graphics/items/HighlightEffect.h"
 #include "graphics/items/NodeItem.h"
+#include "graphics/items/SelectionCueItem.h"
+#include "graphics/items/StationNodeItem.h"
 
 #include <QApplication>
 #include <QGraphicsSceneContextMenuEvent>
@@ -105,6 +107,60 @@ QRectF deviceRect(const QTransform& transform, const QGraphicsItem* item) {
 void applyAll(const QList<StationRig>& rigs, qreal viewScale) {
 	for (const StationRig& rig : rigs)
 		rig.overlay->applyViewScale(viewScale);
+}
+
+struct MarkRig {
+	StationNodeItem* node = nullptr;
+	StationOverlayItem* overlay = nullptr;
+	StationMarkItem* mark = nullptr;
+	QGraphicsTextItem* name = nullptr;
+};
+
+// Builds a station mark as the presenter does, with the frame of 30 pixels at kPresentation (12 scene units) standing
+// on the first node, the name centred on it, both bound to the square of the first node, and the node centres given.
+MarkRig addMarkRig(QGraphicsScene& scene, const QString& stationName, const QList<QPointF>& centres) {
+	MarkRig rig;
+	const QPointF anchor = centres.first();
+	rig.node = new StationNodeItem(QRectF(-2.0, -2.0, 4.0, 4.0));
+	rig.node->setPos(anchor);
+	scene.addItem(rig.node);
+	rig.overlay = new StationOverlayItem(stationName, anchor, classifyStation(true));
+	rig.overlay->setSceneDecoration(true);
+	scene.addItem(rig.overlay);
+	rig.mark = new StationMarkItem(StationClass::Station, 30);
+	scene.addItem(rig.mark);
+	rig.mark->setScale(kPresentation);
+	rig.mark->setPos(anchor.x() - 15.0 * kPresentation, anchor.y() - 30.0 * kPresentation);
+	rig.mark->setAcceptedMouseButtons(Qt::NoButton);
+	QFont font;
+	font.setPixelSize(6);
+	rig.name = scene.addText(stationName, font);
+	rig.name->setScale(kPresentation);
+	rig.name->setPos(anchor - QPointF(rig.name->boundingRect().width() * kPresentation / 2.0, rig.name->boundingRect().height() * kPresentation / 2.0));
+	rig.name->setAcceptedMouseButtons(Qt::NoButton);
+	rig.overlay->attachArtwork(rig.mark, rig.name, 1);
+	const QPointF markPosition = rig.mark->scenePos();
+	rig.mark->setParentItem(rig.node);
+	rig.mark->setPos(rig.node->mapFromScene(markPosition));
+	rig.overlay->setNodeCentres(centres);
+	return rig;
+}
+
+// The bottom centre of the frame of the far look in scene coordinates.
+QPointF frameAnchorInScene(const MarkRig& rig) {
+	return rig.mark->mapToScene(QPointF(15.0, 30.0));
+}
+
+QPointF nameAnchorInScene(const MarkRig& rig) {
+	return rig.name->mapToScene(QPointF(rig.name->boundingRect().width() / 2.0, 0.0));
+}
+
+bool samePoint(const QPointF& a, const QPointF& b) {
+	return QLineF(a, b).length() < 1e-6;
+}
+
+bool containsRect(const QRectF& outer, const QRectF& inner) {
+	return outer.adjusted(-1e-6, -1e-6, 1e-6, 1e-6).contains(inner);
 }
 
 QList<bool> hiddenNames(const QList<StationRig>& rigs) {
@@ -603,6 +659,88 @@ int main(int argc, char* argv[]) {
 		rigs[1].picture->setVisible(true);
 		StationOverlayItem::resolveNameCollisions({rigs[0].overlay}, small);
 		ok &= expect(hiddenNames(rigs).first() == false, "the own pictogram of a station does not hide its name");
+	}
+
+	{
+		// A station mark at the place of its first node: the dots take the node centres within 32 frames of the anchor,
+		// and a station without one keeps the anchor.
+		QGraphicsScene scene;
+		const QPointF first(0.0, 0.0);
+		const QPointF second(30.0, 40.0);
+		const QPointF elsewhere(1000.0, 0.0);
+		const MarkRig rig = addMarkRig(scene, "Alpha", {first, second, elsewhere});
+		ok &= expect(rig.mark->nodeCentres() == QList<QPointF>({first, second}),
+			"a station node more than 32 frames from the anchor gets no dot");
+		rig.overlay->setNodeCentres({elsewhere});
+		ok &= expect(rig.mark->nodeCentres() == QList<QPointF>({first}), "a station with no node at its place keeps its anchor");
+		rig.overlay->setNodeCentres({first, second, elsewhere});
+
+		// Far look: tracks 4 pixels apart. The frame of 24 pixels (240 scene units) stands on the top centre of the
+		// box of the nodes and the name is a quarter frame under the dots, which the far look does not draw.
+		QGraphicsView view(&scene);
+		view.setTransform(QTransform::fromScale(0.1, 0.1));
+		rig.overlay->applyViewScale(0.1, false);
+		const QRectF farDots = stationNodeMarkShape({first, second}, StationClass::Station, 240.0, 0.0).boundingRect();
+		const qreal frameHeight = view.viewportTransform().mapRect(rig.mark->mapRectToScene(QRectF(0.0, 0.0, 30.0, 30.0))).height();
+		ok &= expect(!rig.mark->isNearLook() && samePoint(frameAnchorInScene(rig), QPointF(farDots.center().x(), first.y()))
+				&& std::abs(frameHeight - 24.0) < 0.01,
+			"the far mark stands on the top centre of the box of the station nodes, 24 pixels high");
+		ok &= expect(samePoint(nameAnchorInScene(rig), QPointF(farDots.center().x(), farDots.bottom() + 60.0)),
+			"the name is centred under the dots in the far look, at the x of the mark");
+
+		// Near look: tracks 20 pixels apart. The dots are drawn without enlargement on the nodes, sized by the frame of
+		// 24 pixels (48 scene units), and the name is a quarter frame under them.
+		view.setTransform(QTransform::fromScale(0.5, 0.5));
+		rig.overlay->applyViewScale(0.5, true);
+		const QRectF nearDots = stationNodeMarkShape({first, second}, StationClass::Station, 48.0, 0.0).boundingRect();
+		const QRectF nearShape = stationNodeMarkShape({first, second}, StationClass::Station, 48.0, 4.0).boundingRect();
+		ok &= expect(rig.mark->isNearLook() && rig.mark->transform().isIdentity() && rig.mark->nearSide() * 0.5 >= 23.5,
+			"the near look draws the dots without an item transform, for a frame of at least 24 pixels");
+		ok &= expect(containsRect(rig.mark->sceneBoundingRect(), nearShape) && containsRect(nearShape, rig.mark->sceneBoundingRect()),
+			"the near mark is bounded by the dots and their halo");
+		const QPainterPath nearPick = rig.mark->mapToScene(rig.mark->shape());
+		ok &= expect(nearPick.contains(first + QPointF(1.0, 2.0)) && nearPick.contains(second + QPointF(1.0, 2.0))
+				&& !nearPick.contains(QPointF(60.0, 20.0)),
+			"the near mark is picked on its dots only");
+		ok &= expect(samePoint(nameAnchorInScene(rig), QPointF(nearDots.center().x(), nearDots.bottom() + 12.0)),
+			"the name is centred under the dots in the near look");
+		auto* effect = new HighlightEffect(Qt::blue, 1.0);
+		rig.node->setGraphicsEffect(effect);
+		effect->setViewScale(0.5);
+		ok &= expect(effect->cue() && containsRect(effect->cue()->targetRect(), nearShape),
+			"the selection cue of the station square surrounds the dots");
+		rig.node->setGraphicsEffect(nullptr);
+
+		// Back to the far look: the mark and the name return to their places.
+		view.setTransform(QTransform::fromScale(0.1, 0.1));
+		rig.overlay->applyViewScale(0.1, false);
+		ok &= expect(samePoint(frameAnchorInScene(rig), QPointF(farDots.center().x(), first.y()))
+				&& samePoint(nameAnchorInScene(rig), QPointF(farDots.center().x(), farDots.bottom() + 60.0)),
+			"the far mark and its name return after the near look");
+	}
+
+	{
+		// The screen-space mark of an overlay without scene artwork stays inside its bounds, the bar included.
+		for (const StationVisual& visual : {classifyStation(false, 3), classifyStation(true), classifyStation()}) {
+			StationOverlayItem overlay("Bounds", QPointF(), visual);
+			QImage image(200, 100, QImage::Format_ARGB32_Premultiplied);
+			image.fill(Qt::transparent);
+			{
+				QPainter painter(&image);
+				painter.translate(100.0, 50.0);
+				overlay.paint(&painter, nullptr, nullptr);
+			}
+			const QRect bounds = overlay.boundingRect().translated(100.0, 50.0).toAlignedRect();
+			int outside = 0;
+			bool blue = false;
+			for (int y = 0; y < image.height(); ++y)
+				for (int x = 0; x < image.width(); ++x) {
+					outside += !bounds.contains(x, y) && image.pixelColor(x, y).alpha() > 0;
+					blue = blue || (image.pixelColor(x, y).blue() > image.pixelColor(x, y).red() + 80 && image.pixelColor(x, y).alpha() == 255);
+				}
+			ok &= expect(outside == 0 && blue == (visual.cls != StationClass::Halt),
+				"the screen-space roundel stays inside the bounds of its overlay");
+		}
 	}
 
 	if (!ok)

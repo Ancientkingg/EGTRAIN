@@ -3,7 +3,10 @@
 
 #include <QColor>
 #include <QIcon>
+#include <QList>
+#include <QPainterPath>
 #include <QPen>
+#include <QPointF>
 #include <QRectF>
 #include <QString>
 #include <string>
@@ -108,10 +111,25 @@ SignalVisual classifySignalAspect(int code);
 SignalCueKind classifySignalCue(int code);
 /// The look of a station node: Major with three or more connections, Station with a platform id, Halt otherwise.
 StationVisual classifyStation(bool hasPlatformId = false, int connectionCount = 0);
-/// Paints the mark of a station class centred in frame: a bar for a major station, a disc for a
-/// station and a ring for a halt. A halo of haloWidth, in the units of the painter, surrounds it.
+/// Paints the far mark of a station class, a roundel centred in frame: a ring of outer radius 0.36 and width 0.12 of
+/// the frame for a halt, the ring with a blue bar 1.02 by 0.21 of the frame across it for a station, and a disc with
+/// the bar for a major station. The bar has an edge of 0.75 haloWidth in the halo colour. A halo of haloWidth, in the
+/// units of the painter, surrounds the mark.
 void paintStationMark(QPainter* painter, const QRectF& frame, StationClass cls, const QColor& fill,
 	const QColor& halo, qreal haloWidth);
+/// The area that paintStationMark() paints, its halo included. The bar reaches past frame.
+QRectF stationMarkBounds(const QRectF& frame, StationClass cls, qreal haloWidth);
+/// The largest square frame centred in area in which paintStationMark() paints inside area, halo included.
+QRectF stationMarkFrameIn(const QRectF& area, StationClass cls, qreal haloWidth);
+/// Paints the near mark of a station on its nodes at centres for a mark frame of side units: a dot of radius 0.22 side
+/// on each node of a station, in the order of centres, so that dots that overlap read as stacked coins; one dot of
+/// 0.15 side on the first node of a halt; and for a major station the convex hull of the nodes widened by 0.23 side. Each
+/// dot and the hull have an edge of 0.07 side in the halo colour, except the dot of a halt, and a halo of haloWidth
+/// surrounds the whole mark.
+void paintStationNodeMark(QPainter* painter, const QList<QPointF>& centres, StationClass cls, qreal side,
+	const QColor& fill, const QColor& halo, qreal haloWidth);
+/// The area that paintStationNodeMark() paints, its halo of haloWidth included; empty without centres.
+QPainterPath stationNodeMarkShape(const QList<QPointF>& centres, StationClass cls, qreal side, qreal haloWidth);
 /// The mark in its dark variant for light surfaces, at 16 and 32 pixels.
 QIcon stationMarkIcon(StationClass cls);
 /// The playback speed for a delay of delayMs milliseconds per simulated second, as a factor of real time:

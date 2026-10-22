@@ -1,6 +1,7 @@
 #include "graphics/NetworkScene.h"
 
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/items/StationOverlayItem.h"
 
 #include <QApplication>
 #include <QContextMenuEvent>
@@ -100,6 +101,32 @@ int main(int argc, char* argv[]) {
 		sendLeftClick(scene, view, QPointF(0.0, 0.0));
 		ok &= expect(stationClicks == 1, "station click passes through higher-z ignored-transform decoration");
 		ok &= expect(disableHighlight == 0, "station click does not disable highlight");
+	}
+
+	{
+		// The dots of the near look cover the station squares. A click on a square picks that square, also when the
+		// mark belongs to the square of another node; a click on a dot beside the squares picks the square that holds
+		// the mark.
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		scaleView(view);
+		StationNodeItem anchor(QRectF(-2.0, -2.0, 4.0, 4.0));
+		StationNodeItem other(QRectF(-2.0, -2.0, 4.0, 4.0));
+		other.setPos(0.0, 20.0);
+		anchor.setZValue(StationMarkItem::HostZValue);
+		other.setZValue(1.0);
+		scene.addItem(&anchor);
+		scene.addItem(&other);
+		auto* mark = new StationMarkItem(StationClass::Station, 24, &anchor);
+		mark->setNodeCentres({QPointF(0.0, 0.0), QPointF(0.0, 20.0)});
+		mark->setNearLook(24.0, 2.0);
+		StationNodeItem* picked = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem* item) { picked = item; });
+		sendLeftClick(scene, view, QPointF(0.0, 20.0));
+		ok &= expect(picked == &other, "a click on a station square under the dots of another node picks that square");
+		picked = nullptr;
+		sendLeftClick(scene, view, QPointF(4.0, 20.0));
+		ok &= expect(picked == &anchor, "a click on a dot beside the squares picks the square that holds the mark");
 	}
 
 	{

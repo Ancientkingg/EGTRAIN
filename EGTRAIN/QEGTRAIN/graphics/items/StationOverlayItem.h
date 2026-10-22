@@ -6,6 +6,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsTextItem>
 #include <QList>
+#include <QPainterPath>
 #include <QPointF>
 #include <QRectF>
 #include <QString>
@@ -15,21 +16,57 @@
 
 #include "graphics/VisualPolish.h"
 
-/// The scene-space mark of a station. The transparent pixmap only gives the size and anchor
-/// that StationOverlayItem enlarges; paint draws the mark of the station class over it.
+/// The scene-space mark of a station. In the far look the transparent pixmap only gives the size and anchor
+/// that StationOverlayItem enlarges, and paint draws the roundel of the station class over it. In the near look
+/// the mark is a dot on each station node of the station (paintStationNodeMark()), which covers its square.
 class StationMarkItem : public QGraphicsPixmapItem {
 public:
+	/// The z value of the station square that holds the mark: over the other squares (z 1), which the dots of
+	/// the near look cover, and under platform bars and signals (z 2), names (z 3) and trains.
+	static constexpr qreal HostZValue = 1.05;
+
 	/// A mark of class cls in a transparent pixmap of size by size pixels, one scene unit per pixel before the
 	/// scale of the item.
 	StationMarkItem(StationClass cls, int size, QGraphicsItem* parent = nullptr);
 
-	/// Paints the mark of the class over the pixmap, with a halo of 2 logical pixels.
+	/// The pixmap and the far mark that reaches past it in the far look; the dots and their halo in the near look.
+	QRectF boundingRect() const override;
+	/// The pixmap in the far look; the dots and their halo in the near look.
+	QPainterPath shape() const override;
+	/// Paints the mark of the class over the pixmap, or the dots in the near look, with a halo of 2 logical pixels.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
 	/// The class of the station.
 	StationClass stationClass() const { return m_class; }
+	/// The centres of the station squares at the place of the station in scene coordinates, in the order of its
+	/// nodes; StationOverlayItem::setNodeCentres() sets them.
+	QList<QPointF> nodeCentres() const { return m_nodeCentres; }
+	/// Sets the centres of the station squares.
+	void setNodeCentres(const QList<QPointF>& centres);
+	/// Shows the dots for a mark frame of side scene units at viewScale logical pixels per scene unit. Call it
+	/// with the item transform that the dots are drawn with, normally the identity.
+	void setNearLook(qreal side, qreal viewScale);
+	/// Shows the roundel of the class over the pixmap.
+	void setFarLook();
+	/// The dots are shown.
+	bool isNearLook() const { return m_nearLook; }
+	/// The side in scene units of the mark frame that sizes the dots of the near look.
+	qreal nearSide() const { return m_nearSide; }
+	/// The pixmap and the roundel that reaches past it, in item coordinates: boundingRect() in the far look.
+	QRectF farBoundingRect() const { return m_farBounds; }
 
 private:
+	void updateNearGeometry();
+
 	StationClass m_class;
+	QList<QPointF> m_nodeCentres;
+	bool m_nearLook = false;
+	qreal m_nearSide = 0.0;
+	qreal m_nearViewScale = 0.0;
+	// The dots in item coordinates, mapped from the scene when the near look was set.
+	QList<QPointF> m_itemCentres;
+	qreal m_itemSide = 0.0;
+	QPainterPath m_nearShape;
+	QRectF m_farBounds;
 };
 
 /// The overlay of a station at its anchor in the scene. It ignores the transformation of the view, so its own
@@ -202,6 +239,9 @@ public:
 	static constexpr qreal MinPictogramPixels = 24.0;
 	/// Smallest font size on screen, in logical pixels, of the scene-space name.
 	static constexpr qreal MinNamePixels = 12.0;
+	/// Smallest spacing on screen, in logical pixels, of the tracks at the stations for the near look, in which
+	/// the marks are dots on the station nodes.
+	static constexpr qreal NearTrackSpacingPixels = 12.0;
 
 	/// Scale of an item of nativeSizePx that is at least minPx logical pixels on screen at viewScale,
 	/// in logical pixels per scene unit, and keeps presentationScale as soon as that is larger.
@@ -210,9 +250,10 @@ public:
 	/// Links the scene-space pictogram and name of this station. The items stay owned
 	/// by the scene; both are enlarged about their anchor (bottom centre of the pictogram,
 	/// top centre of the name) through their item transform, which stays the identity at
-	/// their scene size. Attach the items to their parents before the first applyViewScale:
-	/// the transform moves scenePos() of an enlarged item. More platforms rank a station
-	/// higher when names collide.
+	/// their scene size. For a station mark the transform also moves these anchors to the
+	/// station nodes (applyViewScale()). Attach the items to their parents before the first
+	/// applyViewScale: the transform moves scenePos() of an enlarged item. More platforms
+	/// rank a station higher when names collide.
 	void attachArtwork(QGraphicsPixmapItem* picture, QGraphicsTextItem* name, int platformCount);
 	/// The attached pictogram, or null.
 	QGraphicsPixmapItem* pictureItem() const { return m_picture; }
@@ -220,8 +261,15 @@ public:
 	QGraphicsTextItem* nameItem() const { return m_name; }
 	/// The number of platforms of the station.
 	int platformCount() const { return m_platformCount; }
-	/// Scales the attached items for the view scale (logical pixels per scene unit).
-	void applyViewScale(qreal viewScale);
+	/// Gives the attached station mark the centres in scene coordinates of the station squares that are at the place
+	/// of the anchor, those at most 32 mark frames at scene size from it, or the anchor alone without one. A station
+	/// with platform nodes on another line has its mark, dots and name at the place of its anchor only.
+	void setNodeCentres(const QList<QPointF>& centres);
+	/// Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the
+	/// bottom centre of its frame on the top edge of the box of its node centres, centred over its dots, and shows as
+	/// the dots in the near look. Its name sits under the dots in both looks, so that mark and name share their x. A
+	/// plain picture keeps the far look and, like its name, its artwork point.
+	void applyViewScale(qreal viewScale, bool nearLook = false);
 	/// resolveNameCollisions() hid the attached name.
 	bool isNameHiddenByCollision() const { return m_nameHiddenByCollision; }
 	/// Hides the attached names that overlap, on screen, the name of a higher-priority
@@ -241,6 +289,7 @@ protected:
 
 private:
 	void rebuildGeometry();
+	void placeArtwork(qreal viewScale, bool dots);
 	QRectF labelRectForSide(LabelSide side) const;
 	QRectF translated(const QRectF& rect) const;
 	QRectF translatedSymbol(const QRectF& rect) const;
@@ -277,6 +326,7 @@ private:
 	QPointF m_pictureAnchor;
 	QPointF m_nameAnchor;
 	qreal m_appliedViewScale = 0.0;
+	bool m_appliedNearLook = false;
 	int m_platformCount = 0;
 	bool m_nameHiddenByCollision = false;
 	std::function<void(const QString&)> m_displacedClickHandler;

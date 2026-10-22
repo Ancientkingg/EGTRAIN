@@ -174,27 +174,75 @@ int main(int argc, char* argv[]) {
 	ok &= expect(classifyStation(false, 3).cls == StationClass::Major && classifyStation(true, 0).cls == StationClass::Station
 			&& classifyStation(false, 0).cls == StationClass::Halt,
 		"three connections make a major station, a platform a station, neither a halt");
-	// In a 24 px frame the bar is 7.7 px wide, the disc and the ring 16.8 px across, the hole of the ring 9.1 px.
-	struct MarkProbe {
-		StationClass cls;
-		bool centreFilled;
-		bool sideFilled;
-		int haloX;
+	// The colour class of a pixel of a mark painted white with a black halo: W white, B the blue of the bar, D the
+	// halo, T transparent, ? anything else such as an edge that antialiasing blends.
+	const auto pixelClass = [](const QImage& image, int x, int y) {
+		const QColor colour = image.pixelColor(x, y);
+		if (colour.alpha() == 0)
+			return 'T';
+		if (colour.alpha() < 255)
+			return '?';
+		if (colour.lightness() > 200)
+			return 'W';
+		if (colour.lightness() < 50)
+			return 'D';
+		return colour.blue() > colour.red() + 80 ? 'B' : '?';
 	};
-	for (const MarkProbe& probe : {MarkProbe{StationClass::Major, true, false, 16}, MarkProbe{StationClass::Station, true, true, 21},
-			 MarkProbe{StationClass::Halt, false, true, 21}}) {
-		QImage mark(24, 24, QImage::Format_ARGB32_Premultiplied);
+	const auto probeRow = [&pixelClass](const QImage& image, const QList<QPoint>& points) {
+		QByteArray row;
+		for (const QPoint& point : points)
+			row.append(pixelClass(image, point.x(), point.y()));
+		return row;
+	};
+	// The roundel in the frame (8, 8, 24, 24): ring radius 8.6 and width 2.9, bar 24.5 by 5.0 and its edge 0.75 of
+	// the halo of 2. The probes: the centre, the ring, inside the ring, the bar past the ring, the halo past the end of
+	// the bar and the halo outside the ring.
+	const QList<QPoint> roundelPoints{{20, 20}, {20, 12}, {20, 15}, {31, 20}, {33, 20}, {20, 10}};
+	for (const auto& [cls, expected] : {std::pair<StationClass, QByteArray>{StationClass::Major, "BWWBDD"},
+			 std::pair<StationClass, QByteArray>{StationClass::Station, "BWDBDD"},
+			 std::pair<StationClass, QByteArray>{StationClass::Halt, "TWDTTD"}}) {
+		QImage mark(40, 40, QImage::Format_ARGB32_Premultiplied);
 		mark.fill(Qt::transparent);
 		{
 			QPainter painter(&mark);
-			paintStationMark(&painter, QRectF(0.0, 0.0, 24.0, 24.0), probe.cls, Qt::white, Qt::black, 2.0);
+			paintStationMark(&painter, QRectF(8.0, 8.0, 24.0, 24.0), cls, Qt::white, Qt::black, 2.0);
 		}
-		const auto filled = [&mark](int x) { return mark.pixelColor(x, 12).alpha() == 255 && mark.pixelColor(x, 12).lightness() > 200; };
-		const auto empty = [&mark](int x) { return mark.pixelColor(x, 12).alpha() == 0; };
-		const QColor halo = mark.pixelColor(probe.haloX, 12);
-		ok &= expect((probe.centreFilled ? filled(12) : empty(12)) && (probe.sideFilled ? filled(19) : empty(19))
-				&& halo.alpha() == 255 && halo.lightness() < 50,
-			"each station class has its own mark with a dark halo");
+		ok &= expect(probeRow(mark, roundelPoints) == expected,
+			"the far mark is a roundel: a disc and a bar for a major station, a ring and a bar for a station, a ring for a "
+			"halt, with a dark halo");
+	}
+	// The near mark for a frame of 24 on nodes at (20, 14) and (20, 26): dots of radius 5.3 with an edge of 1.7 for a
+	// station, the hull of the nodes widened by 5.5 for a major station, one dot of radius 3.6 on the first node for a
+	// halt. The probes: both nodes and the point between them, the halo beside the first node and the canvas past it.
+	const QList<QPoint> nearPoints{{20, 14}, {20, 20}, {20, 26}, {27, 14}, {31, 20}};
+	for (const auto& [cls, expected] : {std::pair<StationClass, QByteArray>{StationClass::Major, "WWWDT"},
+			 std::pair<StationClass, QByteArray>{StationClass::Station, "WDWDT"},
+			 std::pair<StationClass, QByteArray>{StationClass::Halt, "WTTTT"}}) {
+		QImage mark(40, 40, QImage::Format_ARGB32_Premultiplied);
+		mark.fill(Qt::transparent);
+		{
+			QPainter painter(&mark);
+			paintStationNodeMark(&painter, {QPointF(20.0, 14.0), QPointF(20.0, 26.0)}, cls, 24.0, Qt::white, Qt::black, 2.0);
+		}
+		ok &= expect(probeRow(mark, nearPoints) == expected,
+			"the near mark is a dot on each node of a station, a capsule over the nodes of a major station and one small "
+			"dot for a halt");
+	}
+	// The menu icon fits the roundel with the halo of the bar: the bar shows and ends inside the outer columns.
+	for (const StationClass cls : {StationClass::Major, StationClass::Station, StationClass::Halt}) {
+		for (const int size : {16, 32}) {
+			const QImage icon = stationMarkIcon(cls).pixmap(QSize(size, size)).toImage();
+			const QColor accent(80, 120, 210);
+			bool barInside = icon.width() == size;
+			bool blue = false;
+			for (int y = 0; y < icon.height(); ++y) {
+				barInside = barInside && icon.pixelColor(0, y) != accent && icon.pixelColor(icon.width() - 1, y) != accent;
+				for (int x = 0; x < icon.width(); ++x)
+					blue = blue || icon.pixelColor(x, y) == accent;
+			}
+			ok &= expect(barInside && blue == (cls != StationClass::Halt),
+				"the menu icon shows the whole roundel, with the bar of a station or a major station");
+		}
 	}
 	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
 	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");

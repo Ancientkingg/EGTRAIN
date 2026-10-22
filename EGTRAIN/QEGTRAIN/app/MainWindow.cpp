@@ -4382,6 +4382,13 @@ void MainWindow::bindStationOverlaySources() {
 			StationNodeItem* target = assigned.isEmpty() ? nullptr : assigned.first();
 			picture->setParentItem(target);
 			picture->setPos(target ? target->mapFromScene(scenePosition) : scenePosition);
+			if (target)
+				target->setZValue(StationMarkItem::HostZValue);
+			// The dots of the near look sit on the assigned station squares.
+			QList<QPointF> centres;
+			for (const auto* station : assigned)
+				centres.append(station->sceneBoundingRect().center());
+			overlay->setNodeCentres(centres);
 		}
 		if (overlay->hasSourceIdentity()) {
 			const double representativeNodeId = overlay->sourceNodeId();
@@ -4398,6 +4405,7 @@ void MainWindow::bindStationOverlaySources() {
 			overlay->setDisplacedClickHandler({});
 		}
 	}
+	m_presenter->measureStationTrackSpacing();
 }
 
 void MainWindow::updateStationOverlayDegrees() {
@@ -4496,9 +4504,11 @@ void MainWindow::updateViewportOverlays() {
 	const qreal viewScale = std::abs(networkView->transform().m11());
 	if (m_presenter->effect)
 		m_presenter->effect->setViewScale(viewScale);
+	// The station marks are dots on the station nodes once the tracks of a station are far enough apart on screen.
+	const bool nearLook = m_presenter->m_stationTrackSpacing * viewScale >= StationOverlayItem::NearTrackSpacingPixels;
 	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
-			overlay->applyViewScale(viewScale);
+			overlay->applyViewScale(viewScale, nearLook);
 	for (TrainItemGroup* train : m_presenter->allTrains)
 		if (train)
 			train->applyViewScale(viewScale);

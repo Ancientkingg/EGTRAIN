@@ -125,8 +125,43 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		};
 		const qreal minPictureHeight = StationOverlayItem::MinPictogramPixels - 0.5;
 		const qreal minNameFont = StationOverlayItem::MinNamePixels - 0.5;
-		QHash<const StationOverlayItem*, QPointF> pictureAnchors, nameAnchors;
+		// The box of the node centres of a station mark.
+		const auto centresBox = [](const QList<QPointF>& centres) {
+			QRectF box(centres.first(), centres.first());
+			for (const QPointF& centre : centres)
+				box = QRectF(QPointF(std::min(box.left(), centre.x()), std::min(box.top(), centre.y())),
+					QPointF(std::max(box.right(), centre.x()), std::max(box.bottom(), centre.y())));
+			return box;
+		};
+		// The side in scene units of the frame of a station mark in either look.
+		const auto markSide = [&](const StationMarkItem* mark) {
+			return mark->isNearLook() ? mark->nearSide() : mark->mapRectToScene(QRectF(mark->offset(), pictureNativeSize(mark))).height();
+		};
+		// The x of a station mark and of a name centred on it: the centre of the dots that the near look draws.
+		const auto markX = [&](const StationMarkItem* mark) {
+			return stationNodeMarkShape(mark->nodeCentres(), mark->stationClass(), markSide(mark), 0.0).boundingRect().center().x();
+		};
+		QHash<const StationOverlayItem*, QPointF> pictureAnchors, nearAnchors, nameAnchors;
 		bool minimumOk = true, anchorsOk = true, collisionOk = true;
+		// The run gives each station mark the centres of the squares of its nodes at its place, or its anchor without one.
+		bool centred = true;
+		for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays)) {
+			const auto* mark = overlay ? dynamic_cast<const StationMarkItem*>(overlay->pictureItem()) : nullptr;
+			const QList<QPointF> centres = mark ? mark->nodeCentres() : QList<QPointF>();
+			centred = centred && (!overlay || (mark && !centres.isEmpty()));
+			for (const QPointF& centre : centres) {
+				bool found = centres.size() == 1 && centre == overlay->stableAnchor();
+				for (const QGraphicsItem* item : w.scene->items(centre)) {
+					const auto* square = qgraphicsitem_cast<const StationNodeItem*>(item);
+					found = found
+						|| (square && square->node && overlay->matchesSourceIdentity(square->node->ID, square->track)
+							&& square->sceneBoundingRect().center() == centre);
+				}
+				centred = centred && found;
+			}
+		}
+		if (!centred)
+			failures << "a station mark lacks the centres of its station squares";
 		// The detail captures are centred on the station with most platforms.
 		const auto detailStation = std::max_element(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 			[](const StationOverlayItem* left, const StationOverlayItem* right) {
@@ -150,11 +185,14 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			QList<QRectF> shownRects;
 			for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays)) {
 				const QGraphicsPixmapItem* picture = overlay->pictureItem();
+				const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
+				const bool nearLook = mark && mark->isNearLook();
 				if (picture && picture->isVisible()) {
 					++pictures;
-					const qreal height = pictureDeviceHeight(picture);
-					const qreal sceneHeight = pictureNativeSize(picture).height()
-						* w.m_presenter->presentationScale() * qAbs(w.networkView->transform().m11());
+					// The far mark is its frame; the dots of the near look are sized by the same frame.
+					const qreal viewScale = qAbs(w.networkView->transform().m11());
+					const qreal height = nearLook ? mark->nearSide() * viewScale : pictureDeviceHeight(picture);
+					const qreal sceneHeight = pictureNativeSize(picture).height() * w.m_presenter->presentationScale() * viewScale;
 					if (height < minPictureHeight || height > qMax(minPictureHeight + 1.0, sceneHeight) + 0.5)
 						minimumOk = false;
 					if (!foundPicture) {
@@ -163,21 +201,37 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 							|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
 							failures << QString("%1 artwork lost its station identity").arg(zoom.second);
 					}
-					const QPointF anchor = pictureAnchor(picture);
-					if (!pictureAnchors.contains(overlay))
-						pictureAnchors.insert(overlay, anchor);
-					else if (QLineF(pictureAnchors.value(overlay), anchor).length() > 1e-6)
+					// Within each look the mark keeps its place: the far frame stands on the top centre of the box of the
+					// station nodes and the dots, whose halo grows with the zoom, are centred on the nodes.
+					QHash<const StationOverlayItem*, QPointF>& anchors = nearLook ? nearAnchors : pictureAnchors;
+					const QPointF anchor = nearLook ? picture->sceneBoundingRect().center() : pictureAnchor(picture);
+					const qreal tolerance = nearLook ? 0.01 * mark->nearSide() : 1e-6;
+					if (!anchors.contains(overlay))
+						anchors.insert(overlay, anchor);
+					else if (QLineF(anchors.value(overlay), anchor).length() > tolerance)
 						anchorsOk = false;
+					if (mark) {
+						const QPointF expected = nearLook
+							? stationNodeMarkShape(mark->nodeCentres(), mark->stationClass(), mark->nearSide(), 0.0).boundingRect().center()
+							: QPointF(markX(mark), centresBox(mark->nodeCentres()).top());
+						if (QLineF(anchor, expected).length() > tolerance)
+							anchorsOk = false;
+					}
 				}
 				const QGraphicsTextItem* name = overlay->nameItem();
 				if (!name)
 					continue;
 				++namedStations;
 				const QPointF anchor = nameAnchor(name);
-				if (!nameAnchors.contains(overlay))
+				if (mark) {
+					// The name of a mark keeps its x under the dots.
+					if (qAbs(anchor.x() - markX(mark)) > 1e-6)
+						anchorsOk = false;
+				} else if (!nameAnchors.contains(overlay)) {
 					nameAnchors.insert(overlay, anchor);
-				else if (QLineF(nameAnchors.value(overlay), anchor).length() > 1e-6)
+				} else if (QLineF(nameAnchors.value(overlay), anchor).length() > 1e-6) {
 					anchorsOk = false;
+				}
 				if (!name->isVisible()) {
 					++hiddenNames;
 					if (w.m_presenter->m_stationLayerVisible && w.m_presenter->m_stationNamesVisible && !overlay->isNameHiddenByCollision())
@@ -246,11 +300,14 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		w.networkView->zoomBy(100.0);
 		w.updateViewportOverlays();
 		QApplication::processEvents();
+		// The marks are the dots there, drawn without an item transform, and the names only move.
 		bool sceneSized = !w.m_presenter->m_stationPictures.isEmpty();
 		for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays)) {
 			const QGraphicsPixmapItem* picture = overlay->pictureItem();
+			const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
 			const QGraphicsTextItem* name = overlay->nameItem();
-			if ((picture && !picture->transform().isIdentity()) || (name && !name->transform().isIdentity()))
+			if ((picture && (!mark || !mark->isNearLook() || !picture->transform().isIdentity()))
+				|| (name && name->transform().type() > QTransform::TxTranslate))
 				sceneSized = false;
 		}
 		if (!sceneSized)
@@ -285,7 +342,12 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			auto* target = picture ? qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()) : nullptr;
 			if (!target || !target->node || !picture->isVisible())
 				continue;
-			const QPointF point = picture->mapToScene(picture->boundingRect().center());
+			// The near mark is picked on its dots, the far mark on its frame. The probe lies just off the node centre,
+			// where the outline of a dot has a vertex on the line through the centre.
+			const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
+			const QPointF point = mark && mark->isNearLook()
+				? mark->nodeCentres().first() + QPointF(0.0, 0.1 * mark->nearSide())
+				: picture->mapToScene(QRectF(picture->offset(), pictureNativeSize(picture)).center());
 			for (QGraphicsItem* hit : w.scene->items(point, Qt::IntersectsItemShape, Qt::DescendingOrder,
 					 w.networkView->viewportTransform())) {
 				if (hit == picture || (hit && hit->parentItem() == target)) {

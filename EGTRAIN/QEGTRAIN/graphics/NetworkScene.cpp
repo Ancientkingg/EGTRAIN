@@ -1,7 +1,10 @@
 #include "graphics/NetworkScene.h"
 
+#include "graphics/items/StationOverlayItem.h"
+
 #include <QApplication>
 #include <QGraphicsView>
+#include <algorithm>
 #include <limits>
 
 NetworkScene::NetworkScene(QObject* parent)
@@ -27,7 +30,13 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 	NodeItem* paddedNode = nullptr;
 	const QTransform device = viewTransformFor(widget);
 	const QPointF click = device.map(scenePos);
+	// The dots of the near look lie on the station squares, so a click on a square still picks the square.
+	const bool onStationSquare = std::any_of(hitItems.cbegin(), hitItems.cend(),
+		[](const QGraphicsItem* item) { return qgraphicsitem_cast<const StationNodeItem*>(item); });
 	for (QGraphicsItem* item : hitItems) {
+		const auto* mark = dynamic_cast<const StationMarkItem*>(item);
+		if (onStationSquare && mark && mark->isNearLook())
+			continue;
 		for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
 			// Artwork owns its station identity even when its structural parent
 			// has a different last-wins station membership.
