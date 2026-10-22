@@ -223,14 +223,14 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 				if (picture && picture->isVisible()) {
 					++pictures;
 					// The far mark is its frame. The dots of the near look are sized by the same frame: the painted dot of a
-					// halt is at least 0.3 of the smallest frame high on screen, any other dot 0.44 of it.
+					// halt is at least 0.3 of the smallest frame high on screen, any other dot 0.44 of it plus its edge of 0.07.
 					const qreal viewScale = qAbs(w.networkView->transform().m11());
 					const qreal height = nearLook ? mark->nearSide() * viewScale : pictureDeviceHeight(picture);
 					const qreal sceneHeight = pictureNativeSize(picture).height() * w.m_presenter->presentationScale() * viewScale;
 					if (height > qMax(minPictureHeight + 1.0, sceneHeight) + 0.5)
 						minimumOk = false;
 					if (nearLook) {
-						const qreal dotFactor = mark->stationClass() == StationClass::Halt ? 0.3 : 0.44;
+						const qreal dotFactor = mark->stationClass() == StationClass::Halt ? 0.3 : 0.44 + 0.07;
 						const QPainterPath dot = stationNodeMarkShape({mark->nodeCentres().first()}, mark->stationClass(), mark->nearSide(), 0.0);
 						if (w.networkView->viewportTransform().map(dot).boundingRect().height()
 							< dotFactor * StationOverlayItem::MinPictogramPixels - 0.05)
