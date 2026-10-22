@@ -3,7 +3,7 @@ var class_diagram_window =
     [ "DiagramWindow", "class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58", null ],
     [ "csvContent", "class_diagram_window.html#aeaf1a8a285ed78422cb00c04f7cc8a83", null ],
     [ "eventFilter", "class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a", null ],
-    [ "setBlockSections", "class_diagram_window.html#a452208479a69d52709318f7ce801a13e", null ],
+    [ "setBlockSections", "class_diagram_window.html#ae92dd3fc8e3084b289cb9ea8aa3ac000", null ],
     [ "setChart", "class_diagram_window.html#a6a0470e83e6f726a252b1b7b308842df", null ],
     [ "setCsvProvider", "class_diagram_window.html#aec15f7fbe7dff817ea556595a326c71d", null ],
     [ "setPresentation", "class_diagram_window.html#ae4781807f68dca605583599bf761978c", null ],

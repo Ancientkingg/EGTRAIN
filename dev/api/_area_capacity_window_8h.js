@@ -8,5 +8,6 @@ var _area_capacity_window_8h =
     [ "areaCapacityLabel", "_area_capacity_window_8h.html#a8fd0e895bcf5a4af24039d1ac7b077bc", null ],
     [ "areaCapacityStatusName", "_area_capacity_window_8h.html#a30c14fdd0a08eef42a9d07bb94db095b", null ],
     [ "areaCapacityStatusText", "_area_capacity_window_8h.html#a2613ffd852b0d0562deddc75df0a5bb3", null ],
+    [ "areaCapacityText", "_area_capacity_window_8h.html#a319b62cae345e5b3d3fcd3ee14321f28", null ],
     [ "openAreaCapacityWindow", "_area_capacity_window_8h.html#aa9902b53bd578d05441cf70f15c141d0", null ]
 ];

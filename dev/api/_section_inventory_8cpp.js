@@ -10,6 +10,8 @@ var _section_inventory_8cpp =
     [ "sceneBlockExtent", "_section_inventory_8cpp.html#a70ff699bacfd05e1892bd3e5d5378c50", null ],
     [ "sceneRouteDirection", "_section_inventory_8cpp.html#ae4f9207213b44d11e550fd70a54d3fde", null ],
     [ "sceneRouteStations", "_section_inventory_8cpp.html#a976f8f27d55432ea7c8062522a7ebb4a", null ],
+    [ "sceneSectionLabel", "_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388", null ],
+    [ "sceneSectionLabels", "_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429", null ],
     [ "sceneSectionsOverlap", "_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6", null ],
     [ "sceneSignalFailureTarget", "_section_inventory_8cpp.html#aada86a733299e516b7fc5ad92a65eee4", null ]
 ];

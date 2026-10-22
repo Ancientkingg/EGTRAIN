@@ -1,0 +1,9 @@
+<map id="capacityEvidenceText" name="capacityEvidenceText">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,168,84"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,60,46,50,50,40,64,34,87,32,115,36,126,45,123,49,113,41,87,37,65,39,54,44,51,50,58,57"/>
+<area shape="rect" id="Node000002" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="221,29,362,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="168,57,206,51,207,57,169,62"/>
+<area shape="rect" id="Node000003" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="216,79,367,119"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="169,80,203,85,202,90,168,85"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="258,31,251,21,255,11,268,5,291,3,320,6,331,16,327,20,317,11,291,8,270,10,258,15,256,20,262,28"/>
+</map>

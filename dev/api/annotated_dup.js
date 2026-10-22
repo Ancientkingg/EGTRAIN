@@ -250,6 +250,7 @@ var annotated_dup =
     [ "SceneScenario", "struct_scene_scenario.html", "struct_scene_scenario" ],
     [ "SceneSectionDescriptor", "struct_scene_section_descriptor.html", "struct_scene_section_descriptor" ],
     [ "SceneSectionInventory", "struct_scene_section_inventory.html", "struct_scene_section_inventory" ],
+    [ "SceneSectionLabels", "struct_scene_section_labels.html", "struct_scene_section_labels" ],
     [ "SceneSectionSignalling", "struct_scene_section_signalling.html", "struct_scene_section_signalling" ],
     [ "SceneSectionTransition", "struct_scene_section_transition.html", "struct_scene_section_transition" ],
     [ "SceneService", "struct_scene_service.html", "struct_scene_service" ],

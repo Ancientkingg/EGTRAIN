@@ -130,8 +130,7 @@ Collaboration diagram for AreaCapacityWindow:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a12ee086c1c889cef03f9b78f4343b454" id="r_a12ee086c1c889cef03f9b78f4343b454"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a12ee086c1c889cef03f9b78f4343b454">AreaCapacityWindow</a> (<a class="el" href="struct_area_capacity_result.html">AreaCapacityResult</a> result, const QString &amp;areaLabel, <a class="el" href="struct_run_provenance.html">RunProvenance</a> provenance, QWidget *parent=nullptr)</td></tr>
-<tr class="memdesc:a12ee086c1c889cef03f9b78f4343b454"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows <span class="tt">result</span> for the area named <span class="tt">areaLabel</span>. <span class="tt">provenance</span> goes into the export sidecar.  <br /></td></tr>
+<tr class="memitem:a7d1a200175ee456cee0c882875190a4a" id="r_a7d1a200175ee456cee0c882875190a4a"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a7d1a200175ee456cee0c882875190a4a">AreaCapacityWindow</a> (<a class="el" href="struct_area_capacity_result.html">AreaCapacityResult</a> result, const QString &amp;areaLabel, <a class="el" href="struct_run_provenance.html">RunProvenance</a> provenance, QWidget *parent=nullptr, const QString &amp;areaText=QString(), const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;labels=<a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a>())</td></tr>
 <tr class="memitem:a38b9033509ad59dc989d762d1606dc0c" id="r_a38b9033509ad59dc989d762d1606dc0c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a38b9033509ad59dc989d762d1606dc0c">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
 <tr class="memdesc:a38b9033509ad59dc989d762d1606dc0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
 <tr class="memitem:a6b33406f2e124a16cd2bbe59e021b29f" id="r_a6b33406f2e124a16cd2bbe59e021b29f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6b33406f2e124a16cd2bbe59e021b29f">exportCsvTo</a> (const QString &amp;path) const</td></tr>
@@ -140,8 +139,8 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The result window. Not modal. It holds the result and the run identity, not the run, so it can outlive the run. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a12ee086c1c889cef03f9b78f4343b454" name="a12ee086c1c889cef03f9b78f4343b454"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a12ee086c1c889cef03f9b78f4343b454">&#9670;&#160;</a></span>AreaCapacityWindow()</h2>
+<a id="a7d1a200175ee456cee0c882875190a4a" name="a7d1a200175ee456cee0c882875190a4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d1a200175ee456cee0c882875190a4a">&#9670;&#160;</a></span>AreaCapacityWindow()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -164,16 +163,25 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>areaText</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QString()</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>labels</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a>()</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Shows <span class="tt">result</span> for the area named <span class="tt">areaLabel</span>. <span class="tt">provenance</span> goes into the export sidecar. </p>
+<p>Shows <span class="tt">result</span> for the area named <span class="tt">areaLabel</span> in the export. <span class="tt">provenance</span> goes into the export sidecar. The window names the area <span class="tt">areaText</span>, or <span class="tt">areaLabel</span> when it is empty, and gives the resources their labels in <span class="tt">labels</span>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_area_capacity_window_a12ee086c1c889cef03f9b78f4343b454_cgraph.svg" width="1052" height="274"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_area_capacity_window_a7d1a200175ee456cee0c882875190a4a_cgraph.svg" width="1052" height="274"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

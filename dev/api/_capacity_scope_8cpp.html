@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_capacity_scop
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CapacityScope.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp__incl.svg" width="4598" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp__incl.svg" width="5078" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -154,7 +154,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a95d027ab2799eda140c3250d6e83ea45" id="r_a95d027ab2799eda140c3250d6e83ea45"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#a95d027ab2799eda140c3250d6e83ea45">capacityStretchFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, int routeIndex, const std::vector&lt; std::string &gt; &amp;occurrenceIds)</td></tr>
 <tr class="memitem:aef5487a731116924537c202f04406798" id="r_aef5487a731116924537c202f04406798"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#aef5487a731116924537c202f04406798">firstCapacityScopeWithPairFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memitem:aa88001510e05548edcb57449cb5cfa18" id="r_aa88001510e05548edcb57449cb5cfa18"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa88001510e05548edcb57449cb5cfa18">capacityScopeLabelFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
-<tr class="memdesc:aa88001510e05548edcb57449cb5cfa18"><td class="mdescLeft">&#160;</td><td class="mdescRight">"route / corridor / first block to last block" without the parts the scope lacks, or "no selected route".  <br /></td></tr>
+<tr class="memitem:aac48329cb36d06bcc0e23530bf055943" id="r_aac48329cb36d06bcc0e23530bf055943"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aac48329cb36d06bcc0e23530bf055943">capacityScopeTextFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
+<tr class="memdesc:aac48329cb36d06bcc0e23530bf055943"><td class="mdescLeft">&#160;</td><td class="mdescRight">As capacityScopeLabelFrom, for the windows: the blocks are named by their labels, "first through last".  <br /></td></tr>
 <tr class="memitem:a4f64e5cefd15be361bdc4d1bb39727cf" id="r_a4f64e5cefd15be361bdc4d1bb39727cf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4f64e5cefd15be361bdc4d1bb39727cf">chooseCapacityAnalysisScope</a> (QWidget *parent, const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;run, <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;scope)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -260,12 +261,39 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>"route / corridor / first block to last block" without the parts the scope lacks, or "no selected route". </p>
+<p>"route / corridor / first block to last block" without the parts the scope lacks, or "no selected route". The blocks are named by their ids, as the <a class="el" href="class_section.html">Section</a> column of the capacity export holds them. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aa88001510e05548edcb57449cb5cfa18_cgraph.svg" width="462" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aa88001510e05548edcb57449cb5cfa18_cgraph.svg" width="195" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aac48329cb36d06bcc0e23530bf055943" name="aac48329cb36d06bcc0e23530bf055943"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac48329cb36d06bcc0e23530bf055943">&#9670;&#160;</a></span>capacityScopeTextFrom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString capacityScopeTextFrom </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_scope.html">CapacityAnalysisScope</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>As capacityScopeLabelFrom, for the windows: the blocks are named by their labels, "first through last". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_aac48329cb36d06bcc0e23530bf055943_cgraph.svg" width="187" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -361,7 +389,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_a4f64e5cefd15be361bdc4d1bb39727cf_cgraph.svg" width="1199" height="431"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_scope_8cpp_a4f64e5cefd15be361bdc4d1bb39727cf_cgraph.svg" width="1199" height="499"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

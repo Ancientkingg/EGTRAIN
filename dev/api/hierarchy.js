@@ -345,6 +345,7 @@ var hierarchy =
     [ "SceneScenario", "struct_scene_scenario.html", null ],
     [ "SceneSectionDescriptor", "struct_scene_section_descriptor.html", null ],
     [ "SceneSectionInventory", "struct_scene_section_inventory.html", null ],
+    [ "SceneSectionLabels", "struct_scene_section_labels.html", null ],
     [ "SceneSectionSignalling", "struct_scene_section_signalling.html", null ],
     [ "SceneSectionTransition", "struct_scene_section_transition.html", null ],
     [ "SceneService", "struct_scene_service.html", null ],

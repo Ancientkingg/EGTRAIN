@@ -798,6 +798,18 @@
 </ol>
 <p>Verification for the code change: build, CTest, <code class="docutils literal notranslate"><span class="pre">tools/e2e/visual_polish_smoke.sh</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/e2e/headless_smoke.py</span></code> and <code class="docutils literal notranslate"><span class="pre">tools/e2e/roundtrip_smoke.py</span></code>, and a check of the inspector, the <strong>Target</strong> list, the three choosers and the strip on Paimpol and Netherlands in the application.</p>
 </section>
+<section id="where-part-1-differs-from-the-plan">
+<h2>Where part 1 differs from the plan<a class="headerlink" href="#where-part-1-differs-from-the-plan" title="Link to this heading">¶</a></h2>
+<p>Part 1 of the change made steps 1 and 4, step 2 without the preview, and the documentation of step 5. It differs from the plan in these points:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SceneSectionLabels</span></code> is in its own header, <code class="docutils literal notranslate"><span class="pre">scene/SectionLabels.h</span></code>, which <code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.h</span></code> includes. The result windows include it after Qt headers, and Qt’s <code class="docutils literal notranslate"><span class="pre">signals</span></code> macro breaks <code class="docutils literal notranslate"><span class="pre">scene/SceneModel.h</span></code>, which has a member of that name.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SceneSectionLabels::labelWithId</span></code> gives the label with the id in parentheses, “B0 0.000 to 0.230 km (&#64;0-B0&#64;)”, for the strip hover, the notes and the envelope hover. A label that already ends with the id, by rule 5, keeps it once.</p></li>
+<li><p>The <strong>Target</strong> list of a signal failure names an authored signal by its id and the label of its protected section, “sig1 (T1 0.000 to 1.000 km)”, as rule 7 says. A signal without a protected section shows its id.</p></li>
+<li><p>Where labels are listed together, in the note on ambiguous reference sections, the note on sections without a usable extent and the governing resources of <strong>Capacity by area</strong>, they are joined with semicolons, since a switch label holds a comma. The id forms keep their commas.</p></li>
+<li><p>The tooltip of a choice field leaves out a line that repeats an earlier one, so a field whose item and field tooltips are equal shows that text once.</p></li>
+</ul>
+<p>Part 2, the preview, the run inspector, the signal tooltips, <strong>Find</strong> and <strong>Copy section ID</strong>, is still to come.</p>
+</section>
 <section id="open-questions">
 <h2>Open questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
 <ul class="simple">
@@ -883,6 +895,7 @@
 <li><a class="reference internal" href="#where-labels-appear-and-where-ids-stay">Where labels appear and where ids stay</a></li>
 <li><a class="reference internal" href="#what-does-not-change">What does not change</a></li>
 <li><a class="reference internal" href="#implementation-plan">Implementation plan</a></li>
+<li><a class="reference internal" href="#where-part-1-differs-from-the-plan">Where part 1 differs from the plan</a></li>
 <li><a class="reference internal" href="#open-questions">Open questions</a></li>
 </ul>
 </li>

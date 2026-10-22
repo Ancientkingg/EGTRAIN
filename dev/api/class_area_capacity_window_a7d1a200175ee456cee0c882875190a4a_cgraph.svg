@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Shows result for the area named areaLabel. provenance goes into the export sidecar.">
+<g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="127,-60 0,-60 0,-30 127,-30 127,-60"/>
 <text text-anchor="start" x="8" y="-48" font-family="Helvetica,sans-Serif" font-size="10.00">AreaCapacityWindow</text>
 <text text-anchor="middle" x="63.5" y="-37" font-family="Helvetica,sans-Serif" font-size="10.00">::AreaCapacityWindow</text>

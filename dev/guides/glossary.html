@@ -522,6 +522,47 @@
 <h3>Section<a class="headerlink" href="#section" title="Link to this heading">¶</a></h3>
 <p>A section is the unit of signalling at run time: a block of one track, or a switch section that a connection builds from two blocks. It is not stored in the case, because the program derives it from tracks, blocks, arcs and connections. A section has a signalling level or none, a code and a state, and the validation warning <code class="docutils literal notranslate"><span class="pre">scene.signalling.level.missing</span></code> names route sections that have no level (<a class="reference internal" href="signalling-levels.html#what-a-signalling-level-is"><span class="std std-ref">what a signalling level is</span></a>, <a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">block sections</span></a>).</p>
 </section>
+<section id="ids-and-labels">
+<h3>Ids and labels<a class="headerlink" href="#ids-and-labels" title="Link to this heading">¶</a></h3>
+<p>The scene names tracks, blocks and sections by ids. Where the program lists or names a section, it shows a label that it derives from the layout instead.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Example</p></th>
+<th class="head"><p>What it is</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Track id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">id</span></code> of a track in <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>. An imported case calls its tracks <code class="docutils literal notranslate"><span class="pre">B</span></code> and the number of the legacy folder.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Block id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0-B0</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">id</span></code> of a block. An imported block is named by its row in the legacy file, counted from 0, and its track. A block that the editor adds is called <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">block_2</span></code> and so on.</p></td>
+</tr>
+<tr class="row-even"><td><p>Block section id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code></p></td>
+<td><p>The block id between <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> signs. The run and the exports name a block section by this id; routes and incident targets may name it by its block id.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Switch section id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code></p></td>
+<td><p>The two blocks that hold the nodes of a connection, each followed by <code class="docutils literal notranslate"><span class="pre">-</span></code> and the kilometre of its node. The <code class="docutils literal notranslate"><span class="pre">-</span></code> is a separator, not a minus sign: this is block 71 of track B0 up to the node at 21.235 km, then block 0 of track B1 from the node at 21.252 km.</p></td>
+</tr>
+<tr class="row-even"><td><p>Label</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">0.230</span> <span class="pre">km</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">21.010</span> <span class="pre">to</span> <span class="pre">21.235,</span> <span class="pre">B1</span> <span class="pre">21.252</span> <span class="pre">to</span> <span class="pre">21.450</span> <span class="pre">km</span></code></p></td>
+<td><p>The track and the kilometres of the two ends of a block section, or the piece on each track of a switch section, with three decimals.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Runtime track number</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number that a run gives a track: its place in the list of track ids sorted as text. <strong>Signalling Info</strong> shows it as <strong>Track ID</strong> and <strong>Next track</strong>. It matches the digits of the track id only in scenes with at most ten tracks: in Netherlands, B10 is track 2.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The section choices of the dock <strong>Infrastructure</strong>, the <strong>Target</strong> list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.</p>
+</section>
 <section id="signalling-area">
 <h3>Signalling area<a class="headerlink" href="#signalling-area" title="Link to this heading">¶</a></h3>
 <p>A signalling area is a range along a track that gives the sections inside it their signalling level: <code class="docutils literal notranslate"><span class="pre">signalling_areas[]</span></code> in <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> with <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">start_km</span></code>, <code class="docutils literal notranslate"><span class="pre">end_km</span></code>, <code class="docutils literal notranslate"><span class="pre">level</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">track</span></code>. A section belongs to an area only when it lies wholly inside; an area without a track applies to every track, an area with a track applies to that track and takes precedence, and a section that no area contains has no level. The positions are chainage, the <code class="docutils literal notranslate"><span class="pre">x_km</span></code> values along the track of the section, and are not converted between tracks. You meet it in the dock <strong>Infrastructure</strong>, entity <strong>Signalling area</strong> (<a class="reference internal" href="signalling-levels.html#how-an-area-gives-sections-their-level"><span class="std std-ref">how an area gives sections their level</span></a>).</p>
@@ -659,6 +700,7 @@
 <li><a class="reference internal" href="#network-and-signalling">Network and signalling</a><ul>
 <li><a class="reference internal" href="#infrastructure-entities">Infrastructure entities</a></li>
 <li><a class="reference internal" href="#section">Section</a></li>
+<li><a class="reference internal" href="#ids-and-labels">Ids and labels</a></li>
 <li><a class="reference internal" href="#signalling-area">Signalling area</a></li>
 <li><a class="reference internal" href="#signalling-level">Signalling level</a></li>
 <li><a class="reference internal" href="#end-of-authority">End of authority</a></li>

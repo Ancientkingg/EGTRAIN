@@ -117,19 +117,24 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_section_inven
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;cstdio&gt;</code><br />
+<code>#include &lt;iomanip&gt;</code><br />
+<code>#include &lt;locale&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;unordered_set&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SectionInventory.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp__incl.svg" width="1391" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp__incl.svg" width="2271" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a38867ed655babc4f9d2a81b27deff310" id="r_a38867ed655babc4f9d2a81b27deff310"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a38867ed655babc4f9d2a81b27deff310">formatSceneSectionCoordinate</a> (double coordinate)</td></tr>
 <tr class="memdesc:a38867ed655babc4f9d2a81b27deff310"><td class="mdescLeft">&#160;</td><td class="mdescRight">A chainage in kilometres as printf "%f" writes it, the form used in switch section ids.  <br /></td></tr>
+<tr class="memitem:a51767c3e1d490b330b50d4a4ba4d4388" id="r_a51767c3e1d490b330b50d4a4ba4d4388"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a51767c3e1d490b330b50d4a4ba4d4388">sceneSectionLabel</a> (const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;section)</td></tr>
+<tr class="memitem:a64c14cbefafa78e81ec551a43f333429" id="r_a64c14cbefafa78e81ec551a43f333429"><td class="memItemLeft"><a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a>&#160;</td><td class="memItemRight"><a class="el" href="#a64c14cbefafa78e81ec551a43f333429">sceneSectionLabels</a> (const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory)</td></tr>
+<tr class="memdesc:a64c14cbefafa78e81ec551a43f333429"><td class="mdescLeft">&#160;</td><td class="mdescRight">The labels of the sections of the inventory (see <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a>).  <br /></td></tr>
 <tr class="memitem:aada86a733299e516b7fc5ad92a65eee4" id="r_aada86a733299e516b7fc5ad92a65eee4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aada86a733299e516b7fc5ad92a65eee4">sceneSignalFailureTarget</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;sectionReference)</td></tr>
 <tr class="memitem:a9cb3de6815c38bfd0cf14a022a187786" id="r_a9cb3de6815c38bfd0cf14a022a187786"><td class="memItemLeft"><a class="el" href="struct_scene_section_transition.html">SceneSectionTransition</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9cb3de6815c38bfd0cf14a022a187786">classifySceneSectionTransition</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;left, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;right)</td></tr>
 <tr class="memitem:a0a493a67878c96b3c90d791a1fa68552" id="r_a0a493a67878c96b3c90d791a1fa68552"><td class="memItemLeft"><a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0a493a67878c96b3c90d791a1fa68552">buildSceneSectionInventory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
@@ -429,6 +434,53 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a976f8f27d55432ea7c8062522a7ebb4a_cgraph.svg" width="923" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a51767c3e1d490b330b50d4a4ba4d4388" name="a51767c3e1d490b330b50d4a4ba4d4388"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51767c3e1d490b330b50d4a4ba4d4388">&#9670;&#160;</a></span>sceneSectionLabel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string sceneSectionLabel </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>section</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>What a person reads for a section: "B0 21.010 to 21.310 km" for a block section, or the piece on each track, "B0 21.010 to 21.235, B1 21.252 to 21.450 km", for a switch section. A piece of a switch section whose two ends round to the same value shows that value once. Kilometres have three decimals and a full stop in every locale. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a51767c3e1d490b330b50d4a4ba4d4388_cgraph.svg" width="154" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a64c14cbefafa78e81ec551a43f333429" name="a64c14cbefafa78e81ec551a43f333429"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64c14cbefafa78e81ec551a43f333429">&#9670;&#160;</a></span>sceneSectionLabels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> sceneSectionLabels </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>inventory</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The labels of the sections of the inventory (see <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a>). </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_section_inventory_8cpp_a64c14cbefafa78e81ec551a43f333429_cgraph.svg" width="352" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -144,7 +144,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6d991a03ac97993a7dc5fc9b8a67f281" id="r_a6d991a03ac97993a7dc5fc9b8a67f281"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d991a03ac97993a7dc5fc9b8a67f281">setTimeAxisX</a> (bool on, long long startOffsetSeconds=0)</td></tr>
 <tr class="memdesc:a6d991a03ac97993a7dc5fc9b8a67f281"><td class="mdescLeft">&#160;</td><td class="mdescRight">As setTimeAxisY, for the X axis.  <br /></td></tr>
 <tr class="memitem:aec15f7fbe7dff817ea556595a326c71d" id="r_aec15f7fbe7dff817ea556595a326c71d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aec15f7fbe7dff817ea556595a326c71d">setCsvProvider</a> (std::function&lt; std::string(const QStringList &amp;visibleTrainIds)&gt; provider, const QString &amp;suggestedFileName, const QStringList &amp;trainIds={})</td></tr>
-<tr class="memitem:a452208479a69d52709318f7ce801a13e" id="r_a452208479a69d52709318f7ce801a13e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a452208479a69d52709318f7ce801a13e">setBlockSections</a> (std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, const QString &amp;referenceRouteId)</td></tr>
+<tr class="memitem:ae92dd3fc8e3084b289cb9ea8aa3ac000" id="r_ae92dd3fc8e3084b289cb9ea8aa3ac000"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae92dd3fc8e3084b289cb9ea8aa3ac000">setBlockSections</a> (std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, const QString &amp;referenceRouteId, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels=nullptr)</td></tr>
 <tr class="memitem:a20f5084ae1945ad5ee9818d4958ef95a" id="r_a20f5084ae1945ad5ee9818d4958ef95a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a20f5084ae1945ad5ee9818d4958ef95a">setStationAxis</a> (QCategoryAxis *axis, std::vector&lt; <a class="el" href="struct_station_tick.html">StationTick</a> &gt; stations)</td></tr>
 <tr class="memitem:aeaf1a8a285ed78422cb00c04f7cc8a83" id="r_aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aeaf1a8a285ed78422cb00c04f7cc8a83">csvContent</a> () const</td></tr>
 <tr class="memdesc:aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same provider/filter snapshot that Export CSV writes, without opening a file dialog.  <br /></td></tr>
@@ -248,8 +248,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a452208479a69d52709318f7ce801a13e" name="a452208479a69d52709318f7ce801a13e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a452208479a69d52709318f7ce801a13e">&#9670;&#160;</a></span>setBlockSections()</h2>
+<a id="ae92dd3fc8e3084b289cb9ea8aa3ac000" name="ae92dd3fc8e3084b289cb9ea8aa3ac000"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae92dd3fc8e3084b289cb9ea8aa3ac000">&#9670;&#160;</a></span>setBlockSections()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -262,11 +262,16 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>referenceRouteId</em></span>&#160;)</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>referenceRouteId</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *</td>          <td class="paramname"><span class="paramname"><em>labels</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears it. </p>
+<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears it. <span class="tt">labels</span> names the sections in the strip, with the id in the hover text; without it the strip shows the ids. </p>
 
 </div>
 </div>

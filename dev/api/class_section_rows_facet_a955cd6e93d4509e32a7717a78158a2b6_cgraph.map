@@ -1,21 +1,29 @@
 <map id="SectionRowsFacet::addSectionCombo" name="SectionRowsFacet::addSectionCombo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,101,224,141"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a2cd2534ecea99e2648aac3ae04d78542" title=" " alt="" coords="290,5,435,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,99,271,55,290,48,292,53,273,60,164,104"/>
-<area shape="rect" id="Node000004" href="$class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" title="The model of the document for an edit by a facet. The panel must have a document." alt="" coords="290,69,435,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,105,276,98,277,103,225,110"/>
-<area shape="rect" id="Node000005" href="$class_infrastructure_panel.html#ab21a6bad4cd2c5e18daf1b4d3b17d2e8" title=" " alt="" coords="272,133,453,173"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="225,133,259,137,258,143,224,138"/>
-<area shape="rect" id="Node000010" href="$class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" title="The table that the facets fill; the panel owns it." alt="" coords="290,197,435,237"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="164,139,273,183,292,190,290,195,271,188,162,144"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="501,13,699,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="436,23,488,23,488,28,436,28"/>
-<area shape="rect" id="Node000006" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="515,101,685,141"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="453,139,501,132,501,137,454,144"/>
-<area shape="rect" id="Node000009" href="$class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" title="The text that names a section in a list of sections." alt="" coords="527,165,673,205"/>
-<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="454,163,514,171,513,176,453,168"/>
-<area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="747,69,917,109"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="685,107,733,100,734,106,686,112"/>
-<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="747,133,917,173"/>
-<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="686,130,734,137,733,142,685,136"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,116,224,156"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a2cd2534ecea99e2648aac3ae04d78542" title=" " alt="" coords="290,15,435,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,114,299,58,301,62,165,118"/>
+<area shape="rect" id="Node000004" href="$class_infrastructure_panel.html#afe8916f3f4e77575e8d733332888717a" title="The model of the document for an edit by a facet. The panel must have a document." alt="" coords="290,84,435,124"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,119,276,112,277,118,225,125"/>
+<area shape="rect" id="Node000005" href="$class_infrastructure_panel.html#ab21a6bad4cd2c5e18daf1b4d3b17d2e8" title=" " alt="" coords="272,148,453,188"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="225,147,259,152,258,157,224,153"/>
+<area shape="rect" id="Node000013" href="$class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" title="The table that the facets fill; the panel owns it." alt="" coords="290,212,435,252"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="164,154,273,198,292,205,290,210,271,202,162,158"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="501,19,699,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="436,31,488,31,488,36,436,37"/>
+<area shape="rect" id="Node000006" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="515,69,685,109"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="422,145,500,119,524,111,525,116,502,124,424,150"/>
+<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="525,158,675,183"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="453,166,511,167,511,172,453,172"/>
+<area shape="rect" id="Node000011" href="$class_infrastructure_panel.html#ac5d00aae72c6711b880e3fb25f64f90b" title="The text that names a section in a list of sections: its label in labels (see sceneSectionLabels)." alt="" coords="527,208,673,248"/>
+<area shape="poly" id="edge12_Node000005_Node000011" title=" " alt="" coords="443,186,514,204,513,209,442,191"/>
+<area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="747,5,917,45"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="673,67,745,46,747,52,674,72"/>
+<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="747,69,917,109"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="685,87,733,87,733,92,685,92"/>
+<area shape="poly" id="edge11_Node000009_Node000009" title=" " alt="" coords="562,160,554,150,558,140,574,134,600,131,633,135,645,145,642,149,631,140,600,137,575,139,562,144,559,149,566,156"/>
+<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="761,158,903,183"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="676,168,747,168,747,173,676,173"/>
+<area shape="poly" id="edge10_Node000010_Node000010" title=" " alt="" coords="794,160,786,150,790,140,806,134,832,131,865,135,877,145,874,149,863,140,832,137,807,139,794,144,791,149,798,156"/>
+<area shape="rect" id="Node000012" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="757,208,907,248"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="673,225,743,225,743,231,673,231"/>
 </map>

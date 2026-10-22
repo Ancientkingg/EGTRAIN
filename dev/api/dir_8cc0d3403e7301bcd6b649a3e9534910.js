@@ -31,6 +31,7 @@ var dir_8cc0d3403e7301bcd6b649a3e9534910 =
     [ "SceneWriter.h", "_scene_writer_8h.html", "_scene_writer_8h" ],
     [ "SectionInventory.cpp", "_section_inventory_8cpp.html", "_section_inventory_8cpp" ],
     [ "SectionInventory.h", "_section_inventory_8h.html", "_section_inventory_8h" ],
+    [ "SectionLabels.h", "_section_labels_8h.html", "_section_labels_8h" ],
     [ "SignallingLevel.h", "_signalling_level_8h.html", "_signalling_level_8h" ],
     [ "SignallingLevelNames.h", "_signalling_level_names_8h.html", "_signalling_level_names_8h" ],
     [ "StagedDirectory.h", "_staged_directory_8h.html", "_staged_directory_8h" ],

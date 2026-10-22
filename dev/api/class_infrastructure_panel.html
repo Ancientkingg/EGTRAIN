@@ -237,8 +237,8 @@ Public Member Functions</h2></td></tr>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a93adee461c3c66c05fcbda41214c7b9e" id="r_a93adee461c3c66c05fcbda41214c7b9e"><td class="memItemLeft">static QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a93adee461c3c66c05fcbda41214c7b9e">facetKeys</a> ()</td></tr>
 <tr class="memdesc:a93adee461c3c66c05fcbda41214c7b9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The keys of the facets in the order of the combo, such as "tracks" and "station_boundaries".  <br /></td></tr>
-<tr class="memitem:a152aa7021d1d9e2b6a353b317bcde4b0" id="r_a152aa7021d1d9e2b6a353b317bcde4b0"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a152aa7021d1d9e2b6a353b317bcde4b0">sectionLabel</a> (const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;section)</td></tr>
-<tr class="memdesc:a152aa7021d1d9e2b6a353b317bcde4b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The text that names a section in a list of sections.  <br /></td></tr>
+<tr class="memitem:ac5d00aae72c6711b880e3fb25f64f90b" id="r_ac5d00aae72c6711b880e3fb25f64f90b"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#ac5d00aae72c6711b880e3fb25f64f90b">sectionLabel</a> (const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;labels, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;section)</td></tr>
+<tr class="memdesc:ac5d00aae72c6711b880e3fb25f64f90b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The text that names a section in a list of sections: its label in <span class="tt">labels</span> (see sceneSectionLabels).  <br /></td></tr>
 <tr class="memitem:ab21a6bad4cd2c5e18daf1b4d3b17d2e8" id="r_ab21a6bad4cd2c5e18daf1b4d3b17d2e8"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ab21a6bad4cd2c5e18daf1b4d3b17d2e8">populateSectionCombo</a> (QComboBox *combo, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;current, bool allowNone, const QString &amp;noneLabel)</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -1113,11 +1113,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Fills <span class="tt">combo</span> with the sections of the inventory, each with the id of the section as its data, and chooses <span class="tt">current</span>. A section that is not in the inventory gets an item of its own, and <span class="tt">allowNone</span> adds an item with <span class="tt">noneLabel</span> and no data on top. </p>
+<p>Fills <span class="tt">combo</span> with the sections of the inventory, each named by its label, with the id of the section as its data and its tooltip, and chooses <span class="tt">current</span>. A section that is not in the inventory gets an item of its own, and <span class="tt">allowNone</span> adds an item with <span class="tt">noneLabel</span> and no data on top. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ab21a6bad4cd2c5e18daf1b4d3b17d2e8_cgraph.svg" width="630" height="147"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ab21a6bad4cd2c5e18daf1b4d3b17d2e8_cgraph.svg" width="630" height="254"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1383,8 +1383,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a152aa7021d1d9e2b6a353b317bcde4b0" name="a152aa7021d1d9e2b6a353b317bcde4b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a152aa7021d1d9e2b6a353b317bcde4b0">&#9670;&#160;</a></span>sectionLabel()</h2>
+<a id="ac5d00aae72c6711b880e3fb25f64f90b" name="ac5d00aae72c6711b880e3fb25f64f90b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5d00aae72c6711b880e3fb25f64f90b">&#9670;&#160;</a></span>sectionLabel()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1395,8 +1395,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">QString InfrastructurePanel::sectionLabel </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>section</em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>labels</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>section</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -1406,7 +1410,12 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The text that names a section in a list of sections. </p>
+<p>The text that names a section in a list of sections: its label in <span class="tt">labels</span> (see sceneSectionLabels). </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_infrastructure_panel_ac5d00aae72c6711b880e3fb25f64f90b_cgraph.svg" width="355" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
