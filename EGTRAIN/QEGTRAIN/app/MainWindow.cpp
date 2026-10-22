@@ -1645,6 +1645,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
 	m_incidentPanel->setDocument(m_document);
 	connect(m_incidentPanel, &IncidentPanel::changed, this, &MainWindow::refreshValidationPanel);
+	// The button of the inspector adds an incident for the signal or the train that it shows.
+	connect(m_inspector, &InspectorPanel::incidentRequested, this, [this] {
+		QString selected;
+		addIncidentFromView(selectedIncidentTarget(selected));
+	});
 	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
 	// of the panel waits for the next item that a click or Edit > Find... selects there.
 	m_incidentPanel->setDefaultTarget([this] {
@@ -2208,6 +2213,7 @@ void MainWindow::runPanelsChanged() {
 	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::playbackEnded() {
@@ -2554,6 +2560,8 @@ void MainWindow::invalidateAfterSceneChange() {
 	updatePassengerSwitch();
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
+	// The target of the signal or the train that the inspector shows can be gone.
+	updateInspectorIncidentAction();
 }
 
 namespace {
@@ -2859,7 +2867,8 @@ QString targetPickRetry(const QString& selected) {
 	return QStringLiteral("Not a signal or a train. Click one, or press Esc.");
 }
 
-// The entry of the context menu of a signal or a train (`what`) that adds an incident with its target.
+// The entry of the context menu of a signal or a train (`what`), and the button of the inspector, that adds an incident
+// with its target.
 QString viewIncidentText(const QString& what) {
 	return what == QLatin1String("signal") ? QStringLiteral("Add signal failure") : QStringLiteral("Add train breakdown");
 }
@@ -2942,6 +2951,19 @@ QString MainWindow::viewIncidentBlocked(const IncidentTarget& target, const QStr
 	if (!m_incidentPanel->offersTarget(target))
 		return QStringLiteral("This %1 cannot be the target of an incident").arg(what);
 	return {};
+}
+
+void MainWindow::updateInspectorIncidentAction() {
+	// The inspector exists before the incident panel.
+	if (!m_incidentPanel)
+		return;
+	QString selected;
+	QString why;
+	const IncidentTarget target = selectedIncidentTarget(selected, &why);
+	if (selected == "signal" || selected == "train")
+		m_inspector->showIncidentAction(viewIncidentText(selected), viewIncidentBlocked(target, selected, why));
+	else
+		m_inspector->showIncidentAction(QString(), QString());
 }
 
 void MainWindow::addIncidentFromView(const IncidentTarget& target) {
@@ -4029,10 +4051,12 @@ void MainWindow::closeSceneContextMenu() {
 
 void MainWindow::inspectionChanged() {
 	updateViewportOverlays();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::signalInspected() {
 	updateSignalCues();
+	updateInspectorIncidentAction();
 }
 
 void MainWindow::followTrain(int trainIndex) {

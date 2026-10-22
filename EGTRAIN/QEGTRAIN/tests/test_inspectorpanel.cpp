@@ -24,6 +24,7 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QPlainTextEdit>
+#include <QPushButton>
 
 #include <iostream>
 #include <vector>
@@ -268,7 +269,24 @@ int main(int argc, char* argv[]) {
 		ok &= expect(signalForm->width() > 150 && signallingBox->width() >= signalForm->width() - margins.left() - margins.right(),
 			QString("in a dock %1 px wide the signals at location use the width of the form").arg(width).toStdString().c_str());
 	}
+	// Under the form the window can show a button that adds an incident for the signal. A disabled one says why in its
+	// tooltip, a click tells the window, and closing the form hides it.
+	auto* incident = panel.dock()->findChild<QPushButton*>("inspectorIncidentButton");
+	int requests = 0;
+	QObject::connect(&panel, &InspectorPanel::incidentRequested, &panel, [&requests] { ++requests; });
+	ok &= expect(incident && incident->isHidden(), "the panel shows no incident button until the window asks for one");
+	panel.showIncidentAction("Add signal failure", QString());
+	ok &= expect(incident && incident->isVisible() && incident->isEnabled() && incident->text() == "Add signal failure"
+			&& incident->accessibleName() == "Add signal failure" && incident->toolTip().isEmpty(),
+		"the window shows the incident button under the form of the signal");
+	if (incident)
+		incident->click();
+	ok &= expect(requests == 1, "a click on the incident button tells the window");
+	panel.showIncidentAction("Add signal failure", "Not available while the case runs");
+	ok &= expect(incident && !incident->isEnabled() && incident->toolTip() == "Not available while the case runs",
+		"a disabled incident button says why in its tooltip");
 	panel.handleCloseInfoDockWidget();
+	ok &= expect(incident && incident->isHidden(), "closing the form hides the incident button");
 	presenter.m_signalDecorations.clear();
 
 	return ok ? 0 : 1;

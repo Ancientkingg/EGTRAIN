@@ -672,9 +672,12 @@ private:
 	IncidentTarget previewIncidentTarget(const QString& kind, const QString& id, QString* why = nullptr) const;
 	IncidentTarget signalIncidentTarget(const SignalItem& signal, QString* why = nullptr) const;
 	IncidentTarget trainIncidentTarget(int trainIndex, QString* why = nullptr) const;
-	// Why the context menu of a signal or a train (`what`) cannot add an incident with the target of the item now, or empty
-	// when it can. `why` says why the item gives no target.
+	// Why the context menu of a signal or a train (`what`) and the inspector cannot add an incident with the target of the
+	// item now, or empty when they can. `why` says why the item gives no target.
 	QString viewIncidentBlocked(const IncidentTarget& target, const QString& what, const QString& why) const;
+	// Shows the button of the inspector that adds an incident while it shows a signal or a train, enabled as the context
+	// menu of the item is.
+	void updateInspectorIncidentAction();
 	// Adds an incident with the target of a signal or a train of the network view to the selected scenario, as Add
 	// Incident does, and shows it on the Incidents tab with the focus on its start. Nothing happens when the incident
 	// panel does not offer the target or the scene cannot be edited.
