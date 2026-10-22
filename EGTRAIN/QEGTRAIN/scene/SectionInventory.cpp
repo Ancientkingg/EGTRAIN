@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <iomanip>
+#include <locale>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -164,6 +166,33 @@ void addCandidatePlatform(std::vector<std::string>& platforms, const std::string
 		platforms.push_back(platformId);
 }
 
+// A kilometre with three decimals and a full stop, whatever the locale.
+std::string labelKm(double km) {
+	std::ostringstream text;
+	text.imbue(std::locale::classic());
+	text << std::fixed << std::setprecision(3) << km;
+	return text.str();
+}
+
+// "<track> <from> to <to>", or "<track> <from>" when both ends read the same.
+std::string labelPiece(const std::string& trackId, double fromKm, double toKm) {
+	const std::string from = labelKm(fromKm);
+	const std::string to = labelKm(toKm);
+	return trackId + " " + from + (from == to ? std::string() : " to " + to);
+}
+
+// The references that SceneSectionInventory::resolve() matches to this section: its runtime id, its block id
+// and the block id that runtimeBlockId() wraps into its runtime id.
+std::vector<std::string> sectionReferences(const SceneSectionDescriptor& section) {
+	std::vector<std::string> references = {section.id};
+	if (!section.sourceBlockId.empty())
+		references.push_back(section.sourceBlockId);
+	const std::string& id = section.id;
+	if (id.size() > 2 && id.front() == '@' && id.back() == '@' && id[1] != '@' && id.find('/') == std::string::npos)
+		references.push_back(id.substr(1, id.size() - 2));
+	return references;
+}
+
 } // namespace
 
 std::string formatSceneSectionCoordinate(double coordinate) {
@@ -174,6 +203,45 @@ std::string formatSceneSectionCoordinate(double coordinate) {
 	std::snprintf(result.data(), result.size(), "%f", coordinate);
 	result.resize(static_cast<std::size_t>(length));
 	return result;
+}
+
+std::string sceneSectionLabel(const SceneSectionDescriptor& section) {
+	if (!section.connectionDerived)
+		return section.firstTrackId + " " + labelKm(section.startKm) + " to " + labelKm(section.endKm) + " km";
+	return labelPiece(section.firstTrackId, section.startKm, section.firstConnectionKm) + ", "
+		+ labelPiece(section.secondTrackId, section.secondConnectionKm, section.endKm) + " km";
+}
+
+std::string SceneSectionLabels::label(const std::string& reference) const {
+	const auto found = byReference.find(reference);
+	return found == byReference.end() ? reference : found->second;
+}
+
+SceneSectionLabels sceneSectionLabels(const SceneSectionInventory& inventory) {
+	constexpr std::size_t kSeveral = std::numeric_limits<std::size_t>::max();
+	std::vector<std::string> texts;
+	texts.reserve(inventory.sections.size());
+	std::unordered_map<std::string, int> textCounts;
+	// The section that each reference names, or kSeveral when it names more than one.
+	std::unordered_map<std::string, std::size_t> named;
+	for (std::size_t index = 0; index < inventory.sections.size(); ++index) {
+		texts.push_back(sceneSectionLabel(inventory.sections[index]));
+		++textCounts[texts.back()];
+		for (const std::string& reference : sectionReferences(inventory.sections[index])) {
+			const auto inserted = named.emplace(reference, index);
+			if (!inserted.second && inserted.first->second != index)
+				inserted.first->second = kSeveral;
+		}
+	}
+	SceneSectionLabels labels;
+	for (const auto& [reference, index] : named) {
+		if (index == kSeveral)
+			continue;
+		const std::string& text = texts[index];
+		labels.byReference.emplace(reference,
+			textCounts[text] > 1 ? text + " (" + inventory.sections[index].id + ")" : text);
+	}
+	return labels;
 }
 
 const SceneSectionDescriptor* SceneSectionInventory::exact(const std::string& runtimeId) const {

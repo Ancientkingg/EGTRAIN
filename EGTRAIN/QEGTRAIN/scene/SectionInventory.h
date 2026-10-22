@@ -200,4 +200,21 @@ std::vector<SceneStopResolution> resolveSceneServiceStops(const SceneModel& scen
 /// A chainage in kilometres as printf "%f" writes it, the form used in switch section ids.
 std::string formatSceneSectionCoordinate(double coordinate);
 
+/// What a person reads for a section: "B0 21.010 to 21.310 km" for a block section, or the piece on each
+/// track, "B0 21.010 to 21.235, B1 21.252 to 21.450 km", for a switch section. A piece of a switch section
+/// whose two ends round to the same value shows that value once. Kilometres have three decimals and a full
+/// stop in every locale.
+std::string sceneSectionLabel(const SceneSectionDescriptor& section);
+
+/// The labels of the sections of an inventory by runtime id and by block id. A label that two sections
+/// share ends with the id in parentheses; label() returns the reference itself when it names no section.
+struct SceneSectionLabels {
+	std::unordered_map<std::string, std::string> byReference; ///< Label by every reference that resolve() accepts.
+	/// The label of the section that the reference names, or the reference itself when it names none or
+	/// more than one.
+	std::string label(const std::string& reference) const;
+};
+/// The labels of the sections of the inventory.
+SceneSectionLabels sceneSectionLabels(const SceneSectionInventory& inventory);
+
 #endif // SCENE_SECTION_INVENTORY_H
