@@ -23,7 +23,7 @@ Every row below keeps the identifier that the editor proposes (`track`, `node`, 
 
 ## 1. Create the case
 
-1. Choose **File > New Case Study...** (Ctrl+N or Cmd+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
+1. Choose **File > New Case Study...** (Ctrl+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
 2. Click the tab **Case Settings** and replace **Name** (`Untitled Case Study`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration / horizon (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
 
 A new case holds one scenario, `baseline`, and nothing else. **Run** stays disabled while validation reports errors for the railway data that is still missing, such as "Runnable scene has no tracks". The status bar counts them ("Not ready: N validation error(s) must be fixed") and the title bar shows the mark for unsaved changes.

@@ -97,7 +97,7 @@ are results for the analysed blocks: one section of the route, a run of
 consecutive blocks that all checked occurrences occupy. Where the trains use
 different blocks, as on the tracks of an overtaking station such as Gdg, a
 section ends before those blocks and the next one starts after them.
-**Analyzed blocks** in the Capacity window offers each section, with the longest
+**Analyzed blocks** in the Capacity chooser offers each section, with the longest
 selected first, so the parts of the line before and after Gdg are analysed one at
 a time. The window keeps the checked order on all blocks of a section and does
 not split it where the train order changes. **Capacity by area** takes a block

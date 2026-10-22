@@ -85,7 +85,8 @@ between two updates.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
-inspector opens and a light blue ring marks the item. Its title reads
+inspector opens, or for a passenger a box of its details above it, and a light
+blue ring marks the item. Its title reads
 `Preview: <kind> <id> (not running)` in the preview and Node Info, Station Node
 Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. A
 signal of the preview is named by the label of its section, as in
@@ -104,8 +105,8 @@ Dragging the canvas pans the view and keeps the selection.
 
 Signal heads on the canvas show what the simulation holds for the displayed
 time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
-(green), Unavailable (an empty gray ring) or Failed (a red lamp with a white
-cross). A head is unavailable when its section has no signalling area, so a scene
+(green), Unavailable (a gray ring with a short gray bar) or Failed (a red lamp
+with a white cross). A head is unavailable when its section has no signalling area, so a scene
 without one shows rings for the whole run. A head is failed on every signal of a
 section for as long as a signal failure incident is active. The marks appear when
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the

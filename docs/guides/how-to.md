@@ -15,6 +15,7 @@ Short recipes for the common tasks. Each says what you need, what to do and what
 - [Results and exports](#results-and-exports)
 - [Convert a legacy case and write legacy files](#convert-a-legacy-case-and-write-legacy-files)
 - [Close, start a new case or open another during a run](#close-start-a-new-case-or-open-another-during-a-run)
+- [Change the application settings](#change-the-application-settings)
 - [If EGTRAIN closes unexpectedly](#if-egtrain-closes-unexpectedly)
 - [Why a command is disabled](#why-a-command-is-disabled)
 
@@ -102,7 +103,7 @@ If EGTRAIN closes without an answer, for example after a crash, it offers the ed
 
 You need an open case that you have copied ([Copy and save a case](#copy-and-save-a-case)) and no active run. The contents of the dock **Services** are disabled during a run; the menu entry still opens it.
 
-1. Choose **Editors > Services** and select the service in the list **Services**. The dock has the tabs **Service**, **Timetable** and **Run occurrences**. Open the tab **Timetable**.
+1. Choose **Editors > Services** and select the service in the list at the top of the dock. The dock has the tabs **Service**, **Timetable** and **Run occurrences**. Open the tab **Timetable**.
 2. In the table of stops, click the row of the stop. The dialog **Edit timetable stop** opens with the station, the platform, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**.
 3. Change the field. **Planned time display** switches the dialog between **Elapsed offsets (s)** (seconds from the base time of the case) and **Clock time**. Blank means the time is absent, and `0` is the start of the simulation.
 4. Click **OK** to apply the fields together, or **Cancel** to leave the stop as it was.
@@ -137,8 +138,8 @@ The two buttons say why they are disabled in their tooltips and in the line abov
 
 - **Zoom.** Turn the mouse wheel to zoom around the pointer, or use the zoom buttons of the toolbar (Ctrl++ and Ctrl+-). On a trackpad, a pinch zooms. **Fit** (Ctrl+0) shows the whole network. A network that is fitted has no room to move, so zoom in first.
 - **Pan.** Drag the view. On a trackpad, two fingers move it.
-- **Select.** Click a track, connection, node, station, signal, train or passenger. The information panel for it opens and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.
-- **Find.** Choose **Edit > Find...** (Ctrl+F, Cmd+F on macOS) and type part of the name or ID of a station, signal or train. A signal is listed by its track and the labels of its sections, such as `Signal: Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km, right`, and the id of a section, such as `@1-B0@`, finds it too. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.
+- **Select.** Click a track, connection, node, station, signal, train or passenger. The information panel for it opens, or for a passenger a box of its details above it, and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.
+- **Find.** Choose **Edit > Find...** (Ctrl+F) and type part of the name or ID of a station, signal or train. A signal is listed by its track and the labels of its sections, such as `Signal: Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km, right`, and the id of a section, such as `@1-B0@`, finds it too. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.
 - **Context menu.** Right-click an item. A train offers **Show details**, **Add train breakdown**, **Center in view**, **Follow train**, **Copy train index** and the disabled entry **Planned route and related infrastructure**. Most other items offer **Show details**, **Center in view** and a copy command, and a signal head also offers **Add signal failure** after **Show details** ([compare a scenario](#compare-a-scenario-with-a-baseline)). During a run a signal head offers **Copy signal location** and **Copy section ID**, which copies the id of the section that **Protected section** shows in its information panel. Right-click the empty view for **Fit whole network**, **Clear selection** and **Stop following train**.
 - **Layers.** The check boxes in **Case and Layers** hide stations, station names, trains, speed labels, signals and passengers. **Passengers** is the same switch as **View > Show Passengers**. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.
 - **Follow.** Choose a train in the list next to **Follow** in the toolbar and click **Follow**. The view moves with the train, also while the run is paused. Click **Follow** again, or choose **Stop following train**, to stop.
@@ -153,7 +154,7 @@ You need a run that reached its end. A stopped or failed run has no replay, and 
 2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider shows the clock time of the frame in the format of the progress bar, for example `08:20:30`. **Play** advances one simulated second for each second of real time, and the button then turns into **Pause**.
 3. The text under the controls says which part of the run the replay holds, and that a frame is recorded every 5 simulated seconds, for example `Whole run, 0 to 7999 s, a frame every 5 s.`
 
-   ![The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 3500 s, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Center in view, Follow train, Copy train index and the dimmed Planned route and related infrastructure.](../images/how-to-replay-menu.png)
+   ![The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 08:09:00, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Add train breakdown, Center in view, Follow train, Copy train index and the dimmed Planned route and related infrastructure.](../images/how-to-replay-menu.png)
 
 The replay has 128 MiB of memory. A run that is larger loses its oldest frames. The text then says from which time the replay starts, for example `Starts at 10:00:20 (7220 s), ends at 7999 s, a frame every 5 s. The earlier part was not kept because the run is larger than the replay memory (128 MiB).` The slider covers only the kept part, and **Start** goes to its first time. The tooltip of **Start** says so. If not even one moment fits, the row says `No replay` with the reason, and the slider and **Play** are disabled.
 
@@ -165,8 +166,8 @@ You need a run that reached its end. Until then the result commands are disabled
 
 1. The dock **Run Results** opens when the run ends. If it is closed, choose its entry in the menu **View**, which starts with Run Results.
 2. Click **Open result view...** and choose an entry, or use the menu **Diagrams**. An entry in **Diagrams** that asks for more input ends in an ellipsis.
-3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that occupy a common block: choose a route and check the trains, and the analysed blocks follow from them. Where the trains share more than one section of the route, **Analyzed blocks** offers each one, the longest first.
-4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](diagram-navigation.md).
+3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that occupy a common block: choose a route and check the trains, and the analysed blocks follow from them. Where the trains share more than one section of the route, **Analyzed blocks** offers each one in route order and selects the longest.
+4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. After a CSV export, the status bar of the main window names the saved file for a few seconds. Hover, click, zoom and pan are described in [Inspecting diagrams](diagram-navigation.md).
 
 The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message **Export failed** names the path.
 
@@ -195,7 +196,7 @@ Closing the window, **New Case Study...**, the open commands and **Load Legacy C
 
 ## Change the application settings
 
-**Edit > Preferences...** opens the window **Settings**. On macOS the entry is **EGTRAIN > Preferences...** (Cmd+,). The window holds the settings that apply to every case:
+**Edit > Preferences...** opens the window **Settings**. On macOS the entry is **EGTRAIN > Preferences...** (Command+,). The window holds the settings that apply to every case:
 
 - **General**: the recent cases that **File > Recent Scenes** and **Open a Case** offer, and **Clear Recent Cases**.
 - **Display**: **Show passengers**, the same switch as **View > Show Passengers**, and **Advanced / Developer details**, the same as the View entry.
