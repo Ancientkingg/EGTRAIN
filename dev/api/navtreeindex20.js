@@ -1,5 +1,10 @@
 var NAVTREEINDEX20 =
 {
+"struct_follow_availability.html#a8717cd01239daff5f8d51e266cfd980e":[2,0,72,1],
+"struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9":[2,0,72,8],
+"struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9":[2,0,72,5],
+"struct_follow_availability_input.html":[2,0,73],
+"struct_follow_availability_input.html#a15f0d37c482370568c2944cb79f3cf50":[2,0,73,0],
 "struct_follow_availability_input.html#a41527ff5d263d743a81121b9327c4d79":[2,0,73,5],
 "struct_follow_availability_input.html#a43da6cb2fce127f8b63084d925c47a74":[2,0,73,3],
 "struct_follow_availability_input.html#a65f03a2d94b7f028aeb0d49a43ecf6ae":[2,0,73,7],
@@ -189,7 +194,8 @@ var NAVTREEINDEX20 =
 "struct_network_legend_train.html#afee14f12a83aa2390730a97c4f3aca89":[2,0,124,2],
 "struct_network_presenter_1_1_find_target.html":[2,0,126,3],
 "struct_network_presenter_1_1_find_target.html#a30eb0680fbe84bd6f3a8ee34018e53d8":[2,0,126,3,1],
-"struct_network_presenter_1_1_find_target.html#a5d51d27f9f24c66587d0c0a908b96dbe":[2,0,126,3,2],
+"struct_network_presenter_1_1_find_target.html#a5d51d27f9f24c66587d0c0a908b96dbe":[2,0,126,3,3],
+"struct_network_presenter_1_1_find_target.html#a6fdcd5a755d7eed4a1b4d02a3b15b7b6":[2,0,126,3,2],
 "struct_network_presenter_1_1_find_target.html#a798a3707595e732e3eddd91ff91dc4ca":[2,0,126,3,0],
 "struct_network_presenter_1_1_preview_options.html":[2,0,126,0],
 "struct_network_presenter_1_1_preview_options.html#a29bcd6d88e787c27bfa644a412620ce7":[2,0,126,0,1],
@@ -243,11 +249,5 @@ var NAVTREEINDEX20 =
 "struct_recovery_source.html#aaef56fe2cadd461c6a6607151a937f27":[2,0,146,3],
 "struct_recovery_source.html#ad1757f2ab119513e389f1572b2b78650":[2,0,146,0],
 "struct_release_asset.html":[2,0,149],
-"struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874":[2,0,149,0],
-"struct_release_asset.html#ab061af10347e21e83985b417c15eb9f4":[2,0,149,1],
-"struct_replay_bar_text.html":[2,0,150],
-"struct_replay_bar_text.html#a12940b26428ce59196bf857cf55a7a65":[2,0,150,3],
-"struct_replay_bar_text.html#a778b7e58a9efc0ad4eb690b10816993a":[2,0,150,0],
-"struct_replay_bar_text.html#a8ea6b6e212c04c0193f3bd6e854ac3f8":[2,0,150,1],
-"struct_replay_bar_text.html#ae34cbc61ce6fc8e13ac2c3ff0a5ac4ba":[2,0,150,2]
+"struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874":[2,0,149,0]
 };

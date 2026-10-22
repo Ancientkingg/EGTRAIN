@@ -391,7 +391,13 @@ between two updates.</p>
 canvas to select it, in the preview as well as during a run. The matching
 inspector opens and a light blue ring marks the item. Its title reads
 <code class="docutils literal notranslate"><span class="pre">Preview:</span> <span class="pre">&lt;kind&gt;</span> <span class="pre">&lt;id&gt;</span> <span class="pre">(not</span> <span class="pre">running)</span></code> in the preview and Node Info, Station Node
-Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. The ring keeps its size at
+Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. A
+signal of the preview is named by the label of its section, as in
+<code class="docutils literal notranslate"><span class="pre">Preview:</span> <span class="pre">Signal</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km</span> <span class="pre">(not</span> <span class="pre">running)</span></code> in Paimpol. A signal that
+<code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> lists for the section comes first: <code class="docutils literal notranslate"><span class="pre">sig1</span> <span class="pre">(B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km)</span></code>.
+During a run the inspector names tracks by their scene ids and sections by their
+labels, and the tooltip of a field gives the runtime track number or the section
+id (<a class="reference internal" href="glossary.html#ids-and-labels"><span class="std std-ref">ids and labels</span></a>). The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
 disappears with the layer of its item. Clicking another item moves the ring;
 clicking an empty part of the canvas or closing the inspector removes it. The
@@ -409,7 +415,9 @@ section for as long as a signal failure incident is active. The marks appear whe
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
 canvas shows the last snapshot the simulation delivered, and after the run the
 replay slider shows the heads of the selected time. The tooltip and the signalling
-inspector name the state, and the Map key lists all five.</p>
+inspector name the state, and the Map key lists all five. The tooltip also names
+the track and the sections ahead of and behind the head, as in
+<code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km;</span> <span class="pre">ahead</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km;</span> <span class="pre">behind</span> <span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">0.230</span> <span class="pre">km</span></code>.</p>
 </section>
 <section id="delay-baseline">
 <h2>Delay baseline<a class="headerlink" href="#delay-baseline" title="Link to this heading">¶</a></h2>

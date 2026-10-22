@@ -556,12 +556,12 @@
 </tr>
 <tr class="row-odd"><td><p>Runtime track number</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
-<td><p>The number that a run gives a track: its place in the list of track ids sorted as text. <strong>Signalling Info</strong> shows it as <strong>Track ID</strong> and <strong>Next track</strong>. It matches the digits of the track id only in scenes with at most ten tracks: in Netherlands, B10 is track 2.</p></td>
+<td><p>The number that a run gives a track: its place in the list of track ids sorted as text. It matches the digits of the track id only in scenes with at most ten tracks: in Netherlands, B10 is track 2. The information panels of a run show the track id, with this number in the tooltip.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The section choices of the dock <strong>Infrastructure</strong>, the <strong>Target</strong> list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.</p>
+<p>The section choices of the dock <strong>Infrastructure</strong>, the <strong>Target</strong> list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. The information panels name a track by its id and a section by its label, and the tooltip of the field gives the runtime track number or the section id. The tooltip of a signal head and its entry in <strong>Edit &gt; Find…</strong> name the sections by their labels, and the ids find it in <strong>Find</strong> too; <strong>Copy section ID</strong> in the context menu of a signal head during a run copies the id. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.</p>
 </section>
 <section id="signalling-area">
 <h3>Signalling area<a class="headerlink" href="#signalling-area" title="Link to this heading">¶</a></h3>

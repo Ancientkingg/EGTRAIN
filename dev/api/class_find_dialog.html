@@ -134,8 +134,7 @@ Signals</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa5ec2e3278ccf89baeb33dc396ea1f79" id="r_aa5ec2e3278ccf89baeb33dc396ea1f79"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa5ec2e3278ccf89baeb33dc396ea1f79">FindDialog</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:aa5ec2e3278ccf89baeb33dc396ea1f79"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty dialog; setLabels gives it the names.  <br /></td></tr>
-<tr class="memitem:aee3f775d406703a7883046a612e93b69" id="r_aee3f775d406703a7883046a612e93b69"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aee3f775d406703a7883046a612e93b69">setLabels</a> (const QStringList &amp;labels)</td></tr>
-<tr class="memdesc:aee3f775d406703a7883046a612e93b69"><td class="mdescLeft">&#160;</td><td class="mdescRight">The names to search; the field and the list start empty.  <br /></td></tr>
+<tr class="memitem:a787091e23248c70ca07f27da4dd74fdf" id="r_a787091e23248c70ca07f27da4dd74fdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a787091e23248c70ca07f27da4dd74fdf">setLabels</a> (const QStringList &amp;labels, const QStringList &amp;keys=QStringList())</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -143,7 +142,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="memdesc:aab94ad10a8c557a3a24d1e046c7819e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Passes Up and Down from the field to the list, and chooses the current name on Enter in the list.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A search field over the names of the items on the canvas. The list shows the names that contain every word of the field, ignoring case; Up and Down choose one, and Enter or a double click hands it back and closes the dialog. </p>
+<div class="textblock"><p>A search field over the names of the items on the canvas. The list shows the names that contain every word of the field, ignoring case, in the name or in the keys of the item; Up and Down choose one, and Enter or a double click hands it back and closes the dialog. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa5ec2e3278ccf89baeb33dc396ea1f79" name="aa5ec2e3278ccf89baeb33dc396ea1f79"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa5ec2e3278ccf89baeb33dc396ea1f79">&#9670;&#160;</a></span>FindDialog()</h2>
@@ -236,8 +235,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="aee3f775d406703a7883046a612e93b69" name="aee3f775d406703a7883046a612e93b69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee3f775d406703a7883046a612e93b69">&#9670;&#160;</a></span>setLabels()</h2>
+<a id="a787091e23248c70ca07f27da4dd74fdf" name="a787091e23248c70ca07f27da4dd74fdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a787091e23248c70ca07f27da4dd74fdf">&#9670;&#160;</a></span>setLabels()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -245,13 +244,16 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void FindDialog::setLabels </td>
           <td>(</td>
-          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>labels</em></span></td><td>)</td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>labels</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>keys</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QStringList()</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The names to search; the field and the list start empty. </p>
+<p>The names to search, and by index the keys that find a name without being shown, such as the ids of the sections that a signal names by their labels. The field and the list start empty. </p>
 
 </div>
 </div>

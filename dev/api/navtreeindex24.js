@@ -1,5 +1,13 @@
 var NAVTREEINDEX24 =
 {
+"struct_track_preview_result.html#aefab11d3318d02f2bd6852abdc42f201":[2,0,294,2],
+"struct_track_preview_signal.html":[2,0,295],
+"struct_track_preview_signal.html#a0d087215adbc1d544332687196f30caa":[2,0,295,4],
+"struct_track_preview_signal.html#a5be5c711acb137b4ba09c55021942143":[2,0,295,1],
+"struct_track_preview_signal.html#a642cca1bb5aeaa3be4a917ad04b02cf8":[2,0,295,3],
+"struct_track_preview_signal.html#a6fefa9c28fb59c9abed558d11f68dc99":[2,0,295,2],
+"struct_track_preview_signal.html#ac7f95b45fe5de11472d4b9a49b19ad37":[2,0,295,0],
+"struct_track_preview_signal.html#aeb7bccbca5be67865e3218858d384975":[2,0,295,5],
 "struct_track_preview_station.html":[2,0,296],
 "struct_track_preview_station.html#a2e5fd5c2d97662e46fb1595e18555b4b":[2,0,296,1],
 "struct_track_preview_station.html#a3ba3d0760bd3af04bf64b1c7c5700191":[2,0,296,3],

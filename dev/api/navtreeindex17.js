@@ -1,5 +1,10 @@
 var NAVTREEINDEX17 =
 {
+"classtelemetry_1_1_worker.html#aedfc4de3e0098e0a52fff6693116816a":[2,0,3,13,16],
+"classtelemetry_1_1_worker.html#af265b516e8e95617dd803e689924c97d":[1,0,13,13,35],
+"classtelemetry_1_1_worker.html#af265b516e8e95617dd803e689924c97d":[2,0,3,13,35],
+"classtelemetry_1_1_worker.html#af4ed814cad7bac5fecd430d2587f2acf":[1,0,13,13,26],
+"classtelemetry_1_1_worker.html#af4ed814cad7bac5fecd430d2587f2acf":[2,0,3,13,26],
 "classtelemetry_1_1_worker.html#af69c3e1d64c6f01b1d4cbb34e318c2f1":[1,0,13,13,2],
 "classtelemetry_1_1_worker.html#af69c3e1d64c6f01b1d4cbb34e318c2f1":[2,0,3,13,2],
 "dir_1948df3512c5e67e4e193fcd5f36c8c2.html":[3,0,3],
@@ -244,10 +249,5 @@ var NAVTREEINDEX17 =
 "namespace_windows_staging.html#af8fe5bc4930c40af47e2754779c28e07":[1,0,17,2],
 "namespacecannot__open.html":[1,0,0],
 "namespacecannot__open.html#a205e5ea6c4bdc873c4200c4abbec104a":[1,0,0,0],
-"namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c":[1,0,0,1],
-"namespacecsv.html":[1,0,1],
-"namespacecsv.html#a083f920cc55c160f15960d1e14d76408":[1,0,1,4],
-"namespacecsv.html#a1ff114a5b112a6506551627e965e8200":[1,0,1,5],
-"namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685":[1,0,1,1],
-"namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a":[1,0,1,2]
+"namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c":[1,0,0,1]
 };

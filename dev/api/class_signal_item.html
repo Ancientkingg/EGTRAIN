@@ -161,12 +161,18 @@ Public Member Functions</h2></td></tr>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a91bcf34ddfe3eed73c3e1339fd38b9e4" id="r_a91bcf34ddfe3eed73c3e1339fd38b9e4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a91bcf34ddfe3eed73c3e1339fd38b9e4">trackID</a></td></tr>
 <tr class="memdesc:a91bcf34ddfe3eed73c3e1339fd38b9e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the signal in the run; -1 in the preview.  <br /></td></tr>
+<tr class="memitem:a60f3da81dae95e653a5d068aa70e06d4" id="r_a60f3da81dae95e653a5d068aa70e06d4"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a60f3da81dae95e653a5d068aa70e06d4">sceneTrackId</a></td></tr>
+<tr class="memdesc:a60f3da81dae95e653a5d068aa70e06d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id in the scene of that track line; empty without one.  <br /></td></tr>
 <tr class="memitem:ac45bc3dbbbd01724617d3f687a53b773" id="r_ac45bc3dbbbd01724617d3f687a53b773"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac45bc3dbbbd01724617d3f687a53b773">X</a></td></tr>
 <tr class="memdesc:ac45bc3dbbbd01724617d3f687a53b773"><td class="mdescLeft">&#160;</td><td class="mdescRight">The position of the signal along its track line in kilometres; -1 until it is set.  <br /></td></tr>
 <tr class="memitem:ab0e8af97a9cb7aecc30af2fa4f1ce8dd" id="r_ab0e8af97a9cb7aecc30af2fa4f1ce8dd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab0e8af97a9cb7aecc30af2fa4f1ce8dd">sectionAheadId</a></td></tr>
 <tr class="memdesc:ab0e8af97a9cb7aecc30af2fa4f1ce8dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the block section ahead of the head in its direction; empty without one.  <br /></td></tr>
 <tr class="memitem:a2122d5543de2913397145a486edd26d6" id="r_a2122d5543de2913397145a486edd26d6"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2122d5543de2913397145a486edd26d6">sectionBehindId</a></td></tr>
 <tr class="memdesc:a2122d5543de2913397145a486edd26d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the block section behind the head; empty without one.  <br /></td></tr>
+<tr class="memitem:a7e4edbe339fa7181f6b42ae5a67224ae" id="r_a7e4edbe339fa7181f6b42ae5a67224ae"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7e4edbe339fa7181f6b42ae5a67224ae">sectionAheadLabel</a></td></tr>
+<tr class="memdesc:a7e4edbe339fa7181f6b42ae5a67224ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of the section ahead, as sceneSectionLabels gives it; empty without one.  <br /></td></tr>
+<tr class="memitem:ae63f7b473bc79f9128802de5d747d761" id="r_ae63f7b473bc79f9128802de5d747d761"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae63f7b473bc79f9128802de5d747d761">sectionBehindLabel</a></td></tr>
+<tr class="memdesc:ae63f7b473bc79f9128802de5d747d761"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of the section behind; empty without one.  <br /></td></tr>
 <tr class="memitem:ade5daf5414baff4bf5664ab5df4cbfb2" id="r_ade5daf5414baff4bf5664ab5df4cbfb2"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ade5daf5414baff4bf5664ab5df4cbfb2">sectionAheadLength</a></td></tr>
 <tr class="memdesc:ade5daf5414baff4bf5664ab5df4cbfb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of the section ahead as the run gives it, a difference of positions in kilometres; 0 without one.  <br /></td></tr>
 <tr class="memitem:a92eed40c52ca34aecab30d2e5d39723f" id="r_a92eed40c52ca34aecab30d2e5d39723f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a92eed40c52ca34aecab30d2e5d39723f">sectionBehindLength</a></td></tr>
@@ -368,7 +374,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>That text, or without one a text of the track line, the position in kilometres and the sections ahead and behind. </p>
+<p>That text, or without one a text of the track line, the position in kilometres and the sections ahead and behind: "Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km". The track is named by sceneTrackId and a section by its label, or by the number and the id without them. </p>
 
 </div>
 </div>
@@ -568,6 +574,22 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a60f3da81dae95e653a5d068aa70e06d4" name="a60f3da81dae95e653a5d068aa70e06d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60f3da81dae95e653a5d068aa70e06d4">&#9670;&#160;</a></span>sceneTrackId</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string SignalItem::sceneTrackId</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The id in the scene of that track line; empty without one. </p>
+
+</div>
+</div>
 <a id="ab0e8af97a9cb7aecc30af2fa4f1ce8dd" name="ab0e8af97a9cb7aecc30af2fa4f1ce8dd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab0e8af97a9cb7aecc30af2fa4f1ce8dd">&#9670;&#160;</a></span>sectionAheadId</h2>
 
@@ -581,6 +603,22 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The id of the block section ahead of the head in its direction; empty without one. </p>
+
+</div>
+</div>
+<a id="a7e4edbe339fa7181f6b42ae5a67224ae" name="a7e4edbe339fa7181f6b42ae5a67224ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e4edbe339fa7181f6b42ae5a67224ae">&#9670;&#160;</a></span>sectionAheadLabel</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string SignalItem::sectionAheadLabel</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The label of the section ahead, as sceneSectionLabels gives it; empty without one. </p>
 
 </div>
 </div>
@@ -629,6 +667,22 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The id of the block section behind the head; empty without one. </p>
+
+</div>
+</div>
+<a id="ae63f7b473bc79f9128802de5d747d761" name="ae63f7b473bc79f9128802de5d747d761"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae63f7b473bc79f9128802de5d747d761">&#9670;&#160;</a></span>sectionBehindLabel</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string SignalItem::sectionBehindLabel</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The label of the section behind; empty without one. </p>
 
 </div>
 </div>

@@ -128,10 +128,27 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a5be5c711acb137b4ba09c55021942143"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node at the start of the section; empty when none lies there.  <br /></td></tr>
 <tr class="memitem:a6fefa9c28fb59c9abed558d11f68dc99" id="r_a6fefa9c28fb59c9abed558d11f68dc99"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a6fefa9c28fb59c9abed558d11f68dc99">rawX</a> = 0.0</td></tr>
 <tr class="memdesc:a6fefa9c28fb59c9abed558d11f68dc99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Chainage in kilometres of the start of the section.  <br /></td></tr>
+<tr class="memitem:a0d087215adbc1d544332687196f30caa" id="r_a0d087215adbc1d544332687196f30caa"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a0d087215adbc1d544332687196f30caa">sectionLabel</a></td></tr>
+<tr class="memitem:ac7f95b45fe5de11472d4b9a49b19ad37" id="r_ac7f95b45fe5de11472d4b9a49b19ad37"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac7f95b45fe5de11472d4b9a49b19ad37">label</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A signal on the preview, at the start of a block section. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="ac7f95b45fe5de11472d4b9a49b19ad37" name="ac7f95b45fe5de11472d4b9a49b19ad37"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7f95b45fe5de11472d4b9a49b19ad37">&#9670;&#160;</a></span>label</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string TrackPreviewSignal::label</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>What names the signal: the ids of the authored signals that protect the section with the label in parentheses, "sig1 (B0 0.230 to 0.310 km)", or the label alone when no authored signal does. </p>
+
+</div>
+</div>
 <a id="a5be5c711acb137b4ba09c55021942143" name="a5be5c711acb137b4ba09c55021942143"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5be5c711acb137b4ba09c55021942143">&#9670;&#160;</a></span>nodeId</h2>
 
@@ -177,6 +194,21 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Runtime id of the section that starts there. </p>
+
+</div>
+</div>
+<a id="a0d087215adbc1d544332687196f30caa" name="a0d087215adbc1d544332687196f30caa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d087215adbc1d544332687196f30caa">&#9670;&#160;</a></span>sectionLabel</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string TrackPreviewSignal::sectionLabel</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The label of the section, as sceneSectionLabels gives it. </p>
 
 </div>
 </div>

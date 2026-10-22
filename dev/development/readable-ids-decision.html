@@ -808,7 +808,22 @@
 <li><p>Where labels are listed together, in the note on ambiguous reference sections, the note on sections without a usable extent and the governing resources of <strong>Capacity by area</strong>, they are joined with semicolons, since a switch label holds a comma. The id forms keep their commas.</p></li>
 <li><p>The tooltip of a choice field leaves out a line that repeats an earlier one, so a field whose item and field tooltips are equal shows that text once.</p></li>
 </ul>
-<p>Part 2, the preview, the run inspector, the signal tooltips, <strong>Find</strong> and <strong>Copy section ID</strong>, is still to come.</p>
+</section>
+<section id="part-2">
+<h2>Part 2<a class="headerlink" href="#part-2" title="Link to this heading">¶</a></h2>
+<p>Part 2 made the preview item of step 2 and all of step 3. On Paimpol:</p>
+<ul class="simple">
+<li><p>A signal of the preview keeps the label of its section and its name by rule 7 (<code class="docutils literal notranslate"><span class="pre">TrackPreviewSignal</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/TrackPreview.h</span></code>). The first signal of B0 has the inspector title “Preview: Signal B0 0.230 to 0.310 km (not running)”. <strong>Protected section</strong> and <strong>ID of Block Section</strong> show “B0 0.230 to 0.310 km”, their tooltips add “Section ID: &#64;1-B0&#64;”, and the details keep “Track B0; section &#64;1-B0&#64;; forward; authored signal IDs: None”. The tooltip of the head starts with “Track B0 at 0.23 km; section B0 0.230 to 0.310 km”, and its context menu is called “Preview: B0 0.230 to 0.310 km”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">showRuntime</span></code> builds the labels from the scene of the run and gives each signal head the scene track id and the labels of its sections (<code class="docutils literal notranslate"><span class="pre">graphics/items/SignalItem.h</span></code>). The tooltip of the forward head at 0.23 km starts with “Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km”.</p></li>
+<li><p><strong>Signalling Info</strong>, Node Info, Station Node Info, Arc Info and Connection Info show scene track ids and labels. A field that shows one has the text as its tooltip and, below it, “Runtime track number: 0” or “Section ID: &#64;1-B0&#64;”. <strong>Connected signals</strong> of an arc joins its labels with semicolons and lists the ids in the tooltip.</p></li>
+<li><p><strong>Find</strong> lists a signal with the labels and finds it by the ids of its sections too, which it does not show. It names the track of a station node by its scene id: “Station: Brelidy-Plouec (track B0)”.</p></li>
+<li><p>The signal menu of a run has <strong>Copy section ID</strong>. It copies the id of the section ahead of the head, or of the section behind it when there is none ahead: the section that <strong>Protected section</strong> shows.</p></li>
+</ul>
+<p>Where part 2 differs from the plan:</p>
+<ul class="simple">
+<li><p>The examples in <a class="reference internal" href="#the-problem">The problem</a> and in the table name the signal at 0.23 km by <code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code>. A signal of the preview stands at the start of the section it names, and the first section of a track has no signal, so that signal names <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code>. In a run the reversed head at 0.23 km has <code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code> ahead and <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code> behind, not “behind none”.</p></li>
+<li><p>The table keeps the id of a signal only in the inspector. <strong>Find</strong> also matches the ids, so a search for <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code> still finds the heads of that section.</p></li>
+</ul>
 </section>
 <section id="open-questions">
 <h2>Open questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
@@ -896,6 +911,7 @@
 <li><a class="reference internal" href="#what-does-not-change">What does not change</a></li>
 <li><a class="reference internal" href="#implementation-plan">Implementation plan</a></li>
 <li><a class="reference internal" href="#where-part-1-differs-from-the-plan">Where part 1 differs from the plan</a></li>
+<li><a class="reference internal" href="#part-2">Part 2</a></li>
 <li><a class="reference internal" href="#open-questions">Open questions</a></li>
 </ul>
 </li>
