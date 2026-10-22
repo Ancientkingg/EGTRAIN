@@ -215,6 +215,18 @@ The exports gain no label column in this step. Scripts join the CSV rows on the 
 
 Verification for the code change: build, CTest, `tools/e2e/visual_polish_smoke.sh`, `tools/e2e/headless_smoke.py` and `tools/e2e/roundtrip_smoke.py`, and a check of the inspector, the **Target** list, the three choosers and the strip on Paimpol and Netherlands in the application.
 
+## Where part 1 differs from the plan
+
+Part 1 of the change made steps 1 and 4, step 2 without the preview, and the documentation of step 5. It differs from the plan in these points:
+
+- `SceneSectionLabels` is in its own header, `scene/SectionLabels.h`, which `scene/SectionInventory.h` includes. The result windows include it after Qt headers, and Qt's `signals` macro breaks `scene/SceneModel.h`, which has a member of that name.
+- `SceneSectionLabels::labelWithId` gives the label with the id in parentheses, "B0 0.000 to 0.230 km (@0-B0@)", for the strip hover, the notes and the envelope hover. A label that already ends with the id, by rule 5, keeps it once.
+- The **Target** list of a signal failure names an authored signal by its id and the label of its protected section, "sig1 (T1 0.000 to 1.000 km)", as rule 7 says. A signal without a protected section shows its id.
+- Where labels are listed together, in the note on ambiguous reference sections, the note on sections without a usable extent and the governing resources of **Capacity by area**, they are joined with semicolons, since a switch label holds a comma. The id forms keep their commas.
+- The tooltip of a choice field leaves out a line that repeats an earlier one, so a field whose item and field tooltips are equal shows that text once.
+
+Part 2, the preview, the run inspector, the signal tooltips, **Find** and **Copy section ID**, is still to come.
+
 ## Open questions
 
 - Station context for route choosers. The stations of a route are known in travel order (`sceneRouteStations`, `scene/SectionInventory.h:194`), so a chooser could show "Guingamp to Gourland" beside the label of each block of a route. In Netherlands, Amsterdam_Hilversum_Student and Assignment_Gvc_Gdg_Ut the station names are codes.
