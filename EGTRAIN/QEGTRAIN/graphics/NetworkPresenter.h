@@ -15,6 +15,7 @@
 #include <QTimer>
 
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -158,22 +159,27 @@ public:
 	/// trains can be updated alone.
 	///
 	/// A live train glides along its route at an even speed from where it is drawn to its new place, drawn wagon by
-	/// wagon where it is at the moment, as getTrainPolygon() draws it at an update, with its badge and its callouts. The
-	/// glide lasts several recent update intervals, up to a bound, so that the next update, which starts the next glide
-	/// from where the train is then drawn, gives it a speed close to the one before, also when the updates come unevenly
-	/// or bring uneven steps of simulated time; the speed still changes a little at each update. The train trails its
-	/// newest place by a few updates. At the highest speeds that is a long way, so the occupied track and the signal
-	/// aspects, which show the newest state, can run well ahead of the drawn train. An update that leaves the train at
-	/// its place keeps the glide that runs, and without a new update, as at a pause, the train also goes on to that
-	/// place; it stops there when the glide ends. A train that has just appeared, has another route or direction, runs
-	/// backwards, or has moved further than the visible view since its last update is placed at once, and so is every
-	/// train of a replay.
+	/// wagon where it is at the moment, as getTrainPolygon() draws it at an update, with its badge and its callouts.
+	/// The glide lasts several recent update intervals, up to a bound, so that the next update, which starts the next
+	/// glide from where the train is then drawn, gives it a speed close to the one before, also when the updates come
+	/// unevenly or bring uneven steps of simulated time; the speed still changes a little at each update. An update
+	/// does not move a train on its way that the last step drew: the next glide starts where that step drew it, at the
+	/// time of that step, so that on screen only the steps of stepTrains() move it, each as far as the time since the
+	/// step before. A train that the last step did not draw, as when the event loop is busy or the train is far
+	/// outside the visible scene, goes on from where its glide is at the update. The train trails its newest
+	/// place by a few updates. At the highest speeds that is a long way, so the occupied track and the signal aspects,
+	/// which show the newest state, can run well ahead of the drawn train. An update that leaves the train at its place
+	/// keeps the glide that runs, and without a new update, as at a pause, the train also goes on to that place; it
+	/// stops there when the glide ends. A train that has just appeared, has another route or direction, runs backwards,
+	/// or has moved further than the visible view since its last update is placed at once, and so is every train of a
+	/// replay.
 	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
 
 	/// Moves every live train that is in motion to where it is at the moment, and tells the host where a promoted one
 	/// is drawn. A train far outside the visible scene is drawn again only at the next update or when it stops. A
 	/// timer of the presenter calls it about once a frame while a train moves, at a pace that the updates do not
-	/// change, and every live update moves the trains too; a test calls it with the clock of setClock().
+	/// change. A live update does not move a train on its way that the last step drew; a test calls it with the clock
+	/// of setClock().
 	void stepTrains();
 	/// Whether the train moves towards the place of its last update, so that stepTrains() still moves it.
 	bool trainMoving(int train) const;
@@ -446,7 +452,8 @@ private:
 	};
 	// A train that is drawn on its route: the state of its last update, and its glide from fromHead, the position of its
 	// head along the route in metres at the time fromMs, to the head of that state at toMs. It is drawn with its head at
-	// drawnHead, from drawn, the state of the last update with the positions of the wagons there.
+	// drawnHead, from drawn, the state of the last update with the positions of the wagons there. drawnMs is the time of
+	// the last step if that step drew the train and no update came since, and otherwise the oldest time.
 	struct TrainMotion {
 		GuiTrainState newest;
 		GuiTrainState drawn;
@@ -454,6 +461,7 @@ private:
 		qint64 fromMs = 0;
 		qint64 toMs = 0;
 		double drawnHead = 0.0;
+		qint64 drawnMs = std::numeric_limits<qint64>::min();
 	};
 	// The motion of each train that is drawn on its route, by train index.
 	std::unordered_map<int, TrainMotion> m_trainMotions;

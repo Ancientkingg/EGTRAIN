@@ -108,8 +108,8 @@ bool hasPlatformBar(const std::string& stationName, const std::string& platformI
 // one, kept between these bounds. Up to 120 ms between updates the next update then comes well before the glide ends,
 // and the glide that it starts has nearly the speed of the one before, also when the updates come unevenly or bring
 // uneven steps of simulated time. Above that the longest bound applies, so the glide spans fewer updates: at the
-// slowest speed, 2x, the updates come every 500 ms and the next one comes 100 ms before the glide ends. The longest
-// bound is a little above that interval.
+// slowest speed, 2x, the updates come every 500 ms and the next one comes about 100 ms before the glide ends, which
+// starts at the update or at the step before it. The longest bound is a little above that interval.
 constexpr double kGlideFactor = 5.0;
 constexpr qint64 kMinGlideMs = 16;
 constexpr qint64 kMaxGlideMs = 600;
@@ -120,7 +120,8 @@ constexpr qint64 kMaxUpdateIntervalMs = 1000;
 // The number of update intervals that the glide is measured over.
 constexpr std::size_t kMeasuredIntervals = 8;
 // The time between two steps of the motion of the trains, about one frame. The timer runs on at this interval while a
-// train moves, whenever the updates come.
+// train moves, whenever the updates come. An update leaves a gliding train that the last step drew where it is, so
+// that a frame that follows an update shows no more motion than another.
 constexpr int kMotionStepMs = 16;
 
 // The X in kilometres of the point at the position q along a route, in metres, as the simulation finds the end of a
@@ -2200,7 +2201,7 @@ void NetworkPresenter::setClock(Clock clock) {
 	m_lastUpdateMs = -1;
 	for (auto& entry : m_trainMotions) {
 		entry.second.fromHead = entry.second.newest.routeAxisPosition;
-		entry.second.fromMs = entry.second.toMs = std::numeric_limits<qint64>::min();
+		entry.second.fromMs = entry.second.toMs = entry.second.drawnMs = std::numeric_limits<qint64>::min();
 	}
 }
 
@@ -2335,9 +2336,10 @@ void NetworkPresenter::stepTrains() {
 	QEGTRAIN_PROFILE_SCOPE("gui/train_motion/step", "gui", "");
 	const qint64 at = nowMs();
 	// The scene around the visible scene, as far again on every side. The steps do not move a train that is drawn
-	// beyond it: the next update draws every train where its glide then is, and a step draws it when its glide ends. A
-	// train can be drawn further than this margin behind its newest place, so one that glides into the view from beyond
-	// it shows there only at the next update, or at a pause only when its glide ends.
+	// beyond it: the next update draws it where its glide then is, as it draws every train that the last step did not
+	// draw, and a step draws it when its glide ends. A train can be drawn further than this margin behind its newest
+	// place, so one that glides into the view from beyond it shows there only at the next update, or at a pause only
+	// when its glide ends.
 	QRectF around;
 	if (m_view) {
 		const QRectF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect();
@@ -2349,6 +2351,7 @@ void NetworkPresenter::stepTrains() {
 		const double head = glideHead(motion, at);
 		const bool stops = head == motion.newest.routeAxisPosition;
 		moving = moving || !stops;
+		motion.drawnMs = std::numeric_limits<qint64>::min();
 		TrainItemGroup* trainItem = head == motion.drawnHead ? nullptr : trainGroup(train);
 		if (!trainItem)
 			continue;
@@ -2358,6 +2361,7 @@ void NetworkPresenter::stepTrains() {
 			if (!m_trainLayerVisible || (!around.isNull() && !drawn.isEmpty() && !around.intersects(drawn)))
 				continue;
 		}
+		motion.drawnMs = at;
 		drawTrain(*trainItem, motion, head);
 		if (promoted)
 			m_host->trainMoved(train, trainCenter(train));
@@ -3183,7 +3187,6 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				bool moves = !replay && last && last->newest.routeIndex == state.routeIndex
 					&& last->newest.reversedDirection == state.reversedDirection && last->newest.wagonCount == state.wagonCount
 					&& last->newest.length == state.length && state.routeAxisPosition >= last->newest.routeAxisPosition - 1e-6;
-				const double drawnHead = moves ? glideHead(*last, now) : state.routeAxisPosition;
 				if (moves) {
 					RoutePath path;
 					moves = routePath(state.routeIndex, state.reversedDirection,
@@ -3191,14 +3194,26 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 								middleOnRoute(state.routeIndex, state.routeAxisPosition, state.length), path)
 						&& path.lengths.back() <= longestGlide();
 				}
+				// A train on its way that the last step drew, with no update since, stays where it is drawn, and its new
+				// glide starts there at the time of that step, so that only the steps move it on screen and each step
+				// moves it as far as the time since the step before. Any other train that goes on, as one that stands
+				// or one that the last step did not draw, because it was far from the view or because no step ran
+				// since the last update, goes on from where its glide is now.
+				const bool held = moves && last->drawnHead != last->newest.routeAxisPosition
+					&& last->drawnMs != std::numeric_limits<qint64>::min();
+				const qint64 from = held ? last->drawnMs : now;
+				double drawnHead = moves ? glideHead(*last, now) : state.routeAxisPosition;
+				if (held)
+					drawnHead = last->drawnHead;
 				TrainMotion& motion = m_trainMotions[train];
 				// An update that leaves the train at its place keeps the glide that runs, so that a train that stops
 				// reaches its place when that glide ends and then stands still.
 				if (moves && state.routeAxisPosition == motion.newest.routeAxisPosition)
 					startGlide(motion, state, motion.fromMs, motion.fromHead, motion.toMs - motion.fromMs);
 				else
-					startGlide(motion, state, now, drawnHead, moves ? glideDurationMs() : 0);
-				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, moves ? drawnHead : state.routeAxisPosition);
+					startGlide(motion, state, from, drawnHead, moves ? glideDurationMs() : 0);
+				motion.drawnMs = std::numeric_limits<qint64>::min();
+				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, drawnHead);
 				checkVCouplingMsg(trainItem, state, snapshot, t);
 				if (TrainBadgeItem* badge = m_trainBadges.value(train, nullptr)) {
 					badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(state)));
