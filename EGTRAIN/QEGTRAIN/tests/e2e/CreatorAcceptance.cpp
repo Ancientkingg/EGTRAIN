@@ -90,6 +90,7 @@
 #include <QTransform>
 #include <QTreeWidgetItem>
 #include <QWidget>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
 #include <QtCharts/QValueAxis>
@@ -2261,8 +2262,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("compressed capacity diagram has no section boundaries"));
 			return;
 		}
-		// The compressed diagram has the distance axis of the blocking-time diagram. Its time axis spans the compressed
-		// blocking times, which start about a minute after the run start in this run, so it does not start at 0 s.
+		// The compressed diagram has the position axis of the blocking-time diagram, with labels. Its time axis spans the
+		// compressed blocking times, which start about a minute after the run start in this run, so it does not start at 0 s.
 		const auto axisOf = [](const QChartView* view, Qt::Orientation orientation) -> const QValueAxis* {
 			const auto axes = view ? view->chart()->axes(orientation) : QList<QAbstractAxis*>();
 			return axes.isEmpty() ? nullptr : qobject_cast<const QValueAxis*>(axes.first());
@@ -2280,9 +2281,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					earliestEnvelope = std::min(earliestEnvelope, point.y());
 					latestEnvelope = std::max(latestEnvelope, point.y());
 				}
+		const auto* compressedPosition = qobject_cast<const QCategoryAxis*>(compressedX);
 		if (!blockingX || !compressedX || compressedX->titleText() != blockingX->titleText()
-			|| !compressedX->titleText().startsWith(QStringLiteral("Distance along ")) || !compressedX->titleText().contains(QStringLiteral("(km)"))) {
-			fail(QStringLiteral("the compressed diagram does not have the distance axis of the blocking-time diagram: ")
+			|| compressedX->titleText() != QStringLiteral("Position (km)") || !compressedPosition || compressedPosition->count() < 2) {
+			fail(QStringLiteral("the compressed diagram does not have the position axis of the blocking-time diagram: ")
 				+ (compressedX ? compressedX->titleText() : QStringLiteral("no axis")));
 			return;
 		}
@@ -2295,10 +2297,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(latestEnvelope));
 			return;
 		}
-		// A moved block keeps its simulated approach, run and clearance times, so its hover says so.
+		// A moved block keeps its simulated approach, run and clearance times, so its hover says so. The hover also gives the
+		// position of the block's own ends.
 		int simulatedTimeLines = 0;
+		int positionLines = 0;
 		for (QAbstractSeries* series : compressedView->chart()->series())
 			for (const QString& line : series->property("inspectionInterval").toString().split('\n')) {
+				if (line.startsWith(QStringLiteral("Position ")) && line.endsWith(QStringLiteral(" km"))) ++positionLines;
 				if (!line.contains(QStringLiteral("clearance to "))) continue;
 				if (!line.startsWith(QStringLiteral("As simulated: "))) {
 					fail(QStringLiteral("a compressed block gives its times without saying they are simulated: ") + line);
@@ -2308,6 +2313,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 		if (simulatedTimeLines == 0) {
 			fail(QStringLiteral("no compressed block hover gives the simulated times"));
+			return;
+		}
+		if (positionLines == 0) {
+			fail(QStringLiteral("no compressed block hover gives the position of the block"));
 			return;
 		}
 		// The legend under the plot explains the block colours: conflicts on the blocking-time chart, capacity-critical

@@ -395,6 +395,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	result.segments = projectBlockingSegments(scoped, maps.byTrain, result.omitted, &result.unmapped);
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
 	result.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
+	result.routeSectionCount = static_cast<int>(allExtents.size());
 	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id, &data.sectionLabels);
 	if (!scope.sectionIndices.empty())
 		result.segments.erase(std::remove_if(result.segments.begin(), result.segments.end(),
@@ -421,6 +422,7 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	diagram.segments = projectBlockingSegments(shifted, maps.byTrain, diagram.omitted, &diagram.unmapped);
 	const auto allExtents = buildBlockSectionExtents(route.blocks);
 	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
+	diagram.routeSectionCount = static_cast<int>(allExtents.size());
 	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id, &data.sectionLabels);
 	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back.
 	std::map<std::string, double> shifts;

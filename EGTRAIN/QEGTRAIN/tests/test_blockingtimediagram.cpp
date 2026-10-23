@@ -313,6 +313,34 @@ static bool blockSectionTests() {
 	return ok;
 }
 
+// The short ids of the section strip, and its station, critical and conflict marks.
+static bool stripTests() {
+	bool ok = true;
+	ok &= expect(shortBlockId("@71-B0@-21.235000/@0-B1@-21.252000") == "71-B0/0-B1" && shortBlockId("@35-B0@") == "35-B0"
+			&& shortBlockId("plain") == "plain" && shortBlockId("").empty(),
+		"the short id joins the blocks of a switch section with a slash and keeps a plain id");
+	const auto extents = buildBlockSectionExtents({{"@a@", 0, 1}, {"@b@", 1, 2}, {"@c@", 2, 3}, {"@d@", 3, 4}});
+	BlockingTimeDiagramSegment critical = envelope("@b@", 1, 2);
+	critical.referenceSection = 2;
+	critical.capacityCritical = true;
+	BlockingTimeDiagramSegment conflict = envelope("@c@", 2, 3);
+	conflict.referenceSection = 3;
+	conflict.style = BlockingTimeSegmentStyle::CriticalStation;
+	BlockingTimeDiagramSegment plain = envelope("@d@", 3, 4);
+	plain.referenceSection = 4;
+	plain.style = BlockingTimeSegmentStyle::Station;
+	const auto compressed = blockSectionMarks(extents, {critical, conflict, plain}, {0.5, 4.0}, true);
+	ok &= expect(compressed.size() == 4 && compressed[0].station && !compressed[1].station && !compressed[2].station && compressed[3].station,
+		"a section holding a station of the route, ends included, is a station section");
+	ok &= expect(compressed[1].critical && !compressed[1].conflict && !compressed[0].critical && !compressed[3].critical,
+		"a capacity-critical blocking time of a compressed chart marks its section critical");
+	ok &= expect(compressed[2].conflict && !compressed[3].conflict, "a conflicting blocking time marks its section");
+	const auto ordinary = blockSectionMarks(extents, {critical, conflict}, {}, false);
+	ok &= expect(!ordinary[1].critical && !ordinary[1].conflict && ordinary[2].conflict && !ordinary[0].station,
+		"an ordinary chart has no critical block");
+	return ok;
+}
+
 int main() {
 	std::vector<std::vector<BlockingTimeDiagramInput>> trains = {
 		{
@@ -405,6 +433,7 @@ int main() {
 	ok &= expect(buildBlockingTimeDiagramSegments({{missing, nonfinite, nonfiniteClearance}}, {"R"}).empty(),
 		"missing clearance and nonfinite geometry cannot be rendered as measured envelopes");
 	ok &= blockSectionTests();
+	ok &= stripTests();
 	if (!ok)
 		return 1;
 

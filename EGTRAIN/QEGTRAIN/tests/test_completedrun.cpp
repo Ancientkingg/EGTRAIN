@@ -1202,6 +1202,7 @@ void testCompressedDiagram() {
 	check(diagram && diagram->referencePath.id == "r" && diagram->extents.size() == 2 && diagram->segments.size() == 4
 			&& diagram->plannedReferences.empty() && diagram->plannedLines.empty(),
 		"the compressed envelopes on the sections of the scope, without planned references");
+	check(diagram && diagram->routeSectionCount == 2, "the compressed strip counts the sections of the whole route");
 	if (!diagram)
 		return;
 	const auto followerOnC = std::find_if(diagram->segments.begin(), diagram->segments.end(),
@@ -1241,6 +1242,7 @@ void testRepeatedResource() {
 	check(diagram && diagram->segments.size() == 1 && diagram->segments[0].startTime == 10.0 && diagram->segments[0].referenceSection == 1,
 		"the first section keeps the first envelope of X");
 	check(diagram && diagram->extents.size() == 1 && diagram->extents[0].id == "X" && diagram->extents[0].startKm == 0.0, "the extent of the first section");
+	check(diagram && diagram->routeSectionCount == 3, "the strip counts the sections of the whole route");
 	scope.sectionIndices = {2};
 	diagram = blockingTimeDiagramData(data, scope);
 	check(diagram && diagram->segments.size() == 1 && diagram->segments[0].startTime == 30.0 && diagram->segments[0].referenceSection == 3,

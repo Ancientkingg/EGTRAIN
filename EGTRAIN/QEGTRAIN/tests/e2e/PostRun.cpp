@@ -9,6 +9,7 @@
 #include "diagrams/CapacityScope.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunExports.h"
 #include "diagrams/RunResults.h"
@@ -378,13 +379,35 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			QApplication::processEvents();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			ok = windows.size() == 2;
+			// The distance axis spans the reference route exactly, and the header names the route after the run.
+			const auto diagram = routeDiagramData(*w.m_runController->m_completedRun, false, reference);
+			ok &= diagram.has_value();
+			const double origin = diagram ? diagram->referencePath.nodes.front().positionKm : 0.0;
+			const double end = diagram ? diagram->referencePath.nodes.back().positionKm : 0.0;
+			const double low = std::min(origin, end), high = std::max(low + 0.02, std::max(origin, end));
+			const QString route = QStringLiteral(" \u00b7 ") + QString::fromStdString(diagram ? diagram->referencePath.id : std::string());
 			for (DiagramWindow* window : windows) {
 				auto* view = window->findChild<QChartView*>();
 				const auto axes = view ? view->chart()->axes(Qt::Vertical) : QList<QAbstractAxis*>();
 				auto* clock = axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
-				ok &= clock && clock->isReverse() && clock->min() == 0
-					&& clock->categoriesLabels().contains(QString::fromStdString(formatSimTime(0, w.m_runController->m_startOffsetSeconds)));
+				// The run start has a tick of its own, which reads HH:MM on a whole minute of an axis in minutes.
+				const QString start = QString::fromStdString(formatSimTime(0, w.m_runController->m_startOffsetSeconds));
+				bool startTick = false;
+				for (const QString& label : clock ? clock->categoriesLabels() : QStringList())
+					startTick = startTick || (clock->endValue(label) == 0 && (label == start || label == start.left(5)));
+				ok &= clock && clock->isReverse() && clock->min() == 0 && clock->titleText() == QStringLiteral("Time (hh:mm)") && startTick;
 				ok &= view && !view->chart()->axes(Qt::Horizontal).isEmpty();
+				const QValueAxis* distance = nullptr;
+				for (QAbstractAxis* axis : view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>())
+					if (axis->alignment() == Qt::AlignBottom) distance = qobject_cast<QValueAxis*>(axis);
+				ok &= distance && distance->titleText() == QStringLiteral("Distance (km)") && distance->min() == low && distance->max() == high;
+				const auto* context = window->findChild<QLabel*>(QStringLiteral("diagramContext"));
+				ok &= context && (context->text().endsWith(route) || context->text().endsWith(route + QStringLiteral(", right to left")));
+				if (!ok)
+					std::fprintf(stderr, "E2E_ROUTE_DIAGRAM_AXES %s: %s %s %g to %g, route %g to %g, context %s\n",
+						window->windowTitle().toStdString().c_str(), clock ? clock->titleText().toStdString().c_str() : "no clock",
+						distance ? distance->titleText().toStdString().c_str() : "no distance axis", distance ? distance->min() : 0.0,
+						distance ? distance->max() : 0.0, low, high, context ? context->text().toStdString().c_str() : "none");
 				if (view) {
 					for (auto* abstractSeries : view->chart()->series()) {
 						auto* line = qobject_cast<QLineSeries*>(abstractSeries);
@@ -461,7 +484,25 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				QApplication::processEvents();
 				ok &= blocking->grab().save(dir + "/blocking_time_window_none.png");
 				const auto* view = blocking->findChild<QChartView*>();
-				ok &= view && view->chart()->findChild<QObject*>("blockSectionOverlay");
+				const QObject* strip = view ? view->chart()->findChild<QObject*>("blockSectionOverlay") : nullptr;
+				ok &= strip != nullptr;
+				// The position axis spans the sections of the scope exactly and reads round positions.
+				const auto diagram = blockingTimeDiagramData(*w.m_runController->m_completedRun,
+					defaultBlockingTimeScopeFrom(*w.m_runController->m_completedRun));
+				const auto range = diagram ? blockSectionAxisRange(diagram->extents, diagram->referencePath) : std::make_pair(0.0, 0.0);
+				const auto horizontal = view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>();
+				const auto* position = horizontal.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(horizontal.first());
+				// The strip marks the sections that hold a station of the reference route.
+				const int stations = strip ? strip->property("stationSections").toInt() : 0;
+				const bool positionOk = position && position->titleText() == QStringLiteral("Position (km)") && position->count() >= 2
+					&& position->min() == range.first && position->max() == range.second && stations > 0;
+				ok &= positionOk;
+				std::fprintf(positionOk ? stdout : stderr,
+					"E2E_BLOCKING_AXIS %s %g to %g, sections %g to %g, %d labels, strip %d rows, %d ids, %d station sections\n",
+					position ? position->titleText().toStdString().c_str() : "no position axis", position ? position->min() : 0.0,
+					position ? position->max() : 0.0, range.first, range.second, position ? position->count() : 0,
+					strip ? strip->property("stripRows").toInt() : 0, strip ? static_cast<int>(strip->property("stripLabels").toStringList().size()) : 0,
+					stations);
 				ok &= filter->visibleTrainIds().isEmpty();
 				for (int row = 0; row < list->count(); ++row) ok &= !list->item(row)->text().startsWith("Key:");
 				blocking->close();

@@ -12,6 +12,7 @@
 #include "diagrams/CapacityScope.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunExports.h"
@@ -75,10 +76,14 @@ ColourKeyEntry blockingKeyEntry(const char* name, const QColor& color) {
 	return {name, fill, color.darker(135)};
 }
 
-// "Distance along route0 (km)", with ", right to left" when the route runs that way. The chart reads axis titles as rich
-// text, so the route id is escaped.
-QString distanceAxisTitle(const std::string& routeId, bool leftward) {
-	return QString("Distance along %1 (km)%2").arg(QString::fromStdString(routeId).toHtmlEscaped(), leftward ? ", right to left" : "");
+// The reference route in the header of a route chart: "route0", with ", right to left" when the route runs that way.
+QString referenceRouteText(const std::string& routeId, bool leftward) {
+	return QString::fromStdString(routeId) + (leftward ? QStringLiteral(", right to left") : QString());
+}
+
+// Asks setChart for the range of the axis as it is, with round ticks inside it.
+void keepExactRange(QValueAxis* axis) {
+	axis->setProperty("exactRange", true);
 }
 
 void appendInspectedPoint(QLineSeries* series, double x, double y, const QString& context) {
@@ -116,7 +121,7 @@ QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, co
 }
 
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
-	bool useCapacityCriticalStyle, const SceneSectionLabels& labels) {
+	bool useCapacityCriticalStyle, const SceneSectionLabels& labels, const PositionScale& scale) {
 	const auto colorFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
 		if (useCapacityCriticalStyle && segment.capacityCritical)
 			return kBlockingCapacityColor;
@@ -174,6 +179,11 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		// The block, when it was blocked, how that time is made up and the section of the reference route, one per line.
 		QStringList lines = {"Block: " + QString::fromStdString(labels.labelWithId(segment.blockId))
 			+ (type.empty() ? QString() : ", " + QString::fromStdString(type))};
+		// The geo X of the block's own ends, also where they stick out of the sections of the chart.
+		if (!scale.empty())
+			lines << QString("Position %1 to %2 km")
+						 .arg(scale.geoAt(segment.startPositionKm, segment.endPositionKm), 0, 'f', 3)
+						 .arg(scale.geoAt(segment.endPositionKm, segment.startPositionKm), 0, 'f', 3);
 		QString blocked = QString("Blocked %1 to %2 s").arg(QString::number(segment.startTime), QString::number(segment.endTime));
 		if (std::abs(segment.originalStartTime - segment.startTime) > kBlockingTimeToleranceSeconds
 			|| std::abs(segment.originalEndTime - segment.endTime) > kBlockingTimeToleranceSeconds)
@@ -465,9 +475,11 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	if (chart->axes(Qt::Horizontal).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignBottom);
 	if (!chart->axes(Qt::Horizontal).isEmpty()) {
 		auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-		axis->setTitleText(distanceAxisTitle(referencePath.id, end < origin));
+		axis->setTitleText(QStringLiteral("Distance (km)"));
+		// The range of the route exactly, with round ticks inside it.
 		const double low = std::min(origin, end), high = std::max(origin, end);
-		axis->setRange(low - 0.01, std::max(low + 0.02, high + 0.01));
+		axis->setRange(low, std::max(low + 0.02, high));
+		keepExactRange(axis);
 	}
 	QValueAxis* axisY = chart->axes(Qt::Vertical).isEmpty() ? new QValueAxis() : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
@@ -499,7 +511,8 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
-	win->setPresentation(heading, completedRunContext(run->provenance));
+	// The header names the run and then the reference route, which the distance axis follows.
+	win->setPresentation(heading, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + referenceRouteText(referencePath.id, end < origin));
 	win->setProperty("manualSection", QStringLiteral("train-paths"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
@@ -558,8 +571,9 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	const auto& trajectoryRows = diagram.trajectoryRows;
 
 	QChart* chart = new QChart();
+	const PositionScale scale(extents);
 
-	addBlockingTimeSeries(chart, segments, compressed, run->sectionLabels);
+	addBlockingTimeSeries(chart, segments, compressed, run->sectionLabels, scale);
 
 	const QColor plannedColors[] = {
 		QColor(36, 117, 181), QColor(205, 92, 92), QColor(46, 139, 87),
@@ -608,12 +622,12 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 		series->attachAxis(axisX);
 		series->attachAxis(axisY);
 	}
-	const double origin = referencePath.nodes.empty() ? 0.0 : referencePath.nodes.front().positionKm;
-	const double end = referencePath.nodes.empty() ? origin : referencePath.nodes.back().positionKm;
-
-	axisX->setTitleText(distanceAxisTitle(referencePath.id, end < origin));
+	// The plot keeps the route distance, exactly over the sections of the scope; the position axis takes the place
+	// of this axis on screen.
+	axisX->setTitleText(QStringLiteral("Distance (km)"));
 	const auto axisRange = blockSectionAxisRange(extents, referencePath);
 	axisX->setRange(axisRange.first, axisRange.second);
+	keepExactRange(axisX);
 
 	axisY->setTitleText("Time (s)");
 	axisY->setReverse(true);
@@ -623,7 +637,13 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	win->setProperty("manualSection", compressed ? QStringLiteral("capacity") : QStringLiteral("blocking-time"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
-	win->setBlockSections(extents, QString::fromStdString(referencePath.id), &run->sectionLabels);
+	// The strip marks the stations of the reference route and the critical and conflicting blocks of the chart.
+	std::vector<double> stationKm;
+	for (const RouteDiagramNode& node : referencePath.nodes)
+		if (!node.stationId.empty()) stationKm.push_back(node.positionKm);
+	win->setBlockSections(extents, QString::fromStdString(referencePath.id), &run->sectionLabels,
+		blockSectionMarks(extents, segments, stationKm, compressed), diagram.routeSectionCount);
+	win->setPositionAxis(scale);
 	// The colours of the blocks show their type, so only the train list takes the service colours.
 	win->setTrainListColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	// A compressed chart has no conflict, as its trains are moved apart until their blocks only touch.

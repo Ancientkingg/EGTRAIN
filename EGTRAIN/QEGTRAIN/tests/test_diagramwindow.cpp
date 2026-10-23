@@ -1,10 +1,13 @@
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/PositionScale.h"
+#include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/TrainFilterButton.h"
 #include "scene/SectionLabels.h"
 #include "widgets/PlainToolTip.h"
 
 #include <QApplication>
 #include <QClipboard>
+#include <QGraphicsLayout>
 #include <QGraphicsObject>
 #include <QFontMetricsF>
 #include <QDir>
@@ -50,8 +53,11 @@
 #include <QValueAxis>
 #include <QWheelEvent>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
+#include <tuple>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition) std::cerr << "failed: " << message << "\n";
@@ -753,11 +759,10 @@ static bool exerciseBlockSections() {
 		const QRectF plot = chart->plotArea();
 		return QPointF(plot.left() + (km - x->min()) / (x->max() - x->min()) * plot.width(), plot.top() + offsetY);
 	};
+	// The strip and its notice stand above the plot, as high as the overlay says.
 	const auto headerPoint = [&](double km, double offsetY) {
 		const auto* layer = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
-		const double height = (QFontMetricsF(window.font()).height() + 10)
-			* (layer->property("geometryNotice").toString().isEmpty() || layer->property("sectionCount").toInt() == 0 ? 1 : 2);
-		return chartPoint(km, offsetY - height);
+		return chartPoint(km, offsetY - layer->property("headerHeight").toDouble());
 	};
 	const auto hover = [&](const QPointF& point) {
 		const QPoint position = view->mapFromScene(chart->mapToScene(point));
@@ -766,9 +771,10 @@ static bool exerciseBlockSections() {
 		return position;
 	};
 	const QPoint header = hover(headerPoint(2, 5));
+	const QString shortAuthored = QString::fromStdString("repeat<&>" + std::string(80, 'X'));
 	ok &= expect(tooltip->isVisible() && tooltip->textFormat() == Qt::PlainText
-			&& tooltip->text().contains(QString::fromStdString(authored))
-			&& tooltip->text().contains("1:") && tooltip->text().contains("2:") && tooltip->text().contains("reference<&>"),
+			&& tooltip->text().startsWith(shortAuthored + "\nBlock section\nSection 1 of 4\nPosition 1.000 to 3.000 km\n")
+			&& tooltip->text().contains("Section 2 of 4") && tooltip->text().contains("1 to 3 km along reference<&>"),
 		"section hover retains full escaped/plain text and both coincident occurrence identities");
 	QString selected;
 	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
@@ -784,7 +790,7 @@ static bool exerciseBlockSections() {
 		"a click on the section strip inspects the section and selects no train");
 	// A boundary inside the plot, away from every sample: the dotted line is inspected but belongs to no train.
 	click(view->mapFromScene(chart->mapToScene(chartPoint(8, chart->plotArea().height() / 2))));
-	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().contains("@reverse@"),
+	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().startsWith("reverse\nBlock section\nSection 3 of 4"),
 		"a click on a physical boundary inside the plot inspects the section and selects no train");
 	// The same click path selects a train when it lands on its series, so the checks above can fail.
 	click(view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(2, 50), first))));
@@ -829,7 +835,7 @@ static bool exerciseBlockSections() {
 		return count;
 	};
 	const double bandTop = headerPoint(0, 0).y();
-	const double rowHeight = QFontMetricsF(window.font()).height() + 10;
+	const double rowHeight = overlay->property("stripHeight").toDouble();
 	ok &= expect(bandPixels(0, bandTop - 2, false) == 0 && bandPixels(bandTop, bandTop + rowHeight, false) > 0
 			&& bandPixels(bandTop + rowHeight, chart->plotArea().top(), true) > 10,
 		"the strip and the geometry notice text paint in the band above the plot and not over the title");
@@ -875,7 +881,7 @@ static bool exerciseBlockSections() {
 		"hiding every train retains section labels and inspection");
 	std::vector<BlockSectionInput> narrowSections;
 	for (int index = 0; index < 40; ++index)
-		narrowSections.push_back({"@n" + std::to_string(index) + "@", index * 0.25, (index + 1) * 0.25});
+		narrowSections.push_back({"@section-n" + std::to_string(index) + "@", index * 0.25, (index + 1) * 0.25});
 	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded");
 	QApplication::processEvents();
 	const QImage crowded = view->grab().toImage();
@@ -891,23 +897,25 @@ static bool exerciseBlockSections() {
 			if (color.red() + color.green() + color.blue() < 400) ++textPixels;
 		}
 	ok &= expect(textPixels > 10, "crowded extents thin labels rather than eliding every ID at fit");
-	const double labelWidth = QFontMetricsF(window.font()).horizontalAdvance("1:@n0@");
+	const double labelWidth = QFontMetricsF(window.font()).horizontalAdvance("section-n0");
 	const QPointF expandedLabel(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5);
 	ok &= expect(expandedLabel.x() > chartPoint(0.25, 0).x() + 3,
 		"crowded label test reaches visible text beyond its physical interval");
 	hover(expandedLabel);
-	ok &= expect(tooltip->isVisible() && tooltip->text().contains("1:@n0@") && !tooltip->text().contains("2:@n1@"),
+	ok &= expect(tooltip->isVisible() && tooltip->text().startsWith("section-n0\n") && !tooltip->text().contains("section-n1"),
 		"expanded visible label reports its full ID rather than the neighbouring physical interval");
-	// With labels the strip shows the label, which is wider than the id, and the hover names the label and the id.
+	// With labels the strip still shows the id, and the hover gives the label on the line after the id.
 	SceneSectionLabels crowdedLabels;
-	crowdedLabels.byReference = {{"@n0@", "T 0.000 to 0.250 km"}};
+	crowdedLabels.byReference = {{"@section-n0@", "T 0.000 to 0.250 km"}};
 	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded", &crowdedLabels);
 	QApplication::processEvents();
-	const double labelledWidth = QFontMetricsF(window.font()).horizontalAdvance("1: T 0.000 to 0.250 km");
-	hover(QPointF(plot.left() + labelledWidth - 2, headerPoint(0, 0).y() + 5));
-	ok &= expect(tooltip->isVisible()
-			&& tooltip->text().startsWith("Section 1: T 0.000 to 0.250 km (@n0@)\n0 to 0.25 km along crowded"),
-		"the strip names a section by its label, and the hover by its label and id");
+	view->grab(); // paints the strip, which records its labels
+	hover(QPointF(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5));
+	const auto* crowdedStrip = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	ok &= expect(crowdedStrip->property("stripLabels").toStringList().contains("section-n0") && tooltip->isVisible()
+			&& tooltip->text().startsWith("section-n0\nT 0.000 to 0.250 km\nBlock section\nSection 1 of 40\n"
+										  "Position 0.000 to 0.250 km\n0 to 0.25 km along crowded"),
+		"the strip names a section by its id, and the hover by its id and label");
 	window.setBlockSections(extents, "reference<&>");
 	overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 	const auto boundaryPainted = [&] {
@@ -942,10 +950,12 @@ static bool exerciseBlockSections() {
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));
 	ok &= expect(x->min() == 0 && x->max() == 12 && tooltip->isVisible() && boundaryPainted(), "reset retains original section alignment");
-	hover(headerPoint(6.5, 5));
-	ok &= expect(tooltip->isVisible() && tooltip->text().contains("@reverse@") && tooltip->text().contains("8 to 5 km along reference<&>"),
+	// The boundary at the start of the section from 8 to 5 km.
+	hover(chartPoint(8, 60));
+	ok &= expect(tooltip->isVisible() && tooltip->text().startsWith("reverse\n") && tooltip->text().contains("Position 8.000 to 5.000 km")
+			&& tooltip->text().contains("8 to 5 km along reference<&>"),
 		"a section towards decreasing X reports its directed ends in hover");
-	hover(headerPoint(2, rowHeight + 5));
+	hover(headerPoint(2, overlay->property("stripHeight").toDouble() + 5));
 	ok &= expect(tooltip->text().contains("@missing<&>@") && tooltip->text().contains("zero length")
 			&& !overlay->property("geometryNotice").toString().isEmpty(),
 		"missing geometry has an in-chart notice with full hover reason");
@@ -1173,7 +1183,7 @@ static bool exerciseStationAxis() {
 			QStringList texts = drawnChartTexts(window);
 			const QString what = QString::fromLatin1(scene.name);
 			ok &= expect(elidedTexts(texts).isEmpty(), qPrintable(what + ": no tick label is shortened to dots"));
-			ok &= expect(texts.contains("08:00:00") && texts.contains("09:00:00"), qPrintable(what + ": the clock labels are whole"));
+			ok &= expect(texts.contains("08:00") && texts.contains("09:00"), qPrintable(what + ": the clock labels are whole"));
 			const QStringList labelled = stations->categoriesLabels();
 			int drawn = 0;
 			for (const QString& label : labelled) {
@@ -1193,6 +1203,41 @@ static bool exerciseStationAxis() {
 		}
 	}
 	QApplication::setFont(original);
+	// The chart hides a label that starts left of its axes, inside its own margin and the margin of its layout. The name
+	// of the first station is as wide as a label centred on the left edge of the plot that starts 4 px left of the axes,
+	// so it gets no label.
+	const auto showStations = [](DiagramWindow& window, const QStringList& names, QCategoryAxis** stations) {
+		std::vector<StationTick> ticks;
+		window.setChart(routeChartWithStations(names, stations, &ticks));
+		window.setStationAxis(*stations, ticks);
+		window.setTimeAxisY(true, 8 * 3600);
+		window.setMaximumSize(1152, 640);
+		window.resize(1152, 640);
+		window.show();
+		return drawnChartTexts(window);
+	};
+	double plotLeft = 0, axesLeft = 0;
+	QFont labelFont;
+	{
+		DiagramWindow probe("Timetable graph");
+		QCategoryAxis* stations = nullptr;
+		showStations(probe, {"A", "B"}, &stations);
+		QChart* chart = probe.findChild<QChartView*>()->chart();
+		qreal left = 0, top = 0, right = 0, bottom = 0;
+		chart->layout()->getContentsMargins(&left, &top, &right, &bottom);
+		plotLeft = chart->plotArea().left();
+		axesLeft = left + chart->margins().left();
+		labelFont = stations->labelsFont();
+	}
+	QString wide;
+	while (QFontMetricsF(labelFont).horizontalAdvance(wide) < 2 * (plotLeft - axesLeft + 4)) wide += 'x';
+	DiagramWindow window("Timetable graph");
+	QCategoryAxis* stations = nullptr;
+	const QStringList texts = showStations(window, {wide, "B"}, &stations);
+	const QStringList labels = stations->categoriesLabels();
+	const QString sizes = QString("%1 px wide, plot at %2 px, axes at %3 px").arg(QFontMetricsF(labelFont).horizontalAdvance(wide)).arg(plotLeft).arg(axesLeft);
+	ok &= expect(labels.size() == 1 && !labels.first().startsWith(wide) && texts.contains(labels.first()),
+		qPrintable("a station label that would start left of the chart margin is left out: " + sizes));
 	return ok;
 }
 
@@ -1334,9 +1379,9 @@ static bool exerciseClockTicks() {
 		auto* clock = qobject_cast<QCategoryAxis*>(chart->axes(Qt::Vertical).first());
 		return clock ? clock->categoriesLabels() : QStringList();
 	};
-	bool ok = expect(clockLabels(7 * 3600 + 10 * 60 + 40).mid(0, 3) == QStringList({"07:10:40", "07:30:00", "08:00:00"}),
+	bool ok = expect(clockLabels(7 * 3600 + 10 * 60 + 40).mid(0, 3) == QStringList({"07:10:40", "07:30", "08:00"}),
 		"a round tick whose label has room stays next to the run start");
-	ok &= expect(clockLabels(7 * 3600 + 29 * 60 + 50).mid(0, 2) == QStringList({"07:29:50", "08:00:00"}),
+	ok &= expect(clockLabels(7 * 3600 + 29 * 60 + 50).mid(0, 2) == QStringList({"07:29:50", "08:00"}),
 		"a round tick whose label would overlap the run start is left out");
 	return ok;
 }
@@ -1363,11 +1408,11 @@ static bool exerciseSingleVerticalAxis() {
 	};
 	bool ok = expect(verticalTitles() == QStringList({"Elapsed simulation time (s)"}), "a numeric time axis has one vertical title");
 	window.setTimeAxisY(true, 8 * 3600);
-	ok &= expect(verticalTitles() == QStringList({"Time"}), "the clock axis is the only vertical axis that the chart draws");
+	ok &= expect(verticalTitles() == QStringList({"Time (hh:mm)"}), "the clock axis is the only vertical axis that the chart draws");
 	window.setTimeAxisY(false);
 	ok &= expect(verticalTitles() == QStringList({"Elapsed simulation time (s)"}), "numeric labels again show the numeric axis alone");
 	window.setTimeAxisY(true, 8 * 3600);
-	ok &= expect(verticalTitles() == QStringList({"Time"}), "a second clock axis is again the only vertical axis");
+	ok &= expect(verticalTitles() == QStringList({"Time (hh:mm)"}), "a second clock axis is again the only vertical axis");
 	return ok;
 }
 
@@ -1846,6 +1891,443 @@ static bool exerciseCopy() {
 	return ok;
 }
 
+// Lets queued relayouts and deferred deletes run.
+static void settle() {
+	for (int round = 0; round < 4; ++round) {
+		QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		QApplication::processEvents();
+	}
+}
+
+// Moves the pointer to a point of the chart, in chart coordinates.
+static void hoverChart(QChartView* view, const QPointF& point) {
+	const QPoint position = view->mapFromScene(view->chart()->mapToScene(point));
+	QMouseEvent move(QEvent::MouseMove, position, view->viewport()->mapToGlobal(position), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &move);
+}
+
+// One section of `ends` each: the route distance of the start and the end, then the geo X of both, in km.
+static std::vector<BlockSectionExtent> geoSections(const std::vector<std::array<double, 4>>& ends) {
+	std::vector<BlockSectionInput> inputs;
+	for (std::size_t i = 0; i < ends.size(); ++i)
+		inputs.push_back({"@s" + std::to_string(i) + "-B0@", ends[i][0], ends[i][1], ends[i][2], ends[i][3]});
+	return buildBlockSectionExtents(inputs);
+}
+
+// Paimpol route0 from section `first` to section 72: blocks of 300 m from 10.21 km for section 36, ending in the switch
+// section 71-B0/0-B1 from 21.01 to 21.45 km. The geo X is the route distance.
+static std::vector<BlockSectionExtent> paimpolSections(int first) {
+	std::vector<BlockSectionInput> inputs;
+	for (int order = first; order < 72; ++order) {
+		const double start = 10.21 + 0.3 * (order - 36);
+		inputs.push_back({"@" + std::to_string(order - 1) + "-B0@", start, start + 0.3, start, start + 0.3});
+	}
+	inputs.push_back({"@71-B0@-21.235000/@0-B1@-21.252000", 21.01, 21.45, 21.01, 21.45, true});
+	return buildBlockSectionExtents(inputs);
+}
+
+// A window built as the blocking-time windows are: one envelope across the sections, the distance axis exactly over the
+// sections, the strip, the position axis and the clock downward from 07:00:00.
+static QChart* showBlockingWindow(DiagramWindow& window, const std::vector<BlockSectionExtent>& extents, int width, int height,
+	std::vector<BlockSectionMarks> marks = {}, int routeSectionCount = 0, const SceneSectionLabels* labels = nullptr) {
+	const auto bounds = blockSectionBounds(extents).value_or(std::make_pair(0.0, 1.0));
+	auto* chart = new QChart;
+	auto* box = new QLineSeries;
+	box->setName("T1 envelope");
+	box->setProperty("trainId", "T1");
+	box->append(bounds.first, 600);
+	box->append(bounds.second, 1800);
+	chart->addSeries(box);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	x->setTitleText("Distance (km)");
+	x->setRange(bounds.first, bounds.second);
+	x->setProperty("exactRange", true);
+	y->setTitleText("Time (s)");
+	y->setRange(0, 3600);
+	y->setReverse(true);
+	window.setChart(chart);
+	window.setBlockSections(extents, "route0", labels, std::move(marks), routeSectionCount);
+	window.setPositionAxis(PositionScale(extents));
+	window.setTimeAxisY(true, 7 * 3600);
+	window.setMaximumSize(width, height);
+	window.resize(width, height);
+	window.show();
+	settle();
+	return chart;
+}
+
+// A label of the position axis: where it stands on the route, the geo X that it reads and its text as drawn.
+struct PositionLabel {
+	double routeKm;
+	double geoKm;
+	QString text;
+};
+
+static QCategoryAxis* positionAxisOf(const QChart* chart) {
+	const auto axes = chart->axes(Qt::Horizontal);
+	return axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
+}
+
+static std::vector<PositionLabel> positionLabels(const QChart* chart) {
+	std::vector<PositionLabel> labels;
+	if (QCategoryAxis* axis = positionAxisOf(chart))
+		for (const QString& label : axis->categoriesLabels()) {
+			QString text = label;
+			text.remove(QChar(0x200B));
+			labels.push_back({axis->endValue(label), text.toDouble(), text});
+		}
+	return labels;
+}
+
+// The labels lie in the range in view, further along the route each, and at least 60 px apart.
+static bool labelsApart(const QChart* chart, const std::vector<PositionLabel>& labels) {
+	const QCategoryAxis* axis = positionAxisOf(chart);
+	if (!axis || labels.size() < 2) return false;
+	const double perKm = chart->plotArea().width() / (axis->max() - axis->min());
+	for (std::size_t i = 0; i < labels.size(); ++i) {
+		if (labels[i].routeKm < axis->min() - 1e-9 || labels[i].routeKm > axis->max() + 1e-9) return false;
+		if (i > 0 && (labels[i].routeKm - labels[i - 1].routeKm) * perKm < 60 - 1e-6) return false;
+	}
+	return true;
+}
+
+// Each label reads the geo X of the scale where it stands.
+static bool labelsReadScale(const std::vector<PositionLabel>& labels, const PositionScale& scale) {
+	return !labels.empty() && std::all_of(labels.begin(), labels.end(), [&scale](const PositionLabel& label) {
+		return std::abs(scale.geoAt(label.routeKm) - label.geoKm) < 1e-6;
+	});
+}
+
+// The bottom axis of a blocking-time window reads the geo X at round values: up along a route that runs with the scene
+// coordinate, down along one that runs against it. It replaces the distance axis with the series on it, and its labels
+// follow every zoom, pan and resize, at least 60 px apart. Fit gives the range of the sections back. The readout gives the
+// geo X under the pointer.
+static bool exercisePositionAxis() {
+	bool ok = true;
+	// 20 km of route whose geo X starts at 10.5 km.
+	std::vector<std::array<double, 4>> forwardEnds;
+	for (int i = 0; i < 20; ++i) forwardEnds.push_back({double(i), double(i + 1), i + 10.5, i + 11.5});
+	const auto forward = geoSections(forwardEnds);
+	const PositionScale forwardScale(forward);
+	DiagramWindow window("Blocking time");
+	QChart* chart = showBlockingWindow(window, forward, 1200, 750);
+	QCategoryAxis* axis = positionAxisOf(chart);
+	auto labels = positionLabels(chart);
+	ok &= expect(axis && axis->titleText() == "Position (km)" && chart->axes(Qt::Horizontal).size() == 1
+			&& chart->series().first()->attachedAxes().contains(axis),
+		"the position axis takes the place of the distance axis, with the series on it");
+	ok &= expect(axis && axis->min() == 0 && axis->max() == 20 && labels.size() >= 4 && labelsApart(chart, labels)
+			&& labelsReadScale(labels, forwardScale) && labels.front().geoKm < labels.back().geoKm
+			&& std::all_of(labels.begin(), labels.end(), [](const PositionLabel& label) { return label.geoKm == std::round(label.geoKm); }),
+		"the labels read round geo X values that count up along the route, 60 px apart or more");
+	auto* view = window.findChild<QChartView*>();
+	const QString before = labels.front().text;
+	for (int step = 0; step < 6; ++step) wheel(view, {}, {0, 120}, Qt::ControlModifier);
+	settle();
+	labels = positionLabels(chart);
+	ok &= expect(axis->max() - axis->min() < 8 && labelsApart(chart, labels) && labelsReadScale(labels, forwardScale) && labels.front().text != before,
+		"zoomed in, the labels follow the range in view with a finer step");
+	wheel(view, QPoint(-qRound(chart->plotArea().width() / 3), 0), {});
+	settle();
+	ok &= expect(labelsApart(chart, positionLabels(chart)) && labelsReadScale(positionLabels(chart), forwardScale),
+		"panned, the labels follow the range in view");
+	window.resize(700, 600);
+	settle();
+	ok &= expect(labelsApart(chart, positionLabels(chart)), "in a narrower window the labels stay 60 px apart");
+	QMetaObject::invokeMethod(&window, "resetZoom");
+	settle();
+	ok &= expect(axis->min() == 0 && axis->max() == 20 && labelsApart(chart, positionLabels(chart)), "Fit shows the sections exactly again");
+	// The readout gives the geo X, not the route distance.
+	auto* readout = window.findChild<QLabel*>("resultReadout");
+	moveTo(view, QPointF(5, 1200), chart->series().first());
+	const QRegularExpressionMatch readoutMatch = QRegularExpression("^07:\\d\\d:\\d\\d at (\\d+\\.\\d+) km$").match(readout->text());
+	ok &= expect(readoutMatch.hasMatch() && std::abs(readoutMatch.captured(1).toDouble() - 15.5) < 0.05,
+		qPrintable("the readout gives the clock time at the geo X: " + readout->text()));
+	// So does the hover of a sample: the envelope starts at route distance 0, geo X 10.5 km.
+	moveTo(view, QPointF(0, 600), chart->series().first());
+	const auto* sampleTip = window.findChild<QLabel*>("diagramTooltip");
+	ok &= expect(sampleTip && sampleTip->text().contains("Position (km): 10.500"),
+		qPrintable("the hover of a sample gives its geo X: " + (sampleTip ? sampleTip->text() : QString())));
+
+	// Paimpol route1 runs against the scene coordinate: 10 km of route from geo X 21.45 km down to 11.45 km.
+	std::vector<std::array<double, 4>> reversedEnds;
+	for (int i = 0; i < 10; ++i) reversedEnds.push_back({double(i), double(i + 1), 21.45 - i, 20.45 - i});
+	const auto reversed = geoSections(reversedEnds);
+	DiagramWindow reversedWindow("Blocking time");
+	QChart* reversedChart = showBlockingWindow(reversedWindow, reversed, 1200, 750);
+	const auto down = positionLabels(reversedChart);
+	bool countsDown = down.size() >= 3;
+	for (std::size_t i = 1; i < down.size(); ++i) countsDown = countsDown && down[i].geoKm < down[i - 1].geoKm;
+	ok &= expect(countsDown && labelsApart(reversedChart, down) && labelsReadScale(down, PositionScale(reversed)),
+		"along a route against the scene coordinate the labels count down");
+
+	// A route that turns back reads the same geo X twice; every label stays, and draws its text as it is.
+	const auto zigzag = geoSections({{0, 1, 0, 1}, {1, 2, 1, 2}, {2, 3, 2, 1}, {3, 4, 1, 0}});
+	DiagramWindow zigzagWindow("Blocking time");
+	QChart* zigzagChart = showBlockingWindow(zigzagWindow, zigzag, 1200, 750);
+	const auto twice = positionLabels(zigzagChart);
+	const auto expected = PositionScale(zigzag).roundLabels(0, 4, zigzagChart->plotArea().width());
+	QStringList texts;
+	for (const PositionLabel& label : twice) texts << label.text;
+	const QStringList drawn = drawnChartTexts(zigzagWindow);
+	int repeats = 0;
+	bool drawnPlain = true;
+	for (const QString& text : drawn)
+		if (text.contains(QChar(0x200B))) {
+			++repeats;
+			drawnPlain = drawnPlain && texts.contains(QString(text).remove(QChar(0x200B)));
+		}
+	ok &= expect(twice.size() == expected.size() && texts.removeDuplicates() > 0 && repeats > 0 && drawnPlain,
+		qPrintable(QString("every label of a route that turns back is kept: %1 of %2").arg(twice.size()).arg(expected.size())));
+	return ok;
+}
+
+// Where the geo X jumps, a break mark interrupts the bottom edge of the plot and its hover says where the position goes on.
+// Only one of the two values at the jump gets a label.
+static bool exerciseBreakMark() {
+	// Netherlands route0: 18.298 km continues at 30.569 km.
+	const auto extents = geoSections({{17.0, 18.298, 17.0, 18.298}, {18.298, 19.0, 30.569, 31.271}, {19.0, 20.0, 31.2715, 32.2715}});
+	DiagramWindow window("Blocking time");
+	QChart* chart = showBlockingWindow(window, extents, 1200, 750);
+	auto* view = window.findChild<QChartView*>();
+	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	const QRectF plot = chart->plotArea();
+	const double jumpX = plot.left() + (18.298 - 17.0) / 3.0 * plot.width();
+	hoverChart(view, QPointF(jumpX + 2, plot.bottom() - 2));
+	bool ok = expect(tooltip->isVisible() && tooltip->text() == "Position jumps\n18.298 km continues at 30.569 km",
+		qPrintable("the break mark tells where the position goes on: " + tooltip->text()));
+	hoverChart(view, QPointF(jumpX + 40, plot.bottom() - 2));
+	ok &= expect(!tooltip->isVisible() || !tooltip->text().contains("Position jumps"), "away from the break mark there is no jump hover");
+	auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	const QImage with = view->grab().toImage();
+	overlay->hide();
+	const QImage without = view->grab().toImage();
+	overlay->show();
+	const qreal ratio = with.devicePixelRatio();
+	int changed = 0;
+	for (int dy = -5; dy <= 5; ++dy)
+		for (int dx = -5; dx <= 5; ++dx) {
+			const QPoint at = view->mapFromScene(chart->mapToScene(QPointF(jumpX + dx, plot.bottom() + dy)));
+			const QPoint pixel(qRound(at.x() * ratio), qRound(at.y() * ratio));
+			if (with.rect().contains(pixel) && with.pixel(pixel) != without.pixel(pixel)) ++changed;
+		}
+	ok &= expect(changed > 10, "the break mark paints on the bottom edge of the plot at the jump");
+	const auto labels = positionLabels(chart);
+	ok &= expect(labelsApart(chart, labels) && labelsReadScale(labels, PositionScale(extents)),
+		"the labels stay 60 px apart across the jump");
+	return ok;
+}
+
+// The distance axis of a blocking-time window spans the sections exactly, as Assignment route0 from 0 to 12 km, with round
+// ticks inside; without that request a range widens to round ticks past its ends, here to 14 km.
+static bool exerciseExactRange() {
+	const auto rangeAfterSetChart = [](bool exact) {
+		DiagramWindow window("Range");
+		QChart* chart = makeNamedChart({"A"});
+		auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+		x->setRange(0, 12);
+		if (exact) x->setProperty("exactRange", true);
+		window.setChart(chart);
+		return std::make_tuple(x->min(), x->max(), x->tickType() == QValueAxis::TicksDynamic && x->tickInterval() > 1.99 && x->tickInterval() <= 2);
+	};
+	const auto [exactLow, exactHigh, exactTicks] = rangeAfterSetChart(true);
+	const auto [wideLow, wideHigh, wideTicks] = rangeAfterSetChart(false);
+	bool ok = expect(exactLow == 0 && exactHigh == 12 && exactTicks, "an exact range keeps its ends and gets round ticks");
+	ok &= expect(wideLow == 0 && wideHigh == 14 && wideTicks, "another range widens to round ticks past its ends");
+	std::vector<BlockSectionInput> inputs;
+	for (int i = 0; i < 6; ++i) inputs.push_back({"@" + std::to_string(i) + "-B0@", 2.0 * i, 2.0 * i + 2});
+	const auto extents = buildBlockSectionExtents(inputs);
+	const auto range = blockSectionAxisRange(extents, RouteDiagramPath{});
+	DiagramWindow window("Blocking time");
+	QChart* chart = showBlockingWindow(window, extents, 1200, 750);
+	auto* view = window.findChild<QChartView*>();
+	for (int step = 0; step < 3; ++step) wheel(view, {}, {0, 120}, Qt::ControlModifier);
+	QMetaObject::invokeMethod(&window, "resetZoom");
+	settle();
+	const QCategoryAxis* axis = positionAxisOf(chart);
+	ok &= expect(range == std::make_pair(0.0, 12.0) && axis && axis->min() == 0 && axis->max() == 12,
+		"the position axis spans the sections exactly, also after zooming and Fit");
+	return ok;
+}
+
+// The strip names each section by its short id, in one row when every id fits at the full view and in two otherwise, so
+// zooming keeps the rows. It marks station, switch, critical and conflict sections, and keeps the ids of critical, first
+// and last sections where two rows cannot name every section. The hover has one fact per line.
+static bool exerciseSectionStrip() {
+	bool ok = true;
+	// The rows and the ids of the strip in a window of this size, the width of a cell of 300 m and that of the id 70-B0 with
+	// the gap between two ids; with `zoomedRows`, also the rows once zoomed in.
+	const auto rowsAt = [](const std::vector<BlockSectionExtent>& extents, int width, int height, double* cellPx, double* idPx, QStringList* shown, int* zoomedRows = nullptr) {
+		DiagramWindow window("Blocking time");
+		QChart* chart = showBlockingWindow(window, extents, width, height);
+		*idPx = QFontMetricsF(window.font()).horizontalAdvance("70-B0") + 6;
+		auto* view = window.findChild<QChartView*>();
+		(void)view->grab(); // paints the strip, which records its ids
+		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+		const auto bounds = blockSectionBounds(extents).value();
+		*cellPx = 0.3 * chart->plotArea().width() / (bounds.second - bounds.first);
+		*shown = overlay->property("stripLabels").toStringList();
+		const int rows = overlay->property("stripRows").toInt();
+		if (zoomedRows) {
+			for (int step = 0; step < 4; ++step) wheel(view, {}, {0, 120}, Qt::ControlModifier);
+			settle();
+			*zoomedRows = overlay->property("stripRows").toInt();
+		}
+		return rows;
+	};
+	// Paimpol route0, sections 50 to 72: 22 blocks of 300 m and the switch section 71-B0/0-B1.
+	const auto partOfPaimpol = paimpolSections(50);
+	double wideCell = 0, narrowCell = 0, idWidth = 0;
+	QStringList wideIds, narrowIds;
+	int wideZoomed = 0, narrowZoomed = 0;
+	const int wideRows = rowsAt(partOfPaimpol, 1600, 900, &wideCell, &idWidth, &wideIds, &wideZoomed);
+	const int narrowRows = rowsAt(partOfPaimpol, 900, 700, &narrowCell, &idWidth, &narrowIds, &narrowZoomed);
+	if (!expect(wideCell > idWidth && narrowCell < idWidth, "every id fits in its cell at 1600 px and not at 900 px")) return false;
+	ok &= expect(wideRows == 1 && wideZoomed == 1 && wideIds.size() == 23 && wideIds.contains("71-B0/0-B1") && wideIds.contains("49-B0"),
+		qPrintable(QString("at 1600 px one row names every section: %1 rows, %2 ids").arg(wideRows).arg(wideIds.size())));
+	ok &= expect(narrowRows == 2 && narrowZoomed == 2 && narrowIds.size() > 12 && narrowIds.contains("71-B0/0-B1"),
+		qPrintable(QString("at 900 px the ids take two rows, also zoomed in: %1 rows, %2 ids").arg(narrowRows).arg(narrowIds.size())));
+	// The strip is set before the window has its size, and chooses its rows again once it has: the room above the plot
+	// follows the rows.
+	for (const auto& [width, height, expectedRows] : {std::make_tuple(1600, 900, 1), std::make_tuple(900, 700, 2)}) {
+		DiagramWindow window("Blocking time");
+		QChart* chart = showBlockingWindow(window, partOfPaimpol, width, height);
+		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+		const double header = overlay->property("headerHeight").toDouble();
+		const QLegend* legend = chart->legend();
+		ok &= expect(overlay->property("stripRows").toInt() == expectedRows && legend->minimumHeight() == std::ceil(header)
+				&& chart->plotArea().top() - header >= legend->geometry().top() - 0.5,
+			qPrintable(QString("the room above the plot follows the rows at %1 px: strip %2 px, room %3 px").arg(width).arg(header).arg(legend->minimumHeight())));
+	}
+	// Paimpol route0, sections 36 to 72, in windows 1200 px and 1728 px wide: two rows that name most of the 37 sections,
+	// with the first and the last.
+	const auto paimpol = paimpolSections(36);
+	for (const auto& [width, height, least] : {std::make_tuple(1200, 750, 20), std::make_tuple(1728, 1000, 30)}) {
+		double cell = 0, id = 0;
+		QStringList ids;
+		const int rows = rowsAt(paimpol, width, height, &cell, &id, &ids);
+		std::cout << "strip of Paimpol sections 36 to 72 at " << width << " px: " << rows << " rows, " << ids.size() << " of 37 ids\n";
+		ok &= expect(rows == 2 && ids.size() >= least && ids.size() <= 37 && ids.contains("35-B0") && ids.contains("71-B0/0-B1"),
+			qPrintable(QString("the strip of 37 sections at %1 px names %2, with the first and the last").arg(width).arg(ids.size())));
+	}
+	// Where two rows cannot name every section, the id of a critical section goes first: of three sections at one spot the
+	// first and the critical one are named, the second is not.
+	auto crowded = buildBlockSectionExtents({{"@first-B0@", 0, 0.01}, {"@second-B0@", 0.01, 0.02}, {"@third-B0@", 0.02, 0.03}, {"@last-B0@", 0.03, 10}});
+	std::vector<BlockSectionMarks> crowdedMarks(4);
+	crowdedMarks[2].critical = true;
+	{
+		DiagramWindow window("Blocking time");
+		QChart* chart = showBlockingWindow(window, crowded, 1200, 750, crowdedMarks);
+		(void)window.findChild<QChartView*>()->grab();
+		const QStringList ids = chart->findChild<QGraphicsObject*>("blockSectionOverlay")->property("stripLabels").toStringList();
+		ok &= expect(ids.contains("third-B0") && ids.contains("first-B0") && ids.contains("last-B0") && !ids.contains("second-B0"),
+			qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
+	}
+	// Where two rows name every section in route order, the strip keeps that order. The ids of the first four sections
+	// overlap their neighbours only, so they alternate between the rows. Placing the first section and the switch section
+	// 14-B0 first would put both in the top row and leave no room for 13-B0.
+	{
+		const auto chainOf = [](double cellKm) {
+			return buildBlockSectionExtents({{"@11-B0@", 0, cellKm}, {"@12-B0@", cellKm, 2 * cellKm}, {"@13-B0@", 2 * cellKm, 3 * cellKm},
+				{"@14-B0@", 3 * cellKm, 4 * cellKm, std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), true},
+				{"@15-B0@", 4 * cellKm, 10}});
+		};
+		double plotWidth = 0, chainIdWidth = 0;
+		{
+			DiagramWindow window("Blocking time");
+			plotWidth = showBlockingWindow(window, chainOf(0.3), 1200, 750)->plotArea().width();
+			chainIdWidth = QFontMetricsF(window.font()).horizontalAdvance("13-B0");
+		}
+		DiagramWindow window("Blocking time");
+		QChart* chart = showBlockingWindow(window, chainOf(0.75 * (chainIdWidth + 6) * 10 / plotWidth), 1200, 750);
+		(void)window.findChild<QChartView*>()->grab();
+		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+		const QStringList ids = overlay->property("stripLabels").toStringList();
+		ok &= expect(overlay->property("stripRows").toInt() == 2 && ids.size() == 5,
+			qPrintable("two rows name the five sections in route order: " + ids.join(", ")));
+	}
+
+	// The marks: a station, a switch, a critical block, a conflict and a plain block, 1 km each.
+	auto marked = buildBlockSectionExtents({{"@10-B0@", 0, 1, 0, 1}, {"@11-B0@-1.5/@0-B1@-1.6", 1, 2, 1, 2, true}, {"@12-B0@", 2, 3, 2, 3},
+		{"@13-B0@", 3, 4, 3, 4}, {"@14-B0@", 4, 5, 4, 5}});
+	for (BlockSectionExtent& extent : marked) extent.order += 40;
+	std::vector<BlockSectionMarks> marks(5);
+	marks[0].station = true;
+	marks[2].critical = true;
+	marks[3].conflict = true;
+	SceneSectionLabels labels;
+	labels.byReference = {{"@12-B0@", "B0 2.000 to 3.000 km"}};
+	DiagramWindow window("Blocking time");
+	QChart* chart = showBlockingWindow(window, marked, 1200, 750, marks, 125, &labels);
+	auto* view = window.findChild<QChartView*>();
+	const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	const QImage image = view->grab().toImage();
+	const QRectF plot = chart->plotArea();
+	const double top = plot.top() - overlay->property("headerHeight").toDouble();
+	const double bottom = top + overlay->property("stripHeight").toDouble() - 4;
+	const auto colourAt = [&](double km, double y) {
+		const QPoint at = view->mapFromScene(chart->mapToScene(QPointF(plot.left() + km / 5 * plot.width(), y)));
+		return image.pixelColor(qRound(at.x() * image.devicePixelRatio()), qRound(at.y() * image.devicePixelRatio()));
+	};
+	const auto near = [](const QColor& a, const QColor& b) {
+		return std::abs(a.red() - b.red()) < 16 && std::abs(a.green() - b.green()) < 16 && std::abs(a.blue() - b.blue()) < 16;
+	};
+	const QColor station(91, 104, 113), amber(227, 162, 26), red(158, 27, 27), hatch(160, 172, 180);
+	ok &= expect(near(colourAt(0.1, top + 1.5), station) && !near(colourAt(4.1, top + 1.5), station), "a station section has a dark bar on top");
+	ok &= expect(near(colourAt(2.1, bottom - 1.5), amber) && near(colourAt(3.1, bottom - 1.5), red) && !near(colourAt(4.1, bottom - 1.5), amber)
+			&& !near(colourAt(4.1, bottom - 1.5), red),
+		"a critical block has an amber bar and a conflict a red bar below");
+	int hatched = 0, plainHatched = 0;
+	for (int dx = 0; dx < 40; ++dx)
+		for (int dy = 5; top + dy < bottom - 5; ++dy) {
+			hatched += near(colourAt(1.05 + dx * 0.005, top + dy), hatch);
+			plainHatched += near(colourAt(4.05 + dx * 0.005, top + dy), hatch);
+		}
+	ok &= expect(hatched > 20 && plainHatched == 0, "a switch section is hatched");
+	hoverChart(view, QPointF(plot.left() + 2.5 / 5 * plot.width(), top + 6));
+	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	ok &= expect(tooltip->text() == "12-B0\nB0 2.000 to 3.000 km\nBlock section\nCritical block\nSection 43 of 125\nPosition 2.000 to 3.000 km\n"
+									"2 to 3 km along route0",
+		qPrintable("the hover of a section has its id, label, kind, marks, place and extents: " + tooltip->text()));
+	hoverChart(view, QPointF(plot.left() + 1.5 / 5 * plot.width(), top + 6));
+	ok &= expect(tooltip->text().startsWith("11-B0/0-B1\nSwitch section\nSection 42 of 125\n"), qPrintable("a switch section: " + tooltip->text()));
+	hoverChart(view, QPointF(plot.left() + 0.5 / 5 * plot.width(), top + 6));
+	ok &= expect(tooltip->text().startsWith("10-B0\nStation section\n"), qPrintable("a station section: " + tooltip->text()));
+	return ok;
+}
+
+// The clock axis is titled "Time (hh:mm)" and reads HH:MM on whole minutes. Ticks less than a minute apart keep their
+// seconds, and a range of more than a day keeps every tick although the clock reads the same again.
+static bool exerciseClockMinutes() {
+	const auto clockLabels = [](double seconds, long long startOffset) {
+		DiagramWindow window("Clock");
+		QChart* chart = makeNamedChart({"A"});
+		qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first())->setRange(0, seconds);
+		window.setChart(chart);
+		window.setTimeAxisY(true, startOffset);
+		window.resize(1152, 640);
+		window.show();
+		settle();
+		auto* clock = qobject_cast<QCategoryAxis*>(chart->axes(Qt::Vertical).first());
+		QStringList labels;
+		if (clock && clock->titleText() == "Time (hh:mm)")
+			for (const QString& label : clock->categoriesLabels()) labels << QString(label).remove(QChar(0x200B));
+		return labels;
+	};
+	const QStringList hour = clockLabels(3600, 8 * 3600);
+	bool ok = expect(hour == QStringList({"08:00", "08:10", "08:20", "08:30", "08:40", "08:50", "09:00"}),
+		qPrintable("an hour reads whole minutes: " + hour.join(", ")));
+	const QStringList seconds = clockLabels(120, 8 * 3600);
+	ok &= expect(seconds.size() >= 3 && seconds.first() == "08:00:00" && seconds.at(1) == "08:00:30",
+		qPrintable("ticks less than a minute apart keep their seconds: " + seconds.join(", ")));
+	const QStringList days = clockLabels(2 * 86400, 0);
+	ok &= expect(days == QStringList({"00:00", "06:00", "12:00", "18:00", "00:00", "06:00", "12:00", "18:00", "00:00"}),
+		qPrintable("two days keep every tick: " + days.join(", ")));
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -2007,8 +2489,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(clockY && clockY->categoriesLabels().contains("08:00:00"),
 		"elapsed zero has a real tick with a nonzero clock offset");
 	moveTo(view, QPointF(20, 30), series);
-	ok &= expect(tooltip->isVisible() && tooltip->text().contains("08:00:30") && tooltip->text().contains("20.00"),
-		"time Y formats sample time and leaves X numeric");
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("Time: 08:00:30") && tooltip->text().contains("20.00"),
+		"time Y formats sample time with its seconds and leaves X numeric");
 	wheel(view, {}, QPoint(0, 120), Qt::ControlModifier);
 	const double reversedBefore = y->min();
 	wheel(view, QPoint(0, 5), {});
@@ -2357,6 +2839,11 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseReadout();
 	ok &= exerciseFigure();
 	ok &= exerciseCopy();
+	ok &= exercisePositionAxis();
+	ok &= exerciseBreakMark();
+	ok &= exerciseExactRange();
+	ok &= exerciseSectionStrip();
+	ok &= exerciseClockMinutes();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;
