@@ -1,5 +1,16 @@
 var NAVTREEINDEX18 =
 {
+"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658ae9bb5320b3890b6747c91b5a71ae5a01":[1,0,3,1,0],
+"namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874":[1,0,3,3],
+"namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e":[1,0,3,4],
+"namespace_dialog_layout_1_1detail.html":[1,0,3,0],
+"namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734":[1,0,3,0,1],
+"namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac":[1,0,3,0,0],
+"namespace_editor_layout.html":[1,0,5],
+"namespace_editor_layout.html#a10e8ca3d606ad57832120603f5cd67ac":[1,0,5,2],
+"namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde":[1,0,5,5],
+"namespace_editor_layout.html#a769ed47df9b55c4bc2b8f3d98eecbf32":[1,0,5,3],
+"namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0":[1,0,5,4],
 "namespace_focus_wheel.html":[1,0,7],
 "namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91":[1,0,7,4],
 "namespace_focus_wheel.html#a287f1fa4355169b7a4c7815a0683875c":[1,0,7,5],
@@ -238,16 +249,5 @@ var NAVTREEINDEX18 =
 "struct_baseline_totals.html#a251659d6bcd4f603e82580111c16ce06":[2,0,17,6],
 "struct_baseline_totals.html#a25576128c034f05bbb3069702ea32376":[2,0,17,3],
 "struct_baseline_totals.html#a2609e15240b8b565289a73a4f6c3c2bf":[2,0,17,2],
-"struct_baseline_totals.html#a5a6945903be201b91bb82591a119af41":[2,0,17,0],
-"struct_baseline_totals.html#a650b35fce08e5a62078b87e6aed45076":[2,0,17,5],
-"struct_baseline_totals.html#a6a17c6177f244c9437d40f8178281a0e":[2,0,17,7],
-"struct_baseline_totals.html#aa33be39c7e327650893641c584e64da2":[2,0,17,1],
-"struct_baseline_totals.html#aaa7c4628523bc01c232917cdff6e4c83":[2,0,17,4],
-"struct_block_section_extent.html":[2,0,27],
-"struct_block_section_extent.html#a1b4556e2147384458557d0ea7ea0d89f":[2,0,27,7],
-"struct_block_section_extent.html#a56eb65c223e6fcc636ba0b3cfb757504":[2,0,27,3],
-"struct_block_section_extent.html#a7cd65ed2fcadd0afe6eadc2a10230987":[2,0,27,8],
-"struct_block_section_extent.html#aa2b3cd4e8fad1b2cc830253098a5383b":[2,0,27,6],
-"struct_block_section_extent.html#aab3817d0c41b8d86c28ec8c8f37cf8e9":[2,0,27,1],
-"struct_block_section_extent.html#ab0f66d2f494d42627ebb3d8af6d31c10":[2,0,27,2]
+"struct_baseline_totals.html#a5a6945903be201b91bb82591a119af41":[2,0,17,0]
 };

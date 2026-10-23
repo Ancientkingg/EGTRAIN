@@ -310,7 +310,7 @@
 <p>This page describes the editors of a case and the rules for editing and validating it. For a first edit, follow <a class="reference internal" href="tutorial-modify-a-case.html"><span class="std std-doc">Tutorial: modify a supplied case</span></a>.</p>
 <section id="infrastructure">
 <h2>Infrastructure<a class="headerlink" href="#infrastructure" title="Link to this heading">¶</a></h2>
-<p>The dock <strong>Infrastructure</strong> has a list <strong>Entity</strong> that chooses the table: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. <strong>Add</strong> and <strong>Delete</strong> are under the table. In the table of blocks, a track filter above the table chooses the track that <strong>Add</strong> appends to, and <strong>Insert</strong>, <strong>Move Up</strong> and <strong>Move Down</strong> follow <strong>Delete</strong>. While the table is empty, a line above it says what to add first, and <strong>Add</strong> stays off in Blocks until the scene has a track. While a run uses the case, the table, <strong>Add</strong> and <strong>Delete</strong> are off, and the tooltip of <strong>Delete</strong> reads “The scene cannot be edited while a run is in progress.” <strong>Delete</strong> is off until a row is selected, and its tooltip says why it is off. <strong>Delete</strong> asks for confirmation. A row that other rows refer to is refused with <strong>Cannot Delete Infrastructure Entity</strong>, which lists the first ten of them and counts the rest. The tables are built in dependency order in the <a class="reference internal" href="tutorial-minimal-scene.html"><span class="std std-doc">tutorial for the smallest useful scene</span></a>.</p>
+<p>The dock <strong>Infrastructure</strong> has a list above the table that chooses it: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. <strong>Add</strong> and <strong>Delete</strong> are under the table. In the table of blocks, a track filter above the table chooses the track that <strong>Add</strong> appends to, and <strong>Insert</strong>, <strong>Move Up</strong> and <strong>Move Down</strong> follow <strong>Delete</strong>. While the table is empty, a line above it says what to add first, and <strong>Add</strong> stays off in Blocks until the scene has a track. While a run uses the case, the table, <strong>Add</strong> and <strong>Delete</strong> are off, and the tooltip of <strong>Delete</strong> reads “Stop the run to edit.” <strong>Delete</strong> is off until a row is selected. <strong>Delete</strong> asks for confirmation. A row that other rows refer to is refused with a message titled after the kind of row, such as Cannot Delete Track, which lists the first ten of them and counts the rest. The tables are built in dependency order in the <a class="reference internal" href="tutorial-minimal-scene.html"><span class="std std-doc">tutorial for the smallest useful scene</span></a>.</p>
 </section>
 <section id="services">
 <h2>Services<a class="headerlink" href="#services" title="Link to this heading">¶</a></h2>
@@ -320,7 +320,7 @@ Freight, Metro/urban, Suburban and No category. Unknown imported values remain
 visible until you choose a replacement. This label does not change train
 performance, composition or stops. It survives duplication and folder/bundle
 saves, but not legacy export.</p>
-<p>Service visualization colour, directly below Category, sets the colour of the
+<p>Colour, directly below Category, sets the colour of the
 service’s trains. Choose… opens a colour dialog; Default removes the colour.
 Without a colour, every train is drawn in the default yellow. The colour applies
 to every occurrence of the service (201-1, 201-2, …) on the canvas and in
@@ -414,9 +414,9 @@ that <code class="docutils literal notranslate"><span class="pre">views.json</sp
 corridors, single-track restrictions and station boundaries go to
 <code class="docutils literal notranslate"><span class="pre">GUI/caseStudyRouteCorridors.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">GUI/singleTrackLimits.txt</span></code> and
 <code class="docutils literal notranslate"><span class="pre">GUI/stationBoundarySections.txt</span></code> when the scene has them. The base time and
-the simulation settings go to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>. A scene without
-legacy files prints the information <code class="docutils literal notranslate"><span class="pre">scene.export.info</span></code> that the files were
-generated from canonical data. The export warns (<code class="docutils literal notranslate"><span class="pre">scene.export.compatibility</span></code>)
+the simulation settings go to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>. A case without
+original legacy files prints the information <code class="docutils literal notranslate"><span class="pre">scene.export.info</span></code> that the legacy
+files were generated from the case. The export warns (<code class="docutils literal notranslate"><span class="pre">scene.export.compatibility</span></code>)
 about a station name with a tab or line break, about an empty corridor name or
 one with a comma, tab or line break, and about the tracks that <code class="docutils literal notranslate"><span class="pre">views.json</span></code> draws
 as double switches, because the text files cannot hold them.</p>

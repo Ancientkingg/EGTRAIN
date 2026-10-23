@@ -12,6 +12,9 @@
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="338,154,329,144,334,134,351,127,381,125,419,129,429,134,432,140,428,143,425,138,417,135,381,131,352,133,337,138,334,143,342,150"/>
 <area shape="rect" id="Node000006" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="548,172,741,197"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="483,200,534,194,535,200,484,205"/>
-<area shape="rect" id="Node000007" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="548,222,741,262"/>
-<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="484,222,535,228,534,233,483,228"/>
+<area shape="rect" id="Node000008" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="548,222,741,262"/>
+<area shape="poly" id="edge10_Node000005_Node000008" title=" " alt="" coords="484,222,535,228,534,233,483,228"/>
+<area shape="rect" id="Node000007" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="789,172,940,197"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="742,182,775,182,775,187,742,187"/>
+<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="829,174,821,164,825,154,840,148,865,145,895,149,907,158,904,162,893,154,865,151,841,153,829,158,826,163,833,170"/>
 </map>

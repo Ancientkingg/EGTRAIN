@@ -351,7 +351,7 @@
 <td><p>The dialog contract. <code class="docutils literal notranslate"><span class="pre">test_dialoglayout</span></code> builds a footer in the same order and compares the face of its default button with that of a dialog footer and a message box.</p></td>
 <td><p>The status label is styled through its object name <code class="docutils literal notranslate"><span class="pre">runReviewStatus</span></code> and the property <code class="docutils literal notranslate"><span class="pre">warning</span></code>, not through <code class="docutils literal notranslate"><span class="pre">dialogStatus</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p>Add timetable stop and Edit timetable stop</p></td>
+<tr class="row-even"><td><p>Add Timetable Stop and Edit Timetable Stop</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TimetableStopsPanel::editStop</span></code> in <code class="docutils literal notranslate"><span class="pre">editors/TimetableStopsPanel.cpp</span></code>; one dialog, the title differs</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ChoiceComboBox</span></code> for the insert position (when adding), the station, the platform and the planned time display, then <code class="docutils literal notranslate"><span class="pre">DialogLayout::fitWidthToContent</span></code>. Line edits for the planned times and the dwell. The error label uses <code class="docutils literal notranslate"><span class="pre">DialogLayout::setStatus</span></code> with the Error severity, is hidden while it has no text and is scrolled into view when it gets one. The eligibility label shows help for a stop on the route, a warning for an ambiguous platform, a stop off the route or an invalid platform, and an error for a missing station, a stop out of order or an unresolved route. The base time label shows help. The fields of the form grow to its width also on macOS, so the messages take the width of their column.</p></td>
 <td><p>None set.</p></td>
@@ -538,11 +538,11 @@
 <td><p>The probe classifies the scene as Newer: the schema number is above the current one or, for a bundle, the bundle layout number is. While the E2E dialog suppression is active, the box is replaced by a status bar message.</p></td>
 <td><p>No test opens it.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Linked source changed</p></td>
+<tr class="row-odd"><td><p>Linked File Changed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TrainUnitSourceLinker::processFile</span></code></p></td>
-<td><p>Question icon. Reload (accept role) and Keep local (reject role). Keep local is the default.</p></td>
+<td><p>Question icon. Reload (accept role) and Keep Edits (reject role). Keep Edits is the default.</p></td>
 <td><p>A parameter or traction file that a rolling stock unit links to changes on disk, and either local edits of the unit conflict with the new values or the change arrived during a run.</p></td>
-<td><p>The editor smoke changes a linked file under a conflicting local edit and answers Keep local. It also checks that an unchanged file does not prompt.</p></td>
+<td><p>The editor smoke changes a linked file under a conflicting local edit and answers Keep Edits. It also checks that an unchanged file does not prompt.</p></td>
 </tr>
 <tr class="row-even"><td><p>Automatically Check for EGTRAIN Updates?</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">UpdateTelemetryController::maybePromptForUpdateChecks</span></code></p></td>
@@ -622,7 +622,7 @@
 <td><p>A leg of the selected journey is selected and no run is going.</p></td>
 <td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_passenger</span></code> answers Yes and No without a dialog.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Delete infrastructure entity</p></td>
+<tr class="row-odd"><td><p>Delete Track, Delete Block and the other kinds of row</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">InfrastructurePanel::confirmDelete</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
 <td><p>A row of the infrastructure table is selected, no run is going and no other item refers to it.</p></td>
@@ -658,7 +658,7 @@
 <td><p>The selected scenario is not the default scenario, the scene names a valid default scenario and no run is going.</p></td>
 <td><p>The editor smoke answers Yes. <code class="docutils literal notranslate"><span class="pre">test_editor_scenario</span></code> answers Yes and No without a dialog.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Scenario ID adjusted</p></td>
+<tr class="row-odd"><td><p>Scenario ID Adjusted</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ScenarioPanel::importScenario</span></code>, through <code class="docutils literal notranslate"><span class="pre">UserPrompts::showInfo</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::information</span></code>. OK only.</p></td>
 <td><p>A scenario is imported and its scenario ID or an incident ID was already used, so the import changed it.</p></td>

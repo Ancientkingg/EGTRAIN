@@ -310,16 +310,18 @@
 <p>This page describes the scenario library, the student loop of a case, and what the network view shows while a run plays and after it.</p>
 <section id="scenarios">
 <h2>Scenarios<a class="headerlink" href="#scenarios" title="Link to this heading">¶</a></h2>
-<p>Open the <strong>Incidents</strong> dock to choose the canonical default or another named
-scenario. The dock has the tabs <strong>Scenario</strong>, <strong>Incidents</strong> and <strong>Entrance delays</strong>,
-and a line above them names the selected scenario. The library on the <strong>Scenario</strong>
-tab shows each scenario’s ID, name, incident and entrance-delay counts, default
-marker, and an in-memory modified marker. The authored description remains
-available; Advanced mode adds the full validation status. Normal mode still marks
-an actionable invalid scenario as <code class="docutils literal notranslate"><span class="pre">Invalid</span></code> but does not surface non-blocking
-warning detail. <strong>Blank</strong> and <strong>Duplicate</strong> create isolated scenarios; editing incidents, names, or
-descriptions changes only the selected scenario. <strong>Import JSON…</strong> and
-<strong>Export JSON…</strong> use the standalone scenario object documented in the schema
+<p>Open the <strong>Incidents</strong> dock to choose the default or another named scenario.
+The dock has the tabs <strong>Scenario</strong>, <strong>Incidents</strong> and <strong>Entrance delays</strong>, and a
+line above them names the selected scenario. Each row of the library on the
+<strong>Scenario</strong> tab shows the name of a scenario, marked “default” for the default
+scenario and “modified” for one with unsaved edits. A second line gives the
+number of incidents and entrance delays when it is not zero, and “has errors”
+when the scenario has validation errors. Advanced mode also shows “has
+warnings”. The tooltip shows the ID and the description. When two scenarios
+have the same name, the row and the line above the tabs add the ID.
+<strong>New</strong> and <strong>Duplicate</strong> create isolated scenarios; editing incidents, names, or
+descriptions changes only the selected scenario. <strong>Import…</strong> and
+<strong>Export…</strong> use the standalone scenario object documented in the schema
 reference. Imports retain entrance delays, validate references against the
 open case, and report any adjusted ID rather than replacing an existing
 scenario or incident.</p>

@@ -21,8 +21,9 @@ var searchData=
   ['connectionitem_2eh_18',['ConnectionItem.h',['../_connection_item_8h.html',1,'']]],
   ['consolewidget_2ecpp_19',['ConsoleWidget.cpp',['../_console_widget_8cpp.html',1,'']]],
   ['consolewidget_2eh_20',['ConsoleWidget.h',['../_console_widget_8h.html',1,'']]],
-  ['crashnote_2ecpp_21',['CrashNote.cpp',['../_crash_note_8cpp.html',1,'']]],
-  ['crashnote_2eh_22',['CrashNote.h',['../_crash_note_8h.html',1,'']]],
-  ['csvwriter_2ecpp_23',['CsvWriter.cpp',['../_csv_writer_8cpp.html',1,'']]],
-  ['csvwriter_2eh_24',['CsvWriter.h',['../_csv_writer_8h.html',1,'']]]
+  ['counttext_2eh_21',['CountText.h',['../_count_text_8h.html',1,'']]],
+  ['crashnote_2ecpp_22',['CrashNote.cpp',['../_crash_note_8cpp.html',1,'']]],
+  ['crashnote_2eh_23',['CrashNote.h',['../_crash_note_8h.html',1,'']]],
+  ['csvwriter_2ecpp_24',['CsvWriter.cpp',['../_csv_writer_8cpp.html',1,'']]],
+  ['csvwriter_2eh_25',['CsvWriter.h',['../_csv_writer_8h.html',1,'']]]
 ];

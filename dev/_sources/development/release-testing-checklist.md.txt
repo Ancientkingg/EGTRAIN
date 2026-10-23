@@ -290,9 +290,10 @@ in-place save. Row R11 checks the installed-example path.
    **Cancel** when none is.
 2. Open a downloaded `.egscene` through **File > Open Case Study...**.
 3. Confirm the network renders. Show Loaded Data with **View > Loaded Data**
-   (the entry is checked while the dock is shown) and confirm that it shows
-   identity, versions, category counts, scenarios, validation, runtime, and
-   result readiness.
+   (the entry is checked while the dock is shown) and tick
+   **View > Advanced / Developer details**, which adds the versions. Confirm
+   that it shows identity, versions, category counts, scenarios, validation,
+   runtime, and result readiness.
 4. Select or edit a scenario and confirm the run review names that scenario.
 5. Use **Save Case Study As...** to write a working copy outside the package.
    The dialog proposes the downloaded bundle itself: give the copy a new name

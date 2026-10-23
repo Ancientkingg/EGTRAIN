@@ -1,5 +1,16 @@
 var NAVTREEINDEX25 =
 {
+"structtelemetry_1_1_telemetry_event_input.html#a7c174cca65c2cfab1f9555bf64d12fdf":[1,0,13,9,5],
+"structtelemetry_1_1_telemetry_event_input.html#a7c174cca65c2cfab1f9555bf64d12fdf":[2,0,3,9,5],
+"structtelemetry_1_1_telemetry_event_input.html#a7d2a781c5f522aa50d3b9acc42ded89f":[1,0,13,9,0],
+"structtelemetry_1_1_telemetry_event_input.html#a7d2a781c5f522aa50d3b9acc42ded89f":[2,0,3,9,0],
+"structtelemetry_1_1_telemetry_event_input.html#aa60a217f0555550efdc0f2e2fb8ce212":[1,0,13,9,1],
+"structtelemetry_1_1_telemetry_event_input.html#aa60a217f0555550efdc0f2e2fb8ce212":[2,0,3,9,1],
+"structtelemetry_1_1_telemetry_event_input.html#af80c2ed06d6da2197866bf9014318196":[1,0,13,9,3],
+"structtelemetry_1_1_telemetry_event_input.html#af80c2ed06d6da2197866bf9014318196":[2,0,3,9,3],
+"structtelemetry_1_1_telemetry_sender_1_1_shared.html":[1,0,13,11,1],
+"structtelemetry_1_1_telemetry_sender_1_1_shared.html":[2,0,3,11,1],
+"structtelemetry_1_1_telemetry_sender_1_1_shared.html#a132360faf8274e14638dc817671864d3":[1,0,13,11,1,2],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#a132360faf8274e14638dc817671864d3":[2,0,3,11,1,2],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#a16704c3ac7d6276178ceb1cad3b1b4e6":[1,0,13,11,1,14],
 "structtelemetry_1_1_telemetry_sender_1_1_shared.html#a16704c3ac7d6276178ceb1cad3b1b4e6":[2,0,3,11,1,14],

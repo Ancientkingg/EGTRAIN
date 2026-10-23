@@ -1,5 +1,16 @@
 var NAVTREEINDEX17 =
 {
+"classtelemetry_1_1_worker.html#a25a462ba5011bc64178b35d0a40cabf5":[1,0,13,13,23],
+"classtelemetry_1_1_worker.html#a25a462ba5011bc64178b35d0a40cabf5":[2,0,3,13,23],
+"classtelemetry_1_1_worker.html#a2b8dddba44c0a2c555365cbab040d6f8":[1,0,13,13,36],
+"classtelemetry_1_1_worker.html#a2b8dddba44c0a2c555365cbab040d6f8":[2,0,3,13,36],
+"classtelemetry_1_1_worker.html#a2c253b790d447afeebf8c204518acbfe":[1,0,13,13,37],
+"classtelemetry_1_1_worker.html#a2c253b790d447afeebf8c204518acbfe":[2,0,3,13,37],
+"classtelemetry_1_1_worker.html#a2d94a2e371dbe5ed65b0eec8bee47213":[1,0,13,13,20],
+"classtelemetry_1_1_worker.html#a2d94a2e371dbe5ed65b0eec8bee47213":[2,0,3,13,20],
+"classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61":[1,0,13,13,7],
+"classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61":[2,0,3,13,7],
+"classtelemetry_1_1_worker.html#a3c5657254613de8fc22e2abed72d0d78":[1,0,13,13,21],
 "classtelemetry_1_1_worker.html#a3c5657254613de8fc22e2abed72d0d78":[2,0,3,13,21],
 "classtelemetry_1_1_worker.html#a3d90b29f9cdd91895776dd7e36c3ab68":[1,0,13,13,27],
 "classtelemetry_1_1_worker.html#a3d90b29f9cdd91895776dd7e36c3ab68":[2,0,3,13,27],
@@ -238,16 +249,5 @@ var NAVTREEINDEX17 =
 "namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e":[1,0,3,5],
 "namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658":[1,0,3,1],
 "namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658a0eaadb4fcb48a0a0ed7bc9868be9fbaa":[1,0,3,1,1],
-"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658a902b0d55fddef6f8d651fe1035b7d4bd":[1,0,3,1,2],
-"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658ae9bb5320b3890b6747c91b5a71ae5a01":[1,0,3,1,0],
-"namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874":[1,0,3,3],
-"namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e":[1,0,3,4],
-"namespace_dialog_layout_1_1detail.html":[1,0,3,0],
-"namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734":[1,0,3,0,1],
-"namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac":[1,0,3,0,0],
-"namespace_editor_layout.html":[1,0,5],
-"namespace_editor_layout.html#a10e8ca3d606ad57832120603f5cd67ac":[1,0,5,2],
-"namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde":[1,0,5,5],
-"namespace_editor_layout.html#a769ed47df9b55c4bc2b8f3d98eecbf32":[1,0,5,3],
-"namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0":[1,0,5,4]
+"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658a902b0d55fddef6f8d651fe1035b7d4bd":[1,0,3,1,2]
 };

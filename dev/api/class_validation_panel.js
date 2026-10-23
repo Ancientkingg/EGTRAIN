@@ -14,9 +14,12 @@ var class_validation_panel =
     [ "setLoadedDataContext", "class_validation_panel.html#a7641fe904df24e36029fa48d38bd7745", null ],
     [ "statusChanged", "class_validation_panel.html#a4979c0251d3df4697453be10900c5c51", null ],
     [ "statusLabel", "class_validation_panel.html#a2f3b49690f7763b6f127ebe949918514", null ],
+    [ "statusText", "class_validation_panel.html#a5773e83912aacc0f56bd3f3c5939e1fa", null ],
     [ "table", "class_validation_panel.html#a447f5a3723e0dfbf9b7fe36689c4800e", null ],
     [ "targetActivated", "class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6", null ],
     [ "tree", "class_validation_panel.html#a37dfe514f08ea3bf6200f013b3e1c840", null ],
     [ "updateStatus", "class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e", null ],
-    [ "kTargetTypeRole", "class_validation_panel.html#a0b77ddaed7546541308878eddf19968b", null ]
+    [ "kFileRole", "class_validation_panel.html#a5b3420b159c5af238ca5301657656e58", null ],
+    [ "kTargetTypeRole", "class_validation_panel.html#a0b77ddaed7546541308878eddf19968b", null ],
+    [ "kTreeTextColumnWidth", "class_validation_panel.html#ab6efcf29fbd25f3899852f857b9b310a", null ]
 ];

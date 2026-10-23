@@ -147,12 +147,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ab43ceb5f2f4b3c86b954a9325109ce4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel validates the scene of this document. It does not refresh by itself; the caller calls <a class="el" href="#aa32685c968df1b6ac1a6b3f6a08fac51">refresh()</a>.  <br /></td></tr>
 <tr class="memitem:a8553dba435bbade0e92753e7b7387443" id="r_a8553dba435bbade0e92753e7b7387443"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8553dba435bbade0e92753e7b7387443">setDiagnostics</a> (std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; *diagnostics)</td></tr>
 <tr class="memitem:a953c713ed8390cc8aabdfca568073268" id="r_a953c713ed8390cc8aabdfca568073268"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a953c713ed8390cc8aabdfca568073268">setAdvancedDetails</a> (std::function&lt; bool()&gt; enabled)</td></tr>
-<tr class="memdesc:a953c713ed8390cc8aabdfca568073268"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tells whether the status gives the counts of every severity. Without it the status shows errors only.  <br /></td></tr>
 <tr class="memitem:a97b3ba2dc44b6bcbfb063a31d0e4493b" id="r_a97b3ba2dc44b6bcbfb063a31d0e4493b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a97b3ba2dc44b6bcbfb063a31d0e4493b">setDurationOverride</a> (std::function&lt; std::optional&lt; double &gt;()&gt; durationOverride)</td></tr>
 <tr class="memitem:a7641fe904df24e36029fa48d38bd7745" id="r_a7641fe904df24e36029fa48d38bd7745"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7641fe904df24e36029fa48d38bd7745">setLoadedDataContext</a> (std::function&lt; <a class="el" href="struct_validation_panel_1_1_loaded_data_context.html">LoadedDataContext</a>()&gt; context)</td></tr>
 <tr class="memdesc:a7641fe904df24e36029fa48d38bd7745"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gives the context of the tree whenever it is written. Without it the scene came from nowhere and no run was made.  <br /></td></tr>
 <tr class="memitem:a447f5a3723e0dfbf9b7fe36689c4800e" id="r_a447f5a3723e0dfbf9b7fe36689c4800e"><td class="memItemLeft">QTableWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a447f5a3723e0dfbf9b7fe36689c4800e">table</a> () const</td></tr>
-<tr class="memdesc:a447f5a3723e0dfbf9b7fe36689c4800e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The diagnostics, errors first: severity, code, message, file, path and suggested fix.  <br /></td></tr>
 <tr class="memitem:a37dfe514f08ea3bf6200f013b3e1c840" id="r_a37dfe514f08ea3bf6200f013b3e1c840"><td class="memItemLeft">QTreeWidget *&#160;</td><td class="memItemRight"><a class="el" href="#a37dfe514f08ea3bf6200f013b3e1c840">tree</a> () const</td></tr>
 <tr class="memdesc:a37dfe514f08ea3bf6200f013b3e1c840"><td class="mdescLeft">&#160;</td><td class="mdescRight">The case, its source files and the state of the run.  <br /></td></tr>
 <tr class="memitem:a2f3b49690f7763b6f127ebe949918514" id="r_a2f3b49690f7763b6f127ebe949918514"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a2f3b49690f7763b6f127ebe949918514">statusLabel</a> () const</td></tr>
@@ -161,15 +159,22 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7829b14276bac3ef68a052d0b58637c2" id="r_a7829b14276bac3ef68a052d0b58637c2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7829b14276bac3ef68a052d0b58637c2">refreshLoadedData</a> ()</td></tr>
 <tr class="memdesc:a7829b14276bac3ef68a052d0b58637c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes the tree again.  <br /></td></tr>
 <tr class="memitem:a0d0c549b58d1239e173dfaff5bb0b16e" id="r_a0d0c549b58d1239e173dfaff5bb0b16e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0d0c549b58d1239e173dfaff5bb0b16e">updateStatus</a> ()</td></tr>
-<tr class="memdesc:a0d0c549b58d1239e173dfaff5bb0b16e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes the status from the diagnostics again.  <br /></td></tr>
+<tr class="memdesc:a0d0c549b58d1239e173dfaff5bb0b16e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes the status from the diagnostics again, and shows the table and the tree as advanced details now say.  <br /></td></tr>
 <tr class="memitem:af865cff10dca3de09804499268e7bde5" id="r_af865cff10dca3de09804499268e7bde5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af865cff10dca3de09804499268e7bde5">activateItem</a> (QTreeWidgetItem *item)</td></tr>
 <tr class="memdesc:af865cff10dca3de09804499268e7bde5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emits <a class="el" href="#a27443c73bf76a8d7726938f1339f0ca6" title="A row of the tree with this kind was activated. The tree owns item.">targetActivated()</a> for a row of the tree that has a kind.  <br /></td></tr>
 <tr class="memitem:a7e8d663c49c1fc8c80c5fdea5450da6f" id="r_a7e8d663c49c1fc8c80c5fdea5450da6f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7e8d663c49c1fc8c80c5fdea5450da6f">selectDiagnosticOfFile</a> (const QString &amp;file)</td></tr>
 <tr class="memdesc:a7e8d663c49c1fc8c80c5fdea5450da6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects the first row of the table that belongs to this scene file.  <br /></td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a5773e83912aacc0f56bd3f3c5939e1fa" id="r_a5773e83912aacc0f56bd3f3c5939e1fa"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a5773e83912aacc0f56bd3f3c5939e1fa">statusText</a> (const <a class="el" href="struct_scene_diagnostic_counts.html">SceneDiagnosticCounts</a> &amp;counts, bool advanced)</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a0b77ddaed7546541308878eddf19968b" id="r_a0b77ddaed7546541308878eddf19968b"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a0b77ddaed7546541308878eddf19968b">kTargetTypeRole</a> = Qt::UserRole</td></tr>
+<tr class="memitem:a5b3420b159c5af238ca5301657656e58" id="r_a5b3420b159c5af238ca5301657656e58"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5b3420b159c5af238ca5301657656e58">kFileRole</a> = Qt::UserRole</td></tr>
+<tr class="memdesc:a5b3420b159c5af238ca5301657656e58"><td class="mdescLeft">&#160;</td><td class="mdescRight">The item data role of the scene file of a diagnostic, on the first cell of its row in the table.  <br /></td></tr>
+<tr class="memitem:ab6efcf29fbd25f3899852f857b9b310a" id="r_ab6efcf29fbd25f3899852f857b9b310a"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ab6efcf29fbd25f3899852f857b9b310a">kTreeTextColumnWidth</a> = 360</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>What the validation of the scene reports, and what the scene and its run made of the loaded data. The table lists the diagnostics, the status label gives their count, and the tree shows the case, its source files and the state of the run. The window puts the table and the tree in docks and the label in its status bar. </p>
@@ -249,7 +254,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_aa32685c968df1b6ac1a6b3f6a08fac51_cgraph.svg" width="1374" height="350"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_aa32685c968df1b6ac1a6b3f6a08fac51_cgraph.svg" width="1671" height="404"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -300,7 +305,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a7829b14276bac3ef68a052d0b58637c2_cgraph.svg" width="1106" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a7829b14276bac3ef68a052d0b58637c2_cgraph.svg" width="1132" height="259"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -338,8 +343,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Tells whether the status gives the counts of every severity. Without it the status shows errors only. </p>
+<p>Tells whether advanced details are on. They add the counts of the warnings and infos to the status, the code, file and path columns to the table, and the format versions, the source files and the parsed objects to the tree. Without it they are off. </p>
 
 </div>
 </div>
@@ -471,6 +475,41 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a5773e83912aacc0f56bd3f3c5939e1fa" name="a5773e83912aacc0f56bd3f3c5939e1fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5773e83912aacc0f56bd3f3c5939e1fa">&#9670;&#160;</a></span>statusText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString ValidationPanel::statusText </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_diagnostic_counts.html">SceneDiagnosticCounts</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>counts</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>advanced</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The status for these counts: "Cannot run: 2 errors" when there are errors, else nothing; with advanced details the counts that are not zero, such as "1 error, 2 warnings". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a5773e83912aacc0f56bd3f3c5939e1fa_cgraph.svg" width="342" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a447f5a3723e0dfbf9b7fe36689c4800e" name="a447f5a3723e0dfbf9b7fe36689c4800e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a447f5a3723e0dfbf9b7fe36689c4800e">&#9670;&#160;</a></span>table()</h2>
 
@@ -493,8 +532,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>The diagnostics, errors first: severity, code, message, file, path and suggested fix. </p>
+<p>The diagnostics, errors first: severity, code, message, file, path and fix. The code, file and path columns show only with advanced details; the tooltip of a row gives them. </p>
 
 </div>
 </div>
@@ -571,16 +609,40 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Writes the status from the diagnostics again. </p>
+<p>Writes the status from the diagnostics again, and shows the table and the tree as advanced details now say. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a0d0c549b58d1239e173dfaff5bb0b16e_cgraph.svg" width="502" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a0d0c549b58d1239e173dfaff5bb0b16e_cgraph.svg" width="1447" height="332"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="a5b3420b159c5af238ca5301657656e58" name="a5b3420b159c5af238ca5301657656e58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b3420b159c5af238ca5301657656e58">&#9670;&#160;</a></span>kFileRole</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ValidationPanel::kFileRole = Qt::UserRole</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The item data role of the scene file of a diagnostic, on the first cell of its row in the table. </p>
+
+</div>
+</div>
 <a id="a0b77ddaed7546541308878eddf19968b" name="a0b77ddaed7546541308878eddf19968b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0b77ddaed7546541308878eddf19968b">&#9670;&#160;</a></span>kTargetTypeRole</h2>
 
@@ -601,6 +663,29 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The item data role of the kind of scene item that a row of the tree stands for, such as "service" or "train_unit". A row with a kind opens an editor or a view when it is activated. </p>
+
+</div>
+</div>
+<a id="ab6efcf29fbd25f3899852f857b9b310a" name="ab6efcf29fbd25f3899852f857b9b310a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6efcf29fbd25f3899852f857b9b310a">&#9670;&#160;</a></span>kTreeTextColumnWidth</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ValidationPanel::kTreeTextColumnWidth = 360</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The widest that the Category and Source columns of the tree grow to fit their rows, so that Count and Status stay in view. The names of the categories fit within it. </p>
 
 </div>
 </div>

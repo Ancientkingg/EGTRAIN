@@ -1,19 +1,26 @@
 <map id="ScenarioPanel::refresh" name="ScenarioPanel::refresh">
-<area shape="rect" id="Node000001" title="Lists the scenarios again and shows the selected one." alt="" coords="5,87,172,112"/>
-<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="282,33,406,59"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,84,269,59,270,64,151,89"/>
-<area shape="rect" id="Node000004" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title="Shows the fields of the selected scenario again." alt="" coords="241,136,447,161"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="156,109,265,131,264,136,155,115"/>
-<area shape="rect" id="Node000007" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title="Writes the label of each scenario in the list again." alt="" coords="220,87,468,112"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="172,97,206,97,206,102,172,102"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,35,294,25,299,15,316,9,344,7,380,11,390,15,394,21,389,24,386,19,378,16,344,12,317,14,302,19,299,24,307,31"/>
+<area shape="rect" id="Node000001" title="Lists the scenarios again and shows the selected one." alt="" coords="5,83,172,108"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="282,32,406,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,80,268,57,269,62,154,85"/>
+<area shape="rect" id="Node000004" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title="Shows the fields of the selected scenario again." alt="" coords="241,83,447,108"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="172,93,228,93,228,98,172,98"/>
+<area shape="rect" id="Node000008" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title="Writes the label of each scenario in the list again." alt="" coords="220,136,468,161"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="151,105,270,131,269,136,150,111"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,34,294,24,299,14,316,8,344,5,380,9,390,14,394,20,389,23,386,18,378,14,344,11,317,13,302,18,299,23,307,30"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="527,29,698,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="406,42,513,41,513,46,406,48"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="570,31,560,21,565,11,583,5,613,3,651,7,661,12,665,18,660,20,658,16,649,12,613,8,584,10,569,15,566,20,573,27"/>
-<area shape="rect" id="Node000005" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="516,144,709,169"/>
-<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="447,149,502,151,502,156,447,154"/>
-<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="516,79,709,119"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="413,133,502,117,503,122,414,139"/>
-<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="413,109,469,121,546,138,545,143,467,126,412,115"/>
-<area shape="poly" id="edge10_Node000007_Node000006" title=" " alt="" coords="468,97,502,97,502,102,468,102"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="406,41,513,40,513,46,406,47"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="577,31,569,21,573,11,588,5,613,3,643,6,655,15,652,20,641,11,613,8,589,10,577,15,574,20,581,28"/>
+<area shape="rect" id="Node000005" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="516,79,709,104"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="447,91,502,90,502,96,447,96"/>
+<area shape="rect" id="Node000007" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="516,129,709,169"/>
+<area shape="poly" id="edge9_Node000004_Node000007" title=" " alt="" coords="409,105,503,124,502,129,408,111"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="757,173,908,199"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="673,102,710,114,760,138,802,163,799,168,757,143,708,119,671,107"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="797,175,789,165,793,155,808,149,833,147,863,150,875,159,872,164,861,155,833,152,809,154,797,159,794,164,801,172"/>
+<area shape="poly" id="edge13_Node000008_Node000005" title=" " alt="" coords="404,133,539,104,540,110,405,139"/>
+<area shape="poly" id="edge15_Node000008_Node000006" title=" " alt="" coords="361,159,425,208,469,234,517,253,570,266,612,270,655,265,709,253,760,232,803,205,805,209,762,236,710,258,656,271,613,275,569,271,515,258,467,239,422,213,358,164"/>
+<area shape="poly" id="edge14_Node000008_Node000007" title=" " alt="" coords="468,146,502,146,502,151,468,151"/>
+<area shape="rect" id="Node000009" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="570,217,655,243"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="388,159,557,211,556,216,386,164"/>
+<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="577,219,569,209,573,199,588,193,613,191,643,194,655,203,652,208,641,199,613,196,589,198,577,203,574,208,581,216"/>
 </map>

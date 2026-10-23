@@ -310,15 +310,19 @@
 <p>This page describes how the main window shows the case that loaded: the <strong>Loaded Data</strong> dock and the source files of rolling stock. <a class="reference internal" href="getting-started.html#look-at-the-case"><span class="std std-ref">Getting started</span></a> introduces the window.</p>
 <section id="review-what-loaded">
 <h2>Review what loaded<a class="headerlink" href="#review-what-loaded" title="Link to this heading">¶</a></h2>
-<p>The <strong>Loaded Data</strong> dock stays separate from running. Its case-study tree shows
-the source path, canonical schema version, bundle format version, source files,
-category counts, default and available scenarios, validation state, and
-runtime/result readiness. Expand a category to follow source data to parsed
-canonical objects. Imported scenes also show conversion, skipped, and
-unresolved-reference counts from <code class="docutils literal notranslate"><span class="pre">import_report</span></code>. <code class="docutils literal notranslate"><span class="pre">Missing</span> <span class="pre">optional</span></code> means the
-scene is usable without that file. <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">built</span></code> means no runtime has been prepared from
-the current input. Advanced mode raises this panel automatically after open;
-normal mode leaves it available through View when you need it.</p>
+<p>The <strong>Loaded Data</strong> dock stays separate from running. Its tree shows the case
+with its name and description, the counts of each category, the default and
+available scenarios, the validation state, and the state of the run and its
+results under <strong>Run</strong>. Advanced mode adds <strong>Format version</strong>, <strong>Bundle version</strong>,
+<strong>Saved with</strong> and <strong>Source files discovered</strong>. Expand a category to see what
+was read for it, such as each rolling stock unit or service. Advanced mode also
+shows its source file and the objects read from that file. Imported cases also show the converted,
+skipped and unresolved-reference counts from <code class="docutils literal notranslate"><span class="pre">import_report</span></code>. A count of skipped
+records, unresolved references or validation messages shows only when it is not
+zero, or in advanced mode. <strong>Not present</strong> means the case is usable without that
+file. <strong>Not run</strong> means no run has been prepared from the current input.
+Advanced mode raises this panel automatically after open. Normal mode leaves it
+available through View when you need it.</p>
 <p>Double-click infrastructure or signalling rows to focus the existing network
 view, validation rows to open the diagnostics table, or a rolling stock unit,
 composition, service, or scenario incident to open its existing editor.
@@ -327,8 +331,8 @@ Rolling-stock-unit provenance is descriptive:
 an original parameter or tractive-effort filename is not reopened by the native
 runtime. The tractive-effort plot evaluates the same piecewise polynomial as the
 runtime and displays speed in km/h and effort in kN.</p>
-<p>The rolling-stock editor also has explicit <strong>Link parameter file…</strong> and
-<strong>Link traction file…</strong> actions. These links are session-only absolute local
+<p>The rolling-stock editor also has a <strong>Link File…</strong> button on the tabs
+<strong>Physical</strong> and <strong>Traction</strong>, for the parameter file and the traction file. These links are session-only absolute local
 paths, separate from the descriptive provenance fields, and are cleared when a
 scene is reopened or replaced; Save As does not relocate or persist them.
 Parameter files contain exactly nine whitespace-separated finite values:
@@ -338,19 +342,21 @@ maximum deceleration (m/s²), frontal area (m²), resistance coefficient, jerk
 with five finite values: starting speed (m/s), ending speed (m/s), and the
 coefficients <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">b</span> <span class="pre">c</span></code> for force in N, <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">+</span> <span class="pre">b*v</span> <span class="pre">+</span> <span class="pre">c*v*v</span></code>. Speed intervals must
 have positive width, be ordered, and not overlap.</p>
-<p>The label under <strong>Link parameter file…</strong> and <strong>Link traction file…</strong> shows
-the state of the link. <strong>Unlinked</strong> means no file is linked. A linked file that
-exists shows <code class="docutils literal notranslate"><span class="pre">Linked:</span> <span class="pre">&lt;file</span> <span class="pre">name&gt;</span></code>, <strong>Up to date</strong> or <strong>Reloaded</strong>, <code class="docutils literal notranslate"><span class="pre">Rejected:</span> <span class="pre">&lt;reason&gt;;</span> <span class="pre">Retry</span> <span class="pre">available</span></code>
-when it cannot be read, or <strong>Kept local; Retry available</strong> after Keep local. A reload or a retry that has not finished shows <strong>Linked; waiting for reload</strong> or <strong>Retrying</strong>, and during a run <strong>Linked; pending reload after run</strong> or <strong>Retry pending after run</strong>. <code class="docutils literal notranslate"><span class="pre">Missing:</span> <span class="pre">&lt;path&gt;;</span> <span class="pre">Retry</span> <span class="pre">available</span></code>
-replaces all of these when the linked file does not exist, also after Keep local.
-It shows the path of the file, and <strong>Retry</strong> stays available. A conflict between
-local edits and a changed file is a question, not a label: it asks for Reload
-or Keep local.</p>
+<p>The label under <strong>Link File…</strong> shows the state of the link. <strong>Unlinked</strong>
+means no file is linked. A linked file that exists shows <code class="docutils literal notranslate"><span class="pre">Linked:</span> <span class="pre">&lt;file</span> <span class="pre">name&gt;</span></code>,
+<strong>Up to date</strong> or <strong>Reloaded</strong>, <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">loaded:</span> <span class="pre">&lt;reason&gt;</span></code> when it cannot be read,
+or <strong>Kept your edits</strong> after Keep Edits. A reload or a retry that has not
+finished shows <strong>Linked</strong> or <strong>Retrying</strong>, and during a run
+<strong>Linked. Loads after the run</strong> or <strong>Retries after the run</strong>.
+<code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">not</span> <span class="pre">found:</span> <span class="pre">&lt;path&gt;</span></code> replaces all of these when the linked file does not
+exist, also after Keep Edits. It shows the path of the file, and <strong>Retry</strong> stays
+available. A conflict between local edits and a changed file is a question, not
+a label: it asks for Reload or Keep Edits.</p>
 <p>Each linked update is applied only after the complete candidate validates.
 Malformed or missing content leaves accepted values unchanged and keeps
 <strong>Retry</strong> available. A valid change marks the scene dirty only when values
 differ and refreshes open input traction plots. Conflicting local edits require
-a Keep local/Reload decision, grouped for all units sharing the file. Updates
+a Keep Edits/Reload decision, grouped for all units sharing the file. Updates
 observed during a run are offered after the run completes. Completed result
 charts do not change.</p>
 </section>

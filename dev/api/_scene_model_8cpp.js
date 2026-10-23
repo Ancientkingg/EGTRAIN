@@ -17,6 +17,7 @@ var _scene_model_8cpp =
     [ "sceneOutputDirectoryComponent", "_scene_model_8cpp.html#a70e6d3f731dfc337f8a100a644af72bb", null ],
     [ "sceneParseVisualizationColor", "_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b", null ],
     [ "scenePlatformCapacity", "_scene_model_8cpp.html#ae4bfb9afb6e2e3f0a21b349b907bdb1e", null ],
+    [ "sceneScenarioLabel", "_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5", null ],
     [ "sceneServiceInWindowCount", "_scene_model_8cpp.html#ae4776d5253c83e4ce3963983edf28baf", null ],
     [ "sceneServiceOccurrenceCount", "_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20", null ],
     [ "sceneServiceOccurrenceOperatingCode", "_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b", null ],
