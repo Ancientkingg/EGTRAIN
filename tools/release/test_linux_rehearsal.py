@@ -243,6 +243,20 @@ class TreeSearchTests(unittest.TestCase):
         self.assertEqual(linux_rehearsal.find_all(self.tree, "push button"), [self.hidden, self.shown, self.deep])
         self.assertIsNone(linux_rehearsal.find_first(self.tree, "dialog"))
 
+    def test_a_menu_entry_is_looked_up_in_the_menu_that_is_named(self):
+        def menu(title, *names):
+            return FakeAccessible("menu item", title, True,
+                                  FakeAccessible("menu", "", True, *(FakeAccessible("menu item", name) for name in names)))
+        file_menu, simulation = menu("File", "Open Case...", "Run"), menu("Simulation", "Run", "Pause")
+        frame = FakeAccessible("frame", "EGTRAIN - Paimpol", True, FakeAccessible("menu bar", "", True, file_menu, simulation))
+        with tempfile.TemporaryDirectory() as temp:
+            rehearsal = make_rehearsal(temp)
+            rehearsal.main_frame = lambda: frame
+            self.assertIs(rehearsal.menu_item("Run"), file_menu.kids[0].kids[1])
+            self.assertIs(rehearsal.menu_item("Run", menu="Simulation"), simulation.kids[0].kids[0])
+            with self.assertRaisesRegex(linux_rehearsal.StepFailed, "'Open Case...' is not there in the menu Simulation"):
+                rehearsal.menu_item("Open Case...", menu="Simulation")
+
 
 def make_rehearsal(temp):
     temp = Path(temp)

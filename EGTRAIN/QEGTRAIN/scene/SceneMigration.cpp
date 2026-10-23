@@ -72,7 +72,7 @@ bool copyDirectoryTree(const fs::path& source, const fs::path& destination,
 		end;
 		iterator != end; iterator.increment(ec)) {
 		if (ec) {
-			addDiagnostic(diagnostics, "scene.migration.source", "Cannot traverse scene source: " + ec.message(),
+			addDiagnostic(diagnostics, "scene.migration.source", "Cannot traverse case source: " + ec.message(),
 				source.u8string());
 			return false;
 		}
@@ -87,7 +87,7 @@ bool copyDirectoryTree(const fs::path& source, const fs::path& destination,
 		}
 		const fs::path relative = fs::relative(current, source, ec);
 		if (ec) {
-			addDiagnostic(diagnostics, "scene.migration.source", "Cannot resolve scene source path",
+			addDiagnostic(diagnostics, "scene.migration.source", "Cannot resolve case source path",
 				current.u8string());
 			return false;
 		}
@@ -100,7 +100,7 @@ bool copyDirectoryTree(const fs::path& source, const fs::path& destination,
 				fs::copy_file(current, target, fs::copy_options::overwrite_existing, ec);
 		}
 		if (ec) {
-			addDiagnostic(diagnostics, "scene.migration.source", "Cannot stage scene source: " + ec.message(),
+			addDiagnostic(diagnostics, "scene.migration.source", "Cannot stage case source: " + ec.message(),
 				current.u8string());
 			return false;
 		}
@@ -164,7 +164,7 @@ bool validDestination(const fs::path& destination, const fs::path& source,
 		canonicalDestination.begin(), canonicalDestination.end());
 	if (fs::is_directory(source) && pathMismatch.first == canonicalSource.end()) {
 		addDiagnostic(diagnostics, "scene.migration.destination",
-			"Migration destination must not be inside the source scene", destination.u8string());
+			"Migration destination must not be inside the source case", destination.u8string());
 		return false;
 	}
 	const auto status = fs::symlink_status(destination, ec);

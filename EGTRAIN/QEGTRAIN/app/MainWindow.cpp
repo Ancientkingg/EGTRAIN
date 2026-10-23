@@ -802,24 +802,24 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	connect(ui->actionLoad_Network, &QAction::triggered, m_session, &SceneSession::actionLoad_Network);
 
-	ui->actionLoad_Network->setText("Load Legacy Case...");
+	ui->actionLoad_Network->setText("Import Legacy Case...");
 	ui->actionLoad_Network->setShortcut(QKeySequence());
-	m_newSceneAction = new QAction("New Case Study...", this);
+	m_newSceneAction = new QAction("New Case...", this);
 	m_newSceneAction->setObjectName("actionNewCaseStudy");
 	m_newSceneAction->setShortcut(QKeySequence::New);
-	QAction* openSceneAction = new QAction("Open Case Study...", this);
+	QAction* openSceneAction = new QAction("Open Case...", this);
 	openSceneAction->setObjectName("actionOpenCaseStudyBundle");
 	openSceneAction->setShortcut(QKeySequence::Open);
-	QAction* openSceneFolderAction = new QAction("Open Scene Folder...", this);
+	QAction* openSceneFolderAction = new QAction("Open Case Folder...", this);
 	openSceneFolderAction->setObjectName("actionOpenSceneFolder");
-	m_saveSceneAction = new QAction("Save Scene", this);
+	m_saveSceneAction = new QAction("Save", this);
 	m_saveSceneAction->setObjectName("actionSaveScene");
 	m_saveSceneAction->setShortcut(QKeySequence::Save);
-	m_saveSceneAsAction = new QAction("Save Case Study As...", this);
+	m_saveSceneAsAction = new QAction("Save As...", this);
 	m_saveSceneAsAction->setObjectName("actionSaveCaseStudyBundle");
-	m_saveSceneAsFolderAction = new QAction("Save Scene As Folder...", this);
+	m_saveSceneAsFolderAction = new QAction("Save As Folder...", this);
 	m_saveSceneAsFolderAction->setObjectName("actionSaveSceneFolder");
-	m_runSceneAction = new QAction("Run Scene", this);
+	m_runSceneAction = new QAction("Run", this);
 	m_runSceneAction->setObjectName("actionRunScene");
 	connect(m_newSceneAction, &QAction::triggered, m_session, &SceneSession::newScene);
 	connect(openSceneAction, &QAction::triggered, m_session, &SceneSession::openSceneDialog);
@@ -1221,7 +1221,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// The toolbar button exists now, so it can take its description.
 	updateFollowAvailability();
 
-	// file menu: output folder chooser, after Load Legacy Case and above the separator before Quit
+	// file menu: output folder chooser, after Import Legacy Case and above the separator before Quit
 	if (ui->menuFile) {
 		m_outputFolderAction = new QAction("Set Output Folder...", this);
 		connect(m_outputFolderAction, &QAction::triggered, m_runController, &RunController::chooseOutputFolder);
@@ -1263,7 +1263,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateSceneActions();
 	});
 	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);
-	m_validationDock = new QDockWidget("Scene Validation", this);
+	m_validationDock = new QDockWidget("Case Validation", this);
 	m_validationDock->setObjectName("sceneValidationDock");
 	m_validationDock->setWidget(m_validation->table());
 	addDockWidget(Qt::BottomDockWidgetArea, m_validationDock);
@@ -2065,7 +2065,7 @@ void MainWindow::sceneSaved() {
 	refreshInfrastructurePanel();
 	m_passengerPanel->refresh();
 	// Last, because refreshing the panels redraws the track preview, which clears the status bar.
-	statusBar()->showMessage("Scene saved");
+	statusBar()->showMessage("Case saved");
 }
 
 bool MainWindow::telemetryActive() const {
@@ -2147,7 +2147,7 @@ bool MainWindow::startupTimingHoldsRun(bool identityOk) {
 		return true;
 	}
 	networkView->armTimingPaint(QStringLiteral("runtime"), m_startupTimingIteration);
-	statusBar()->showMessage(QString("Prepared scene: %1").arg(QString::fromStdString(m_document->model().name)));
+	statusBar()->showMessage(QString("Prepared case: %1").arg(QString::fromStdString(m_document->model().name)));
 	return true;
 }
 
@@ -2302,7 +2302,7 @@ void MainWindow::startRecovery() {
 		if (m_recoveryFailureShown)
 			return;
 		m_recoveryFailureShown = true;
-		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message);
+		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case to keep your edits.").arg(message);
 		// The hint of a target pick stays until the pick ends, and the message follows it.
 		if (m_incidentPanel->isPickingTarget())
 			m_heldRecoveryFailure = text;
@@ -3731,7 +3731,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 		return;
 	}
 	// A file that the system opens arrives from the relay that main created, from a second process or,
-	// on macOS, as an open event. It takes the steps of File > Open Case Study. A modal dialog, such as
+	// on macOS, as an open event. It takes the steps of File > Open Case... A modal dialog, such as
 	// the first-run questions or the question about unsaved changes, holds it back until the dialog has
 	// closed.
 	auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly);

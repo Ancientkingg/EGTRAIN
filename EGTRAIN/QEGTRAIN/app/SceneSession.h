@@ -93,7 +93,7 @@ public:
 		virtual void sceneSaved() = 0;
 	};
 
-	/// The session is a child of `window` and creates the Recent Scenes menu as a child of it. It does not own
+	/// The session is a child of `window` and creates the Recent Cases menu as a child of it. It does not own
 	/// `document` or `host`, which have to outlive it.
 	SceneSession(QMainWindow* window, SceneDocument* document, Host& host);
 
@@ -113,13 +113,13 @@ public:
 	/// The vector itself, which the validation panel writes to when it validates.
 	std::vector<SceneDiagnostic>* mutableDiagnostics() { return &m_sceneDiagnostics; }
 
-	/// The Recent Scenes menu, which the window puts in its File menu. Its parent is the window.
+	/// The Recent Cases menu, which the window puts in its File menu. Its parent is the window.
 	QMenu* recentScenesMenu() const;
 	/// The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear once.
 	static QStringList recentScenes();
 	/// Puts the absolute form of `path` first in the recent scenes, which keep at most 8. An installed scene is not added.
 	void addRecentScene(const QString& path);
-	/// Fills the Recent Scenes menu again from the settings.
+	/// Fills the Recent Cases menu again from the settings.
 	void rebuildRecentScenesMenu();
 	/// Marks the entries of the menu whose scene is gone as unavailable, and the others as available.
 	void refreshRecentSceneAvailability();

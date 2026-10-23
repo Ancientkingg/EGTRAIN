@@ -51,7 +51,7 @@ plist_absent() {
 	fi
 }
 plutil -lint "$PLIST" >/dev/null
-test "$(plist_value CFBundleDocumentTypes:0:CFBundleTypeName)" = "EGTRAIN Case Study"
+test "$(plist_value CFBundleDocumentTypes:0:CFBundleTypeName)" = "EGTRAIN Case"
 test "$(plist_value CFBundleDocumentTypes:0:CFBundleTypeRole)" = "Editor"
 test "$(plist_value CFBundleDocumentTypes:0:LSHandlerRank)" = "Owner"
 test "$(plist_value CFBundleDocumentTypes:0:LSItemContentTypes:0)" = "com.egtrain.simulator.egscene"

@@ -4,7 +4,7 @@ This page says which file to download for your system, how to install and start 
 
 ## Download and start
 
-1. Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases): `EGTRAIN-<version>-macOS-arm64.dmg` (Apple silicon Macs with macOS 26 or later; [details](#macos-disk-image)), `EGTRAIN-Setup-<version>-x64.exe` or `EGTRAIN-Portable-<version>-x64.zip` (64-bit Windows; [choose one](#windows-installer-and-portable-archive)) or `QEGTRAIN-linux-x86_64.AppImage` (64-bit Linux). `<version>` is the version of the release. Download a case study file from the same page too, such as `Paimpol.egscene`.
+1. Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases): `EGTRAIN-<version>-macOS-arm64.dmg` (Apple silicon Macs with macOS 26 or later; [details](#macos-disk-image)), `EGTRAIN-Setup-<version>-x64.exe` or `EGTRAIN-Portable-<version>-x64.zip` (64-bit Windows; [choose one](#windows-installer-and-portable-archive)) or `QEGTRAIN-linux-x86_64.AppImage` (64-bit Linux). `<version>` is the version of the release. Download a case file from the same page too, such as `Paimpol.egscene`.
 2. Start the application.
    - macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications` in its window, and open EGTRAIN from there. macOS refuses the first start of an ad hoc signed app; the [first start](#macos-disk-image) below says what to do.
    - Windows: run the installer and open **EGTRAIN** from the Start Menu, or unzip the portable archive into a new, empty folder and run `QEGTRAIN.exe` from it. Keep that folder intact. The Windows files are not code signed, so Windows warns before the installer starts; the [first start](#first-start-of-an-unsigned-build) below says what to do, and [Checking a download](#checking-a-download) says how to check a download.
@@ -17,10 +17,10 @@ This page says which file to download for your system, how to install and start 
 - **Install.** Open the image and drag `QEGTRAIN.app` onto `Applications`, then eject the image. The app is self-contained and needs no installer, so a copy in any other folder that you can write to works the same way. Run EGTRAIN from a copy and not from the image: an app on the image is read-only and cannot update itself.
 - **First start.** Unless the release notes say that the app is notarized, expect that it is not notarized by Apple and that macOS refuses the first start with `"QEGTRAIN" Not Opened`, which offers **Move to Trash** and **Done**. To allow the app, choose **Done**, open **System Settings > Privacy & Security** and, in the section **Security**, choose **Open Anyway** for `"QEGTRAIN" was blocked to protect your Mac.` Choose **Open Anyway** again in `Open "QEGTRAIN"?`. macOS then asks for the name and password of an administrator. These are the dialogs of macOS 26.6; other versions may word them differently. This is the normal macOS override. Do not turn Gatekeeper off or remove the download mark with a command.
 - **Notarized releases.** When the release notes say that the app is signed with a Developer ID and notarized, macOS is expected to ask only for the usual confirmation for an app that was downloaded. [First start of a notarized build](#first-start-of-a-notarized-build) has the details.
-- **Open a case study.** Double-click an `.egscene` file in Finder to open it in EGTRAIN, or Control-click it and choose **Open With** and `QEGTRAIN`. When EGTRAIN is open, the file opens in its window. [Open by double-click](opening-a-case-study.md#open-by-double-click) has the details.
+- **Open a case.** Double-click an `.egscene` file in Finder to open it in EGTRAIN, or Control-click it and choose **Open With** and `QEGTRAIN`. When EGTRAIN is open, the file opens in its window. [Open by double-click](opening-a-case-study.md#open-by-double-click) has the details.
 - **Update.** For a copy outside the image, **Help > Check for Updates...** offers **Update and Restart** when a newer release exists.
-- **Remove.** Quit EGTRAIN and drag `QEGTRAIN.app` to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay; [Removing EGTRAIN](#removing-egtrain) has the details.
-- **Inside the app.** The case studies are in `QEGTRAIN.app/Contents/Resources/Scenes` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](command-line.md)). The image shows no other file.
+- **Remove.** Quit EGTRAIN and drag `QEGTRAIN.app` to the Trash. Your cases, your exported files and the settings of EGTRAIN stay; [Removing EGTRAIN](#removing-egtrain) has the details.
+- **Inside the app.** The bundled cases are in `QEGTRAIN.app/Contents/Resources/Scenes` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](command-line.md)). The image shows no other file.
 
 ### First start of an ad hoc build
 
@@ -144,4 +144,4 @@ Removing the program leaves the settings of EGTRAIN and the files that it keeps 
 | macOS | `~/Library/Preferences/com.egtrain.EGTRAIN.plist`, and `~/Library/Preferences/com.egtrain.simulator.plist`, where macOS keeps the state of the open and save dialogs | `~/Library/Application Support/EGTRAIN` (the run output, recovery copies, crash notes and other working files) |
 | Linux | `~/.config/EGTRAIN` | `~/.local/share/EGTRAIN` (the same files as on macOS) |
 
-Case studies and exported files that you saved elsewhere are yours, and they stay where you saved them.
+Cases and exported files that you saved elsewhere are yours, and they stay where you saved them.

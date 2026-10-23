@@ -119,11 +119,11 @@ struct CommandLineOption {
 };
 
 static const CommandLineOption commandLineOptions[] = {
-	{"-n", "ID", "1", "Case study number, 1 to 5"},
-	{"--scene", "PATH", "the case study of -n", "Scene folder or .egscene file to load"},
-	{"-h", "SECONDS", "from the scene", "Length of the run in seconds (not help: use --help)"},
-	{"-b", "SECONDS", "from the scene", "Buffer time"},
-	{"-c", "PERCENT", "from the scene", "Recovery time"},
+	{"-n", "ID", "1", "Bundled case number, 1 to 5"},
+	{"--scene", "PATH", "the bundled case of -n", "Case folder or .egscene file to load"},
+	{"-h", "SECONDS", "from the case", "Length of the run in seconds (not help: use --help)"},
+	{"-b", "SECONDS", "from the case", "Buffer time"},
+	{"-c", "PERCENT", "from the case", "Recovery time"},
 	{"-g", "0|1", "1", "0 runs without a window and exits when the run ends"},
 	{"-pax", "0|1", "last choice of View > Passengers", "1 shows the passengers, read only when -g is 1"},
 	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g and -pax when they are left out"},
@@ -196,7 +196,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	} else if (promptForMissingOptions) {
 		int case_study;
-		std::cout << "Case study (1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut): ";
+		std::cout << "Bundled case (1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut): ";
 		std::cin >> case_study;
 		initial_variables.set_case(case_study);
 	} else {
@@ -431,7 +431,7 @@ static int runMain(int argc, char* argv[]) {
 	const char* sceneArgument = getCmdOption(argv, argv + argc, "--scene");
 	const bool sceneOption = cmdOptionEntered(argv, argv + argc, "--scene");
 	if (sceneOption && (!sceneArgument || sceneArgument[0] == '-')) {
-		std::cerr << "ERROR: --scene requires a scene path or case study.\n";
+		std::cerr << "ERROR: --scene requires a case folder or .egscene file.\n";
 		return 1;
 	}
 	if (startupTimingEnabled() && !sceneOption) {
@@ -441,7 +441,7 @@ static int runMain(int argc, char* argv[]) {
 	const std::string defaultName = initial_variables.name;
 	const bool creatorAcceptance = creatorAcceptanceRun();
 	if (!creatorAcceptance && defaultName.empty()) {
-		std::cerr << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut.\n";
+		std::cerr << "ERROR: Unknown bundled case id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut.\n";
 		return 1;
 	}
 	if (sceneOption)

@@ -31,13 +31,13 @@ int main(int argc, char** argv) {
 	const QString brokenPath = broken.fileName();
 
 	// The file name and a plain sentence come first, the internal error after them.
-	requireText(cannot_open::title(), "Cannot Open Case Study", "title");
+	requireText(cannot_open::title(), "Cannot Open Case", "title");
 	requireText(cannot_open::text(brokenPath, "error [scene.bundle.archive] failed finding central directory"),
-		"broken.egscene could not be opened.\nThe file is damaged or is not an EGTRAIN case study.\n\n"
+		"broken.egscene could not be opened.\nThe file is damaged or is not an EGTRAIN case.\n\n"
 		"error [scene.bundle.archive] failed finding central directory",
 		"text with an error");
 	requireText(cannot_open::text(brokenPath, {}),
-		"broken.egscene could not be opened.\nThe file is damaged or is not an EGTRAIN case study.", "text without an error");
+		"broken.egscene could not be opened.\nThe file is damaged or is not an EGTRAIN case.", "text without an error");
 	if (cannot_open::text(brokenPath, "x").contains(temp.path())) {
 		std::cerr << "failed: the text shows the folder of the file\n";
 		return 1;
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 		"text for a path that does not exist");
 	display_path::separator() = QDir::separator();
 
-	// A folder is not a damaged file: the sentence says what a scene folder holds.
+	// A folder is not a damaged file: the sentence says what a case folder holds.
 	QFile sceneJson(QDir(temp.path()).filePath("scene/scene.json"));
 	if (!sceneJson.open(QIODevice::WriteOnly)) {
 		std::cerr << "failed: scene.json could not be created\n";
@@ -58,10 +58,10 @@ int main(int argc, char** argv) {
 	}
 	sceneJson.close();
 	requireText(cannot_open::text(QDir(temp.path()).filePath("plain"), "error x"),
-		"plain could not be opened.\nThe folder holds no EGTRAIN scene. A scene folder holds a scene.json file.\n\nerror x",
+		"plain could not be opened.\nThe folder holds no EGTRAIN case. A case folder holds a scene.json file.\n\nerror x",
 		"text for a folder without scene.json");
 	requireText(cannot_open::text(QDir(temp.path()).filePath("scene"), {}),
-		"scene could not be opened.\nThe folder holds a damaged or incomplete EGTRAIN scene.",
+		"scene could not be opened.\nThe folder holds a damaged or incomplete EGTRAIN case.",
 		"text for a folder with a damaged scene.json");
 	return 0;
 }

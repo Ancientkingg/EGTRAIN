@@ -330,7 +330,7 @@ int main(int argc, char** argv) {
 		QTreeWidgetItem* noteRow = messages ? childRow(messages, "Run note") : nullptr;
 		ok &= expect(failRow && failRow->text(3) == "Error" && failRow->toolTip(0) == "Run error\nCode: e2e.fail" && noteRow
 				&& noteRow->text(3) == "Info",
-			"a message of the run says its severity as the Scene Validation table does, and its code in the tooltip");
+			"a message of the run says its severity as the Case Validation table does, and its code in the tooltip");
 
 		// A long message does not push Count and Status out of view, and its tooltip shows it whole with its fix.
 		const std::string longMessage(200, 'm');

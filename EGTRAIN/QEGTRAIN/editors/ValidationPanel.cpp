@@ -310,7 +310,7 @@ void ValidationPanel::refreshLoadedData() {
 	auto* messages = addRow(run, "Messages", QString(),
 		context.runtimeDiagnostics.empty() ? QString() : QString::number(static_cast<int>(context.runtimeDiagnostics.size())), runStatus);
 	for (const auto& diagnostic : context.runtimeDiagnostics) {
-		// A message has its severity as its status, in the words of the Scene Validation table, and its fix and code in the
+		// A message has its severity as its status, in the words of the Case Validation table, and its fix and code in the
 		// tooltip, which also shows the message whole when the column is too narrow for it.
 		addRow(messages, QString::fromStdString(diagnostic.message), QString::fromStdString(diagnostic.file), QString(),
 			severityText(diagnostic.severity))

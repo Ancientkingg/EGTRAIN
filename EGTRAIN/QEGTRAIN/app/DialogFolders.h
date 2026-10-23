@@ -80,7 +80,7 @@ inline QString installedScenesFolder(const QString& applicationDir) {
 	return {};
 }
 
-/// The folder in which the Open Case Study and Open Scene Folder dialogs start: the folder above the open case, or
+/// The folder in which the Open Case and Open Case Folder dialogs start: the folder above the open case, or
 /// with no case open the example cases when `installedScenes` is given, otherwise the home folder. On macOS a native
 /// open dialog that started in the home folder made macOS ask for access to Desktop, Documents and Downloads before
 /// it could be used; one that starts inside the application bundle asks nothing.

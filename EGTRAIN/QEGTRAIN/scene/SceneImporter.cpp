@@ -943,7 +943,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (containsPath(comparableLegacyPath, comparableScenePath)
 		|| containsPath(comparableScenePath, comparableLegacyPath)) {
 		addDiag(SceneSeverity::Error, "scene.import.path",
-			"Legacy directory and scene destination must be separate, non-overlapping directories", scenePath.u8string());
+			"Legacy directory and case destination must be separate, non-overlapping directories", scenePath.u8string());
 		return result;
 	}
 	std::error_code legacyError;
@@ -2370,7 +2370,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (sceneParent.empty()) sceneParent = ".";
 	fs::create_directories(sceneParent, ec);
 	if (ec) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create scene parent directory: " + ec.message(), scenePath.u8string());
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create case parent directory: " + ec.message(), scenePath.u8string());
 		return result;
 	}
 	std::string directoryName = scenePath.filename().u8string();
@@ -2429,27 +2429,27 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	std::error_code destinationEc;
 	const bool destinationExists = fs::exists(scenePath, destinationEc);
 	if (destinationEc) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + destinationEc.message(), scenePath.u8string());
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect case destination: " + destinationEc.message(), scenePath.u8string());
 		return result;
 	}
 	fs::path backupPath;
 	if (destinationExists) {
 		const std::error_code backupEc = uniqueSiblingPath(sceneParent, directoryName + ".backup-", backupPath);
 		if (backupEc) {
-			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect scene destination: " + backupEc.message(), scenePath.u8string());
+			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect case destination: " + backupEc.message(), scenePath.u8string());
 			return result;
 		}
 	}
 	const StagedPublishResult published = publishStagedDirectory(staged, scenePath, backupPath);
 	if (published.step == StagedPublishStep::MoveToBackup) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot move existing scene to backup: " + published.error.message(), scenePath.u8string());
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot move existing case to backup: " + published.error.message(), scenePath.u8string());
 		return result;
 	}
 	if (published.step == StagedPublishStep::Rename) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot publish scene destination: " + published.error.message(), scenePath.u8string());
+		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot publish case destination: " + published.error.message(), scenePath.u8string());
 		if (published.restoreError)
 			addDiag(SceneSeverity::Error, "scene.import.missing",
-				"Cannot restore existing scene: " + published.restoreError.message(), backupPath.u8string());
+				"Cannot restore existing case: " + published.restoreError.message(), backupPath.u8string());
 		return result;
 	}
 	if (published.removeBackupError)

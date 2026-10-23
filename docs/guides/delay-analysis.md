@@ -1,6 +1,6 @@
 # How delays are calculated
 
-This guide says what the delay figures of EGTRAIN mean: the formula, the unit, the reference timetable, which calls are counted and what is shown when a value is missing. It describes the program as it is, including its limits. [Definitions](#definitions) fixes the words, [Supported scope](#supported-scope) says what the figures cover and [Limits](#limits) what they do not. The scene fields it mentions are in the [scene schema](scene-schema.md#servicesjson).
+This guide says what the delay figures of EGTRAIN mean: the formula, the unit, the reference timetable, which calls are counted and what is shown when a value is missing. It describes the program as it is, including its limits. [Definitions](#definitions) fixes the words, [Supported scope](#supported-scope) says what the figures cover and [Limits](#limits) what they do not. The case fields it mentions are in the [scene schema](scene-schema.md#servicesjson).
 
 ## What this guide covers
 
@@ -33,13 +33,13 @@ These words mean the same in the Delay analysis window, in its CSV files and in 
 
 All values are seconds. One simulation step is one second: `timestep` is the constant 1.
 
-Planned times are the `planned_arrival_seconds` and `planned_departure_seconds` of the stops of a service, in seconds from the base-time origin of the scene. Each is optional. Occurrence n of a repeated service is shifted by (n - 1) times the headway. A planned time that is absent, or below 0 after the shift, counts as no planned time. Simulated times are seconds on the same axis.
+Planned times are the `planned_arrival_seconds` and `planned_departure_seconds` of the stops of a service, in seconds from the base-time origin of the case. Each is optional. Occurrence n of a repeated service is shifted by (n - 1) times the headway. A planned time that is absent, or below 0 after the shift, counts as no planned time. Simulated times are seconds on the same axis.
 
 A scenario entrance delay adds its seconds to the planned departure of the named stop of that occurrence, records the seconds as the entrance delay of the train, and leaves every planned arrival as authored. The stop needs a planned departure: without one, validation reports the error `scene.entrance.timetable` and the case does not run. When the service stops more than once at the named station, the first of those stops is the one that is shifted. So the departure delay at that stop in the timetable results is measured against the shifted planned departure, and arrival delays are not shifted (see [Where delays are calculated](#where-delays-are-calculated) and [Early, missing and repeated cases](#early-missing-and-repeated-cases)). The Delay analysis window takes the shift back, so that the departure shows the entrance delay ([the window](#the-delay-analysis-window)). The entrance delay is a field of a scenario in [`scenarios.json`](scene-schema.md#scenariosjson).
 
 A train that stands at a stop it has reached does not leave before the planned departure of that stop, when the stop has one, and not before its dwell time has passed (the `dwell_seconds` of the stop, or longer when boarding and alighting passengers need longer; [the rule](scene-schema.md#servicesjson)). It also stays while a red signal at the platform or an end of authority applies, and at a node with a train order until the order allows it to leave (`trajectoryComputationIncludingMovingBlock`). For a station that a train serves more than once, the planned departure of the last stop of that name applies at every call of the station. In the line fixture of the tests a train with a planned departure of 660 s at its middle stop leaves at 660 s.
 
-The last stop of a service ends the service when it has no planned departure: the train leaves after its dwell, drives on and is removed from the run when its head passes the end node of its route. A planned departure at the last stop holds the train there until that time, so a planned departure after the end of the run keeps it at the stop to the end of the run. The Netherlands scene has no planned time at any stop, so its trains leave the network after their dwell at the last stop unless the run ends first.
+The last stop of a service ends the service when it has no planned departure: the train leaves after its dwell, drives on and is removed from the run when its head passes the end node of its route. A planned departure at the last stop holds the train there until that time, so a planned departure after the end of the run keeps it at the stop to the end of the run. The Netherlands case has no planned time at any stop, so its trains leave the network after their dwell at the last stop unless the run ends first.
 
 A train that begins its route at a stop is not held there: it enters at the entry time of its service (`entry_time_seconds`, or the planned departure of the first stop when the service has no entry time, or 0 when that stop has none), shifted like the other times of a repeated service. In the same fixture a train enters at 60 s although its planned departure at the first stop is 120 s. An entrance delay does not change the entry time; at the first stop it shifts the planned departure that the results show.
 
@@ -192,19 +192,19 @@ The characterization tests check that `Total_Delay` and `N_StopTrains` of every 
 
 The comparison reports how much later or earlier each call of a run with incidents or entrance delays is than in a run without them. It reports the difference and the recorded direct evidence, and it never states a cause. [Reading the tab](#against-baseline) shows two examples.
 
-**Set delay baseline** freezes the completed run as the baseline. The run must have no incidents and no entrance delays in its scenario. The baseline is kept in memory only, and it is cleared when the case changes: creating a new case study, opening another one, or editing the case in any way, including adding an incident. So the incident scenario has to exist before the baseline is set. Selecting another scenario keeps it.
+**Set delay baseline** freezes the completed run as the baseline. The run must have no incidents and no entrance delays in its scenario. The baseline is kept in memory only, and it is cleared when the case changes: creating a new case, opening another one, or editing the case in any way, including adding an incident. So the incident scenario has to exist before the baseline is set. Selecting another scenario keeps it.
 
 **Compare delays** needs a baseline and a completed run whose scenario has at least one incident or at least one entrance delay. The line above the buttons says why a button is disabled. The button opens the Delay analysis window on the tab Against baseline. The window compares the run with the baseline (`compareAgainstBaseline`) when all of these hold:
 
 - the two runs have different scenario ids;
-- they have the same scene revision, base time, duration and timestep;
+- they have the same case revision, base time, duration and timestep;
 - they have the same set of (service, occurrence) pairs;
 - each occurrence has the same calls in both runs: the same stations, journey order and call numbers;
 - the baseline has no incident and no entrance delay.
 
 When a check fails, the tab lists every reason that applies and shows no difference.
 
-For each call the comparison takes the simulated arrival and the simulated departure in both runs and reports the [additional delay](#definitions), scenario minus baseline, with the change Later, Same, Earlier or Not available. The final call of an occurrence is its last authored call. For each occurrence it also reports the entrance delay as the input delay, the direct incident evidence and the [secondary delay](#definitions). The comparison uses simulated times only, no planned times, so it works for a scene without planned arrivals.
+For each call the comparison takes the simulated arrival and the simulated departure in both runs and reports the [additional delay](#definitions), scenario minus baseline, with the change Later, Same, Earlier or Not available. The final call of an occurrence is its last authored call. For each occurrence it also reports the entrance delay as the input delay, the direct incident evidence and the [secondary delay](#definitions). The comparison uses simulated times only, no planned times, so it works for a case without planned arrivals.
 
 The totals count the occurrences that are later, the same, earlier or not available at their final arrival, and give the sum of the positive additional delays and the net sum. An occurrence whose final arrival is missing in either run has no difference. It is counted as not available, the sums leave it out, and the tab says so. A difference that cannot be computed is never 0. In the line of totals, "Added delay" is the sum of the positive additional delays and "net" the sum of all of them; a count of 0 is left out.
 
@@ -226,9 +226,9 @@ The tabs Calls and Summary of the Delay analysis window follow the column of the
 | Repeated station | One row per call; the n-th call takes the n-th timetable point of the name | Every call is a sample of the station row; `Final_Station` takes the last stop only | Every call has its own row; the totals use the last call |
 | Entrance delay | Departure delay at the named stop is against the shifted planned departure; arrival delays are not shifted. The Delay analysis window uses the authored planned departure, so the departure shows the entrance delay | `Cum_Cons_Delay` and `Max_Cons_Delay` subtract the entrance delay from each call of the train; the row `Ent_Delays` lists it | Accepted: the entrance delay is the input delay of the occurrence. The baseline may not have one |
 | Incompatible baseline | Not involved | Not involved | The tab lists every reason that applies, shows no difference and offers no export |
-| Scene with no planned arrival at all | Arrival delay unavailable at every stop; departure delay exists where a planned departure exists | No station has a sample: rows hold -1, `TOTALS` -1 and 0 | Works; it needs no planned time |
+| Case with no planned arrival at all | Arrival delay unavailable at every stop; departure delay exists where a planned departure exists | No station has a sample: rows hold -1, `TOTALS` -1 and 0 | Works; it needs no planned time |
 
-The Netherlands scene has no `planned_arrival_seconds` and no `planned_departure_seconds` at any stop, so no event of that scene has a delay in the timetable results or the Delay analysis window.
+The Netherlands case has no `planned_arrival_seconds` and no `planned_departure_seconds` at any stop, so no event of that case has a delay in the timetable results or the Delay analysis window.
 
 ## Calculations the program no longer contains
 
@@ -257,9 +257,9 @@ For every figure the window says how many events it covers and how many it leave
 The window does not support:
 
 - events at stations where a train passes without a stop;
-- a delay for a scene or a stop without planned times: the Netherlands scene has none, and an arrival delay needs a planned arrival and a departure delay a planned departure;
+- a delay for a case or a stop without planned times: the Netherlands case has none, and an arrival delay needs a planned arrival and a departure delay a planned departure;
 - another set of thresholds, more than one baseline, or a baseline that is saved with the case;
-- a baseline with incidents or entrance delays, or two runs that differ in scene revision, base time, duration, timestep, occurrences or calls;
+- a baseline with incidents or entrance delays, or two runs that differ in case revision, base time, duration, timestep, occurrences or calls;
 - the delay of passenger journeys, which is another quantity ([limit 9](#limits));
 - a cause for a delay: the window states the entrance delay, which is an input, and the direct incident evidence that the run recorded, and nothing more.
 
@@ -268,7 +268,7 @@ The window does not support:
 1. The figures cover arrival and departure events of authored stops. Passing a station without a stop is not a call.
 2. Four sets of thresholds are in use. The statistics files count calls later than 0, 180 and 300 s. The Timetable view colours at 0 and 60 s. The chart is in minutes with no threshold. The Delay analysis window counts events later than 0, 60, 180 and 300 s and its thresholds are fixed. All of them mean strictly later. The statistics files have no 1 minute threshold; only the Timetable view and the Delay analysis window have a threshold at 60 s.
 3. Early arrivals are 0 in `Stats_Stations.txt` and negative in `Pos&Neg_Stats_Stations.txt` (the `stats` and `signed_stats` lines of `follow-level-0.txt`, as in the example above).
-4. A scene or a stop without a planned arrival gives no arrival delay in the timetable results, the Delay analysis window or the statistics files. A stop without a planned departure gives no departure delay in the timetable results or the window; the statistics files use arrivals only. The baseline comparison does not need planned times, and the passenger journey delay uses the planned arrival of the journey.
+4. A case or a stop without a planned arrival gives no arrival delay in the timetable results, the Delay analysis window or the statistics files. A stop without a planned departure gives no departure delay in the timetable results or the window; the statistics files use arrivals only. The baseline comparison does not need planned times, and the passenger journey delay uses the planned arrival of the journey.
 5. The comparison refuses a baseline that has incidents or entrance delays. A scenario may have either. One baseline exists at a time and it is not saved with the case: any edit of the case, a new case or opening another one clears it.
 6. An entrance delay moves the planned departure of its stop only. The departure delay at that stop in the timetable results is against the moved planned departure. The Delay analysis window measures it against the authored one.
 7. Direct incident evidence is recorded for a speed cap (`effectiveIncidentSpeedLimit`), a breakdown hold, and a train held by a signal failure (`recordDirectSignalFailure`). A train is held by a signal failure when it stops at the end of authority of the failure, or when it stands at a red aspect within 4 m of the failed section that is the next section on its own route; a train that stands there for a planned stop is recorded too. The second rule covers the fixed-block levels 0, 1 and 2 (see [signalling levels](signalling-levels.md)). It does not cover level 5, whose restrictive aspect is red-red. A train that is held only by the train ahead is not recorded, and neither is a train that waits to enter while the first section of its route is failed. So the evidence depends on the signalling level. The signal failure cases of the line fixture show it (`direct_incident count` in the files of `tests/characterization/expected` whose names start with sf-):
@@ -284,6 +284,6 @@ The window does not support:
    For a run in which no train has evidence, with advanced details on, the Run Results line says "Incidents acted on 0 of n trains" and the tab Against baseline shows "None recorded" for every occurrence. A train that is delayed because the train ahead was held shows its difference and no evidence. This describes the current behaviour of the program and is not a statement about the railway.
 8. The **CSV...** button of the Delays chart writes the timetable file for the selected trains, not a delay file.
 9. The passenger journey delay is another quantity: it is measured against a planned arrival drawn from a window, not against the timetable of the train.
-10. None of the committed scenes has an incident or an entrance delay; each has only the baseline scenario, so the baseline comparison cannot be tried on a committed scene.
+10. None of the bundled cases has an incident or an entrance delay; each has only the baseline scenario, so the baseline comparison cannot be tried on a bundled case.
 11. Nothing in the application attributes a delay to a cause beyond the recorded direct evidence.
 12. The pairing of stops and timetable points is by name and order only. It is exact when the n-th stop of a name takes place at the n-th station node of that name on the route; the run does not check this.

@@ -1,6 +1,6 @@
 # V2 Transparent Scene Bundle
 
-EGTRAIN identifies portable case studies by the `.egscene` extension. The
+EGTRAIN identifies portable cases by the `.egscene` extension. The
 payload is an ordinary ZIP archive, so external tools may report
 `application/zip`; EGTRAIN does not rely on a registered MIME type. ZIP entries
 use deflate or store compression. Encryption and passwords are not supported.
@@ -11,9 +11,9 @@ The name V2 refers to the container. The container's own number is
 `bundle_version` 1, and the data inside has `schema_version` 1. A higher
 version needs a newer EGTRAIN.
 
-A scene folder is the editable source of truth. An `.egscene` bundle packages
+A case folder is the editable source of truth. An `.egscene` bundle packages
 its files for transport. Legacy import and export remain explicit
-interoperability actions; normal scene loading and simulation use the
+interoperability actions; normal case loading and simulation use the
 canonical model.
 
 ## Root layout
@@ -51,7 +51,7 @@ The bundled `scene.json` keeps the V1 `schema_version: 1` and adds:
 
 `format` identifies the container and `bundle_version` versions the container
 independently from the data schema. Both fields are required in a bundle;
-directory scenes may omit them. A reader rejects another marker, bundle
+case folders may omit them. A reader rejects another marker, bundle
 version, or schema version before extracting files.
 
 Compatibility probing reads the bounded `scene.json` manifest after generic ZIP

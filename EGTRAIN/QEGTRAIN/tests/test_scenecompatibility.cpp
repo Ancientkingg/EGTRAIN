@@ -190,7 +190,7 @@ static bool checkRejectionReasons(const SceneModel& model, const fs::path& folde
 	const std::string olderReason = reasonOf(older, "scene.compatibility.older");
 	ok &= expect(older.classification == SceneCompatibilityClass::OlderUnsupported && !olderReason.empty()
 			&& contains(olderReason, "schema 0 (saved with EGTRAIN 0.9)") && contains(olderReason, "saved by an older version of EGTRAIN") && contains(olderReason, "reads schema 1.")
-			&& contains(olderReason, "Load Legacy Case") && !contains(olderReason, "bundle layout"),
+			&& contains(olderReason, "Import Legacy Case") && !contains(olderReason, "bundle layout"),
 		"an older schema is rejected with its number, the saved-with version and the way out");
 	const fs::path refusedCopy = folder / "refused-copy";
 	const SceneMigrationResult refused = migrateSceneCopy(scene.string(), refusedCopy.string(), productionSceneMigrationRegistry());
@@ -226,7 +226,7 @@ static bool checkRejectionReasons(const SceneModel& model, const fs::path& folde
 	const std::string draftReason = reasonOf(draft, "scene.compatibility.draft");
 	ok &= expect(draft.classification == SceneCompatibilityClass::OlderUnsupported && !draftReason.empty()
 			&& contains(draftReason, "draft layout that EGTRAIN saved before 2026-08-08 (schema 1, saved-with version not recorded)")
-			&& contains(draftReason, "not supported") && contains(draftReason, "File > Load Legacy Case..."),
+			&& contains(draftReason, "not supported") && contains(draftReason, "File > Import Legacy Case..."),
 		"legacy_source with an empty infrastructure is the draft layout");
 	ok &= expect(writeText(scene / "infrastructure.json", "{}"), "infrastructure without lists writes");
 	ok &= expect(probeSceneCompatibility(scene.string()).classification == SceneCompatibilityClass::OlderUnsupported,

@@ -435,7 +435,7 @@ jobs:
               exit 1
             fi
           }
-          expect_plist CFBundleDocumentTypes:0:CFBundleTypeName "EGTRAIN Case Study"
+          expect_plist CFBundleDocumentTypes:0:CFBundleTypeName "EGTRAIN Case"
           expect_plist CFBundleDocumentTypes:0:CFBundleTypeRole Editor
           expect_plist CFBundleDocumentTypes:0:LSHandlerRank Owner
           expect_plist CFBundleDocumentTypes:0:LSItemContentTypes:0 com.egtrain.simulator.egscene

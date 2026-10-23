@@ -11,7 +11,7 @@ application and how to find the code behind a screen.
 
 ```text
 EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed below
-EGTRAIN/QEGTRAIN/Scenes/  The committed case studies
+EGTRAIN/QEGTRAIN/Scenes/  The bundled cases
 EGTRAIN/QEGTRAIN/tests/   C++ regression tests and their fixtures
 installer/                Inno Setup script of the Windows installer and its README
 tools/e2e/                Smoke tests and Python tests
@@ -47,7 +47,7 @@ Paths are relative to `EGTRAIN/QEGTRAIN/`. A file named without its extension ha
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: [`TelemetryConsent`], [`TelemetryConsentDialog`], `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue` and `TelemetrySender` |
 | `recovery/` | Recovery copies of a scene with unsaved edits. [`RecoveryStore`] keeps them below a folder that the caller names, [`RecoveryController`] writes them on a timer on one worker thread, and [`RecoveryPrompt`] offers the copies that an earlier run left behind. It has nothing to do with the recovery time of a timetable |
 | `resources/` | Icons (`icons/`), the application icons for each system (`app/`) and the style sheet (`styles/egtrain.qss`) |
-| `Scenes/` | The committed case studies, one folder each |
+| `Scenes/` | The bundled cases, one folder each |
 | `tests/` | One `test_<name>.cpp` for each test executable, with `fixtures/` (test data), `characterization/` (the characterization tests with their `expected/` files), `e2e/` (the runner of the scripted window scenarios), `live/` and the helper programs `update_probe*.cpp` and `live_client.cpp` |
 
 `app/MainWindow.cpp` has 3,916 lines (measured with `wc -l` on 2026-10-17, after the move of the result views and the Run Results dock), well under the 5,000 that the move of the shell services aimed at.

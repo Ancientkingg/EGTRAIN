@@ -1,6 +1,6 @@
 # Getting started
 
-This page takes you from a download to a finished run of the Paimpol case study, its results and two exported files. Paimpol is a small line with 6 tracks, 10 stations and 2 services, and it runs in seconds. You need only the downloaded program. You do not need the source code, a build or the command line.
+This page takes you from a download to a finished run of the Paimpol case, its results and two exported files. Paimpol is a small line with 6 tracks, 10 stations and 2 services, and it runs in seconds. You need only the downloaded program. You do not need the source code, a build or the command line.
 
 The steps use the labels of the window. A label such as **Run** is a menu entry or a button, and a name such as `Paimpol` is a case. On macOS the key Ctrl in a shortcut is the Command key, and [Keyboard shortcuts](keyboard-shortcuts.md) lists every shortcut.
 
@@ -18,23 +18,23 @@ The [glossary](glossary.md) defines the other words of the program.
 
 Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). [Installing EGTRAIN](install.md) has the steps for each system, including what to do when macOS or Windows warns before the first start.
 
-- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case Study...**: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export or save, because an export dialog starts in your Documents folder, as does a save dialog for an example case or a new case. That dialog does not respond until you answer.
+- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case...**: in column view the file dialog then lists your home folder. If macOS has not asked for access to Documents yet, it can ask at the first export or save, because an export dialog starts in your Documents folder, as does a save dialog for a bundled case or a new case. That dialog does not respond until you answer.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
 - Linux: make the AppImage executable and run it. It needs glibc 2.38 or later, as on Ubuntu 24.04. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libopengl0`, `libegl1`, `libharfbuzz0b` and `libfontconfig1` first. The AppImage also needs the FUSE 2 library: when it stops with `AppImages require FUSE to run.`, install `libfuse2t64`, or start it with `./QEGTRAIN-linux-x86_64.AppImage --appimage-extract-and-run`.
 
-The packages contain the example cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the same page.
+The packages contain the bundled cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the same page.
 
 ## 2. The first start
 
 EGTRAIN asks its questions in this order. Some appear only once.
 
 1. **Recover Unsaved Work** appears only when an earlier session ended with unsaved edits. A first start has nothing to recover. After **Recover**, the list of the next step does not appear; open Paimpol with **Open Case** in the toolbar. See [If something goes wrong](#if-something-goes-wrong).
-2. **Open a Case** opens over the case that EGTRAIN has loaded already (Netherlands, unless you chose another). The list has the group **Bundled cases**, which holds the example cases of the package, and the group **Recent cases**, which lists other cases you opened or saved before. Select `Paimpol` and click **Open**, or double-click it. A long name is shortened in the middle of its row; hold the pointer over the row to see the whole name and the path. The first entry of the list is already selected when the window opens, so select `Paimpol` itself before you click **Open**. **Continue** keeps the loaded case.
+2. **Open a Case** opens over the case that EGTRAIN has loaded already (Netherlands, unless you chose another). The list has the group **Bundled cases**, which holds the cases of the package, and the group **Recent cases**, which lists other cases you opened or saved before. Select `Paimpol` and click **Open**, or double-click it. A long name is shortened in the middle of its row; hold the pointer over the row to see the whole name and the path. The first entry of the list is already selected when the window opens, so select `Paimpol` itself before you click **Open**. **Continue** keeps the loaded case.
 
    ![The window Open a Case over Netherlands, with Paimpol selected in the list of Bundled cases. The text above the list reads Current case: Netherlands, and the buttons are Open and Continue.](../images/getting-started-open-a-case.png)
 3. When the earlier steps are done, and **Open a Case** has closed if it appeared, the first start only may also ask **Check for EGTRAIN updates automatically?** Either answer works: **Check Automatically** or **Don't Check Automatically**. **Help** changes the choice later. See [Updating EGTRAIN](updates.md).
 
-The toolbar button **Open Case** shows **Open a Case** again whenever you want to open another case. If you started EGTRAIN by opening a `.egscene` file, or if the list does not show Paimpol, use **File > Open Case Study...** and select `Paimpol.egscene` instead. The file dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app. [Opening an `.egscene` case study](opening-a-case-study.md) describes that.
+The toolbar button **Open Case** shows **Open a Case** again whenever you want to open another case. If you started EGTRAIN by opening a `.egscene` file, or if the list does not show Paimpol, use **File > Open Case...** and select `Paimpol.egscene` instead. The file dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app. [Opening an `.egscene` case](opening-a-case-study.md) describes that.
 
 ## 3. Look at the case
 
@@ -47,17 +47,17 @@ When Paimpol has loaded:
 
 ![The main window with Paimpol loaded and not yet run, at the full view. The toolbar, the dock Case and Layers with Passengers off and the map key, the line of stations and the status bar Scene loaded: Paimpol (2 services, 15 routes) are visible.](../images/getting-started-main-window.png)
 
-The editors, **Scene Validation**, **Loaded Data** and **Log** are hidden when the window opens. The menu **Editors** opens the editors, and the menu **View** opens the other docks.
+The editors, **Case Validation**, **Loaded Data** and **Log** are hidden when the window opens. The menu **Editors** opens the editors, and the menu **View** opens the other docks.
 
 ### Validation
 
 EGTRAIN checks the case when it opens, after every edit and before every run. An error stops a run, and a warning does not. Paimpol has no errors. It has a few hundred warnings, nearly all with the code `scene.passenger.legs.empty` (a passenger journey without route-choice legs), and they do not matter for this walk.
 
-To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The table lists each finding with its **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**; **Code**, **File** and **Path** are in the tooltip of a row and show as columns with **View > Advanced Details**. The status bar names validation only when it finds an error (`Cannot run: 1 error`). **View > Advanced Details** adds the counts, as in `2 warnings`, and the dock **Loaded Data**.
+To see the findings, choose **View > Case Validation** (Ctrl+Shift+V). The table lists each finding with its **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**; **Code**, **File** and **Path** are in the tooltip of a row and show as columns with **View > Advanced Details**. The status bar names validation only when it finds an error (`Cannot run: 1 error`). **View > Advanced Details** adds the counts, as in `2 warnings`, and the dock **Loaded Data**.
 
 ## 4. Run the simulation
 
-1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R) or **File > Run Scene**. The three do the same.
+1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R) or **File > Run**. The three do the same.
 2. The dialog **Run simulation** reviews the run before it starts. Under the name of the case and the scenario (`Paimpol / baseline`) it shows **Trains** (2: both services enter during the run), **Start time** (07:10:40) and **Duration** (`2:30:00, until 09:40:40`). **Incidents** shows only when the scenario has any, and a line under the facts shows only when something needs your attention, for example `No selected trains start in this period.` **Run details** shows more.
 
    ![The dialog Run simulation for Paimpol / baseline before a run: 2 selected in period, start clock 07:10:40, duration 2:30:00 ending near 09:40:40, 0 active incidents and the message Ready to run, with Run details closed and the buttons Run simulation and Cancel.](../images/getting-started-run-simulation.png)
@@ -114,17 +114,17 @@ The Windows entry follows the rule of Qt for the application data folder. **File
 
 ## If something goes wrong
 
-- **Run is disabled.** No case is open, a run is active, or validation reports an error. Open **View > Scene Validation** and read the first error. [How-to](how-to.md#why-a-command-is-disabled) lists the reasons for the other disabled commands.
-- **A message refuses the run.** It names the problem, for example `Cannot run: 2 errors` with `Fix the errors in Scene Validation.`, or `Select at least one occurrence on the Run occurrences tab of Services.` On Windows and Linux it is titled **Cannot Run Scene**.
-- **Cannot Open Case Study.** The file is damaged or is not an EGTRAIN case. Keep the message, and download the file again. [Opening an `.egscene` case study](opening-a-case-study.md#scenes-that-do-not-open) lists the other dialogs for a scene that does not open.
-- **Unsaved Scene.** Before EGTRAIN replaces a case that has unsaved edits, it asks **Save**, **Discard** or **Cancel**. On macOS this is a sheet without a title, and the buttons are **Save**, **Cancel** and **Don't Save**. **Cancel** keeps the case and its edits. For an installed example case, **Save** asks for a new `.egscene` file and never writes into the installation.
-- **Recover Unsaved Work.** While a case has unsaved edits, EGTRAIN keeps a recovery copy and updates it about every 30 seconds. While an entry of the case is incomplete, for example a new service without a composition, no copy is written and the status bar says `Autosave unavailable: ...`. If EGTRAIN closed before you saved, the next start offers **Recover**, **Discard** and **Decide Later**. **Recover** opens the copy as an unsaved case. Choose **File > Save Case Study As...** to keep it.
+- **Run is disabled.** No case is open, a run is active, or validation reports an error. Open **View > Case Validation** and read the first error. [How-to](how-to.md#why-a-command-is-disabled) lists the reasons for the other disabled commands.
+- **A message refuses the run.** It names the problem, for example `Cannot run: 2 errors` with `Fix the errors in Case Validation.`, or `Select at least one occurrence on the Run occurrences tab of Services.` On Windows and Linux it is titled **Cannot Run Case**.
+- **Cannot Open Case.** The file is damaged or is not an EGTRAIN case. Keep the message, and download the file again. [Opening an `.egscene` case](opening-a-case-study.md#cases-that-do-not-open) lists the other dialogs for a case that does not open.
+- **Unsaved Case.** Before EGTRAIN replaces a case that has unsaved edits, it asks **Save**, **Discard** or **Cancel**. On macOS this is a sheet without a title, and the buttons are **Save**, **Cancel** and **Don't Save**. **Cancel** keeps the case and its edits. For a bundled case, **Save** asks for a new `.egscene` file and never writes into the installation.
+- **Recover Unsaved Work.** While a case has unsaved edits, EGTRAIN keeps a recovery copy and updates it about every 30 seconds. While an entry of the case is incomplete, for example a new service without a composition, no copy is written and the status bar says `Autosave unavailable: ...`. If EGTRAIN closed before you saved, the next start offers **Recover**, **Discard** and **Decide Later**. **Recover** opens the copy as an unsaved case. Choose **File > Save As...** to keep it.
 - **Undo.** The **Edit** menu has **Undo** and **Redo** for edits of the case.
 - **Nothing happened after a run.** If you stopped the run, there are no results. Run it again and let it end.
 
 ## Known limits
 
-- No supplied case study has signals. Each has one signalling area at level 0 over the whole network, so none of them shows the separation of trains by signals. See [The committed scenes](signalling-levels.md#the-committed-scenes).
+- No bundled case has signals. Each has one signalling area at level 0 over the whole network, so none of them shows the separation of trains by signals. See [The bundled cases](signalling-levels.md#the-bundled-cases).
 - The case `Assignment_Gvc_Gdg_Ut` is a synthetic fixture, not a case with source-backed railway data. See [Assignment workflow](assignment-workflow.md).
 - The Windows files are not code signed, and the macOS app is not notarized unless the release notes say so. [Installing EGTRAIN](install.md) says what the first start shows.
 - EGTRAIN keeps the newest 20 recovery copies of unsaved work.
@@ -134,6 +134,6 @@ The Windows entry follows the rule of Qt for the application data folder. **File
 This manual is also in EGTRAIN: **Help > EGTRAIN Manual** opens it with its contents and search, and F1 opens the section about the window you are in when the manual has one, otherwise its start page. A build without the manual opens the manual on the project website instead.
 
 - [How-to](how-to.md): recipes for opening and saving, editing a timetable, scenarios and baselines, canvas navigation, results and legacy cases.
-- [Opening an `.egscene` case study](opening-a-case-study.md): bundles, version checks and opening by double-click.
-- [Editing and validating a case](editing-a-case.md), [Scenarios and the student loop](scenarios.md) and the [scene schema](scene-schema.md): the editors, the scenarios and the scene files.
+- [Opening an `.egscene` case](opening-a-case-study.md): bundles, version checks and opening by double-click.
+- [Editing and validating a case](editing-a-case.md), [Scenarios and the student loop](scenarios.md) and the [scene schema](scene-schema.md): the editors, the scenarios and the case files.
 - [Glossary](glossary.md).
