@@ -876,8 +876,9 @@ int main(int argc, char* argv[]) {
 			ok &= expect(heard, "the host hears the centre of the train as it is drawn, on the line, at every step");
 			ok &= expect(everyStep, "every step of a glide moves the train");
 
-			// Updates every 40 ms, as at Fastest. Once the longer intervals are no longer among the last eight but one, a
-			// glide lasts 200 ms, so every update finds the train on its way and every step moves it.
+			// Updates every 40 ms, as at Fastest, each 10 ms after a step. Once the longer intervals are no longer among
+			// the last eight but one, a glide lasts 200 ms, so every update finds the train on its way and every step moves
+			// it. A glide goes on from the step before its update, so the last one ends 190 ms after its update.
 			double head = 6.3;
 			bool eachUpdate = true;
 			for (int update = 0; update < 12; ++update) {
@@ -889,7 +890,7 @@ int main(int argc, char* argv[]) {
 				for (int step = 0; step < 3; ++step)
 					stepBy(10);
 			}
-			now += 160;
+			now += 150;
 			bent.stepTrains();
 			eachUpdate &= bent.trainMoving(0);
 			now += 10;
@@ -1075,6 +1076,14 @@ int main(int argc, char* argv[]) {
 			far.stepTrains();
 			ok &= expect(QLineF(drawnFront(*train), linePointAt(*line, 4.5 + 0.3 * 75.0 / 500.0)).length() <= close,
 				"a step draws it where it is by the clock once it is near the visible scene");
+			// The update after a step that left the train out draws it where its glide is by the clock.
+			farView.centerOnExactly(linePointAt(*line, 0.5));
+			now += 10;
+			far.stepTrains();
+			now += 10;
+			deliver(5.0);
+			ok &= expect(QLineF(drawnFront(*train), linePointAt(*line, 4.5 + 0.3 * 95.0 / 500.0)).length() <= close,
+				"an update draws a train that the last step left out where its glide is by the clock");
 		}
 		far.setFrameHost(nullptr);
 		far.setClock({});
@@ -1167,10 +1176,11 @@ int main(int argc, char* argv[]) {
 		double previous = 0.0;
 		for (int tick = 0; tick <= 300; ++tick) {
 			now = tick * 10;
+			// The steps run at every tick, as their timer runs whatever the updates do, and an update comes just after
+			// the step of its tick.
+			presenter.stepTrains();
 			if (tick % 20 == 0)
 				update(1.0 + 0.04 * (tick / 20.0));
-			else
-				presenter.stepTrains();
 			const double middle = drawnMiddle(*presenter.allTrains[0]).x();
 			if (tick > 100)
 				steps.push_back(middle - previous);
@@ -1203,8 +1213,8 @@ int main(int argc, char* argv[]) {
 		ok &= expect(onward, "with irregular gaps between the updates a gliding train never moves back");
 
 		// One gap of 900 ms, after a slow frame, in a rhythm of 33 ms leaves the glides at five times the rhythm, 165 ms.
-		// The glide after the gap starts at 1.04 km, where the train stands, and the next one where that glide is after
-		// 33 ms.
+		// The glide after the gap starts at 1.04 km, where the train stands. The update after the next step leaves the
+		// train where that step drew it, and its glide goes on from there from the time of that step.
 		restart();
 		update(1.0);
 		for (int step = 1; step <= 4; ++step) {
@@ -1215,14 +1225,53 @@ int main(int argc, char* argv[]) {
 		update(1.05);
 		now += 10;
 		presenter.stepTrains();
-		const bool afterGap = near(drawnHead(), 1040.0 + 10.0 * 10.0 / 165.0);
+		const double from = 1040.0 + 10.0 * 10.0 / 165.0;
+		const bool afterGap = near(drawnHead(), from);
 		now += 23;
 		update(1.06);
-		const double from = 1040.0 + 10.0 * 33.0 / 165.0;
+		const bool stays = near(drawnHead(), from);
 		now += 10;
 		presenter.stepTrains();
-		ok &= expect(afterGap && near(drawnHead(), from + (1060.0 - from) * 10.0 / 165.0),
+		ok &= expect(afterGap && stays && near(drawnHead(), from + (1060.0 - from) * 33.0 / 165.0),
 			"one long gap between updates does not slow the glides that follow it");
+
+		// An update that comes while a train glides, between two steps, leaves the train where the last step drew it. The
+		// next step moves it on from there at the speed of the glide that the update starts, as far as the time since the
+		// step before the update, so every move on screen comes from a step. The train runs 10 m in each update of 40 ms,
+		// so its glides last 200 ms, and the steps come every 16 ms, between the updates.
+		restart();
+		headKm = 1.0;
+		update(headKm);
+		bool updateKeepsPlace = true;
+		bool stepAtGlideSpeed = true;
+		int checkedUpdates = 0;
+		qint64 lastStep = 0;
+		qint64 nextStep = 8;
+		for (int count = 1; count <= 25; ++count) {
+			for (; nextStep < 40 * count; nextStep += 16) {
+				now = nextStep;
+				presenter.stepTrains();
+				lastStep = nextStep;
+			}
+			now = 40 * count;
+			const double before = drawnHead();
+			const QPointF centreBefore = presenter.trainCenter(0);
+			headKm += 0.01;
+			update(headKm);
+			if (count < 10)
+				continue;
+			++checkedUpdates;
+			const double after = drawnHead();
+			updateKeepsPlace &= after == before && presenter.trainCenter(0) == centreBefore;
+			now = nextStep;
+			presenter.stepTrains();
+			stepAtGlideSpeed &=
+				near(drawnHead(), after + (headKm * 1000.0 - after) * static_cast<double>(nextStep - lastStep) / 200.0);
+			lastStep = nextStep;
+			nextStep += 16;
+		}
+		ok &= expect(checkedUpdates == 16 && updateKeepsPlace && stepAtGlideSpeed,
+			"an update leaves a gliding train where the last step drew it, and the next step moves it on at the new speed");
 
 		// The timer of the steps runs on the event loop at its own pace while the updates come, here every 5 ms, more
 		// often than its 16 ms, on a clock that runs. The updates do not hold its steps off: in 600 ms its steps, about
@@ -1266,12 +1315,12 @@ int main(int argc, char* argv[]) {
 			for (const int gap : {20, 60, 25, 55}) {
 				for (int ms = 5; ms <= gap; ms += 5) {
 					now += 5;
+					// An update comes just after the step of its tick.
+					presenter.stepTrains();
 					if (ms == gap) {
 						headKm += 0.01;
 						update(headKm);
 						++updates;
-					} else {
-						presenter.stepTrains();
 					}
 					const double head = drawnHead();
 					if (updates > 24)
@@ -1327,10 +1376,9 @@ int main(int argc, char* argv[]) {
 		QPolygonF stood;
 		for (int ms = 5; ms <= 1500; ms += 5) {
 			now += 5;
+			presenter.stepTrains();
 			if (ms % 50 == 0)
 				update(stopKm);
-			else
-				presenter.stepTrains();
 			neverPasses &= drawnHead() <= place + 1e-6;
 			if (ms < 250) {
 				glidesOn &= drawnHead() < place - 1e-6 && presenter.trainMoving(0);
