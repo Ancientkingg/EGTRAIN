@@ -16,7 +16,6 @@
 #include <QEvent>
 #include <QFormLayout>
 #include <QGridLayout>
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeySequence>
 #include <QLabel>
@@ -491,19 +490,13 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	auto* arrivalEdit = new QLineEdit(&dialog);
 	arrivalEdit->setObjectName("stopEditorArrivalEdit");
 	arrivalEdit->setAccessibleName("Planned arrival time");
-	auto* arrivalLayout = new QHBoxLayout();
-	arrivalLayout->addWidget(arrivalPresent);
-	arrivalLayout->addWidget(arrivalEdit, 1);
-	form->addRow("Arrival", arrivalLayout);
+	form->addRow(arrivalPresent, arrivalEdit);
 	auto* departurePresent = new QCheckBox("Planned departure", &dialog);
 	departurePresent->setObjectName("stopEditorDeparturePresent");
 	auto* departureEdit = new QLineEdit(&dialog);
 	departureEdit->setObjectName("stopEditorDepartureEdit");
 	departureEdit->setAccessibleName("Planned departure time");
-	auto* departureLayout = new QHBoxLayout();
-	departureLayout->addWidget(departurePresent);
-	departureLayout->addWidget(departureEdit, 1);
-	form->addRow("Departure", departureLayout);
+	form->addRow(departurePresent, departureEdit);
 	auto* dwellEdit = new QLineEdit(&dialog);
 	dwellEdit->setObjectName("stopEditorDwellEdit");
 	dwellEdit->setAccessibleName("Minimum dwell seconds");

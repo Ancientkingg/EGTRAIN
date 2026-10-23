@@ -2,6 +2,7 @@
 import contextlib
 import io
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -83,25 +84,52 @@ class ReadingTests(unittest.TestCase):
         self.assertEqual(linux_rehearsal.chunk(list("abcdefg"), 3), [("a", "b", "c"), ("d", "e", "f")])
 
     def rows(self):
-        return [("Case Study", "/x/Paimpol.egscene", "1", "Warning"), ("Name", "Paimpol", "1", "Parsed"),
-                ("Canonical schema version", "1", "1", "Parsed"), ("Saved with app version", "1.0.0", "1", "Loaded"),
-                ("Bundle format version", "1", "1", "Loaded"), ("Infrastructure", "infrastructure.json", "946", "Warning"),
-                ("Stations", "stations.json", "10", "Parsed"), ("Timetable", "services.json", "2", "Parsed"),
-                ("Rolling stock", "rolling_stock.json", "2", "Parsed"), ("Signalling", "signalling.json", "20", "Parsed"),
-                ("Scenarios", "scenarios.json", "1", "Parsed"), ("Runtime and results", "", "", "Not built")]
+        """The rows of Loaded Data for Paimpol with advanced details, as the dock shows them with the case root expanded."""
+        return [("Case", "/x/Paimpol.egscene", "", "Warning"), ("Name", "Paimpol", "", "OK"),
+                ("Description", "Signalling: one network-wide area, level 0.", "", "OK"), ("Format version", "1", "1", "OK"),
+                ("Saved with", "1.0.0", "", "OK"), ("Bundle version", "1", "1", "OK"),
+                ("Source files discovered", "", "9", "OK"), ("Case metadata", "scene.json", "", "Warning"),
+                ("Infrastructure", "infrastructure.json", "946", "Warning"), ("Stations", "stations.json", "10", "OK"),
+                ("Timetable", "services.json", "2", "OK"), ("Rolling stock", "rolling_stock.json", "2", "OK"),
+                ("Signalling", "signalling.json", "20", "OK"), ("Scenarios", "scenarios.json", "1", "OK"),
+                ("Passengers", "passengers.json", "188", "Warning"), ("Run", "", "", "Not run")]
 
     def test_complete_loaded_data_has_no_problem(self):
         self.assertEqual(linux_rehearsal.loaded_data_problems(self.rows(), "Paimpol"), [])
 
     def test_loaded_data_reports_what_is_missing(self):
-        rows = [row for row in self.rows() if row[0] not in ("Bundle format version", "Runtime and results")]
-        rows = [("Scenarios", "scenarios.json", "0", "Parsed") if row[0] == "Scenarios" else row for row in rows]
+        rows = [row for row in self.rows() if row[0] not in ("Bundle version", "Run")]
+        rows = [("Scenarios", "scenarios.json", "0", "OK") if row[0] == "Scenarios" else row for row in rows]
         problems = linux_rehearsal.loaded_data_problems(rows, "Other")
-        self.assertEqual(problems, ["the name of the case (Other)", "the row Bundle format version", "a scenario",
-                                    "the row Runtime and results"])
+        self.assertEqual(problems, ["the name of the case (Other)", "the row Bundle version", "a scenario", "the row Run"])
+
+    def test_loaded_data_without_advanced_details_lacks_the_versions(self):
+        rows = [row for row in self.rows() if row[0] not in linux_rehearsal.LOADED_DATA_VERSIONS + ("Source files discovered",)]
+        self.assertEqual(linux_rehearsal.loaded_data_problems(rows, "Paimpol"),
+                         ["the row Format version", "the row Saved with", "the row Bundle version"])
+
+    def test_the_rows_that_the_rehearsal_reads_are_written_by_the_panel(self):
+        panel = (Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/editors/ValidationPanel.cpp").read_text(encoding="utf-8")
+        for label in linux_rehearsal.LOADED_DATA_VERSIONS + (linux_rehearsal.LOADED_DATA_CASE, linux_rehearsal.LOADED_DATA_RUN,
+                                                             "Name"):
+            self.assertIn(f'"{label}"', panel, f"ValidationPanel.cpp writes no row {label!r}")
+
+    def test_the_advanced_details_entry_is_found_in_any_capitals(self):
+        window = (Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
+        entry = re.search(r'm_advancedDetailsAction = new QAction\(QStringLiteral\("([^"]+)"\)', window)
+        self.assertIsNotNone(entry, "MainWindow.cpp creates no advanced details action")
+        for name in (entry.group(1), "Advanced / Developer Details", "Advanced Details"):
+            self.assertRegex(name, linux_rehearsal.ADVANCED_DETAILS)
+        self.assertNotRegex("Loaded Data", linux_rehearsal.ADVANCED_DETAILS)
+
+    def test_the_finished_run_is_found_with_and_without_advanced_details(self):
+        self.assertRegex("Run 2\nStatus: Completed", linux_rehearsal.RUN_COMPLETED)
+        self.assertRegex("Run 2\nStatus: Completed\nIncidents acted on 0 of 2 trains\nDestination terminations: 0",
+                         linux_rehearsal.RUN_COMPLETED)
+        self.assertNotRegex("Run 2\nStatus: Running", linux_rehearsal.RUN_COMPLETED)
 
     def test_loaded_data_without_a_count_or_status_is_reported(self):
-        rows = [("Stations", "stations.json", "", "Parsed") if row[0] == "Stations" else row for row in self.rows()]
+        rows = [("Stations", "stations.json", "", "OK") if row[0] == "Stations" else row for row in self.rows()]
         self.assertEqual(linux_rehearsal.loaded_data_problems(rows, "Paimpol"), ["the count and the status of Stations"])
 
     def test_timetable_needs_planned_and_simulated_values(self):

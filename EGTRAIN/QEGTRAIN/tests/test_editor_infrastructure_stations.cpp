@@ -323,7 +323,7 @@ static bool testStations() {
 
 	// delete
 	f.select(0);
-	ok &= expect(f.panel.deleteButton()->isEnabled() && f.panel.deleteButton()->toolTip() == "Delete the selected row",
+	ok &= expect(f.panel.deleteButton()->isEnabled() && f.panel.deleteButton()->toolTip() == "Delete the selected row.",
 		"the delete button of a station that others use has its tooltip");
 	f.panel.deleteButton()->click();
 	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().stations.size() == 3 && f.untouched(),

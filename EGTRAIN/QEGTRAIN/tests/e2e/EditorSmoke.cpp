@@ -1753,7 +1753,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								const bool legStateAccurate = unresolvedLeg
 									? legService->currentText() == "missing-service (missing)"
 										&& legService->itemData(legService->currentIndex(), Qt::ToolTipRole).toString().startsWith("Service missing-service")
-										&& legOrigin->currentText().endsWith(")")
+										&& (legOrigin->currentText().endsWith(" (missing)")
+											|| legOrigin->currentText().endsWith(" (not a stop)")
+											|| legOrigin->currentText() == "(none)")
 									: legService->currentText() == "Select a leg"
 										&& legOrigin->currentText() == "Select a journey or leg";
 								if (!invalidOriginVisible || !legStateAccurate)

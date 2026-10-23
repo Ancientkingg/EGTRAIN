@@ -509,6 +509,24 @@ const SceneScenario* defaultScenario(const SceneModel& scene) {
 	return &scene.scenarios.front();
 }
 
+std::string sceneScenarioLabel(const SceneModel& scene, const SceneScenario& scenario,
+	const std::vector<std::string>& markers) {
+	const auto shownName = [](const SceneScenario& item) { return item.name.empty() ? item.id : item.name; };
+	std::string name = shownName(scenario);
+	std::vector<std::string> notes;
+	if (std::any_of(scene.scenarios.begin(), scene.scenarios.end(), [&](const SceneScenario& other) {
+			return &other != &scenario && other.id != scenario.id && shownName(other) == name;
+		}))
+		notes.push_back(scenario.id);
+	notes.insert(notes.end(), markers.begin(), markers.end());
+	if (notes.empty())
+		return name;
+	std::string label = name + " (" + notes.front();
+	for (std::size_t index = 1; index < notes.size(); ++index)
+		label += ", " + notes[index];
+	return label + ")";
+}
+
 std::vector<SceneIncident>& defaultScenarioIncidents(SceneModel& scene) {
 	return defaultScenario(scene)->incidents;
 }
@@ -673,9 +691,9 @@ void refreshLoadedDataSummary(SceneModel& scene) {
 	const SceneScenario* selectedScenario = defaultScenario(static_cast<const SceneModel&>(scene));
 	const std::string effectiveDefaultScenario = selectedScenario ? selectedScenario->id : std::string();
 	for (const auto& scenario : scene.scenarios) {
-		std::string label = scenario.name.empty() ? scenario.id : scenario.name;
-		if (scenario.id == effectiveDefaultScenario)
-			label += " (default)";
+		const std::string label = scenario.id == effectiveDefaultScenario
+			? sceneScenarioLabel(scene, scenario, {"default"})
+			: sceneScenarioLabel(scene, scenario);
 		SceneLoadedData item = makeLoadedData(label, scenarioSource,
 			static_cast<int>(scenario.incidents.size() + scenario.entranceDelays.size()), scenariosStatus);
 		for (const auto& incident : scenario.incidents) {
@@ -1052,7 +1070,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 
 		if (viewsJson.contains("tracks")) {
 			if (!viewsJson["tracks"].is_array()) {
-				viewWarning("tracks", "views.tracks must be an array; display rows skipped");
+				viewWarning("tracks", "Track display rows are not a list, so they are skipped");
 			} else {
 				for (std::size_t index = 0; index < viewsJson["tracks"].size(); ++index) {
 					const std::string path = "tracks[" + std::to_string(index) + "]";
@@ -1061,14 +1079,14 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						|| value["track"].get<std::string>().empty()
 						|| !value.contains("level") || !value["level"].is_number_integer()
 						|| !value.contains("region") || !value["region"].is_number_integer()) {
-						viewWarning(path, "Invalid track display row; row skipped");
+						viewWarning(path, "Track display row is invalid and is skipped");
 						continue;
 					}
 					SceneTrackView view;
 					view.trackId = value["track"].get<std::string>();
 					if (!readJsonInt(value["level"], INT_MIN, INT_MAX, view.level)
 						|| !readJsonInt(value["region"], INT_MIN, INT_MAX, view.region)) {
-						viewWarning(path, "Invalid track display row; row skipped");
+						viewWarning(path, "Track display row is invalid and is skipped");
 						continue;
 					}
 					try {
@@ -1077,15 +1095,15 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						if (value.contains("double_switch"))
 							view.doubleSwitch = value["double_switch"].get<bool>();
 					} catch (const json::exception&) {
-						viewWarning(path, "Invalid track display row; row skipped");
+						viewWarning(path, "Track display row is invalid and is skipped");
 						continue;
 					}
 					if (view.region < 0) {
-						viewWarning(path, "Track display row has a negative region; row skipped");
+						viewWarning(path, "Track display row has a negative region and is skipped");
 						continue;
 					}
 					if (trackIds.count(view.trackId) == 0) {
-						viewWarning(path, "Track display row refers to an unknown track; row skipped");
+						viewWarning(path, "Track display row names a track that does not exist and is skipped");
 						continue;
 					}
 					const auto duplicate = std::find_if(result.scene.trackViews.begin(),
@@ -1093,7 +1111,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 							return candidate.trackId == view.trackId;
 						});
 					if (duplicate != result.scene.trackViews.end()) {
-						viewWarning(path, "Duplicate track display row; row skipped");
+						viewWarning(path, "Track display row is a duplicate and is skipped");
 						continue;
 					}
 					result.scene.trackViews.push_back(std::move(view));
@@ -1103,7 +1121,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 
 		if (viewsJson.contains("stations")) {
 			if (!viewsJson["stations"].is_array()) {
-				viewWarning("stations", "views.stations must be an array; display rows skipped");
+				viewWarning("stations", "Station display rows are not a list, so they are skipped");
 			} else {
 				for (std::size_t index = 0; index < viewsJson["stations"].size(); ++index) {
 					const std::string path = "stations[" + std::to_string(index) + "]";
@@ -1113,7 +1131,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						|| !value.contains("latitude") || !value["latitude"].is_number()
 						|| !value.contains("longitude") || !value["longitude"].is_number()
 						|| !value.contains("regions") || !value["regions"].is_array()) {
-						viewWarning(path, "Invalid station display row; row skipped");
+						viewWarning(path, "Station display row is invalid and is skipped");
 						continue;
 					}
 					SceneStationView view;
@@ -1124,8 +1142,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						|| stationIds.count(view.stationId) == 0) {
 						viewWarning(path,
 							stationIds.count(view.stationId) == 0
-								? "Station display row refers to an unknown station; row skipped"
-								: "Station display row has non-finite coordinates; row skipped");
+								? "Station display row names a station that does not exist and is skipped"
+								: "Station display row has an invalid position and is skipped");
 						continue;
 					}
 					bool validRegions = !value["regions"].empty();
@@ -1157,12 +1175,12 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 						}
 					}
 					if (!validRegions) {
-						viewWarning(path, "Invalid station display region row; row skipped");
+						viewWarning(path, "Station display row has an invalid region and is skipped");
 						continue;
 					}
 					if (value.contains("corridors")) {
 						if (!value["corridors"].is_array()) {
-							viewWarning(path, "Invalid station display corridors; row skipped");
+							viewWarning(path, "Station display row has invalid corridors and is skipped");
 							continue;
 						}
 						for (const auto& corridor : value["corridors"]) {
@@ -1173,7 +1191,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 							view.corridors.push_back(corridor.get<std::string>());
 						}
 						if (!validRegions) {
-							viewWarning(path, "Invalid station display corridor row; row skipped");
+							viewWarning(path, "Station display row has an invalid corridor and is skipped");
 							continue;
 						}
 					}
@@ -1182,7 +1200,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 							return candidate.stationId == view.stationId;
 						});
 					if (duplicate != result.scene.stationViews.end()) {
-						viewWarning(path, "Duplicate station display row; row skipped");
+						viewWarning(path, "Station display row is a duplicate and is skipped");
 						continue;
 					}
 					result.scene.stationViews.push_back(std::move(view));
@@ -1459,7 +1477,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 
 	if (scenariosPresent && incidentsPresent) {
 		addWarning("scene.compatibility.incidents_ignored", "incidents.json",
-			"scenarios.json is authoritative; incidents.json was ignored for compatibility");
+			"incidents.json is ignored, because the case has scenarios.json");
 	}
 	if (scenariosPresent) {
 		if (scenariosOk) {

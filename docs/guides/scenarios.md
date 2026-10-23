@@ -4,14 +4,16 @@ This page describes the scenario library, the student loop of a case, and what t
 
 ## Scenarios
 
-Open the **Incidents** dock to choose the canonical default or another named
-scenario. The dock has the tabs **Scenario**, **Incidents** and **Entrance delays**,
-and a line above them names the selected scenario. The library on the **Scenario**
-tab shows each scenario's ID, name, incident and entrance-delay counts, default
-marker, and an in-memory modified marker. The authored description remains
-available; Advanced mode adds the full validation status. Normal mode still marks
-an actionable invalid scenario as `Invalid` but does not surface non-blocking
-warning detail. **New** and **Duplicate** create isolated scenarios; editing incidents, names, or
+Open the **Incidents** dock to choose the default or another named scenario.
+The dock has the tabs **Scenario**, **Incidents** and **Entrance delays**, and a
+line above them names the selected scenario. Each row of the library on the
+**Scenario** tab shows the name of a scenario, marked "default" for the default
+scenario and "modified" for one with unsaved edits. A second line gives the
+number of incidents and entrance delays when it is not zero, and "has errors"
+when the scenario has validation errors. Advanced mode also shows "has
+warnings". The tooltip shows the ID and the description. When two scenarios
+have the same name, the row and the line above the tabs add the ID.
+**New** and **Duplicate** create isolated scenarios; editing incidents, names, or
 descriptions changes only the selected scenario. **Import...** and
 **Export...** use the standalone scenario object documented in the schema
 reference. Imports retain entrance delays, validate references against the

@@ -219,7 +219,11 @@ public:
 private:
 	void fillRow(QTableWidget& table, int row, const SceneRoute& route) const override {
 		setCell(table, row, 0, QString::fromStdString(route.id));
-		setCell(table, row, 1, countText(static_cast<long long>(route.blocks.size()), QStringLiteral("section"), QStringLiteral("sections")), false);
+		setCell(table, row, 1,
+			route.blocks.empty()
+				? QStringLiteral("-")
+				: countText(static_cast<long long>(route.blocks.size()), QStringLiteral("section"), QStringLiteral("sections")),
+			false);
 		setCell(table, row, 2, flagText(route.hasCorridor));
 		setCell(table, row, 3, QString::fromStdString(route.corridor));
 		setCell(table, row, 4, flagText(route.reversed));

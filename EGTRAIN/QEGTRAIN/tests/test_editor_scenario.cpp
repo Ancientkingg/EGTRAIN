@@ -327,6 +327,11 @@ int main(int argc, char** argv) {
 		panel.addBlankScenario();
 		ok &= expect(document.model().scenarios.back().id == "new_scenario_2" && selection.scenarioId() == "new_scenario_2",
 			"the id of another blank scenario is unique");
+		ok &= expect(panel.listWidget()->item(2)->text() == "New scenario (new_scenario, modified)"
+				&& panel.listWidget()->item(3)->text() == "New scenario (new_scenario_2, modified)"
+				&& panel.listWidget()->item(1)->text().startsWith("Alternative\n")
+				&& panel.headerText() == "Scenario: New scenario (new_scenario_2)",
+			"two scenarios with one name show their IDs in the list and in the header, and the others do not");
 
 		// duplicate
 		panel.listWidget()->setCurrentRow(1);

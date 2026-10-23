@@ -1,13 +1,18 @@
 #include "editors/CountText.h"
 #include "editors/ValidationPanel.h"
 
+#include <QAbstractItemView>
 #include <QApplication>
+#include <QHeaderView>
 #include <QLabel>
 #include <QString>
+#include <QStringList>
 #include <QTableWidget>
 #include <QTreeWidget>
+#include <QTreeWidgetItemIterator>
 #include <QWidget>
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <optional>
@@ -210,8 +215,8 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.tree()->topLevelItemCount() == 1 && root && root->text(1) == "/cases/a",
 			"the tree is written again, not extended");
 		QTreeWidgetItem* bundle = root ? childRow(root, "Bundle version") : nullptr;
-		ok &= expect(bundle && bundle->text(1) == "-" && bundle->text(3) == "Missing",
-			"a bundle without a recorded version is shown as missing");
+		ok &= expect(bundle && bundle->text(1) == "-" && bundle->text(3) == "Not present",
+			"a bundle without a recorded version says so in the words of the other absent facts");
 		context.bundleVersion = 1;
 		panel.refreshLoadedData();
 		bundle = childRow(panel.tree()->topLevelItem(0), "Bundle version");
@@ -227,9 +232,9 @@ int main(int argc, char** argv) {
 		ok &= expect(results && results->text(2).isEmpty() && results->text(3) == "Ready", "a completed run has results");
 		ok &= expect(applied && applied->text(1) == "scenario.a" && applied->text(3) == "Completed",
 			"the applied scenario and the state of the run are shown");
-		QTreeWidgetItem* runtimeDiagnostic = run ? childRow(run, "e2e.run: Run warning") : nullptr;
+		QTreeWidgetItem* runtimeDiagnostic = run ? childRow(run, "Run warning") : nullptr;
 		ok &= expect(run && run->text(2) == "1" && runtimeDiagnostic && runtimeDiagnostic->text(1) == "run.json"
-				&& runtimeDiagnostic->text(3) == "Warning",
+				&& runtimeDiagnostic->text(3) == "Warning" && runtimeDiagnostic->toolTip(0).endsWith("Code: e2e.run"),
 			"the diagnostics of the run are listed under the runtime");
 	}
 
@@ -269,6 +274,80 @@ int main(int argc, char** argv) {
 		ok &= expect(row && childRow(row, "Unresolved references") && childRow(row, "Unresolved references")->text(2) == "0"
 				&& childRow(metadataRow(), "Validation") && childRow(metadataRow(), "Validation")->text(2) == "0",
 			"advanced details show the counts of zero");
+		ok &= expect(row && childRow(row, "Unresolved references")->text(3) == "OK" && childRow(metadataRow(), "Validation")->text(3) == "OK",
+			"a count of zero problems says OK, as the other rows without a problem do");
+		// Rows that open deeper in the tree widen the Category column, so that their names show whole.
+		QTreeWidget* tree = panel.tree();
+		// QTreeView hides the public sizeHintForColumn of its base, which still calls the tree's own version.
+		const auto contentWidth = [tree] { return static_cast<QAbstractItemView*>(tree)->sizeHintForColumn(0); };
+		const int closedWidth = tree->columnWidth(0);
+		metadataRow()->setExpanded(true);
+		childRow(metadataRow(), "Import report")->setExpanded(true);
+		importRow()->setExpanded(true);
+		ok &= expect(tree->columnWidth(0) > closedWidth && tree->columnWidth(0) >= contentWidth(),
+			"the Category column fits the rows that an expanded row shows");
+		importRow()->setExpanded(false);
+		ok &= expect(tree->columnWidth(0) == std::max(contentWidth(), tree->header()->sectionSizeHint(0)),
+			"the Category column narrows again when a row closes");
+	}
+
+	{
+		// "Ready" is a state of the run; the case and its data say OK when they have no problem, and a message of the run
+		// says its severity
+		QWidget host;
+		ValidationPanel panel(&host);
+		SceneDocument document;
+		SceneModel clean = caseScene();
+		for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json", "rolling_stock.json",
+				 "services.json", "scenarios.json"})
+			clean.sourceFiles.insert(file);
+		document.replace(clean, false);
+		panel.setDocument(&document);
+		panel.setAdvancedDetails([] { return true; });
+		ValidationPanel::LoadedDataContext context;
+		context.runtimeStatus = "Ready";
+		context.runtimeDiagnostics = {diagnostic(SceneSeverity::Info, "e2e.note", "Run note")};
+		panel.setLoadedDataContext([&context] { return context; });
+		panel.refreshLoadedData();
+		QTreeWidgetItem* root = panel.tree()->topLevelItem(0);
+		QTreeWidgetItem* run = root ? childRow(root, "Run") : nullptr;
+		QStringList readyOutsideRun;
+		for (QTreeWidgetItemIterator it(panel.tree()); *it; ++it) {
+			bool inRun = false;
+			for (QTreeWidgetItem* item = *it; item && !inRun; item = item->parent())
+				inRun = item == run;
+			if (!inRun && (*it)->text(3) == "Ready")
+				readyOutsideRun << (*it)->text(0);
+		}
+		ok &= expect(root && root->text(3) == "OK" && run && run->text(3) == "Ready" && readyOutsideRun.isEmpty(),
+			"the case and its data without a problem say OK, and only the run says Ready");
+		context.runtimeDiagnostics.insert(context.runtimeDiagnostics.begin(), diagnostic(SceneSeverity::Error, "e2e.fail", "Run error"));
+		panel.refreshLoadedData();
+		root = panel.tree()->topLevelItem(0);
+		run = root ? childRow(root, "Run") : nullptr;
+		QTreeWidgetItem* messages = run ? childRow(run, "Messages") : nullptr;
+		QTreeWidgetItem* failRow = messages ? childRow(messages, "Run error") : nullptr;
+		QTreeWidgetItem* noteRow = messages ? childRow(messages, "Run note") : nullptr;
+		ok &= expect(failRow && failRow->text(3) == "Error" && failRow->toolTip(0) == "Run error\nCode: e2e.fail" && noteRow
+				&& noteRow->text(3) == "Info",
+			"a message of the run says its severity as the Scene Validation table does, and its code in the tooltip");
+
+		// A long message does not push Count and Status out of view, and its tooltip shows it whole with its fix.
+		const std::string longMessage(200, 'm');
+		SceneDiagnostic longDiagnostic = diagnostic(SceneSeverity::Warning, "e2e.long", longMessage.c_str());
+		longDiagnostic.suggestedFix = "Shorten it";
+		context.runtimeDiagnostics.push_back(longDiagnostic);
+		panel.refreshLoadedData();
+		run = childRow(panel.tree()->topLevelItem(0), "Run");
+		messages = run ? childRow(run, "Messages") : nullptr;
+		QTreeWidgetItem* longRow = messages ? childRow(messages, QString::fromStdString(longMessage)) : nullptr;
+		if (longRow) {
+			run->setExpanded(true);
+			messages->setExpanded(true);
+		}
+		ok &= expect(longRow && panel.tree()->columnWidth(0) == ValidationPanel::kTreeTextColumnWidth
+				&& longRow->toolTip(0) == QString::fromStdString(longMessage + "\n\nShorten it\nCode: e2e.long"),
+			"the Category column stops growing at its limit, and a long message shows whole in its tooltip");
 	}
 
 	{

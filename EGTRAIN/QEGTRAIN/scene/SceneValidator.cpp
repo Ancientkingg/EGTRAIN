@@ -846,9 +846,10 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				starts.push_back(node);
 		}
 		if (starts.size() != 1) {
-			diagnostics.error("scene.topology.disconnected", "Track must have exactly one chain start",
+			diagnostics.error("scene.topology.disconnected", "Track must have exactly one first node",
 				"infrastructure.json", "track", track.id, trackPath + ".nodes",
-				std::to_string(starts.size()), "Connect every track node into one directed chain");
+				std::to_string(starts.size()),
+				"Link each node of the track to the next by one arc, using every node and arc once");
 			if (starts.empty() && !ambiguous) {
 				const SceneNode* cycleNode = nodes.front();
 				std::unordered_set<std::string> cycleNodes;
@@ -899,15 +900,16 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			}
 			if (following->xKm + kNativeCoordinateTolerance < current->xKm)
 				diagnostics.error("scene.topology.order",
-					"Track node x coordinates must be nondecreasing in chain direction",
+					"Node X (km) must not decrease along the track",
 					"infrastructure.json", "arc", arc->id, arcPaths[arc->id] + ".to", current->id,
-					"Order the nodes of the track by increasing X");
+					"Order the nodes of the track by increasing X (km)");
 			current = following;
 		}
 		if (visitedArcs.size() != arcs.size() || visitedNodes.size() != nodes.size())
 			diagnostics.error("scene.topology.disconnected",
-				"Track arcs and nodes must form one connected directed chain", "infrastructure.json", "track",
-				track.id, trackPath + ".arcs", track.id, "Connect every declared node and arc exactly once");
+				"Arcs and nodes of the track do not form one line", "infrastructure.json", "track",
+				track.id, trackPath + ".arcs", track.id,
+				"Link each node of the track to the next by one arc, using every node and arc once");
 		else {
 			nativeChainNodes.emplace(track.id, std::move(chainNodes));
 		}
@@ -971,7 +973,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				diagnostics.error("scene.platform.capacity.invalid",
 					"Platform geometry produces an unsupported passenger capacity", "stations.json",
 					"platform", platform.id, platformPath, "",
-					"Use a length and a width that give at least one passenger");
+					"Use a length and a width that give from 1 to 2147483647 passengers");
 			if (platform.nodeIds.empty())
 				diagnostics.error("scene.platform.nodes.none", "Platform has no bound nodes", "stations.json",
 					"platform", platform.id, platformPath + ".nodes", "", "Bind the platform to at least one node");
@@ -1725,7 +1727,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (!scene.name.empty() && sceneOutputDirectoryComponent(scene.name) != scene.name)
 			diagnostics.error("scene.name.path", "Case name cannot be used as a folder name",
 				"scene.json", "scene", scene.name, "name", "",
-				"Leave out < > : \" / \\ | ? * and do not end the name with a space or a dot");
+				"Leave out < > : \" / \\ | ? * and control characters, do not end the name with a space or a dot, "
+				"and do not use CON, PRN, AUX, NUL, COM1 to COM9 or LPT1 to LPT9, also with a superscript 1, 2 or 3, "
+				"in any capitals as the name or before its first dot");
 		if (scene.baseTime.empty())
 			diagnostics.error("scene.basetime.missing", "Set the base time to run this case", "scene.json",
 				"scene", "", "base_time", "", "Set Base time in Case Settings, for example 08:00:00");

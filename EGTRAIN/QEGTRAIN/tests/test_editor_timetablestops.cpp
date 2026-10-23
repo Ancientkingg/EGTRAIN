@@ -579,6 +579,15 @@ int main(int argc, char** argv) {
 						&& label(dialog, "stopEditorEligibilityLabel")->text().isEmpty()
 						&& label(dialog, "stopEditorEligibilityLabel")->isHidden() && !dialog.findChild<QLabel*>("dialogContext"),
 					"the dialog shows the stop that is edited, with no line for a stop that is on the route and no context line");
+				const auto* form = dialog.findChild<QFormLayout*>();
+				QWidget* arrivalEdit = edit(dialog, "stopEditorArrivalEdit");
+				QWidget* departureEdit = edit(dialog, "stopEditorDepartureEdit");
+				QWidget* dwellEdit = edit(dialog, "stopEditorDwellEdit");
+				ok &= expect(form && form->labelForField(arrivalEdit) == dialog.findChild<QCheckBox*>("stopEditorArrivalPresent")
+						&& form->labelForField(departureEdit) == dialog.findChild<QCheckBox*>("stopEditorDeparturePresent")
+						&& arrivalEdit->mapTo(&dialog, QPoint()).x() == dwellEdit->mapTo(&dialog, QPoint()).x()
+						&& departureEdit->mapTo(&dialog, QPoint()).x() == dwellEdit->mapTo(&dialog, QPoint()).x(),
+					"the box of a planned time is the label of its field, and the time fields line up with the other fields");
 				QLabel* error = label(dialog, "stopEditorErrorLabel");
 				ok &= expect(role(label(dialog, "stopEditorEligibilityLabel")) == "help" && role(label(dialog, "stopEditorBaseTimeLabel")) == "help"
 						&& label(dialog, "stopEditorBaseTimeLabel")->text() == "Seconds after 08:00:00" && !error->isVisible()

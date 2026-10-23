@@ -22,15 +22,26 @@ constexpr int kCodeColumn = 1;
 constexpr int kFileColumn = 3;
 constexpr int kPathColumn = 4;
 
-// What the status column says for a status of the loaded data or of the run.
-QString loadedStatusText(const QString& status) {
-	if (status == QLatin1String("Parsed") || status == QLatin1String("Loaded"))
+// What the status column says for a status of the loaded data: one word for data without a problem.
+QString loadedStatusText(const std::string& status) {
+	if (status == "Parsed" || status == "Loaded" || status == "Ready")
 		return QStringLiteral("OK");
-	if (status == QLatin1String("Missing optional"))
+	if (status == "Missing optional")
 		return QStringLiteral("Not present");
-	if (status == QLatin1String("Not built"))
-		return QStringLiteral("Not run");
-	return status;
+	return QString::fromStdString(status);
+}
+
+// The severity of a diagnostic on screen, with a capital: "Error", "Warning" or "Info".
+QString severityText(SceneSeverity severity) {
+	QString text = QString::fromStdString(severityLabel(severity));
+	if (!text.isEmpty())
+		text[0] = text[0].toUpper();
+	return text;
+}
+
+// What the status column says for a status of the run.
+QString runStatusText(const QString& status) {
+	return status == QLatin1String("Not built") ? QStringLiteral("Not run") : status;
 }
 
 // The name of a category of the loaded data on screen.
@@ -49,9 +60,16 @@ QString categoryText(const std::string& category) {
 			return QString::fromLatin1(name);
 	QString label = QString::fromStdString(category);
 	label.replace('_', ' ');
+	label.replace('.', ' ');
 	if (!label.isEmpty())
 		label[0] = label[0].toUpper();
 	return label;
+}
+
+// Fits a text column of the tree to its rows on show, up to the width that keeps Count and Status in view.
+void fitTreeTextColumn(QTreeWidget* tree, int column) {
+	tree->resizeColumnToContents(column);
+	tree->setColumnWidth(column, std::min(tree->columnWidth(column), ValidationPanel::kTreeTextColumnWidth));
 }
 
 // `named` says that the category of the item is a name, such as the name of a scenario, and not a category key.
@@ -75,7 +93,7 @@ void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const Sce
 	row->setText(0, label);
 	row->setText(1, QString::fromStdString(item.sourceFile));
 	row->setText(2, single ? QString() : QString::number(item.parsedCount));
-	row->setText(3, loadedStatusText(QString::fromStdString(item.status)));
+	row->setText(3, loadedStatusText(item.status));
 	if (!item.targetType.empty()) {
 		row->setData(0, ValidationPanel::kTargetTypeRole, QString::fromStdString(item.targetType));
 		const QString tooltip = item.targetType == "network" ? QStringLiteral("Double-click to show on the network")
@@ -110,6 +128,10 @@ ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
 	m_tree->setAccessibleDescription("Loaded case data. Double-click a row to open it.");
 	m_tree->header()->setStretchLastSection(true);
 	connect(m_tree, &QTreeWidget::itemActivated, this, [this](QTreeWidgetItem* item, int) { activateItem(item); });
+	// A row that opens or closes changes the rows on show, and the Category column takes the width of the widest of them.
+	const auto fitCategories = [this] { fitTreeTextColumn(m_tree, 0); };
+	connect(m_tree, &QTreeWidget::itemExpanded, this, fitCategories);
+	connect(m_tree, &QTreeWidget::itemCollapsed, this, fitCategories);
 
 	m_statusLabel = new QLabel(parent);
 	showAdvancedColumns();
@@ -192,11 +214,8 @@ void ValidationPanel::refresh() {
 	m_table->setRowCount(static_cast<int>(ordered.size()));
 	for (int row = 0; row < static_cast<int>(ordered.size()); ++row) {
 		const SceneDiagnostic& d = ordered[static_cast<std::size_t>(row)];
-		QString severity = QString::fromStdString(severityLabel(d.severity));
-		if (!severity.isEmpty())
-			severity[0] = severity[0].toUpper();
 		const QString file = QString::fromStdString(d.file);
-		auto* severityItem = new QTableWidgetItem(severity);
+		auto* severityItem = new QTableWidgetItem(severityText(d.severity));
 		severityItem->setData(kFileRole, file);
 		m_table->setItem(row, 0, severityItem);
 		m_table->setItem(row, kCodeColumn, new QTableWidgetItem(QString::fromStdString(d.code)));
@@ -246,7 +265,7 @@ void ValidationPanel::refreshLoadedData() {
 		? QStringLiteral("Invalid")
 		: (validationCounts.warnings > 0 || runtimeCounts.warnings > 0 || dataWarning
 				  ? QStringLiteral("Warning")
-				  : QStringLiteral("Ready"));
+				  : QStringLiteral("OK"));
 	auto* caseRoot = new QTreeWidgetItem(m_tree);
 	caseRoot->setText(0, "Case");
 	caseRoot->setText(1, context.sceneDir);
@@ -265,7 +284,7 @@ void ValidationPanel::refreshLoadedData() {
 		if (context.sceneIsBundle)
 			addRow(caseRoot, "Bundle version", context.bundleVersion ? QString::number(*context.bundleVersion) : QStringLiteral("-"),
 				QString::number(kCurrentSceneBundleVersion),
-				context.bundleVersion ? QStringLiteral("OK") : QStringLiteral("Missing"));
+				context.bundleVersion ? QStringLiteral("OK") : QStringLiteral("Not present"));
 
 		auto* sourceFiles = addRow(caseRoot, "Source files discovered", QString(),
 			QString::number(static_cast<int>(model.sourceFiles.size())), QStringLiteral("OK"));
@@ -277,7 +296,7 @@ void ValidationPanel::refreshLoadedData() {
 	for (const auto& item : model.loadedData) {
 		addLoadedDataTreeItem(m_tree, caseRoot, item, advanced);
 	}
-	const QString runStatus = loadedStatusText(context.runtimeStatus);
+	const QString runStatus = runStatusText(context.runtimeStatus);
 	auto* run = addRow(caseRoot, "Run", QString(), QString(), runStatus);
 	const bool runtimeReady = context.runtimeStatus == "Ready" || context.runtimeStatus == "Running"
 		|| context.runtimeStatus == "Completed";
@@ -291,17 +310,16 @@ void ValidationPanel::refreshLoadedData() {
 	auto* messages = addRow(run, "Messages", QString(),
 		context.runtimeDiagnostics.empty() ? QString() : QString::number(static_cast<int>(context.runtimeDiagnostics.size())), runStatus);
 	for (const auto& diagnostic : context.runtimeDiagnostics) {
-		const QString severity = diagnostic.severity == SceneSeverity::Error ? QStringLiteral("Failed")
-																			 : (diagnostic.severity == SceneSeverity::Warning ? QStringLiteral("Warning") : QStringLiteral("Ready"));
-		const QString detail = QString::fromStdString(diagnostic.code) + ": "
-			+ QString::fromStdString(diagnostic.message);
-		addRow(messages, detail, QString::fromStdString(diagnostic.file), QString(), severity);
+		// A message has its severity as its status, in the words of the Scene Validation table, and its fix and code in the
+		// tooltip, which also shows the message whole when the column is too narrow for it.
+		addRow(messages, QString::fromStdString(diagnostic.message), QString::fromStdString(diagnostic.file), QString(),
+			severityText(diagnostic.severity))
+			->setToolTip(0, QString::fromStdString(toDialogText(diagnostic)) + QStringLiteral("\nCode: ") + QString::fromStdString(diagnostic.code));
 	}
 	addRow(run, "Results", QString(), QString(), context.resultsAvailable ? QStringLiteral("Ready") : notRun);
 	caseRoot->setExpanded(true);
-	m_tree->resizeColumnToContents(0);
-	m_tree->resizeColumnToContents(1);
-	m_tree->setColumnWidth(1, std::min(m_tree->columnWidth(1), 360));
+	fitTreeTextColumn(m_tree, 0);
+	fitTreeTextColumn(m_tree, 1);
 }
 
 void ValidationPanel::activateItem(QTreeWidgetItem* item) {

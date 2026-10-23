@@ -31,6 +31,9 @@ public:
 	static constexpr int kTargetTypeRole = Qt::UserRole;
 	/// The item data role of the scene file of a diagnostic, on the first cell of its row in the table.
 	static constexpr int kFileRole = Qt::UserRole;
+	/// The widest that the Category and Source columns of the tree grow to fit their rows, so that Count and Status stay
+	/// in view. The names of the categories fit within it.
+	static constexpr int kTreeTextColumnWidth = 360;
 
 	/// What the tree shows besides the scene: where the scene came from and the state of the run.
 	struct LoadedDataContext {

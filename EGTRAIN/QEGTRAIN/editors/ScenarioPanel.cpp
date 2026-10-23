@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace {
 
@@ -218,14 +219,12 @@ void ScenarioPanel::updatePresentation() {
 		const SceneScenario& scenario = model.scenarios[index];
 		// The name, or the id of a scenario without one, and its markers; below it the counts that are not zero and, when the
 		// scenario has errors, that it has. Advanced details also say when it has warnings.
-		QStringList markers;
+		std::vector<std::string> markers;
 		if (scenario.id == model.defaultScenarioId)
-			markers << QStringLiteral("default");
+			markers.emplace_back("default");
 		if (m_runSelection->isScenarioModified(scenario.id))
-			markers << QStringLiteral("modified");
-		QString label = QString::fromStdString(scenario.name.empty() ? scenario.id : scenario.name);
-		if (!markers.isEmpty())
-			label += QStringLiteral(" (%1)").arg(markers.join(QStringLiteral(", ")));
+			markers.emplace_back("modified");
+		QString label = QString::fromStdString(sceneScenarioLabel(model, scenario, markers));
 		QStringList facts;
 		if (!scenario.incidents.empty())
 			facts << countText(static_cast<long long>(scenario.incidents.size()), QStringLiteral("incident"), QStringLiteral("incidents"));
@@ -286,7 +285,7 @@ QString ScenarioPanel::headerText() const {
 	const SceneScenario* scenario = selectedScenario();
 	if (!scenario)
 		return QStringLiteral("No scenario selected");
-	return QStringLiteral("Scenario: %1").arg(QString::fromStdString(scenario->name.empty() ? scenario->id : scenario->name));
+	return QStringLiteral("Scenario: %1").arg(QString::fromStdString(sceneScenarioLabel(m_document->model(), *scenario)));
 }
 
 void ScenarioPanel::selectScenario(int row) {

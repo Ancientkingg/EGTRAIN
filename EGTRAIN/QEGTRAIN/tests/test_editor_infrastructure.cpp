@@ -530,7 +530,7 @@ int main(int argc, char** argv) {
 		ok &= expect(!panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip() == "Select a row to delete.",
 			"the delete button says why it is off while no row is selected");
 		panel.table()->setCurrentCell(0, 0);
-		ok &= expect(panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip() == "Delete the selected row",
+		ok &= expect(panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip() == "Delete the selected row.",
 			"choosing a row turns the delete button on");
 		panel.table()->setCurrentCell(-1, -1);
 		document.setEditable(false);

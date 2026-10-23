@@ -8,8 +8,9 @@ The **Loaded Data** dock stays separate from running. Its tree shows the case
 with its name and description, the counts of each category, the default and
 available scenarios, the validation state, and the state of the run and its
 results under **Run**. Advanced mode adds **Format version**, **Bundle version**,
-**Saved with** and **Source files discovered**. Expand a category to follow the
-source data to the objects read from it. Imported cases also show the converted,
+**Saved with** and **Source files discovered**. Expand a category to see what
+was read for it, such as each rolling stock unit or service. Advanced mode also
+shows its source file and the objects read from that file. Imported cases also show the converted,
 skipped and unresolved-reference counts from `import_report`. A count of skipped
 records, unresolved references or validation messages shows only when it is not
 zero, or in advanced mode. **Not present** means the case is usable without that

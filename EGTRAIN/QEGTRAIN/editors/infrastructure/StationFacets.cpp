@@ -323,8 +323,7 @@ private:
 	void fillRow(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row,
 		const SceneStationBoundary& boundary) const override {
 		addSectionCombo(panel, inventory, row, 0, boundary.entranceBlock, "boundaryEntranceCombo",
-			storeIn(&SceneStationBoundary::entranceBlock))
-			->setToolTip(QStringLiteral("Required"));
+			storeIn(&SceneStationBoundary::entranceBlock));
 		// Choosing no exit clears the flag and the section together.
 		addSectionCombo(
 			panel, inventory, row, 1, boundary.hasExitBlock ? boundary.exitBlock : std::string(), "boundaryExitCombo",

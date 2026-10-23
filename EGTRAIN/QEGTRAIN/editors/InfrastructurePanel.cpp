@@ -350,7 +350,7 @@ void InfrastructurePanel::updateSelection() {
 	else if (row < 0)
 		deleteHint = QStringLiteral("Select a row to delete.");
 	else
-		deleteHint = QStringLiteral("Delete the selected row");
+		deleteHint = QStringLiteral("Delete the selected row.");
 	m_deleteButton->setToolTip(deleteHint);
 	if (key == QStringLiteral("blocks")) {
 		const int blockRows = static_cast<int>(m_blockRowModelIndices.size());

@@ -119,6 +119,6 @@ Each export also writes a file with the same name plus `.provenance.json` next t
 
 ## Limits of the exercise
 
-The case has no validation errors. With **View > Advanced / Developer details** checked, the status bar shows "26 warnings". All 26 warnings have the code `scene.route.region_jump` (a route crosses an undeclared regional coordinate discontinuity). They concern routes other than `route32` and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.
+The case has no validation errors. With **View > Advanced / Developer details** checked, the status bar shows "26 warnings". All 26 warnings have the code `scene.route.region_jump` (a route jumps between two parts of the network that no connection joins). They concern routes other than `route32` and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.
 
 If a train meets planned times that you set yourself, that does not prove the plan is feasible in real operation.

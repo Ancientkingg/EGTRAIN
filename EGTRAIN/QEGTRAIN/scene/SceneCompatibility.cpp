@@ -160,7 +160,7 @@ void explainRejection(SceneCompatibilityProbeResult& result, bool draftLayout) {
 			"This case was saved by an older version of EGTRAIN, in " + found + " (" + saved + "), and cannot be converted. "
 				+ reads + ".",
 			"scene.json",
-			"Open a scene saved by this version of EGTRAIN, or import the original legacy case again with File > Load Legacy Case...");
+			"Open a case saved by this version of EGTRAIN, or import the original legacy case again with File > Load Legacy Case...");
 	}
 }
 

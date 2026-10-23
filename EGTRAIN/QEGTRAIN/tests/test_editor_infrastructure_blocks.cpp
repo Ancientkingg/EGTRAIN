@@ -469,7 +469,7 @@ static bool testRoutes() {
 	const SceneRoute& added = f.model().routes.back();
 	ok &= expect(f.model().routes.size() == 3 && added.id == "route" && added.blocks.empty() && !added.hasCorridor && added.corridor.empty()
 			&& !added.reversed && f.changedOnce("Add route", "routes") && f.panel.selectionId() == "route" && f.table()->currentRow() == 2
-			&& f.cell(2, 1) == "0 sections",
+			&& f.cell(2, 1) == "-",
 		"a route is added with a new id and no sections, and selected");
 
 	// delete
@@ -543,7 +543,7 @@ static bool testRouteSections() {
 	f.panel.removeRouteSectionButton()->click();
 	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a2}) && list->currentRow() == 0, "the last section is removed, and the one before it is selected");
 	f.panel.removeRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks.empty() && list->count() == 0 && !f.panel.removeRouteSectionButton()->isEnabled() && f.cell(0, 1) == "0 sections",
+	ok &= expect(f.model().routes[0].blocks.empty() && list->count() == 0 && !f.panel.removeRouteSectionButton()->isEnabled() && f.cell(0, 1) == "-",
 		"a route without sections lists none");
 	f.log.clear();
 	f.panel.removeSection();

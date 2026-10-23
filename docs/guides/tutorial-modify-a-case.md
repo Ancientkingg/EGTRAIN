@@ -36,7 +36,7 @@ Both edits are to the service `Guin-Paim-EXPRESS-1`, the train that runs from Gu
 1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list. The dock has the tabs **Service**, **Timetable** and **Run occurrences**.
 2. Open the tab **Timetable** and click the row `Pontrieaux` in the table of stops. The dialog **Edit Timetable Stop** opens.
 
-   ![The dialog Edit timetable stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as committed: compatible platform (no platform), planned arrival 1567, planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
+   ![The dialog Edit Timetable Stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as committed: compatible platform (no platform), planned arrival 1567, planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
 3. Try **Cancel** first: change **Minimum dwell (s)** from 60 to 999 and choose **Cancel**. The row still shows 60 and the title bar shows no mark for unsaved changes.
 4. Click the row again, enter `180` in **Minimum dwell (s)** and choose **OK**. **OK** applies all fields of the dialog together. The row shows 180 and the title bar shows the mark.
 5. Open the tab **Service**, set **Performance (%)** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
