@@ -320,7 +320,6 @@ bool NetworkView::viewportEvent(QEvent* event) {
 		if (profiler.beginAfterPaint(zoomRatio()))
 			emit playbackProfileBegan();
 	}
-	emit viewportPainted();
 	if (event->type() == QEvent::Paint && m_timingPaintGeneration >= 0) {
 		const QString kind = m_timingPaintKind;
 		const int generation = m_timingPaintGeneration;

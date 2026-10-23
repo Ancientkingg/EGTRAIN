@@ -105,9 +105,12 @@ bool hasPlatformBar(const std::string& stationName, const std::string& platformI
 }
 
 // The glide of a train between two live updates lasts this many times the longest of the last update intervals but
-// one, kept between these bounds, so that the next update comes before it ends. The longest bound is a little above
-// the update interval of the slowest speed, 2x.
-constexpr double kGlideFactor = 1.5;
+// one, kept between these bounds. Up to 120 ms between updates the next update then comes well before the glide ends,
+// and the glide that it starts has nearly the speed of the one before, also when the updates come unevenly or bring
+// uneven steps of simulated time. Above that the longest bound applies, so the glide spans fewer updates: at the
+// slowest speed, 2x, the updates come every 500 ms and the next one comes 100 ms before the glide ends. The longest
+// bound is a little above that interval.
+constexpr double kGlideFactor = 5.0;
 constexpr qint64 kMinGlideMs = 16;
 constexpr qint64 kMaxGlideMs = 600;
 // The glide before the update interval is known.
@@ -116,11 +119,9 @@ constexpr qint64 kDefaultGlideMs = 120;
 constexpr qint64 kMaxUpdateIntervalMs = 1000;
 // The number of update intervals that the glide is measured over.
 constexpr std::size_t kMeasuredIntervals = 8;
-// The time between two steps of the motion of the trains, about one frame.
+// The time between two steps of the motion of the trains, about one frame. The timer runs on at this interval while a
+// train moves, whenever the updates come.
 constexpr int kMotionStepMs = 16;
-// Each live update starts the timer of the steps again, with its first step this soon, so that updates that come more
-// often than kMotionStepMs do not hold the steps off.
-constexpr int kStepAfterUpdateMs = 1;
 
 // The X in kilometres of the point at the position q along a route, in metres, as the simulation finds the end of a
 // wagon (trainXPositionOf()): on the first section of the route that holds it, or -1 where it is on none.
@@ -238,16 +239,12 @@ NetworkPresenter::NetworkPresenter(QGraphicsScene* scene, NetworkView* view)
 	m_motionTimer.setTimerType(Qt::PreciseTimer);
 	m_motionTimer.setInterval(kMotionStepMs);
 	QObject::connect(&m_motionTimer, &QTimer::timeout, &m_motionTimer, [this]() {
-		if (m_motionTimer.interval() != kMotionStepMs)
-			m_motionTimer.setInterval(kMotionStepMs);
 		stepTrains();
 #ifndef Q_OS_WIN
 		// On Windows a timer this short arrives in a posted event, inside which the flush must not run.
 		flushSceneUpdates();
 #endif
 	});
-	if (view)
-		QObject::connect(view, &NetworkView::viewportPainted, &m_motionTimer, [this]() { notePaint(); });
 	// The icon is a resource of the application, which a caller such as a test can lack.
 	const QPixmap passenger(QStringLiteral(":/icons/pax_icon.png"));
 	if (!passenger.isNull())
@@ -274,11 +271,6 @@ void NetworkPresenter::clear() {
 	m_trainBadges.clear();
 	m_updateIntervals.clear();
 	m_lastUpdateMs = -1;
-	m_drawnAtMs = -1;
-	m_updatedSincePaint = false;
-	m_updateLeadsMs.clear();
-	m_stepLeadsMs.clear();
-	m_presentedMs = -1;
 	allTrains.clear();
 	allSignals.clear();
 	m_signalDecorations.clear();
@@ -2206,11 +2198,6 @@ void NetworkPresenter::setClock(Clock clock) {
 	// What was measured on the old clock means nothing on the new one.
 	m_updateIntervals.clear();
 	m_lastUpdateMs = -1;
-	m_drawnAtMs = -1;
-	m_updatedSincePaint = false;
-	m_updateLeadsMs.clear();
-	m_stepLeadsMs.clear();
-	m_presentedMs = -1;
 	for (auto& entry : m_trainMotions) {
 		entry.second.fromHead = entry.second.newest.routeAxisPosition;
 		entry.second.fromMs = entry.second.toMs = std::numeric_limits<qint64>::min();
@@ -2219,34 +2206,6 @@ void NetworkPresenter::setClock(Clock clock) {
 
 qint64 NetworkPresenter::nowMs() const {
 	return m_clock ? m_clock() : m_elapsed.elapsed();
-}
-
-// The time for which an update, or a step, draws the trains: when the paint that shows them will end, as long after now
-// as in the median of the last five paints after an update, or of the last five others. A paint after an update is
-// often a paint of the whole view, which takes longer, and the event loop can be busy before it. It never goes back.
-qint64 NetworkPresenter::presentationMs(bool update) {
-	m_updatedSincePaint = m_updatedSincePaint || update;
-	std::vector<qint64> leads = m_updatedSincePaint ? m_updateLeadsMs : m_stepLeadsMs;
-	qint64 lead = 0;
-	if (!leads.empty()) {
-		std::nth_element(leads.begin(), leads.begin() + static_cast<std::ptrdiff_t>(leads.size() / 2), leads.end());
-		lead = leads[leads.size() / 2];
-	}
-	m_presentedMs = std::max(m_presentedMs, nowMs() + lead);
-	m_drawnAtMs = nowMs();
-	return m_presentedMs;
-}
-
-// Measures how long after the trains were drawn the paint that shows them ended.
-void NetworkPresenter::notePaint() {
-	if (m_drawnAtMs < 0)
-		return;
-	std::vector<qint64>& leads = m_updatedSincePaint ? m_updateLeadsMs : m_stepLeadsMs;
-	if (leads.size() == 5)
-		leads.erase(leads.begin());
-	leads.push_back(std::clamp<qint64>(nowMs() - m_drawnAtMs, 0, 50));
-	m_drawnAtMs = -1;
-	m_updatedSincePaint = false;
 }
 
 // Keeps the last intervals between two live updates.
@@ -2261,8 +2220,9 @@ void NetworkPresenter::noteLiveUpdate() {
 	m_updateIntervals.push_back(interval);
 }
 
-// A little longer than the longest of the last update intervals but one, so that a glide does not end before the next
-// update while the intervals vary, and one long gap, after a slow frame, does not make the trains trail far behind.
+// Several times the longest of the last update intervals but one, so that the next update changes the speed of a glide
+// only a little while the intervals vary, and one long gap, after a slow frame, does not make the trains trail far
+// behind.
 qint64 NetworkPresenter::glideDurationMs() const {
 	if (m_updateIntervals.empty())
 		return kDefaultGlideMs;
@@ -2272,7 +2232,8 @@ qint64 NetworkPresenter::glideDurationMs() const {
 	return std::clamp<qint64>(std::llround(kGlideFactor * static_cast<double>(longest)), kMinGlideMs, kMaxGlideMs);
 }
 
-// The longest glide in scene units: the larger side of the visible scene. Without a view a glide has no limit.
+// The longest move of a train from one update to the next that it glides, in scene units: the larger side of the visible
+// scene. Without a view a glide has no limit.
 qreal NetworkPresenter::longestGlide() const {
 	if (!m_view)
 		return std::numeric_limits<qreal>::max();
@@ -2372,9 +2333,11 @@ void NetworkPresenter::moveTrainCallouts(const TrainItemGroup& trainItem) {
 
 void NetworkPresenter::stepTrains() {
 	QEGTRAIN_PROFILE_SCOPE("gui/train_motion/step", "gui", "");
-	const qint64 at = presentationMs(false);
-	// The scene around the visible scene, as far again on every side. A train beyond it is drawn again at the next
-	// update, which draws every train, so it is never further than a move that is not placed at once.
+	const qint64 at = nowMs();
+	// The scene around the visible scene, as far again on every side. The steps do not move a train that is drawn
+	// beyond it: the next update draws every train where its glide then is, and a step draws it when its glide ends. A
+	// train can be drawn further than this margin behind its newest place, so one that glides into the view from beyond
+	// it shows there only at the next update, or at a pause only when its glide ends.
 	QRectF around;
 	if (m_view) {
 		const QRectF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect();
@@ -3185,7 +3148,7 @@ void NetworkPresenter::stopTrainAnimations() {
 // updates train positions given a specific timestep
 void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback) {
 	const bool replay = playback == Playback::Replay;
-	const qint64 now = replay ? nowMs() : presentationMs(true);
+	const qint64 now = nowMs();
 	if (!replay)
 		noteLiveUpdate();
 	bool legendNeedsUpdate = false;
@@ -3214,7 +3177,7 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 			// update train position
 			if (!state.outOfSimulation && (!replay || hasPosition)) {
 				// A live train goes on from where it is drawn now, unless it was placed otherwise, has another route,
-				// direction or shape, runs backwards, or would move further than the visible view.
+				// direction or shape, runs backwards, or has jumped further than the visible view since the last update.
 				const auto found = m_trainMotions.find(train);
 				const TrainMotion* last = found == m_trainMotions.end() ? nullptr : &found->second;
 				bool moves = !replay && last && last->newest.routeIndex == state.routeIndex
@@ -3224,12 +3187,17 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				if (moves) {
 					RoutePath path;
 					moves = routePath(state.routeIndex, state.reversedDirection,
-								middleOnRoute(state.routeIndex, drawnHead, state.length),
+								middleOnRoute(state.routeIndex, last->newest.routeAxisPosition, state.length),
 								middleOnRoute(state.routeIndex, state.routeAxisPosition, state.length), path)
 						&& path.lengths.back() <= longestGlide();
 				}
 				TrainMotion& motion = m_trainMotions[train];
-				startGlide(motion, state, now, drawnHead, moves ? glideDurationMs() : 0);
+				// An update that leaves the train at its place keeps the glide that runs, so that a train that stops
+				// reaches its place when that glide ends and then stands still.
+				if (moves && state.routeAxisPosition == motion.newest.routeAxisPosition)
+					startGlide(motion, state, motion.fromMs, motion.fromHead, motion.toMs - motion.fromMs);
+				else
+					startGlide(motion, state, now, drawnHead, moves ? glideDurationMs() : 0);
 				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, moves ? drawnHead : state.routeAxisPosition);
 				checkVCouplingMsg(trainItem, state, snapshot, t);
 				if (TrainBadgeItem* badge = m_trainBadges.value(train, nullptr)) {
@@ -3274,8 +3242,8 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				followedTrainMoved = true;
 		}
 	}
-	if (!replay && trainsMoving())
-		m_motionTimer.start(kStepAfterUpdateMs);
+	if (!replay && trainsMoving() && !m_motionTimer.isActive())
+		m_motionTimer.start();
 	m_host->trainsApplied(legendNeedsUpdate, followedTrainMoved);
 }
 

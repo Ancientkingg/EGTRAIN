@@ -2548,10 +2548,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_RESUME_OK\n");
 					std::fflush(stdout);
 				}
-				// The view goes with the train to its new place, where the glide of 90 ms, one and a half times the interval
-				// of 60 ms between the two frames, ends. The head of the train then has the shape of the frame.
+				// The view goes with the train to its new place, where the glide of 300 ms, five times the interval of 60 ms
+				// between the two frames, ends. The head of the train then has the shape of the frame.
 				qreal largestOffToEnd = 0.0;
-				for (int part = 1; part <= 6; ++part) {
+				for (int part = 1; part <= 20; ++part) {
 					stepTrainsFor(15);
 					largestOffToEnd = std::max(largestOffToEnd, offTrain());
 				}
