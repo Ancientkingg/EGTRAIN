@@ -365,7 +365,3 @@ QString simulationSpeedLabel(int delayMs) {
 		return QString("%1x").arg(qRound(factor));
 	return QString("%1x").arg(factor, 0, 'f', 1);
 }
-
-QString simulationSpeedMode(int delayMs) {
-	return delayMs <= 0 ? QStringLiteral("Fastest") : simulationSpeedLabel(delayMs) + QStringLiteral(" real time");
-}

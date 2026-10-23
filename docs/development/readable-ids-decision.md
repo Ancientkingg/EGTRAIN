@@ -19,7 +19,7 @@ This page records how the program shows the ids of blocks, sections and signals,
 On Paimpol:
 
 1. Click a signal head in the preview. The inspector title is "Preview: Signal @0-B0@ (not running)" and its details read "Track B0; section @0-B0@; forward; authored signal IDs: None" (`widgets/InspectorPanel.cpp:447` to `:455`).
-2. In **Editors > Incidents**, tab **Incidents**, click **Add Incident**. The **Target** list of the signal failure holds the 140 block ids `0-B0`, `1-B0` and so on, with no position or station (`editors/IncidentPanel.cpp:39` to `:50` and `:425`).
+2. In **Editors > Scenarios**, tab **Incidents**, click **Add Incident**. The **Target** list of the signal failure holds the 140 block ids `0-B0`, `1-B0` and so on, with no position or station (`editors/IncidentPanel.cpp:39` to `:50` and `:425`).
 3. Run the case and choose **Diagrams > Blocking time...** with `route0`. The block lists read "1:@0-B0@", "2:@1-B0@" and so on, and entry 72 is "72:@71-B0@-21.235000/@0-B1@-21.252000" (`diagrams/BlockingTimeScope.cpp:91` and `:92`).
 4. During the run, click a signal on the main line. **Signalling Info** shows **Track ID** 0 for the track that the preview calls B0 (`widgets/InspectorPanel.cpp:678`).
 
@@ -142,7 +142,7 @@ Every section of each committed scene gets its own label. Block labels have at m
 
 | Place | Today | With labels | Where the id stays |
 | --- | --- | --- | --- |
-| Preview inspector of a signal (`widgets/InspectorPanel.cpp:436` to `:455`) | Title and fields with `@0-B0@` | "Signal B0 0.000 to 0.230 km"; **Protected section** and **ID of Block Section** show the label | Field tooltips; "section @0-B0@" in the details |
+| Preview inspector of a signal (`widgets/InspectorPanel.cpp:436` to `:455`) | Title and fields with `@0-B0@` | "Signal B0 0.000 to 0.230 km"; **Protected section** and **Block section** show the label | Field tooltips; "section @0-B0@" in the details |
 | **Signalling Info** of a run (`:678` to `:698`) | **Track ID** 0, sections by id, **Next track** 0 | `B0`, labels | Tooltips: runtime track number and section id |
 | Node, arc and connection info (`:479`, `:525`, `:574`, `:616`, `:645`, `:646`) | Runtime track numbers, section ids | Scene track ids, labels | Tooltips |
 | Signal tooltips and **Find** (`graphics/items/SignalItem.cpp:73`, `graphics/NetworkPresenter.cpp:237`, `:262`, `:666`, `app/MainWindow.cpp:4359`) | "Track 0 at 0.23 km; ahead @0-B0@; behind none" | Tooltip "Proceed, facing right" over "Track B0 at 0.23 km"; Find lists "Signal: track B0 at 0.23 km, facing right", and the labels and ids of its sections find it too | The inspector |
@@ -230,7 +230,7 @@ Part 1 of the change made steps 1 and 4, step 2 without the preview, and the doc
 Part 2 made the preview item of step 2 and all of step 3. On Paimpol:
 
 - A signal of the preview keeps the label of its section and its name by rule 7 (`TrackPreviewSignal` in `scene/TrackPreview.h`). The first signal of B0 has the inspector title "Signal B0 0.230 to 0.310 km". **Protected section** and **Block section** show "B0 0.230 to 0.310 km", their tooltips add "Section ID: @1-B0@", and the details keep "Track B0, section @1-B0@, forward". The tooltip of the head names its aspect and direction over "Track B0 at 0.23 km, section B0 0.230 to 0.310 km", and its context menu is called "Preview: B0 0.230 to 0.310 km".
-- `showRuntime` builds the labels from the scene of the run and gives each signal head the scene track id and the labels of its sections (`graphics/items/SignalItem.h`). The tooltip of the forward head at 0.23 km names its aspect and direction over "Track B0 at 0.23 km"; the inspector shows the sections ahead and behind.
+- `showRuntime` builds the labels from the scene of the run and gives each signal head the scene track id and the labels of its sections (`graphics/items/SignalItem.h`). The tooltip of the forward head at 0.23 km names its aspect and direction over "Track B0 at 0.23 km"; the inspector shows the protected section and the section ahead.
 - The inspector of a signal, node, station, arc or connection shows scene track ids and labels. A field that shows one has the text as its tooltip and, below it, "Track number: 0" or "Section ID: @1-B0@". **Connected signals** of an arc joins its labels with commas and lists the ids in the tooltip.
 - **Find** lists a signal as "Signal: track B0 at 0.23 km, facing right" and finds it by the labels and the ids of its sections too, which it does not show. It names the track of a station node by its scene id: "Station: Brelidy-Plouec (track B0)".
 - The signal menu of a run has **Copy section ID**. It copies the id of the section ahead of the head, or of the section behind it when there is none ahead: the section that **Protected section** shows.

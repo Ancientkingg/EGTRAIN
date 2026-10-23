@@ -2125,7 +2125,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				const int listWidth = w.m_followTrainCombo->width();
 				// A message wider than the room left of the Follow label looks the same as its text elided to that room.
 				const QString messageBefore = w.statusBar()->currentMessage();
-				const QString longMessage = QStringLiteral("Simulation complete - results in the Diagrams menu. ").repeated(4);
+				const QString longMessage = QStringLiteral("Results discarded: the case changed during the run. ").repeated(4);
 				w.statusBar()->showMessage(longMessage);
 				const QImage cutMessage = w.statusBar()->grab().toImage();
 				w.statusBar()->showMessage(w.statusBar()->fontMetrics().elidedText(longMessage, Qt::ElideRight, w.m_followStatusLabel->x() - 8));

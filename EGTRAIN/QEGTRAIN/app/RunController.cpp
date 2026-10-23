@@ -292,7 +292,7 @@ bool RunController::showRunReview() {
 			? countText(counts.warnings, QStringLiteral("validation warning"), QStringLiteral("validation warnings"))
 				+ QStringLiteral(". See Scene Validation.")
 			: QString());
-	status->setProperty("warning", noServicesInPeriod || !unsignalledSections.isEmpty() || (detailsEnabled && counts.warnings > 0));
+	status->setProperty("warning", !status->text().isEmpty());
 	status->setWordWrap(true);
 	status->setVisible(!status->text().isEmpty());
 	layout->addWidget(status);

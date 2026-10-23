@@ -1991,7 +1991,7 @@ void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) 
 	m_history->reset(m_document->model());
 	recoverySceneReplaced(RecoverySource());
 	m_runController->selectSceneOutputFolder(m_document->model().name);
-	m_runController->clearDelayBaseline(QStringLiteral("Baseline cleared: another case was opened"));
+	m_runController->clearDelayBaseline(QStringLiteral("Baseline cleared: a new case was created"));
 	m_runSelection.selectScenario(m_document->model().defaultScenarioId);
 	m_runSelection.clearModifiedScenarios();
 	m_passengerPanel->clearImportResult();
@@ -3748,7 +3748,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 			bringToFront();
 			const SceneOpenChoice choice = classifyOpenPaths({request});
 			if (!choice.rejection.isEmpty()) {
-				statusBar()->showMessage(QStringLiteral("Cannot open the file: %1").arg(choice.rejection), 8000);
+				statusBar()->showMessage(
+					QStringLiteral("Cannot open %1: %2").arg(QFileInfo(request).fileName(), choice.rejection), 8000);
 				return;
 			}
 			// The request names the case, so a startup chooser that has not opened yet stays closed.

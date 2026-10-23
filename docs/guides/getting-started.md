@@ -76,7 +76,7 @@ At the fastest speed the run of Paimpol takes seconds. When it has ended, the st
 
 ## 5. Replay the run
 
-The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slider and the clock time of the shown frame, such as `07:31:10`. Moving the slider or clicking **Start** or **End** shows the network as it was at that time, and **Play** advances one simulated second for each second of real time. The row records one frame every 5 simulated seconds and shows the last frame at or before the chosen time. The text under the controls says which part of the run it holds. A run that is too large for the replay memory loses its first part, and the text says so. [How-to](how-to.md#replay-a-completed-run) has the details.
+The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slider and the clock time of the shown frame, such as `07:31:10`. Moving the slider or clicking **Start** or **End** shows the network as it was at that time, and **Play** advances one simulated second for each second of real time. The row records one frame every 5 simulated seconds and shows the last frame at or before the chosen time. A run that is too large to keep whole loses its first part, and a line under the controls says which part the row holds. [How-to](how-to.md#replay-a-completed-run) has the details.
 
 ## 6. Read the results
 

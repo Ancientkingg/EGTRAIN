@@ -4,7 +4,7 @@ This page describes the scenario library, the student loop of a case, and what t
 
 ## Scenarios
 
-Open the **Incidents** dock to choose the default or another named scenario.
+Open the **Scenarios** dock to choose the default or another named scenario.
 The dock has the tabs **Scenario**, **Incidents** and **Entrance delays**, and a
 line above them names the selected scenario. Each row of the library on the
 **Scenario** tab shows the name of a scenario, marked "default" for the default
@@ -100,7 +100,7 @@ signal of the preview is named by the label of its section, as in
 `Signal B0 0.230 to 0.310 km` in Paimpol. A signal that
 `signalling.json` lists for the section comes first: `sig1 (B0 0.230 to 0.310 km)`.
 During a run the inspector names tracks by their scene ids and sections by their
-labels, and the tooltip of a field gives the runtime track number or the section
+labels, and the tooltip of a field gives the track number or the section
 id ([ids and labels](glossary.md#ids-and-labels)). The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
 disappears with the layer of its item. Clicking another item moves the ring;
@@ -132,7 +132,8 @@ Selecting another scenario keeps the baseline, discards the results and closes
 the dock **Run Results**. Opened again from the menu **View**, the dock reads
 `No results yet` and `Baseline: <case> / <scenario>`. An edit of the case clears the
 baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case Study...**
-and opening another case give `Baseline cleared: another case was opened`. A new run without
+gives `Baseline cleared: a new case was created` and opening another case gives
+`Baseline cleared: another case was opened`. A new run without
 incidents or entrance delays can then be set as the baseline. **Compare delays** requires a run with incidents or
 entrance delays that matches the baseline, and opens the delay analysis window
 on its tab Against baseline. The window reports the difference and the recorded

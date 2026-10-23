@@ -47,29 +47,29 @@ const char* kRecentLabelProperty = "recentLabel";
 
 bool sceneDropCandidate(const QMimeData* mime, QString* path, QString* rejection) {
 	if (!mime || !mime->hasUrls() || mime->urls().isEmpty()) {
-		*rejection = QStringLiteral("no file was dropped");
+		*rejection = QStringLiteral("the drop holds no file");
 		return false;
 	}
 	if (mime->urls().size() != 1) {
-		*rejection = QStringLiteral("drop exactly one .egscene file");
+		*rejection = QStringLiteral("more than one file was dropped");
 		return false;
 	}
 	const QUrl url = mime->urls().front();
 	if (!url.isLocalFile()) {
-		*rejection = QStringLiteral("only local .egscene files can be opened");
+		*rejection = QStringLiteral("it is not on this computer");
 		return false;
 	}
 	const QFileInfo info(url.toLocalFile());
 	if (!info.exists()) {
-		*rejection = QStringLiteral("the dropped file does not exist");
+		*rejection = QStringLiteral("it does not exist");
 		return false;
 	}
 	if (!info.isFile()) {
-		*rejection = QStringLiteral("drop an .egscene file, not a directory");
+		*rejection = QStringLiteral("it is a folder, not an .egscene file");
 		return false;
 	}
 	if (info.suffix().compare(QStringLiteral("egscene"), Qt::CaseInsensitive) != 0) {
-		*rejection = QStringLiteral("the dropped file must use the .egscene extension");
+		*rejection = QStringLiteral("it is not an .egscene file");
 		return false;
 	}
 	*path = info.absoluteFilePath();
@@ -129,7 +129,7 @@ void SceneSession::dragEnter(QDragEnterEvent* event) {
 		event->accept();
 	} else {
 		if (rejection.isEmpty())
-			rejection = QStringLiteral("the source does not permit copying");
+			rejection = QStringLiteral("the source does not allow copying");
 		m_window->statusBar()->showMessage(QStringLiteral("Cannot open the dropped file: %1").arg(rejection), 8000);
 		event->ignore();
 	}
@@ -141,7 +141,7 @@ void SceneSession::drop(QDropEvent* event) {
 	if (!sceneDropCandidate(event->mimeData(), &path, &rejection)
 		|| !event->possibleActions().testFlag(Qt::CopyAction)) {
 		if (rejection.isEmpty())
-			rejection = QStringLiteral("the source does not permit copying");
+			rejection = QStringLiteral("the source does not allow copying");
 		m_window->statusBar()->showMessage(QStringLiteral("Cannot open the dropped file: %1").arg(rejection), 8000);
 		event->ignore();
 		return;
