@@ -72,8 +72,8 @@ public:
 	QRectF topologyBounds() const;
 	/// The zoom ratio as the view shows it: "Fit", or the ratio with an "x", such as "2x" or "2.5x".
 	QString zoomLabel() const;
-	/// Starts a timer for the next paint of the viewport, which emits timingPaintCompleted() with kind and
-	/// generation.
+	/// Starts a timer and asks for the next paint of the viewport, which emits timingPaintCompleted() with
+	/// kind and generation.
 	void armTimingPaint(const QString& kind, int generation);
 
 protected:
