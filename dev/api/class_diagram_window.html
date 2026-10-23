@@ -144,8 +144,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afd09f9c58ae3e9b01f2b8b14610c9e75" id="r_afd09f9c58ae3e9b01f2b8b14610c9e75"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afd09f9c58ae3e9b01f2b8b14610c9e75">setTimeAxisY</a> (bool on, long long startOffsetSeconds=0)</td></tr>
 <tr class="memitem:a6d991a03ac97993a7dc5fc9b8a67f281" id="r_a6d991a03ac97993a7dc5fc9b8a67f281"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d991a03ac97993a7dc5fc9b8a67f281">setTimeAxisX</a> (bool on, long long startOffsetSeconds=0)</td></tr>
 <tr class="memdesc:a6d991a03ac97993a7dc5fc9b8a67f281"><td class="mdescLeft">&#160;</td><td class="mdescRight">As setTimeAxisY, for the X axis.  <br /></td></tr>
+<tr class="memitem:a793d3c53f037ce0694f78db0295866fd" id="r_a793d3c53f037ce0694f78db0295866fd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a793d3c53f037ce0694f78db0295866fd">setPositionAxis</a> (<a class="el" href="class_position_scale.html">PositionScale</a> scale)</td></tr>
 <tr class="memitem:aec15f7fbe7dff817ea556595a326c71d" id="r_aec15f7fbe7dff817ea556595a326c71d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aec15f7fbe7dff817ea556595a326c71d">setCsvProvider</a> (std::function&lt; std::string(const QStringList &amp;visibleTrainIds)&gt; provider, const QString &amp;suggestedFileName, const QStringList &amp;trainIds={})</td></tr>
-<tr class="memitem:ae92dd3fc8e3084b289cb9ea8aa3ac000" id="r_ae92dd3fc8e3084b289cb9ea8aa3ac000"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae92dd3fc8e3084b289cb9ea8aa3ac000">setBlockSections</a> (std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, const QString &amp;referenceRouteId, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels=nullptr)</td></tr>
+<tr class="memitem:a96fc99c6db7318229f03cb98fa7afec2" id="r_a96fc99c6db7318229f03cb98fa7afec2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a96fc99c6db7318229f03cb98fa7afec2">setBlockSections</a> (std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, const QString &amp;referenceRouteId, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels=nullptr, std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; marks={}, int routeSectionCount=0)</td></tr>
 <tr class="memitem:a20f5084ae1945ad5ee9818d4958ef95a" id="r_a20f5084ae1945ad5ee9818d4958ef95a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a20f5084ae1945ad5ee9818d4958ef95a">setStationAxis</a> (QCategoryAxis *axis, std::vector&lt; <a class="el" href="struct_station_tick.html">StationTick</a> &gt; stations)</td></tr>
 <tr class="memitem:aeaf1a8a285ed78422cb00c04f7cc8a83" id="r_aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aeaf1a8a285ed78422cb00c04f7cc8a83">csvContent</a> () const</td></tr>
 <tr class="memdesc:aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same provider/filter snapshot that the CSV export writes, without opening a file dialog.  <br /></td></tr>
@@ -273,8 +274,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ae92dd3fc8e3084b289cb9ea8aa3ac000" name="ae92dd3fc8e3084b289cb9ea8aa3ac000"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae92dd3fc8e3084b289cb9ea8aa3ac000">&#9670;&#160;</a></span>setBlockSections()</h2>
+<a id="a96fc99c6db7318229f03cb98fa7afec2" name="a96fc99c6db7318229f03cb98fa7afec2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96fc99c6db7318229f03cb98fa7afec2">&#9670;&#160;</a></span>setBlockSections()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -292,11 +293,21 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *</td>          <td class="paramname"><span class="paramname"><em>labels</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *</td>          <td class="paramname"><span class="paramname"><em>labels</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>marks</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>routeSectionCount</em></span><span class="paramdefsep"> = </span><span class="paramdefval">0</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears it. <span class="tt">labels</span> names the sections in the strip, with the id in the hover text; without it the strip shows the ids. </p>
+<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears it. The strip above the plot names each section by its short id (shortBlockId), centred in its cell, in one row when every id fits at the full view of the chart and otherwise in two, where an id that collides in the first row tries the second. When the ids in route order leave one out, those of critical and conflict sections, the first and last section, then switch and station sections are placed first. A switch section is hatched, and <span class="tt">marks</span>, one per section or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict. The hover of a cell or a boundary gives the id, the label from <span class="tt">labels</span>, the kind, "Section N of M" with M <span class="tt">routeSectionCount</span> (the number of sections when 0), the geo extent and the route distance. </p>
 
 </div>
 </div>
@@ -314,11 +325,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set: the "layer" property of a series, else planned or simulated. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. </p>
+<p>Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose "exactRange" property is true keeps its range and still gets round ticks. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set: the "layer" property of a series, else planned or simulated. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a6a0470e83e6f726a252b1b7b308842df_cgraph.svg" width="454" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a6a0470e83e6f726a252b1b7b308842df_cgraph.svg" width="455" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -369,6 +380,24 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Supply raw source data for CSV export. The provider receives the ids of the trains currently visible so it can export only what the user is looking at. <span class="tt">trainIds</span> adds to the train filter the trains that have CSV rows but no plotted series. An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save names the file in the status bar of the main window that is the parent of this window. The PNG export suggests <span class="tt">suggestedFileName</span> with the suffix png, or diagram.png without a name. </p>
+
+</div>
+</div>
+<a id="a793d3c53f037ce0694f78db0295866fd" name="a793d3c53f037ce0694f78db0295866fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a793d3c53f037ce0694f78db0295866fd">&#9670;&#160;</a></span>setPositionAxis()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DiagramWindow::setPositionAxis </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_position_scale.html">PositionScale</a></td>          <td class="paramname"><span class="paramname"><em>scale</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Labels the bottom axis, a route distance in km, as the geo X of <span class="tt">scale</span>, titled "Position (km)": labels on round geo X values at their route distance, which count down where the route runs against the scene coordinate, and a break mark on the bottom edge of the plot at each jump of the scale, whose hover gives both geo X. The plot keeps the route distance. The labels follow every zoom, pan, fit and resize, and lie at least 60 px apart. The readout and the tooltip of a sample give the geo X. Set after setChart, not with setTimeAxisX; an empty scale restores the numeric axis. The numeric axis is hidden while the position axis takes its place, as with setTimeAxisY. </p>
 
 </div>
 </div>
@@ -531,7 +560,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus <span class="tt">startOffsetSeconds</span>, the clock time of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is in range. False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller, without the round widening of setChart; reset restores those bounds. The numeric axis is hidden while the clock axis takes its place, so that the chart draws one axis on that side. </p>
+<p>Labels the Y axis as clock time, titled "Time (hh:mm)": the axis value in seconds plus <span class="tt">startOffsetSeconds</span>, the clock time of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is in range. Ticks on whole minutes read HH:MM while the ticks are at least a minute apart; a tick off a whole minute, such as second 0 at 07:10:40, and every tick of a shorter step read HH:MM:SS, so no two ticks read the same. False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller, without the round widening of setChart; reset restores those bounds. The numeric axis is hidden while the clock axis takes its place, so that the chart draws one axis on that side. Tooltips and the readout keep HH:MM:SS. </p>
 
 </div>
 </div>

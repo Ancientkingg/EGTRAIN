@@ -126,7 +126,7 @@ Include dependency graph for BlockingTimeDiagram.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h__dep__incl.svg" width="2632" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h__dep__incl.svg" width="2542" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_blocking_time_diagram_8h_source.html">Go to the source code of this file.</a></p>
@@ -138,6 +138,8 @@ Classes</h2></td></tr>
 <tr class="memitem:BlockingTimePlannedReference" id="r_BlockingTimePlannedReference"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a></td></tr>
 <tr class="memitem:BlockSectionInput" id="r_BlockSectionInput"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_block_section_input.html">BlockSectionInput</a></td></tr>
 <tr class="memitem:BlockSectionExtent" id="r_BlockSectionExtent"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a></td></tr>
+<tr class="memitem:BlockSectionMarks" id="r_BlockSectionMarks"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the section strip of a blocking-time chart marks on a section, besides a switch section (<a class="el" href="struct_block_section_extent.html#a7cd65ed2fcadd0afe6eadc2a10230987" title="The section holds a diverging switch.">BlockSectionExtent::isSwitch</a>).  <a href="struct_block_section_marks.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -156,6 +158,9 @@ Enumerations</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:ad8a93ffba5de232843c7a84217fd3ab2" id="r_ad8a93ffba5de232843c7a84217fd3ab2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad8a93ffba5de232843c7a84217fd3ab2">restoreCompressedOriginalTimes</a> (std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; <a class="el" href="struct_capacity_compression_row.html">CapacityCompressionRow</a> &gt; &amp;compression)</td></tr>
 <tr class="memitem:a8550c0c61fd18522ddfaa73bba1454c4" id="r_a8550c0c61fd18522ddfaa73bba1454c4"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8550c0c61fd18522ddfaa73bba1454c4">buildBlockingTimeDiagramSegments</a> (const std::vector&lt; std::vector&lt; <a class="el" href="struct_blocking_time_diagram_input.html">BlockingTimeDiagramInput</a> &gt; &gt; &amp;trains, const std::vector&lt; std::string &gt; &amp;trainNames)</td></tr>
+<tr class="memitem:aaaaf79ea1a3e7a4f74ca8d1e1907e458" id="r_aaaaf79ea1a3e7a4f74ca8d1e1907e458"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaaaf79ea1a3e7a4f74ca8d1e1907e458">comparableBlockTokens</a> (const std::string &amp;blockId)</td></tr>
+<tr class="memitem:a71f3e00da322333deb9949ee1ef18a26" id="r_a71f3e00da322333deb9949ee1ef18a26"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a71f3e00da322333deb9949ee1ef18a26">shortBlockId</a> (const std::string &amp;blockId)</td></tr>
+<tr class="memdesc:a71f3e00da322333deb9949ee1ef18a26"><td class="mdescLeft">&#160;</td><td class="mdescRight">The short form of a block id that the section strip shows: its comparable tokens joined with "/", such as "71-B0/0-B1".  <br /></td></tr>
 <tr class="memitem:a25fc2b047048bd86bbcb9d95d1a93df4" id="r_a25fc2b047048bd86bbcb9d95d1a93df4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a25fc2b047048bd86bbcb9d95d1a93df4">shareBlockingTimeResource</a> (const std::string &amp;firstBlockId, const std::string &amp;secondBlockId)</td></tr>
 <tr class="memitem:a5d6b768c5b4b9afe20028e063ec42f2d" id="r_a5d6b768c5b4b9afe20028e063ec42f2d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5d6b768c5b4b9afe20028e063ec42f2d">shareBlockingTimeResource</a> (const <a class="el" href="struct_blocking_time_diagram_input.html">BlockingTimeDiagramInput</a> &amp;first, const <a class="el" href="struct_blocking_time_diagram_input.html">BlockingTimeDiagramInput</a> &amp;second)</td></tr>
 <tr class="memitem:a2c86a20ce4acd9ac0494bb0224ef109e" id="r_a2c86a20ce4acd9ac0494bb0224ef109e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2c86a20ce4acd9ac0494bb0224ef109e">validBlockingTimeDiagramInput</a> (const <a class="el" href="struct_blocking_time_diagram_input.html">BlockingTimeDiagramInput</a> &amp;input)</td></tr>
@@ -164,6 +169,7 @@ Functions</h2></td></tr>
 <tr class="memitem:ae62f41167b422ffec434a70cb3b5432a" id="r_ae62f41167b422ffec434a70cb3b5432a"><td class="memItemLeft">std::vector&lt; std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae62f41167b422ffec434a70cb3b5432a">clipBlockingTimePlannedReferences</a> (const std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &amp;references, double startTime, double endTime)</td></tr>
 <tr class="memitem:a2e3ec7df5ff5d122f18686e97790e774" id="r_a2e3ec7df5ff5d122f18686e97790e774"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2e3ec7df5ff5d122f18686e97790e774">buildBlockSectionExtents</a> (const std::vector&lt; <a class="el" href="struct_block_section_input.html">BlockSectionInput</a> &gt; &amp;inputs)</td></tr>
 <tr class="memitem:a066352dcf8f485f58308d433dfb40942" id="r_a066352dcf8f485f58308d433dfb40942"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a066352dcf8f485f58308d433dfb40942">matchBlockingSegmentsToSections</a> (std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents, const std::string &amp;referenceRouteId, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels=nullptr)</td></tr>
+<tr class="memitem:acb39ee15fb6ea906579a63ed092c4318" id="r_acb39ee15fb6ea906579a63ed092c4318"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acb39ee15fb6ea906579a63ed092c4318">blockSectionMarks</a> (const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; double &gt; &amp;stationKm, bool compressed)</td></tr>
 <tr class="memitem:ac0eb1630a5980ae39bb2139cba51f7b4" id="r_ac0eb1630a5980ae39bb2139cba51f7b4"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac0eb1630a5980ae39bb2139cba51f7b4">scopedBlockSectionExtents</a> (const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents, const std::vector&lt; int &gt; &amp;indices)</td></tr>
 <tr class="memitem:ae8cffc87793fbc3316aea9814a2cbb00" id="r_ae8cffc87793fbc3316aea9814a2cbb00"><td class="memItemLeft">std::optional&lt; std::pair&lt; double, double &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae8cffc87793fbc3316aea9814a2cbb00">blockSectionBounds</a> (const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents)</td></tr>
 <tr class="memitem:a0415bf2e4f4f3533261f04d38c69bfc4" id="r_a0415bf2e4f4f3533261f04d38c69bfc4"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0415bf2e4f4f3533261f04d38c69bfc4">blockSectionRangeIndices</a> (int first, int last, int count)</td></tr>
@@ -369,7 +375,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_adcf9933259eba38375607b9a01c8f432_cgraph.svg" width="467" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_adcf9933259eba38375607b9a01c8f432_cgraph.svg" width="694" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -418,6 +424,43 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_aefe85ddfcdd14b8613bbdb730ecbe0ee_cgraph.svg" width="212" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="acb39ee15fb6ea906579a63ed092c4318" name="acb39ee15fb6ea906579a63ed092c4318"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb39ee15fb6ea906579a63ed092c4318">&#9670;&#160;</a></span>blockSectionMarks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a> &gt; blockSectionMarks </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>extents</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>segments</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; double &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>stationKm</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>compressed</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The marks of each extent, in the order of <span class="tt">extents</span>. A section is a station section when one of <span class="tt">stationKm</span>, the route distances of the station nodes of the reference route, lies on it, ends included. The other marks come from the blocking times matched to the section (<a class="el" href="struct_blocking_time_diagram_segment.html#ab1fe6358019d4c6c18c2cdac6de0f056">BlockingTimeDiagramSegment::referenceSection</a>), as the chart colours them: with <span class="tt">compressed</span> a capacity-critical one makes the section critical, and otherwise a conflicting one (the Critical styles) gives it a conflict. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_acb39ee15fb6ea906579a63ed092c4318_cgraph.svg" width="156" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -474,7 +517,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a8550c0c61fd18522ddfaa73bba1454c4_cgraph.svg" width="464" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a8550c0c61fd18522ddfaa73bba1454c4_cgraph.svg" width="691" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -528,6 +571,29 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_ae62f41167b422ffec434a70cb3b5432a_cgraph.svg" width="270" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aaaaf79ea1a3e7a4f74ca8d1e1907e458" name="aaaaf79ea1a3e7a4f74ca8d1e1907e458"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaaaf79ea1a3e7a4f74ca8d1e1907e458">&#9670;&#160;</a></span>comparableBlockTokens()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; comparableBlockTokens </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>blockId</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The blocks that a block id names, which the resource matcher compares: the first and the third field between "@" signs, such as "71-B0" and "0-B1" for "@71-B0@-21.235000/@0-B1@-21.252000", or the id itself without such a field. Empty for an empty id. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_aaaaf79ea1a3e7a4f74ca8d1e1907e458_cgraph.svg" width="190" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -635,7 +701,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a066352dcf8f485f58308d433dfb40942_cgraph.svg" width="519" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a066352dcf8f485f58308d433dfb40942_cgraph.svg" width="746" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -739,7 +805,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a5d6b768c5b4b9afe20028e063ec42f2d_cgraph.svg" width="472" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a5d6b768c5b4b9afe20028e063ec42f2d_cgraph.svg" width="699" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -765,7 +831,31 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a25fc2b047048bd86bbcb9d95d1a93df4_cgraph.svg" width="218" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a25fc2b047048bd86bbcb9d95d1a93df4_cgraph.svg" width="444" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a71f3e00da322333deb9949ee1ef18a26" name="a71f3e00da322333deb9949ee1ef18a26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71f3e00da322333deb9949ee1ef18a26">&#9670;&#160;</a></span>shortBlockId()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string shortBlockId </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>blockId</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The short form of a block id that the section strip shows: its comparable tokens joined with "/", such as "71-B0/0-B1". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_a71f3e00da322333deb9949ee1ef18a26_cgraph.svg" width="340" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

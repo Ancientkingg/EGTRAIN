@@ -825,6 +825,10 @@
 <li><p>The table keeps the id of a signal only in the inspector. <strong>Find</strong> also matches the ids, so a search for <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code> still finds the heads of that section.</p></li>
 </ul>
 </section>
+<section id="change-of-2026-10-23-block-ids-in-the-chart-strip">
+<h2>Change of 2026-10-23: block ids in the chart strip<a class="headerlink" href="#change-of-2026-10-23-block-ids-in-the-chart-strip" title="Link to this heading">¶</a></h2>
+<p>After feedback from the supervisor in the redesign of the diagram windows (#1092), the section strip of the blocking-time charts names each section by its short block id, such as <code class="docutils literal notranslate"><span class="pre">71-B0</span></code>, or <code class="docutils literal notranslate"><span class="pre">71-B0/0-B1</span></code> for a switch section, without the route order. A label is about twice as wide as a block id, so the strip named few sections. The short id keeps the block names of the full id that the exports, <code class="docutils literal notranslate"><span class="pre">BlockingTimes.txt</span></code> and the scene files use, such as <code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code>. The hover of the strip gives the id and then the label on a line of its own. Every other place in the table above keeps its label.</p>
+</section>
 <section id="open-questions">
 <h2>Open questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
 <ul class="simple">
@@ -912,6 +916,7 @@
 <li><a class="reference internal" href="#implementation-plan">Implementation plan</a></li>
 <li><a class="reference internal" href="#where-part-1-differs-from-the-plan">Where part 1 differs from the plan</a></li>
 <li><a class="reference internal" href="#part-2">Part 2</a></li>
+<li><a class="reference internal" href="#change-of-2026-10-23-block-ids-in-the-chart-strip">Change of 2026-10-23: block ids in the chart strip</a></li>
 <li><a class="reference internal" href="#open-questions">Open questions</a></li>
 </ul>
 </li>

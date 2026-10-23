@@ -14,6 +14,7 @@ var class_signal_item =
     [ "setInspectionIdentity", "class_signal_item.html#aeb900cc6eb8a30de9f488edb7813033b", null ],
     [ "setReversedDirection", "class_signal_item.html#a52235a7322281fe115db5923312e1bee", null ],
     [ "type", "class_signal_item.html#a5fab1f5130117b057d557a66cce2fc36", null ],
+    [ "PickPixels", "class_signal_item.html#a11f62074b01b942744c5511b3bb3c80a", null ],
     [ "reversedDirection", "class_signal_item.html#ad30dbdd21f76592e7a5eab17ddf8591b", null ],
     [ "sceneTrackId", "class_signal_item.html#a60f3da81dae95e653a5d068aa70e06d4", null ],
     [ "sectionAheadId", "class_signal_item.html#ab0e8af97a9cb7aecc30af2fa4f1ce8dd", null ],

@@ -183,9 +183,14 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a215c07d08fed9eeb7d524502a4280e1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the section behind; -1 without one.  <br /></td></tr>
 <tr class="memitem:ad30dbdd21f76592e7a5eab17ddf8591b" id="r_ad30dbdd21f76592e7a5eab17ddf8591b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad30dbdd21f76592e7a5eab17ddf8591b">reversedDirection</a></td></tr>
 <tr class="memdesc:ad30dbdd21f76592e7a5eab17ddf8591b"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for the head of the reversed direction. The two heads of a signal have the same X.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a11f62074b01b942744c5511b3bb3c80a" id="r_a11f62074b01b942744c5511b3bb3c80a"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a11f62074b01b942744c5511b3bb3c80a">PickPixels</a> = 12.0</td></tr>
+<tr class="memdesc:a11f62074b01b942744c5511b3bb3c80a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width on screen of the circle in which a click picks the head, in logical pixels.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour, and a mark for any state but Proceed, show the state of the aspect code. A transparent child of 12 by 12 logical pixels at its centre keeps it clickable when the head is smaller on screen. </p>
+<div class="textblock"><p>A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour, and a mark for any state but Proceed, show the state of the aspect code. <a class="el" href="class_network_scene.html">NetworkScene</a> picks it in a circle of PickPixels logical pixels across at its centre, which keeps it clickable when the head is smaller on screen. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a8d0c0b27ae98553facc59fc41ac26d66" name="a8d0c0b27ae98553facc59fc41ac26d66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8d0c0b27ae98553facc59fc41ac26d66">&#9670;&#160;</a></span>anonymous enum</h2>
@@ -558,6 +563,30 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="a11f62074b01b942744c5511b3bb3c80a" name="a11f62074b01b942744c5511b3bb3c80a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11f62074b01b942744c5511b3bb3c80a">&#9670;&#160;</a></span>PickPixels</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">qreal SignalItem::PickPixels = 12.0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The width on screen of the circle in which a click picks the head, in logical pixels. </p>
+
+</div>
+</div>
 <a id="ad30dbdd21f76592e7a5eab17ddf8591b" name="ad30dbdd21f76592e7a5eab17ddf8591b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad30dbdd21f76592e7a5eab17ddf8591b">&#9670;&#160;</a></span>reversedDirection</h2>
 

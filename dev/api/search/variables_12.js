@@ -171,7 +171,7 @@ var searchData=
   ['state_168',['state',['../struct_recovery_candidate.html#a27cb262341c99306959a40dc5c8f23d7',1,'RecoveryCandidate::state'],['../class_section.html#ab310417a0f133ec4f2f35b51afa53abf',1,'Section::state'],['../classtelemetry_1_1_sender_thread.html#a31e2e523a8a8a6ebe68cbf0ad3a79106',1,'telemetry::SenderThread::state']]],
   ['stateendpoint_169',['stateEndpoint',['../struct_live_server_state.html#a894513c0c5b8aab50db4a193f64f28e5',1,'LiveServerState']]],
   ['states_170',['states',['../struct_live_server_state.html#a6a47b481accf4c73d6845298e8f6ab9c',1,'LiveServerState']]],
-  ['station_171',['station',['../struct_completed_stop.html#ae2066b1698dd4707d8b72ebfd2dd576f',1,'CompletedStop::station'],['../struct_route_diagram_point.html#a37a5bed3ff9dffe63f9343314c958be2',1,'RouteDiagramPoint::station'],['../class_node.html#ae7bcbfd871c54d3d26f6cfabb786e7f7',1,'Node::station']]],
+  ['station_171',['station',['../struct_block_section_marks.html#a2accec0f2e4f18a0e10d950fc2e3749f',1,'BlockSectionMarks::station'],['../struct_completed_stop.html#ae2066b1698dd4707d8b72ebfd2dd576f',1,'CompletedStop::station'],['../struct_route_diagram_point.html#a37a5bed3ff9dffe63f9343314c958be2',1,'RouteDiagramPoint::station'],['../class_node.html#ae7bcbfd871c54d3d26f6cfabb786e7f7',1,'Node::station']]],
   ['station_5fname_5fgraphid_172',['station_name_graphID',['../class_network_presenter.html#a42d385852e5606365bf751264f65b87f',1,'NetworkPresenter']]],
   ['station_5fnode_5fsize_173',['station_node_size',['../class_network_presenter.html#a89c63f7209818e4dae8ede63337d036f',1,'NetworkPresenter']]],
   ['station_5fsize_174',['station_size',['../class_network_presenter.html#a6df71315556f8c402ba84d4eafbf365a',1,'NetworkPresenter']]],

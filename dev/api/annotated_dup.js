@@ -54,6 +54,7 @@ var annotated_dup =
     [ "BlockingTimeTrajectory", "struct_blocking_time_trajectory.html", "struct_blocking_time_trajectory" ],
     [ "BlockSectionExtent", "struct_block_section_extent.html", "struct_block_section_extent" ],
     [ "BlockSectionInput", "struct_block_section_input.html", "struct_block_section_input" ],
+    [ "BlockSectionMarks", "struct_block_section_marks.html", "struct_block_section_marks" ],
     [ "BlockSet", "class_block_set.html", "class_block_set" ],
     [ "CapacityAnalysisResult", "struct_capacity_analysis_result.html", "struct_capacity_analysis_result" ],
     [ "CapacityAnalysisScope", "struct_capacity_analysis_scope.html", "struct_capacity_analysis_scope" ],

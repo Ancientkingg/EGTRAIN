@@ -64,7 +64,7 @@ In the Run Results table the train and the operating code are left-aligned; the 
 
 The timetable table colours a delay above 60 s `#81352d`, a delay above 0 s `#74451c` and any other delay `#006400`. Each has a contrast of at least 6.9:1 on both row colours.
 
-The progress bar of a run fills in `#315a70`. Its text is `#24313a` on the empty part, 11.4:1 on `#eceeec`, and white on the fill, 7.4:1: `TimeProgressBar` draws the text itself, 6 px inside the edges of the bar, and in the stylesheet's `selection-color` over the fill.
+The progress bar of a run fills in `#315a70`. Its text is `#24313a` on the empty part, 11.4:1 on `#eceeec`, and white on the fill, 7.4:1: `TimeProgressBar` draws the text itself, 6 px inside the edges of the bar, and in the stylesheet's `selection-color` over the fill. A new step of the run shows at the next paint of the window: the bar does not paint at once, as that paint would also draw the network view in the middle of a snapshot delivery.
 
 In Run Results the **Open result view...** button has the white face, height, text size, grey border and padding of the **Export CSV...** and **Export PNG...** buttons beside it, the same `#5b6871` border under the pointer, 2 px `#2e7491` border with focus and `#e3eaee` fill while pressed, and the same grey face when disabled.
 

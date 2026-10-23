@@ -1,5 +1,11 @@
 var NAVTREEINDEX5 =
 {
+"_signal_geometry_8h.html#a8424034fe73c7e9b00bb09d1bd01bb7b":[3,0,4,11,1],
+"_signal_geometry_8h_source.html":[3,0,4,11],
+"_signal_item_8cpp.html":[3,0,4,0,14],
+"_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47":[3,0,4,0,14,0],
+"_signal_item_8h.html":[3,0,4,0,15],
+"_signal_item_8h.html#a5973ce3c0f3fa3092a7e97a99b576e47":[3,0,4,0,15,1],
 "_signal_item_8h_source.html":[3,0,4,0,15],
 "_signal_item_roles_8h.html":[3,0,4,12],
 "_signal_item_roles_8h.html#a3655f423ec7bb0c4dc618cdc1c08b1b6":[3,0,4,12,3],
@@ -243,11 +249,5 @@ var NAVTREEINDEX5 =
 "_time_format_8h.html#abfecdb21c2afbc9681bb64649bc5bdc2":[3,0,11,10,1],
 "_time_format_8h.html#ae37221af5c7e50cf7e842f24fd601c04":[3,0,11,10,2],
 "_time_format_8h_source.html":[3,0,11,10],
-"_time_progress_bar_8cpp.html":[3,0,12,30],
-"_time_progress_bar_8h.html":[3,0,12,31],
-"_time_progress_bar_8h_source.html":[3,0,12,31],
-"_timetable_stops_panel_8cpp.html":[3,0,3,21],
-"_timetable_stops_panel_8h.html":[3,0,3,22],
-"_timetable_stops_panel_8h_source.html":[3,0,3,22],
-"_timetable_table_window_8cpp.html":[3,0,1,33]
+"_time_progress_bar_8cpp.html":[3,0,12,30]
 };

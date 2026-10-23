@@ -297,7 +297,7 @@ var searchData=
   ['routereferencedialog_294',['RouteReferenceDialog',['../class_route_reference_dialog.html',1,'RouteReferenceDialog'],['../class_route_reference_dialog.html#a39e2b98b71ba9b5174e065811043118a',1,'RouteReferenceDialog::RouteReferenceDialog()']]],
   ['routes_295',['routes',['../struct_blocking_time_scope_choices.html#a1e81e3d78e9657b1612d02dd9f188e6d',1,'BlockingTimeScopeChoices::routes'],['../struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb',1,'CompletedRunData::routes'],['../struct_scene_model.html#aaefbc97115e223a3658631643e60c58f',1,'SceneModel::routes'],['../struct_run_infrastructure.html#a0cb8232a9dcda2b336d6e4d630db2d2a',1,'RunInfrastructure::routes']]],
   ['routesectioncatalogcombo_296',['routeSectionCatalogCombo',['../class_infrastructure_panel.html#a207fd99aa0abc9f931055f10c7017546',1,'InfrastructurePanel']]],
-  ['routesectioncount_297',['routeSectionCount',['../struct_scene_area_signalling.html#aae5ddd881a2c9cd3420049faf023919d',1,'SceneAreaSignalling']]],
+  ['routesectioncount_297',['routeSectionCount',['../struct_blocking_time_diagram_data.html#afc66c70ef70923880e54f7ef8cb3b617',1,'BlockingTimeDiagramData::routeSectionCount'],['../struct_scene_area_signalling.html#aae5ddd881a2c9cd3420049faf023919d',1,'SceneAreaSignalling::routeSectionCount']]],
   ['routesectiondetailwidget_298',['routeSectionDetailWidget',['../class_infrastructure_panel.html#a13b84b6e2bd60f61bce84593c38c99b8',1,'InfrastructurePanel']]],
   ['routesectionlistwidget_299',['routeSectionListWidget',['../class_infrastructure_panel.html#ae13fa2f74136f2faf44d6936dd7d80c9',1,'InfrastructurePanel']]],
   ['routex_300',['routeX',['../struct_completed_stop.html#a875228e22929eccfcdaf11a333ba54d1',1,'CompletedStop']]],

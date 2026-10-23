@@ -146,9 +146,14 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a084fbf9465047bad285372fe979d20a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The index of the track line of the node in the run; -1 in the preview.  <br /></td></tr>
 <tr class="memitem:a6020356b21fca89d40905ecfa9bf58c6" id="r_a6020356b21fca89d40905ecfa9bf58c6"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a6020356b21fca89d40905ecfa9bf58c6">node</a></td></tr>
 <tr class="memdesc:a6020356b21fca89d40905ecfa9bf58c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node of the run, which belongs to the run; null in the preview.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a176f5fe7a617536681e88652455cc034" id="r_a176f5fe7a617536681e88652455cc034"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#a176f5fe7a617536681e88652455cc034">PickPixels</a> = 3.0</td></tr>
+<tr class="memdesc:a176f5fe7a617536681e88652455cc034"><td class="mdescLeft">&#160;</td><td class="mdescRight">The width on screen of the circle in which a click picks the dot, in logical pixels.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The dot of a node of a track line. It draws over track lines and connections. A transparent child of 3 by 3 logical pixels at its centre keeps it clickable when the dot is smaller on screen. </p>
+<div class="textblock"><p>The dot of a node of a track line. It draws over track lines and connections. <a class="el" href="class_network_scene.html">NetworkScene</a> picks it in a circle of PickPixels logical pixels across at its centre, which keeps it clickable when the dot is smaller on screen. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a5a30d3c333c80b3792e0f7fdf12d4ac7" name="a5a30d3c333c80b3792e0f7fdf12d4ac7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5a30d3c333c80b3792e0f7fdf12d4ac7">&#9670;&#160;</a></span>anonymous enum</h2>
@@ -295,6 +300,30 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The node of the run, which belongs to the run; null in the preview. </p>
+
+</div>
+</div>
+<a id="a176f5fe7a617536681e88652455cc034" name="a176f5fe7a617536681e88652455cc034"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a176f5fe7a617536681e88652455cc034">&#9670;&#160;</a></span>PickPixels</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">qreal NodeItem::PickPixels = 3.0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The width on screen of the circle in which a click picks the dot, in logical pixels. </p>
 
 </div>
 </div>

@@ -23,6 +23,7 @@ var hierarchy =
     [ "BlockingTimeTrajectory", "struct_blocking_time_trajectory.html", null ],
     [ "BlockSectionExtent", "struct_block_section_extent.html", null ],
     [ "BlockSectionInput", "struct_block_section_input.html", null ],
+    [ "BlockSectionMarks", "struct_block_section_marks.html", null ],
     [ "BlockSet", "class_block_set.html", null ],
     [ "Train::BrakingArcCursor", "struct_train_1_1_braking_arc_cursor.html", null ],
     [ "CapacityAnalysisResult", "struct_capacity_analysis_result.html", null ],

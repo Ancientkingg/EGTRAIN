@@ -8,10 +8,12 @@ var _blocking_time_diagram_8cpp =
     [ "blockSectionCapacityScopeIssue", "_blocking_time_diagram_8cpp.html#adcf9933259eba38375607b9a01c8f432", null ],
     [ "blockSectionCsvRows", "_blocking_time_diagram_8cpp.html#ac0aad245fbc57109d80f3eb8fe69588c", null ],
     [ "blockSectionGeometryNote", "_blocking_time_diagram_8cpp.html#aa191b9b565bd3ab43b7c4f3929976938", null ],
+    [ "blockSectionMarks", "_blocking_time_diagram_8cpp.html#acb39ee15fb6ea906579a63ed092c4318", null ],
     [ "blockSectionRangeIndices", "_blocking_time_diagram_8cpp.html#a0415bf2e4f4f3533261f04d38c69bfc4", null ],
     [ "buildBlockingTimeDiagramSegments", "_blocking_time_diagram_8cpp.html#a8550c0c61fd18522ddfaa73bba1454c4", null ],
     [ "buildBlockSectionExtents", "_blocking_time_diagram_8cpp.html#a2e3ec7df5ff5d122f18686e97790e774", null ],
     [ "clipBlockingTimePlannedReferences", "_blocking_time_diagram_8cpp.html#ae62f41167b422ffec434a70cb3b5432a", null ],
+    [ "comparableBlockTokens", "_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458", null ],
     [ "filterBlockingTimeDiagramSegments", "_blocking_time_diagram_8cpp.html#ae0e6fcfc0812bede19522c4f5a54f39e", null ],
     [ "filterBlockingTimePlannedReferences", "_blocking_time_diagram_8cpp.html#ad40f333a6e81a02c356106659148d2aa", null ],
     [ "matchBlockingSegmentsToSections", "_blocking_time_diagram_8cpp.html#ae45e2a1c7e5942b44fb086aef31a100b", null ],
@@ -20,5 +22,6 @@ var _blocking_time_diagram_8cpp =
     [ "scopedBlockSectionExtents", "_blocking_time_diagram_8cpp.html#ac0eb1630a5980ae39bb2139cba51f7b4", null ],
     [ "shareBlockingTimeResource", "_blocking_time_diagram_8cpp.html#a5d6b768c5b4b9afe20028e063ec42f2d", null ],
     [ "shareBlockingTimeResource", "_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d", null ],
+    [ "shortBlockId", "_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26", null ],
     [ "validBlockingTimeDiagramInput", "_blocking_time_diagram_8cpp.html#a788941251df4149c16de46d3441e0926", null ]
 ];

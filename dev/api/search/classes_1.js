@@ -15,6 +15,7 @@ var searchData=
   ['blockingtimetrajectory_12',['BlockingTimeTrajectory',['../struct_blocking_time_trajectory.html',1,'']]],
   ['blocksectionextent_13',['BlockSectionExtent',['../struct_block_section_extent.html',1,'']]],
   ['blocksectioninput_14',['BlockSectionInput',['../struct_block_section_input.html',1,'']]],
-  ['blockset_15',['BlockSet',['../class_block_set.html',1,'']]],
-  ['brakingarccursor_16',['BrakingArcCursor',['../struct_train_1_1_braking_arc_cursor.html',1,'Train']]]
+  ['blocksectionmarks_15',['BlockSectionMarks',['../struct_block_section_marks.html',1,'']]],
+  ['blockset_16',['BlockSet',['../class_block_set.html',1,'']]],
+  ['brakingarccursor_17',['BrakingArcCursor',['../struct_train_1_1_braking_arc_cursor.html',1,'Train']]]
 ];

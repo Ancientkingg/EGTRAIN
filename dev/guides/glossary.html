@@ -554,14 +554,22 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">0.230</span> <span class="pre">km</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">21.010</span> <span class="pre">to</span> <span class="pre">21.235,</span> <span class="pre">B1</span> <span class="pre">21.252</span> <span class="pre">to</span> <span class="pre">21.450</span> <span class="pre">km</span></code></p></td>
 <td><p>The track and the kilometres of the two ends of a block section, or the piece on each track of a switch section, with three decimals.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Track number</p></td>
+<tr class="row-odd"><td><p>Short block id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">71-B0</span></code>, <code class="docutils literal notranslate"><span class="pre">71-B0/0-B1</span></code></p></td>
+<td><p>The block ids of a block section or a switch section, joined with <code class="docutils literal notranslate"><span class="pre">/</span></code>. The section strip of the blocking-time charts shows it.</p></td>
+</tr>
+<tr class="row-even"><td><p>Track number</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
 <td><p>The number that a run gives a track: its place in the list of track ids sorted as text. It matches the digits of the track id only in scenes with at most ten tracks: in Netherlands, B10 is track 2. The information panels of a run show the track id, with this number in the tooltip.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The section choices of the dock <strong>Infrastructure</strong>, the <strong>Target</strong> list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. The information panels name a track by its id and a section by its label, and the tooltip of the field gives the track number or the section id. The tooltip of a signal head names its track and position, and in the preview the label of its section; <strong>Edit &gt; Find…</strong> lists a signal by its track and position and finds it by the labels and the ids of its sections too; <strong>Copy section ID</strong> in the context menu of a signal head during a run copies the id. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.</p>
+<p>The section choices of the dock <strong>Infrastructure</strong>, the <strong>Target</strong> list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. The section strip of the blocking-time charts shows the short block id instead, with the label in its hover. The information panels name a track by its id and a section by its label, and the tooltip of the field gives the track number or the section id. The tooltip of a signal head names its track and position, and in the preview the label of its section; <strong>Edit &gt; Find…</strong> lists a signal by its track and position and finds it by the labels and the ids of its sections too; <strong>Copy section ID</strong> in the context menu of a signal head during a run copies the id. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.</p>
+</section>
+<section id="position">
+<h3>Position<a class="headerlink" href="#position" title="Link to this heading">¶</a></h3>
+<p>A position is the X of the scene in kilometres, the geo X, at a point of a route. Within a section it follows the distance along the route linearly between the X of the end nodes of the section. It counts down where the route runs against the scene coordinate, as Paimpol route1 does, and it jumps where the route continues in another display region: on Netherlands route0, 18.298 km continues at 30.569 km. The blocking-time charts plot the distance along the reference route and label their bottom axis with positions, titled <code class="docutils literal notranslate"><span class="pre">Position</span> <span class="pre">(km)</span></code>, with a break mark at each jump (<a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">inspecting diagrams</span></a>). The blocking-time exports give positions in their geo X columns. The route charts, <strong>Timetable graph</strong> and <strong>Train paths</strong>, plot the distance along the route, titled <code class="docutils literal notranslate"><span class="pre">Distance</span> <span class="pre">(km)</span></code>.</p>
 </section>
 <section id="signalling-area">
 <h3>Signalling area<a class="headerlink" href="#signalling-area" title="Link to this heading">¶</a></h3>
@@ -701,6 +709,7 @@
 <li><a class="reference internal" href="#infrastructure-entities">Infrastructure entities</a></li>
 <li><a class="reference internal" href="#section">Section</a></li>
 <li><a class="reference internal" href="#ids-and-labels">Ids and labels</a></li>
+<li><a class="reference internal" href="#position">Position</a></li>
 <li><a class="reference internal" href="#signalling-area">Signalling area</a></li>
 <li><a class="reference internal" href="#signalling-level">Signalling level</a></li>
 <li><a class="reference internal" href="#end-of-authority">End of authority</a></li>

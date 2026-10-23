@@ -5,5 +5,6 @@ var class_node_item =
     [ "paint", "class_node_item.html#a49ed4ee3f2dde2d0e8b228f4e68dbdff", null ],
     [ "type", "class_node_item.html#a02fbb86ef871ca5831a0f3f539a12f78", null ],
     [ "node", "class_node_item.html#a6020356b21fca89d40905ecfa9bf58c6", null ],
+    [ "PickPixels", "class_node_item.html#a176f5fe7a617536681e88652455cc034", null ],
     [ "track", "class_node_item.html#a084fbf9465047bad285372fe979d20a6", null ]
 ];
