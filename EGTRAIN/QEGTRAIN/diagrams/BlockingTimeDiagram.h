@@ -2,6 +2,7 @@
 #define BLOCKINGTIMEDIAGRAM_H
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <optional>
 #include <utility>
@@ -111,6 +112,9 @@ struct BlockSectionInput {
 	std::string id;
 	double startKm = 0.0;
 	double endKm = 0.0;
+	double geoStartKm = std::numeric_limits<double>::quiet_NaN(); ///< Geo X of the start in km, the scene X; NaN when unknown
+	double geoEndKm = std::numeric_limits<double>::quiet_NaN();	  ///< Geo X of the end in km, the scene X; NaN when unknown
+	bool isSwitch = false;										  ///< The section holds a diverging switch
 };
 
 // A section of the reference route with the ends exactly as the route holds them. The end can lie
@@ -122,13 +126,18 @@ struct BlockSectionExtent {
 	double endKm = 0.0;
 	bool geometryValid = false;
 	std::string issue;
+	/// Geo X of the start in km. The route distance when the input lacks the geo X of an end, so NaN only when the route distance is NaN.
+	double geoStartKm = std::numeric_limits<double>::quiet_NaN();
+	double geoEndKm = std::numeric_limits<double>::quiet_NaN(); ///< Geo X of the end in km, as geoStartKm
+	bool isSwitch = false;										///< The section holds a diverging switch
 
 	double lowerKm() const { return std::min(startKm, endKm); }
 	double upperKm() const { return std::max(startKm, endKm); }
 };
 
 // One extent per input in input order. Nothing is sorted, merged, shifted or invented; a section
-// whose coordinates are not finite or that has no length is listed without geometry.
+// whose coordinates are not finite or that has no length is listed without geometry. A section that lacks the geo X of
+// an end takes its route distance as geo X at both ends.
 std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<BlockSectionInput>& inputs);
 
 // Exact id/interval matches take precedence over overlapping shared resources. Several candidates
@@ -158,7 +167,8 @@ std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>
 bool blockingTimeEntryAmbiguous(const std::vector<BlockingTimeDiagramInput>& occupations,
 	const std::string& entryBlockId);
 
-// Names of the columns of the blocking-time export, in order.
+// Names of the columns of the blocking-time export, in order. A compression never moves the times named "Original", and
+// the last three columns give the positions as geo X through the PositionScale of the sections of the export.
 const std::vector<std::string>& blockingTimeCsvHeader();
 
 inline constexpr char kBlockSectionSegmentType[] = "block section";

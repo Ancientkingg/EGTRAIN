@@ -1,6 +1,7 @@
 #include "diagrams/RunExports.h"
 
 #include "diagrams/BlockingTimeScope.h"
+#include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "util/CsvWriter.h"
 #include "util/TrajectoryUtil.h"
@@ -76,8 +77,9 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const auto optional = [](double value) {
 		return std::isfinite(value) && value >= 0.0 ? csv::formatDouble(value) : std::string();
 	};
+	const PositionScale scale(extents);
 	// The coordinates of an unmapped envelope belong to the route of its own train, so they are left out.
-	const auto envelopeRow = [&optional](const BlockingTimeDiagramSegment& s, bool mapped) {
+	const auto envelopeRow = [&optional, &scale](const BlockingTimeDiagramSegment& s, bool mapped) {
 		const auto coordinate = [mapped](double value) { return mapped ? csv::formatDouble(value) : std::string(); };
 		return std::vector<std::string>{s.trainName,
 			s.blockId,
@@ -94,7 +96,9 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			optional(s.endClearTime), optional(s.setupTime), optional(s.sightReactionTime),
 			optional(s.releaseTime), optional(s.runTimeMargin),
 			mapped ? std::string("calculated blocking envelope") : std::string(kUnmappedEnvelopeLayer),
-			mapped && s.referenceSection > 0 ? std::to_string(s.referenceSection) : std::string()};
+			mapped && s.referenceSection > 0 ? std::to_string(s.referenceSection) : std::string(),
+			coordinate(scale.geoAt(s.midPositionKm)),
+			coordinate(scale.geoAt(s.startPositionKm, s.endPositionKm)), coordinate(scale.geoAt(s.endPositionKm, s.startPositionKm))};
 	};
 	std::vector<std::vector<std::string>> rows;
 	for (const BlockingTimeDiagramSegment& s : segments) {
@@ -113,7 +117,8 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			"planned reference",
 			reference.eventType,
 			reference.stationName,
-			csv::formatDouble(reference.time), "", "", "", "", "", "", "", "", "", "", "", "", "planned station event"});
+			csv::formatDouble(reference.time), "", "", "", "", "", "", "", "", "", "", "", "", "planned station event", "",
+			csv::formatDouble(scale.geoAt(reference.positionKm))});
 	}
 	for (const auto& row : trajectories)
 		if (!row.empty() && trainInVisibleSet(visibleTrainIds, row.front())) rows.push_back(row);
@@ -187,6 +192,7 @@ std::optional<double> stopPosition(const CompletedTrain& train, int index, const
 void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRunData& data,
 	const std::map<std::string, RouteDiagramProjection>& projections, const std::map<std::string, double>& shifts) {
 	const double timestepSeconds = data.settings.timestepSeconds;
+	const PositionScale scale(diagram.extents);
 	for (const CompletedTrain& train : data.trains) {
 		const CompletedTrajectory& trajectory = train.trajectory;
 		const auto projection = projections.find(train.trainId);
@@ -219,7 +225,8 @@ void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRu
 				}
 				diagram.trajectories.back().points.emplace_back(*x, seconds);
 				diagram.trajectoryRows.push_back({train.trainId, "", "", "", csv::formatDouble(*x),
-					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
+					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory",
+					"", csv::formatDouble(scale.geoAt(*x))});
 			}
 		}
 	}

@@ -22,6 +22,9 @@ constexpr std::size_t kColumnStartX = 9;
 constexpr std::size_t kColumnEndX = 10;
 constexpr std::size_t kColumnLayer = 21;
 constexpr std::size_t kColumnReferenceSection = 22;
+constexpr std::size_t kColumnGeoPosition = 23;
+constexpr std::size_t kColumnStartGeoX = 24;
+constexpr std::size_t kColumnEndGeoX = 25;
 
 bool hasValue(const std::string& value) {
 	return !value.empty() && value != "None";
@@ -277,6 +280,10 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 		extent.id = inputs[i].id;
 		extent.startKm = inputs[i].startKm;
 		extent.endKm = inputs[i].endKm;
+		const bool geoKnown = std::isfinite(inputs[i].geoStartKm) && std::isfinite(inputs[i].geoEndKm);
+		extent.geoStartKm = geoKnown ? inputs[i].geoStartKm : extent.startKm;
+		extent.geoEndKm = geoKnown ? inputs[i].geoEndKm : extent.endKm;
+		extent.isSwitch = inputs[i].isSwitch;
 		if (!std::isfinite(extent.startKm) || !std::isfinite(extent.endKm))
 			extent.issue = "no valid position";
 		else if (std::abs(extent.endKm - extent.startKm) <= kBlockSectionMinimumLengthKm)
@@ -396,8 +403,9 @@ bool blockingTimeEntryAmbiguous(const std::vector<BlockingTimeDiagramInput>& occ
 const std::vector<std::string>& blockingTimeCsvHeader() {
 	static const std::vector<std::string> header = {"Train", "Block", "Occupation start[s]", "Occupation end[s]",
 		"Position[km]", "Segment type", "Planned reference", "Station", "Planned time[s]", "Start X[km]", "End X[km]",
-		"Original start[s]", "Original end[s]", "Approach[s]", "Run start[s]", "Run end[s]", "Clearance[s]",
-		"Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer", "Reference section"};
+		"Original start[s]", "Original end[s]", "Original approach[s]", "Original run start[s]", "Original run end[s]",
+		"Original clearance[s]", "Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer", "Reference section",
+		"Geo position[km]", "Start geo X[km]", "End geo X[km]"};
 	return header;
 }
 
@@ -413,6 +421,9 @@ std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<Bloc
 			row[kColumnPosition] = csv::formatDouble((extent.startKm + extent.endKm) / 2.0);
 			row[kColumnStartX] = csv::formatDouble(extent.startKm);
 			row[kColumnEndX] = csv::formatDouble(extent.endKm);
+			row[kColumnGeoPosition] = csv::formatDouble((extent.geoStartKm + extent.geoEndKm) / 2.0);
+			row[kColumnStartGeoX] = csv::formatDouble(extent.geoStartKm);
+			row[kColumnEndGeoX] = csv::formatDouble(extent.geoEndKm);
 			row[kColumnLayer] = kBlockSectionLayer;
 		} else {
 			row[kColumnLayer] = kBlockSectionMissingLayer;

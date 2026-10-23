@@ -34,7 +34,7 @@ QImage fullTableImage(const QTableView& table);
 
 /// The blocking-time CSV: the envelopes of the visible trains in `segments`, their planned stop references, the recorded
 /// trajectory rows, the envelopes that could not be projected and one row for each section in `extents`. Every row has
-/// the columns of blockingTimeCsvHeader().
+/// the columns of blockingTimeCsvHeader(); the geo X columns map the positions through the PositionScale of `extents`.
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::vector<BlockingTimePlannedReference>& plannedReferences,
@@ -95,7 +95,7 @@ struct BlockingTimeDiagramData {
 	/// Clipped to the scope, for the chart.
 	std::vector<std::vector<BlockingTimePlannedReference>> plannedLines;
 	std::vector<BlockingTimeTrajectory> trajectories;	  ///< Recorded samples that lie inside an envelope of their train
-	std::vector<std::vector<std::string>> trajectoryRows; ///< The export rows of the trajectories
+	std::vector<std::vector<std::string>> trajectoryRows; ///< The export rows of the trajectories, with geo X from `extents`
 	/// Elapsed seconds that the chart spans: the interval of the scope, at least 1 s. For a compressed diagram, the
 	/// envelopes with a margin (see compressedBlockingTimeDiagramData).
 	std::pair<double, double> timeRange;
