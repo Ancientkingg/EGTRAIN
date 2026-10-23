@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_network_presenter.html#a1012f4c1a63b39a3897b4c4702fb8d24" target="_top" xlink:title="Stops the movement of every train between its last two places.">
+<g id="a_Node000002"><a xlink:href="class_network_presenter.html#a1012f4c1a63b39a3897b4c4702fb8d24" target="_top" xlink:title="Stops the motion of every train as stopTrainAnimation() does.">
 <polygon fill="white" stroke="#666666" points="325,-30 170,-30 170,0 325,0 325,-30"/>
 <text text-anchor="start" x="178" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NetworkPresenter::stopTrain</text>
 <text text-anchor="middle" x="247.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Animations</text>

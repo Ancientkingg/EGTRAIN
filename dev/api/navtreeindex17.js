@@ -1,5 +1,16 @@
 var NAVTREEINDEX17 =
 {
+"classtelemetry_1_1_worker.html#a03e175800fb29a3835a12ed4c1d61591":[2,0,3,13,18],
+"classtelemetry_1_1_worker.html#a05283aff80c1f0236c3c0964cd56df85":[1,0,13,13,6],
+"classtelemetry_1_1_worker.html#a05283aff80c1f0236c3c0964cd56df85":[2,0,3,13,6],
+"classtelemetry_1_1_worker.html#a11314047ab129c5d8e9b366514afda73":[1,0,13,13,24],
+"classtelemetry_1_1_worker.html#a11314047ab129c5d8e9b366514afda73":[2,0,3,13,24],
+"classtelemetry_1_1_worker.html#a12dbfdeba71419000d7ce00064bcbdd8":[1,0,13,13,15],
+"classtelemetry_1_1_worker.html#a12dbfdeba71419000d7ce00064bcbdd8":[2,0,3,13,15],
+"classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78":[1,0,13,13,3],
+"classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78":[2,0,3,13,3],
+"classtelemetry_1_1_worker.html#a1f136a06f23ad6db74ef4dc30c9a0f6a":[1,0,13,13,9],
+"classtelemetry_1_1_worker.html#a1f136a06f23ad6db74ef4dc30c9a0f6a":[2,0,3,13,9],
 "classtelemetry_1_1_worker.html#a25a462ba5011bc64178b35d0a40cabf5":[1,0,13,13,23],
 "classtelemetry_1_1_worker.html#a25a462ba5011bc64178b35d0a40cabf5":[2,0,3,13,23],
 "classtelemetry_1_1_worker.html#a2b8dddba44c0a2c555365cbab040d6f8":[1,0,13,13,36],
@@ -238,16 +249,5 @@ var NAVTREEINDEX17 =
 "main_8cpp.html#a9d570c6ca7df03a997fd0dc3d0a2de5f":[3,0,0,12,5],
 "main_8cpp.html#aaf4b2d129f9ea7f2ecab4e56d100c450":[3,0,0,12,22],
 "main_8cpp.html#ab13d1f8855e80edeffbcd6e0c3818eb6":[3,0,0,12,20],
-"main_8cpp.html#abae69462edc5b89943c514c4fcb9231b":[3,0,0,12,15],
-"main_8cpp.html#ad67d0fafd84cbab0a316225edcb45757":[3,0,0,12,7],
-"main_8cpp.html#ae6ca41b4597eb4b15649b894f99ba7dd":[3,0,0,12,19],
-"main_8cpp.html#aed07f9620734e5f118b11140cf0f35dd":[3,0,0,12,21],
-"main_8cpp.html#aef88e7c54ed67cba876da94712677871":[3,0,0,12,4],
-"main_8cpp.html#af8a37ec1c7793e1bc17c4db837211d73":[3,0,0,12,17],
-"namespace_dialog_layout.html":[1,0,3],
-"namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4":[1,0,3,2],
-"namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e":[1,0,3,5],
-"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658":[1,0,3,1],
-"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658a0eaadb4fcb48a0a0ed7bc9868be9fbaa":[1,0,3,1,1],
-"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658a902b0d55fddef6f8d651fe1035b7d4bd":[1,0,3,1,2]
+"main_8cpp.html#abae69462edc5b89943c514c4fcb9231b":[3,0,0,12,15]
 };

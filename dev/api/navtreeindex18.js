@@ -1,5 +1,16 @@
 var NAVTREEINDEX18 =
 {
+"main_8cpp.html#ad67d0fafd84cbab0a316225edcb45757":[3,0,0,12,7],
+"main_8cpp.html#ae6ca41b4597eb4b15649b894f99ba7dd":[3,0,0,12,19],
+"main_8cpp.html#aed07f9620734e5f118b11140cf0f35dd":[3,0,0,12,21],
+"main_8cpp.html#aef88e7c54ed67cba876da94712677871":[3,0,0,12,4],
+"main_8cpp.html#af8a37ec1c7793e1bc17c4db837211d73":[3,0,0,12,17],
+"namespace_dialog_layout.html":[1,0,3],
+"namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4":[1,0,3,2],
+"namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e":[1,0,3,5],
+"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658":[1,0,3,1],
+"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658a0eaadb4fcb48a0a0ed7bc9868be9fbaa":[1,0,3,1,1],
+"namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658a902b0d55fddef6f8d651fe1035b7d4bd":[1,0,3,1,2],
 "namespace_dialog_layout.html#a66c5d627c7f907afb94351db6a62f658ae9bb5320b3890b6747c91b5a71ae5a01":[1,0,3,1,0],
 "namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874":[1,0,3,3],
 "namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e":[1,0,3,4],
@@ -238,16 +249,5 @@ var NAVTREEINDEX18 =
 "struct_baseline_occurrence.html#a61107daf18f04a794bed070471e203fc":[2,0,16,1],
 "struct_baseline_occurrence.html#a7c9bc6de04c8c62115de9b1aa9fd0b5f":[2,0,16,10],
 "struct_baseline_occurrence.html#a9cb2ac500251ce744f48bcbcf2436cc0":[2,0,16,3],
-"struct_baseline_occurrence.html#a9f815644e205e334b1e19a080d8ec037":[2,0,16,12],
-"struct_baseline_occurrence.html#aa3eee68db87c042319cc733696a28e67":[2,0,16,0],
-"struct_baseline_occurrence.html#ac25eb344b4e92873a9f9cc6568b2941d":[2,0,16,8],
-"struct_baseline_occurrence.html#ac8d005a27a339e820fb3e5a8613c5fb3":[2,0,16,4],
-"struct_baseline_occurrence.html#ad7bc4e706c4a7afe481917e46351f0cd":[2,0,16,2],
-"struct_baseline_occurrence.html#ae9e6662cc4c7daa9931d5d0c6bd89e50":[2,0,16,9],
-"struct_baseline_occurrence.html#aed658ae5767c83086e2fb2ee4bb440ce":[2,0,16,7],
-"struct_baseline_totals.html":[2,0,17],
-"struct_baseline_totals.html#a251659d6bcd4f603e82580111c16ce06":[2,0,17,6],
-"struct_baseline_totals.html#a25576128c034f05bbb3069702ea32376":[2,0,17,3],
-"struct_baseline_totals.html#a2609e15240b8b565289a73a4f6c3c2bf":[2,0,17,2],
-"struct_baseline_totals.html#a5a6945903be201b91bb82591a119af41":[2,0,17,0]
+"struct_baseline_occurrence.html#a9f815644e205e334b1e19a080d8ec037":[2,0,16,12]
 };

@@ -1,5 +1,16 @@
 var NAVTREEINDEX24 =
 {
+"struct_stable_release.html#aaf1369f85c6cf198197c53887a8b040a":[2,0,272,3],
+"struct_stable_release.html#aaf4edba9dc20babeb7c337dc595723fa":[2,0,272,1],
+"struct_staged_directory.html":[2,0,273],
+"struct_staged_directory.html#a034909ede7df4a39006d4907c7d4af33":[2,0,273,3],
+"struct_staged_directory.html#a1668b24e1ecb953a8dd1e84720c05b96":[2,0,273,1],
+"struct_staged_directory.html#a3f77bd71f21bb11d5fb8ebc8799e23b9":[2,0,273,0],
+"struct_staged_directory.html#a43df4b27ab75445e031340ee49ebe644":[2,0,273,2],
+"struct_staged_directory.html#aa1ee687c83e02d4230fcaa84fea4caf1":[2,0,273,5],
+"struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77":[2,0,273,4],
+"struct_staged_publish_result.html":[2,0,274],
+"struct_staged_publish_result.html#a1589b93c3e59f22a2273b83190c5e5c5":[2,0,274,2],
 "struct_staged_publish_result.html#a78b4c5b62205dadb12c214bf0608a622":[2,0,274,3],
 "struct_staged_publish_result.html#a7d4556fb3b900684414d60361150a7cf":[2,0,274,1],
 "struct_staged_publish_result.html#aaff9e3815f98c93e5a2f2e4436c3644b":[2,0,274,0],
@@ -238,16 +249,5 @@ var NAVTREEINDEX24 =
 "structtelemetry_1_1_retry_state.html#ade9a4bb92f1c902a47e1bdd47977a09f":[2,0,3,5,0],
 "structtelemetry_1_1_telemetry_event.html":[1,0,13,8],
 "structtelemetry_1_1_telemetry_event.html":[2,0,3,8],
-"structtelemetry_1_1_telemetry_event.html#a08f9a5a8db7b372fc41df8b53d955d17":[1,0,13,8,1],
-"structtelemetry_1_1_telemetry_event.html#a08f9a5a8db7b372fc41df8b53d955d17":[2,0,3,8,1],
-"structtelemetry_1_1_telemetry_event.html#a2212f54ed2e4207eb6cdfb608c5089b2":[1,0,13,8,0],
-"structtelemetry_1_1_telemetry_event.html#a2212f54ed2e4207eb6cdfb608c5089b2":[2,0,3,8,0],
-"structtelemetry_1_1_telemetry_event.html#a87aa297e492168f6b53555b5cc081db6":[1,0,13,8,2],
-"structtelemetry_1_1_telemetry_event.html#a87aa297e492168f6b53555b5cc081db6":[2,0,3,8,2],
-"structtelemetry_1_1_telemetry_event_input.html":[1,0,13,9],
-"structtelemetry_1_1_telemetry_event_input.html":[2,0,3,9],
-"structtelemetry_1_1_telemetry_event_input.html#a4fe0041b84786c245c41348fce6e535c":[1,0,13,9,4],
-"structtelemetry_1_1_telemetry_event_input.html#a4fe0041b84786c245c41348fce6e535c":[2,0,3,9,4],
-"structtelemetry_1_1_telemetry_event_input.html#a7b54fdbfa2815da62e2415171f9588f3":[1,0,13,9,2],
-"structtelemetry_1_1_telemetry_event_input.html#a7b54fdbfa2815da62e2415171f9588f3":[2,0,3,9,2]
+"structtelemetry_1_1_telemetry_event.html#a08f9a5a8db7b372fc41df8b53d955d17":[1,0,13,8,1]
 };

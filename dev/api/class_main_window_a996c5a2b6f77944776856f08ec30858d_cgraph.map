@@ -55,9 +55,9 @@
 <area shape="rect" id="Node000003" href="$_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c" title=" " alt="" coords="561,29,799,55"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="486,55,547,50,547,55,486,60"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="632,31,622,21,627,11,647,5,680,3,724,7,735,13,738,19,733,21,731,16,723,12,680,8,648,10,630,15,627,20,636,27"/>
-<area shape="rect" id="Node000006" href="$class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and stops the timer." alt="" coords="605,79,755,104"/>
+<area shape="rect" id="Node000006" href="$class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" title="Forgets the target and ends a catch&#45;up." alt="" coords="605,79,755,104"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="479,175,509,162,524,151,532,138,542,125,557,113,591,100,593,105,560,118,546,129,537,142,528,155,512,167,481,180"/>
-<area shape="rect" id="Node000007" href="$class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" title="One step of the glide. The timer calls it; tests call it with a clock set by setClock()." alt="" coords="607,128,753,153"/>
+<area shape="rect" id="Node000007" href="$class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" title="One step of a catch&#45;up. The timer calls it; tests call it with a clock set by setClock()." alt="" coords="607,128,753,153"/>
 <area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="458,175,593,152,594,158,459,180"/>
 <area shape="poly" id="edge9_Node000005_Node000008" title=" " alt="" coords="489,187,551,187,551,193,489,193"/>
 <area shape="rect" id="Node000010" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title="Takes the icon from parent, or from the application when there is no parent." alt="" coords="585,227,775,252"/>

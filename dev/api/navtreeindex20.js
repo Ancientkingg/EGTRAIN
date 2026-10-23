@@ -1,5 +1,16 @@
 var NAVTREEINDEX20 =
 {
+"struct_delay_baseline_comparison.html#aaf51ff3fdb875d3da9c55d3c000d17cf":[2,0,57,3],
+"struct_delay_diagnostic.html":[2,0,58],
+"struct_delay_diagnostic.html#a168f99298610e5c626806ed483dcb42a":[2,0,58,2],
+"struct_delay_diagnostic.html#a74a92dc3cd058e4e3336215d67f5a9dd":[2,0,58,0],
+"struct_delay_diagnostic.html#ad19ab8b0e72e4a9f24e935bb2f69e16d":[2,0,58,1],
+"struct_delay_difference.html":[2,0,59],
+"struct_delay_difference.html#a0a6287265ddaf363fe0a0166b320a326":[2,0,59,0],
+"struct_delay_difference.html#a95152ca75e7b0d0867985ecfcbb95abd":[2,0,59,2],
+"struct_delay_difference.html#a9926e4f84c058fb99ba353b43d0a38a3":[2,0,59,3],
+"struct_delay_difference.html#a9b36f2df57be04c4d9a8cd1761af30ac":[2,0,59,1],
+"struct_delay_event.html":[2,0,60],
 "struct_delay_event.html#a014de915887db2806a4d05a5f549807d":[2,0,60,7],
 "struct_delay_event.html#a0cc2bceae15746bb0e9dd34edd3ae894":[2,0,60,4],
 "struct_delay_event.html#a2dac98ed3dd35327d8009a07aba29736":[2,0,60,5],
@@ -238,16 +249,5 @@ var NAVTREEINDEX20 =
 "struct_main_window_test_hooks.html#ae6aaceae17eef5ca6b33526bbd6ee4cc":[2,0,119,18],
 "struct_network_legend_content.html":[2,0,123],
 "struct_network_legend_content.html#a07f55b5908d2becd67e3f5b1d55b391c":[2,0,123,0],
-"struct_network_legend_content.html#a5ba856f093161794004d63145a28d825":[2,0,123,1],
-"struct_network_legend_content.html#a67d747a3d6ab47ad0fcba9865d287147":[2,0,123,6],
-"struct_network_legend_content.html#a7df3f76f400708b03443494cd79f173f":[2,0,123,5],
-"struct_network_legend_content.html#aa5ca6c4549837edad2c8210214b3c430":[2,0,123,2],
-"struct_network_legend_content.html#ac7e286f2dbeb0e6ab0998bdfae1d2892":[2,0,123,4],
-"struct_network_legend_content.html#af1b4ce9a6e5c071b9150ac09d6d6205c":[2,0,123,3],
-"struct_network_legend_entry.html":[2,0,124],
-"struct_network_legend_entry.html#a3163b034e9c1e8d4df31417c6cb9ade3":[2,0,124,0],
-"struct_network_legend_entry.html#a3abcd35bbf4313aefb62cc34a0278d1f":[2,0,124,1],
-"struct_network_legend_entry.html#a5009593f44cade2fc4766b621553dfac":[2,0,124,8],
-"struct_network_legend_entry.html#a7327f2f12c8d2951ccfc4dd08a791d9c":[2,0,124,7],
-"struct_network_legend_entry.html#a8346e12d5b870d079927fc339d4c69fa":[2,0,124,6]
+"struct_network_legend_content.html#a5ba856f093161794004d63145a28d825":[2,0,123,1]
 };

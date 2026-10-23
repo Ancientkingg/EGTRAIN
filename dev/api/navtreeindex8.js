@@ -92,9 +92,10 @@ var NAVTREEINDEX8 =
 "class_focus_wheel_1_1_watcher.html#ad00a11590e72d270d94ebc39456eaea2":[2,0,2,1,0],
 "class_follow_camera.html":[2,0,75],
 "class_follow_camera.html#a1291df8bc9f1ed8468a2cf60b579e66e":[2,0,75,5],
-"class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a":[2,0,75,10],
+"class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a":[2,0,75,11],
 "class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5":[2,0,75,7],
 "class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907":[2,0,75,9],
+"class_follow_camera.html#a5178af1e65f77d47cf6166cb47f0010a":[2,0,75,10],
 "class_follow_camera.html#a56664ab643ea14afb526786f3c9c540d":[2,0,75,4],
 "class_follow_camera.html#a7708afbc07564d2a4ac15fa15c99d0d2":[2,0,75,0],
 "class_follow_camera.html#a9030ce6e08973b6c398a131c6928fc24":[2,0,75,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX8 =
 "class_infrastructure_facet.html#a5bde421647ab73d6ff2eb37189195943":[2,0,99,23],
 "class_infrastructure_facet.html#a6ba5b3179a7f3e769da2056d292390f7":[2,0,99,22],
 "class_infrastructure_facet.html#a6ff123f514278f36578447388f62b16d":[2,0,99,19],
-"class_infrastructure_facet.html#a737539b2834dc70254b559a438baf711":[2,0,99,13],
-"class_infrastructure_facet.html#a8933cd118adc79cab0129573be920109":[2,0,99,15]
+"class_infrastructure_facet.html#a737539b2834dc70254b559a438baf711":[2,0,99,13]
 };

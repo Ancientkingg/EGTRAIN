@@ -1,5 +1,16 @@
 var NAVTREEINDEX19 =
 {
+"struct_baseline_occurrence.html#aa3eee68db87c042319cc733696a28e67":[2,0,16,0],
+"struct_baseline_occurrence.html#ac25eb344b4e92873a9f9cc6568b2941d":[2,0,16,8],
+"struct_baseline_occurrence.html#ac8d005a27a339e820fb3e5a8613c5fb3":[2,0,16,4],
+"struct_baseline_occurrence.html#ad7bc4e706c4a7afe481917e46351f0cd":[2,0,16,2],
+"struct_baseline_occurrence.html#ae9e6662cc4c7daa9931d5d0c6bd89e50":[2,0,16,9],
+"struct_baseline_occurrence.html#aed658ae5767c83086e2fb2ee4bb440ce":[2,0,16,7],
+"struct_baseline_totals.html":[2,0,17],
+"struct_baseline_totals.html#a251659d6bcd4f603e82580111c16ce06":[2,0,17,6],
+"struct_baseline_totals.html#a25576128c034f05bbb3069702ea32376":[2,0,17,3],
+"struct_baseline_totals.html#a2609e15240b8b565289a73a4f6c3c2bf":[2,0,17,2],
+"struct_baseline_totals.html#a5a6945903be201b91bb82591a119af41":[2,0,17,0],
 "struct_baseline_totals.html#a650b35fce08e5a62078b87e6aed45076":[2,0,17,5],
 "struct_baseline_totals.html#a6a17c6177f244c9437d40f8178281a0e":[2,0,17,7],
 "struct_baseline_totals.html#aa33be39c7e327650893641c584e64da2":[2,0,17,1],
@@ -238,16 +249,5 @@ var NAVTREEINDEX19 =
 "struct_delay_baseline_comparison.html#a084dcab650fd7978bddac2d5f14cf460":[2,0,57,1],
 "struct_delay_baseline_comparison.html#a29cb233cbca05b8dd8c1dd18bd9a4f76":[2,0,57,2],
 "struct_delay_baseline_comparison.html#a588df2cff6347f48ba1573a228363e2f":[2,0,57,0],
-"struct_delay_baseline_comparison.html#a8793a49675d7bf6cc27280d5825603a2":[2,0,57,4],
-"struct_delay_baseline_comparison.html#aaf51ff3fdb875d3da9c55d3c000d17cf":[2,0,57,3],
-"struct_delay_diagnostic.html":[2,0,58],
-"struct_delay_diagnostic.html#a168f99298610e5c626806ed483dcb42a":[2,0,58,2],
-"struct_delay_diagnostic.html#a74a92dc3cd058e4e3336215d67f5a9dd":[2,0,58,0],
-"struct_delay_diagnostic.html#ad19ab8b0e72e4a9f24e935bb2f69e16d":[2,0,58,1],
-"struct_delay_difference.html":[2,0,59],
-"struct_delay_difference.html#a0a6287265ddaf363fe0a0166b320a326":[2,0,59,0],
-"struct_delay_difference.html#a95152ca75e7b0d0867985ecfcbb95abd":[2,0,59,2],
-"struct_delay_difference.html#a9926e4f84c058fb99ba353b43d0a38a3":[2,0,59,3],
-"struct_delay_difference.html#a9b36f2df57be04c4d9a8cd1761af30ac":[2,0,59,1],
-"struct_delay_event.html":[2,0,60]
+"struct_delay_baseline_comparison.html#a8793a49675d7bf6cc27280d5825603a2":[2,0,57,4]
 };

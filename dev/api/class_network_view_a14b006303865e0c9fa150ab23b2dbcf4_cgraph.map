@@ -1,19 +1,21 @@
 <map id="NetworkView::viewportEvent" name="NetworkView::viewportEvent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,127,216,152"/>
-<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="277,5,467,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,124,185,83,223,61,263,41,288,32,290,37,265,46,225,65,188,88,130,129"/>
-<area shape="rect" id="Node000003" href="$class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" title="The playback profiler began its measurement after a paint." alt="" coords="264,55,480,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,124,276,96,277,101,164,129"/>
-<area shape="rect" id="Node000004" href="$class_network_view.html#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call." alt="" coords="277,119,467,159"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="216,137,263,137,263,142,216,142"/>
-<area shape="rect" id="Node000005" href="$class_network_view.html#acfca8b5474a26b98c458e7d75decd1e5" title=" " alt="" coords="287,184,457,209"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="170,149,301,178,299,184,169,155"/>
-<area shape="rect" id="Node000008" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="550,235,737,260"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="131,150,189,186,226,205,265,219,334,235,405,244,537,250,536,255,405,250,333,240,263,225,224,210,186,191,128,154"/>
-<area shape="rect" id="Node000006" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="807,178,1028,218"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="440,181,528,170,643,164,759,170,793,174,793,179,758,175,643,169,528,175,441,187"/>
-<area shape="rect" id="Node000007" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed." alt="" coords="528,185,759,211"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="457,194,514,195,514,200,457,200"/>
-<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="441,207,562,229,561,235,440,212"/>
-<area shape="poly" id="edge8_Node000008_Node000006" title=" " alt="" coords="714,232,793,218,794,223,715,237"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,156,216,181"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="279,5,470,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,154,179,99,219,68,263,41,284,32,286,37,265,46,222,72,182,103,125,158"/>
+<area shape="rect" id="Node000003" href="$class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" title="The playback profiler began its measurement after a paint." alt="" coords="267,55,483,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,153,263,105,287,97,289,102,265,110,142,158"/>
+<area shape="rect" id="Node000004" href="$class_network_view.html#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call." alt="" coords="279,119,470,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="216,154,265,149,266,154,216,160"/>
+<area shape="rect" id="Node000005" href="$class_network_view.html#ae2ced58ea56ff385bf067bfaafc81937" title="The viewport has been painted." alt="" coords="264,184,485,209"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="216,177,251,181,250,186,216,182"/>
+<area shape="rect" id="Node000006" href="$class_network_view.html#acfca8b5474a26b98c458e7d75decd1e5" title=" " alt="" coords="290,233,459,259"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="147,179,265,218,301,228,300,233,263,223,145,184"/>
+<area shape="rect" id="Node000009" href="$class_network_view.html#a0d88c5bd66451f6986a8ad733995e521" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="555,284,742,309"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="127,179,184,225,223,250,265,269,335,287,408,298,478,302,542,302,542,307,478,307,407,303,334,292,263,274,220,255,181,230,124,183"/>
+<area shape="rect" id="Node000007" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="812,227,1033,267"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="444,231,533,219,649,213,764,219,799,223,798,228,764,225,649,219,534,225,445,236"/>
+<area shape="rect" id="Node000008" href="$class_network_view.html#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed." alt="" coords="533,235,764,260"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="460,244,520,244,520,249,460,249"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="445,256,566,279,565,284,444,261"/>
+<area shape="poly" id="edge9_Node000009_Node000007" title=" " alt="" coords="719,281,798,267,799,272,720,287"/>
 </map>

@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"class_infrastructure_facet.html#a8933cd118adc79cab0129573be920109":[2,0,99,15],
 "class_infrastructure_facet.html#a8ef00fcdbaebf485141bc6e425d2ee50":[2,0,99,2],
 "class_infrastructure_facet.html#a93965812d3e22c65de39f10caac500ee":[2,0,99,16],
 "class_infrastructure_facet.html#a9760eaef45f7754a6a786e578f1dc455":[2,0,99,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "class_narrow_row_delegate.html":[2,0,122],
 "class_narrow_row_delegate.html#a77dd74d430d20c3c68618b0580307707":[2,0,122,0],
 "class_network_legend_widget.html":[2,0,126],
-"class_network_legend_widget.html#a2b4ed0218c0648c714017beff5417673":[2,0,126,4],
-"class_network_legend_widget.html#a45e146ba67193a491f3b976302a85f1c":[2,0,126,2]
+"class_network_legend_widget.html#a2b4ed0218c0648c714017beff5417673":[2,0,126,4]
 };

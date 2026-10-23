@@ -5,10 +5,12 @@ var class_network_view =
     [ "armTimingPaint", "class_network_view.html#aae84faaa3bcf8d62a6422a798e4dd96c", null ],
     [ "centerOn", "class_network_view.html#a7476713caf7e3df9d643ead6abc26cd1", null ],
     [ "centerOn", "class_network_view.html#ad2058481034183e0dc4f6de02c2d1f57", null ],
+    [ "centerOnExactly", "class_network_view.html#a1b99ce091ab7e0b2f4426af03fbd59c3", null ],
     [ "drawBackground", "class_network_view.html#a0c96daed10a6235d1bc2b5c147fe7ad0", null ],
     [ "fittedScale", "class_network_view.html#aa803d9a8c820e98d861d7ae15ce44231", null ],
     [ "fitToBounds", "class_network_view.html#aee9647a6c31887862f82e0b18b65b610", null ],
     [ "fitToTopology", "class_network_view.html#a76aea6ea237091520ac41b0fe569a8a0", null ],
+    [ "interacting", "class_network_view.html#a628d8b4c2dd8b78da0e5061078fc7083", null ],
     [ "interactionFinished", "class_network_view.html#a56b38d1a10617499bcbed678d3feb7ff", null ],
     [ "maximumZoomRatio", "class_network_view.html#af1efa7710811d8837e43eff52971cd3a", null ],
     [ "mousePressEvent", "class_network_view.html#a50f02412e1c7a8f8ef6301e28f94114b", null ],
@@ -20,8 +22,10 @@ var class_network_view =
     [ "topologyBounds", "class_network_view.html#a6f153a2e962a6bd7b823bc37585d25f0", null ],
     [ "viewportChanged", "class_network_view.html#ac759eb59c9af28946b90f56ced8205ac", null ],
     [ "viewportEvent", "class_network_view.html#a14b006303865e0c9fa150ab23b2dbcf4", null ],
+    [ "viewportPainted", "class_network_view.html#ae2ced58ea56ff385bf067bfaafc81937", null ],
     [ "wheelEvent", "class_network_view.html#a39df6408a6655117aa5a869e91ba0e56", null ],
     [ "zoomBy", "class_network_view.html#acfca8b5474a26b98c458e7d75decd1e5", null ],
     [ "zoomLabel", "class_network_view.html#a61b2ce4092775b2df89f9101265ae75d", null ],
-    [ "zoomRatio", "class_network_view.html#a0d88c5bd66451f6986a8ad733995e521", null ]
+    [ "zoomRatio", "class_network_view.html#a0d88c5bd66451f6986a8ad733995e521", null ],
+    [ "interactionQuietMs", "class_network_view.html#aa570040d941a0a478af198978b1235e1", null ]
 ];

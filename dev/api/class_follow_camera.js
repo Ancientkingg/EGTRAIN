@@ -10,5 +10,6 @@ var class_follow_camera =
     [ "settle", "class_follow_camera.html#a36eac3c89c8c676f93cc33a1f7bca0f5", null ],
     [ "stop", "class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4", null ],
     [ "tick", "class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907", null ],
+    [ "catchUpMs", "class_follow_camera.html#a5178af1e65f77d47cf6166cb47f0010a", null ],
     [ "tickIntervalMs", "class_follow_camera.html#a268b0b5a4f3b7f7b88089dca9a58874a", null ]
 ];

@@ -1,0 +1,12 @@
+<map id="NetworkPresenter::NetworkPresenter" name="NetworkPresenter::NetworkPresenter">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,208,89"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a61db168bbc0140862acb972d21b97ed7" title=" " alt="" coords="260,31,473,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,56,246,52,247,58,208,61"/>
+<area shape="rect" id="Node000005" href="$class_network_view.html#ae2ced58ea56ff385bf067bfaafc81937" title="The viewport has been painted." alt="" coords="256,80,477,105"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="208,75,242,79,242,84,208,81"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#a58fe73a4dac419d214616a42ecd2c579" title=" " alt="" coords="525,5,745,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="473,31,512,27,512,32,474,36"/>
+<area shape="rect" id="Node000004" href="$class_network_presenter.html#a4527dcc6ce8e7d9660a23224b897555d" title="The train group of the run with this index, or null." alt="" coords="793,31,1009,56"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="474,41,779,41,779,46,474,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="746,26,780,29,780,34,745,31"/>
+</map>
