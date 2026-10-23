@@ -139,7 +139,7 @@ of folders, the libraries and the renames.
 | Logging, time and number formatting | `util/` |
 | Live stream and legacy XML channels | `io/` |
 | Tests | `tests/` (C++), `tools/e2e/` (scripts) |
-| Committed case studies | `Scenes/` |
+| Bundled cases | `Scenes/` |
 | Release, memory and performance scripts | `tools/release/`, `tools/memory/`, `tools/performance/` |
 
 ## From open to saved

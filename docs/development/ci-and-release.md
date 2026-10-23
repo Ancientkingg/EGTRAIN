@@ -278,7 +278,7 @@ makes them when it is given no artifact name:
 - `EGTRAIN-windows-x64-installer/EGTRAIN-Setup-X.Y.Z-x64.exe`
 - `QEGTRAIN-macos-arm64/EGTRAIN-X.Y.Z-macOS-arm64.dmg`
 - `QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage`
-- `EGTRAIN-scenes/`: the `.egscene` files of the case studies
+- `EGTRAIN-scenes/`: the `.egscene` files of the bundled cases
 
 Other directories are ignored. `--output` must not exist or must be an empty
 directory, and the script writes nowhere else. Afterwards it holds exactly the
