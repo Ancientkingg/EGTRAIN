@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QPainter>
 
+#include "graphics/NetworkPresenter.h"
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/SignalItem.h"
 #include "graphics/items/StationOverlayItem.h"
@@ -56,6 +57,49 @@ static QImage renderHead(int code, bool failed, int size) {
 	return image;
 }
 
+// Paints with paint, antialiased as the canvas paints, on the canvas colour, under a scale at which 20 scene units are
+// size logical pixels, on an image of the device pixel ratio dpr. The image is 4 logical pixels wider than that, rounded
+// up, and the origin is in its middle.
+template <typename Paint>
+static QImage paintOnCanvas(qreal size, Paint paint, qreal dpr = 1.0) {
+	const int side = static_cast<int>(std::ceil(size)) + 4;
+	QImage image(static_cast<int>(side * dpr), static_cast<int>(side * dpr), QImage::Format_ARGB32_Premultiplied);
+	image.setDevicePixelRatio(dpr);
+	image.fill(canvasColor());
+	QPainter painter(&image);
+	painter.setRenderHint(QPainter::Antialiasing);
+	painter.translate(side / 2.0, side / 2.0);
+	painter.scale(size / 20.0, size / 20.0);
+	paint(painter);
+	return image;
+}
+
+// A head 20 scene units wide with the outline that the canvas gives it, painted as paintOnCanvas() does.
+static QImage renderCanvasHead(int code, bool failed, qreal size, qreal dpr = 1.0) {
+	return paintOnCanvas(
+		size,
+		[&](QPainter& painter) {
+			SignalItem head(QRectF(-10, -10, 20, 20));
+			head.setPen(signalHeadPen());
+			head.setAspectCode(code);
+			head.setFailed(failed);
+			head.paint(&painter, nullptr, nullptr);
+		},
+		dpr);
+}
+
+// A green lamp 20 scene units wide in the hairline of the reference, painted as paintOnCanvas() does.
+static QImage hairlineLamp(qreal size, qreal dpr = 1.0) {
+	return paintOnCanvas(
+		size,
+		[](QPainter& painter) {
+			painter.setPen(signalHeadPen());
+			painter.setBrush(QColor(Qt::green));
+			painter.drawEllipse(QRectF(-10, -10, 20, 20));
+		},
+		dpr);
+}
+
 // Number of pixels of the mark colour (dark, or white for the failed cross) on
 // the face of the lamp, away from its outline.
 static int markPixels(const QImage& image, bool light = false) {
@@ -65,6 +109,18 @@ static int markPixels(const QImage& image, bool light = false) {
 	for (int y = 0; y < image.height(); ++y)
 		for (int x = 0; x < image.width(); ++x)
 			count += std::hypot(x + 0.5 - c, y + 0.5 - c) <= r && image.pixelColor(x, y) == markColor;
+	return count;
+}
+
+// Number of pixels of image that are nearer to colour than to the canvas colour.
+static int lampPixels(const QImage& image, const QColor& colour) {
+	const auto distance = [](const QColor& a, const QColor& b) {
+		return std::hypot(a.red() - b.red(), a.green() - b.green(), a.blue() - b.blue());
+	};
+	int count = 0;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			count += distance(image.pixelColor(x, y), colour) < distance(image.pixelColor(x, y), canvasColor());
 	return count;
 }
 
@@ -409,6 +465,19 @@ int main(int argc, char* argv[]) {
 	ok &= expect(renderHead(0, false, 5).pixelColor(3, 3) == QColor(Qt::red) && renderHead(75, false, 5).pixelColor(3, 3) == QColor(Qt::yellow)
 			&& renderHead(180, false, 5).pixelColor(3, 3) == QColor(Qt::green),
 		"colour remains below 6 device pixels");
+	// On the canvas a hairline covers a lamp of under a pixel, so a lit or failed head below the mark size is a disc in
+	// its lamp colour (issue #1109). From 6 device pixels the head keeps the hairline of the reference.
+	const int ringPixels = lampPixels(renderCanvasHead(-1, false, 0.8), QColor(150, 150, 150));
+	ok &= expect(ringPixels > 0, "an unavailable head of 0.8 device pixels shows its grey ring on the canvas");
+	for (const auto& [code, failedHead, lamp] : {std::tuple<int, bool, QColor>{180, false, Qt::green}, {0, false, Qt::red},
+			 {75, false, Qt::yellow}, {180, true, Qt::red}})
+		ok &= expect(lampPixels(renderCanvasHead(code, failedHead, 0.8), lamp) >= ringPixels,
+			"a lit or failed head of 0.8 device pixels shows its lamp colour as clearly as an unavailable head its ring");
+	for (const qreal size : {6.0, 10.0})
+		ok &= expect(renderCanvasHead(180, false, size) == hairlineLamp(size),
+			"a proceed head of 6 or 10 device pixels is the green lamp in the hairline of the reference");
+	ok &= expect(renderCanvasHead(180, false, 3.0, 2.0) == hairlineLamp(3.0, 2.0) && renderCanvasHead(180, false, 2.9, 2.0) != hairlineLamp(2.9, 2.0),
+		"on a screen of device pixel ratio 2 a proceed head has the hairline from 3 logical pixels, 6 device pixels");
 	if (!ok)
 		return 1;
 

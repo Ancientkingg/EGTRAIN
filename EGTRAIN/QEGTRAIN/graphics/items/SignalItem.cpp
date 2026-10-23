@@ -80,6 +80,23 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 	// Without signalling data the head is an empty ring, not a lit lamp.
 	const bool unavailable = !m_failed && cue == SignalCueKind::Neutral;
 	const QColor ringColor(150, 150, 150);
+	const QColor lampColor = m_failed ? QColor(Qt::red) : m_lampColor;
+	// Marks tell the states apart without colour. They need room: below
+	// kMinMarkPixels device pixels only the colour is left.
+	const QTransform& world = painter->worldTransform();
+	const qreal devicePixels = lamp.width() * std::hypot(world.m11(), world.m12()) * painter->device()->devicePixelRatioF();
+	const bool marked = devicePixels >= kMinMarkPixels;
+	if (!unavailable && !marked) {
+		// A hairline would hide a small lamp, so a lit or failed head is a disc in its lamp colour as wide as the ring
+		// of an unavailable head, 1.5 device pixels wider than the head. A fill costs less to paint than that stroke.
+		if (devicePixels > 0.0) {
+			const qreal grow = 0.75 * lamp.width() / devicePixels;
+			painter->setPen(Qt::NoPen);
+			painter->setBrush(lampColor);
+			painter->drawEllipse(lamp.adjusted(-grow, -grow, grow, grow));
+		}
+		return;
+	}
 	if (unavailable) {
 		QPen ring(ringColor);
 		ring.setCosmetic(true);
@@ -88,15 +105,10 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 		painter->setBrush(Qt::NoBrush);
 	} else {
 		painter->setPen(pen());
-		painter->setBrush(m_failed ? QColor(Qt::red) : m_lampColor);
+		painter->setBrush(lampColor);
 	}
 	painter->drawEllipse(lamp);
-
-	// Marks tell the states apart without colour. They need room: below
-	// kMinMarkPixels device pixels only the colour is left.
-	const QTransform& world = painter->worldTransform();
-	const qreal devicePixels = lamp.width() * std::hypot(world.m11(), world.m12()) * painter->device()->devicePixelRatioF();
-	if (devicePixels < kMinMarkPixels)
+	if (!marked)
 		return;
 	const QPointF c = lamp.center();
 	const qreal r = lamp.width() / 2.0;
