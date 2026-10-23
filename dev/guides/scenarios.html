@@ -373,12 +373,13 @@ view does not move. Follow is also cleared when the run ends, when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.</p>
 <p>In a live run a train glides along its track from one update to the next. At every
-step it is drawn wagon by wagon where it is at that moment, so it stays on its track
-through bends and switches, with its label and its callouts. A glide lasts several
-times the time between two updates, up to a little over half a second, so the train
-moves on every repaint at a nearly steady speed, also when the updates come unevenly or
-each brings a different step of simulated time. Its speed still changes a little at each
-update: at the highest speeds most steps of the view are within about 30 percent of the
+step, about once a frame, it is drawn wagon by wagon where it is at that moment, so it
+stays on its track through bends and switches, with its label and its callouts. A glide
+lasts several times the time between two updates, up to a little over half a second, so
+the train moves at every step at a nearly steady speed, also when the updates come
+unevenly or each brings a different step of simulated time. An update does not move a
+train on its way: the train goes on from where it is drawn, and only its speed changes a
+little. At the highest speeds most steps of the view are within about 30 percent of the
 steps around them. The train is drawn a few updates behind its newest position. At
 Fastest that is about two minutes of simulated time, so its occupied track and its
 signals, which show the newest state, can run ahead of it. When the train stops, or the run is
