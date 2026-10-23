@@ -160,11 +160,14 @@ public:
 	/// A live train glides along its route at an even speed from where it is drawn to its new place, drawn wagon by
 	/// wagon where it is at the moment, as getTrainPolygon() draws it at an update, with its badge and its callouts. The
 	/// glide lasts several recent update intervals, up to a bound, so that the next update, which starts the next glide
-	/// from where the train is then drawn, changes its speed only a little, even when the updates come unevenly or bring
-	/// uneven steps of simulated time. The train trails its newest place by a few updates, and without a new update, as
-	/// at a pause, it goes on to that place and stops there. A train that has just appeared, has another route or
-	/// direction, runs backwards, or has moved further than the visible view since its last update is placed at once,
-	/// and so is every train of a replay.
+	/// from where the train is then drawn, gives it a speed close to the one before, also when the updates come unevenly
+	/// or bring uneven steps of simulated time; the speed still changes a little at each update. The train trails its
+	/// newest place by a few updates. At the highest speeds that is a long way, so the occupied track and the signal
+	/// aspects, which show the newest state, can run well ahead of the drawn train. An update that leaves the train at
+	/// its place keeps the glide that runs, and without a new update, as at a pause, the train also goes on to that
+	/// place; it stops there when the glide ends. A train that has just appeared, has another route or direction, runs
+	/// backwards, or has moved further than the visible view since its last update is placed at once, and so is every
+	/// train of a replay.
 	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
 
 	/// Moves every live train that is in motion to where it is at the moment, and tells the host where a promoted one

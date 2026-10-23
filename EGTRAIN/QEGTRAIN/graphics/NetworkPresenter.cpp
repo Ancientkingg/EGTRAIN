@@ -105,9 +105,11 @@ bool hasPlatformBar(const std::string& stationName, const std::string& platformI
 }
 
 // The glide of a train between two live updates lasts this many times the longest of the last update intervals but
-// one, kept between these bounds: the next update comes well before the glide ends, and the glide that it starts has
-// nearly the speed of the one before, however unevenly the updates come and however much simulated time each one
-// brings. The longest bound is a little above the update interval of the slowest speed, 2x.
+// one, kept between these bounds. Up to 120 ms between updates the next update then comes well before the glide ends,
+// and the glide that it starts has nearly the speed of the one before, also when the updates come unevenly or bring
+// uneven steps of simulated time. Above that the longest bound applies, so the glide spans fewer updates: at the
+// slowest speed, 2x, the updates come every 500 ms and the next one comes 100 ms before the glide ends. The longest
+// bound is a little above that interval.
 constexpr double kGlideFactor = 5.0;
 constexpr qint64 kMinGlideMs = 16;
 constexpr qint64 kMaxGlideMs = 600;
@@ -2332,8 +2334,10 @@ void NetworkPresenter::moveTrainCallouts(const TrainItemGroup& trainItem) {
 void NetworkPresenter::stepTrains() {
 	QEGTRAIN_PROFILE_SCOPE("gui/train_motion/step", "gui", "");
 	const qint64 at = nowMs();
-	// The scene around the visible scene, as far again on every side. A train beyond it is drawn again at the next
-	// update, which draws every train, so it is never further than a move that is not placed at once.
+	// The scene around the visible scene, as far again on every side. The steps do not move a train that is drawn
+	// beyond it: the next update draws every train where its glide then is, and a step draws it when its glide ends. A
+	// train can be drawn further than this margin behind its newest place, so one that glides into the view from beyond
+	// it shows there only at the next update, or at a pause only when its glide ends.
 	QRectF around;
 	if (m_view) {
 		const QRectF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect();
@@ -3188,7 +3192,12 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 						&& path.lengths.back() <= longestGlide();
 				}
 				TrainMotion& motion = m_trainMotions[train];
-				startGlide(motion, state, now, drawnHead, moves ? glideDurationMs() : 0);
+				// An update that leaves the train at its place keeps the glide that runs, so that a train that stops
+				// reaches its place when that glide ends and then stands still.
+				if (moves && state.routeAxisPosition == motion.newest.routeAxisPosition)
+					startGlide(motion, state, motion.fromMs, motion.fromHead, motion.toMs - motion.fromMs);
+				else
+					startGlide(motion, state, now, drawnHead, moves ? glideDurationMs() : 0);
 				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, moves ? drawnHead : state.routeAxisPosition);
 				checkVCouplingMsg(trainItem, state, snapshot, t);
 				if (TrainBadgeItem* badge = m_trainBadges.value(train, nullptr)) {

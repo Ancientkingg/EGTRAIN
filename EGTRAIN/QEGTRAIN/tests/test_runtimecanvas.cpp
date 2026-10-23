@@ -22,6 +22,8 @@
 #include "simulation/Signalling.h"
 
 #include <QApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -30,6 +32,7 @@
 #include <QMap>
 #include <QObject>
 #include <QPixmap>
+#include <QTimer>
 #include <QtMath>
 
 #include <algorithm>
@@ -1221,6 +1224,35 @@ int main(int argc, char* argv[]) {
 		ok &= expect(afterGap && near(drawnHead(), from + (1060.0 - from) * 10.0 / 165.0),
 			"one long gap between updates does not slow the glides that follow it");
 
+		// The timer of the steps runs on the event loop at its own pace while the updates come, here every 5 ms, more
+		// often than its 16 ms, on a clock that runs. The updates do not hold its steps off: in 600 ms its steps, about
+		// 36, move the train between two updates at least 6 times.
+		restart();
+		QElapsedTimer running;
+		running.start();
+		presenter.setClock([&running]() { return running.elapsed(); });
+		headKm = 1.0;
+		update(headKm);
+		double atUpdate = drawnHead();
+		int liveUpdates = 0;
+		int movedBetween = 0;
+		QTimer updater;
+		updater.setTimerType(Qt::PreciseTimer);
+		QObject::connect(&updater, &QTimer::timeout, &updater, [&]() {
+			movedBetween += drawnHead() != atUpdate ? 1 : 0;
+			headKm += 0.001;
+			update(headKm);
+			atUpdate = drawnHead();
+			++liveUpdates;
+		});
+		updater.start(5);
+		QEventLoop wait;
+		QTimer::singleShot(600, &wait, &QEventLoop::quit);
+		wait.exec();
+		updater.stop();
+		ok &= expect(liveUpdates >= 20 && movedBetween >= 6, "updates that come more often than the steps do not hold them off");
+		presenter.setClock([&now]() { return now; });
+
 		// A train at a constant simulated speed whose updates come unevenly, 20, 60, 25 and 55 ms apart, moves at an even
 		// speed: after the first 24 updates, every step of 5 ms moves it by the same distance within a tenth. Its glides
 		// last five times the longest interval but one, 300 ms, so each update changes the speed only a little.
@@ -1273,6 +1305,43 @@ int main(int argc, char* argv[]) {
 			stops &= near(drawnHead(), last) && !presenter.trainMoving(0);
 		}
 		ok &= expect(beforeLast && sameSpeed && stops, "a pause stops the train at the place of its last update, which it never passes");
+
+		// A train that stops at 1.1 km, after updates of 50 ms that move it 10 m each, goes on in the glide of its last
+		// move, 250 ms, while the updates that follow leave it at its place. When that glide ends it stands at its place,
+		// and from then on no step and no update changes its body. It never passes its place.
+		restart();
+		const double stopKm = 1.0 + 0.01 * 10;
+		for (int step = 0; step <= 10; ++step) {
+			now += 50;
+			update(1.0 + 0.01 * step);
+		}
+		const double place = stopKm * 1000.0;
+		const auto body = [&presenter]() { return presenter.allTrains[0]->trainPolygonItemList->at(0)->polygon(); };
+		const auto sameBody = [](const QPolygonF& left, const QPolygonF& right) {
+			return std::equal(left.begin(), left.end(), right.begin(), right.end(),
+				[](const QPointF& a, const QPointF& b) { return a.x() == b.x() && a.y() == b.y(); });
+		};
+		bool glidesOn = true;
+		bool standsStill = true;
+		bool neverPasses = true;
+		QPolygonF stood;
+		for (int ms = 5; ms <= 1500; ms += 5) {
+			now += 5;
+			if (ms % 50 == 0)
+				update(stopKm);
+			else
+				presenter.stepTrains();
+			neverPasses &= drawnHead() <= place + 1e-6;
+			if (ms < 250) {
+				glidesOn &= drawnHead() < place - 1e-6 && presenter.trainMoving(0);
+			} else {
+				if (stood.isEmpty())
+					stood = body();
+				standsStill &= near(drawnHead(), place) && !presenter.trainsMoving() && sameBody(body(), stood);
+			}
+		}
+		ok &= expect(glidesOn && standsStill && neverPasses,
+			"a train that stops reaches its place when its last glide ends, and then no step changes its body");
 
 		// A train that changes its route or its direction is placed at once, also where it could glide on.
 		restart();
