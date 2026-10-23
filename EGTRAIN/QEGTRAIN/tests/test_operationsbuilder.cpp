@@ -384,6 +384,9 @@ static bool brakingPointTests() {
 				&& (4999.998 - end) / timestep <= targetSpeed && brakingTargetAdmissible(train, end, endSpeed, (4999.998 - end) / timestep, route.data(), 1);
 		}
 		ok &= expect(point > 0 && point < 5000 && reaches, "braking point reaches its actual endpoint with admissible terminal force");
+		ok &= expect(train.BrakDist_Block(30, targetSpeed, 5000, route.data(), 1, point + 50) == point
+				&& train.BrakDist_Block(30, targetSpeed, 5000, route.data(), 1, point - 50) >= point - 50,
+			"a cutoff above the braking point keeps it and a cutoff below gives a position not below the cutoff");
 	}
 
 	ok &= expect(train.BrakDist_Block(10, 10, 5000, route.data(), 1) == 5000
@@ -1196,7 +1199,7 @@ static bool brakingPhaseTests() {
 	{
 		struct BoundaryTrain : Train {
 			double point = 0;
-			double BrakDist_Block(double, double targetSpeed, double target, Section*, int) override {
+			double BrakDist_Block(double, double targetSpeed, double target, Section*, int, double) override {
 				return target == 2000 && targetSpeed == 0 ? point : -1;
 			}
 		};
@@ -2868,7 +2871,7 @@ static bool singleTrackLockTests() {
 	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0, "passage of the reserved interval releases its owner");
 	struct FailedBrakingLookup : Regional {
 		double result = -1, requestedSpeed = 0;
-		double BrakDist_Block(double speed, double, double, Section*, int) override {
+		double BrakDist_Block(double speed, double, double, Section*, int, double) override {
 			requestedSpeed = speed;
 			return result;
 		}
