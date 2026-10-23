@@ -697,17 +697,17 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
         print(f"headless launch with the bundle name {ascii(NON_ASCII_NAME)} ran the scene of the bundle")
         assert_unicode_argument_arrives_intact(app, root)
 
-        assert_headless_rejection(app, [str(notes)], root / "run-text", "headless launch with a text file", "the file must use the .egscene extension")
-        assert_headless_rejection(app, [str(spaced), str(second)], root / "run-two", "headless launch with two bundles", "open exactly one .egscene file")
-        assert_headless_rejection(app, [str(folder)], root / "run-folder", "headless launch with a folder", "an .egscene file is needed, not a directory")
+        assert_headless_rejection(app, [str(notes)], root / "run-text", "headless launch with a text file", "it is not an .egscene file")
+        assert_headless_rejection(app, [str(spaced), str(second)], root / "run-two", "headless launch with two bundles", "more than one file was given")
+        assert_headless_rejection(app, [str(folder)], root / "run-folder", "headless launch with a folder", "it is a folder, not an .egscene file")
         # The text file would be rejected if it were read as the file name.
         assert_headless_bundle_runs(app, ["--scene", str(spaced), str(notes)], root / "run-scene-wins", "headless launch with --scene and a file name")
         print("headless launches with a file that is rejected exit with 1; --scene wins over a file name")
 
         for name, args, reason in (
-            ("a text file", [str(notes)], "the file must use the .egscene extension"),
+            ("a text file", [str(notes)], "it is not an .egscene file"),
             ("a malformed bundle", [str(malformed)], "not a ZIP archive"),
-            ("two bundles", [str(spaced), str(second)], "open exactly one .egscene file"),
+            ("two bundles", [str(spaced), str(second)], "more than one file was given"),
         ):
             assert_no_argument_chooser_continuation(app, tuple(args), f"window launch with {name}", reason)
         print("window launches with a file that does not open start as without an argument")

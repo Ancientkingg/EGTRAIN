@@ -157,7 +157,7 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 
 		// A drop that is refused asks nothing, so it leaves the window as it is.
 		activations = 0;
-		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("directory"));
+		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("folder"));
 		if (activations != 0)
 			fail(QStringLiteral("a refused drop raised the window"));
 		mainWindowTestHooks().windowBroughtToFront = nullptr;
@@ -168,15 +168,15 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		deliver({}, false, false, false, QStringLiteral("no file"));
 		unchanged(QStringLiteral("no-URL drop"));
 		deliver({QUrl::fromLocalFile(validPath), QUrl::fromLocalFile(validPath)}, true,
-			false, false, QStringLiteral("exactly one"));
+			false, false, QStringLiteral("more than one file"));
 		unchanged(QStringLiteral("multiple-file drop"));
 		deliver({QUrl(QStringLiteral("https://example.com/scene.egscene"))}, true,
-			false, false, QStringLiteral("local"));
+			false, false, QStringLiteral("not on this computer"));
 		unchanged(QStringLiteral("remote URL drop"));
-		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("directory"));
+		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("folder"));
 		unchanged(QStringLiteral("directory drop"));
 		deliver({QUrl::fromLocalFile(wrongExtension.fileName())}, true,
-			false, false, QStringLiteral("extension"));
+			false, false, QStringLiteral("not an .egscene file"));
 		unchanged(QStringLiteral("wrong-extension drop"));
 		deliver({QUrl::fromLocalFile(temp.filePath(QStringLiteral("missing.egscene")))}, true,
 			false, false, QStringLiteral("does not exist"));
